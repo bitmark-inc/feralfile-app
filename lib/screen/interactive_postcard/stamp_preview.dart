@@ -70,9 +70,12 @@ class _StampPreviewState extends State<StampPreview> with AfterLayoutMixin {
     _postcardService
         .finalizeStamp(widget.payload.asset, widget.payload.imagePath,
             widget.payload.metadataPath, widget.payload.location)
-        .then((value) {
+        .then((final bool isStampSuccess) {
       _setTimer();
       if (mounted) {
+        if (!isStampSuccess) {
+          UIHelper.showPostcardStampFailed(context);
+        }
         setState(() {
           confirming = false;
         });
@@ -216,6 +219,29 @@ class _StampPreviewState extends State<StampPreview> with AfterLayoutMixin {
                 fontSize: 18,
                 color: MoMAColors.moMA8,
                 onTap: () async {
+                  bool isStampSuccess = true;
+                  if (assetToken.isProcessingStamp) {
+                    setState(() {
+                      confirming = true;
+                    });
+                    isStampSuccess = await _postcardService.finalizeStamp(
+                      assetToken,
+                      widget.payload.imagePath,
+                      widget.payload.metadataPath,
+                      widget.payload.location,
+                    );
+                    if (mounted) {
+                      if (!isStampSuccess) {
+                        await UIHelper.showPostcardStampFailed(context);
+                      }
+                      setState(() {
+                        confirming = false;
+                      });
+                    }
+                  }
+                  if (!isStampSuccess) {
+                    return;
+                  }
                   await assetToken.sharePostcard(
                     onSuccess: () async {
                       if (mounted) {

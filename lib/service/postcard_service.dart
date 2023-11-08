@@ -26,12 +26,14 @@ import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/dio_exception_ext.dart';
 import 'package:autonomy_flutter/util/file_helper.dart';
 import 'package:autonomy_flutter/util/http_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:collection/collection.dart';
+import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/graphql/model/get_list_tokens.dart';
@@ -63,7 +65,7 @@ abstract class PostcardService {
 
   Future<AssetToken> getPostcard(String tokenId);
 
-  Future<bool> stampPostcard(
+  Future<bool?> stampPostcard(
       String tokenId,
       WalletStorage wallet,
       int index,
@@ -72,18 +74,6 @@ abstract class PostcardService {
       Location? location,
       int counter,
       String contractAddress);
-
-  Future<bool> stampPostcardUntilSuccess(
-    String tokenId,
-    WalletStorage wallet,
-    int index,
-    File image,
-    File metadata,
-    Location? location,
-    int counter,
-    String contractAddress,
-    bool Function()? isContinue,
-  );
 
   List<StampingPostcard> getStampingPostcard();
 
@@ -240,7 +230,7 @@ class PostcardServiceImpl extends PostcardService {
   }
 
   @override
-  Future<bool> stampPostcard(
+  Future<bool?> stampPostcard(
       String tokenId,
       WalletStorage wallet,
       int index,
@@ -296,38 +286,14 @@ class PostcardServiceImpl extends PostcardService {
       }
       return isStampSuccess;
     } catch (e) {
+      if (e is DioException) {
+        final isAlreadyStamped = e.isPostcardAlreadyStamped;
+        if (isAlreadyStamped) {
+          return null;
+        }
+      }
       return false;
     }
-  }
-
-  @override
-  Future<bool> stampPostcardUntilSuccess(
-    String tokenId,
-    WalletStorage wallet,
-    int index,
-    File image,
-    File metadata,
-    Location? location,
-    int counter,
-    String contractAddress,
-    bool Function()? isContinue,
-  ) async {
-    bool isStampSuccess = false;
-    while (!isStampSuccess && (isContinue?.call() ?? true)) {
-      try {
-        isStampSuccess = await stampPostcard(tokenId, wallet, index, image,
-            metadata, location, counter, contractAddress);
-      } catch (e) {
-        log.info("[Postcard Service] stampPostcardUntilSuccess $e");
-      }
-      if (!isStampSuccess) {
-        log.info(
-            "[Postcard Service] Stamping postcard $tokenId failed, retrying...");
-      }
-    }
-    log.info(
-        "[Postcard Service] Stamping postcard $tokenId success: $isStampSuccess");
-    return isStampSuccess;
   }
 
   @override
@@ -636,19 +602,20 @@ class PostcardServiceImpl extends PostcardService {
       log.info("[POSTCARD] Wallet index not found");
       return false;
     }
-    final processingStampPostcard = ProcessingStampPostcard(
-      indexId: tokenId,
-      address: address,
-      imagePath: imagePath,
-      metadataPath: metadataPath,
-      counter: counter,
-      timestamp: DateTime.now(),
-      location: location,
-    );
+    final processingStampPostcard = asset.processingStampPostcard ??
+        ProcessingStampPostcard(
+          indexId: tokenId,
+          address: address,
+          imagePath: imagePath,
+          metadataPath: metadataPath,
+          counter: counter,
+          timestamp: DateTime.now(),
+          location: location,
+        );
     await _configurationService.setProcessingStampPostcard([
       processingStampPostcard,
     ]);
-    await stampPostcardUntilSuccess(
+    final isStampSuccess = await stampPostcard(
       tokenId,
       walletIndex.first,
       walletIndex.second,
@@ -657,37 +624,35 @@ class PostcardServiceImpl extends PostcardService {
       location,
       counter,
       contractAddress,
-      () {
-        return true;
-      },
     );
+    if (isStampSuccess != false) {
+      await _configurationService.setProcessingStampPostcard(
+        [processingStampPostcard],
+        isRemove: true,
+      );
 
-    await _configurationService.setProcessingStampPostcard(
-      [processingStampPostcard],
-      isRemove: true,
-    );
-
-    await updateStampingPostcard([
-      StampingPostcard(
-        indexId: asset.id,
-        address: address,
-        imagePath: imagePath,
-        metadataPath: metadataPath,
-        counter: counter,
-      )
-    ]);
-    var postcardMetadata = asset.postcardMetadata;
-    final stampedLocation = location;
-    postcardMetadata.locationInformation.add(stampedLocation);
-    var newAsset = asset.asset;
-    newAsset?.artworkMetadata = jsonEncode(postcardMetadata.toJson());
-    final pendingToken = asset.copyWith(asset: newAsset);
-    await _tokensService.setCustomTokens([pendingToken]);
-    _tokensService.reindexAddresses([address]);
-    NftCollectionBloc.eventController.add(
-      GetTokensByOwnerEvent(pageKey: PageKey.init()),
-    );
-    return true;
+      await updateStampingPostcard([
+        StampingPostcard(
+          indexId: asset.id,
+          address: address,
+          imagePath: imagePath,
+          metadataPath: metadataPath,
+          counter: counter,
+        ),
+      ]);
+      final postcardMetadata = asset.postcardMetadata;
+      final stampedLocation = location;
+      postcardMetadata.locationInformation.add(stampedLocation);
+      final newAsset = asset.asset;
+      newAsset?.artworkMetadata = jsonEncode(postcardMetadata.toJson());
+      final pendingToken = asset.copyWith(asset: newAsset);
+      await _tokensService.setCustomTokens([pendingToken]);
+      _tokensService.reindexAddresses([address]);
+      NftCollectionBloc.eventController.add(
+        GetTokensByOwnerEvent(pageKey: PageKey.init()),
+      );
+    }
+    return isStampSuccess != false;
   }
 }
 

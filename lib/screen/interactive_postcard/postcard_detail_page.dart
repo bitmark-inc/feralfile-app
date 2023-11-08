@@ -106,6 +106,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   late bool isSending;
   late bool alreadyShowPopup;
   late bool isProcessingStampPostcard;
+  late bool isAutoStampIfNeed;
 
   late DistanceFormatter distanceFormatter;
   Timer? timer;
@@ -123,6 +124,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     isSending = false;
     alreadyShowPopup = false;
     isProcessingStampPostcard = false;
+    isAutoStampIfNeed = true;
     super.initState();
     context.read<PostcardDetailBloc>().add(
           PostcardDetailGetInfoEvent(
@@ -239,8 +241,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     );
   }
 
-  Future<void> retryStampPostcardIfNeed(
-      BuildContext context, AssetToken assetToken) async {
+  Future<bool?> retryStampPostcardIfNeed(
+      final BuildContext context, final AssetToken assetToken) async {
     final processingStampPostcard = assetToken.processingStampPostcard;
     if (processingStampPostcard != null) {
       setState(() {
@@ -252,19 +254,17 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       final location = processingStampPostcard.location;
       final counter = processingStampPostcard.counter;
       final contractAddress = assetToken.contractAddress ?? "";
-      final isStampSuccess = await _postcardService.stampPostcardUntilSuccess(
-          assetToken.tokenId ?? "",
-          walletIndex!.first,
-          walletIndex.second,
-          imageFile,
-          metadataFile,
-          location,
-          counter,
-          contractAddress, () {
-        return Navigator.of(context).mounted &&
-            assetToken.processingStampPostcard != null;
-      });
-      if (isStampSuccess == true) {
+      final isStampSuccess = await _postcardService.stampPostcard(
+        assetToken.tokenId ?? "",
+        walletIndex!.first,
+        walletIndex.second,
+        imageFile,
+        metadataFile,
+        location,
+        counter,
+        contractAddress,
+      );
+      if (isStampSuccess != false) {
         await _configurationService.setProcessingStampPostcard(
             [processingStampPostcard],
             isRemove: true);
@@ -281,7 +281,9 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       setState(() {
         isProcessingStampPostcard = false;
       });
+      return isStampSuccess;
     }
+    return null;
   }
 
   @override
@@ -316,8 +318,14 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       if (assetToken != null) {
         final viewOnly = isViewOnly || (await assetToken.isViewOnly());
         if (!mounted) return;
-        if (!isProcessingStampPostcard) {
-          retryStampPostcardIfNeed(context, assetToken);
+        if (isAutoStampIfNeed && !isProcessingStampPostcard) {
+          isAutoStampIfNeed = false;
+          unawaited(
+              retryStampPostcardIfNeed(context, assetToken).then((final value) {
+            if (mounted && value == false) {
+              UIHelper.showPostcardStampFailed(context);
+            }
+          }));
         }
         setState(() {
           currentAsset = state.assetToken;
@@ -559,18 +567,18 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         ));
   }
 
-  Widget _postcardAction(BuildContext context, AssetToken asset) {
+  Widget _postcardAction(final BuildContext context, final AssetToken asset) {
     final theme = Theme.of(context);
     if (asset.isCompleted || !asset.isLastOwner || isViewOnly != false) {
       return const SizedBox();
     }
-    if (asset.isProcessingStamp) {
+    if (isProcessingStampPostcard) {
       return PostcardButton(
         text: "minting_stamp".tr(),
         isProcessing: true,
       );
     }
-    if (!(asset.isStamping || asset.isStamped)) {
+    if (!(asset.isStamping || asset.isStamped || asset.isProcessingStamp)) {
       final button = PostcardAsyncButton(
         text: "continue".tr(),
         fontSize: 18,
@@ -618,6 +626,12 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                 text: "invite_to_collaborate".tr(),
                 color: MoMAColors.moMA8,
                 onTap: () async {
+                  final isSuccess =
+                      await retryStampPostcardIfNeed(context, asset);
+                  if (mounted && isSuccess == false) {
+                    await UIHelper.showPostcardStampFailed(context);
+                    return;
+                  }
                   await asset.sharePostcard(
                     onSuccess: () {
                       setState(() {

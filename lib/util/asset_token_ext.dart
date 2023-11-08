@@ -656,10 +656,11 @@ extension PostcardExtension on AssetToken {
   ProcessingStampPostcard? get processingStampPostcard {
     final processingStamp =
         injector<ConfigurationService>().getProcessingStampPostcard();
-    return processingStamp.firstWhereOrNull((element) {
-      final bool = (element.indexId == tokenId &&
+    return processingStamp.firstWhereOrNull((final element) {
+      final bool = element.indexId == tokenId &&
           element.address == owner &&
-          isLastOwner);
+          element.counter == numberOwners &&
+          isLastOwner;
       return bool;
     });
   }
