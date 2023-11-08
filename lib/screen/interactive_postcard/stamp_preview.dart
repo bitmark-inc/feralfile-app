@@ -206,38 +206,38 @@ class _StampPreviewState extends State<StampPreview> with AfterLayoutMixin {
     }
     final assetToken = widget.payload.asset;
     if (!isSending) {
-      final mediaSize = MediaQuery.of(context).size;
-      final height = mediaSize.height;
-      final width = mediaSize.width;
-
-      final rect = Rect.fromLTWH(width / 4, height / 4, width / 2, height / 4);
       return Column(
         children: [
-          PostcardAsyncButton(
-            text: "send_postcard".tr(),
-            fontSize: 18,
-            color: MoMAColors.moMA8,
-            onTap: () async {
-              await assetToken.sharePostcard(
-                onSuccess: () async {
-                  if (mounted) {
-                    setState(() {
-                      isSending = assetToken.isSending;
-                    });
-                    await onConfirmed(context, state.assetToken ?? assetToken);
-                  }
-                },
-                onFailed: (e) {
-                  if (e is DioException) {
+          Builder(builder: (final context) {
+            final box = context.findRenderObject() as RenderBox?;
+            return PostcardAsyncButton(
+              text: "send_postcard".tr(),
+              fontSize: 18,
+              color: MoMAColors.moMA8,
+              onTap: () async {
+                await assetToken.sharePostcard(
+                  onSuccess: () async {
                     if (mounted) {
-                      UIHelper.showSharePostcardFailed(context, e);
+                      setState(() {
+                        isSending = assetToken.isSending;
+                      });
+                      await onConfirmed(
+                          context, state.assetToken ?? assetToken);
                     }
-                  }
-                },
-                sharePositionOrigin: rect,
-              );
-            },
-          ),
+                  },
+                  onFailed: (e) {
+                    if (e is DioException) {
+                      if (mounted) {
+                        UIHelper.showSharePostcardFailed(context, e);
+                      }
+                    }
+                  },
+                  sharePositionOrigin:
+                      box!.localToGlobal(Offset.zero) & box.size,
+                );
+              },
+            );
+          }),
           const SizedBox(
             height: 20,
           ),

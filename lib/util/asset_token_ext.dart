@@ -12,14 +12,12 @@ import 'package:autonomy_flutter/model/travel_infor.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -729,32 +727,23 @@ extension PostcardExtension on AssetToken {
     try {
       final postcardService = injector<PostcardService>();
       final configurationService = injector<ConfigurationService>();
-      final navigationService = injector<NavigationService>();
       final shareTime = DateTime.now();
       final sharePostcardResponse = await postcardService.sharePostcard(this);
       if (sharePostcardResponse.deeplink?.isNotEmpty ?? false) {
         final shareMessage = "postcard_share_message".tr(namedArgs: {
           'deeplink': sharePostcardResponse.deeplink!,
         });
-        if (!navigationService.mounted) {
-          return null;
+        final result = await Share.shareWithResult(shareMessage,
+            sharePositionOrigin: sharePositionOrigin);
+        if (result.status == ShareResultStatus.success) {
+          await Future.delayed(const Duration(milliseconds: 100));
+          await configurationService
+              .updateSharedPostcard([SharedPostcard(id, owner, shareTime)]);
+
+          onSuccess?.call();
+        } else {
+          onDismissed?.call();
         }
-        await UIHelper.showTransparentDialog(
-          navigationService.context,
-          () async {
-            final result = await Share.shareWithResult(shareMessage,
-                sharePositionOrigin: sharePositionOrigin);
-            if (result.status == ShareResultStatus.success) {
-              await Future.delayed(const Duration(milliseconds: 100));
-              await configurationService
-                  .updateSharedPostcard([SharedPostcard(id, owner, shareTime)]);
-              onSuccess?.call();
-            } else {
-              onDismissed?.call();
-            }
-            navigationService.goBack(result: result);
-          },
-        );
       }
     } catch (e) {
       onFailed?.call(e);

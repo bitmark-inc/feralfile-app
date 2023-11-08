@@ -607,36 +607,35 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     ];
     if (!isSending) {
       timer?.cancel();
-      final mediaSize = MediaQuery.of(context).size;
-      final height = mediaSize.height;
-      final width = mediaSize.width;
-
-      final rect = Rect.fromLTWH(width / 4, height / 4, width / 2, height / 4);
 
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          PostcardAsyncButton(
-            text: "invite_to_collaborate".tr(),
-            color: MoMAColors.moMA8,
-            onTap: () async {
-              await asset.sharePostcard(
-                onSuccess: () {
-                  setState(() {
-                    isSending = asset.isSending;
-                  });
-                },
-                onFailed: (e) {
-                  if (e is DioException) {
-                    if (mounted) {
-                      UIHelper.showSharePostcardFailed(context, e);
+          Builder(builder: (final context) {
+            final box = context.findRenderObject() as RenderBox?;
+            return PostcardAsyncButton(
+              text: "invite_to_collaborate".tr(),
+              color: MoMAColors.moMA8,
+              onTap: () async {
+                await asset.sharePostcard(
+                  onSuccess: () {
+                    setState(() {
+                      isSending = asset.isSending;
+                    });
+                  },
+                  onFailed: (e) {
+                    if (e is DioException) {
+                      if (mounted) {
+                        UIHelper.showSharePostcardFailed(context, e);
+                      }
                     }
-                  }
-                },
-                sharePositionOrigin: rect,
-              );
-            },
-          ),
+                  },
+                  sharePositionOrigin:
+                      box!.localToGlobal(Offset.zero) & box.size,
+                );
+              },
+            );
+          }),
           ...sendPostcardExplain,
         ],
       );
