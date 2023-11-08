@@ -94,6 +94,7 @@
 		87460CF3292F786D00A23EB6 /* CustomCodable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87460CF1292F786D00A23EB6 /* CustomCodable.swift */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
+		9B0FCEF40BE2091C6DD2B9DD /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 7FDDBC61B02048F5A227BA40 /* GoogleService-Info.plist */; };
 		C577A25E2C1FF997DB2CF183 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A451CD8AF50E41359BCF628F /* Pods_Runner.framework */; };
 		E990C0ED2A26F412007CAE7A /* LocaleHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = E990C0EC2A26F412007CAE7A /* LocaleHandler.swift */; };
 		E990C0EE2A26F412007CAE7A /* LocaleHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = E990C0EC2A26F412007CAE7A /* LocaleHandler.swift */; };
@@ -223,6 +224,7 @@
 		76F328B627D1F17D00C3B9FA /* Runner-Inhouse.entitlements */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.entitlements; path = "Runner-Inhouse.entitlements"; sourceTree = "<group>"; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = Flutter/Release.xcconfig; sourceTree = "<group>"; };
 		7B1476D4526F72964B4A0961 /* Pods_Runner_Inhouse.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner_Inhouse.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		7FDDBC61B02048F5A227BA40 /* GoogleService-Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "Runner/GoogleService-Info.plist"; sourceTree = "<group>"; };
 		87460CF1292F786D00A23EB6 /* CustomCodable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomCodable.swift; sourceTree = "<group>"; };
 		910C600E080C4A7D48B11C56 /* Pods-Runner Inhouse Notification.release-prd.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner Inhouse Notification.release-prd.xcconfig"; path = "Target Support Files/Pods-Runner Inhouse Notification/Pods-Runner Inhouse Notification.release-prd.xcconfig"; sourceTree = "<group>"; };
 		9740EEB21CF90195004384FC /* Debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Debug.xcconfig; path = Flutter/Debug.xcconfig; sourceTree = "<group>"; };
@@ -440,6 +442,7 @@
 				97C146EF1CF9000F007C117D /* Products */,
 				3BBCC0A3C0034FEB1A0111DB /* Pods */,
 				48A495939161E7A3DB3133FE /* Frameworks */,
+				7FDDBC61B02048F5A227BA40 /* GoogleService-Info.plist */,
 			);
 			sourceTree = "<group>";
 		};
@@ -637,11 +640,11 @@
 			);
 			mainGroup = 97C146E51CF9000F007C117D;
 			packageReferences = (
-				63CED4A627AE9DFC00699ED5 /* XCRemoteSwiftPackageReference "libauk-swift" */,
+				63CED4A627AE9DFC00699ED5 /* XCRemoteSwiftPackageReference "libauk-swift.git" */,
 				63F1664927B2509F00451AAA /* XCRemoteSwiftPackageReference "beacon-ios-sdk" */,
-				766DF4602849FCD700731ADE /* XCRemoteSwiftPackageReference "swift-log" */,
+				766DF4602849FCD700731ADE /* XCRemoteSwiftPackageReference "swift-log.git" */,
 				637862A328B48DAF00DBA925 /* XCRemoteSwiftPackageReference "WalletConnectSwiftV2" */,
-				63D4B0F628B7180C0014B2C0 /* XCRemoteSwiftPackageReference "Starscream" */,
+				63D4B0F628B7180C0014B2C0 /* XCRemoteSwiftPackageReference "Starscream.git" */,
 			);
 			productRefGroup = 97C146EF1CF9000F007C117D /* Products */;
 			projectDirPath = "";
@@ -693,6 +696,7 @@
 				581747E427D7131D0070EB48 /* Settings.bundle in Resources */,
 				580C5D022840773C00112C28 /* Assets.xcassets in Resources */,
 				97C146FC1CF9000F007C117D /* Main.storyboard in Resources */,
+				9B0FCEF40BE2091C6DD2B9DD /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2062,7 +2066,7 @@
 				version = 1.6.10;
 			};
 		};
-		63CED4A627AE9DFC00699ED5 /* XCRemoteSwiftPackageReference "libauk-swift" */ = {
+		63CED4A627AE9DFC00699ED5 /* XCRemoteSwiftPackageReference "libauk-swift.git" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/bitmark-inc/libauk-swift.git";
 			requirement = {
@@ -2070,7 +2074,7 @@
 				revision = ce7375515c0c9f316e6261be1868a6122d65275a;
 			};
 		};
-		63D4B0F628B7180C0014B2C0 /* XCRemoteSwiftPackageReference "Starscream" */ = {
+		63D4B0F628B7180C0014B2C0 /* XCRemoteSwiftPackageReference "Starscream.git" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/daltoniam/Starscream.git";
 			requirement = {
@@ -2086,7 +2090,7 @@
 				revision = 986a2962d5e9bd3bc02d259b696dcd0ffb78d9b8;
 			};
 		};
-		766DF4602849FCD700731ADE /* XCRemoteSwiftPackageReference "swift-log" */ = {
+		766DF4602849FCD700731ADE /* XCRemoteSwiftPackageReference "swift-log.git" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/apple/swift-log.git";
 			requirement = {
@@ -2094,7 +2098,7 @@
 				kind = branch;
 			};
 		};
-		76F3288B27D1EC1C00C3B9FA /* XCRemoteSwiftPackageReference "libauk-swift" */ = {
+		76F3288B27D1EC1C00C3B9FA /* XCRemoteSwiftPackageReference "libauk-swift.git" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/bitmark-inc/libauk-swift.git";
 			requirement = {
@@ -2145,17 +2149,17 @@
 		};
 		63CED4A727AE9DFC00699ED5 /* LibAuk */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 63CED4A627AE9DFC00699ED5 /* XCRemoteSwiftPackageReference "libauk-swift" */;
+			package = 63CED4A627AE9DFC00699ED5 /* XCRemoteSwiftPackageReference "libauk-swift.git" */;
 			productName = LibAuk;
 		};
 		63D4B0F728B7180C0014B2C0 /* Starscream */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 63D4B0F628B7180C0014B2C0 /* XCRemoteSwiftPackageReference "Starscream" */;
+			package = 63D4B0F628B7180C0014B2C0 /* XCRemoteSwiftPackageReference "Starscream.git" */;
 			productName = Starscream;
 		};
 		63D4B0F928B7181B0014B2C0 /* Starscream */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 63D4B0F628B7180C0014B2C0 /* XCRemoteSwiftPackageReference "Starscream" */;
+			package = 63D4B0F628B7180C0014B2C0 /* XCRemoteSwiftPackageReference "Starscream.git" */;
 			productName = Starscream;
 		};
 		63F1664A27B2509F00451AAA /* BeaconBlockchainTezos */ = {
@@ -2180,12 +2184,12 @@
 		};
 		766DF4612849FCD700731ADE /* Logging */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 766DF4602849FCD700731ADE /* XCRemoteSwiftPackageReference "swift-log" */;
+			package = 766DF4602849FCD700731ADE /* XCRemoteSwiftPackageReference "swift-log.git" */;
 			productName = Logging;
 		};
 		766DF4632849FCEF00731ADE /* Logging */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 766DF4602849FCD700731ADE /* XCRemoteSwiftPackageReference "swift-log" */;
+			package = 766DF4602849FCD700731ADE /* XCRemoteSwiftPackageReference "swift-log.git" */;
 			productName = Logging;
 		};
 		76AA1D4A2806E79000E21A83 /* BeaconBlockchainSubstrate */ = {
@@ -2200,7 +2204,7 @@
 		};
 		76F3288A27D1EC1C00C3B9FA /* LibAuk */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 76F3288B27D1EC1C00C3B9FA /* XCRemoteSwiftPackageReference "libauk-swift" */;
+			package = 76F3288B27D1EC1C00C3B9FA /* XCRemoteSwiftPackageReference "libauk-swift.git" */;
 			productName = LibAuk;
 		};
 		76F3288C27D1EC1C00C3B9FA /* BeaconBlockchainTezos */ = {

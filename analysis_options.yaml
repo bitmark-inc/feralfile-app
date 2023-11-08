@@ -73,10 +73,7 @@ linter:
     prefer_const_literals_to_create_immutables: true
     prefer_contains: true
     prefer_expression_function_bodies: true
-    prefer_final_fields: true
-    prefer_final_in_for_each: true
     prefer_final_locals: true
-    prefer_final_parameters: true
     prefer_for_elements_to_map_fromIterable: true
     prefer_function_declarations_over_variables: true
     prefer_generic_function_type_aliases: true

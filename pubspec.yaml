@@ -163,6 +163,9 @@ dependencies:
   card_swiper: ^3.0.1
   image_gallery_saver: ^2.0.3
   hand_signature: ^3.0.1
+  firebase_core: ^2.21.0
+  firebase_remote_config: ^4.3.3
+  firebase_analytics: ^10.6.3
 dependency_overrides:
   intl: 0.18.0
 

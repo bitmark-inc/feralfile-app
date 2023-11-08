@@ -11,6 +11,7 @@ import 'dart:ui';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/firebase_options.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
@@ -27,6 +28,8 @@ import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:floor/floor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -90,6 +93,8 @@ void main() async {
 _setupApp() async {
   await setup();
 
+  await _firebaseSetUp();
+
   await DeviceInfo.instance.init();
 
   final metricClient = injector.get<MetricClientService>();
@@ -139,6 +144,26 @@ Future<void> _deleteLocalDatabase() async {
       await sqfliteDatabaseFactory.getDatabasePath("app_database_testnet.db");
   await sqfliteDatabaseFactory.deleteDatabase(appDatabaseMainnet);
   await sqfliteDatabaseFactory.deleteDatabase(appDatabaseTestnet);
+}
+
+Future<void> _firebaseSetUp() async {
+  await Firebase.initializeApp(
+    name: 'autonomy-firebase-inhouse',
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  final remoteConfig = FirebaseRemoteConfig.instance;
+  await remoteConfig.setConfigSettings(RemoteConfigSettings(
+    fetchTimeout: const Duration(minutes: 1),
+    minimumFetchInterval: const Duration(hours: 1),
+  ));
+
+  await remoteConfig.fetchAndActivate();
+
+  remoteConfig.onConfigUpdated.listen((event) async {
+    await remoteConfig.activate();
+
+    // Use the new config values here.
+  });
 }
 
 class AutonomyApp extends StatelessWidget {
