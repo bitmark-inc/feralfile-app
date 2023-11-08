@@ -36,6 +36,7 @@ import 'package:autonomy_flutter/view/postcard_common_widget.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/slide_router.dart';
+import 'package:autonomy_flutter/view/transparent_dialog.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -327,6 +328,32 @@ class UIHelper {
               ],
             ),
           );
+        },
+      ),
+    );
+  }
+
+  static Future<void> showTransparentDialog(
+      final BuildContext context, final Function afterFirstLayout) async {
+    await showModalBottomSheet<dynamic>(
+      context: context,
+      isDismissible: false,
+      backgroundColor: Colors.transparent,
+      enableDrag: false,
+      isScrollControlled: true,
+      barrierColor: Colors.black.withOpacity(0.5),
+      builder: (final context) => TransparentDialog(
+        child: Container(
+          color: Colors.transparent,
+        ),
+        onTapOutside: () {
+          Navigator.pop(context);
+        },
+        afterFirstLayout: (context) {
+          afterFirstLayout.call();
+        },
+        onDispose: () {
+          Navigator.pop(context);
         },
       ),
     );

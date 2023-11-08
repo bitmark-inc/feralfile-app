@@ -607,7 +607,12 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     ];
     if (!isSending) {
       timer?.cancel();
-      final box = context.findRenderObject() as RenderBox?;
+      final mediaSize = MediaQuery.of(context).size;
+      final height = mediaSize.height;
+      final width = mediaSize.width;
+
+      final rect = Rect.fromLTWH(width / 4, height / 4, width / 2, height / 4);
+
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -628,7 +633,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                     }
                   }
                 },
-                sharePositionOrigin: box!.localToGlobal(Offset.zero) & box.size,
+                sharePositionOrigin: rect,
               );
             },
           ),

@@ -206,7 +206,11 @@ class _StampPreviewState extends State<StampPreview> with AfterLayoutMixin {
     }
     final assetToken = widget.payload.asset;
     if (!isSending) {
-      final box = context.findRenderObject() as RenderBox?;
+      final mediaSize = MediaQuery.of(context).size;
+      final height = mediaSize.height;
+      final width = mediaSize.width;
+
+      final rect = Rect.fromLTWH(width / 4, height / 4, width / 2, height / 4);
       return Column(
         children: [
           PostcardAsyncButton(
@@ -230,7 +234,7 @@ class _StampPreviewState extends State<StampPreview> with AfterLayoutMixin {
                     }
                   }
                 },
-                sharePositionOrigin: box!.localToGlobal(Offset.zero) & box.size,
+                sharePositionOrigin: rect,
               );
             },
           ),
