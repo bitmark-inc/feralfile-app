@@ -208,72 +208,81 @@ class _StampPreviewState extends State<StampPreview> with AfterLayoutMixin {
       );
     }
     final assetToken = widget.payload.asset;
-    if (!isSending) {
-      return Column(
-        children: [
-          PostcardAsyncButton(
-            text: "send_postcard".tr(),
-            fontSize: 18,
-            color: MoMAColors.moMA8,
-            onTap: () async {
-              bool isStampSuccess = true;
-              if (assetToken.isProcessingStamp) {
-                setState(() {
-                  confirming = true;
-                });
-                isStampSuccess = await _postcardService.finalizeStamp(
-                  assetToken,
-                  widget.payload.imagePath,
-                  widget.payload.metadataPath,
-                  widget.payload.location,
-                );
-                if (mounted) {
-                  if (!isStampSuccess) {
-                    await UIHelper.showPostcardStampFailed(context);
-                  }
-                  setState(() {
-                    confirming = false;
-                  });
-                }
-              }
-              if (!isStampSuccess) {
-                return;
-              }
-              await assetToken.sharePostcard(
-                onSuccess: () async {
-                  if (mounted) {
+    if (!assetToken.isFinal) {
+      if (!isSending) {
+        return Column(
+          children: [
+            Builder(builder: (final context) {
+              final box = context.findRenderObject() as RenderBox?;
+              return PostcardAsyncButton(
+                text: "send_postcard".tr(),
+                fontSize: 18,
+                color: MoMAColors.moMA8,
+                onTap: () async {
+                  bool isStampSuccess = true;
+                  if (assetToken.isProcessingStamp) {
                     setState(() {
-                      isSending = assetToken.isSending;
+                      confirming = true;
                     });
-                    await onConfirmed(context, state.assetToken ?? assetToken);
-                  }
-                },
-                onFailed: (e) {
-                  if (e is DioException) {
+                    isStampSuccess = await _postcardService.finalizeStamp(
+                      assetToken,
+                      widget.payload.imagePath,
+                      widget.payload.metadataPath,
+                      widget.payload.location,
+                    );
                     if (mounted) {
-                      UIHelper.showSharePostcardFailed(context, e);
+                      if (!isStampSuccess) {
+                        await UIHelper.showPostcardStampFailed(context);
+                      }
+                      setState(() {
+                        confirming = false;
+                      });
                     }
                   }
+                  if (!isStampSuccess) {
+                    return;
+                  }
+                  await assetToken.sharePostcard(
+                    onSuccess: () async {
+                      if (mounted) {
+                        setState(() {
+                          isSending = assetToken.isSending;
+                        });
+                        await onConfirmed(
+                            context, state.assetToken ?? assetToken);
+                      }
+                    },
+                    onFailed: (e) {
+                      if (e is DioException) {
+                        if (mounted) {
+                          UIHelper.showSharePostcardFailed(context, e);
+                        }
+                      }
+                    },
+                    sharePositionOrigin:
+                        box!.localToGlobal(Offset.zero) & box.size,
+                  );
                 },
               );
-            },
-          ),
-          const SizedBox(
-            height: 20,
-          ),
-          Text(
-            "send_the_postcard_to_someone".tr(),
-            style: theme.textTheme.ppMori400Black12,
-          ),
-        ],
-      );
-    } else {
-      return PostcardButton(
-        enabled: false,
-        text: "postcard_sent".tr(),
-        fontSize: 18,
-      );
+            }),
+            const SizedBox(
+              height: 20,
+            ),
+            Text(
+              "send_the_postcard_to_someone".tr(),
+              style: theme.textTheme.ppMori400Black12,
+            ),
+          ],
+        );
+      } else {
+        return PostcardButton(
+          enabled: false,
+          text: "postcard_sent".tr(),
+          fontSize: 18,
+        );
+      }
     }
+    return const SizedBox();
   }
 }
 
