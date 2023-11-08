@@ -97,7 +97,6 @@ linter:
     sized_box_for_whitespace: true
     slash_for_doc_comments: true
     sort_child_properties_last: true
-    sort_constructors_first: true
     sort_unnamed_constructors_first: true
     type_annotate_public_apis: true
     type_init_formals: true
