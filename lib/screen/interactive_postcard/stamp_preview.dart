@@ -205,7 +205,7 @@ class _StampPreviewState extends State<StampPreview> with AfterLayoutMixin {
       );
     }
     final assetToken = widget.payload.asset;
-    if (!isSending) {
+    if (!isSending && !assetToken.isFinal) {
       return Column(
         children: [
           Builder(builder: (final context) {
