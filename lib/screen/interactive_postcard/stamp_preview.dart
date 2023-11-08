@@ -208,30 +208,36 @@ class _StampPreviewState extends State<StampPreview> with AfterLayoutMixin {
     if (!isSending) {
       return Column(
         children: [
-          PostcardAsyncButton(
-            text: "send_postcard".tr(),
-            fontSize: 18,
-            color: MoMAColors.moMA8,
-            onTap: () async {
-              await assetToken.sharePostcard(
-                onSuccess: () async {
-                  if (mounted) {
-                    setState(() {
-                      isSending = assetToken.isSending;
-                    });
-                    await onConfirmed(context, state.assetToken ?? assetToken);
-                  }
-                },
-                onFailed: (e) {
-                  if (e is DioException) {
+          Builder(builder: (final context) {
+            final box = context.findRenderObject() as RenderBox?;
+            return PostcardAsyncButton(
+              text: "send_postcard".tr(),
+              fontSize: 18,
+              color: MoMAColors.moMA8,
+              onTap: () async {
+                await assetToken.sharePostcard(
+                  onSuccess: () async {
                     if (mounted) {
-                      UIHelper.showSharePostcardFailed(context, e);
+                      setState(() {
+                        isSending = assetToken.isSending;
+                      });
+                      await onConfirmed(
+                          context, state.assetToken ?? assetToken);
                     }
-                  }
-                },
-              );
-            },
-          ),
+                  },
+                  onFailed: (e) {
+                    if (e is DioException) {
+                      if (mounted) {
+                        UIHelper.showSharePostcardFailed(context, e);
+                      }
+                    }
+                  },
+                  sharePositionOrigin:
+                      box!.localToGlobal(Offset.zero) & box.size,
+                );
+              },
+            );
+          }),
           const SizedBox(
             height: 20,
           ),
