@@ -1386,8 +1386,10 @@ class UIHelper {
 
   static showSharePostcardFailed(
       BuildContext context, DioException error) async {
-    return showErrorDialog(context, "Share Failed",
-        "${error.response?.data['message']}", "close".tr());
+    return _showPostcardError(
+      context,
+      message: "cannot_send_postcard".tr(),
+    );
   }
 
   static Future<void> showInvalidURI(BuildContext context) async {
