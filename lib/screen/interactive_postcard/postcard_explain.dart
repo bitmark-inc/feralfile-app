@@ -3,6 +3,7 @@ import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widge
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -66,6 +67,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
 
   @override
   Widget build(BuildContext context) {
+    final asset = widget.payload.asset;
     final pages = widget.payload.pages ??
         [
           _page1(_controller),
@@ -74,7 +76,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
           _page2(3, totalDistance: 7926),
           _page2(4, totalDistance: 91103),
           _page4(5),
-          _postcardPreview(context, widget.payload.asset),
+          if (asset.numberOwners > 0) _postcardPreview(context, asset),
         ];
     final swiperSize = pages.length;
     final theme = Theme.of(context);

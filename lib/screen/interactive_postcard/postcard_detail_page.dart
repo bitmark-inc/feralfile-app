@@ -579,23 +579,29 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       );
     }
     if (!(asset.isStamping || asset.isStamped || asset.isProcessingStamp)) {
-      final button = PostcardAsyncButton(
-        text: "continue".tr(),
-        fontSize: 18,
-        onTap: () async {
-          injector<NavigationService>().popAndPushNamed(AppRouter.designStamp,
-              arguments: DesignStampPayload(asset));
-        },
-        color: AppColor.momaGreen,
-      );
-      final page = _postcardPreview(context, asset);
       return PostcardButton(
         text: "stamp_postcard".tr(),
         onTap: () {
-          Navigator.of(context).pushNamed(
-            AppRouter.postcardExplain,
-            arguments: PostcardExplainPayload(asset, button, pages: [page]),
-          );
+          if (asset.numberOwners > 1) {
+            final button = PostcardAsyncButton(
+              text: "continue".tr(),
+              fontSize: 18,
+              onTap: () async {
+                injector<NavigationService>().popAndPushNamed(
+                    AppRouter.designStamp,
+                    arguments: DesignStampPayload(asset));
+              },
+              color: AppColor.momaGreen,
+            );
+            final page = _postcardPreview(context, asset);
+            Navigator.of(context).pushNamed(
+              AppRouter.postcardExplain,
+              arguments: PostcardExplainPayload(asset, button, pages: [page]),
+            );
+          } else {
+            Navigator.of(context).pushNamed(AppRouter.designStamp,
+                arguments: DesignStampPayload(asset));
+          }
         },
         color: MoMAColors.moMA8,
       );
