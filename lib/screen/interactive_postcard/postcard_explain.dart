@@ -436,7 +436,6 @@ class _PostcardExplainState extends State<PostcardExplain> {
                       postcardAspectRatio,
                   child: PostcardViewWidget(
                     assetToken: asset,
-                    withPreviewStamp: true,
                   ),
                 ),
               ),

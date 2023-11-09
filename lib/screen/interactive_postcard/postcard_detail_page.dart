@@ -1027,7 +1027,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
               children: [
                 PostcardViewWidget(
                   assetToken: asset,
-                  withPreviewStamp: true,
                 ),
                 Positioned.fill(child: Container(color: Colors.transparent)),
               ],
