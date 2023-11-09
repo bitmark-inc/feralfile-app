@@ -48,7 +48,6 @@ class _StampPreviewState extends State<StampPreview> with AfterLayoutMixin {
   late bool isSending;
   Timer? timer;
   Timer? confirmingTimer;
-  bool alreadyShowPopup = false;
   final _configurationService = injector<ConfigurationService>();
   final _postcardService = injector<PostcardService>();
   final _navigationService = injector<NavigationService>();
@@ -177,26 +176,6 @@ class _StampPreviewState extends State<StampPreview> with AfterLayoutMixin {
     );
   }
 
-  Future<void> onConfirmed(BuildContext context, AssetToken assetToken) async {
-    if (alreadyShowPopup) {
-      return;
-    }
-    alreadyShowPopup = true;
-    _navigationService.showOptionsAfterSharePostcard(
-      assetToken: assetToken,
-      callBack: () {
-        log.info("Popup closed");
-        if (!_navigationService.mounted) return;
-        _navigationService.popUntilHomeOrSettings();
-        _navigationService.navigateTo(
-          AppRouter.claimedPostcardDetailsPage,
-          arguments: PostcardDetailPagePayload([assetToken.identity], 0),
-        );
-        _configurationService.setAutoShowPostcard(true);
-      },
-    );
-  }
-
   Widget _postcardAction(BuildContext context, PostcardDetailState state) {
     final theme = Theme.of(context);
     if (confirming) {
@@ -247,8 +226,6 @@ class _StampPreviewState extends State<StampPreview> with AfterLayoutMixin {
                       setState(() {
                         isSending = assetToken.isSending;
                       });
-                      await onConfirmed(
-                          context, state.assetToken ?? assetToken);
                     }
                   },
                   onFailed: (e) {
