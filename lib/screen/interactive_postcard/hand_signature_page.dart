@@ -66,7 +66,7 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
       body: RotatedBox(
         quarterTurns: -1,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(15, 15, 15, 15),
+          padding: const EdgeInsets.fromLTRB(0, 15, 0, 15),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

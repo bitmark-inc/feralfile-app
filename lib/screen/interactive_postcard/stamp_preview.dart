@@ -48,7 +48,6 @@ class _StampPreviewState extends State<StampPreview> with AfterLayoutMixin {
   late bool isSending;
   Timer? timer;
   Timer? confirmingTimer;
-  bool alreadyShowPopup = false;
   final _configurationService = injector<ConfigurationService>();
   final _postcardService = injector<PostcardService>();
   final _navigationService = injector<NavigationService>();
@@ -177,26 +176,6 @@ class _StampPreviewState extends State<StampPreview> with AfterLayoutMixin {
     );
   }
 
-  Future<void> onConfirmed(BuildContext context, AssetToken assetToken) async {
-    if (alreadyShowPopup) {
-      return;
-    }
-    alreadyShowPopup = true;
-    _navigationService.showOptionsAfterSharePostcard(
-      assetToken: assetToken,
-      callBack: () {
-        log.info("Popup closed");
-        if (!_navigationService.mounted) return;
-        _navigationService.popUntilHomeOrSettings();
-        _navigationService.navigateTo(
-          AppRouter.claimedPostcardDetailsPage,
-          arguments: PostcardDetailPagePayload([assetToken.identity], 0),
-        );
-        _configurationService.setAutoShowPostcard(true);
-      },
-    );
-  }
-
   Widget _postcardAction(BuildContext context, PostcardDetailState state) {
     final theme = Theme.of(context);
     if (confirming) {
@@ -209,78 +188,69 @@ class _StampPreviewState extends State<StampPreview> with AfterLayoutMixin {
     }
     final assetToken = widget.payload.asset;
     if (!assetToken.isFinal) {
-      if (!isSending) {
-        return Column(
-          children: [
-            Builder(builder: (final context) {
-              final box = context.findRenderObject() as RenderBox?;
-              return PostcardAsyncButton(
-                text: "send_postcard".tr(),
-                fontSize: 18,
-                color: MoMAColors.moMA8,
-                onTap: () async {
-                  bool isStampSuccess = true;
-                  if (assetToken.isProcessingStamp) {
+      return Column(
+        children: [
+          Builder(builder: (final context) {
+            return PostcardAsyncButton(
+              text: "send_postcard".tr(),
+              fontSize: 18,
+              color: MoMAColors.moMA8,
+              onTap: () async {
+                bool isStampSuccess = true;
+                if (assetToken.isProcessingStamp) {
+                  setState(() {
+                    confirming = true;
+                  });
+                  isStampSuccess = await _postcardService.finalizeStamp(
+                    assetToken,
+                    widget.payload.imagePath,
+                    widget.payload.metadataPath,
+                    widget.payload.location,
+                  );
+                  if (mounted) {
+                    if (!isStampSuccess) {
+                      await UIHelper.showPostcardStampFailed(context);
+                    }
                     setState(() {
-                      confirming = true;
+                      confirming = false;
                     });
-                    isStampSuccess = await _postcardService.finalizeStamp(
-                      assetToken,
-                      widget.payload.imagePath,
-                      widget.payload.metadataPath,
-                      widget.payload.location,
-                    );
+                  }
+                }
+                if (!isStampSuccess) {
+                  return;
+                }
+                final box = context.findRenderObject() as RenderBox?;
+                await assetToken.sharePostcard(
+                  onSuccess: () async {
                     if (mounted) {
-                      if (!isStampSuccess) {
-                        await UIHelper.showPostcardStampFailed(context);
-                      }
                       setState(() {
-                        confirming = false;
+                        isSending = assetToken.isSending;
                       });
                     }
-                  }
-                  if (!isStampSuccess) {
-                    return;
-                  }
-                  await assetToken.sharePostcard(
-                    onSuccess: () async {
+                  },
+                  onFailed: (e) {
+                    if (e is DioException) {
                       if (mounted) {
-                        setState(() {
-                          isSending = assetToken.isSending;
-                        });
-                        await onConfirmed(
-                            context, state.assetToken ?? assetToken);
+                        UIHelper.showSharePostcardFailed(context, e);
                       }
-                    },
-                    onFailed: (e) {
-                      if (e is DioException) {
-                        if (mounted) {
-                          UIHelper.showSharePostcardFailed(context, e);
-                        }
-                      }
-                    },
-                    sharePositionOrigin:
-                        box!.localToGlobal(Offset.zero) & box.size,
-                  );
-                },
-              );
-            }),
-            const SizedBox(
-              height: 20,
-            ),
-            Text(
-              "send_the_postcard_to_someone".tr(),
-              style: theme.textTheme.ppMori400Black12,
-            ),
-          ],
-        );
-      } else {
-        return PostcardButton(
-          enabled: false,
-          text: "postcard_sent".tr(),
-          fontSize: 18,
-        );
-      }
+                    }
+                  },
+                  sharePositionOrigin: box == null
+                      ? null
+                      : box.localToGlobal(Offset.zero) & box.size,
+                );
+              },
+            );
+          }),
+          const SizedBox(
+            height: 20,
+          ),
+          Text(
+            "send_the_postcard_to_someone".tr(),
+            style: theme.textTheme.ppMori400Black12,
+          ),
+        ],
+      );
     }
     return const SizedBox();
   }

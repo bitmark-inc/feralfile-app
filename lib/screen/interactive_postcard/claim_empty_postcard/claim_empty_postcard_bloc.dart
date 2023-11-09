@@ -24,7 +24,7 @@ class ClaimEmptyPostCardBloc
       final token = AssetToken(
         asset: Asset.init(
           artistName: 'MoMa',
-          maxEdition: 1,
+          maxEdition: 0,
           mimeType: 'image/png',
           title: event.claimRequest.name,
           medium: 'software',
@@ -38,7 +38,7 @@ class ClaimEmptyPostCardBloc
         edition: 0,
         editionName: "",
         id: "tez-",
-        balance: 1,
+        balance: 0,
         owner: 'owner',
         lastActivityTime: DateTime.now(),
         lastRefreshedTime: DateTime(1),

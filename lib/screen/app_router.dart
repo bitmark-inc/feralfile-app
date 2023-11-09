@@ -50,6 +50,7 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_page.dart';
+import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_help_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/keyboard_control_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/touchpad_page.dart';
@@ -71,6 +72,7 @@ import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/hand_signature_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/leaderboard/postcard_leaderboard.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_bloc.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_explain.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_get_location.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
@@ -82,10 +84,13 @@ import 'package:autonomy_flutter/screen/migration/key_sync_page.dart';
 import 'package:autonomy_flutter/screen/notification_onboarding_page.dart';
 import 'package:autonomy_flutter/screen/onboarding/discover_art.dart';
 import 'package:autonomy_flutter/screen/onboarding/discover_art_bloc.dart';
+import 'package:autonomy_flutter/screen/onboarding/import_address/import_seeds.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/name_address_persona.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/select_addresses.dart';
 import 'package:autonomy_flutter/screen/onboarding/new_address/address_alias.dart';
+import 'package:autonomy_flutter/screen/onboarding/new_address/choose_chain_page.dart';
 import 'package:autonomy_flutter/screen/onboarding/view_address/name_view_only_page.dart';
+import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_address.dart';
 import 'package:autonomy_flutter/screen/onboarding_page.dart';
 import 'package:autonomy_flutter/screen/participate_user_test_page.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist.dart';
@@ -131,12 +136,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:page_transition/page_transition.dart';
-
-import 'detail/preview/canvas_device_bloc.dart';
-import 'interactive_postcard/postcard_detail_page.dart';
-import 'onboarding/import_address/import_seeds.dart';
-import 'onboarding/new_address/choose_chain_page.dart';
-import 'onboarding/view_address/view_existing_address.dart';
 
 class AppRouter {
   static const createPlayListPage = "createPlayList";
@@ -365,16 +364,24 @@ class AppRouter {
         );
 
       case postcardExplain:
-        return CupertinoPageRoute(
+        return PageTransition(
           settings: settings,
-          builder: (context) => PostcardExplain(
+          type: PageTransitionType.rightToLeft,
+          curve: Curves.easeIn,
+          duration: const Duration(milliseconds: 300),
+          reverseDuration: const Duration(milliseconds: 300),
+          child: PostcardExplain(
               payload: settings.arguments as PostcardExplainPayload),
         );
 
       case designStamp:
-        return CupertinoPageRoute(
+        return PageTransition(
           settings: settings,
-          builder: (context) => DesignStampPage(
+          type: PageTransitionType.rightToLeft,
+          curve: Curves.easeIn,
+          duration: const Duration(milliseconds: 300),
+          reverseDuration: const Duration(milliseconds: 300),
+          child: DesignStampPage(
               payload: settings.arguments as DesignStampPayload),
         );
 
@@ -384,32 +391,41 @@ class AppRouter {
           builder: (context) => const AccessMethodPage(),
         );
       case handSignaturePage:
-        return CupertinoPageRoute(
+        return PageTransition(
           settings: settings,
-          builder: (context) => HandSignaturePage(
+          type: PageTransitionType.rightToLeft,
+          curve: Curves.easeIn,
+          duration: const Duration(milliseconds: 300),
+          reverseDuration: const Duration(milliseconds: 300),
+          child: HandSignaturePage(
             payload: settings.arguments as HandSignaturePayload,
           ),
         );
 
       case AppRouter.stampPreview:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => MultiBlocProvider(
-                  providers: [
-                    BlocProvider(create: (_) => identityBloc),
-                    BlocProvider(
-                        create: (_) => PostcardDetailBloc(
-                              injector(),
-                              injector(),
-                              injector(),
-                              injector(),
-                              injector(),
-                              injector(),
-                            )),
-                  ],
-                  child: StampPreview(
-                      payload: settings.arguments as StampPreviewPayload),
-                ));
+        return PageTransition(
+          settings: settings,
+          type: PageTransitionType.rightToLeft,
+          curve: Curves.easeIn,
+          duration: const Duration(milliseconds: 300),
+          reverseDuration: const Duration(milliseconds: 300),
+          child: MultiBlocProvider(
+            providers: [
+              BlocProvider(create: (_) => identityBloc),
+              BlocProvider(
+                  create: (_) => PostcardDetailBloc(
+                        injector(),
+                        injector(),
+                        injector(),
+                        injector(),
+                        injector(),
+                        injector(),
+                      )),
+            ],
+            child: StampPreview(
+                payload: settings.arguments as StampPreviewPayload),
+          ),
+        );
 
       case notificationOnboardingPage:
         return CupertinoPageRoute(
@@ -1037,11 +1053,13 @@ class AppRouter {
             });
       case claimEmptyPostCard:
         final claimRequest = settings.arguments as RequestPostcardResponse;
-        return CupertinoPageRoute(
+        return PageTransition(
           settings: settings,
-          builder: (context) {
-            return ClaimEmptyPostCardScreen(claimRequest: claimRequest);
-          },
+          type: PageTransitionType.rightToLeft,
+          curve: Curves.easeIn,
+          duration: const Duration(milliseconds: 300),
+          reverseDuration: const Duration(milliseconds: 300),
+          child: ClaimEmptyPostCardScreen(claimRequest: claimRequest),
         );
 
       case selectAddressScreen:
@@ -1065,32 +1083,40 @@ class AppRouter {
           },
         );
       case receivePostcardPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) {
-              final args = settings.arguments as ReceivePostcardPageArgs;
-              return MultiBlocProvider(
-                providers: [
-                  BlocProvider(create: (_) => identityBloc),
-                ],
-                child: ReceivePostCardPage(
-                  asset: args.asset,
-                  shareCode: args.shareCode,
-                ),
-              );
-            });
+        final args = settings.arguments as ReceivePostcardPageArgs;
+        return PageTransition(
+          settings: settings,
+          type: PageTransitionType.rightToLeft,
+          curve: Curves.easeIn,
+          duration: const Duration(milliseconds: 300),
+          reverseDuration: const Duration(milliseconds: 300),
+          child: MultiBlocProvider(
+            providers: [
+              BlocProvider(create: (_) => identityBloc),
+            ],
+            child: ReceivePostCardPage(
+              asset: args.asset,
+              shareCode: args.shareCode,
+            ),
+          ),
+        );
       case receivePostcardSelectAccountPage:
-        return CupertinoPageRoute(builder: (context) {
-          final args =
-              settings.arguments as ReceivePostcardSelectAccountPageArgs;
-          return BlocProvider.value(
+        final args =
+            settings.arguments! as ReceivePostcardSelectAccountPageArgs;
+        return PageTransition(
+          settings: settings,
+          type: PageTransitionType.rightToLeft,
+          curve: Curves.easeIn,
+          duration: const Duration(milliseconds: 300),
+          reverseDuration: const Duration(milliseconds: 300),
+          child: BlocProvider.value(
             value: accountsBloc,
             child: ReceivePostcardSelectAccountPage(
               blockchain: args.blockchain,
               withLinked: args.withLinked,
             ),
-          );
-        });
+          ),
+        );
 
       case irlWebView:
         final payload = settings.arguments as IRLWebScreenPayload;
@@ -1186,37 +1212,41 @@ class AppRouter {
         );
 
       case postcardLeaderboardPage:
-        return CupertinoPageRoute(
+        return PageTransition(
           settings: settings,
-          builder: (context) {
-            return MultiBlocProvider(
-              providers: [
-                BlocProvider.value(value: accountsBloc),
-                BlocProvider(
-                  create: (_) => PostcardDetailBloc(
-                    injector(),
-                    injector(),
-                    injector(),
-                    injector(),
-                    injector(),
-                    injector(),
-                  ),
+          type: PageTransitionType.rightToLeft,
+          curve: Curves.easeIn,
+          duration: const Duration(milliseconds: 300),
+          reverseDuration: const Duration(milliseconds: 300),
+          child: MultiBlocProvider(
+            providers: [
+              BlocProvider.value(value: accountsBloc),
+              BlocProvider(
+                create: (_) => PostcardDetailBloc(
+                  injector(),
+                  injector(),
+                  injector(),
+                  injector(),
+                  injector(),
+                  injector(),
                 ),
-              ],
-              child: PostcardLeaderboardPage(
-                payload: settings.arguments as PostcardLeaderboardPagePayload,
               ),
-            );
-          },
+            ],
+            child: PostcardLeaderboardPage(
+              payload: settings.arguments as PostcardLeaderboardPagePayload,
+            ),
+          ),
         );
       case postcardLocationExplain:
-        return CupertinoPageRoute(
+        return PageTransition(
           settings: settings,
-          builder: (context) {
-            return PostcardLocationExplain(
-              payload: settings.arguments as PostcardExplainPayload,
-            );
-          },
+          type: PageTransitionType.rightToLeft,
+          curve: Curves.easeIn,
+          duration: const Duration(milliseconds: 300),
+          reverseDuration: const Duration(milliseconds: 300),
+          child: PostcardLocationExplain(
+            payload: settings.arguments as PostcardExplainPayload,
+          ),
         );
 
       default:
