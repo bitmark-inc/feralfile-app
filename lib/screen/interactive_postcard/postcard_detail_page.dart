@@ -628,7 +628,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Builder(builder: (final context) {
-            final box = context.findRenderObject() as RenderBox?;
             return PostcardAsyncButton(
               text: "invite_to_collaborate".tr(),
               color: MoMAColors.moMA8,
@@ -639,6 +638,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                   await UIHelper.showPostcardStampFailed(context);
                   return;
                 }
+                final box = context.findRenderObject() as RenderBox?;
                 await asset.sharePostcard(
                   onSuccess: () {
                     setState(() {
@@ -652,8 +652,9 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                       }
                     }
                   },
-                  sharePositionOrigin:
-                      box!.localToGlobal(Offset.zero) & box.size,
+                  sharePositionOrigin: box == null
+                      ? null
+                      : box.localToGlobal(Offset.zero) & box.size,
                 );
               },
             );

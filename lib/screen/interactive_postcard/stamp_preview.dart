@@ -191,7 +191,6 @@ class _StampPreviewState extends State<StampPreview> with AfterLayoutMixin {
       return Column(
         children: [
           Builder(builder: (final context) {
-            final box = context.findRenderObject() as RenderBox?;
             return PostcardAsyncButton(
               text: "send_postcard".tr(),
               fontSize: 18,
@@ -220,6 +219,7 @@ class _StampPreviewState extends State<StampPreview> with AfterLayoutMixin {
                 if (!isStampSuccess) {
                   return;
                 }
+                final box = context.findRenderObject() as RenderBox?;
                 await assetToken.sharePostcard(
                   onSuccess: () async {
                     if (mounted) {
@@ -235,8 +235,9 @@ class _StampPreviewState extends State<StampPreview> with AfterLayoutMixin {
                       }
                     }
                   },
-                  sharePositionOrigin:
-                      box!.localToGlobal(Offset.zero) & box.size,
+                  sharePositionOrigin: box == null
+                      ? null
+                      : box.localToGlobal(Offset.zero) & box.size,
                 );
               },
             );
