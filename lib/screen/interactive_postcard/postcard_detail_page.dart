@@ -36,6 +36,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
+import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
@@ -116,6 +117,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   final _metricClient = injector.get<MetricClientService>();
   final _configurationService = injector<ConfigurationService>();
   final _postcardService = injector<PostcardService>();
+  final _remoteConfig = injector<RemoteConfigService>();
 
   @override
   void initState() {
@@ -458,30 +460,33 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            state.assetToken == null ||
-                                    state.assetToken?.pending == true
-                                ? const SizedBox()
-                                : FutureBuilder<Pair<WalletStorage, int>?>(
-                                    future: state.assetToken!.getOwnerWallet(),
-                                    builder: (context, snapshot) {
-                                      if (snapshot.hasData) {
-                                        final wallet = snapshot.data;
-                                        if (wallet == null) {
-                                          return const SizedBox();
-                                        }
-                                        return Padding(
-                                          padding:
-                                              const EdgeInsets.only(top: 15),
-                                          child: MessagePreview(
-                                              payload: MessagePreviewPayload(
-                                            asset: state.assetToken!,
-                                            wallet: wallet,
-                                            getAssetToken: getCurrentAssetToken,
-                                          )),
-                                        );
+                            if (state.assetToken == null ||
+                                state.assetToken?.pending == true ||
+                                !_remoteConfig.getBool(
+                                    RemoteConfigService.grViewDetail,
+                                    RemoteConfigService.keyChat))
+                              const SizedBox()
+                            else
+                              FutureBuilder<Pair<WalletStorage, int>?>(
+                                  future: state.assetToken!.getOwnerWallet(),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.hasData) {
+                                      final wallet = snapshot.data;
+                                      if (wallet == null) {
+                                        return const SizedBox();
                                       }
-                                      return const SizedBox();
-                                    }),
+                                      return Padding(
+                                        padding: const EdgeInsets.only(top: 15),
+                                        child: MessagePreview(
+                                            payload: MessagePreviewPayload(
+                                          asset: state.assetToken!,
+                                          wallet: wallet,
+                                          getAssetToken: getCurrentAssetToken,
+                                        )),
+                                      );
+                                    }
+                                    return const SizedBox();
+                                  }),
                             const SizedBox(
                               height: 30,
                             ),
@@ -514,7 +519,10 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                             const SizedBox(
                               height: 20,
                             ),
-                            if (!isViewOnly) ...[
+                            if (!isViewOnly &&
+                                _remoteConfig.getBool(
+                                    RemoteConfigService.grViewDetail,
+                                    RemoteConfigService.keyActionButton)) ...[
                               _postcardAction(context, asset),
                               const SizedBox(
                                 height: 20,
@@ -524,19 +532,31 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                             const SizedBox(
                               height: 20,
                             ),
-                            _postcardLeaderboard(
-                                context, state.leaderboard, asset),
-                            const SizedBox(
-                              height: 20,
-                            ),
-                            _aboutTheProject(context),
-                            const SizedBox(
-                              height: 20,
-                            ),
-                            _web3Glossary(context, asset),
-                            const SizedBox(
-                              height: 20,
-                            ),
+                            if (_remoteConfig.getBool(
+                                RemoteConfigService.grViewDetail,
+                                RemoteConfigService.keyLeaderBoard)) ...[
+                              _postcardLeaderboard(
+                                  context, state.leaderboard, asset),
+                              const SizedBox(
+                                height: 20,
+                              ),
+                            ],
+                            if (_remoteConfig.getBool(
+                                RemoteConfigService.grViewDetail,
+                                RemoteConfigService.keyLeaderBoard)) ...[
+                              _aboutTheProject(context),
+                              const SizedBox(
+                                height: 20,
+                              ),
+                            ],
+                            if (_remoteConfig.getBool(
+                                RemoteConfigService.grViewDetail,
+                                RemoteConfigService.keyGlossary)) ...[
+                              _web3Glossary(context, asset),
+                              const SizedBox(
+                                height: 20,
+                              ),
+                            ],
                             _artworkInfo(context, asset, state.provenances,
                                 artistNames, owners),
                           ],
@@ -765,48 +785,56 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   }
 
   Widget _artworkInfo(
-      BuildContext context,
-      AssetToken asset,
-      List<Provenance> provenances,
-      List<String?> artistNames,
-      Map<String, int> owners) {
-    return Column(
-      children: [
-        debugInfoWidget(context, currentAsset),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            PostcardContainer(
-              padding: const EdgeInsets.symmetric(vertical: 20.0),
-              child:
-                  postcardDetailsMetadataSection(context, asset, artistNames),
-            ),
-            const SizedBox(height: 20.0),
-            if (asset.fungible == true) ...[
-              BlocBuilder<AccountsBloc, AccountsState>(
-                builder: (context, state) {
-                  return PostcardContainer(
+          BuildContext context,
+          AssetToken asset,
+          List<Provenance> provenances,
+          List<String?> artistNames,
+          Map<String, int> owners) =>
+      Column(
+        children: [
+          debugInfoWidget(context, currentAsset),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (_remoteConfig.getBool(RemoteConfigService.grViewDetail,
+                  RemoteConfigService.keyMetadata)) ...[
+                PostcardContainer(
+                  padding: const EdgeInsets.symmetric(vertical: 20.0),
+                  child: postcardDetailsMetadataSection(
+                      context, asset, artistNames),
+                ),
+                const SizedBox(height: 20.0),
+              ],
+              if (asset.fungible == true &&
+                  _remoteConfig.getBool(RemoteConfigService.grViewDetail,
+                      RemoteConfigService.keyTokenOwnership)) ...[
+                BlocBuilder<AccountsBloc, AccountsState>(
+                  builder: (context, state) => PostcardContainer(
                     padding: const EdgeInsets.symmetric(vertical: 20.0),
                     child: postcardOwnership(context, asset, owners),
-                  );
-                },
-              ),
-            ] else ...[
-              provenances.isNotEmpty
-                  ? PostcardContainer(
+                  ),
+                ),
+                const SizedBox(height: 20.0),
+              ] else if (_remoteConfig.getBool(RemoteConfigService.grViewDetail,
+                  RemoteConfigService.keyProvenance)) ...[
+                if (provenances.isNotEmpty)
+                  PostcardContainer(
                       child: _provenanceView(context, provenances))
-                  : const SizedBox()
+                else
+                  const SizedBox(),
+                const SizedBox(height: 20.0),
+              ],
+              if (_remoteConfig.getBool(RemoteConfigService.grViewDetail,
+                  RemoteConfigService.keyRights)) ...[
+                PostcardContainer(
+                    padding: const EdgeInsets.fromLTRB(0, 20, 0, 22),
+                    child: artworkDetailsRightSection(context, asset)),
+                const SizedBox(height: 40.0),
+              ],
             ],
-            const SizedBox(height: 20.0),
-            PostcardContainer(
-                padding: const EdgeInsets.fromLTRB(0, 20, 0, 22),
-                child: artworkDetailsRightSection(context, asset)),
-            const SizedBox(height: 40.0),
-          ],
-        )
-      ],
-    );
-  }
+          )
+        ],
+      );
 
   Widget _provenanceView(BuildContext context, List<Provenance> provenances) {
     return BlocBuilder<IdentityBloc, IdentityState>(

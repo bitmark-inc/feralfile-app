@@ -16,24 +16,27 @@ import 'package:retrofit/retrofit.dart';
 
 part 'pubdoc_api.g.dart';
 
-@RestApi(baseUrl: "")
+@RestApi(baseUrl: '')
 abstract class PubdocAPI {
   factory PubdocAPI(Dio dio, {String baseUrl}) = _PubdocAPI;
 
-  @GET("/versions.json")
+  @GET('/versions.json')
   Future<String> getVersionContent();
 
-  @GET("/release_notes/{app}/changelog.md")
-  Future<String> getReleaseNotesContent(@Path("app") String app);
+  @GET('/release_notes/{app}/changelog.md')
+  Future<String> getReleaseNotesContent(@Path('app') String app);
 
-  @GET("/demo/demo_account.json")
+  @GET('/demo/demo_account.json')
   Future<String> getDemoAccount();
 
-  @GET("/tutorial_videos/tutorial_videos.json")
+  @GET('/tutorial_videos/tutorial_videos.json')
   Future<String> getTutorialVideos();
 
-  @GET("/artists/suggested_artists.json")
+  @GET('/artists/suggested_artists.json')
   Future<String> getSuggestedArtists();
+
+  @GET('/configs/postcard/postcard_configs.json')
+  Future<String> getConfigs();
 }
 
 extension PubdocAPIHelpers on PubdocAPI {

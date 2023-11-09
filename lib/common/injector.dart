@@ -57,6 +57,7 @@ import 'package:autonomy_flutter/service/notification_service.dart';
 import 'package:autonomy_flutter/service/pending_token_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
+import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
@@ -214,6 +215,8 @@ Future<void> setup() async {
   injector.registerLazySingleton(() => BranchApi(dio));
   injector.registerLazySingleton(
       () => PubdocAPI(dio, baseUrl: Environment.pubdocURL));
+  injector.registerLazySingleton<RemoteConfigService>(
+      () => RemoteConfigServiceImpl(injector()));
   injector.registerLazySingleton(
       () => FeedApi(authenticatedDio, baseUrl: Environment.feedURL));
   injector.registerLazySingleton(
