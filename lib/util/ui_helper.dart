@@ -1734,54 +1734,6 @@ class UIHelper {
         message: "_save_failed".tr(args: [title]),
         icon: SvgPicture.asset("assets/images/exit.svg"));
   }
-
-  static Future<void> showPostcardCancelInvitation(BuildContext context,
-      {Function()? onConfirm, Function()? onBack}) async {
-    final theme = Theme.of(context);
-    final options = [
-      OptionItem(
-          builder: (context, _) {
-            final theme = Theme.of(context);
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "cancel_invitation".tr(),
-                    style: theme.textTheme.moMASans700Black16
-                        .copyWith(fontSize: 18),
-                  ),
-                  const SizedBox(
-                    height: 20,
-                  ),
-                  Text("cancel_invitation_desc".tr(),
-                      style: theme.textTheme.moMASans400Black16
-                          .copyWith(fontSize: 12)),
-                ],
-              ),
-            );
-          },
-          separator: const Divider(
-            color: AppColor.auGrey,
-            height: 1,
-            thickness: 1.0,
-          )),
-      OptionItem(
-        title: "ok".tr(),
-        titleStyle: theme.textTheme.moMASans700Black16
-            .copyWith(fontSize: 18, color: MoMAColors.moMA3),
-        titleStyleOnPrecessing: theme.textTheme.moMASans700Black16
-            .copyWith(fontSize: 18, color: MoMAColors.moMA3Disable),
-        onTap: onConfirm,
-      ),
-      OptionItem(
-        title: "go_back".tr(),
-        onTap: onBack,
-      ),
-    ];
-    await showPostcardDrawerAction(context, options: options);
-  }
 }
 
 Widget loadingScreen(ThemeData theme, String text) {

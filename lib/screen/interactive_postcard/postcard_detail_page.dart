@@ -622,57 +622,45 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     if (!asset.isFinal) {
       if (!isSending) {
         timer?.cancel();
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Builder(builder: (final context) {
-              final box = context.findRenderObject() as RenderBox?;
-              return PostcardAsyncButton(
-                text: "invite_to_collaborate".tr(),
-                color: MoMAColors.moMA8,
-                onTap: () async {
-                  final isSuccess =
-                      await retryStampPostcardIfNeed(context, asset);
-                  if (mounted && isSuccess == false) {
-                    await UIHelper.showPostcardStampFailed(context);
-                    return;
-                  }
-                  await asset.sharePostcard(
-                    onSuccess: () {
-                      setState(() {
-                        isSending = asset.isSending;
-                      });
-                    },
-                    onFailed: (e) {
-                      if (e is DioException) {
-                        if (mounted) {
-                          UIHelper.showSharePostcardFailed(context, e);
-                        }
-                      }
-                    },
-                    sharePositionOrigin:
-                        box!.localToGlobal(Offset.zero) & box.size,
-                  );
-                },
-              );
-            }),
-            ...sendPostcardExplain,
-          ],
-        );
-      } else {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            PostcardButton(
-              text: "postcard_sent".tr(),
-              disabledColor: AppColor.momaGreen,
-              enabled: false,
-            ),
-            ...sendPostcardExplain,
-          ],
-        );
       }
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Builder(builder: (final context) {
+            final box = context.findRenderObject() as RenderBox?;
+            return PostcardAsyncButton(
+              text: "invite_to_collaborate".tr(),
+              color: MoMAColors.moMA8,
+              onTap: () async {
+                final isSuccess =
+                    await retryStampPostcardIfNeed(context, asset);
+                if (mounted && isSuccess == false) {
+                  await UIHelper.showPostcardStampFailed(context);
+                  return;
+                }
+                await asset.sharePostcard(
+                  onSuccess: () {
+                    setState(() {
+                      isSending = asset.isSending;
+                    });
+                  },
+                  onFailed: (e) {
+                    if (e is DioException) {
+                      if (mounted) {
+                        UIHelper.showSharePostcardFailed(context, e);
+                      }
+                    }
+                  },
+                  sharePositionOrigin:
+                      box!.localToGlobal(Offset.zero) & box.size,
+                );
+              },
+            );
+          }),
+          ...sendPostcardExplain,
+        ],
+      );
     }
     return const SizedBox();
   }
@@ -1011,11 +999,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         return PostcardTravelInfo(
           assetToken: asset,
           listTravelInfo: travelInfo,
-          onCancelShare: () {
-            setState(() {
-              isSending = asset.isSending;
-            });
-          },
         );
       },
     );
