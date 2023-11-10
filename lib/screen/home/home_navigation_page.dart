@@ -35,6 +35,7 @@ import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/notification_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
+import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/announcement_ext.dart';
@@ -666,6 +667,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     useAppTimer = Timer(USE_APP_MIN_DURATION, () async {
       await _metricClientService.onUseAppInForeground();
     });
+    await injector<RemoteConfigService>().loadConfigs();
   }
 
   @override
