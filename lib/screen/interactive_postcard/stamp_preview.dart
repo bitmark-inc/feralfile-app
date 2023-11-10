@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widge
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
+import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/moma_style_color.dart';
@@ -178,11 +179,16 @@ class _StampPreviewState extends State<StampPreview> with AfterLayoutMixin {
 
   Widget _postcardAction(BuildContext context, PostcardDetailState state) {
     final theme = Theme.of(context);
-    if (confirming) {
+    final showCondition = confirming ||
+        (injector<RemoteConfigService>().getBool(
+                RemoteConfigService.grPostcardAction,
+                RemoteConfigService.keyWaitConfirmedToSend) &&
+            (state.assetToken?.isStamping ?? false));
+    if (showCondition) {
       return PostcardButton(
-        enabled: !confirming,
+        enabled: !showCondition,
         text: "confirming_on_blockchain".tr(),
-        isProcessing: confirming,
+        isProcessing: showCondition,
         fontSize: 18,
       );
     }
