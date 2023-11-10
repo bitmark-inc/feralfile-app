@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
+
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/pair.dart';
@@ -74,9 +76,12 @@ class PostcardDetailBloc
         return;
       } else {
         final tokenService = injector<TokensService>();
-        await tokenService.reindexAddresses([event.identity.owner]);
+        unawaited(tokenService.reindexAddresses([event.identity.owner]));
         final assetToken = await _assetTokenDao.findAssetTokenByIdAndOwner(
             event.identity.id, event.identity.owner);
+        if (assetToken == null) {
+          log.info("ArtworkDetailGetInfoEvent: $event assetToken is null");
+        }
         final paths = getUpdatingPath(assetToken);
         emit(state.copyWith(
             assetToken: assetToken,
