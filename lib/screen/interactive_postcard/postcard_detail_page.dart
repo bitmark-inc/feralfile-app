@@ -592,7 +592,10 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     if (asset.isCompleted || !asset.isLastOwner || isViewOnly != false) {
       return const SizedBox();
     }
-    if (isProcessingStampPostcard) {
+    if (isProcessingStampPostcard ||
+        (_remoteConfig.getBool(RemoteConfigService.grPostcardAction,
+                RemoteConfigService.keyWaitConfirmedToSend) &&
+            asset.isStamping)) {
       return PostcardButton(
         text: "confirming_on_blockchain".tr(),
         isProcessing: true,
@@ -859,7 +862,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     if (!mounted) return;
     const isHidden = false;
     final isStamped = asset.isStamped;
-    UIHelper.showPostcardDrawerAction(
+    await UIHelper.showPostcardDrawerAction(
       context,
       options: [
         OptionItem(
@@ -896,92 +899,97 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             Navigator.of(context).pop();
           },
         ),
-        if (!isViewOnly)
-          OptionItem(
-            title: 'download_stamp'.tr(),
-            isEnable: isStamped,
-            icon: SvgPicture.asset(
-              'assets/images/download.svg',
-              width: 24,
-              height: 24,
+        if (!isViewOnly) ...[
+          if (_remoteConfig.getBool(RemoteConfigService.grFeature,
+              RemoteConfigService.keyDownloadStamp))
+            OptionItem(
+              title: 'download_stamp'.tr(),
+              isEnable: isStamped,
+              icon: SvgPicture.asset(
+                'assets/images/download.svg',
+                width: 24,
+                height: 24,
+              ),
+              iconOnProcessing: SvgPicture.asset('assets/images/download.svg',
+                  width: 24,
+                  height: 24,
+                  colorFilter: const ColorFilter.mode(
+                      AppColor.disabledColor, BlendMode.srcIn)),
+              iconOnDisable: SvgPicture.asset('assets/images/download.svg',
+                  width: 24,
+                  height: 24,
+                  colorFilter: const ColorFilter.mode(
+                      AppColor.disabledColor, BlendMode.srcIn)),
+              onTap: () async {
+                try {
+                  await _postcardService.downloadStamp(
+                      tokenId: asset.tokenId!,
+                      stampIndex: asset.stampIndexWithStamping);
+                  if (!mounted) return;
+                  Navigator.of(context).pop();
+                  await UIHelper.showPostcardStampSaved(context);
+                } catch (e) {
+                  log.info("Download stamp failed: error ${e.toString()}");
+                  if (!mounted) return;
+                  Navigator.of(context).pop();
+                  switch (e.runtimeType) {
+                    case MediaPermissionException:
+                      await UIHelper.showPostcardStampPhotoAccessFailed(
+                          context);
+                      break;
+                    default:
+                      if (!mounted) return;
+                      await UIHelper.showPostcardStampSavedFailed(context);
+                  }
+                }
+              },
             ),
-            iconOnProcessing: SvgPicture.asset('assets/images/download.svg',
+          if (_remoteConfig.getBool(RemoteConfigService.grFeature,
+              RemoteConfigService.keyDownloadPostcard))
+            OptionItem(
+              title: 'download_postcard'.tr(),
+              isEnable: isStamped,
+              icon: SvgPicture.asset(
+                'assets/images/download.svg',
+                width: 24,
+                height: 24,
+              ),
+              iconOnProcessing: SvgPicture.asset(
+                'assets/images/download.svg',
                 width: 24,
                 height: 24,
                 colorFilter: const ColorFilter.mode(
-                    AppColor.disabledColor, BlendMode.srcIn)),
-            iconOnDisable: SvgPicture.asset('assets/images/download.svg',
+                    AppColor.disabledColor, BlendMode.srcIn),
+              ),
+              iconOnDisable: SvgPicture.asset(
+                'assets/images/download.svg',
                 width: 24,
                 height: 24,
                 colorFilter: const ColorFilter.mode(
-                    AppColor.disabledColor, BlendMode.srcIn)),
-            onTap: () async {
-              try {
-                await _postcardService.downloadStamp(
-                    tokenId: asset.tokenId!,
-                    stampIndex: asset.stampIndexWithStamping);
-                if (!mounted) return;
-                Navigator.of(context).pop();
-                await UIHelper.showPostcardStampSaved(context);
-              } catch (e) {
-                log.info("Download stamp failed: error ${e.toString()}");
-                if (!mounted) return;
-                Navigator.of(context).pop();
-                switch (e.runtimeType) {
-                  case MediaPermissionException:
-                    await UIHelper.showPostcardStampPhotoAccessFailed(context);
-                    break;
-                  default:
-                    if (!mounted) return;
-                    await UIHelper.showPostcardStampSavedFailed(context);
+                    AppColor.disabledColor, BlendMode.srcIn),
+              ),
+              onTap: () async {
+                try {
+                  await _postcardService.downloadPostcard(asset.tokenId!);
+                  if (!mounted) return;
+                  Navigator.of(context).pop();
+                  await UIHelper.showPostcardSaved(context);
+                } catch (e) {
+                  log.info("Download postcard failed: error ${e.toString()}");
+                  if (!mounted) return;
+                  Navigator.of(context).pop();
+                  switch (e.runtimeType) {
+                    case MediaPermissionException:
+                      await UIHelper.showPostcardPhotoAccessFailed(context);
+                      break;
+                    default:
+                      if (!mounted) return;
+                      await UIHelper.showPostcardSavedFailed(context);
+                  }
                 }
-              }
-            },
-          ),
-        if (!isViewOnly)
-          OptionItem(
-            title: 'download_postcard'.tr(),
-            isEnable: isStamped,
-            icon: SvgPicture.asset(
-              'assets/images/download.svg',
-              width: 24,
-              height: 24,
+              },
             ),
-            iconOnProcessing: SvgPicture.asset(
-              'assets/images/download.svg',
-              width: 24,
-              height: 24,
-              colorFilter: const ColorFilter.mode(
-                  AppColor.disabledColor, BlendMode.srcIn),
-            ),
-            iconOnDisable: SvgPicture.asset(
-              'assets/images/download.svg',
-              width: 24,
-              height: 24,
-              colorFilter: const ColorFilter.mode(
-                  AppColor.disabledColor, BlendMode.srcIn),
-            ),
-            onTap: () async {
-              try {
-                await _postcardService.downloadPostcard(asset.tokenId!);
-                if (!mounted) return;
-                Navigator.of(context).pop();
-                await UIHelper.showPostcardSaved(context);
-              } catch (e) {
-                log.info("Download postcard failed: error ${e.toString()}");
-                if (!mounted) return;
-                Navigator.of(context).pop();
-                switch (e.runtimeType) {
-                  case MediaPermissionException:
-                    await UIHelper.showPostcardPhotoAccessFailed(context);
-                    break;
-                  default:
-                    if (!mounted) return;
-                    await UIHelper.showPostcardSavedFailed(context);
-                }
-              }
-            },
-          ),
+        ],
         OptionItem(
           title: 'hide'.tr(),
           titleStyle: theme.textTheme.moMASans700Black16

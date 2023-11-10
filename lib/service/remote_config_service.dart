@@ -29,6 +29,7 @@ abstract class RemoteConfigService {
   static const String keyDownloadStamp = 'download_stamp';
   static const String keyDownloadPostcard = 'download_postcard';
   static const String keyChat = 'chat';
+  static const String keyWaitConfirmedToSend = 'wait_confirmed_to_send';
 }
 
 class RemoteConfigServiceImpl implements RemoteConfigService {
