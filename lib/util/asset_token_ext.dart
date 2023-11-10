@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ui';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
@@ -655,10 +656,11 @@ extension PostcardExtension on AssetToken {
   ProcessingStampPostcard? get processingStampPostcard {
     final processingStamp =
         injector<ConfigurationService>().getProcessingStampPostcard();
-    return processingStamp.firstWhereOrNull((element) {
-      final bool = (element.indexId == tokenId &&
+    return processingStamp.firstWhereOrNull((final element) {
+      final bool = element.indexId == tokenId &&
           element.address == owner &&
-          isLastOwner);
+          element.counter == numberOwners &&
+          isLastOwner;
       return bool;
     });
   }
@@ -721,6 +723,7 @@ extension PostcardExtension on AssetToken {
     Function? onSuccess,
     Function? onDismissed,
     Function(Object)? onFailed,
+    Rect? sharePositionOrigin,
   }) async {
     try {
       final postcardService = injector<PostcardService>();
@@ -731,7 +734,8 @@ extension PostcardExtension on AssetToken {
         final shareMessage = "postcard_share_message".tr(namedArgs: {
           'deeplink': sharePostcardResponse.deeplink!,
         });
-        final result = await Share.shareWithResult(shareMessage);
+        final result = await Share.shareWithResult(shareMessage,
+            sharePositionOrigin: sharePositionOrigin);
         if (result.status == ShareResultStatus.success) {
           await Future.delayed(const Duration(milliseconds: 100));
           await configurationService

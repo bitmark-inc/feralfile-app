@@ -220,17 +220,16 @@ class _DesignStampPageState extends State<DesignStampPage> {
                         ),
                       ),
                       const SizedBox(height: 70),
-                      PostcardButton(
+                      PostcardAsyncButton(
                         text: "continue".tr(),
                         fontSize: 18,
-                        disabledTextColor: Colors.white,
                         color: MoMAColors.moMA8,
                         enabled: _didPaint,
                         onTap: () async {
                           setState(() {
                             _line = false;
                           });
-                          Future.delayed(
+                          await Future.delayed(
                             const Duration(milliseconds: 200),
                             () async {
                               final bytes = await _controller.capture();

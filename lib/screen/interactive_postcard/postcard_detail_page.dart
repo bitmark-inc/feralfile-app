@@ -108,6 +108,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   late bool isSending;
   late bool alreadyShowPopup;
   late bool isProcessingStampPostcard;
+  late bool isAutoStampIfNeed;
 
   late DistanceFormatter distanceFormatter;
   Timer? timer;
@@ -125,6 +126,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     isSending = false;
     alreadyShowPopup = false;
     isProcessingStampPostcard = false;
+    isAutoStampIfNeed = true;
     super.initState();
     context.read<PostcardDetailBloc>().add(
           PostcardDetailGetInfoEvent(
@@ -241,8 +243,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     );
   }
 
-  Future<void> retryStampPostcardIfNeed(
-      BuildContext context, AssetToken assetToken) async {
+  Future<bool?> retryStampPostcardIfNeed(
+      final BuildContext context, final AssetToken assetToken) async {
     final processingStampPostcard = assetToken.processingStampPostcard;
     if (processingStampPostcard != null) {
       setState(() {
@@ -254,19 +256,17 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       final location = processingStampPostcard.location;
       final counter = processingStampPostcard.counter;
       final contractAddress = assetToken.contractAddress ?? "";
-      final isStampSuccess = await _postcardService.stampPostcardUntilSuccess(
-          assetToken.tokenId ?? "",
-          walletIndex!.first,
-          walletIndex.second,
-          imageFile,
-          metadataFile,
-          location,
-          counter,
-          contractAddress, () {
-        return Navigator.of(context).mounted &&
-            assetToken.processingStampPostcard != null;
-      });
-      if (isStampSuccess == true) {
+      final isStampSuccess = await _postcardService.stampPostcard(
+        assetToken.tokenId ?? "",
+        walletIndex!.first,
+        walletIndex.second,
+        imageFile,
+        metadataFile,
+        location,
+        counter,
+        contractAddress,
+      );
+      if (isStampSuccess != false) {
         await _configurationService.setProcessingStampPostcard(
             [processingStampPostcard],
             isRemove: true);
@@ -283,7 +283,9 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       setState(() {
         isProcessingStampPostcard = false;
       });
+      return isStampSuccess;
     }
+    return null;
   }
 
   @override
@@ -318,8 +320,14 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       if (assetToken != null) {
         final viewOnly = isViewOnly || (await assetToken.isViewOnly());
         if (!mounted) return;
-        if (!isProcessingStampPostcard) {
-          retryStampPostcardIfNeed(context, assetToken);
+        if (isAutoStampIfNeed && !isProcessingStampPostcard) {
+          isAutoStampIfNeed = false;
+          unawaited(
+              retryStampPostcardIfNeed(context, assetToken).then((final value) {
+            if (mounted && value == false) {
+              UIHelper.showPostcardStampFailed(context);
+            }
+          }));
         }
         setState(() {
           currentAsset = state.assetToken;
@@ -557,7 +565,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         ));
   }
 
-  Widget _postcardAction(BuildContext context, AssetToken asset) {
+  Widget _postcardAction(final BuildContext context, final AssetToken asset) {
     final theme = Theme.of(context);
     final place15StampsText = Text(
       "place_15_stamps".tr(),
@@ -569,7 +577,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     if (isViewOnly) {
       return const SizedBox();
     }
-    if (asset.isProcessingStamp) {
+    if (isProcessingStampPostcard) {
       return PostcardButton(
         text: "minting_stamp".tr(),
         isProcessing: true,
@@ -578,24 +586,30 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     if (!asset.isLastOwner) {
       return place15StampsText;
     }
-    if (!(asset.isStamping || asset.isStamped)) {
-      final button = PostcardAsyncButton(
-        text: "continue".tr(),
-        fontSize: 18,
-        onTap: () async {
-          injector<NavigationService>().popAndPushNamed(AppRouter.designStamp,
-              arguments: DesignStampPayload(asset));
-        },
-        color: AppColor.momaGreen,
-      );
-      final page = _postcardPreview(context, asset);
+    if (!(asset.isStamping || asset.isStamped || asset.isProcessingStamp)) {
       return PostcardButton(
         text: "stamp_postcard".tr(),
         onTap: () {
-          Navigator.of(context).pushNamed(
-            AppRouter.postcardExplain,
-            arguments: PostcardExplainPayload(asset, button, pages: [page]),
-          );
+          if (asset.numberOwners > 1) {
+            final button = PostcardAsyncButton(
+              text: "continue".tr(),
+              fontSize: 18,
+              onTap: () async {
+                injector<NavigationService>().popAndPushNamed(
+                    AppRouter.designStamp,
+                    arguments: DesignStampPayload(asset));
+              },
+              color: AppColor.momaGreen,
+            );
+            final page = _postcardPreview(context, asset);
+            Navigator.of(context).pushNamed(
+              AppRouter.postcardExplain,
+              arguments: PostcardExplainPayload(asset, button, pages: [page]),
+            );
+          } else {
+            Navigator.of(context).pushNamed(AppRouter.designStamp,
+                arguments: DesignStampPayload(asset));
+          }
         },
         color: MoMAColors.moMA8,
       );
@@ -617,44 +631,51 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         child: place15StampsText,
       ),
     ];
-    if (!isSending) {
-      timer?.cancel();
+    if (!asset.isFinal) {
+      if (!isSending) {
+        timer?.cancel();
+      }
+
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          PostcardAsyncButton(
-            text: "invite_to_collaborate".tr(),
-            color: MoMAColors.moMA8,
-            onTap: () async {
-              await asset.sharePostcard(onSuccess: () {
-                setState(() {
-                  isSending = asset.isSending;
-                });
-              }, onFailed: (e) {
-                if (e is DioException) {
-                  if (mounted) {
-                    UIHelper.showSharePostcardFailed(context, e);
-                  }
+          Builder(builder: (final context) {
+            return PostcardAsyncButton(
+              text: "invite_to_collaborate".tr(),
+              color: MoMAColors.moMA8,
+              onTap: () async {
+                final isSuccess =
+                    await retryStampPostcardIfNeed(context, asset);
+                if (mounted && isSuccess == false) {
+                  await UIHelper.showPostcardStampFailed(context);
+                  return;
                 }
-              });
-            },
-          ),
-          ...sendPostcardExplain,
-        ],
-      );
-    } else {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          PostcardButton(
-            text: "postcard_sent".tr(),
-            disabledColor: AppColor.momaGreen,
-            enabled: false,
-          ),
+                final box = context.findRenderObject() as RenderBox?;
+                await asset.sharePostcard(
+                  onSuccess: () {
+                    setState(() {
+                      isSending = asset.isSending;
+                    });
+                  },
+                  onFailed: (e) {
+                    if (e is DioException) {
+                      if (mounted) {
+                        UIHelper.showSharePostcardFailed(context, e);
+                      }
+                    }
+                  },
+                  sharePositionOrigin: box == null
+                      ? null
+                      : box.localToGlobal(Offset.zero) & box.size,
+                );
+              },
+            );
+          }),
           ...sendPostcardExplain,
         ],
       );
     }
+    return const SizedBox();
   }
 
   Widget _postcardPhysical(BuildContext context, AssetToken assetToken) {
@@ -1016,11 +1037,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         return PostcardTravelInfo(
           assetToken: asset,
           listTravelInfo: travelInfo,
-          onCancelShare: () {
-            setState(() {
-              isSending = asset.isSending;
-            });
-          },
         );
       },
     );
@@ -1038,7 +1054,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
               children: [
                 PostcardViewWidget(
                   assetToken: asset,
-                  withPreviewStamp: true,
                 ),
                 Positioned.fill(child: Container(color: Colors.transparent)),
               ],

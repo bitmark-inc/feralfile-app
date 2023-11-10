@@ -571,6 +571,7 @@ class LinkType {
   static const feralFileToken = 'FeralFile Token';
   static const walletConnect = 'Wallet Connect';
   static const postcardPayToMint = 'Postcard Pay To Mint';
+  static const undefined = 'Undefined';
 }
 
 class SocialApp {
