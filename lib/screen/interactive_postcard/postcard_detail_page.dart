@@ -37,6 +37,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
+import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
@@ -84,7 +85,7 @@ class PostcardDetailPagePayload extends ArtworkDetailPayload {
 class ClaimedPostcardDetailPage extends StatefulWidget {
   final PostcardDetailPagePayload payload;
 
-  const ClaimedPostcardDetailPage({super.key, required this.payload});
+  const ClaimedPostcardDetailPage({required this.payload, super.key});
 
   @override
   State<ClaimedPostcardDetailPage> createState() =>
@@ -109,6 +110,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   final _metricClient = injector.get<MetricClientService>();
   final _configurationService = injector<ConfigurationService>();
   final _postcardService = injector<PostcardService>();
+  final _remoteConfig = injector<RemoteConfigService>();
 
   @override
   void initState() {
@@ -467,7 +469,9 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             if (state.assetToken == null ||
-                                state.assetToken?.pending == true)
+                                state.assetToken?.pending == true ||
+                                !_remoteConfig.getBool(
+                                    ConfigGroup.viewDetail, ConfigKey.chat))
                               const SizedBox()
                             else
                               FutureBuilder<Pair<WalletStorage, int>?>(
@@ -506,10 +510,11 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                                   Positioned.fill(
                                     child: GestureDetector(
                                       onTap: () {
-                                        Navigator.of(context).pushNamed(
+                                        unawaited(
+                                            Navigator.of(context).pushNamed(
                                           AppRouter.artworkPreviewPage,
                                           arguments: widget.payload,
-                                        );
+                                        ));
                                       },
                                       child: Container(
                                         color: Colors.transparent,
@@ -522,25 +527,53 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                             const SizedBox(
                               height: 20,
                             ),
-                            _postcardAction(context, asset),
-                            const SizedBox(height: 20),
+                            if (_remoteConfig.getBool(ConfigGroup.viewDetail,
+                                ConfigKey.actionButton)) ...[
+                              _postcardAction(context, asset),
+                              const SizedBox(
+                                height: 20,
+                              ),
+                            ],
+                            if ((asset.isCompleted ||
+                                    !_remoteConfig.getBool(
+                                        ConfigGroup.merchandise,
+                                        ConfigKey.mustCompleted)) &&
+                                _remoteConfig.getBool(ConfigGroup.merchandise,
+                                    ConfigKey.enable) &&
+                                (_remoteConfig.getBool(ConfigGroup.merchandise,
+                                        ConfigKey.allowViewOnly) ||
+                                    !isViewOnly)) ...[
+                              _postcardPhysical(context, asset),
+                              const SizedBox(
+                                height: 20,
+                              ),
+                            ],
                             _postcardInfo(context, asset),
                             const SizedBox(
                               height: 20,
                             ),
-                            _postcardLeaderboard(
-                                context, state.leaderboard, asset),
-                            const SizedBox(
-                              height: 20,
-                            ),
-                            _aboutTheProject(context),
-                            const SizedBox(
-                              height: 20,
-                            ),
-                            _web3Glossary(context, asset),
-                            const SizedBox(
-                              height: 20,
-                            ),
+                            if (_remoteConfig.getBool(ConfigGroup.viewDetail,
+                                ConfigKey.leaderBoard)) ...[
+                              _postcardLeaderboard(
+                                  context, state.leaderboard, asset),
+                              const SizedBox(
+                                height: 20,
+                              ),
+                            ],
+                            if (_remoteConfig.getBool(ConfigGroup.viewDetail,
+                                ConfigKey.aboutMoma)) ...[
+                              _aboutTheProject(context),
+                              const SizedBox(
+                                height: 20,
+                              ),
+                            ],
+                            if (_remoteConfig.getBool(ConfigGroup.viewDetail,
+                                ConfigKey.glossary)) ...[
+                              _web3Glossary(context, asset),
+                              const SizedBox(
+                                height: 20,
+                              ),
+                            ],
                             _artworkInfo(context, asset, state.provenances,
                                 artistNames, owners),
                           ],
@@ -576,13 +609,13 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       'place_15_stamps'.tr(),
       style: theme.textTheme.moMASans400Black12,
     );
-    if (asset.isCompleted) {
-      return _postcardPhysical(context, asset);
-    }
-    if (isViewOnly) {
+    if (asset.isCompleted || isViewOnly) {
       return const SizedBox();
     }
-    if (isProcessingStampPostcard) {
+    if (isProcessingStampPostcard ||
+        (_remoteConfig.getBool(
+                ConfigGroup.postcardAction, ConfigKey.waitConfirmedToSend) &&
+            asset.isStamping)) {
       return PostcardButton(
         text: 'confirming_on_blockchain'.tr(),
         isProcessing: true,
@@ -776,11 +809,11 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                     .copyWith(fontSize: 18),
               ),
               onTap: () {
-                Navigator.pushNamed(
+                unawaited(Navigator.pushNamed(
                   context,
                   AppRouter.inappWebviewPage,
                   arguments: InAppWebViewPayload(POSTCARD_ABOUT_THE_PROJECT),
-                );
+                ));
               },
             ),
           ),
@@ -799,8 +832,9 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                     .copyWith(fontSize: 18),
               ),
               onTap: () {
-                Navigator.pushNamed(context, AppRouter.previewPrimerPage,
-                    arguments: asset);
+                unawaited(Navigator.pushNamed(
+                    context, AppRouter.previewPrimerPage,
+                    arguments: asset));
               },
             ),
           ),
@@ -819,31 +853,41 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              PostcardContainer(
-                padding: const EdgeInsets.symmetric(vertical: 20),
-                child:
-                    postcardDetailsMetadataSection(context, asset, artistNames),
-              ),
-              const SizedBox(height: 20),
-              if (asset.fungible) ...[
+              if (_remoteConfig.getBool(
+                  ConfigGroup.viewDetail, ConfigKey.metadata)) ...[
+                PostcardContainer(
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  child: postcardDetailsMetadataSection(
+                      context, asset, artistNames),
+                ),
+                const SizedBox(height: 20),
+              ],
+              if (asset.fungible &&
+                  _remoteConfig.getBool(
+                      ConfigGroup.viewDetail, ConfigKey.tokenOwnership)) ...[
                 BlocBuilder<AccountsBloc, AccountsState>(
                   builder: (context, state) => PostcardContainer(
                     padding: const EdgeInsets.symmetric(vertical: 20),
                     child: postcardOwnership(context, asset, owners),
                   ),
                 ),
-              ] else ...[
+                const SizedBox(height: 20),
+              ] else if (_remoteConfig.getBool(
+                  ConfigGroup.viewDetail, ConfigKey.provenance)) ...[
                 if (provenances.isNotEmpty)
                   PostcardContainer(
                       child: _provenanceView(context, provenances))
                 else
-                  const SizedBox()
+                  const SizedBox(),
+                const SizedBox(height: 20),
               ],
-              const SizedBox(height: 20),
-              PostcardContainer(
-                  padding: const EdgeInsets.fromLTRB(0, 20, 0, 22),
-                  child: artworkDetailsRightSection(context, asset)),
-              const SizedBox(height: 40),
+              if (_remoteConfig.getBool(
+                  ConfigGroup.viewDetail, ConfigKey.rights)) ...[
+                PostcardContainer(
+                    padding: const EdgeInsets.fromLTRB(0, 20, 0, 22),
+                    child: artworkDetailsRightSection(context, asset)),
+                const SizedBox(height: 40),
+              ],
             ],
           )
         ],
@@ -910,104 +954,109 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             Navigator.of(context).pop();
           },
         ),
-        if (!isViewOnly)
-          OptionItem(
-            title: 'download_stamp'.tr(),
-            isEnable: isStamped,
-            icon: SvgPicture.asset(
-              'assets/images/download.svg',
-              width: 24,
-              height: 24,
+        if (!isViewOnly) ...[
+          if (_remoteConfig.getBool(
+              ConfigGroup.viewDetail, ConfigKey.downloadStamp))
+            OptionItem(
+              title: 'download_stamp'.tr(),
+              isEnable: isStamped,
+              icon: SvgPicture.asset(
+                'assets/images/download.svg',
+                width: 24,
+                height: 24,
+              ),
+              iconOnProcessing: SvgPicture.asset('assets/images/download.svg',
+                  width: 24,
+                  height: 24,
+                  colorFilter: const ColorFilter.mode(
+                      AppColor.disabledColor, BlendMode.srcIn)),
+              iconOnDisable: SvgPicture.asset('assets/images/download.svg',
+                  width: 24,
+                  height: 24,
+                  colorFilter: const ColorFilter.mode(
+                      AppColor.disabledColor, BlendMode.srcIn)),
+              onTap: () async {
+                try {
+                  await _postcardService.downloadStamp(
+                      tokenId: asset.tokenId!,
+                      stampIndex: asset.stampIndexWithStamping);
+                  if (!mounted) {
+                    return;
+                  }
+                  Navigator.of(context).pop();
+                  await UIHelper.showPostcardStampSaved(context);
+                } catch (e) {
+                  log.info('Download stamp failed: error $e');
+                  if (!mounted) {
+                    return;
+                  }
+                  Navigator.of(context).pop();
+                  switch (e.runtimeType) {
+                    case MediaPermissionException:
+                      await UIHelper.showPostcardStampPhotoAccessFailed(
+                          context);
+                      break;
+                    default:
+                      if (!mounted) {
+                        return;
+                      }
+                      await UIHelper.showPostcardStampSavedFailed(context);
+                  }
+                }
+              },
             ),
-            iconOnProcessing: SvgPicture.asset('assets/images/download.svg',
+          if (_remoteConfig.getBool(
+              ConfigGroup.viewDetail, ConfigKey.downloadPostcard))
+            OptionItem(
+              title: 'download_postcard'.tr(),
+              isEnable: isStamped,
+              icon: SvgPicture.asset(
+                'assets/images/download.svg',
+                width: 24,
+                height: 24,
+              ),
+              iconOnProcessing: SvgPicture.asset(
+                'assets/images/download.svg',
                 width: 24,
                 height: 24,
                 colorFilter: const ColorFilter.mode(
-                    AppColor.disabledColor, BlendMode.srcIn)),
-            iconOnDisable: SvgPicture.asset('assets/images/download.svg',
+                    AppColor.disabledColor, BlendMode.srcIn),
+              ),
+              iconOnDisable: SvgPicture.asset(
+                'assets/images/download.svg',
                 width: 24,
                 height: 24,
                 colorFilter: const ColorFilter.mode(
-                    AppColor.disabledColor, BlendMode.srcIn)),
-            onTap: () async {
-              try {
-                await _postcardService.downloadStamp(
-                    tokenId: asset.tokenId!,
-                    stampIndex: asset.stampIndexWithStamping);
-                if (!mounted) {
-                  return;
+                    AppColor.disabledColor, BlendMode.srcIn),
+              ),
+              onTap: () async {
+                try {
+                  await _postcardService.downloadPostcard(asset.tokenId!);
+                  if (!mounted) {
+                    return;
+                  }
+                  Navigator.of(context).pop();
+                  await UIHelper.showPostcardSaved(context);
+                } catch (e) {
+                  log.info('Download postcard failed: error $e');
+                  if (!mounted) {
+                    return;
+                  }
+                  Navigator.of(context).pop();
+                  switch (e.runtimeType) {
+                    case MediaPermissionException:
+                      await UIHelper.showPostcardPhotoAccessFailed(context);
+                      break;
+                    default:
+                      if (!mounted) {
+                        return;
+                      }
+                      await UIHelper.showPostcardSavedFailed(context);
+                  }
                 }
-                Navigator.of(context).pop();
-                await UIHelper.showPostcardStampSaved(context);
-              } catch (e) {
-                log.info('Download stamp failed: error ${e.toString()}');
-                if (!mounted) {
-                  return;
-                }
-                Navigator.of(context).pop();
-                switch (e.runtimeType) {
-                  case MediaPermissionException:
-                    await UIHelper.showPostcardStampPhotoAccessFailed(context);
-                    break;
-                  default:
-                    if (!mounted) {
-                      return;
-                    }
-                    await UIHelper.showPostcardStampSavedFailed(context);
-                }
-              }
-            },
-          ),
-        if (!isViewOnly)
-          OptionItem(
-            title: 'download_postcard'.tr(),
-            isEnable: isStamped,
-            icon: SvgPicture.asset(
-              'assets/images/download.svg',
-              width: 24,
-              height: 24,
+              },
             ),
-            iconOnProcessing: SvgPicture.asset(
-              'assets/images/download.svg',
-              width: 24,
-              height: 24,
-              colorFilter: const ColorFilter.mode(
-                  AppColor.disabledColor, BlendMode.srcIn),
-            ),
-            iconOnDisable: SvgPicture.asset(
-              'assets/images/download.svg',
-              width: 24,
-              height: 24,
-              colorFilter: const ColorFilter.mode(
-                  AppColor.disabledColor, BlendMode.srcIn),
-            ),
-            onTap: () async {
-              try {
-                await _postcardService.downloadPostcard(asset.tokenId!);
-                if (!mounted) {
-                  return;
-                }
-                Navigator.of(context).pop();
-                await UIHelper.showPostcardSaved(context);
-              } catch (e) {
-                log.info('Download postcard failed: error ${e.toString()}');
-                if (!mounted) {
-                  return;
-                }
-                Navigator.of(context).pop();
-                switch (e.runtimeType) {
-                  case MediaPermissionException:
-                    await UIHelper.showPostcardPhotoAccessFailed(context);
-                    break;
-                  default:
-                    if (!mounted) {
-                      return;
-                    }
-                    await UIHelper.showPostcardSavedFailed(context);
-                }
-              }
-            },
-          ),
+        ],
         OptionItem(
           title: 'hide'.tr(),
           titleStyle: theme.textTheme.moMASans700Black16
@@ -1124,8 +1173,8 @@ class PostcardContainer extends StatelessWidget {
   final BoxShadow? boxShadow;
 
   const PostcardContainer({
-    super.key,
     required this.child,
+    super.key,
     this.width = double.infinity,
     this.height,
     this.padding = const EdgeInsets.fromLTRB(16, 20, 15, 22),

@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/gateway/branch_api.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/otp.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/claim/activation/claim_activation_page.dart';
 import 'package:autonomy_flutter/screen/claim/airdrop/claim_airdrop_page.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
@@ -24,6 +25,7 @@ import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
+import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -37,8 +39,6 @@ import 'package:nft_collection/graphql/model/get_list_tokens.dart';
 import 'package:nft_collection/services/indexer_service.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uni_links/uni_links.dart';
-
-import '../screen/app_router.dart';
 
 abstract class DeeplinkService {
   Future setup();
@@ -59,6 +59,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
   final AirdropService _airdropService;
   final ActivationService _activationService;
   final IndexerService _indexerService;
+  final RemoteConfigService _remoteConfigService;
 
   String? currentExhibitionId;
   String? handlingDeepLink;
@@ -76,6 +77,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
     this._airdropService,
     this._activationService,
     this._indexerService,
+    this._remoteConfigService,
   );
 
   final metricClient = injector<MetricClientService>();
@@ -119,15 +121,21 @@ class DeeplinkServiceImpl extends DeeplinkService {
     Duration delay = const Duration(seconds: 2),
   }) {
     // return for case when FeralFile pass empty deeplink to return Autonomy
-    if (link == 'autonomy://') return;
+    if (link == 'autonomy://') {
+      return;
+    }
 
-    if (link == null) return;
+    if (link == null) {
+      return;
+    }
 
     log.info('[DeeplinkService] receive deeplink $link');
 
     Timer.periodic(delay, (timer) async {
       timer.cancel();
-      if (_deepLinkHandlingMap[link] != null) return;
+      if (_deepLinkHandlingMap[link] != null) {
+        return;
+      }
       _deepLinkHandleClock('Handle Deep Link Time Out', link);
       _deepLinkHandlingMap[link] = true;
       await _handleLocalDeeplink(link) ||
@@ -259,10 +267,10 @@ class DeeplinkServiceImpl extends DeeplinkService {
         .firstWhereOrNull((prefix) => link.startsWith(prefix));
     if (callingWCDeeplinkPrefix != null) {
       final wcLink = link.replaceFirst(callingWCDeeplinkPrefix, 'wc:');
-      _addScanQREvent(
+      unawaited(_addScanQREvent(
           link: link,
           linkType: LinkType.dAppConnect,
-          prefix: callingWCDeeplinkPrefix);
+          prefix: callingWCDeeplinkPrefix));
       await _walletConnect2Service.connect(wcLink);
       return true;
     }
@@ -270,13 +278,13 @@ class DeeplinkServiceImpl extends DeeplinkService {
     final callingTBDeeplinkPrefix = tbDeeplinkPrefixes
         .firstWhereOrNull((prefix) => link.startsWith(prefix));
     if (callingTBDeeplinkPrefix != null) {
-      _addScanQREvent(
+      unawaited(_addScanQREvent(
           link: link,
           linkType: LinkType.dAppConnect,
-          prefix: callingTBDeeplinkPrefix);
+          prefix: callingTBDeeplinkPrefix));
       await _tezosBeaconService.addPeer(link);
       if (_configurationService.isDoneOnboarding()) {
-        _navigationService.showContactingDialog();
+        unawaited(_navigationService.showContactingDialog());
       }
       return true;
     }
@@ -302,6 +310,10 @@ class DeeplinkServiceImpl extends DeeplinkService {
   }
 
   Future<void> _handlePayToMint() async {
+    if (!_remoteConfigService.getBool(
+        ConfigGroup.payToMint, ConfigKey.enable)) {
+      return;
+    }
     final address = await _navigationService.navigateTo(
       AppRouter.selectAddressScreen,
       arguments: {
@@ -309,10 +321,13 @@ class DeeplinkServiceImpl extends DeeplinkService {
         'onConfirm': (String address) async {
           _navigationService.goBack(result: address);
         },
-        'withLinked': true,
+        'withLinked': _remoteConfigService.getBool(
+            ConfigGroup.payToMint, ConfigKey.allowViewOnly),
       },
     );
-    if (address == null) return;
+    if (address == null) {
+      return;
+    }
     final url =
         '${Environment.payToMintBaseUrl}/moma-postcard?address=$address';
     final response = (await _navigationService.goToIRLWebview(
@@ -326,7 +341,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
       final address = response['address'];
       final tokenId = response['tokenId'];
 
-      _navigationService.navigateTo(AppRouter.payToMintPostcard,
+      await _navigationService.navigateTo(AppRouter.payToMintPostcard,
           arguments: PayToMintRequest(
             claimID: '',
             previewURL: previewURL,
@@ -348,13 +363,17 @@ class DeeplinkServiceImpl extends DeeplinkService {
           Uri.decodeFull(link.replaceFirst(IRL_DEEPLINK_PREFIX, ''));
 
       final uri = Uri.tryParse(urlDecode);
-      if (uri == null) return false;
+      if (uri == null) {
+        return false;
+      }
 
       if (Environment.irlWhitelistUrls.isNotEmpty) {
         final validUrl = Environment.irlWhitelistUrls.any(
           (element) => uri.host.contains(element),
         );
-        if (!validUrl) return false;
+        if (!validUrl) {
+          return false;
+        }
       }
       _navigationService.navigateTo(AppRouter.irlWebView,
           arguments: IRLWebScreenPayload(urlDecode));
@@ -372,11 +391,11 @@ class DeeplinkServiceImpl extends DeeplinkService {
         .firstWhereOrNull((prefix) => link.startsWith(prefix));
     if (callingBranchDeepLinkPrefix != null) {
       final response = await _branchApi.getParams(Environment.branchKey, link);
-      _addScanQREvent(
+      unawaited(_addScanQREvent(
           link: link,
           linkType: LinkType.branch,
           prefix: callingBranchDeepLinkPrefix,
-          addData: response['data']);
+          addData: response['data']));
       await handleBranchDeeplinkData(response['data']);
       return true;
     }
