@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -23,7 +25,7 @@ class PostcardExplain extends StatefulWidget {
   static const String tag = 'postcard_explain_screen';
   final PostcardExplainPayload payload;
 
-  const PostcardExplain({Key? key, required this.payload}) : super(key: key);
+  const PostcardExplain({required this.payload, super.key});
 
   @override
   State<PostcardExplain> createState() => _PostcardExplainState();
@@ -32,18 +34,18 @@ class PostcardExplain extends StatefulWidget {
 class _PostcardExplainState extends State<PostcardExplain> {
   final _navigationService = injector<NavigationService>();
   final VideoPlayerController _controller =
-      VideoPlayerController.asset("assets/videos/postcard_explain.mp4");
+      VideoPlayerController.asset('assets/videos/postcard_explain.mp4');
   final VideoPlayerController _colouringController =
-      VideoPlayerController.asset("assets/videos/colouring_video.mp4");
+      VideoPlayerController.asset('assets/videos/colouring_video.mp4');
   late int _currentIndex;
   late SwiperController _swiperController;
 
   @override
   void initState() {
-    _initPlayer();
+    unawaited(_initPlayer());
     _swiperController = SwiperController();
     super.initState();
-    injector<ConfigurationService>().setAutoShowPostcard(false);
+    unawaited(injector<ConfigurationService>().setAutoShowPostcard(false));
     _currentIndex = 0;
   }
 
@@ -60,8 +62,8 @@ class _PostcardExplainState extends State<PostcardExplain> {
 
   @override
   void dispose() {
-    _controller.dispose();
-    _colouringController.dispose();
+    unawaited(_controller.dispose());
+    unawaited(_colouringController.dispose());
     super.dispose();
   }
 
@@ -86,12 +88,12 @@ class _PostcardExplainState extends State<PostcardExplain> {
       backgroundColor: AppColor.chatPrimaryColor,
       appBar: getLightEmptyAppBar(AppColor.chatPrimaryColor),
       body: Padding(
-        padding: const EdgeInsets.only(bottom: 32.0),
+        padding: const EdgeInsets.only(bottom: 32),
         child: Column(
           children: [
-            const SizedBox(height: 25.0),
+            const SizedBox(height: 25),
             Padding(
-              padding: const EdgeInsets.only(left: 15.0, right: 15.0),
+              padding: const EdgeInsets.only(left: 15, right: 15),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -99,14 +101,14 @@ class _PostcardExplainState extends State<PostcardExplain> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "MoMA",
+                        'MoMA',
                         overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.moMASans700Black24
-                            .copyWith(height: 1.0),
+                            .copyWith(height: 1),
                         textAlign: TextAlign.center,
                       ),
                       Text(
-                        "postcard_project".tr(),
+                        'postcard_project'.tr(),
                         overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.moMASans400Black24
                             .copyWith(height: 1),
@@ -117,12 +119,12 @@ class _PostcardExplainState extends State<PostcardExplain> {
                   const Spacer(),
                   if (_currentIndex == 0 || isLastPage) ...[
                     IconButton(
-                      tooltip: "CLOSE",
+                      tooltip: 'CLOSE',
                       onPressed: () {
                         Navigator.of(context).pop(false);
                       },
                       icon: SvgPicture.asset(
-                        "assets/images/close.svg",
+                        'assets/images/close.svg',
                         width: 22,
                         height: 22,
                         colorFilter: const ColorFilter.mode(
@@ -139,7 +141,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
                 ],
               ),
             ),
-            const SizedBox(height: 80.0),
+            const SizedBox(height: 80),
             Expanded(
               child: Stack(
                 children: [
@@ -148,19 +150,17 @@ class _PostcardExplainState extends State<PostcardExplain> {
                       setState(() {
                         _currentIndex = index;
                         if (index == 0) {
-                          _controller.play();
+                          unawaited(_controller.play());
                         }
                         if (index == 1) {
-                          _colouringController.play();
+                          unawaited(_colouringController.play());
                         }
                       });
                     },
-                    itemBuilder: (context, index) {
-                      return Padding(
-                        padding: padding,
-                        child: pages[index],
-                      );
-                    },
+                    itemBuilder: (context, index) => Padding(
+                      padding: padding,
+                      child: pages[index],
+                    ),
                     itemCount: swiperSize,
                     pagination: const SwiperPagination(
                         builder: DotSwiperPaginationBuilder(
@@ -194,12 +194,11 @@ class _PostcardExplainState extends State<PostcardExplain> {
     );
   }
 
-  Widget _skipButton(BuildContext context, Function()? onSkip) {
-    return GestureDetector(
-      onTap: onSkip,
-      child: SvgPicture.asset("assets/images/skip.svg"),
-    );
-  }
+  Widget _skipButton(BuildContext context, Function()? onSkip) =>
+      GestureDetector(
+        onTap: onSkip,
+        child: SvgPicture.asset('assets/images/skip.svg'),
+      );
 
   Widget _page1(VideoPlayerController controller) {
     final theme = Theme.of(context);
@@ -218,13 +217,13 @@ class _PostcardExplainState extends State<PostcardExplain> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "moma_project_invite".tr(),
+                'moma_project_invite'.tr(),
                 style:
                     theme.textTheme.moMASans400Black16.copyWith(fontSize: 18),
               ),
               const SizedBox(height: 8),
               Text(
-                "with_15_blank_stamps".tr(),
+                'with_15_blank_stamps'.tr(),
                 style:
                     theme.textTheme.moMASans400Black16.copyWith(fontSize: 18),
               ),
@@ -234,20 +233,20 @@ class _PostcardExplainState extends State<PostcardExplain> {
                   style: termsConditionsStyle,
                   children: <TextSpan>[
                     TextSpan(
-                      text: "by_continuing".tr(),
+                      text: 'by_continuing'.tr(),
                     ),
                     TextSpan(
-                        text: "terms_and_conditions".tr(),
+                        text: 'terms_and_conditions'.tr(),
                         style: termsConditionsStyle.copyWith(
                             decoration: TextDecoration.underline),
                         recognizer: TapGestureRecognizer()
                           ..onTap = () {
-                            _navigationService.openAutonomyDocument(
+                            unawaited(_navigationService.openAutonomyDocument(
                                 MOMA_TERMS_CONDITIONS_URL,
-                                "terms_and_conditions".tr());
+                                'terms_and_conditions'.tr()));
                           }),
                     const TextSpan(
-                      text: ".",
+                      text: '.',
                     ),
                   ],
                 ),
@@ -260,7 +259,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
   }
 
   Widget _page2(int index, {double? totalDistance}) {
-    final imagePath = "assets/images/postcard_explain_$index.png";
+    final imagePath = 'assets/images/postcard_explain_$index.png';
     final theme = Theme.of(context);
     final distanceFormatter = DistanceFormatter();
     return SingleChildScrollView(
@@ -282,28 +281,27 @@ class _PostcardExplainState extends State<PostcardExplain> {
             ],
           ),
           const SizedBox(height: 12),
-          (totalDistance != null)
-              ? Text(
-                  "total_distance".tr(namedArgs: {
-                    "distance": distanceFormatter.showDistance(
-                        distance: totalDistance,
-                        distanceUnit: DistanceUnit.mile)
-                  }),
-                  style: theme.textTheme.moMASans400Black14.copyWith(
-                      fontSize: 18,
-                      color: const Color.fromRGBO(131, 79, 196, 1)))
-              : const SizedBox(height: 24),
+          if (totalDistance != null)
+            Text(
+                'total_distance'.tr(namedArgs: {
+                  'distance': distanceFormatter.showDistance(
+                      distance: totalDistance, distanceUnit: DistanceUnit.mile)
+                }),
+                style: theme.textTheme.moMASans400Black14.copyWith(
+                    fontSize: 18, color: const Color.fromRGBO(131, 79, 196, 1)))
+          else
+            const SizedBox(height: 24),
           const SizedBox(height: 24),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "$index.",
+                '$index.',
                 style:
                     theme.textTheme.moMASans400Black14.copyWith(fontSize: 18),
               ),
               Text(
-                "moma_explain_$index".tr(),
+                'moma_explain_$index'.tr(),
                 style:
                     theme.textTheme.moMASans400Black14.copyWith(fontSize: 18),
               ),
@@ -334,12 +332,12 @@ class _PostcardExplainState extends State<PostcardExplain> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "$index.",
+                '$index.',
                 style:
                     theme.textTheme.moMASans400Black14.copyWith(fontSize: 18),
               ),
               Text(
-                "moma_explain_$index".tr(),
+                'moma_explain_$index'.tr(),
                 style:
                     theme.textTheme.moMASans400Black14.copyWith(fontSize: 18),
               ),
@@ -390,14 +388,14 @@ class _PostcardExplainState extends State<PostcardExplain> {
             height: 265,
             child: Column(
               children: [
-                _rowItem(context, "1st".tr(), 91103,
-                    "assets/images/postcard_leaderboard_1.svg"),
+                _rowItem(context, '1st'.tr(), 91103,
+                    'assets/images/postcard_leaderboard_1.svg'),
                 const SizedBox(height: 35),
-                _rowItem(context, "2nd".tr(), 88791,
-                    "assets/images/postcard_leaderboard_2.svg"),
+                _rowItem(context, '2nd'.tr(), 88791,
+                    'assets/images/postcard_leaderboard_2.svg'),
                 const SizedBox(height: 35),
-                _rowItem(context, "3rd".tr(), 64003,
-                    "assets/images/postcard_leaderboard_3.svg"),
+                _rowItem(context, '3rd'.tr(), 64003,
+                    'assets/images/postcard_leaderboard_3.svg'),
               ],
             ),
           ),
@@ -406,12 +404,12 @@ class _PostcardExplainState extends State<PostcardExplain> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "$index.",
+                '$index.',
                 style:
                     theme.textTheme.moMASans400Black14.copyWith(fontSize: 18),
               ),
               Text(
-                "moma_explain_$index".tr(),
+                'moma_explain_$index'.tr(),
                 style:
                     theme.textTheme.moMASans400Black14.copyWith(fontSize: 18),
               ),
@@ -448,7 +446,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "this_is_your_group_postcard".tr(),
+                'this_is_your_group_postcard'.tr(),
                 style:
                     theme.textTheme.moMASans400Black14.copyWith(fontSize: 18),
               ),
@@ -463,7 +461,9 @@ class _PostcardExplainState extends State<PostcardExplain> {
 class PostcardExplainPayload {
   final AssetToken asset;
   final Widget startButton;
+  final bool isPayToMint;
   final List<Widget>? pages;
 
-  PostcardExplainPayload(this.asset, this.startButton, {this.pages});
+  PostcardExplainPayload(this.asset, this.startButton,
+      {this.isPayToMint = false, this.pages});
 }

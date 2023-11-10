@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -16,7 +17,6 @@ import 'package:autonomy_flutter/util/moma_style_color.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_theme/style/colors.dart';
-import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -27,10 +27,10 @@ import 'package:nft_collection/models/asset_token.dart';
 import 'package:path_provider/path_provider.dart';
 
 class HandSignaturePage extends StatefulWidget {
-  static const String handSignaturePage = "hand_signature_page";
+  static const String handSignaturePage = 'hand_signature_page';
   final HandSignaturePayload payload;
 
-  const HandSignaturePage({Key? key, required this.payload}) : super(key: key);
+  const HandSignaturePage({required this.payload, super.key});
 
   @override
   State<HandSignaturePage> createState() => _HandSignaturePageState();
@@ -45,13 +45,13 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
   @override
   void initState() {
     super.initState();
-    resizeStamp();
+    unawaited(resizeStamp());
   }
 
   Future<void> resizeStamp() async {
     final image = await resizeImage(ResizeImageParams(
         img.decodePng(widget.payload.image)!, STAMP_SIZE, STAMP_SIZE));
-    log.info('[POSTCARD] resized image: ${image.toString()}');
+    log.info('[POSTCARD] resized image: $image');
     setState(() {
       resizedStamp = img.encodePng(image);
     });
@@ -88,7 +88,7 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
                             visible: !didDraw,
                             child: Align(
                                 child: SvgPicture.asset(
-                                    "assets/images/sign_here.svg",
+                                    'assets/images/sign_here.svg',
                                     fit: BoxFit.scaleDown)),
                           ),
                         ),
@@ -111,7 +111,7 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
                   ),
                 ),
               ),
-              Container(
+              DecoratedBox(
                 decoration: const BoxDecoration(
                   color: AppColor.auGreyBackground,
                 ),
@@ -133,7 +133,7 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
                       child: PostcardButton(
                         onTap: _handleClearButtonPressed,
                         enabled: !loading,
-                        text: "clear".tr(),
+                        text: 'clear'.tr(),
                         color: AppColor.white,
                         textColor: AppColor.auQuickSilver,
                       ),
@@ -144,7 +144,7 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
                         enabled: !loading && didDraw && resizedStamp != null,
                         onTap: _handleSaveButtonPressed,
                         color: MoMAColors.moMA8,
-                        text: "continue".tr(),
+                        text: 'continue'.tr(),
                       ),
                     ),
                   ],
@@ -168,8 +168,7 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
       {required ByteData data, required String fileName}) async {
     final data = await _controller.toImage(
         color: Colors.black, background: Colors.transparent);
-    log.info(
-        ['[POSTCARD][_handleSaveButtonPressed] [data] [${data.toString()} ]']);
+    log.info(['[POSTCARD][_handleSaveButtonPressed] [data] [$data ]']);
     final signature = img.decodePng(data!.buffer.asUint8List());
     final newHeight = signature!.height * STAMP_SIZE ~/ signature.width;
     final resizedSignature =
@@ -179,8 +178,7 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
     }
     final image =
         await compositeImage([resizedStamp!, img.encodePng(resizedSignature)]);
-    log.info(
-        '[POSTCARD][_handleSaveButtonPressed] [image] [${image.toString()}');
+    log.info('[POSTCARD][_handleSaveButtonPressed] [image] [$image');
     final dir = (await getApplicationDocumentsDirectory()).path;
     final imagePath = '$dir/$fileName';
     File imageFile = File(imagePath);
@@ -198,13 +196,13 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
     return metadataFile;
   }
 
-  void _handleSaveButtonPressed() async {
+  Future<void> _handleSaveButtonPressed() async {
     setState(() {
       loading = true;
     });
     try {
       final asset = widget.payload.asset;
-      final tokenId = asset.tokenId ?? "";
+      final tokenId = asset.tokenId ?? '';
       final counter = asset.numberOwners;
       final contractAddress = Environment.postcardContractAddress;
 
@@ -216,13 +214,15 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
       setState(() {
         loading = false;
       });
-      if (!mounted) return;
-      Navigator.of(context).popAndPushNamed(
+      if (!mounted) {
+        return;
+      }
+      unawaited(Navigator.of(context).popAndPushNamed(
         AppRouter.postcardLocationExplain,
         arguments: PostcardExplainPayload(
           asset,
           PostcardAsyncButton(
-            text: "continue".tr(),
+            text: 'continue'.tr(),
             fontSize: 18,
             onTap: () async {
               final counter = asset.numberOwners;
@@ -232,38 +232,36 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
               } else {
                 geoLocation = await getGeoLocationWithPermission();
               }
-              if (geoLocation == null) return;
+              if (geoLocation == null) {
+                return;
+              }
               final metadataFilename =
                   '$contractAddress-$tokenId-$counter-metadata.json';
-              final claimLocation =
-                  asset.postcardMetadata.locationInformation.lastOrNull ??
-                      moMAGeoLocation.position;
-              final claimAddress = await claimLocation.getAddress();
               final stampAddress = await geoLocation.position.getAddress();
               final Map<String, dynamic> metadata = {
-                "address": stampAddress, // stamp address
-                "claimAddress": claimAddress,
-                "stampedAt": DateTime.now().toIso8601String()
+                'address': stampAddress, // stamp address
+                'claimAddress': stampAddress,
+                'stampedAt': DateTime.now().toIso8601String()
               };
               final metadataFile = await _writeMetadata(
                   metadata: metadata, fileName: metadataFilename);
-              injector<NavigationService>().navigateTo(StampPreview.tag,
+              unawaited(injector<NavigationService>().navigateTo(
+                  StampPreview.tag,
                   arguments: StampPreviewPayload(
                       imagePath: imageDataFile.path,
                       metadataPath: metadataFile.path,
                       asset: asset,
-                      location: geoLocation.position));
+                      location: geoLocation.position)));
             },
             color: AppColor.momaGreen,
           ),
         ),
-      );
+      ));
     } catch (e) {
       setState(() {
         loading = false;
       });
-      log.info(
-          ['[POSTCARD][_handleSaveButtonPressed] [error] [${e.toString()} ]']);
+      log.info(['[POSTCARD][_handleSaveButtonPressed] [error] [$e ]']);
       rethrow;
     }
   }

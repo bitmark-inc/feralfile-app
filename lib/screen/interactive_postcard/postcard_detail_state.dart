@@ -19,38 +19,34 @@ class PostcardDetailState {
   bool isFetchingLeaderboard;
 
   PostcardDetailState({
-    this.assetToken,
     required this.provenances,
+    this.assetToken,
     this.imagePath,
     this.metadataPath,
     this.leaderboard,
     this.isFetchingLeaderboard = false,
   });
 
-  ArtworkDetailState toArtworkDetailState() {
-    return ArtworkDetailState(
-      assetToken: assetToken,
-      provenances: provenances,
-    );
-  }
+  ArtworkDetailState toArtworkDetailState() => ArtworkDetailState(
+        assetToken: assetToken,
+        provenances: provenances,
+      );
 
   PostcardDetailState copyWith({
     AssetToken? assetToken,
     List<Provenance>? provenances,
     String? imagePath,
     String? metadataPath,
-    bool? postcardValueLoaded,
     PostcardLeaderboard? leaderboard,
     bool? isFetchingLeaderboard,
-  }) {
-    return PostcardDetailState(
-      assetToken: assetToken ?? this.assetToken,
-      provenances: provenances ?? this.provenances,
-      imagePath: imagePath ?? this.imagePath,
-      metadataPath: metadataPath ?? this.metadataPath,
-      leaderboard: leaderboard ?? this.leaderboard,
-      isFetchingLeaderboard:
-          isFetchingLeaderboard ?? this.isFetchingLeaderboard,
-    );
-  }
+  }) =>
+      PostcardDetailState(
+        assetToken: assetToken ?? this.assetToken,
+        provenances: provenances ?? this.provenances,
+        imagePath: imagePath ?? this.imagePath,
+        metadataPath: metadataPath ?? this.metadataPath,
+        leaderboard: leaderboard ?? this.leaderboard,
+        isFetchingLeaderboard:
+            isFetchingLeaderboard ?? this.isFetchingLeaderboard,
+      );
 }

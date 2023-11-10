@@ -83,18 +83,18 @@ class DeeplinkServiceImpl extends DeeplinkService {
   @override
   Future setup() async {
     FlutterBranchSdk.initSession().listen((data) async {
-      log.info("[DeeplinkService] _handleFeralFileDeeplink with Branch");
-      log.info("[DeeplinkService] data: $data");
-      if (data["+clicked_branch_link"] == true &&
-          _deepLinkHandlingMap[data["~referring_link"]] == null) {
+      log.info('[DeeplinkService] _handleFeralFileDeeplink with Branch');
+      log.info('[DeeplinkService] data: $data');
+      if (data['+clicked_branch_link'] == true &&
+          _deepLinkHandlingMap[data['~referring_link']] == null) {
         _addScanQREvent(
-            link: data["~referring_link"],
+            link: data['~referring_link'],
             linkType: LinkType.undefined,
-            prefix: "",
+            prefix: '',
             addData: data);
-        _deepLinkHandlingMap[data["~referring_link"]] = true;
+        _deepLinkHandlingMap[data['~referring_link']] = true;
         _deepLinkHandleClock(
-            "Handle Branch Deep Link Data Time Out", data["source"]);
+            'Handle Branch Deep Link Data Time Out', data['source']);
         await handleBranchDeeplinkData(data);
         handlingDeepLink = null;
       }
@@ -119,16 +119,16 @@ class DeeplinkServiceImpl extends DeeplinkService {
     Duration delay = const Duration(seconds: 2),
   }) {
     // return for case when FeralFile pass empty deeplink to return Autonomy
-    if (link == "autonomy://") return;
+    if (link == 'autonomy://') return;
 
     if (link == null) return;
 
-    log.info("[DeeplinkService] receive deeplink $link");
+    log.info('[DeeplinkService] receive deeplink $link');
 
     Timer.periodic(delay, (timer) async {
       timer.cancel();
       if (_deepLinkHandlingMap[link] != null) return;
-      _deepLinkHandleClock("Handle Deep Link Time Out", link);
+      _deepLinkHandleClock('Handle Deep Link Time Out', link);
       _deepLinkHandlingMap[link] = true;
       await _handleLocalDeeplink(link) ||
           await _handleDappConnectDeeplink(link) ||
@@ -148,9 +148,9 @@ class DeeplinkServiceImpl extends DeeplinkService {
     final uri = Uri.parse(link);
     final uriData = uri.queryParameters;
     final data = {
-      "link": link,
+      'link': link,
       'linkType': linkType,
-      "prefix": prefix,
+      'prefix': prefix,
     };
     data.addAll(uriData);
     data.addAll(addData.map((key, value) => MapEntry(key, value.toString())));
@@ -159,16 +159,16 @@ class DeeplinkServiceImpl extends DeeplinkService {
   }
 
   Future<bool> _handleLocalDeeplink(String link) async {
-    log.info("[DeeplinkService] _handleLocalDeeplink");
-    const deeplink = "autonomy://";
+    log.info('[DeeplinkService] _handleLocalDeeplink');
+    const deeplink = 'autonomy://';
 
     if (link.startsWith(deeplink)) {
-      final data = link.replacePrefix(deeplink, "");
+      final data = link.replacePrefix(deeplink, '');
 
       metricClient.addEvent(MixpanelEvent.scanQR, data: {
-        "link": link,
+        'link': link,
         'linkType': LinkType.local,
-        "prefix": deeplink,
+        'prefix': deeplink,
         'data': data
       });
 
@@ -178,14 +178,14 @@ class DeeplinkServiceImpl extends DeeplinkService {
       }
 
       switch (data) {
-        case "home":
+        case 'home':
           _navigationService.restorablePushHomePage();
           break;
-        case "discover":
+        case 'discover':
           memoryValues.homePageInitialTab = HomePageTab.DISCOVER;
           _navigationService.restorablePushHomePage();
           break;
-        case "support":
+        case 'support':
           _navigationService.navigateTo(AppRouter.supportCustomerPage);
           break;
         default:
@@ -198,20 +198,20 @@ class DeeplinkServiceImpl extends DeeplinkService {
   }
 
   Future<bool> _handleDappConnectDeeplink(String link) async {
-    log.info("[DeeplinkService] _handleDappConnectDeeplink");
+    log.info('[DeeplinkService] _handleDappConnectDeeplink');
     final wcPrefixes = [
-      "https://au.bitmark.com/apps/wc?uri=",
-      "https://au.bitmark.com/apps/wc/wc?uri=",
+      'https://au.bitmark.com/apps/wc?uri=',
+      'https://au.bitmark.com/apps/wc/wc?uri=',
       // maybe something wrong with WC register; fix by this for now
-      "https://autonomy.io/apps/wc?uri=",
-      "https://autonomy.io/apps/wc/wc?uri=",
-      "autonomy://wc?uri=",
-      "autonomy-wc://wc?uri=",
+      'https://autonomy.io/apps/wc?uri=',
+      'https://autonomy.io/apps/wc/wc?uri=',
+      'autonomy://wc?uri=',
+      'autonomy-wc://wc?uri=',
     ];
 
     final tzPrefixes = [
-      "https://au.bitmark.com/apps/tezos?uri=",
-      "https://autonomy.io/apps/tezos?uri=",
+      'https://au.bitmark.com/apps/tezos?uri=',
+      'https://autonomy.io/apps/tezos?uri=',
     ];
 
     final wcDeeplinkPrefixes = [
@@ -220,8 +220,12 @@ class DeeplinkServiceImpl extends DeeplinkService {
     ];
 
     final tbDeeplinkPrefixes = [
-      "tezos://",
-      "autonomy-tezos://",
+      'tezos://',
+      'autonomy-tezos://',
+    ];
+
+    final postcardPayToMintPrefixes = [
+      'https://autonomy.io/apps/moma-postcards/purchase',
     ];
     if (!_configurationService.isDoneOnboarding()) {
       memoryValues.deepLink.value = link;
@@ -254,7 +258,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
     final callingWCDeeplinkPrefix = wcDeeplinkPrefixes
         .firstWhereOrNull((prefix) => link.startsWith(prefix));
     if (callingWCDeeplinkPrefix != null) {
-      final wcLink = link.replaceFirst(callingWCDeeplinkPrefix, "wc:");
+      final wcLink = link.replaceFirst(callingWCDeeplinkPrefix, 'wc:');
       _addScanQREvent(
           link: link,
           linkType: LinkType.dAppConnect,
@@ -276,12 +280,65 @@ class DeeplinkServiceImpl extends DeeplinkService {
       }
       return true;
     }
+
+    final callingPostcardPayToMintPrefix = postcardPayToMintPrefixes
+        .firstWhereOrNull((prefix) => link.startsWith(prefix));
+    if (callingPostcardPayToMintPrefix != null) {
+      _addScanQREvent(
+          link: link,
+          linkType: LinkType.postcardPayToMint,
+          prefix: callingPostcardPayToMintPrefix);
+      await _handlePayToMintDeepLink(link);
+      return true;
+    }
     memoryValues.deepLink.value = null;
     return false;
   }
 
+  Future<void> _handlePayToMintDeepLink(String link) async {
+    log.info('[DeeplinkService] _handlePayToMint');
+    _deepLinkHandlingMap.remove(link);
+    await _handlePayToMint();
+  }
+
+  Future<void> _handlePayToMint() async {
+    final address = await _navigationService.navigateTo(
+      AppRouter.selectAddressScreen,
+      arguments: {
+        'blockchain': 'Tezos',
+        'onConfirm': (String address) async {
+          _navigationService.goBack(result: address);
+        },
+        'withLinked': true,
+      },
+    );
+    if (address == null) return;
+    final url =
+        '${Environment.payToMintBaseUrl}/moma-postcard?address=$address';
+    final response = (await _navigationService.goToIRLWebview(
+            IRLWebScreenPayload(url,
+                isPlainUI: true, statusBarColor: POSTCARD_BACKGROUND_COLOR)))
+        as Map<String, dynamic>;
+
+    if (response['result'] == true) {
+      final previewURL = response['previewURL'];
+      final title = response['title'];
+      final address = response['address'];
+      final tokenId = response['tokenId'];
+
+      _navigationService.navigateTo(AppRouter.payToMintPostcard,
+          arguments: PayToMintRequest(
+            claimID: '',
+            previewURL: previewURL,
+            name: title,
+            address: address,
+            tokenId: tokenId,
+          ));
+    }
+  }
+
   Future<bool> _handleIRL(String link) async {
-    log.info("[DeeplinkService] _handleIRL");
+    log.info('[DeeplinkService] _handleIRL');
     memoryValues.irlLink.value = link;
     if (!_configurationService.isDoneOnboarding()) {
       await injector<AccountService>().restoreIfNeeded();
@@ -299,7 +356,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
         );
         if (!validUrl) return false;
       }
-      await _navigationService.navigateTo(AppRouter.irlWebView,
+      _navigationService.navigateTo(AppRouter.irlWebView,
           arguments: IRLWebScreenPayload(urlDecode));
       return true;
     }
@@ -308,7 +365,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
   }
 
   Future<bool> _handleBranchDeeplink(String link) async {
-    log.info("[DeeplinkService] _handleBranchDeeplink");
+    log.info('[DeeplinkService] _handleBranchDeeplink');
     //star
     memoryValues.branchDeeplinkData.value = null;
     final callingBranchDeepLinkPrefix = Constants.branchDeepLinks
@@ -319,8 +376,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
           link: link,
           linkType: LinkType.branch,
           prefix: callingBranchDeepLinkPrefix,
-          addData: response["data"]);
-      await handleBranchDeeplinkData(response["data"]);
+          addData: response['data']);
+      await handleBranchDeeplinkData(response['data']);
       return true;
     }
     return false;
@@ -333,17 +390,17 @@ class DeeplinkServiceImpl extends DeeplinkService {
       memoryValues.branchDeeplinkData.value = data;
       return;
     }
-    final source = data["source"];
+    final source = data['source'];
     switch (source) {
-      case "FeralFile_AirDrop":
-        final String? exhibitionId = data["exhibition_id"];
-        final String? seriesId = data["series_id"];
-        final String? expiredAt = data["expired_at"];
+      case 'FeralFile_AirDrop':
+        final String? exhibitionId = data['exhibition_id'];
+        final String? seriesId = data['series_id'];
+        final String? expiredAt = data['expired_at'];
 
         if (expiredAt != null &&
             DateTime.now().isAfter(DateTime.fromMillisecondsSinceEpoch(
                 int.tryParse(expiredAt) ?? 0))) {
-          log.info("[DeeplinkService] FeralFile Airdrop expired");
+          log.info('[DeeplinkService] FeralFile Airdrop expired');
           _navigationService.showAirdropExpired(seriesId);
           break;
         }
@@ -356,10 +413,10 @@ class DeeplinkServiceImpl extends DeeplinkService {
           );
         }
         break;
-      case "Postcard":
-        final String? type = data["type"];
-        final String? id = data["id"];
-        final expiredAtData = data["expired_at"];
+      case 'Postcard':
+        final String? type = data['type'];
+        final String? id = data['id'];
+        final expiredAtData = data['expired_at'];
         final DateTime expiredAt = expiredAtData != null
             ? DateTime.fromMillisecondsSinceEpoch(
                 (int.tryParse(expiredAtData) ?? 0) * 1000)
@@ -368,16 +425,16 @@ class DeeplinkServiceImpl extends DeeplinkService {
           _navigationService.showPostcardShareLinkExpired();
           break;
         }
-        if (type == "claim_empty_postcard" && id != null) {
+        if (type == 'claim_empty_postcard' && id != null) {
           final requiredOTP = id == POSTCARD_ONSITE_REQUEST_ID;
           if (requiredOTP) {
             final otp = _getOtpFromBranchData(data);
             if (otp == null) {
-              log.info("[DeeplinkService] MoMA onsite otp is null");
+              log.info('[DeeplinkService] MoMA onsite otp is null');
               return;
             }
             if (otp.isExpired) {
-              log.info("[DeeplinkService] MoMA onsite otp is expired");
+              log.info('[DeeplinkService] MoMA onsite otp is expired');
               _navigationService.showPostcardQRCodeExpired();
               return;
             }
@@ -387,26 +444,30 @@ class DeeplinkServiceImpl extends DeeplinkService {
           }
           return;
         }
-        final String? sharedCode = data["share_code"];
+        final String? sharedCode = data['share_code'];
         if (sharedCode != null) {
-          log.info("[DeeplinkService] _handlePostcardDeeplink $sharedCode");
+          log.info('[DeeplinkService] _handlePostcardDeeplink $sharedCode');
           await _handlePostcardDeeplink(sharedCode);
         } else {
           _navigationService.waitTooLongDialog();
         }
         break;
-      case "autonomy_irl":
-        final url = data["irl_url"];
+      case 'autonomy_irl':
+        final url = data['irl_url'];
         if (url != null) {
-          log.info("[DeeplinkService] _handleIRL $url");
+          log.info('[DeeplinkService] _handleIRL $url');
           await _handleIRL(url);
           memoryValues.irlLink.value = null;
         }
         break;
-      case "autonomy_airdrop":
-        final String? sharedCode = data["share_code"];
+
+      case 'moma_postcard_purchase':
+        await _handlePayToMint();
+        break;
+      case 'autonomy_airdrop':
+        final String? sharedCode = data['share_code'];
         if (sharedCode != null) {
-          log.info("[DeeplinkService] _handlePostcardDeeplink $sharedCode");
+          log.info('[DeeplinkService] _handlePostcardDeeplink $sharedCode');
           final sharedInfor = await _airdropService.claimShare(
             AirdropClaimShareRequest(shareCode: sharedCode),
           );
@@ -415,7 +476,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
           _navigationService.navigateTo(
             AppRouter.claimAirdropPage,
             arguments: ClaimTokenPagePayload(
-                claimID: "",
+                claimID: '',
                 shareCode: sharedInfor.shareCode,
                 series: series,
                 allowViewOnlyClaim: true),
@@ -425,14 +486,14 @@ class DeeplinkServiceImpl extends DeeplinkService {
         }
         break;
 
-      case "Autonomy_Activation":
-        final String? activationID = data["activationID"];
-        final String? expiredAt = data["expired_at"];
+      case 'Autonomy_Activation':
+        final String? activationID = data['activationID'];
+        final String? expiredAt = data['expired_at'];
 
         if (expiredAt != null &&
             DateTime.now().isAfter(DateTime.fromMillisecondsSinceEpoch(
                 int.tryParse(expiredAt) ?? 0))) {
-          log.info("[DeeplinkService] FeralFile Airdrop expired");
+          log.info('[DeeplinkService] FeralFile Airdrop expired');
           // _navigationService.showAirdropExpired(seriesId);
           break;
         }
@@ -449,7 +510,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
       default:
         memoryValues.branchDeeplinkData.value = null;
     }
-    _deepLinkHandlingMap.remove(data["~referring_link"]);
+    _deepLinkHandlingMap.remove(data['~referring_link']);
   }
 
   Future _claimFFAirdropToken({
@@ -458,8 +519,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
     Otp? otp,
   }) async {
     log.info(
-        "[DeeplinkService] Claim FF Airdrop token. Exhibition $exhibitionId, otp: ${otp?.toJson()}");
-    final id = "${exhibitionId}_${seriesId}_${otp?.code}";
+        '[DeeplinkService] Claim FF Airdrop token. Exhibition $exhibitionId, otp: ${otp?.toJson()}');
+    final id = '${exhibitionId}_${seriesId}_${otp?.code}';
     if (currentExhibitionId == id) {
       return;
     }
@@ -505,7 +566,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
         });
       }
     } catch (e) {
-      log.info("[DeeplinkService] _claimFFAirdropToken error $e");
+      log.info('[DeeplinkService] _claimFFAirdropToken error $e');
       currentExhibitionId = null;
     }
   }
@@ -536,7 +597,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
       _navigationService.openPostcardReceivedPage(
           asset: postcard, shareCode: sharedInfor.shareCode);
     } catch (e) {
-      log.info("[DeeplinkService] _handlePostcardDeeplink error $e");
+      log.info('[DeeplinkService] _handlePostcardDeeplink error $e');
       if (e is DioException &&
           (e.response?.statusCode == StatusCode.notFound.value)) {
         _navigationService.showPostcardShareLinkInvalid();
@@ -556,7 +617,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
         arguments: claimRequest,
       );
     } catch (e) {
-      log.info("[DeeplinkService] _handleClaimEmptyPostcardDeeplink error $e");
+      log.info('[DeeplinkService] _handleClaimEmptyPostcardDeeplink error $e');
 
       if (otp == null) {
         _navigationService.showPostcardRunOut();
@@ -589,9 +650,9 @@ class DeeplinkServiceImpl extends DeeplinkService {
 }
 
 Otp? _getOtpFromBranchData(Map<dynamic, dynamic> json) {
-  if (json.containsKey("otp")) {
-    final otp = json["otp"];
-    final expiredAt = int.tryParse(json["otp_expired_at"]);
+  if (json.containsKey('otp')) {
+    final otp = json['otp'];
+    final expiredAt = int.tryParse(json['otp_expired_at']);
     return Otp(
       otp,
       expiredAt != null ? DateTime.fromMillisecondsSinceEpoch(expiredAt) : null,
@@ -601,6 +662,6 @@ Otp? _getOtpFromBranchData(Map<dynamic, dynamic> json) {
 }
 
 class SharedPostcardStatus {
-  static String available = "available";
-  static String claimed = "claimed";
+  static String available = 'available';
+  static String claimed = 'claimed';
 }
