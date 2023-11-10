@@ -21,9 +21,6 @@ import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/screen/playlists/list_playlists/list_playlists.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
-import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
-import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
-import 'package:autonomy_flutter/screen/settings/subscription/upgrade_view.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
@@ -43,6 +40,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/token_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/carousel.dart';
@@ -66,10 +64,8 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../util/token_ext.dart';
-
 class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+  const HomePage({super.key});
 
   @override
   State<HomePage> createState() => HomePageState();
@@ -671,14 +667,13 @@ class HomePageState extends State<HomePage>
 
     log.info("[HomePage] Show subscription notification");
     await configService.setLastTimeAskForSubscription(DateTime.now());
-    const key = Key("subscription");
-    if (!mounted) return;
-    showInfoNotification(key, "subscription_hint".tr(),
+    if (!mounted) {
+      return;
+    }
+    const key = Key('subscription');
+    showInfoNotification(key, 'subscription_hint'.tr(),
         duration: const Duration(seconds: 5), openHandler: () {
-      UpgradesView.showSubscriptionDialog(context, null, null, () {
-        hideOverlay(key);
-        context.read<UpgradesBloc>().add(UpgradePurchaseEvent());
-      });
+      Navigator.of(context).pushNamed(AppRouter.subscriptionPage);
     }, addOnTextSpan: [
       TextSpan(
         text: 'trial_today'.tr(),
