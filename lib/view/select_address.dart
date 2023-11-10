@@ -11,9 +11,10 @@ import 'package:flutter/material.dart';
 
 class SelectAddressView extends StatefulWidget {
   final List<WalletAddress> addresses;
+  final String? selectButton;
 
-  const SelectAddressView({Key? key, required this.addresses})
-      : super(key: key);
+  const SelectAddressView(
+      {required this.addresses, super.key, this.selectButton});
 
   @override
   State<SelectAddressView> createState() => _SelectAddressViewState();
@@ -23,63 +24,61 @@ class _SelectAddressViewState extends State<SelectAddressView> {
   String? _selectedAddress;
 
   @override
-  Widget build(BuildContext context) {
-    return ConstrainedBox(
-        constraints: const BoxConstraints(maxHeight: 325),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
+  Widget build(BuildContext context) => ConstrainedBox(
+      constraints: const BoxConstraints(maxHeight: 325),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+                child: Column(
+              children: widget.addresses
+                  .map((e) => AddressView(
+                        address: e,
+                        selectedAddress: _selectedAddress,
+                        onTap: () {
+                          setState(() {
+                            _selectedAddress = e.address;
+                          });
+                        },
+                      ))
+                  .toList(),
+            )),
+          ),
+          Row(
+            children: [
+              Expanded(
                   child: Column(
-                children: widget.addresses
-                    .map((e) => AddressView(
-                          address: e,
-                          selectedAddress: _selectedAddress,
-                          onTap: () {
-                            setState(() {
-                              _selectedAddress = e.address;
-                            });
-                          },
-                        ))
-                    .toList(),
+                children: [
+                  PrimaryButton(
+                      text: widget.selectButton ?? 'connect'.tr(),
+                      enabled: _selectedAddress != null,
+                      onTap: () {
+                        Navigator.pop(context, _selectedAddress);
+                      }),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  OutlineButton(
+                      text: 'cancel'.tr(),
+                      onTap: () {
+                        Navigator.pop(context, null);
+                      })
+                ],
               )),
-            ),
-            Row(
-              children: [
-                Expanded(
-                    child: Column(
-                  children: [
-                    PrimaryButton(
-                        text: "connect".tr(),
-                        enabled: _selectedAddress != null,
-                        onTap: () {
-                          Navigator.pop(context, _selectedAddress);
-                        }),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    OutlineButton(
-                        text: "cancel".tr(),
-                        onTap: () {
-                          Navigator.pop(context, null);
-                        })
-                  ],
-                )),
-              ],
-            )
-          ],
-        ));
-  }
+            ],
+          )
+        ],
+      ));
 }
 
 class AddressView extends StatelessWidget {
   const AddressView({
-    Key? key,
     required this.address,
+    super.key,
     this.selectedAddress,
     this.onTap,
-  }) : super(key: key);
+  });
 
   final WalletAddress address;
   final String? selectedAddress;
@@ -92,7 +91,7 @@ class AddressView extends StatelessWidget {
     final color = address.address == selectedAddress
         ? AppColor.white
         : AppColor.disabledColor;
-    final name = address.name ?? "";
+    final name = address.name ?? '';
     return GestureDetector(
       onTap: onTap,
       child: Column(
