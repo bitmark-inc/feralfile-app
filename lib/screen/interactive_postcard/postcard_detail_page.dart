@@ -85,7 +85,7 @@ class PostcardDetailPagePayload extends ArtworkDetailPayload {
 class ClaimedPostcardDetailPage extends StatefulWidget {
   final PostcardDetailPagePayload payload;
 
-  const ClaimedPostcardDetailPage({super.key, required this.payload});
+  const ClaimedPostcardDetailPage({required this.payload, super.key});
 
   @override
   State<ClaimedPostcardDetailPage> createState() =>
@@ -510,10 +510,11 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                                   Positioned.fill(
                                     child: GestureDetector(
                                       onTap: () {
-                                        Navigator.of(context).pushNamed(
+                                        unawaited(
+                                            Navigator.of(context).pushNamed(
                                           AppRouter.artworkPreviewPage,
                                           arguments: widget.payload,
-                                        );
+                                        ));
                                       },
                                       child: Container(
                                         color: Colors.transparent,
@@ -527,8 +528,22 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                               height: 20,
                             ),
                             if (_remoteConfig.getBool(ConfigGroup.viewDetail,
-                                    ConfigKey.actionButton)) ...[
+                                ConfigKey.actionButton)) ...[
                               _postcardAction(context, asset),
+                              const SizedBox(
+                                height: 20,
+                              ),
+                            ],
+                            if ((asset.isCompleted ||
+                                    !_remoteConfig.getBool(
+                                        ConfigGroup.merchandise,
+                                        ConfigKey.mustCompleted)) &&
+                                _remoteConfig.getBool(ConfigGroup.merchandise,
+                                    ConfigKey.enable) &&
+                                (_remoteConfig.getBool(ConfigGroup.merchandise,
+                                        ConfigKey.allowViewOnly) ||
+                                    !isViewOnly)) ...[
+                              _postcardPhysical(context, asset),
                               const SizedBox(
                                 height: 20,
                               ),
@@ -594,10 +609,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       'place_15_stamps'.tr(),
       style: theme.textTheme.moMASans400Black12,
     );
-    if (asset.isCompleted) {
-      return _postcardPhysical(context, asset);
-    }
-    if (isViewOnly) {
+    if (asset.isCompleted || isViewOnly) {
       return const SizedBox();
     }
     if (isProcessingStampPostcard ||
@@ -797,11 +809,11 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                     .copyWith(fontSize: 18),
               ),
               onTap: () {
-                Navigator.pushNamed(
+                unawaited(Navigator.pushNamed(
                   context,
                   AppRouter.inappWebviewPage,
                   arguments: InAppWebViewPayload(POSTCARD_ABOUT_THE_PROJECT),
-                );
+                ));
               },
             ),
           ),
@@ -820,8 +832,9 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                     .copyWith(fontSize: 18),
               ),
               onTap: () {
-                Navigator.pushNamed(context, AppRouter.previewPrimerPage,
-                    arguments: asset);
+                unawaited(Navigator.pushNamed(
+                    context, AppRouter.previewPrimerPage,
+                    arguments: asset));
               },
             ),
           ),
@@ -843,22 +856,22 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
               if (_remoteConfig.getBool(
                   ConfigGroup.viewDetail, ConfigKey.metadata)) ...[
                 PostcardContainer(
-                  padding: const EdgeInsets.symmetric(vertical: 20.0),
+                  padding: const EdgeInsets.symmetric(vertical: 20),
                   child: postcardDetailsMetadataSection(
                       context, asset, artistNames),
                 ),
-                const SizedBox(height: 20.0),
+                const SizedBox(height: 20),
               ],
-              if (asset.fungible == true &&
+              if (asset.fungible &&
                   _remoteConfig.getBool(
                       ConfigGroup.viewDetail, ConfigKey.tokenOwnership)) ...[
                 BlocBuilder<AccountsBloc, AccountsState>(
                   builder: (context, state) => PostcardContainer(
-                    padding: const EdgeInsets.symmetric(vertical: 20.0),
+                    padding: const EdgeInsets.symmetric(vertical: 20),
                     child: postcardOwnership(context, asset, owners),
                   ),
                 ),
-                const SizedBox(height: 20.0),
+                const SizedBox(height: 20),
               ] else if (_remoteConfig.getBool(
                   ConfigGroup.viewDetail, ConfigKey.provenance)) ...[
                 if (provenances.isNotEmpty)
@@ -866,14 +879,14 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                       child: _provenanceView(context, provenances))
                 else
                   const SizedBox(),
-                const SizedBox(height: 20.0),
+                const SizedBox(height: 20),
               ],
               if (_remoteConfig.getBool(
                   ConfigGroup.viewDetail, ConfigKey.rights)) ...[
                 PostcardContainer(
                     padding: const EdgeInsets.fromLTRB(0, 20, 0, 22),
                     child: artworkDetailsRightSection(context, asset)),
-                const SizedBox(height: 40.0),
+                const SizedBox(height: 40),
               ],
             ],
           )
@@ -967,12 +980,16 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                   await _postcardService.downloadStamp(
                       tokenId: asset.tokenId!,
                       stampIndex: asset.stampIndexWithStamping);
-                  if (!mounted) return;
+                  if (!mounted) {
+                    return;
+                  }
                   Navigator.of(context).pop();
                   await UIHelper.showPostcardStampSaved(context);
                 } catch (e) {
-                  log.info("Download stamp failed: error ${e.toString()}");
-                  if (!mounted) return;
+                  log.info('Download stamp failed: error $e');
+                  if (!mounted) {
+                    return;
+                  }
                   Navigator.of(context).pop();
                   switch (e.runtimeType) {
                     case MediaPermissionException:
@@ -980,7 +997,9 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                           context);
                       break;
                     default:
-                      if (!mounted) return;
+                      if (!mounted) {
+                        return;
+                      }
                       await UIHelper.showPostcardStampSavedFailed(context);
                   }
                 }
@@ -1013,19 +1032,25 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
               onTap: () async {
                 try {
                   await _postcardService.downloadPostcard(asset.tokenId!);
-                  if (!mounted) return;
+                  if (!mounted) {
+                    return;
+                  }
                   Navigator.of(context).pop();
                   await UIHelper.showPostcardSaved(context);
                 } catch (e) {
-                  log.info("Download postcard failed: error ${e.toString()}");
-                  if (!mounted) return;
+                  log.info('Download postcard failed: error $e');
+                  if (!mounted) {
+                    return;
+                  }
                   Navigator.of(context).pop();
                   switch (e.runtimeType) {
                     case MediaPermissionException:
                       await UIHelper.showPostcardPhotoAccessFailed(context);
                       break;
                     default:
-                      if (!mounted) return;
+                      if (!mounted) {
+                        return;
+                      }
                       await UIHelper.showPostcardSavedFailed(context);
                   }
                 }
@@ -1148,8 +1173,8 @@ class PostcardContainer extends StatelessWidget {
   final BoxShadow? boxShadow;
 
   const PostcardContainer({
-    super.key,
     required this.child,
+    super.key,
     this.width = double.infinity,
     this.height,
     this.padding = const EdgeInsets.fromLTRB(16, 20, 15, 22),

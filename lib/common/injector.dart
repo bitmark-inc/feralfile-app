@@ -378,6 +378,7 @@ Future<void> setup() async {
         injector(),
         injector(),
         injector(),
+        injector(),
       ));
 
   injector.registerLazySingleton<PendingTokenService>(() => PendingTokenService(
