@@ -7,29 +7,7 @@ import 'package:autonomy_flutter/util/log.dart';
 abstract class RemoteConfigService {
   Future<void> loadConfigs();
 
-  bool getBool(final String group, final String key);
-
-  static const String grMerchandise = 'merchandise';
-  static const String grPayToMint = 'pay_to_mint';
-  static const String grViewDetail = 'view_detail';
-  static const String grFeature = 'feature';
-  static const String grPostcardAction = 'postcard_action';
-
-  static const String keyEnable = 'enable';
-  static const String keyAllowViewOnly = 'allow_view_only';
-  static const String keyMustCompleted = 'must_complete';
-  static const String keyActionButton = 'action_button';
-  static const String keyLeaderBoard = 'leader_board';
-  static const String keyAboutMoma = 'about_moma';
-  static const String keyGlossary = 'glossary';
-  static const String keyMetadata = 'metadata';
-  static const String keyTokenOwnership = 'token_ownership';
-  static const String keyProvenance = 'provenance';
-  static const String keyRights = 'rights';
-  static const String keyDownloadStamp = 'download_stamp';
-  static const String keyDownloadPostcard = 'download_postcard';
-  static const String keyChat = 'chat';
-  static const String keyWaitConfirmedToSend = 'wait_confirmed_to_send';
+  bool getBool(final ConfigGroup group, final ConfigKey key);
 }
 
 class RemoteConfigServiceImpl implements RemoteConfigService {
@@ -70,12 +48,96 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
   }
 
   @override
-  bool getBool(final String group, final String key) {
+  bool getBool(final ConfigGroup group, final ConfigKey key) {
     if (_configs == null) {
       unawaited(loadConfigs());
-      return _defaults[group]![key] as bool;
+      return _defaults[group.getString]![key.getString] as bool;
     } else {
-      return _configs![group]![key] as bool;
+      return _configs![group.getString]?[key.getString] as bool? ??
+          _defaults[group.getString]?[key.getString] as bool? ??
+          false;
+    }
+  }
+}
+
+enum ConfigGroup {
+  merchandise,
+  payToMint,
+  viewDetail,
+  feature,
+  postcardAction,
+}
+
+// ConfigGroup getString extension
+extension ConfigGroupExtension on ConfigGroup {
+  String get getString {
+    switch (this) {
+      case ConfigGroup.merchandise:
+        return 'merchandise';
+      case ConfigGroup.payToMint:
+        return 'pay_to_mint';
+      case ConfigGroup.viewDetail:
+        return 'view_detail';
+      case ConfigGroup.feature:
+        return 'feature';
+      case ConfigGroup.postcardAction:
+        return 'postcard_action';
+    }
+  }
+}
+
+enum ConfigKey {
+  enable,
+  allowViewOnly,
+  mustCompleted,
+  actionButton,
+  leaderBoard,
+  aboutMoma,
+  glossary,
+  metadata,
+  tokenOwnership,
+  provenance,
+  rights,
+  downloadStamp,
+  downloadPostcard,
+  chat,
+  waitConfirmedToSend,
+}
+
+// ConfigKey getString extension
+extension ConfigKeyExtension on ConfigKey {
+  String get getString {
+    switch (this) {
+      case ConfigKey.enable:
+        return 'enable';
+      case ConfigKey.allowViewOnly:
+        return 'allow_view_only';
+      case ConfigKey.mustCompleted:
+        return 'must_complete';
+      case ConfigKey.actionButton:
+        return 'action_button';
+      case ConfigKey.leaderBoard:
+        return 'leader_board';
+      case ConfigKey.aboutMoma:
+        return 'about_moma';
+      case ConfigKey.glossary:
+        return 'glossary';
+      case ConfigKey.metadata:
+        return 'metadata';
+      case ConfigKey.tokenOwnership:
+        return 'token_ownership';
+      case ConfigKey.provenance:
+        return 'provenance';
+      case ConfigKey.rights:
+        return 'rights';
+      case ConfigKey.downloadStamp:
+        return 'download_stamp';
+      case ConfigKey.downloadPostcard:
+        return 'download_postcard';
+      case ConfigKey.chat:
+        return 'chat';
+      case ConfigKey.waitConfirmedToSend:
+        return 'wait_confirmed_to_send';
     }
   }
 }

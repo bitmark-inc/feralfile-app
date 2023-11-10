@@ -463,8 +463,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                             if (state.assetToken == null ||
                                 state.assetToken?.pending == true ||
                                 !_remoteConfig.getBool(
-                                    RemoteConfigService.grViewDetail,
-                                    RemoteConfigService.keyChat))
+                                    ConfigGroup.viewDetail, ConfigKey.chat))
                               const SizedBox()
                             else
                               FutureBuilder<Pair<WalletStorage, int>?>(
@@ -520,9 +519,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                               height: 20,
                             ),
                             if (!isViewOnly &&
-                                _remoteConfig.getBool(
-                                    RemoteConfigService.grViewDetail,
-                                    RemoteConfigService.keyActionButton)) ...[
+                                _remoteConfig.getBool(ConfigGroup.viewDetail,
+                                    ConfigKey.actionButton)) ...[
                               _postcardAction(context, asset),
                               const SizedBox(
                                 height: 20,
@@ -532,26 +530,23 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                             const SizedBox(
                               height: 20,
                             ),
-                            if (_remoteConfig.getBool(
-                                RemoteConfigService.grViewDetail,
-                                RemoteConfigService.keyLeaderBoard)) ...[
+                            if (_remoteConfig.getBool(ConfigGroup.viewDetail,
+                                ConfigKey.leaderBoard)) ...[
                               _postcardLeaderboard(
                                   context, state.leaderboard, asset),
                               const SizedBox(
                                 height: 20,
                               ),
                             ],
-                            if (_remoteConfig.getBool(
-                                RemoteConfigService.grViewDetail,
-                                RemoteConfigService.keyLeaderBoard)) ...[
+                            if (_remoteConfig.getBool(ConfigGroup.viewDetail,
+                                ConfigKey.aboutMoma)) ...[
                               _aboutTheProject(context),
                               const SizedBox(
                                 height: 20,
                               ),
                             ],
-                            if (_remoteConfig.getBool(
-                                RemoteConfigService.grViewDetail,
-                                RemoteConfigService.keyGlossary)) ...[
+                            if (_remoteConfig.getBool(ConfigGroup.viewDetail,
+                                ConfigKey.glossary)) ...[
                               _web3Glossary(context, asset),
                               const SizedBox(
                                 height: 20,
@@ -593,8 +588,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       return const SizedBox();
     }
     if (isProcessingStampPostcard ||
-        (_remoteConfig.getBool(RemoteConfigService.grPostcardAction,
-                RemoteConfigService.keyWaitConfirmedToSend) &&
+        (_remoteConfig.getBool(
+                ConfigGroup.postcardAction, ConfigKey.waitConfirmedToSend) &&
             asset.isStamping)) {
       return PostcardButton(
         text: "confirming_on_blockchain".tr(),
@@ -799,8 +794,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (_remoteConfig.getBool(RemoteConfigService.grViewDetail,
-                  RemoteConfigService.keyMetadata)) ...[
+              if (_remoteConfig.getBool(
+                  ConfigGroup.viewDetail, ConfigKey.metadata)) ...[
                 PostcardContainer(
                   padding: const EdgeInsets.symmetric(vertical: 20.0),
                   child: postcardDetailsMetadataSection(
@@ -809,8 +804,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                 const SizedBox(height: 20.0),
               ],
               if (asset.fungible == true &&
-                  _remoteConfig.getBool(RemoteConfigService.grViewDetail,
-                      RemoteConfigService.keyTokenOwnership)) ...[
+                  _remoteConfig.getBool(
+                      ConfigGroup.viewDetail, ConfigKey.tokenOwnership)) ...[
                 BlocBuilder<AccountsBloc, AccountsState>(
                   builder: (context, state) => PostcardContainer(
                     padding: const EdgeInsets.symmetric(vertical: 20.0),
@@ -818,8 +813,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                   ),
                 ),
                 const SizedBox(height: 20.0),
-              ] else if (_remoteConfig.getBool(RemoteConfigService.grViewDetail,
-                  RemoteConfigService.keyProvenance)) ...[
+              ] else if (_remoteConfig.getBool(
+                  ConfigGroup.viewDetail, ConfigKey.provenance)) ...[
                 if (provenances.isNotEmpty)
                   PostcardContainer(
                       child: _provenanceView(context, provenances))
@@ -827,8 +822,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                   const SizedBox(),
                 const SizedBox(height: 20.0),
               ],
-              if (_remoteConfig.getBool(RemoteConfigService.grViewDetail,
-                  RemoteConfigService.keyRights)) ...[
+              if (_remoteConfig.getBool(
+                  ConfigGroup.viewDetail, ConfigKey.rights)) ...[
                 PostcardContainer(
                     padding: const EdgeInsets.fromLTRB(0, 20, 0, 22),
                     child: artworkDetailsRightSection(context, asset)),
@@ -900,8 +895,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           },
         ),
         if (!isViewOnly) ...[
-          if (_remoteConfig.getBool(RemoteConfigService.grFeature,
-              RemoteConfigService.keyDownloadStamp))
+          if (_remoteConfig.getBool(
+              ConfigGroup.viewDetail, ConfigKey.downloadStamp))
             OptionItem(
               title: 'download_stamp'.tr(),
               isEnable: isStamped,
@@ -944,8 +939,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                 }
               },
             ),
-          if (_remoteConfig.getBool(RemoteConfigService.grFeature,
-              RemoteConfigService.keyDownloadPostcard))
+          if (_remoteConfig.getBool(
+              ConfigGroup.viewDetail, ConfigKey.downloadPostcard))
             OptionItem(
               title: 'download_postcard'.tr(),
               isEnable: isStamped,

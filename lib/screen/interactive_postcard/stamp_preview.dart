@@ -181,8 +181,7 @@ class _StampPreviewState extends State<StampPreview> with AfterLayoutMixin {
     final theme = Theme.of(context);
     final showCondition = confirming ||
         (injector<RemoteConfigService>().getBool(
-                RemoteConfigService.grPostcardAction,
-                RemoteConfigService.keyWaitConfirmedToSend) &&
+                ConfigGroup.postcardAction, ConfigKey.waitConfirmedToSend) &&
             (state.assetToken?.isStamping ?? false));
     if (showCondition) {
       return PostcardButton(
