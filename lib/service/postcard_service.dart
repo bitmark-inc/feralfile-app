@@ -145,7 +145,12 @@ class PostcardServiceImpl extends PostcardService {
   @override
   Future<ClaimPostCardResponse> claimEmptyPostcard(
       ClaimPostCardRequest request) async {
-    throw DioException(requestOptions: RequestOptions(path: "path"));
+    throw DioException(
+        requestOptions: RequestOptions(path: "path"),
+        response: Response(
+            requestOptions: RequestOptions(),
+            data: {"message": "Hardcode claim claimed message"}),
+        type: DioExceptionType.unknown);
     return _postcardApi.claim(request);
   }
 
