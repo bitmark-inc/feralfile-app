@@ -574,7 +574,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     }
     if (isProcessingStampPostcard) {
       return PostcardButton(
-        text: "minting_stamp".tr(),
+        text: "confirming_on_blockchain".tr(),
         isProcessing: true,
       );
     }

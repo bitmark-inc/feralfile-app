@@ -181,7 +181,7 @@ class _StampPreviewState extends State<StampPreview> with AfterLayoutMixin {
     if (confirming) {
       return PostcardButton(
         enabled: !confirming,
-        text: "minting_stamp".tr(),
+        text: "confirming_on_blockchain".tr(),
         isProcessing: confirming,
         fontSize: 18,
       );
