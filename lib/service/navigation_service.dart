@@ -37,7 +37,7 @@ import 'package:overlay_support/src/overlay_state_finder.dart';
 class NavigationService {
   final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-  static const Key contactingKey = Key("tezos_beacon_contacting");
+  static const Key contactingKey = Key('tezos_beacon_contacting');
 
   // to prevent showing duplicate ConnectPage
   // workaround solution for unknown reason ModalRoute(navigatorKey.currentContext) returns nil
@@ -48,10 +48,10 @@ class NavigationService {
   bool get mounted => navigatorKey.currentContext?.mounted == true;
 
   Future<dynamic>? navigateTo(String routeName, {Object? arguments}) {
-    log.info("NavigationService.navigateTo: $routeName");
+    log.info('NavigationService.navigateTo: $routeName');
 
     if (routeName == AppRouter.wcConnectPage && _isWCConnectInShow) {
-      log.info("[NavigationService] skip because WCConnectPage is in showing");
+      log.info('[NavigationService] skip because WCConnectPage is in showing');
       return null;
     }
 
@@ -65,11 +65,11 @@ class NavigationService {
   }
 
   Future<dynamic>? popAndPushNamed(String routeName, {Object? arguments}) {
-    log.info("NavigationService.popAndPushNamed: $routeName");
+    log.info('NavigationService.popAndPushNamed: $routeName');
 
     if (routeName == AppRouter.wcConnectPage && _isWCConnectInShow) {
       log.info(
-          "[NavigationService] skip popAndPushNamed because WCConnectPage is in showing");
+          '[NavigationService] skip popAndPushNamed because WCConnectPage is in showing');
       return null;
     }
 
@@ -87,10 +87,10 @@ class NavigationService {
     RoutePredicate predicate, {
     Object? arguments,
   }) {
-    log.info("NavigationService.navigateTo: $routeName");
+    log.info('NavigationService.navigateTo: $routeName');
 
     if (routeName == AppRouter.wcConnectPage && _isWCConnectInShow) {
-      log.info("[NavigationService] skip because WCConnectPage is in showing");
+      log.info('[NavigationService] skip because WCConnectPage is in showing');
       return null;
     }
 
@@ -103,36 +103,34 @@ class NavigationService {
         ?.pushNamedAndRemoveUntil(routeName, predicate);
   }
 
-  NavigatorState navigatorState() {
-    return Navigator.of(navigatorKey.currentContext!);
-  }
+  NavigatorState navigatorState() => Navigator.of(navigatorKey.currentContext!);
 
   Future showAirdropNotStarted(String? artworkId) async {
-    log.info("NavigationService.showAirdropNotStarted");
+    log.info('NavigationService.showAirdropNotStarted');
     if (navigatorKey.currentState?.mounted == true &&
         navigatorKey.currentContext != null) {
       await UIHelper.showAirdropNotStarted(
           navigatorKey.currentContext!, artworkId);
     } else {
-      Future.value(0);
+      await Future.value(0);
     }
   }
 
   Future showAirdropExpired(String? artworkId) async {
-    log.info("NavigationService.showAirdropExpired");
+    log.info('NavigationService.showAirdropExpired');
     if (navigatorKey.currentState?.mounted == true &&
         navigatorKey.currentContext != null) {
       await UIHelper.showAirdropExpired(
           navigatorKey.currentContext!, artworkId);
     } else {
-      Future.value(0);
+      await Future.value(0);
     }
   }
 
   Future showNoRemainingToken({
     required FFSeries series,
   }) async {
-    log.info("NavigationService.showNoRemainingToken");
+    log.info('NavigationService.showNoRemainingToken');
     if (navigatorKey.currentState?.mounted == true &&
         navigatorKey.currentContext != null) {
       await UIHelper.showNoRemainingAirdropToken(
@@ -140,17 +138,17 @@ class NavigationService {
         series: series,
       );
     } else {
-      Future.value(0);
+      await Future.value(0);
     }
   }
 
   Future showOtpExpired(String? artworkId) async {
-    log.info("NavigationService.showOtpExpired");
+    log.info('NavigationService.showOtpExpired');
     if (navigatorKey.currentState?.mounted == true &&
         navigatorKey.currentContext != null) {
       await UIHelper.showOtpExpired(navigatorKey.currentContext!, artworkId);
     } else {
-      Future.value(0);
+      await Future.value(0);
     }
   }
 
@@ -158,7 +156,7 @@ class NavigationService {
     FFSeries series, {
     Otp? otp,
   }) async {
-    log.info("NavigationService.openClaimTokenPage");
+    log.info('NavigationService.openClaimTokenPage');
     final isAllowViewOnlyClaim = AirdropType.Memento6.seriesId == series.id;
     if (navigatorKey.currentState?.mounted == true &&
         navigatorKey.currentContext != null) {
@@ -171,13 +169,13 @@ class NavigationService {
         ),
       );
     } else {
-      Future.value(0);
+      await Future.value(0);
     }
   }
 
   Future<void> openActivationPage(
       {required ClaimActivationPagePayload payload}) async {
-    log.info("NavigationService.openActivationPage");
+    log.info('NavigationService.openActivationPage');
     if (navigatorKey.currentState?.mounted == true &&
         navigatorKey.currentContext != null) {
       await navigatorKey.currentState?.pushNamed(
@@ -185,7 +183,7 @@ class NavigationService {
         arguments: payload,
       );
     } else {
-      Future.value(0);
+      await Future.value(0);
     }
   }
 
@@ -194,7 +192,7 @@ class NavigationService {
     Function()? defaultAction,
     Function()? cancelAction,
   }) {
-    log.info("NavigationService.showErrorDialog");
+    log.info('NavigationService.showErrorDialog');
 
     if (navigatorKey.currentState?.mounted == true &&
         navigatorKey.currentContext != null) {
@@ -215,7 +213,7 @@ class NavigationService {
   }
 
   void goBack({Object? result}) {
-    log.info("NavigationService.goBack");
+    log.info('NavigationService.goBack');
     return navigatorKey.currentState?.pop(result);
   }
 
@@ -244,16 +242,16 @@ class NavigationService {
     _isWCConnectInShow = appeared;
   }
 
-  void showContactingDialog() async {
+  Future<void> showContactingDialog() async {
     if (navigatorKey.currentState?.mounted == true &&
         navigatorKey.currentContext != null) {
-      final metricClient = injector.get<MetricClientService>();
-      metricClient.timerEvent(MixpanelEvent.cancelContact);
+      final metricClient = injector.get<MetricClientService>()
+        ..timerEvent(MixpanelEvent.cancelContact);
 
       bool dialogShowed = false;
       showInfoNotificationWithLink(
         contactingKey,
-        "establishing_contact".tr(),
+        'establishing_contact'.tr(),
         frontWidget: loadingIndicator(valueColor: AppColor.white),
         bottomRightWidget: GestureDetector(
           onTap: () {
@@ -261,7 +259,7 @@ class NavigationService {
             waitTooLongDialog();
           },
           child: Text(
-            "taking_too_long".tr(),
+            'taking_too_long'.tr(),
             style: Theme.of(navigatorKey.currentContext!)
                 .textTheme
                 .ppMori400White12
@@ -281,7 +279,7 @@ class NavigationService {
           waitTooLongDialog();
         }
       });
-      metricClient.addEvent(MixpanelEvent.connectContactSuccess);
+      await metricClient.addEvent(MixpanelEvent.connectContactSuccess);
     }
   }
 
@@ -290,9 +288,9 @@ class NavigationService {
         navigatorKey.currentState?.mounted == true) {
       await UIHelper.showInfoDialog(
         navigatorKey.currentContext!,
-        "taking_too_long".tr(),
+        'taking_too_long'.tr(),
         'if_take_too_long'.tr(),
-        closeButton: "cancel".tr(),
+        closeButton: 'cancel'.tr(),
         isDismissible: true,
         autoDismissAfter: 20,
         onClose: () {
@@ -321,7 +319,7 @@ class NavigationService {
         arguments: ReceivePostcardPageArgs(asset: asset, shareCode: shareCode),
       );
     } else {
-      Future.value(0);
+      await Future.value(0);
     }
   }
 
@@ -403,12 +401,12 @@ class NavigationService {
       final uri = Uri.parse(href.autonomyRawDocumentLink);
       final document = uri.pathSegments.last;
       final prefix =
-          uri.pathSegments.sublist(0, uri.pathSegments.length - 1).join("/");
+          uri.pathSegments.sublist(0, uri.pathSegments.length - 1).join('/');
       await Navigator.of(navigatorKey.currentContext!)
           .pushNamed(AppRouter.githubDocPage, arguments: {
-        "prefix": "/$prefix/",
-        "document": document,
-        "title": title,
+        'prefix': '/$prefix/',
+        'document': document,
+        'title': title,
       });
     }
   }

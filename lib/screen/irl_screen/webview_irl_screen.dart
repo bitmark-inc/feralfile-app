@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
@@ -34,7 +35,7 @@ import 'package:uuid/uuid.dart';
 class IRLWebScreen extends StatefulWidget {
   final IRLWebScreenPayload payload;
 
-  const IRLWebScreen({Key? key, required this.payload}) : super(key: key);
+  const IRLWebScreen({required this.payload, super.key});
 
   @override
   State<IRLWebScreen> createState() => _IRLWebScreenState();
@@ -59,12 +60,12 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
 
   JSResult _logAndReturnJSResult(String func, JSResult result) {
     log.info('[IRLWebScreen] $func: ${result.toJson()}');
-    _metricClient.addEvent(MixpanelEvent.callIrlFunction, data: {
+    unawaited(_metricClient.addEvent(MixpanelEvent.callIrlFunction, data: {
       'function': func,
       'error': result.errorMessage,
       'result': result.result.toString(),
       'url': widget.payload.url,
-    });
+    }));
     return result;
   }
 
@@ -77,7 +78,7 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
           JSResult.error('Payload is invalid'),
         );
       }
-      final arguments = (args.firstOrNull as Map);
+      final arguments = args.firstOrNull as Map;
 
       final chain = arguments['chain'];
       if (chain == null) {
@@ -110,7 +111,9 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
       if (addresses.length == 1) {
         address = addresses.first.address;
       } else {
-        if (!mounted) return null;
+        if (!mounted) {
+          return null;
+        }
         address = await UIHelper.showDialog(
           context,
           'select_address_to_connect'.tr(),
@@ -127,7 +130,7 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
       }
       return _logAndReturnJSResult(
         '_getAddress',
-        JSResult.error("User rejected"),
+        JSResult.error('User rejected'),
       );
     } catch (e) {
       return _logAndReturnJSResult(
@@ -145,10 +148,10 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
     }
     final type = argument['type'];
     switch (type) {
-      case "customer_support":
+      case 'customer_support':
         final customerSupportService = injector<CustomerSupportService>();
         final messageType = CSMessageType.CreateIssue.rawValue;
-        final issueID = "TEMP-${const Uuid().v4()}";
+        final issueID = 'TEMP-${const Uuid().v4()}';
         final data = argument['data'] as Map<String, dynamic>;
         final title = data['title'];
         final text = data['text'];
@@ -161,24 +164,28 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
           data: json.encode(DraftCustomerSupportData(text: text, title: title)),
           createdAt: DateTime.now(),
           reportIssueType: ReportIssueType.MerchandiseIssue,
-          mutedMessages: [orderId, indexId].join("[SEPARATOR]"),
+          mutedMessages: [orderId, indexId].join('[SEPARATOR]'),
         );
 
         await customerSupportService.draftMessage(draft);
         await injector<ConfigurationService>()
             .setHasMerchandiseSupport(data['indexId']);
         return;
-      case "open_customer_support":
-        if (!mounted) return;
-        Navigator.of(context).pushNamed(AppRouter.supportListPage);
+      case 'open_customer_support':
+        if (!mounted) {
+          return;
+        }
+        unawaited(Navigator.of(context).pushNamed(AppRouter.supportListPage));
         return;
-      case "pay_to_mint_success":
+      case 'pay_to_mint_success':
         final data = argument['data'] as Map<String, dynamic>;
         Map<String, dynamic> response = {
           'result': true,
         };
         response.addAll(data);
-        if (!mounted) return;
+        if (!mounted) {
+          return;
+        }
         Navigator.of(context).pop(response);
 
         return;
@@ -208,7 +215,10 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
         return _logAndReturnJSResult(
           '_signMessage',
           JSResult.error(
-            'Wallet not found. Chain ${argument.chain}, address: ${argument.sourceAddress}',
+            '''
+            Wallet not found. Chain ${argument.chain}, 
+            address: ${argument.sourceAddress}
+            ''',
           ),
         );
       }
@@ -268,7 +278,10 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
         return _logAndReturnJSResult(
           '_sendTransaction',
           JSResult.error(
-            'Wallet not found. Chain ${argument.chain}, address: ${argument.sourceAddress}',
+            '''
+            Wallet not found. Chain ${argument.chain}, 
+            address: ${argument.sourceAddress}
+            ''',
           ),
         );
       }
@@ -283,9 +296,13 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
         case Wc2Chain.ethereum:
           try {
             var transaction = argument.transactions.firstOrNull ?? {};
-            if (transaction["data"] == null) transaction["data"] = "";
-            if (transaction["gas"] == null) transaction["gas"] = "";
-            if (transaction["to"] == null) {
+            if (transaction['data'] == null) {
+              transaction['data'] = '';
+            }
+            if (transaction['gas'] == null) {
+              transaction['gas'] = '';
+            }
+            if (transaction['to'] == null) {
               return _logAndReturnJSResult(
                 '_sendTransaction',
                 JSResult.error('Invalid transaction: no recipient'),
@@ -296,9 +313,9 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
               1,
               AppMetadata.fromJson(argument.metadata ??
                   {
-                    "name": "",
-                    "url": "",
-                    "icons": [""]
+                    'name': '',
+                    'url': '',
+                    'icons': ['']
                   }),
               WCEthereumTransaction.fromJson(transaction),
               account.wallet.uuid,
@@ -391,57 +408,56 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
       handlerName: 'closeWebview',
       callback: (args) async {
         injector.get<NavigationService>().goBack();
-        _metricClient.addEvent(MixpanelEvent.callIrlFunction, data: {
+        unawaited(_metricClient.addEvent(MixpanelEvent.callIrlFunction, data: {
           'function': IrlWebviewFunction.closeWebview,
           'url': widget.payload.url,
-        });
+        }));
       },
     );
   }
 
   void _addLocalStorageItems(Map<String, dynamic> items) {
     items.forEach((key, value) {
-      _controller?.webStorage.localStorage.setItem(key: key, value: value);
+      unawaited(
+          _controller?.webStorage.localStorage.setItem(key: key, value: value));
     });
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        systemOverlayStyle: SystemUiOverlayStyle(
-          statusBarColor: widget.payload.statusBarColor ?? Colors.white,
-          statusBarIconBrightness: Brightness.dark,
-          statusBarBrightness: Brightness.light,
+  Widget build(BuildContext context) => Scaffold(
+        appBar: AppBar(
+          systemOverlayStyle: SystemUiOverlayStyle(
+            statusBarColor: widget.payload.statusBarColor ?? Colors.white,
+            statusBarIconBrightness: Brightness.dark,
+            statusBarBrightness: Brightness.light,
+          ),
+          backgroundColor: Colors.white,
+          toolbarHeight: 0,
+          shadowColor: Colors.transparent,
+          elevation: 0,
         ),
-        backgroundColor: Colors.white,
-        toolbarHeight: 0,
-        shadowColor: Colors.transparent,
-        elevation: 0,
-      ),
-      body: SafeArea(
-        bottom: false,
-        child: Column(
-          children: [
-            Expanded(
-              child: InAppWebViewPage(
-                payload: InAppWebViewPayload(widget.payload.url,
-                    isPlainUI: widget.payload.isPlainUI,
-                    backgroundColor: widget.payload.statusBarColor,
-                    onWebViewCreated: (final controller) {
-                  _controller = controller;
-                  _addJavaScriptHandler();
-                  if (widget.payload.localStorageItems != null) {
-                    _addLocalStorageItems(widget.payload.localStorageItems!);
-                  }
-                }),
-              ),
-            )
-          ],
+        body: SafeArea(
+          bottom: false,
+          child: Column(
+            children: [
+              Expanded(
+                child: InAppWebViewPage(
+                  payload: InAppWebViewPayload(widget.payload.url,
+                      isPlainUI: widget.payload.isPlainUI,
+                      backgroundColor: widget.payload.statusBarColor,
+                      onWebViewCreated: (final controller) {
+                    _controller = controller;
+                    _addJavaScriptHandler();
+                    if (widget.payload.localStorageItems != null) {
+                      _addLocalStorageItems(widget.payload.localStorageItems!);
+                    }
+                  }),
+                ),
+              )
+            ],
+          ),
         ),
-      ),
-    );
-  }
+      );
 
   CryptoType? _getCryptoType(String chain) {
     switch (chain.toLowerCase()) {
@@ -465,32 +481,24 @@ class JSResult {
     this.result,
   });
 
-  Map<String, dynamic> toJson() {
-    return <String, dynamic>{
-      'errorMessage': errorMessage,
-      'result': result,
-    };
-  }
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'errorMessage': errorMessage,
+        'result': result,
+      };
 
-  factory JSResult.fromJson(Map<String, dynamic> map) {
-    return JSResult(
-      errorMessage:
-          map['errorMessage'] != null ? map['errorMessage'] as String : null,
-      result: map['result'] != null ? map['result'] as dynamic : null,
-    );
-  }
+  factory JSResult.fromJson(Map<String, dynamic> map) => JSResult(
+        errorMessage:
+            map['errorMessage'] != null ? map['errorMessage'] as String : null,
+        result: map['result'] != null ? map['result'] as dynamic : null,
+      );
 
-  factory JSResult.error(String error) {
-    return JSResult(
-      errorMessage: error,
-    );
-  }
+  factory JSResult.error(String error) => JSResult(
+        errorMessage: error,
+      );
 
-  factory JSResult.result(dynamic result) {
-    return JSResult(
-      result: result,
-    );
-  }
+  factory JSResult.result(result) => JSResult(
+        result: result,
+      );
 }
 
 class IRLWebScreenPayload {

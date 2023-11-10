@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -15,7 +17,7 @@ import 'claim_empty_postcard_state.dart';
 class ClaimEmptyPostCardScreen extends StatefulWidget {
   final RequestPostcardResponse claimRequest;
 
-  const ClaimEmptyPostCardScreen({super.key, required this.claimRequest});
+  const ClaimEmptyPostCardScreen({required this.claimRequest, super.key});
 
   @override
   State<ClaimEmptyPostCardScreen> createState() =>
@@ -32,40 +34,42 @@ class _ClaimEmptyPostCardScreenState extends State<ClaimEmptyPostCardScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return BlocConsumer<ClaimEmptyPostCardBloc, ClaimEmptyPostCardState>(
-        listener: (context, state) {
-          if (state.isClaimed == true) {
-            Navigator.of(context).popAndPushNamed(AppRouter.designStamp,
-                arguments: DesignStampPayload(state.assetToken!));
-          }
-          if (state.error != null && state.error!.isNotEmpty) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.error!),
+  Widget build(BuildContext context) =>
+      BlocConsumer<ClaimEmptyPostCardBloc, ClaimEmptyPostCardState>(
+          listener: (context, state) {
+            if (state.isClaimed == true) {
+              unawaited(Navigator.of(context).popAndPushNamed(
+                  AppRouter.designStamp,
+                  arguments: DesignStampPayload(state.assetToken!)));
+            }
+            if (state.error != null && state.error!.isNotEmpty) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.error!),
+                ),
+              );
+            }
+          },
+          bloc: bloc,
+          builder: (context, state) {
+            final artwork = state.assetToken;
+            if (artwork == null) {
+              return Container();
+            }
+            return PostcardExplain(
+              payload: PostcardExplainPayload(
+                artwork,
+                PostcardButton(
+                  text: 'continue'.tr(),
+                  fontSize: 18,
+                  enabled: state.isClaiming != true,
+                  isProcessing: state.isClaiming == true,
+                  onTap: () {
+                    bloc.add(AcceptGiftEvent(widget.claimRequest));
+                  },
+                  color: POSTCARD_GREEN_BUTTON_COLOR,
+                ),
               ),
             );
-          }
-        },
-        bloc: bloc,
-        builder: (context, state) {
-          final artwork = state.assetToken;
-          if (artwork == null) return Container();
-          return PostcardExplain(
-            payload: PostcardExplainPayload(
-              artwork,
-              PostcardButton(
-                text: "continue".tr(),
-                fontSize: 18,
-                enabled: state.isClaiming != true,
-                isProcessing: state.isClaiming == true,
-                onTap: () {
-                  bloc.add(AcceptGiftEvent(widget.claimRequest));
-                },
-                color: POSTCARD_GREEN_BUTTON_COLOR,
-              ),
-            ),
-          );
-        });
-  }
+          });
 }

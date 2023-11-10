@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -16,7 +18,7 @@ import 'claim_empty_postcard_state.dart';
 class PayToMintPostcardScreen extends StatefulWidget {
   final PayToMintRequest claimRequest;
 
-  const PayToMintPostcardScreen({super.key, required this.claimRequest});
+  const PayToMintPostcardScreen({required this.claimRequest, super.key});
 
   @override
   State<PayToMintPostcardScreen> createState() =>
@@ -33,40 +35,43 @@ class _PayToMintPostcardScreenState extends State<PayToMintPostcardScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return BlocConsumer<ClaimEmptyPostCardBloc, ClaimEmptyPostCardState>(
-        listener: (context, state) {
-          if (state.error != null && state.error!.isNotEmpty) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.error!),
+  Widget build(BuildContext context) =>
+      BlocConsumer<ClaimEmptyPostCardBloc, ClaimEmptyPostCardState>(
+          listener: (context, state) {
+            if (state.error != null && state.error!.isNotEmpty) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.error!),
+                ),
+              );
+            }
+          },
+          bloc: bloc,
+          builder: (context, state) {
+            final artwork = state.assetToken;
+            if (artwork == null) {
+              return Container();
+            }
+            return PostcardExplain(
+              payload: PostcardExplainPayload(
+                artwork,
+                PostcardButton(
+                  text: 'continue'.tr(),
+                  fontSize: 18,
+                  enabled: state.isClaiming != true,
+                  isProcessing: state.isClaiming == true,
+                  onTap: () {
+                    unawaited(Navigator.of(context).popAndPushNamed(
+                        AppRouter.designStamp,
+                        arguments: DesignStampPayload(state.assetToken!
+                            .copyWith(
+                                owner: widget.claimRequest.address,
+                                tokenId: widget.claimRequest.tokenId))));
+                  },
+                  color: POSTCARD_GREEN_BUTTON_COLOR,
+                ),
+                isPayToMint: true,
               ),
             );
-          }
-        },
-        bloc: bloc,
-        builder: (context, state) {
-          final artwork = state.assetToken;
-          if (artwork == null) return Container();
-          return PostcardExplain(
-            payload: PostcardExplainPayload(
-              artwork,
-              PostcardButton(
-                text: "continue".tr(),
-                fontSize: 18,
-                enabled: state.isClaiming != true,
-                isProcessing: state.isClaiming == true,
-                onTap: () {
-                  Navigator.of(context).popAndPushNamed(AppRouter.designStamp,
-                      arguments: DesignStampPayload(state.assetToken!.copyWith(
-                          owner: widget.claimRequest.address,
-                          tokenId: widget.claimRequest.tokenId)));
-                },
-                color: POSTCARD_GREEN_BUTTON_COLOR,
-              ),
-              isPayToMint: true,
-            ),
-          );
-        });
-  }
+          });
 }

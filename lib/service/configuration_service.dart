@@ -260,11 +260,11 @@ abstract class ConfigurationService {
 
   Future<void> setVersionInfo(String version);
 
-  Future<void> updateShowAnouncementNotificationInfo(
+  Future<void> updateShowAnnouncementNotificationInfo(
     AnnouncementLocal announcement,
   );
 
-  ShowAnouncementNotificationInfo getShowAnouncementNotificationInfo();
+  ShowAnouncementNotificationInfo getShowAnnouncementNotificationInfo();
 
   bool getAlreadyClaimedAirdrop(String seriesId);
 
@@ -278,25 +278,25 @@ abstract class ConfigurationService {
 
 class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_HAS_MERCHANDISE_SUPPORT_INDEX_ID =
-      "has_merchandise_support";
-  static const String KEY_POSTCARD_CHAT_CONFIG = "postcard_chat_config";
-  static const String KEY_DID_MIGRATE_ADDRESS = "did_migrate_address";
-  static const String KEY_HIDDEN_FEEDS = "hidden_feeds";
-  static const String KEY_DID_SYNC_ARTISTS = "did_sync_artists";
-  static const String KEY_IAP_RECEIPT = "key_iap_receipt";
-  static const String KEY_IAP_JWT = "key_iap_jwt";
-  static const String IS_PREMIUM = "is_premium";
-  static const String KEY_DEVICE_PASSCODE = "device_passcode";
-  static const String KEY_NOTIFICATION = "notifications";
-  static const String KEY_ANALYTICS = "analytics";
-  static const String KEY_DONE_ONBOARING = "done_onboarding";
-  static const String KEY_PENDING_SETTINGS = "has_pending_settings";
-  static const String READ_REMOVE_SUPPORT = "read_remove_support";
+      'has_merchandise_support';
+  static const String KEY_POSTCARD_CHAT_CONFIG = 'postcard_chat_config';
+  static const String KEY_DID_MIGRATE_ADDRESS = 'did_migrate_address';
+  static const String KEY_HIDDEN_FEEDS = 'hidden_feeds';
+  static const String KEY_DID_SYNC_ARTISTS = 'did_sync_artists';
+  static const String KEY_IAP_RECEIPT = 'key_iap_receipt';
+  static const String KEY_IAP_JWT = 'key_iap_jwt';
+  static const String IS_PREMIUM = 'is_premium';
+  static const String KEY_DEVICE_PASSCODE = 'device_passcode';
+  static const String KEY_NOTIFICATION = 'notifications';
+  static const String KEY_ANALYTICS = 'analytics';
+  static const String KEY_DONE_ONBOARING = 'done_onboarding';
+  static const String KEY_PENDING_SETTINGS = 'has_pending_settings';
+  static const String READ_REMOVE_SUPPORT = 'read_remove_support';
   static const String KEY_SHOULD_SHOW_SUBSCRIPTION_HINT =
-      "should_show_subscription_hint";
+      'should_show_subscription_hint';
   static const String KEY_LAST_TIME_ASK_SUBSCRIPTION =
-      "last_time_ask_subscription";
-  static const String KEY_DONE_ONBOARING_ONCE = "done_onboarding_once";
+      'last_time_ask_subscription';
+  static const String KEY_DONE_ONBOARING_ONCE = 'done_onboarding_once';
   static const String KEY_HIDDEN_LINKED_ACCOUNTS_IN_GALLERY =
       'hidden_linked_accounts_in_gallery';
   static const String KEY_TEMP_STORAGE_HIDDEN_TOKEN_IDS =
@@ -304,72 +304,72 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_RECENTLY_SENT_TOKEN = 'recently_sent_token_mainnet';
   static const String KEY_READ_RELEASE_NOTES_VERSION =
       'read_release_notes_version';
-  static const String ACCOUNT_HMAC_SECRET = "account_hmac_secret";
-  static const String KEY_SHARED_POSTCARD = "shared_postcard";
+  static const String ACCOUNT_HMAC_SECRET = 'account_hmac_secret';
+  static const String KEY_SHARED_POSTCARD = 'shared_postcard';
 
   static const String ANNOUNCEMENT_LAST_PULL_TIME =
-      "announcement_last_pull_time";
-  static const String OLD_USER = "old_user";
+      'announcement_last_pull_time';
+  static const String OLD_USER = 'old_user';
 
   // ----- App Setting -----
   static const String KEY_APP_SETTING_DEMO_ARTWORKS =
-      "show_demo_artworks_preference";
-  static const String KEY_PREVIOUS_BUILD_NUMBER = "previous_build_number";
-  static const String KEY_SHOW_TOKEN_DEBUG_INFO = "show_token_debug_info";
-  static const String LAST_REMIND_REVIEW = "last_remind_review";
-  static const String COUNT_OPEN_APP = "count_open_app";
-  static const String KEY_LAST_TIME_OPEN_FEED = "last_time_open_feed";
+      'show_demo_artworks_preference';
+  static const String KEY_PREVIOUS_BUILD_NUMBER = 'previous_build_number';
+  static const String KEY_SHOW_TOKEN_DEBUG_INFO = 'show_token_debug_info';
+  static const String LAST_REMIND_REVIEW = 'last_remind_review';
+  static const String COUNT_OPEN_APP = 'count_open_app';
+  static const String KEY_LAST_TIME_OPEN_FEED = 'last_time_open_feed';
 
-  static const String PLAYLISTS = "playlists";
-  static const String HAVE_FEED = "have_feed";
+  static const String PLAYLISTS = 'playlists';
+  static const String HAVE_FEED = 'have_feed';
 
-  static const String ALLOW_CONTRIBUTION = "allow_contribution";
+  static const String ALLOW_CONTRIBUTION = 'allow_contribution';
 
-  static const String SHOW_AU_CHAIN_INFO = "show_au_chain_info";
+  static const String SHOW_AU_CHAIN_INFO = 'show_au_chain_info';
 
-  static const String KEY_DONE_ON_BOARDING_TIME = "done_on_boarding_time";
+  static const String KEY_DONE_ON_BOARDING_TIME = 'done_on_boarding_time';
 
-  static const String KEY_SUBSCRIPTION_TIME = "subscription_time";
+  static const String KEY_SUBSCRIPTION_TIME = 'subscription_time';
 
-  static const String KEY_CAN_SHOW_PRO_TIP = "show_pro_tip";
+  static const String KEY_CAN_SHOW_PRO_TIP = 'show_pro_tip';
 
-  static const String KEY_CAN_SHOW_TV_APP_TIP = "show_tv_app_tip";
+  static const String KEY_CAN_SHOW_TV_APP_TIP = 'show_tv_app_tip';
 
   static const String KEY_CAN_SHOW_CREATE_PLAYLIST_TIP =
-      "show_create_playlist_tip";
+      'show_create_playlist_tip';
 
   static const String KEY_CAN_SHOW_LINK_OR_IMPORT_TIP =
-      "show_link_or_import_tip";
+      'show_link_or_import_tip';
 
   static const String KEY_SHOW_BACK_UP_SETTINGS_TIP =
-      "show_back_up_settings_tip";
+      'show_back_up_settings_tip';
 
   static const String KEY_SHOW_WHAT_NEW_ADDRESS_TIP =
-      "show_what_new_address_tip";
+      'show_what_new_address_tip';
 
-  static const String KEY_STAMPING_POSTCARD = "stamping_postcard";
+  static const String KEY_STAMPING_POSTCARD = 'stamping_postcard';
 
-  static const String KEY_AUTO_SHOW_POSTCARD = "auto_show_postcard";
+  static const String KEY_AUTO_SHOW_POSTCARD = 'auto_show_postcard';
 
   static const String KEY_ALREADY_SHOW_YOU_DID_IT_POSTCARD =
-      "already_show_you_did_it_postcard";
+      'already_show_you_did_it_postcard';
 
-  static const String KEY_CURRENT_GROUP_CHAT_ID = "current_group_chat_id";
+  static const String KEY_CURRENT_GROUP_CHAT_ID = 'current_group_chat_id';
 
   static const String KEY_ALREADY_SHOW_POSTCARD_UPDATES =
-      "already_show_postcard_updates";
+      'already_show_postcard_updates';
 
-  static const String KEY_MIXPANEL_PROPS = "mixpanel_props";
+  static const String KEY_MIXPANEL_PROPS = 'mixpanel_props';
 
-  static const String KEY_PACKAGE_INFO = "package_info";
+  static const String KEY_PACKAGE_INFO = 'package_info';
 
   static const String KEY_SHOW_ANOUNCEMENT_NOTIFICATION_INFO =
-      "show_anouncement_notification_info";
+      'show_anouncement_notification_info';
 
-  static const String KEY_ALREADY_CLAIMED_AIRDROP = "already_claimed_airdrop";
+  static const String KEY_ALREADY_CLAIMED_AIRDROP = 'already_claimed_airdrop';
 
   static const String KEY_PROCESSING_STAMP_POSTCARD =
-      "processing_stamp_postcard";
+      'processing_stamp_postcard';
 
   @override
   Future setAlreadyShowProTip(bool show) async {
@@ -392,30 +392,26 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  bool getAlreadyShowProTip() {
-    return _preferences.getBool(KEY_CAN_SHOW_PRO_TIP) ?? false;
-  }
+  bool getAlreadyShowProTip() =>
+      _preferences.getBool(KEY_CAN_SHOW_PRO_TIP) ?? false;
 
   @override
-  bool getAlreadyShowTvAppTip() {
-    return _preferences.getBool(KEY_CAN_SHOW_TV_APP_TIP) ?? false;
-  }
+  bool getAlreadyShowTvAppTip() =>
+      _preferences.getBool(KEY_CAN_SHOW_TV_APP_TIP) ?? false;
 
   @override
-  bool getAlreadyShowCreatePlaylistTip() {
-    return _preferences.getBool(KEY_CAN_SHOW_CREATE_PLAYLIST_TIP) ?? false;
-  }
+  bool getAlreadyShowCreatePlaylistTip() =>
+      _preferences.getBool(KEY_CAN_SHOW_CREATE_PLAYLIST_TIP) ?? false;
 
   @override
-  bool getAlreadyShowLinkOrImportTip() {
-    return _preferences.getBool(KEY_CAN_SHOW_LINK_OR_IMPORT_TIP) ?? false;
-  }
+  bool getAlreadyShowLinkOrImportTip() =>
+      _preferences.getBool(KEY_CAN_SHOW_LINK_OR_IMPORT_TIP) ?? false;
 
   // Do at once
   static const String KEY_SENT_TEZOS_ARTWORK_METRIC =
-      "sent_tezos_artwork_metric";
+      'sent_tezos_artwork_metric';
 
-  static const String POSTCARD_MINT = "postcard_mint";
+  static const String POSTCARD_MINT = 'postcard_mint';
 
   final SharedPreferences _preferences;
 
@@ -431,9 +427,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  String? getIAPReceipt() {
-    return _preferences.getString(KEY_IAP_RECEIPT);
-  }
+  String? getIAPReceipt() => _preferences.getString(KEY_IAP_RECEIPT);
 
   @override
   Future<void> setIAPJWT(JWT? value) async {
@@ -457,35 +451,27 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  bool isDevicePasscodeEnabled() {
-    return _preferences.getBool(KEY_DEVICE_PASSCODE) ?? false;
-  }
+  bool isDevicePasscodeEnabled() =>
+      _preferences.getBool(KEY_DEVICE_PASSCODE) ?? false;
 
   @override
   Future<void> setDevicePasscodeEnabled(bool value) async {
-    log.info("setDevicePasscodeEnabled: $value");
+    log.info('setDevicePasscodeEnabled: $value');
     await _preferences.setBool(KEY_DEVICE_PASSCODE, value);
   }
 
   @override
-  bool isAnalyticsEnabled() {
-    return _preferences.getBool(KEY_ANALYTICS) ?? true;
-  }
+  bool isAnalyticsEnabled() => _preferences.getBool(KEY_ANALYTICS) ?? true;
 
   @override
-  bool? isNotificationEnabled() {
-    return _preferences.getBool(KEY_NOTIFICATION);
-  }
+  bool? isNotificationEnabled() => _preferences.getBool(KEY_NOTIFICATION);
 
   @override
-  bool isDoneOnboarding() {
-    return _preferences.getBool(KEY_DONE_ONBOARING) ?? false;
-  }
+  bool isDoneOnboarding() => _preferences.getBool(KEY_DONE_ONBOARING) ?? false;
 
   @override
-  bool hasPendingSettings() {
-    return _preferences.getBool(KEY_PENDING_SETTINGS) ?? false;
-  }
+  bool hasPendingSettings() =>
+      _preferences.getBool(KEY_PENDING_SETTINGS) ?? false;
 
   @override
   Future<void> setPendingSettings(bool value) async {
@@ -493,27 +479,26 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  bool isDoneOnboardingOnce() {
-    return _preferences.getBool(KEY_DONE_ONBOARING_ONCE) ?? false;
-  }
+  bool isDoneOnboardingOnce() =>
+      _preferences.getBool(KEY_DONE_ONBOARING_ONCE) ?? false;
 
   @override
   Future<void> setAnalyticEnabled(bool value) async {
-    log.info("setAnalyticEnabled: $value");
+    log.info('setAnalyticEnabled: $value');
     await _preferences.setBool(KEY_ANALYTICS, value);
   }
 
   @override
   Future<void> setDoneOnboarding(bool value) async {
-    log.info("setDoneOnboarding: $value");
+    log.info('setDoneOnboarding: $value');
     final currentValue = isDoneOnboarding();
     await _preferences.setBool(KEY_DONE_ONBOARING, value);
 
-    if (currentValue == false && value == true && getIsOldUser() == false) {
+    if (!currentValue && value && !getIsOldUser()) {
       await setDoneOnboardingTime(DateTime.now());
       await setOldUser();
       Future.delayed(const Duration(seconds: 2), () async {
-        injector<CustomerSupportService>()
+        await injector<CustomerSupportService>()
             .createAnnouncement(AnnouncementID.WELCOME);
       });
     }
@@ -521,13 +506,13 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   @override
   Future<void> setDoneOnboardingOnce(bool value) async {
-    log.info("setDoneOnboardingOnce: $value");
+    log.info('setDoneOnboardingOnce: $value');
     await _preferences.setBool(KEY_DONE_ONBOARING_ONCE, value);
   }
 
   @override
   Future<void> setNotificationEnabled(bool value) async {
-    log.info("setNotificationEnabled: $value");
+    log.info('setNotificationEnabled: $value');
     await _preferences.setBool(KEY_NOTIFICATION, value);
   }
 
@@ -552,10 +537,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  List<String> getLinkedAccountsHiddenInGallery() {
-    return _preferences.getStringList(KEY_HIDDEN_LINKED_ACCOUNTS_IN_GALLERY) ??
-        [];
-  }
+  List<String> getLinkedAccountsHiddenInGallery() =>
+      _preferences.getStringList(KEY_HIDDEN_LINKED_ACCOUNTS_IN_GALLERY) ?? [];
 
   @override
   bool isLinkedAccountHiddenInGallery(String value) {
@@ -564,9 +547,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  List<String> getTempStorageHiddenTokenIDs({Network? network}) {
-    return _preferences.getStringList(KEY_TEMP_STORAGE_HIDDEN_TOKEN_IDS) ?? [];
-  }
+  List<String> getTempStorageHiddenTokenIDs({Network? network}) =>
+      _preferences.getStringList(KEY_TEMP_STORAGE_HIDDEN_TOKEN_IDS) ?? [];
 
   @override
   Future updateTempStorageHiddenTokenIDs(List<String> tokenIDs, bool isAdd,
@@ -600,24 +582,23 @@ class ConfigurationServiceImpl implements ConfigurationService {
   Future updateRecentlySentToken(List<SentArtwork> sentArtwork,
       {bool override = false}) async {
     const key = KEY_RECENTLY_SENT_TOKEN;
-    _removeExpiredSentToken(DateTime.now().subtract(SENT_ARTWORK_HIDE_TIME));
+    await _removeExpiredSentToken(
+        DateTime.now().subtract(SENT_ARTWORK_HIDE_TIME));
     final updateTokens =
         sentArtwork.map((e) => jsonEncode(e.toJson())).toList();
 
     if (override) {
       await _preferences.setStringList(key, updateTokens);
     } else {
-      var sentTokenIDs = _preferences.getStringList(key) ?? [];
-
-      sentTokenIDs.addAll(updateTokens);
+      var sentTokenIDs = _preferences.getStringList(key) ?? []
+        ..addAll(updateTokens);
       await _preferences.setStringList(key, sentTokenIDs.toSet().toList());
     }
   }
 
   Future _removeExpiredSentToken(DateTime timestampExpired) async {
-    List<SentArtwork> token = getRecentlySentToken();
-    token
-        .removeWhere((element) => element.timestamp.isBefore(timestampExpired));
+    List<SentArtwork> token = getRecentlySentToken()
+      ..removeWhere((element) => element.timestamp.isBefore(timestampExpired));
     await _preferences.setStringList(KEY_RECENTLY_SENT_TOKEN,
         token.map((e) => jsonEncode(e.toJson())).toList());
   }
@@ -628,9 +609,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  String? getReadReleaseNotesVersion() {
-    return _preferences.getString(KEY_READ_RELEASE_NOTES_VERSION);
-  }
+  String? getReadReleaseNotesVersion() =>
+      _preferences.getString(KEY_READ_RELEASE_NOTES_VERSION);
 
   @override
   Future<void> setLastTimeOpenFeed(int timestamp) async {
@@ -638,14 +618,12 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  int getLastTimeOpenFeed() {
-    return _preferences.getInt(KEY_LAST_TIME_OPEN_FEED) ?? 0;
-  }
+  int getLastTimeOpenFeed() =>
+      _preferences.getInt(KEY_LAST_TIME_OPEN_FEED) ?? 0;
 
   @override
-  bool shouldShowSubscriptionHint() {
-    return _preferences.getBool(KEY_SHOULD_SHOW_SUBSCRIPTION_HINT) ?? true;
-  }
+  bool shouldShowSubscriptionHint() =>
+      _preferences.getBool(KEY_SHOULD_SHOW_SUBSCRIPTION_HINT) ?? true;
 
   @override
   Future setShouldShowSubscriptionHint(bool value) async {
@@ -667,9 +645,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  bool isDemoArtworksMode() {
-    return _preferences.getBool(KEY_APP_SETTING_DEMO_ARTWORKS) ?? false;
-  }
+  bool isDemoArtworksMode() =>
+      _preferences.getBool(KEY_APP_SETTING_DEMO_ARTWORKS) ?? false;
 
   @override
   Future<bool> toggleDemoArtworksMode() async {
@@ -679,9 +656,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  Future<void> reload() {
-    return _preferences.reload();
-  }
+  Future<void> reload() => _preferences.reload();
 
   @override
   Future<void> setPreviousBuildNumber(String value) async {
@@ -689,9 +664,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  String? getPreviousBuildNumber() {
-    return _preferences.getString(KEY_PREVIOUS_BUILD_NUMBER);
-  }
+  String? getPreviousBuildNumber() =>
+      _preferences.getString(KEY_PREVIOUS_BUILD_NUMBER);
 
   @override
   Future<String> getAccountHMACSecret() async {
@@ -706,9 +680,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  bool showTokenDebugInfo() {
-    return _preferences.getBool(KEY_SHOW_TOKEN_DEBUG_INFO) ?? false;
-  }
+  bool showTokenDebugInfo() =>
+      _preferences.getBool(KEY_SHOW_TOKEN_DEBUG_INFO) ?? false;
 
   @override
   Future setShowTokenDebugInfo(bool show) async {
@@ -716,24 +689,18 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  Future<void> removeAll() {
-    return _preferences.clear();
-  }
+  Future<void> removeAll() => _preferences.clear();
 
   @override
-  int? sentTezosArtworkMetricValue() {
-    return _preferences.getInt(KEY_SENT_TEZOS_ARTWORK_METRIC);
-  }
+  int? sentTezosArtworkMetricValue() =>
+      _preferences.getInt(KEY_SENT_TEZOS_ARTWORK_METRIC);
 
   @override
-  Future setSentTezosArtworkMetric(int hashedAddresses) {
-    return _preferences.setInt(KEY_SENT_TEZOS_ARTWORK_METRIC, hashedAddresses);
-  }
+  Future setSentTezosArtworkMetric(int hashedAddresses) =>
+      _preferences.setInt(KEY_SENT_TEZOS_ARTWORK_METRIC, hashedAddresses);
 
   @override
-  String? lastRemindReviewDate() {
-    return _preferences.getString(LAST_REMIND_REVIEW);
-  }
+  String? lastRemindReviewDate() => _preferences.getString(LAST_REMIND_REVIEW);
 
   @override
   Future<void> setLastRemindReviewDate(String? value) async {
@@ -745,9 +712,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  int? countOpenApp() {
-    return _preferences.getInt(COUNT_OPEN_APP);
-  }
+  int? countOpenApp() => _preferences.getInt(COUNT_OPEN_APP);
 
   @override
   Future<void> setCountOpenApp(int? value) async {
@@ -777,9 +742,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
     if (override) {
       await _preferences.setStringList(PLAYLISTS, playlists);
     } else {
-      var playlistsSave = _preferences.getStringList(PLAYLISTS) ?? [];
-
-      playlistsSave.addAll(playlists);
+      var playlistsSave = _preferences.getStringList(PLAYLISTS) ?? []
+        ..addAll(playlists);
       await _preferences.setStringList(
           PLAYLISTS, playlistsSave.toSet().toList());
     }
@@ -787,8 +751,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   @override
   Future<void> removePlayList(String id) async {
-    final playlists = getPlayList();
-    playlists.removeWhere((element) => element.id == id);
+    final playlists = getPlayList()..removeWhere((element) => element.id == id);
     await setPlayList(playlists, override: true);
   }
 
@@ -798,14 +761,11 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  bool hasFeed() {
-    return _preferences.getBool(HAVE_FEED) ?? false;
-  }
+  bool hasFeed() => _preferences.getBool(HAVE_FEED) ?? false;
 
   @override
-  int? getAnnouncementLastPullTime() {
-    return _preferences.getInt(ANNOUNCEMENT_LAST_PULL_TIME);
-  }
+  int? getAnnouncementLastPullTime() =>
+      _preferences.getInt(ANNOUNCEMENT_LAST_PULL_TIME);
 
   @override
   Future<void> setAnnouncementLastPullTime(int lastPullTime) async {
@@ -813,9 +773,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  bool getIsOldUser() {
-    return _preferences.getBool(OLD_USER) ?? false;
-  }
+  bool getIsOldUser() => _preferences.getBool(OLD_USER) ?? false;
 
   @override
   Future<void> setOldUser() async {
@@ -823,9 +781,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  bool isPremium() {
-    return _preferences.getBool(IS_PREMIUM) ?? false;
-  }
+  bool isPremium() => _preferences.getBool(IS_PREMIUM) ?? false;
 
   @override
   Future<void> setPremium(bool value) async {
@@ -833,9 +789,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  bool isReadRemoveSupport() {
-    return _preferences.getBool(READ_REMOVE_SUPPORT) ?? false;
-  }
+  bool isReadRemoveSupport() =>
+      _preferences.getBool(READ_REMOVE_SUPPORT) ?? false;
 
   @override
   Future<void> readRemoveSupport(bool value) async {
@@ -936,15 +891,14 @@ class ConfigurationServiceImpl implements ConfigurationService {
       }
       final uniqueSharedPostcard = sentPostcard
           .map((e) => SharedPostcard.fromJson(jsonDecode(e)))
-          .toList();
-      uniqueSharedPostcard.sort((e1, e2) {
-        if (e2.sharedAt == null || e1.sharedAt == null) {
-          return 0;
-        }
-        return e2.sharedAt!.compareTo(e1.sharedAt!);
-      });
-
-      uniqueSharedPostcard.unique((element) => element.tokenID + element.owner);
+          .toList()
+        ..sort((e1, e2) {
+          if (e2.sharedAt == null || e1.sharedAt == null) {
+            return 0;
+          }
+          return e2.sharedAt!.compareTo(e1.sharedAt!);
+        })
+        ..unique((element) => element.tokenID + element.owner);
       await _preferences.setStringList(key,
           uniqueSharedPostcard.map((e) => jsonEncode(e.toJson())).toList());
     }
@@ -957,15 +911,14 @@ class ConfigurationServiceImpl implements ConfigurationService {
     final sharedPostcards = sharedPostcardString
         .map((e) => SharedPostcard.fromJson(jsonDecode(e)))
         .toSet()
-        .toList();
-    sharedPostcards.removeWhere(test);
+        .toList()
+      ..removeWhere(test);
     return updateSharedPostcard(sharedPostcards, override: true);
   }
 
   @override
-  List<String> getListPostcardMint() {
-    return _preferences.getStringList(POSTCARD_MINT) ?? [];
-  }
+  List<String> getListPostcardMint() =>
+      _preferences.getStringList(POSTCARD_MINT) ?? [];
 
   @override
   Future<void> setListPostcardMint(List<String> tokenID,
@@ -986,16 +939,15 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  List<StampingPostcard> getStampingPostcard() {
-    return _preferences
-            .getStringList(KEY_STAMPING_POSTCARD)
-            ?.map((e) => StampingPostcard.fromJson(jsonDecode(e)))
-            .toList()
-            .where((element) => element.timestamp
-                .isAfter(DateTime.now().subtract(STAMPING_POSTCARD_LIMIT_TIME)))
-            .toList() ??
-        [];
-  }
+  List<StampingPostcard> getStampingPostcard() =>
+      _preferences
+          .getStringList(KEY_STAMPING_POSTCARD)
+          ?.map((e) => StampingPostcard.fromJson(jsonDecode(e)))
+          .toList()
+          .where((element) => element.timestamp
+              .isAfter(DateTime.now().subtract(STAMPING_POSTCARD_LIMIT_TIME)))
+          .toList() ??
+      [];
 
   @override
   Future<void> updateStampingPostcard(List<StampingPostcard> values,
@@ -1020,9 +972,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  bool isAutoShowPostcard() {
-    return _preferences.getBool(KEY_AUTO_SHOW_POSTCARD) ?? false;
-  }
+  bool isAutoShowPostcard() =>
+      _preferences.getBool(KEY_AUTO_SHOW_POSTCARD) ?? false;
 
   @override
   Future<void> setAutoShowPostcard(bool value) async {
@@ -1031,13 +982,12 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  List<PostcardIdentity> getListPostcardAlreadyShowYouDidIt() {
-    return _preferences
-            .getStringList(KEY_ALREADY_SHOW_YOU_DID_IT_POSTCARD)
-            ?.map((e) => PostcardIdentity.fromJson(jsonDecode(e)))
-            .toList() ??
-        [];
-  }
+  List<PostcardIdentity> getListPostcardAlreadyShowYouDidIt() =>
+      _preferences
+          .getStringList(KEY_ALREADY_SHOW_YOU_DID_IT_POSTCARD)
+          ?.map((e) => PostcardIdentity.fromJson(jsonDecode(e)))
+          .toList() ??
+      [];
 
   @override
   Future<void> setListPostcardAlreadyShowYouDidIt(List<PostcardIdentity> values,
@@ -1048,21 +998,19 @@ class ConfigurationServiceImpl implements ConfigurationService {
     if (override) {
       await _preferences.setStringList(key, updateValues);
     } else {
-      var currentValue = _preferences.getStringList(key) ?? [];
-
-      currentValue.addAll(updateValues);
+      var currentValue = _preferences.getStringList(key) ?? []
+        ..addAll(updateValues);
       await _preferences.setStringList(key, currentValue.toSet().toList());
     }
   }
 
   @override
-  List<PostcardIdentity> getAlreadyShowPostcardUpdates() {
-    return _preferences
-            .getStringList(KEY_ALREADY_SHOW_POSTCARD_UPDATES)
-            ?.map((e) => PostcardIdentity.fromJson(jsonDecode(e)))
-            .toList() ??
-        [];
-  }
+  List<PostcardIdentity> getAlreadyShowPostcardUpdates() =>
+      _preferences
+          .getStringList(KEY_ALREADY_SHOW_POSTCARD_UPDATES)
+          ?.map((e) => PostcardIdentity.fromJson(jsonDecode(e)))
+          .toList() ??
+      [];
 
   @override
   Future<void> setAlreadyShowPostcardUpdates(List<PostcardIdentity> value,
@@ -1073,17 +1021,14 @@ class ConfigurationServiceImpl implements ConfigurationService {
     if (override) {
       return _preferences.setStringList(key, updateValues);
     } else {
-      var currentValue = _preferences.getStringList(key) ?? [];
-
-      currentValue.addAll(updateValues);
+      var currentValue = _preferences.getStringList(key) ?? []
+        ..addAll(updateValues);
       return _preferences.setStringList(key, currentValue.toSet().toList());
     }
   }
 
   @override
-  String getVersionInfo() {
-    return _preferences.getString(KEY_PACKAGE_INFO) ?? "";
-  }
+  String getVersionInfo() => _preferences.getString(KEY_PACKAGE_INFO) ?? '';
 
   @override
   Future<void> setVersionInfo(String version) async {
@@ -1103,12 +1048,12 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  Future<void> updateShowAnouncementNotificationInfo(
+  Future<void> updateShowAnnouncementNotificationInfo(
     AnnouncementLocal announcement,
   ) async {
     const key = KEY_SHOW_ANOUNCEMENT_NOTIFICATION_INFO;
     final announcementId = announcement.announcementContextId;
-    var currentValue = _preferences.getString(key) ?? "{}";
+    var currentValue = _preferences.getString(key) ?? '{}';
     final currentInfo =
         ShowAnouncementNotificationInfo.fromJson(jsonDecode(currentValue));
     currentInfo.showAnnouncementMap.update(announcementId, (value) => value + 1,
@@ -1117,7 +1062,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  ShowAnouncementNotificationInfo getShowAnouncementNotificationInfo() {
+  ShowAnouncementNotificationInfo getShowAnnouncementNotificationInfo() {
     final data = _preferences.getString(KEY_SHOW_ANOUNCEMENT_NOTIFICATION_INFO);
     if (data == null) {
       return ShowAnouncementNotificationInfo();
@@ -1146,39 +1091,33 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  bool getDidSyncArtists() {
-    // get did sync artists
-    return _preferences.getBool(KEY_DID_SYNC_ARTISTS) ?? false;
-  }
+  bool getDidSyncArtists() =>
+      _preferences.getBool(KEY_DID_SYNC_ARTISTS) ?? false;
 
   @override
-  Future<void> setDidSyncArtists(bool value) {
-    // set did sync artists
-    return _preferences.setBool(KEY_DID_SYNC_ARTISTS, value);
-  }
+  Future<void> setDidSyncArtists(bool value) =>
+      _preferences.setBool(KEY_DID_SYNC_ARTISTS, value);
 
   @override
-  List<String> getHiddenFeeds() {
-    return _preferences.getStringList(KEY_HIDDEN_FEEDS) ?? [];
-  }
+  List<String> getHiddenFeeds() =>
+      _preferences.getStringList(KEY_HIDDEN_FEEDS) ?? [];
 
   @override
   Future<void> setHiddenFeed(List<String> tokenIds, {bool isOverride = false}) {
     if (isOverride) {
       return _preferences.setStringList(KEY_HIDDEN_FEEDS, tokenIds);
     } else {
-      final currentHiddenFeeds = getHiddenFeeds();
-      currentHiddenFeeds.addAll(tokenIds);
-      currentHiddenFeeds.toSet().toList();
+      final currentHiddenFeeds = getHiddenFeeds()
+        ..addAll(tokenIds)
+        ..toSet().toList();
       return _preferences.setStringList(
           KEY_HIDDEN_FEEDS, currentHiddenFeeds.toSet().toList());
     }
   }
 
   @override
-  bool getDidMigrateAddress() {
-    return _preferences.getBool(KEY_DID_MIGRATE_ADDRESS) ?? false;
-  }
+  bool getDidMigrateAddress() =>
+      _preferences.getBool(KEY_DID_MIGRATE_ADDRESS) ?? false;
 
   @override
   Future<void> setDidMigrateAddress(bool value) async {
@@ -1200,10 +1139,11 @@ class ConfigurationServiceImpl implements ConfigurationService {
   Future<void> setPostcardChatConfig(PostcardChatConfig config) async {
     final configs = _preferences.getStringList(KEY_POSTCARD_CHAT_CONFIG) ?? [];
     final chatConfigs =
-        configs.map((e) => PostcardChatConfig.fromJson(jsonDecode(e))).toList();
-    chatConfigs.removeWhere((element) =>
-        element.address == config.address && element.tokenId == config.tokenId);
-    chatConfigs.add(config);
+        configs.map((e) => PostcardChatConfig.fromJson(jsonDecode(e))).toList()
+          ..removeWhere((element) =>
+              element.address == config.address &&
+              element.tokenId == config.tokenId)
+          ..add(config);
     await _preferences.setStringList(
         KEY_POSTCARD_CHAT_CONFIG,
         chatConfigs
@@ -1242,13 +1182,12 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  List<ProcessingStampPostcard> getProcessingStampPostcard() {
-    return _preferences
-            .getStringList(KEY_PROCESSING_STAMP_POSTCARD)
-            ?.map((e) => ProcessingStampPostcard.fromJson(jsonDecode(e)))
-            .toList() ??
-        [];
-  }
+  List<ProcessingStampPostcard> getProcessingStampPostcard() =>
+      _preferences
+          .getStringList(KEY_PROCESSING_STAMP_POSTCARD)
+          ?.map((e) => ProcessingStampPostcard.fromJson(jsonDecode(e)))
+          .toList() ??
+      [];
 
   @override
   Future<void> setProcessingStampPostcard(List<ProcessingStampPostcard> values,

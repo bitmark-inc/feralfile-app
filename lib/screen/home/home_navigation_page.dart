@@ -643,7 +643,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
             .toList();
 
     final showAnnouncementInfo =
-        _configurationService.getShowAnouncementNotificationInfo();
+        _configurationService.getShowAnnouncementNotificationInfo();
     final shouldShowAnnouncements = announcements.where((element) =>
         (element.isMemento6 &&
             !_configurationService
@@ -654,7 +654,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         (announcement) async {
       await showAnnouncementNotification(announcement);
       await _configurationService
-          .updateShowAnouncementNotificationInfo(announcement);
+          .updateShowAnnouncementNotificationInfo(announcement);
     });
   }
 

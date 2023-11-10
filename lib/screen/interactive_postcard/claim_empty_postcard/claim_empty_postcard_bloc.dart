@@ -1,8 +1,9 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import "package:autonomy_flutter/model/postcard_claim.dart";
+import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
@@ -15,7 +16,7 @@ import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nft_collection/models/models.dart';
-import "package:nft_collection/nft_collection.dart";
+import 'package:nft_collection/nft_collection.dart';
 import 'package:nft_collection/services/tokens_service.dart';
 
 import 'claim_empty_postcard_state.dart';
@@ -51,13 +52,13 @@ class ClaimEmptyPostCardBloc
                 ? jsonEncode(postcardMetadata.toJson())
                 : null,
           ),
-          blockchain: "tezos",
+          blockchain: 'tezos',
           fungible: true,
           contractType: 'fa2',
           tokenId: indexId,
           contractAddress: Environment.postcardContractAddress,
           edition: 0,
-          editionName: "",
+          editionName: '',
           id: tokenId,
           balance: 1,
           owner: payToMintRequest.address,
@@ -71,8 +72,10 @@ class ClaimEmptyPostCardBloc
           },
         );
         await _tokensService.setCustomTokens([token]);
-        _tokensService.reindexAddresses([payToMintRequest.address]);
-        injector.get<ConfigurationService>().setListPostcardMint([tokenId]);
+        unawaited(_tokensService.reindexAddresses([payToMintRequest.address]));
+        await injector
+            .get<ConfigurationService>()
+            .setListPostcardMint([tokenId]);
         NftCollectionBloc.eventController.add(
           GetTokensByOwnerEvent(pageKey: PageKey.init()),
         );
@@ -90,14 +93,14 @@ class ClaimEmptyPostCardBloc
                 ? jsonEncode(postcardMetadata.toJson())
                 : null,
           ),
-          blockchain: "tezos",
+          blockchain: 'tezos',
           fungible: true,
           contractType: 'fa2',
           tokenId: '1',
           contractAddress: Environment.postcardContractAddress,
           edition: 0,
-          editionName: "",
-          id: "tez-",
+          editionName: '',
+          id: 'tez-',
           balance: 1,
           owner: 'owner',
           lastActivityTime: DateTime.now(),
@@ -119,7 +122,9 @@ class ClaimEmptyPostCardBloc
         final defaultPersona = await accountService.getOrCreateDefaultPersona();
         await configService.setDoneOnboarding(true);
         await configService.setPendingSettings(true);
-        injector<MetricClientService>().mixPanelClient.initIfDefaultAccount();
+        await injector<MetricClientService>()
+            .mixPanelClient
+            .initIfDefaultAccount();
 
         final walletAddress =
             await defaultPersona.insertNextAddress(WalletType.Tezos);
@@ -152,7 +157,7 @@ class ClaimEmptyPostCardBloc
           state.copyWith(
             isClaiming: false,
             isClaimed: false,
-            error: e.response?.data["message"],
+            error: e.response?.data['message'],
           ),
         );
       }

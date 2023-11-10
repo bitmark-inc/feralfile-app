@@ -139,14 +139,14 @@ import 'package:nft_collection/models/asset_token.dart';
 import 'package:page_transition/page_transition.dart';
 
 class AppRouter {
-  static const createPlayListPage = "createPlayList";
-  static const viewPlayListPage = "viewPlayList";
-  static const editPlayListPage = "editPlayList";
-  static const previewPrimerPage = "preview_primer";
-  static const onboardingPage = "onboarding";
+  static const createPlayListPage = 'createPlayList';
+  static const viewPlayListPage = 'viewPlayList';
+  static const editPlayListPage = 'editPlayList';
+  static const previewPrimerPage = 'preview_primer';
+  static const onboardingPage = 'onboarding';
   static const notificationOnboardingPage = 'notification_onboarding';
   static const nameLinkedAccountPage = 'name_linked_account';
-  static const homePage = "home_page";
+  static const homePage = 'home_page';
   static const homePageNoTransition = 'home_page_NoTransition';
   static const artworkPreviewPage = 'artwork_preview';
   static const artworkDetailsPage = 'artwork_detail';
@@ -154,8 +154,8 @@ class AppRouter {
   static const feedPreviewPage = 'feedPreviewPage';
   static const feedArtworkDetailsPage = 'feedArtworkDetailsPage';
   static const galleryPage = 'galleryPage';
-  static const settingsPage = "settings";
-  static const personaConnectionsPage = "persona_connections";
+  static const settingsPage = 'settings';
+  static const personaConnectionsPage = 'persona_connections';
   static const connectionDetailsPage = 'connection_details';
   static const linkedAccountDetailsPage = 'linked_account_details';
   static const walletDetailsPage = 'wallet_detail';
@@ -195,11 +195,11 @@ class AppRouter {
   static const inappWebviewPage = 'inapp_webview_page';
   static const postcardExplain = 'postcard_explain_screen';
   static const designStamp = 'design_stamp_screen';
-  static const handSignaturePage = "hand_signature_page";
-  static const stampPreview = "stamp_preview";
-  static const claimEmptyPostCard = "claim_empty_postcard";
-  static const payToMintPostcard = "pay_to_mint_postcard";
-  static const selectAddressScreen = "select_address_screen";
+  static const handSignaturePage = 'hand_signature_page';
+  static const stampPreview = 'stamp_preview';
+  static const claimEmptyPostCard = 'claim_empty_postcard';
+  static const payToMintPostcard = 'pay_to_mint_postcard';
+  static const selectAddressScreen = 'select_address_screen';
   static const receivePostcardPage = 'receive_postcard_page';
   static const receivePostcardSelectAccountPage =
       'receive_postcard_select_account_page';
@@ -207,8 +207,8 @@ class AppRouter {
   static const irlSignMessage = 'irl_sign_message';
   static const postcardConfirmingPage = 'postcard_confirming_page';
   static const canvasHelpPage = 'canvas_help_page';
-  static const keyboardControlPage = "keyboard_control_page";
-  static const touchPadPage = "touch_pad_page";
+  static const keyboardControlPage = 'keyboard_control_page';
+  static const touchPadPage = 'touch_pad_page';
   static const claimAirdropPage = 'claim_airdrop_page';
   static const activationTokenDetailPage = 'activation_token_detail_page';
   static const claimActivationPage = 'claim_activation_page';
@@ -237,7 +237,7 @@ class AppRouter {
               injector(),
             ),
             child: ViewPlaylistScreen(
-              playListModel: settings.arguments as PlayListModel?,
+              playListModel: settings.arguments! as PlayListModel?,
             ),
           ),
         );
@@ -245,14 +245,14 @@ class AppRouter {
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) => AddNewPlaylistScreen(
-            playListModel: settings.arguments as PlayListModel?,
+            playListModel: settings.arguments! as PlayListModel?,
           ),
         );
       case editPlayListPage:
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) => EditPlaylistScreen(
-            playListModel: settings.arguments as PlayListModel?,
+            playListModel: settings.arguments! as PlayListModel?,
           ),
         );
       case onboardingPage:
@@ -283,7 +283,7 @@ class AppRouter {
                 BlocProvider(create: (_) => identityBloc),
               ],
               child: PreviewPrimerPage(
-                token: settings.arguments as AssetToken,
+                token: settings.arguments! as AssetToken,
               ),
             ));
 
@@ -362,7 +362,7 @@ class AppRouter {
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) => ChatThreadPage(
-              payload: settings.arguments as ChatThreadPagePayload),
+              payload: settings.arguments! as ChatThreadPagePayload),
         );
 
       case postcardExplain:
@@ -373,7 +373,7 @@ class AppRouter {
           duration: const Duration(milliseconds: 300),
           reverseDuration: const Duration(milliseconds: 300),
           child: PostcardExplain(
-              payload: settings.arguments as PostcardExplainPayload),
+              payload: settings.arguments! as PostcardExplainPayload),
         );
 
       case designStamp:
@@ -384,7 +384,7 @@ class AppRouter {
           duration: const Duration(milliseconds: 300),
           reverseDuration: const Duration(milliseconds: 300),
           child: DesignStampPage(
-              payload: settings.arguments as DesignStampPayload),
+              payload: settings.arguments! as DesignStampPayload),
         );
 
       case AccessMethodPage.tag:
@@ -400,7 +400,7 @@ class AppRouter {
           duration: const Duration(milliseconds: 300),
           reverseDuration: const Duration(milliseconds: 300),
           child: HandSignaturePage(
-            payload: settings.arguments as HandSignaturePayload,
+            payload: settings.arguments! as HandSignaturePayload,
           ),
         );
 
@@ -425,7 +425,7 @@ class AppRouter {
                       )),
             ],
             child: StampPreview(
-                payload: settings.arguments as StampPreviewPayload),
+                payload: settings.arguments! as StampPreviewPayload),
           ),
         );
 
@@ -448,7 +448,7 @@ class AppRouter {
             builder: (context) => BlocProvider.value(
                 value: accountsBloc,
                 child: NameViewOnlyAddressPage(
-                    connection: settings.arguments as Connection)));
+                    connection: settings.arguments! as Connection)));
 
       case wcConnectPage:
         final argument = settings.arguments;
@@ -471,7 +471,7 @@ class AppRouter {
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) => WCSignMessagePage(
-              args: settings.arguments as WCSignMessagePageArgs),
+              args: settings.arguments! as WCSignMessagePageArgs),
         );
 
       case WCSendTransactionPage.tag:
@@ -485,7 +485,7 @@ class AppRouter {
               injector(),
             ),
             child: WCSendTransactionPage(
-                args: settings.arguments as WCSendTransactionPageArgs),
+                args: settings.arguments! as WCSendTransactionPageArgs),
           ),
         );
       case ScanQRPage.tag:
@@ -494,7 +494,7 @@ class AppRouter {
             type: PageTransitionType.topToBottom,
             curve: Curves.easeIn,
             duration: const Duration(milliseconds: 250),
-            child: ScanQRPage(scannerItem: settings.arguments as ScannerItem));
+            child: ScanQRPage(scannerItem: settings.arguments! as ScannerItem));
 
       case settingsPage:
         return CupertinoPageRoute(
@@ -527,7 +527,7 @@ class AppRouter {
                     ],
                     child: PersonaConnectionsPage(
                         payload:
-                            settings.arguments as PersonaConnectionsPayload)));
+                            settings.arguments! as PersonaConnectionsPayload)));
 
       case connectionDetailsPage:
         return CupertinoPageRoute(
@@ -540,7 +540,7 @@ class AppRouter {
                       injector(),
                     ),
                 child: ConnectionDetailsPage(
-                  connectionItem: settings.arguments as ConnectionItem,
+                  connectionItem: settings.arguments! as ConnectionItem,
                 )));
 
       case walletDetailsPage:
@@ -564,7 +564,7 @@ class AppRouter {
                             injector(), injector(), injector())),
                   ],
                   child: WalletDetailPage(
-                      payload: settings.arguments as WalletDetailsPayload),
+                      payload: settings.arguments! as WalletDetailsPayload),
                 ));
       case linkedWalletDetailsPage:
         return CupertinoPageRoute(
@@ -578,7 +578,7 @@ class AppRouter {
                   ],
                   child: LinkedWalletDetailPage(
                       payload:
-                          settings.arguments as LinkedWalletDetailsPayload),
+                          settings.arguments! as LinkedWalletDetailsPayload),
                 ));
       case SendCryptoPage.tag:
         return CupertinoPageRoute(
@@ -588,15 +588,15 @@ class AppRouter {
                       injector(),
                       injector(),
                       injector(),
-                      (settings.arguments as SendData).type,
+                      (settings.arguments! as SendData).type,
                       injector()),
-                  child: SendCryptoPage(data: settings.arguments as SendData),
+                  child: SendCryptoPage(data: settings.arguments! as SendData),
                 ));
       case SendReviewPage.tag:
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => SendReviewPage(
-                  payload: settings.arguments as SendCryptoPayload,
+                  payload: settings.arguments! as SendCryptoPayload,
                 ));
       case artworkPreviewPage:
         return PageTransition(
@@ -626,7 +626,7 @@ class AppRouter {
                         injector(), injector(), injector(), injector())),
               ],
               child: ArtworkPreviewPage(
-                payload: settings.arguments as ArtworkDetailPayload,
+                payload: settings.arguments! as ArtworkDetailPayload,
               ),
             ));
 
@@ -654,7 +654,7 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => ViewExistingAddress(
-                  payload: settings.arguments as ViewExistingAddressPayload,
+                  payload: settings.arguments! as ViewExistingAddressPayload,
                 ));
       case ImportSeedsPage.tag:
         return CupertinoPageRoute(
@@ -666,14 +666,14 @@ class AppRouter {
             builder: (context) => BlocProvider(
                   create: (_) => ScanWalletBloc(injector(), injector()),
                   child: SelectAddressesPage(
-                      payload: settings.arguments as SelectAddressesPayload),
+                      payload: settings.arguments! as SelectAddressesPayload),
                 ));
 
       case NameAddressPersona.tag:
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => NameAddressPersona(
-                  payload: settings.arguments as NameAddressPersonaPayload,
+                  payload: settings.arguments! as NameAddressPersonaPayload,
                 ));
 
       case AddressAlias.tag:
@@ -682,7 +682,7 @@ class AppRouter {
             builder: (context) => BlocProvider(
                   create: (_) => personaBloc,
                   child: AddressAlias(
-                      payload: settings.arguments as AddressAliasPayload),
+                      payload: settings.arguments! as AddressAliasPayload),
                 ));
       case feedArtworkDetailsPage:
         return PageTransition(
@@ -696,7 +696,7 @@ class AppRouter {
                   BlocProvider(create: (_) => identityBloc),
                 ],
                 child: FeedArtworkDetailsPage(
-                  payload: settings.arguments as FeedDetailPayload,
+                  payload: settings.arguments! as FeedDetailPayload,
                 )));
 
       case galleryPage:
@@ -709,7 +709,7 @@ class AppRouter {
                       BlocProvider(create: (_) => identityBloc),
                     ],
                     child: GalleryPage(
-                      payload: settings.arguments as GalleryPagePayload,
+                      payload: settings.arguments! as GalleryPagePayload,
                     )));
 
       case artworkDetailsPage:
@@ -733,10 +733,10 @@ class AppRouter {
                           )),
                 ],
                 child: ArtworkDetailPage(
-                    payload: settings.arguments as ArtworkDetailPayload)));
+                    payload: settings.arguments! as ArtworkDetailPayload)));
 
       case claimedPostcardDetailsPage:
-        final payload = settings.arguments as PostcardDetailPagePayload;
+        final payload = settings.arguments! as PostcardDetailPagePayload;
         return PageTransition(
             type: PageTransitionType.fade,
             curve: Curves.easeIn,
@@ -763,40 +763,40 @@ class AppRouter {
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) =>
-              TBSignMessagePage(request: settings.arguments as BeaconRequest),
+              TBSignMessagePage(request: settings.arguments! as BeaconRequest),
         );
       case AUSignMessagePage.tag:
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) =>
-              AUSignMessagePage(request: settings.arguments as Wc2Request),
+              AUSignMessagePage(request: settings.arguments! as Wc2Request),
         );
       case TBSendTransactionPage.tag:
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) => TBSendTransactionPage(
-              request: settings.arguments as BeaconRequest),
+              request: settings.arguments! as BeaconRequest),
         );
 
       case recoveryPhrasePage:
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => RecoveryPhrasePage(
-                  words: settings.arguments as List<String>,
+                  words: settings.arguments! as List<String>,
                 ));
 
       case cloudPage:
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => CloudPage(
-                  payload: settings.arguments as CloudPagePayload,
+                  payload: settings.arguments! as CloudPagePayload,
                 ));
 
       case cloudAndroidPage:
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => CloudAndroidPage(
-                  payload: settings.arguments as CloudAndroidPagePayload,
+                  payload: settings.arguments! as CloudAndroidPagePayload,
                 ));
 
       case globalReceivePage:
@@ -815,7 +815,7 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => GlobalReceiveDetailPage(
-                  payload: settings.arguments as GlobalReceivePayload,
+                  payload: settings.arguments! as GlobalReceivePayload,
                 ));
 
       case autonomySecurityPage:
@@ -834,7 +834,7 @@ class AppRouter {
             type: PageTransitionType.bottomToTop,
             curve: Curves.easeIn,
             child: ReleaseNotesPage(
-              releaseNotes: settings.arguments as String,
+              releaseNotes: settings.arguments! as String,
             ));
 
       case supportCustomerPage:
@@ -853,14 +853,14 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => TutorialVideo(
-                  payload: settings.arguments as TutorialVideosPayload,
+                  payload: settings.arguments! as TutorialVideosPayload,
                 ));
 
       case supportThreadPage:
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => SupportThreadPage(
-                payload: settings.arguments as SupportThreadPayload));
+                payload: settings.arguments! as SupportThreadPayload));
 
       case bugBountyPage:
         return CupertinoPageRoute(
@@ -888,7 +888,7 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => GithubDocPage(
-                payload: settings.arguments as Map<String, String>));
+                payload: settings.arguments! as Map<String, String>));
 
       case keySyncPage:
         return CupertinoPageRoute(
@@ -909,11 +909,11 @@ class AppRouter {
                         injector(),
                         injector(),
                         injector(),
-                        (settings.arguments as SendArtworkPayload).asset)),
+                        (settings.arguments! as SendArtworkPayload).asset)),
                 BlocProvider(create: (_) => identityBloc),
               ],
               child: SendArtworkPage(
-                  payload: settings.arguments as SendArtworkPayload)),
+                  payload: settings.arguments! as SendArtworkPayload)),
         );
 
       case sendArtworkReviewPage:
@@ -922,44 +922,40 @@ class AppRouter {
             builder: (context) => BlocProvider(
                   create: (_) => identityBloc,
                   child: SendArtworkReviewPage(
-                      payload: settings.arguments as SendArtworkReviewPayload),
+                      payload: settings.arguments! as SendArtworkReviewPayload),
                 ));
 
       case claimFeralfileTokenPage:
-        final args = settings.arguments as ClaimTokenPageArgs;
+        final args = settings.arguments! as ClaimTokenPageArgs;
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) {
-              return ClaimTokenPage(
-                series: args.series,
-                otp: args.otp,
-                allowViewOnlyClaim: args.allowViewOnlyClaim,
-              );
-            });
+            builder: (context) => ClaimTokenPage(
+                  series: args.series,
+                  otp: args.otp,
+                  allowViewOnlyClaim: args.allowViewOnlyClaim,
+                ));
 
       case airdropTokenDetailPage:
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => TokenDetailPage(
-                  series: settings.arguments as FFSeries,
+                  series: settings.arguments! as FFSeries,
                 ));
 
       case claimSelectAccountPage:
-        final args = settings.arguments as SelectAccountPageArgs;
+        final args = settings.arguments! as SelectAccountPageArgs;
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) {
-              return BlocProvider.value(
-                value: accountsBloc,
-                child: SelectAccountPage(
-                  blockchain: args.blockchain,
-                  artwork: args.artwork,
-                  otp: args.otp,
-                  fromWebview: args.fromWebview,
-                  withViewOnly: args.withViewOnly,
-                ),
-              );
-            });
+            builder: (context) => BlocProvider.value(
+                  value: accountsBloc,
+                  child: SelectAccountPage(
+                    blockchain: args.blockchain,
+                    artwork: args.artwork,
+                    otp: args.otp,
+                    fromWebview: args.fromWebview,
+                    withViewOnly: args.withViewOnly,
+                  ),
+                ));
 
       case wc2ConnectPage:
         return CupertinoPageRoute(
@@ -972,7 +968,7 @@ class AppRouter {
               ),
             ],
             child: WCConnectPage(
-              connectionRequest: settings.arguments as Wc2Proposal,
+              connectionRequest: settings.arguments! as Wc2Proposal,
             ),
           ),
         );
@@ -980,9 +976,8 @@ class AppRouter {
       case linkManually:
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) {
-              return LinkManuallyPage(type: settings.arguments as String);
-            });
+            builder: (context) =>
+                LinkManuallyPage(type: settings.arguments! as String));
 
       case wc2PermissionPage:
         return CupertinoPageRoute(
@@ -995,66 +990,53 @@ class AppRouter {
                       ),
                     ],
                     child: Wc2RequestPage(
-                        request: settings.arguments as Wc2Request)));
+                        request: settings.arguments! as Wc2Request)));
 
       case walletPage:
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) {
-              return MultiBlocProvider(
-                providers: [
-                  BlocProvider.value(value: accountsBloc),
-                  BlocProvider(
-                    create: (_) => personaBloc,
-                  ),
-                ],
-                child: const WalletPage(),
-              );
-            });
+            builder: (context) => MultiBlocProvider(
+                  providers: [
+                    BlocProvider.value(value: accountsBloc),
+                    BlocProvider(
+                      create: (_) => personaBloc,
+                    ),
+                  ],
+                  child: const WalletPage(),
+                ));
       case preferencesPage:
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) {
-              return MultiBlocProvider(providers: [
-                BlocProvider(
-                  create: (_) => PreferencesBloc(injector()),
-                ),
-                BlocProvider.value(value: accountsBloc),
-              ], child: const PreferencePage());
-            });
+            builder: (context) => MultiBlocProvider(providers: [
+                  BlocProvider(
+                    create: (_) => PreferencesBloc(injector()),
+                  ),
+                  BlocProvider.value(value: accountsBloc),
+                ], child: const PreferencePage()));
       case subscriptionPage:
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) {
-              return MultiBlocProvider(providers: [
-                BlocProvider(
-                  create: (_) => UpgradesBloc(injector(), injector()),
-                ),
-              ], child: const SubscriptionPage());
-            });
+            builder: (context) => MultiBlocProvider(providers: [
+                  BlocProvider(
+                    create: (_) => UpgradesBloc(injector(), injector()),
+                  ),
+                ], child: const SubscriptionPage()));
       case dataManagementPage:
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) {
-              return MultiBlocProvider(providers: [
-                BlocProvider(create: (_) => identityBloc),
-              ], child: const DataManagementPage());
-            });
+            builder: (context) => MultiBlocProvider(providers: [
+                  BlocProvider(create: (_) => identityBloc),
+                ], child: const DataManagementPage()));
       case helpUsPage:
         return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) {
-              return const HelpUsPage();
-            });
+            settings: settings, builder: (context) => const HelpUsPage());
       case inappWebviewPage:
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) {
-              return InAppWebViewPage(
-                  payload: settings.arguments as InAppWebViewPayload);
-            });
+            builder: (context) => InAppWebViewPage(
+                payload: settings.arguments! as InAppWebViewPayload));
       case claimEmptyPostCard:
-        final claimRequest = settings.arguments as RequestPostcardResponse;
+        final claimRequest = settings.arguments! as RequestPostcardResponse;
         return PageTransition(
           settings: settings,
           type: PageTransitionType.rightToLeft,
@@ -1065,36 +1047,33 @@ class AppRouter {
         );
 
       case payToMintPostcard:
-        final claimRequest = settings.arguments as PayToMintRequest;
+        final claimRequest = settings.arguments! as PayToMintRequest;
         return CupertinoPageRoute(
           settings: settings,
-          builder: (context) {
-            return PayToMintPostcardScreen(claimRequest: claimRequest);
-          },
+          builder: (context) =>
+              PayToMintPostcardScreen(claimRequest: claimRequest),
         );
 
       case selectAddressScreen:
-        final arguments = settings.arguments as Map;
+        final arguments = settings.arguments! as Map;
         final blockchain = arguments['blockchain'] as String;
         final onConfirm = arguments['onConfirm'] as Future Function(String);
         final withLinked = (arguments['withLinked'] ?? true) as bool;
         return CupertinoPageRoute(
           settings: settings,
-          builder: (context) {
-            return MultiBlocProvider(
-              providers: [
-                BlocProvider.value(value: accountsBloc),
-              ],
-              child: SelectAccountScreen(
-                blockchain: blockchain,
-                onConfirm: onConfirm,
-                withLinked: withLinked,
-              ),
-            );
-          },
+          builder: (context) => MultiBlocProvider(
+            providers: [
+              BlocProvider.value(value: accountsBloc),
+            ],
+            child: SelectAccountScreen(
+              blockchain: blockchain,
+              onConfirm: onConfirm,
+              withLinked: withLinked,
+            ),
+          ),
         );
       case receivePostcardPage:
-        final args = settings.arguments as ReceivePostcardPageArgs;
+        final args = settings.arguments! as ReceivePostcardPageArgs;
         return PageTransition(
           settings: settings,
           type: PageTransitionType.rightToLeft,
@@ -1130,33 +1109,26 @@ class AppRouter {
         );
 
       case irlWebView:
-        final payload = settings.arguments as IRLWebScreenPayload;
+        final payload = settings.arguments! as IRLWebScreenPayload;
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) {
-              return IRLWebScreen(payload: payload);
-            });
+            builder: (context) => IRLWebScreen(payload: payload));
 
       case irlSignMessage:
-        final payload = settings.arguments as IRLSignMessagePayload;
+        final payload = settings.arguments! as IRLSignMessagePayload;
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) {
-              return IRLSignMessageScreen(payload: payload);
-            });
+            builder: (context) => IRLSignMessageScreen(payload: payload));
 
       case canvasHelpPage:
         return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) {
-              return const CanvasHelpPage();
-            });
+            settings: settings, builder: (context) => const CanvasHelpPage());
 
       case keyboardControlPage:
         return TransparentRoute(
             settings: settings,
             builder: (context) {
-              final payload = settings.arguments as KeyboardControlPagePayload;
+              final payload = settings.arguments! as KeyboardControlPagePayload;
               return KeyboardControlPage(
                 payload: payload,
               );
@@ -1165,7 +1137,7 @@ class AppRouter {
         return TransparentRoute(
             settings: settings,
             builder: (context) {
-              final payload = settings.arguments as TouchPadPagePayload;
+              final payload = settings.arguments! as TouchPadPagePayload;
               return TouchPadPage(
                 payload: payload,
               );
@@ -1173,53 +1145,45 @@ class AppRouter {
       case claimAirdropPage:
         return CupertinoPageRoute(
           settings: settings,
-          builder: (context) {
-            return BlocProvider.value(
-              value: accountsBloc,
-              child: ClaimAirdropPage(
-                payload: settings.arguments as ClaimTokenPagePayload,
-              ),
-            );
-          },
+          builder: (context) => BlocProvider.value(
+            value: accountsBloc,
+            child: ClaimAirdropPage(
+              payload: settings.arguments! as ClaimTokenPagePayload,
+            ),
+          ),
         );
 
       case activationTokenDetailPage:
         return CupertinoPageRoute(
           settings: settings,
-          builder: (context) {
-            return BlocProvider.value(
-              value: accountsBloc,
-              child: ActivationTokenDetailPage(
-                assetToken: settings.arguments as AssetToken,
-              ),
-            );
-          },
+          builder: (context) => BlocProvider.value(
+            value: accountsBloc,
+            child: ActivationTokenDetailPage(
+              assetToken: settings.arguments! as AssetToken,
+            ),
+          ),
         );
 
       case claimActivationPage:
         return CupertinoPageRoute(
           settings: settings,
-          builder: (context) {
-            return BlocProvider.value(
-              value: accountsBloc,
-              child: ClaimActivationPage(
-                payload: settings.arguments as ClaimActivationPagePayload,
-              ),
-            );
-          },
+          builder: (context) => BlocProvider.value(
+            value: accountsBloc,
+            child: ClaimActivationPage(
+              payload: settings.arguments! as ClaimActivationPagePayload,
+            ),
+          ),
         );
 
       case previewActivationClaimPage:
         return CupertinoPageRoute(
           settings: settings,
-          builder: (context) {
-            return BlocProvider.value(
-              value: accountsBloc,
-              child: PreviewActivationTokenPage(
-                assetToken: settings.arguments as AssetToken,
-              ),
-            );
-          },
+          builder: (context) => BlocProvider.value(
+            value: accountsBloc,
+            child: PreviewActivationTokenPage(
+              assetToken: settings.arguments! as AssetToken,
+            ),
+          ),
         );
 
       case postcardLeaderboardPage:
@@ -1244,7 +1208,7 @@ class AppRouter {
               ),
             ],
             child: PostcardLeaderboardPage(
-              payload: settings.arguments as PostcardLeaderboardPagePayload,
+              payload: settings.arguments! as PostcardLeaderboardPagePayload,
             ),
           ),
         );
@@ -1256,7 +1220,7 @@ class AppRouter {
           duration: const Duration(milliseconds: 300),
           reverseDuration: const Duration(milliseconds: 300),
           child: PostcardLocationExplain(
-            payload: settings.arguments as PostcardExplainPayload,
+            payload: settings.arguments! as PostcardExplainPayload,
           ),
         );
 

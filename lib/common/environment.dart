@@ -8,7 +8,7 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class Environment {
-  static const String openSeaApiKey = "";
+  static const String openSeaApiKey = '';
 
   static String get indexerURL =>
       appTestnetConfig ? indexerTestnetURL : indexerMainnetURL;
@@ -57,13 +57,13 @@ class Environment {
       dotenv.env['WEB3_RPC_MAINNET_URL'] ?? '';
 
   static int get web3MainnetChainId =>
-      int.tryParse(dotenv.env['WEB3_MAINNET_CHAIN_ID'] ?? "1") ?? 1;
+      int.tryParse(dotenv.env['WEB3_MAINNET_CHAIN_ID'] ?? '1') ?? 1;
 
   static String get web3RpcTestnetURL =>
       dotenv.env['WEB3_RPC_TESTNET_URL'] ?? '';
 
   static int get web3TestnetChainId =>
-      int.tryParse(dotenv.env['WEB3_TESTNET_CHAIN_ID'] ?? "5") ?? 5;
+      int.tryParse(dotenv.env['WEB3_TESTNET_CHAIN_ID'] ?? '5') ?? 5;
 
   static String get tezosNodeClientMainnetURL =>
       dotenv.env['TEZOS_NODE_CLIENT_MAINNET_URL'] ?? '';
@@ -133,10 +133,10 @@ class Environment {
       dotenv.env['AUTONOMY_IPFS_PREFIX'] ?? '';
 
   static int? get pendingTokenExpireMs =>
-      int.tryParse(dotenv.env['PENDING_TOKEN_EXPIRE_MS'] ?? "");
+      int.tryParse(dotenv.env['PENDING_TOKEN_EXPIRE_MS'] ?? '');
 
   static bool get appTestnetConfig =>
-      dotenv.env['APP_TESTNET_CONFIG']?.toUpperCase() == "TRUE";
+      dotenv.env['APP_TESTNET_CONFIG']?.toUpperCase() == 'TRUE';
 
   static String get metricEndpoint => dotenv.env['METRIC_ENDPOINT'] ?? '';
 
@@ -158,10 +158,10 @@ class Environment {
       dotenv.env['POSTCARD_CONTRACT_ADDRESS'] ?? '';
 
   static String get merchandiseBaseUrl =>
-      dotenv.env["AUTONOMY_MERCHANDISE_BASE_URL"] ?? "";
+      dotenv.env['AUTONOMY_MERCHANDISE_BASE_URL'] ?? '';
 
   static String get payToMintBaseUrl =>
-      dotenv.env["PAY_TO_MINT_BASE_URL"] ?? "";
+      dotenv.env['PAY_TO_MINT_BASE_URL'] ?? '';
 
   static String get chatServerHmacKey =>
       dotenv.env['CHAT_SERVER_HMAC_KEY'] ?? '';
