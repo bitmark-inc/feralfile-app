@@ -956,7 +956,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         ),
         if (!isViewOnly) ...[
           if (_remoteConfig.getBool(
-              ConfigGroup.viewDetail, ConfigKey.downloadStamp))
+              ConfigGroup.feature, ConfigKey.downloadStamp))
             OptionItem(
               title: 'download_stamp'.tr(),
               isEnable: isStamped,
@@ -1006,7 +1006,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
               },
             ),
           if (_remoteConfig.getBool(
-              ConfigGroup.viewDetail, ConfigKey.downloadPostcard))
+              ConfigGroup.feature, ConfigKey.downloadPostcard))
             OptionItem(
               title: 'download_postcard'.tr(),
               isEnable: isStamped,
