@@ -95,7 +95,6 @@ jobs:
           ${{ inputs.testnet == true }} && echo RENDERING_REPORT_URL=${{ secrets.RENDERING_REPORT_DEV_URL }} >> .env || echo RENDERING_REPORT_URL=${{ secrets.RENDERING_REPORT_STAGING_URL }} >> .env
           ${{ inputs.testnet == true }} && echo FEED_URL=${{ secrets.FEED_DEV_URL }} >> .env || echo FEED_URL=${{ secrets.FEED_STAGING_URL }} >> .env
           echo CURRENCY_EXCHANGE_URL=${{ secrets.CURRENCY_EXCHANGE_URL }} >> .env
-          echo AUTONOMY_PUBDOC_URL=${{ secrets.AUTONOMY_PUBDOC_URL }} >> .env
           echo AUTONOMY_IPFS_PREFIX=${{ secrets.AUTONOMY_IPFS_PREFIX_DEV }} >> .env
           ${{ inputs.testnet == true }} && echo AU_CLAIM_API_URL=${{ secrets.AU_CLAIM_API_TESTNET_URL }} >> .env || echo AU_CLAIM_API_URL=${{ secrets.AU_CLAIM_API_STAGING_URL }} >> .env
           ${{ inputs.testnet == true }} && echo AU_CLAIM_SECRET_KEY=${{ secrets.AU_CLAIM_SECRET_KEY_TESTNET }} >> .env || echo AU_CLAIM_SECRET_KEY=${{ secrets.AU_CLAIM_SECRET_KEY_STAGING }} >> .env
