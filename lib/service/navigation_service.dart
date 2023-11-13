@@ -27,11 +27,9 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:nft_collection/models/asset_token.dart';
 
 // ignore: implementation_imports
-import 'package:nft_collection/models/asset_token.dart'; // ignore: implementation_imports
 import 'package:overlay_support/src/overlay_state_finder.dart';
 
 class NavigationService {
@@ -40,7 +38,8 @@ class NavigationService {
   static const Key contactingKey = Key('tezos_beacon_contacting');
 
   // to prevent showing duplicate ConnectPage
-  // workaround solution for unknown reason ModalRoute(navigatorKey.currentContext) returns nil
+  // workaround solution for unknown reason
+  // ModalRoute(navigatorKey.currentContext) returns nil
   bool _isWCConnectInShow = false;
 
   BuildContext get context => navigatorKey.currentContext!;
@@ -68,8 +67,10 @@ class NavigationService {
     log.info('NavigationService.popAndPushNamed: $routeName');
 
     if (routeName == AppRouter.wcConnectPage && _isWCConnectInShow) {
-      log.info(
-          '[NavigationService] skip popAndPushNamed because WCConnectPage is in showing');
+      log.info('''
+          [NavigationService] skip popAndPushNamed because WCConnectPage is in 
+          showing
+          ''');
       return null;
     }
 

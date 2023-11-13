@@ -17,8 +17,7 @@ import 'package:flutter_svg/svg.dart';
 class PostcardLocationExplain extends StatefulWidget {
   final PostcardExplainPayload payload;
 
-  const PostcardLocationExplain({Key? key, required this.payload})
-      : super(key: key);
+  const PostcardLocationExplain({required this.payload, super.key});
 
   @override
   State<PostcardLocationExplain> createState() =>
@@ -60,13 +59,13 @@ class _PostcardLocationExplainState extends State<PostcardLocationExplain> {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             Text(
-              "MoMA",
+              'MoMA',
               overflow: TextOverflow.ellipsis,
               style: theme.textTheme.moMASans700Black24,
               textAlign: TextAlign.center,
             ),
             Text(
-              "postcard_project".tr(),
+              'postcard_project'.tr(),
               overflow: TextOverflow.ellipsis,
               style: theme.textTheme.moMASans400Black24.copyWith(height: 1),
               textAlign: TextAlign.center,
@@ -76,7 +75,7 @@ class _PostcardLocationExplainState extends State<PostcardLocationExplain> {
         toolbarHeight: 160,
         actions: [
           IconButton(
-            tooltip: "CLOSE",
+            tooltip: 'CLOSE',
             onPressed: () {
               Navigator.of(context).pop(false);
             },
@@ -93,12 +92,10 @@ class _PostcardLocationExplainState extends State<PostcardLocationExplain> {
           children: [
             Swiper(
               onIndexChanged: (index) {},
-              itemBuilder: (context, index) {
-                return Padding(
-                  padding: padding,
-                  child: pages[index],
-                );
-              },
+              itemBuilder: (context, index) => Padding(
+                padding: padding,
+                child: pages[index],
+              ),
               itemCount: pages.length,
               pagination: const SwiperPagination(
                   builder: DotSwiperPaginationBuilder(
@@ -147,7 +144,7 @@ class _PostcardLocationExplainState extends State<PostcardLocationExplain> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   SvgPicture.asset(
-                    "assets/images/location_blue.svg",
+                    'assets/images/location_blue.svg',
                   ),
                   Text(
                     location,
@@ -158,8 +155,8 @@ class _PostcardLocationExplainState extends State<PostcardLocationExplain> {
               ),
             ),
             Text(
-              "plus_distance".tr(namedArgs: {
-                "distance": DistanceFormatter().showDistance(
+              'plus_distance'.tr(namedArgs: {
+                'distance': DistanceFormatter().showDistance(
                     distance: distance, distanceUnit: DistanceUnit.mile),
               }),
               style: theme.textTheme.moMASans400Black16.copyWith(
@@ -180,21 +177,21 @@ class _PostcardLocationExplainState extends State<PostcardLocationExplain> {
             children: [
               _locationExplainItem(
                   context: context,
-                  location: "Berlin, Germany",
+                  location: 'Berlin, Germany',
                   distance: 3964,
-                  imagePath: "assets/images/postcard_location_explain_1.png"),
+                  imagePath: 'assets/images/postcard_location_explain_1.png'),
               const SizedBox(height: 16),
               _locationExplainItem(
                   context: context,
-                  location: "Paris, France",
+                  location: 'Paris, France',
                   distance: 545,
-                  imagePath: "assets/images/postcard_location_explain_2.png"),
+                  imagePath: 'assets/images/postcard_location_explain_2.png'),
               const SizedBox(height: 16),
               _locationExplainItem(
                   context: context,
-                  location: "Reykjavík, Iceland",
+                  location: 'Reykjavík, Iceland',
                   distance: 1340,
-                  imagePath: "assets/images/postcard_location_explain_3.png"),
+                  imagePath: 'assets/images/postcard_location_explain_3.png'),
             ],
           ),
           const SizedBox(height: 60),
@@ -206,7 +203,7 @@ class _PostcardLocationExplainState extends State<PostcardLocationExplain> {
                 children: [
                   Expanded(
                     child: Text(
-                      "your_location_is_used".tr(),
+                      'your_location_is_used'.tr(),
                       style: theme.textTheme.moMASans700Black14
                           .copyWith(fontSize: 18),
                       maxLines: 2,
@@ -214,8 +211,8 @@ class _PostcardLocationExplainState extends State<PostcardLocationExplain> {
                   ),
                   const SizedBox(width: 8),
                   IconButton(
-                    onPressed: () {
-                      _navigationService.showLocationExplain();
+                    onPressed: () async {
+                      await _navigationService.showLocationExplain();
                     },
                     icon: const Icon(AuIcon.info),
                     padding: const EdgeInsets.all(0),
@@ -229,7 +226,7 @@ class _PostcardLocationExplainState extends State<PostcardLocationExplain> {
               ),
               const SizedBox(height: 38),
               Text(
-                "enable_location_to_contribute".tr(),
+                'enable_location_to_contribute'.tr(),
                 style:
                     theme.textTheme.moMASans400Black14.copyWith(fontSize: 18),
               ),

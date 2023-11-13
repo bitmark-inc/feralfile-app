@@ -475,6 +475,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                               const SizedBox()
                             else
                               FutureBuilder<Pair<WalletStorage, int>?>(
+                                  // ignore: discarded_futures
                                   future: state.assetToken!.getOwnerWallet(),
                                   builder: (context, snapshot) {
                                     if (snapshot.hasData) {
