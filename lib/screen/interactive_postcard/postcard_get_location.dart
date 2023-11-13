@@ -3,6 +3,7 @@ import 'package:autonomy_flutter/screen/interactive_postcard/postcard_explain.da
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -229,7 +230,13 @@ class _PostcardLocationExplainState extends State<PostcardLocationExplain> {
               ),
               const SizedBox(height: 38),
               Text(
-                "enable_location_to_contribute".tr(),
+                'enable_location_to_contribute'.tr(namedArgs: {
+                  'web_name': internetUserGeoLocation.address!,
+                  'web_distance': DistanceFormatter().format(
+                    distance: 0,
+                    withFullName: true,
+                  ),
+                }),
                 style:
                     theme.textTheme.moMASans400Black14.copyWith(fontSize: 18),
               ),
