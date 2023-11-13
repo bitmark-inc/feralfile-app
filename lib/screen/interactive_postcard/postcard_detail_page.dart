@@ -341,7 +341,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           return;
         }
         if (withSharing) {
-          await _socialShare(context, assetToken);
+          unawaited(_socialShare(context, assetToken));
           setState(() {
             withSharing = false;
           });
@@ -369,14 +369,14 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             if (!mounted) {
               return;
             }
-            await _postcardUpdated(context);
+            unawaited(_postcardUpdated(context));
           }
-          await _configurationService.setAlreadyShowPostcardUpdates(
-              [PostcardIdentity(id: assetToken.id, owner: assetToken.owner)]);
+          unawaited(_configurationService.setAlreadyShowPostcardUpdates(
+              [PostcardIdentity(id: assetToken.id, owner: assetToken.owner)]));
         }
 
         if (assetToken.didSendNext) {
-          await _removeShareConfig(assetToken);
+          unawaited(_removeShareConfig(assetToken));
         }
       }
       if (!mounted) {
@@ -633,9 +633,9 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
               text: 'continue'.tr(),
               fontSize: 18,
               onTap: () async {
-                await injector<NavigationService>().popAndPushNamed(
+                 unawaited(injector<NavigationService>().popAndPushNamed(
                     AppRouter.designStamp,
-                    arguments: DesignStampPayload(asset));
+                    arguments: DesignStampPayload(asset)));
               },
               color: AppColor.momaGreen,
             );
