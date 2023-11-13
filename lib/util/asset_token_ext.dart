@@ -276,34 +276,6 @@ extension AssetTokenExtension on AssetToken {
     return balance! - totalSentQuantity;
   }
 
-  StampingPostcard? get stampingPostcard {
-    if (asset?.artworkMetadata == null) {
-      return null;
-    }
-    final tokenId = this.tokenId ?? "";
-    final address = owner;
-    final counter = numberOwners;
-    final contractAddress = Environment.postcardContractAddress;
-    final imagePath = '${contractAddress}_${tokenId}_${counter}_image.png';
-    final metadataPath =
-        '${contractAddress}_${tokenId}_${counter}_metadata.json';
-    return StampingPostcard(
-      indexId: id,
-      address: address,
-      imagePath: imagePath,
-      metadataPath: metadataPath,
-      counter: counter,
-    );
-  }
-
-  PostcardMetadata get postcardMetadata {
-    return PostcardMetadata.fromJson(jsonDecode(asset!.artworkMetadata!));
-  }
-
-  String get twitterCaption {
-    return "#MoMAPostcardProject";
-  }
-
   bool get isPostcard => contractAddress == Environment.postcardContractAddress;
 
   // copyWith method
@@ -372,14 +344,6 @@ extension AssetTokenExtension on AssetToken {
       return [];
     }
     return lst.map((e) => Artist.fromJson(e)).toList().sublist(1);
-  }
-
-  bool get isAlreadyShowYouDidIt {
-    final listAlreadyShow =
-        injector<ConfigurationService>().getListPostcardAlreadyShowYouDidIt();
-    return listAlreadyShow
-        .where((element) => element.id == id && element.owner == owner)
-        .isNotEmpty;
   }
 
   bool get isAirdropToken {
@@ -717,6 +681,39 @@ extension PostcardExtension on AssetToken {
       final index = artists.indexOf(artist) + 1;
       return "stamper_".tr(args: [index.toString()]);
     }
+  }
+
+  StampingPostcard? get stampingPostcard {
+    if (asset?.artworkMetadata == null) {
+      return null;
+    }
+    final tokenId = this.tokenId ?? '';
+    final address = owner;
+    final counter = numberOwners;
+    final contractAddress = Environment.postcardContractAddress;
+    final imagePath = '${contractAddress}_${tokenId}_${counter}_image.png';
+    final metadataPath =
+        '${contractAddress}_${tokenId}_${counter}_metadata.json';
+    return StampingPostcard(
+      indexId: id,
+      address: address,
+      imagePath: imagePath,
+      metadataPath: metadataPath,
+      counter: counter,
+    );
+  }
+
+  PostcardMetadata get postcardMetadata =>
+      PostcardMetadata.fromJson(jsonDecode(asset!.artworkMetadata!));
+
+  String get twitterCaption => '#MoMAPostcard';
+
+  bool get isAlreadyShowYouDidIt {
+    final listAlreadyShow =
+        injector<ConfigurationService>().getListPostcardAlreadyShowYouDidIt();
+    return listAlreadyShow
+        .where((element) => element.id == id && element.owner == owner)
+        .isNotEmpty;
   }
 
   Future<ShareResult?> sharePostcard({
