@@ -11,14 +11,14 @@ class PrimaryButton extends StatelessWidget {
   final bool enabled;
 
   const PrimaryButton({
-    Key? key,
+    super.key,
     this.onTap,
     this.color,
     this.text,
     this.width,
     this.enabled = true,
     this.isProcessing = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +33,7 @@ class PrimaryButton extends StatelessWidget {
           disabledForegroundColor: theme.auLightGrey,
           disabledBackgroundColor: theme.auLightGrey,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(32.0),
+            borderRadius: BorderRadius.circular(32),
           ),
         ),
         onPressed: enabled ? onTap : null,
@@ -43,18 +43,19 @@ class PrimaryButton extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                isProcessing
-                    ? Container(
-                        height: 14.0,
-                        width: 14.0,
-                        margin: const EdgeInsets.only(right: 8.0),
-                        child: CircularProgressIndicator(
-                          color: theme.colorScheme.primary,
-                          backgroundColor: theme.colorScheme.surface,
-                          strokeWidth: 2.0,
-                        ),
-                      )
-                    : const SizedBox(),
+                if (isProcessing)
+                  Container(
+                    height: 14,
+                    width: 14,
+                    margin: const EdgeInsets.only(right: 8),
+                    child: CircularProgressIndicator(
+                      color: theme.colorScheme.primary,
+                      backgroundColor: theme.colorScheme.surface,
+                      strokeWidth: 2,
+                    ),
+                  )
+                else
+                  const SizedBox(),
                 Text(
                   text ?? '',
                   style: theme.textTheme.ppMori400Black14,
@@ -80,7 +81,7 @@ class OutlineButton extends StatelessWidget {
   final EdgeInsets padding;
 
   const OutlineButton({
-    Key? key,
+    super.key,
     this.onTap,
     this.color,
     this.text,
@@ -90,7 +91,7 @@ class OutlineButton extends StatelessWidget {
     this.textColor,
     this.borderColor,
     this.padding = const EdgeInsets.symmetric(vertical: 13),
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -104,7 +105,7 @@ class OutlineButton extends StatelessWidget {
           elevation: 0,
           shape: RoundedRectangleBorder(
             side: BorderSide(color: borderColor ?? Colors.white),
-            borderRadius: BorderRadius.circular(32.0),
+            borderRadius: BorderRadius.circular(32),
           ),
         ),
         onPressed: enabled ? onTap : null,
@@ -114,18 +115,19 @@ class OutlineButton extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                isProcessing
-                    ? Container(
-                        height: 14.0,
-                        width: 14.0,
-                        margin: const EdgeInsets.only(right: 8.0),
-                        child: CircularProgressIndicator(
-                          color: theme.colorScheme.primary,
-                          backgroundColor: theme.colorScheme.surface,
-                          strokeWidth: 2.0,
-                        ),
-                      )
-                    : const SizedBox(),
+                if (isProcessing)
+                  Container(
+                    height: 14,
+                    width: 14,
+                    margin: const EdgeInsets.only(right: 8),
+                    child: CircularProgressIndicator(
+                      color: theme.colorScheme.primary,
+                      backgroundColor: theme.colorScheme.surface,
+                      strokeWidth: 2,
+                    ),
+                  )
+                else
+                  const SizedBox(),
                 Text(
                   text ?? '',
                   style: theme.textTheme.ppMori400White14.copyWith(
@@ -150,14 +152,13 @@ class PrimaryAsyncButton extends StatefulWidget {
   final String? processingText;
 
   const PrimaryAsyncButton(
-      {Key? key,
+      {super.key,
       this.onTap,
       this.color,
       this.text,
       this.width,
       this.enabled = true,
-      this.processingText})
-      : super(key: key);
+      this.processingText});
 
   @override
   State<PrimaryAsyncButton> createState() => _PrimaryAsyncButtonState();
@@ -167,28 +168,29 @@ class _PrimaryAsyncButtonState extends State<PrimaryAsyncButton> {
   bool _isProcessing = false;
 
   @override
-  Widget build(BuildContext context) {
-    return PrimaryButton(
-      onTap: () {
-        withDebounce(
-          () async {
-            setState(() {
-              _isProcessing = true;
-            });
-            await widget.onTap?.call();
-            setState(() {
-              _isProcessing = false;
-            });
-          },
-        );
-      },
-      color: widget.color,
-      text: _isProcessing && widget.processingText != null
-          ? widget.processingText
-          : widget.text,
-      width: widget.width,
-      enabled: widget.enabled && !_isProcessing,
-      isProcessing: _isProcessing,
-    );
-  }
+  Widget build(BuildContext context) => PrimaryButton(
+        onTap: () {
+          withDebounce(
+            () async {
+              setState(() {
+                _isProcessing = true;
+              });
+              if (!mounted) {
+                return;
+              }
+              await widget.onTap?.call();
+              setState(() {
+                _isProcessing = false;
+              });
+            },
+          );
+        },
+        color: widget.color,
+        text: _isProcessing && widget.processingText != null
+            ? widget.processingText
+            : widget.text,
+        width: widget.width,
+        enabled: widget.enabled && !_isProcessing,
+        isProcessing: _isProcessing,
+      );
 }
