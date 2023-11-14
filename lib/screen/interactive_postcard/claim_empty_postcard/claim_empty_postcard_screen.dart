@@ -7,6 +7,7 @@ import 'package:autonomy_flutter/screen/interactive_postcard/claim_empty_postcar
 import 'package:autonomy_flutter/screen/interactive_postcard/claim_empty_postcard/claim_empty_postcard_state.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_explain.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/dio_exception_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
@@ -18,7 +19,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 class ClaimEmptyPostCardScreen extends StatefulWidget {
   final RequestPostcardResponse claimRequest;
 
-  const ClaimEmptyPostCardScreen({super.key, required this.claimRequest});
+  const ClaimEmptyPostCardScreen({required this.claimRequest, super.key});
 
   @override
   State<ClaimEmptyPostCardScreen> createState() =>
