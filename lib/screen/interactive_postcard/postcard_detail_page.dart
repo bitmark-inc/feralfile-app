@@ -609,7 +609,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       'place_15_stamps'.tr(),
       style: theme.textTheme.moMASans400Black12,
     );
-    if (asset.isCompleted || isViewOnly) {
+    if (asset.isCompleted || isViewOnly || !asset.isLastOwner) {
       return const SizedBox();
     }
     if (isProcessingStampPostcard ||
