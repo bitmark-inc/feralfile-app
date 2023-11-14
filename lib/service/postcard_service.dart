@@ -44,6 +44,7 @@ import 'package:nft_collection/services/tokens_service.dart';
 import 'package:nft_collection/widgets/nft_collection_bloc.dart';
 import 'package:nft_collection/widgets/nft_collection_bloc_event.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'account_service.dart';
 
@@ -134,6 +135,7 @@ class PostcardServiceImpl extends PostcardService {
   @override
   Future<ClaimPostCardResponse> claimEmptyPostcard(
       ClaimPostCardRequest request) async {
+    log.info('claimEmptyPostcard request: ${request.toJson()}');
     return _postcardApi.claim(request);
   }
 
@@ -143,29 +145,31 @@ class PostcardServiceImpl extends PostcardService {
     Location? location,
     required String address,
   }) async {
+    log.info('receivePostcard shareCode: $shareCode, address: $address');
     try {
       final timestamp =
           (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
       final accountService = injector<AccountService>();
       final walletIndex = await accountService.getAccountByAddress(
-          chain: "tezos", address: address);
+          chain: 'tezos', address: address);
       final publicKey =
           await walletIndex.wallet.getTezosPublicKey(index: walletIndex.index);
       final signature = await _tezosService.signMessage(walletIndex.wallet,
           walletIndex.index, Uint8List.fromList(utf8.encode(timestamp)));
       final body = {
-        "shareCode": shareCode,
-        "location": (location?.lat == null || location?.lon == null)
+        'shareCode': shareCode,
+        'location': (location?.lat == null || location?.lon == null)
             ? []
             : [location?.lat, location?.lon],
-        "address": address,
-        "publicKey": publicKey,
-        "signature": signature,
-        "timestamp": timestamp,
+        'address': address,
+        'publicKey': publicKey,
+        'signature': signature,
+        'timestamp': timestamp,
       };
       final response = await _postcardApi.receive(body);
       return response;
     } catch (e) {
+      unawaited(Sentry.captureException(e));
       rethrow;
     }
   }
@@ -176,11 +180,15 @@ class PostcardServiceImpl extends PostcardService {
     final ownerWallet = owner?.first;
     final addressIndex = owner?.second;
     if (ownerWallet == null) {
-      throw Exception("Owner wallet is null");
+      throw Exception('Owner wallet is null');
     }
     final counter = asset.numberOwners;
     final contractAddress = asset.contractAddress ?? '';
     final tokenId = asset.tokenId ?? '';
+    log.info('''
+        sharePostcard contractAddress: $contractAddress, tokenId: $tokenId, 
+        counter: $counter
+        ''');
     final data = [
       TezosPack.packAddress(contractAddress),
       TezosPack.packInteger(int.parse(tokenId)),
@@ -192,18 +200,19 @@ class PostcardServiceImpl extends PostcardService {
     final signature = await _tezosService.signMessage(
         ownerWallet, addressIndex, Uint8List.fromList(message2sign));
     final body = {
-      "address": asset.owner,
-      "contractAddress": asset.contractAddress,
-      "signature": signature,
-      "publicKey": publicKey,
-      "counter": counter,
+      'address': asset.owner,
+      'contractAddress': asset.contractAddress,
+      'signature': signature,
+      'publicKey': publicKey,
+      'counter': counter,
     };
     try {
       final response = await _postcardApi.share(tokenId, body);
 
-      final deeplink = response["deeplink"];
+      final deeplink = response['deeplink'];
       return SharePostcardResponse(deeplink: deeplink);
     } catch (e) {
+      unawaited(Sentry.captureException(e));
       rethrow;
     }
   }
@@ -214,6 +223,7 @@ class PostcardServiceImpl extends PostcardService {
       ids: [tokenId],
     );
     final assets = await _indexerService.getNftTokens(request);
+    log.info('getPostcard assets: ${assets.first.asset?.artworkMetadata}');
     return assets.first;
   }
 
@@ -221,10 +231,11 @@ class PostcardServiceImpl extends PostcardService {
   Future<SharedPostcardInfor> getSharedPostcardInfor(String shareCode) async {
     try {
       final response = await _postcardApi.claimShareCode(shareCode);
-      response["shareCode"] = shareCode;
+      response['shareCode'] = shareCode;
       final sharedPostcardInfor = SharedPostcardInfor.fromJson(response);
       return sharedPostcardInfor;
     } catch (e) {
+      unawaited(Sentry.captureException(e));
       rethrow;
     }
   }
@@ -254,6 +265,10 @@ class PostcardServiceImpl extends PostcardService {
       final publicKey = await wallet.getTezosPublicKey(index: index);
       final lat = location?.lat;
       final lon = location?.lon;
+      log.info('''
+        stampPostcard tokenId: $tokenId, address: $address, 
+         lat: $lat, lon: $lon, counter: $counter
+        ''');
       final result = await _postcardApi.updatePostcard(
           tokenId: tokenId,
           data: image,
@@ -265,7 +280,7 @@ class PostcardServiceImpl extends PostcardService {
           lon: lon,
           counter: counter) as Map<String, dynamic>;
 
-      final ok = result["metadataCID"] as String;
+      final ok = result['metadataCID'] as String;
       final isStampSuccess = ok.isNotEmpty;
       if (isStampSuccess) {
         _metricClientService.addEvent(MixpanelEvent.postcardStamp, data: {
@@ -280,12 +295,14 @@ class PostcardServiceImpl extends PostcardService {
               Pair(wallet, index),
             );
           } catch (e) {
-            log.info("[Postcard Service] sendPostcardCompleteMessage $e");
+            unawaited(Sentry.captureException(e));
+            log.info('[Postcard Service] sendPostcardCompleteMessage $e');
           }
         }
       }
       return isStampSuccess;
     } catch (e) {
+      unawaited(Sentry.captureException(e));
       if (e is DioException) {
         final isAlreadyStamped = e.isPostcardAlreadyStamped;
         if (isAlreadyStamped) {
@@ -297,9 +314,8 @@ class PostcardServiceImpl extends PostcardService {
   }
 
   @override
-  List<StampingPostcard> getStampingPostcard() {
-    return _configurationService.getStampingPostcard();
-  }
+  List<StampingPostcard> getStampingPostcard() =>
+      _configurationService.getStampingPostcard();
 
   @override
   Future<void> updateStampingPostcard(List<StampingPostcard> values,
@@ -324,7 +340,7 @@ class PostcardServiceImpl extends PostcardService {
 
   List<int> getMessage2Sign(List<Uint8List> data) {
     final prefix = utf8.encode(POSTCARD_SIGN_PREFIX);
-    final sep = utf8.encode("|");
+    final sep = utf8.encode('|');
     final lst = data.mapIndexed((index, e) {
       if (index == data.length - 1) {
         return e;
@@ -335,9 +351,7 @@ class PostcardServiceImpl extends PostcardService {
     final message2sign = prefix.toList()
       ..addAll(
         lst.reduce(
-          (value, element) {
-            return value + element;
-          },
+          (value, element) => value + element,
         ),
       );
     return message2sign;
@@ -353,9 +367,8 @@ class PostcardServiceImpl extends PostcardService {
 
   @override
   Future<RequestPostcardResponse> requestPostcard(
-      RequestPostcardRequest request) async {
-    return await _postcardApi.request(request);
-  }
+          RequestPostcardRequest request) async =>
+      await _postcardApi.request(request);
 
   @override
   Future<void> cancelSharePostcard(AssetToken asset) async {
@@ -378,10 +391,11 @@ class PostcardServiceImpl extends PostcardService {
       if (token == null) {
         return e;
       }
-      e.title = token.title ?? "unknown".tr();
-      e.creators =
-          token.getArtists.map((e) => e.id).toList().whereNotNull().toList();
-      e.rank = e.rank + offset;
+      e
+        ..title = token.title ?? 'unknown'.tr()
+        ..creators =
+            token.getArtists.map((e) => e.id).toList().whereNotNull().toList()
+        ..rank = e.rank + offset;
       return e;
     }).toList();
 
@@ -394,11 +408,11 @@ class PostcardServiceImpl extends PostcardService {
     required int stampIndex,
   }) async {
     final tempFilePath =
-        "${(await getTemporaryDirectory()).path}/Postcard/$tokenId/$stampIndex.png";
+        '${(await getTemporaryDirectory()).path}/Postcard/$tokenId/$stampIndex.png';
     final tempFile = File(tempFilePath);
     final isFileExist = await tempFile.exists();
     if (!isFileExist) {
-      final path = "/v1/postcard/$tokenId/stamp/$stampIndex/download";
+      final path = '/v1/postcard/$tokenId/stamp/$stampIndex/download';
       final secretKey = Environment.auClaimSecretKey;
       final response = await HttpHelper.hmacAuthenticationGet(
         host: Environment.auClaimAPIURL,
@@ -410,7 +424,7 @@ class PostcardServiceImpl extends PostcardService {
       }
       final bodyByte = response.bodyBytes;
       await tempFile.create(recursive: true);
-      log.info("Created file $tempFilePath");
+      log.info('Created file $tempFilePath');
       await tempFile.writeAsBytes(bodyByte);
     }
     return tempFile;
@@ -418,11 +432,11 @@ class PostcardServiceImpl extends PostcardService {
 
   Future<File> _downloadPostcard(String tokenId) async {
     final tempFilePath =
-        "${(await getTemporaryDirectory()).path}/Postcard/$tokenId/postcard.png";
+        '${(await getTemporaryDirectory()).path}/Postcard/$tokenId/postcard.png';
     final tempFile = File(tempFilePath);
     final isFileExist = await tempFile.exists();
 
-    final path = "/v1/postcard/$tokenId/download";
+    final path = '/v1/postcard/$tokenId/download';
     final secretKey = Environment.auClaimSecretKey;
     final response = await HttpHelper.hmacAuthenticationGet(
       host: Environment.auClaimAPIURL,
@@ -436,9 +450,9 @@ class PostcardServiceImpl extends PostcardService {
     if (!isFileExist) {
       await tempFile.create(recursive: true);
     }
-    log.info("Created file $tempFilePath");
+    log.info('Created file $tempFilePath');
     await tempFile.writeAsBytes(bodyByte);
-    log.info("Write file $tempFilePath");
+    log.info('Write file $tempFilePath');
 
     return tempFile;
   }
@@ -449,38 +463,37 @@ class PostcardServiceImpl extends PostcardService {
     required int stampIndex,
     bool isOverride = false,
   }) async {
-    log.info("[Postcard Service] download stamp $tokenId $stampIndex");
+    log.info('[Postcard Service] download stamp $tokenId $stampIndex');
     final imageFile =
         await _downloadStamp(tokenId: tokenId, stampIndex: stampIndex);
     final timestamp =
         (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
-    final imageName = "postcard-$tokenId-$stampIndex-$timestamp.png";
+    final imageName = 'postcard-$tokenId-$stampIndex-$timestamp.png';
     final isSuccess =
         await FileHelper.saveFileToGallery(imageFile.path, imageName);
     if (!isSuccess) {
-      throw MediaPermissionException("Permission is not granted");
+      throw MediaPermissionException('Permission is not granted');
     }
   }
 
   @override
   Future<void> downloadPostcard(String tokenId) async {
-    log.info("[Postcard Service] download postcard $tokenId");
+    log.info('[Postcard Service] download postcard $tokenId');
     final imageFile = await _downloadPostcard(tokenId);
     final timestamp =
         (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
-    final imageName = "postcard-$tokenId-$timestamp.png";
+    final imageName = 'postcard-$tokenId-$timestamp.png';
     final isSuccess =
         await FileHelper.saveFileToGallery(imageFile.path, imageName);
     if (!isSuccess) {
-      throw MediaPermissionException("Permission is not granted");
+      throw MediaPermissionException('Permission is not granted');
     }
     await imageFile.delete();
   }
 
   @override
-  String getTokenId(String id) {
-    return "tez-${Environment.postcardContractAddress}-$id";
-  }
+  String getTokenId(String id) =>
+      'tez-${Environment.postcardContractAddress}-$id';
 
   @override
   Future<AssetToken> claimEmptyPostcardToAddress(
@@ -525,13 +538,13 @@ class PostcardServiceImpl extends PostcardService {
         artworkMetadata: jsonEncode(postcardMetadata.toJson()),
         medium: 'software',
       ),
-      blockchain: "tezos",
+      blockchain: 'tezos',
       fungible: true,
       contractType: 'fa2',
       tokenId: result.tokenID,
       contractAddress: result.contractAddress,
       edition: 0,
-      editionName: "",
+      editionName: '',
       id: tokenID,
       balance: 1,
       owner: address,
@@ -566,6 +579,8 @@ class PostcardServiceImpl extends PostcardService {
       address: address,
     );
     var postcardMetadata = assetToken.postcardMetadata;
+    log.info(
+        'claimSharedPostcardToAddress metadata ${postcardMetadata.toJson()}');
     var newAsset = assetToken.asset;
     newAsset?.artworkMetadata = jsonEncode(postcardMetadata.toJson());
     newAsset?.maxEdition = newAsset.maxEdition! + 1;
@@ -592,14 +607,14 @@ class PostcardServiceImpl extends PostcardService {
     File imageFile = File(imagePath);
     File metadataFile = File(metadataPath);
 
-    final tokenId = asset.tokenId ?? "";
+    final tokenId = asset.tokenId ?? '';
     final address = asset.owner;
     final counter = asset.numberOwners;
     final contractAddress = Environment.postcardContractAddress;
 
     final walletIndex = await asset.getOwnerWallet();
     if (walletIndex == null) {
-      log.info("[POSTCARD] Wallet index not found");
+      log.info('[POSTCARD] Wallet index not found. address: $address');
       return false;
     }
     final processingStampPostcard = asset.processingStampPostcard ??
@@ -663,9 +678,9 @@ enum DistanceUnit {
   String get name {
     switch (this) {
       case DistanceUnit.km:
-        return "km";
+        return 'km';
       case DistanceUnit.mile:
-        return "mile";
+        return 'mile';
     }
   }
 }
@@ -677,5 +692,5 @@ class PostcardException implements Exception {
 }
 
 class MediaPermissionException extends PostcardException {
-  MediaPermissionException(String message) : super(message);
+  MediaPermissionException(super.message);
 }
