@@ -44,6 +44,7 @@ import 'package:nft_collection/services/tokens_service.dart';
 import 'package:nft_collection/widgets/nft_collection_bloc.dart';
 import 'package:nft_collection/widgets/nft_collection_bloc_event.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'account_service.dart';
 
@@ -168,6 +169,7 @@ class PostcardServiceImpl extends PostcardService {
       final response = await _postcardApi.receive(body);
       return response;
     } catch (e) {
+      unawaited(Sentry.captureException(e));
       rethrow;
     }
   }
@@ -210,6 +212,7 @@ class PostcardServiceImpl extends PostcardService {
       final deeplink = response['deeplink'];
       return SharePostcardResponse(deeplink: deeplink);
     } catch (e) {
+      unawaited(Sentry.captureException(e));
       rethrow;
     }
   }
@@ -232,6 +235,7 @@ class PostcardServiceImpl extends PostcardService {
       final sharedPostcardInfor = SharedPostcardInfor.fromJson(response);
       return sharedPostcardInfor;
     } catch (e) {
+      unawaited(Sentry.captureException(e));
       rethrow;
     }
   }
@@ -291,12 +295,14 @@ class PostcardServiceImpl extends PostcardService {
               Pair(wallet, index),
             );
           } catch (e) {
+            unawaited(Sentry.captureException(e));
             log.info('[Postcard Service] sendPostcardCompleteMessage $e');
           }
         }
       }
       return isStampSuccess;
     } catch (e) {
+      unawaited(Sentry.captureException(e));
       if (e is DioException) {
         final isAlreadyStamped = e.isPostcardAlreadyStamped;
         if (isAlreadyStamped) {
@@ -308,9 +314,8 @@ class PostcardServiceImpl extends PostcardService {
   }
 
   @override
-  List<StampingPostcard> getStampingPostcard() {
-    return _configurationService.getStampingPostcard();
-  }
+  List<StampingPostcard> getStampingPostcard() =>
+      _configurationService.getStampingPostcard();
 
   @override
   Future<void> updateStampingPostcard(List<StampingPostcard> values,
@@ -346,9 +351,7 @@ class PostcardServiceImpl extends PostcardService {
     final message2sign = prefix.toList()
       ..addAll(
         lst.reduce(
-          (value, element) {
-            return value + element;
-          },
+          (value, element) => value + element,
         ),
       );
     return message2sign;
