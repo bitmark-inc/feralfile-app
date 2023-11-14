@@ -175,10 +175,10 @@ class _PrimaryAsyncButtonState extends State<PrimaryAsyncButton> {
               setState(() {
                 _isProcessing = true;
               });
+              await widget.onTap?.call();
               if (!mounted) {
                 return;
               }
-              await widget.onTap?.call();
               setState(() {
                 _isProcessing = false;
               });
