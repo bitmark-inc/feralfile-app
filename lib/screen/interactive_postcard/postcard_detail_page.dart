@@ -621,9 +621,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         isProcessing: true,
       );
     }
-    if (!asset.isLastOwner) {
-      return place15StampsText;
-    }
     if (!(asset.isStamping || asset.isStamped || asset.isProcessingStamp)) {
       return PostcardButton(
         text: 'stamp_postcard'.tr(),
@@ -633,7 +630,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
               text: 'continue'.tr(),
               fontSize: 18,
               onTap: () async {
-                 unawaited(injector<NavigationService>().popAndPushNamed(
+                unawaited(injector<NavigationService>().popAndPushNamed(
                     AppRouter.designStamp,
                     arguments: DesignStampPayload(asset)));
               },
