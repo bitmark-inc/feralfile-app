@@ -1673,6 +1673,12 @@ class UIHelper {
     await _showPostcardError(context, message: "postcard_stamp_failed".tr());
   }
 
+  static Future<void> showPostcardClaimLimited(
+    final BuildContext context,
+  ) async {
+    await _showPostcardError(context, message: "postcard_claim_limited".tr());
+  }
+
   static Future<void> _showPostcardError(BuildContext context,
       {String message = "", Widget? icon}) async {
     final options = [

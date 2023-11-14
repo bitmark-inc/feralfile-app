@@ -8,7 +8,7 @@ class ClaimEmptyPostCardState {
   final AssetToken? assetToken;
   final bool? isClaiming;
   final bool? isClaimed;
-  final String? error;
+  final Object? error;
 
   ClaimEmptyPostCardState({
     this.assetToken,
@@ -21,14 +21,15 @@ class ClaimEmptyPostCardState {
     AssetToken? assetToken,
     bool? isClaiming,
     bool? isClaimed,
-    String? error,
-  }) =>
-      ClaimEmptyPostCardState(
-        assetToken: assetToken ?? this.assetToken,
-        isClaiming: isClaiming ?? this.isClaiming,
-        isClaimed: isClaimed ?? this.isClaimed,
-        error: error,
-      );
+    Object? error,
+  }) {
+    return ClaimEmptyPostCardState(
+      assetToken: assetToken ?? this.assetToken,
+      isClaiming: isClaiming ?? this.isClaiming,
+      isClaimed: isClaimed ?? this.isClaimed,
+      error: error,
+    );
+  }
 }
 
 class GetTokenEvent extends ClaimEmptyPostCardEvent {

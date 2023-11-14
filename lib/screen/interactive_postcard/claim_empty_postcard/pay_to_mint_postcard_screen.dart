@@ -7,7 +7,10 @@ import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_explain.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/dio_exception_ext.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
+import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -34,16 +37,29 @@ class _PayToMintPostcardScreenState extends State<PayToMintPostcardScreen> {
     bloc.add(GetTokenEvent(widget.claimRequest, createMetadata: true));
   }
 
+  void _handleError(final Object error) {
+    if (error is DioException) {
+      if (error.isPostcardClaimEmptyLimited) {
+        unawaited(UIHelper.showPostcardClaimLimited(context));
+        return;
+      }
+      final message = error.response?.data['message'];
+      if (message != null && message!.isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message!),
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) =>
       BlocConsumer<ClaimEmptyPostCardBloc, ClaimEmptyPostCardState>(
           listener: (context, state) {
-            if (state.error != null && state.error!.isNotEmpty) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.error!),
-                ),
-              );
+            if (state.error != null) {
+              _handleError(state.error!);
             }
           },
           bloc: bloc,

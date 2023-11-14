@@ -157,7 +157,7 @@ class ClaimEmptyPostCardBloc
           state.copyWith(
             isClaiming: false,
             isClaimed: false,
-            error: e.response?.data['message'],
+            error: e,
           ),
         );
       }
