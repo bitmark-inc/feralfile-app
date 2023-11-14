@@ -78,7 +78,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
           _page2(3, totalDistance: 7926),
           _page2(4, totalDistance: 91103),
           _page4(5),
-          if (asset.numberOwners > 1) _postcardPreview(context, asset),
+          if (asset.getArtists.isNotEmpty) _postcardPreview(context, asset),
         ];
     final swiperSize = pages.length;
     final theme = Theme.of(context);
