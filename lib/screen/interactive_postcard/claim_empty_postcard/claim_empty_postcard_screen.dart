@@ -7,7 +7,6 @@ import 'package:autonomy_flutter/screen/interactive_postcard/claim_empty_postcar
 import 'package:autonomy_flutter/screen/interactive_postcard/claim_empty_postcard/claim_empty_postcard_state.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_explain.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/dio_exception_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
@@ -53,36 +52,38 @@ class _ClaimEmptyPostCardScreenState extends State<ClaimEmptyPostCardScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return BlocConsumer<ClaimEmptyPostCardBloc, ClaimEmptyPostCardState>(
-        listener: (context, state) {
-          if (state.isClaimed == true) {
-            Navigator.of(context).popAndPushNamed(AppRouter.designStamp,
-                arguments: DesignStampPayload(state.assetToken!));
-          }
-          if (state.error != null) {
-            _handleError(state.error!);
-          }
-        },
-        bloc: bloc,
-        builder: (context, state) {
-          final artwork = state.assetToken;
-          if (artwork == null) return Container();
-          return PostcardExplain(
-            payload: PostcardExplainPayload(
-              artwork,
-              PostcardButton(
-                text: "continue".tr(),
-                fontSize: 18,
-                enabled: state.isClaiming != true,
-                isProcessing: state.isClaiming == true,
-                onTap: () {
-                  bloc.add(AcceptGiftEvent(widget.claimRequest));
-                },
-                color: const Color.fromRGBO(79, 174, 79, 1),
+  Widget build(BuildContext context) =>
+      BlocConsumer<ClaimEmptyPostCardBloc, ClaimEmptyPostCardState>(
+          listener: (context, state) {
+            if (state.isClaimed == true) {
+              unawaited(Navigator.of(context).popAndPushNamed(
+                  AppRouter.designStamp,
+                  arguments: DesignStampPayload(state.assetToken!)));
+            }
+            if (state.error != null) {
+              _handleError(state.error!);
+            }
+          },
+          bloc: bloc,
+          builder: (context, state) {
+            final artwork = state.assetToken;
+            if (artwork == null) {
+              return Container();
+            }
+            return PostcardExplain(
+              payload: PostcardExplainPayload(
+                artwork,
+                PostcardButton(
+                  text: 'continue'.tr(),
+                  fontSize: 18,
+                  enabled: state.isClaiming != true,
+                  isProcessing: state.isClaiming == true,
+                  onTap: () {
+                    bloc.add(AcceptGiftEvent(widget.claimRequest));
+                  },
+                  color: const Color.fromRGBO(79, 174, 79, 1),
+                ),
               ),
-            ),
-          );
-        });
-  }
+            );
+          });
 }
