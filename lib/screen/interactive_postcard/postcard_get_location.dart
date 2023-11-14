@@ -240,6 +240,7 @@ class _PostcardLocationExplainState extends State<PostcardLocationExplain> {
                 style:
                     theme.textTheme.moMASans400Black14.copyWith(fontSize: 18),
               ),
+              const SizedBox(height: 60),
             ],
           )
         ],
