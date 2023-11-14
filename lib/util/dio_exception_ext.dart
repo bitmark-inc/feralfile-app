@@ -9,12 +9,12 @@ extension PostcardExepctionExt on DioException {
       errorMessage == PostcardExceptionType.alreadyStamped.errorMessage;
 
   bool get isPostcardClaimEmptyLimited =>
-      statusCode == PostcardExceptionType.claimEmptyLimited.statusCode;
+      statusCode == PostcardExceptionType.tooManyRequest.statusCode;
 }
 
 enum PostcardExceptionType {
   alreadyStamped,
-  claimEmptyLimited;
+  tooManyRequest;
 
   String get errorMessage {
     switch (this) {
@@ -27,7 +27,7 @@ enum PostcardExceptionType {
 
   int get statusCode {
     switch (this) {
-      case PostcardExceptionType.claimEmptyLimited:
+      case PostcardExceptionType.tooManyRequest:
         return 429;
       default:
         return 0;
