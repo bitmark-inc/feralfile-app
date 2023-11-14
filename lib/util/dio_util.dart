@@ -6,6 +6,7 @@
 //
 
 import 'package:autonomy_flutter/common/environment.dart';
+import 'package:autonomy_flutter/util/dio_exception_ext.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:autonomy_flutter/util/isolated_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -23,6 +24,7 @@ Dio feralFileDio(BaseOptions options) {
 Dio postcardDio(BaseOptions options) {
   final dio = baseDio(options);
   dio.interceptors.add(HmacAuthInterceptor(Environment.auClaimSecretKey));
+  dio.interceptors.add(AutonomyAuthInterceptor());
   return dio;
 }
 
@@ -54,6 +56,13 @@ Dio baseDio(BaseOptions options) {
     logPrint: (message) {
       log.warning("[request retry] $message");
     },
+    retryEvaluator: (error, attempt) {
+      if (error.isPostcardClaimEmptyLimited) {
+        return false;
+      }
+      return true;
+    },
+    ignoreRetryEvaluatorExceptions: true,
     retryDelays: const [
       // set delays between retries
       Duration(seconds: 1),

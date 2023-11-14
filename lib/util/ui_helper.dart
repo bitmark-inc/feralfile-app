@@ -1693,7 +1693,7 @@ class UIHelper {
     ];
     await showAutoDismissDialog(context, showDialog: () async {
       return showPostcardDrawerAction(context, options: options);
-    }, autoDismissAfter: const Duration(seconds: 2));
+    }, autoDismissAfter: const Duration(seconds: 3));
   }
 
   static Future<void> _showPostcardInfo(BuildContext context,

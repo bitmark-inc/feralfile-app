@@ -29,6 +29,7 @@ import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/dio_exception_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:collection/collection.dart';
@@ -637,7 +638,10 @@ class DeeplinkServiceImpl extends DeeplinkService {
       );
     } catch (e) {
       log.info('[DeeplinkService] _handleClaimEmptyPostcardDeeplink error $e');
-
+      if (e is DioException && e.isPostcardClaimEmptyLimited) {
+        unawaited(_navigationService.showPostcardClaimLimited());
+        return;
+      }
       if (otp == null) {
         _navigationService.showPostcardRunOut();
       } else {

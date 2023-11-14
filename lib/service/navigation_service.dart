@@ -395,6 +395,13 @@ class NavigationService {
     }
   }
 
+  Future<void> showPostcardClaimLimited() async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await UIHelper.showPostcardClaimLimited(navigatorKey.currentContext!);
+    }
+  }
+
   Future<void> openAutonomyDocument(String href, String title) async {
     if (navigatorKey.currentContext != null &&
         navigatorKey.currentState?.mounted == true) {
