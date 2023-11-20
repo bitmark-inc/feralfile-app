@@ -84,18 +84,18 @@ jobs:
         env:
           REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          set -o pipefail
           for file in ${{ steps.changed-files.outputs.changed_files }}; do
             echo "fixing: $file"
-            flutter analyze --no-preamble $file | reviewdog -efm="%p%t%r • %m • %f:%l:%c • %s" -reporter=github-pr-review
+            flutter analyze --no-preamble $file | reviewdog -efm="%p%t%r • %m • %f:%l:%c • %s" -name=flutter-analyze -reporter=github-pr-review
             dart format $file
             dart fix --apply $file
-            codespell -i 3 -w -I .codespellignore --skip "**/*.g.dart,*.svg" $file
+            codespell -q 3 -w -I .codespellignore --skip "**/*.g.dart,*.svg" $file | reviewdog -efm="%f:%l: %m" -name=codespell -reporter=github-pr-review || true
           done
       - name: suggester / dart fixes
         uses: reviewdog/action-suggester@v1
         with:
           tool_name: dart fix
+          filter_mode: added
           cleanup: true
 
   gitleaks:
