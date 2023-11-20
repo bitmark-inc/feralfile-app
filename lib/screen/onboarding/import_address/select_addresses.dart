@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_state.dart';
@@ -18,6 +19,7 @@ import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:libauk_dart/libauk_dart.dart';
 
 class SelectAddressesPage extends StatefulWidget {
   static const String tag = 'select_addresses_page';
@@ -267,15 +269,22 @@ class _SelectAddressesPageState extends State<SelectAddressesPage> {
     );
   }
 
-  void _callBloc() {
+  void _callBloc() async {
     final wallet = widget.payload.persona.wallet();
-    context
-        .read<ScanWalletBloc>()
-        .add(ScanEthereumWalletEvent(wallet: wallet, startIndex: index));
+    List<WalletStorage> wallets = [];
+    final personas = await injector<CloudDatabase>().personaDao.getPersonas();
+    for (var persona in personas) {
+      wallets.add(persona.wallet());
+    }
+    for (var wallet in wallets) {
+      context
+          .read<ScanWalletBloc>()
+          .add(ScanEthereumWalletEvent(wallet: wallet, startIndex: index));
 
-    context
-        .read<ScanWalletBloc>()
-        .add(ScanTezosWalletEvent(wallet: wallet, startIndex: index));
+      context
+          .read<ScanWalletBloc>()
+          .add(ScanTezosWalletEvent(wallet: wallet, startIndex: index));
+    }
     index += 5;
   }
 }
