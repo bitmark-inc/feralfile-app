@@ -94,6 +94,7 @@ class _ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
   void _updateWebviewSize() {
     if (_renderingWidget != null &&
         _renderingWidget is WebviewNFTRenderingWidget) {
+      // ignore: cast_nullable_to_non_nullable
       (_renderingWidget as WebviewNFTRenderingWidget).updateWebviewSize();
     }
   }
