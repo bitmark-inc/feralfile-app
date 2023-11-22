@@ -86,7 +86,7 @@ jobs:
         run: |
           for file in ${{ steps.changed-files.outputs.changed_files }}; do
             echo "fixing: $file"
-            if [[ $file == *.go ]]; then
+            if [[ $file == *.dart ]]; then
               flutter analyze --no-preamble $file | reviewdog -efm="%p%t%r • %m • %f:%l:%c • %s" -name=flutter-analyze -reporter=github-pr-review
               dart format $file
               dart fix --apply $file
