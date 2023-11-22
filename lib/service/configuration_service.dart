@@ -26,6 +26,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
+//ignore_for_file: constant_identifier_names
+
 abstract class ConfigurationService {
   Future<void> setHasMerchandiseSupport(String indexId,
       {bool value = true, bool isOverride = false});

@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:autonomy_flutter/gateway/iap_api.dart';
@@ -44,9 +45,9 @@ class AuthService {
     final signature = await account.getAccountDIDSignature(message);
 
     Map<String, dynamic> payload = {
-      "requester": accountDID,
-      "timestamp": message,
-      "signature": signature,
+      'requester': accountDID,
+      'timestamp': message,
+      'signature': signature,
     };
 
     // the receipt data can be set by passing the parameter,
@@ -67,7 +68,7 @@ class AuthService {
         platform = 'google';
       }
       payload.addAll({
-        "receipt": {'platform': platform, 'receipt_data': savedReceiptData}
+        'receipt': {'platform': platform, 'receipt_data': savedReceiptData}
       });
     }
 
@@ -76,11 +77,11 @@ class AuthService {
     _jwt = newJwt;
 
     if (newJwt.isValid(withSubscription: true)) {
-      _configurationService.setIAPReceipt(savedReceiptData);
-      _configurationService.setIAPJWT(newJwt);
+      unawaited(_configurationService.setIAPReceipt(savedReceiptData));
+      unawaited(_configurationService.setIAPJWT(newJwt));
     } else {
-      _configurationService.setIAPReceipt(null);
-      _configurationService.setIAPJWT(null);
+      unawaited(_configurationService.setIAPReceipt(null));
+      unawaited(_configurationService.setIAPJWT(null));
     }
 
     return newJwt;

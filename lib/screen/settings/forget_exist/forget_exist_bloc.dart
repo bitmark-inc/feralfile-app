@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
+
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
@@ -51,11 +53,11 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
     on<ConfirmForgetExistEvent>((event, emit) async {
       emit(ForgetExistState(state.isChecked, true));
 
-      deregisterPushNotification();
+      unawaited(deregisterPushNotification());
       await _autonomyService.clearLinkedAddresses();
       PackageInfo packageInfo = await PackageInfo.fromPlatform();
       String? deviceId = await MigrationUtil.getBackupDeviceID();
-      final requester = "${deviceId}_${packageInfo.packageName}";
+      final requester = '${deviceId}_${packageInfo.packageName}';
       await _iapApi.deleteAllProfiles(requester);
       await _iapApi.deleteUserData();
 
@@ -71,7 +73,7 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
       await _configurationService.removeAll();
 
       _authService.reset();
-      injector<MetricClientService>().mixPanelClient.reset();
+      unawaited(injector<MetricClientService>().mixPanelClient.reset());
       memoryValues = MemoryValues(
         branchDeeplinkData: ValueNotifier(null),
         deepLink: ValueNotifier(null),

@@ -5,6 +5,10 @@
 //  that can be found in the LICENSE file.
 //
 
+// ignore_for_file: cascade_invocations
+
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/util/dio_exception_ext.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
@@ -46,7 +50,7 @@ Dio baseDio(BaseOptions options) {
   dio.interceptors.add(RetryInterceptor(
     dio: dio,
     logPrint: (message) {
-      log.warning("[request retry] $message");
+      log.warning('[request retry] $message');
     },
     retryEvaluator: (error, attempt) {
       if (error.isPostcardClaimEmptyLimited) {
@@ -80,6 +84,5 @@ Dio baseDio(BaseOptions options) {
   return dio;
 }
 
-parseJson(String text) {
-  return IsolatedUtil().parseAndDecode(text);
-}
+dynamic parseJson(String text) =>
+    unawaited(IsolatedUtil().parseAndDecode(text));

@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
@@ -26,7 +28,7 @@ import 'package:nft_collection/nft_collection.dart';
 import 'package:nft_collection/services/tokens_service.dart';
 
 class DataManagementPage extends StatefulWidget {
-  const DataManagementPage({Key? key}) : super(key: key);
+  const DataManagementPage({super.key});
 
   @override
   State<DataManagementPage> createState() => _DataManagementPageState();
@@ -82,8 +84,7 @@ class _DataManagementPageState extends State<DataManagementPage> {
                                 : theme.textTheme.ppMori400Black16,
                           ),
                           bottomWidget: Text(
-                            "erase_all".tr(),
-                            //'Erase all information about me and delete my keys from my cloud backup including the keys on this device.',
+                            'erase_all'.tr(),
                             style: ResponsiveLayout.isMobile
                                 ? theme.textTheme.ppMori400Black14
                                 : theme.textTheme.ppMori400Black16,
@@ -101,9 +102,9 @@ class _DataManagementPageState extends State<DataManagementPage> {
   }
 
   void _showForgetIExistDialog() {
-    UIHelper.showDialog(
+    unawaited(UIHelper.showDialog(
       context,
-      "forget_exist".tr(),
+      'forget_exist'.tr(),
       BlocProvider(
         create: (_) => ForgetExistBloc(
             injector(),
@@ -116,29 +117,31 @@ class _DataManagementPageState extends State<DataManagementPage> {
             injector()),
         child: const ForgetExistView(),
       ),
-    );
+    ));
   }
 
   void _showRebuildGalleryDialog() {
-    showErrorDialog(
+    unawaited(showErrorDialog(
       context,
-      "rebuild_metadata".tr(),
-      "this_action_clear".tr(),
+      'rebuild_metadata'.tr(),
+      'this_action_clear'.tr(),
       //"This action will safely clear local cache and\nre-download all artwork metadata. We recommend only doing this if instructed to do so by customer support to resolve a problem.",
-      "rebuild".tr(),
+      'rebuild'.tr(),
       () async {
         await injector<TokensService>().purgeCachedGallery();
         await injector<CacheManager>().emptyCache();
         await injector<ClientTokenService>().refreshTokens(syncAddresses: true);
         NftCollectionBloc.eventController
             .add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
-        if (!mounted) return;
+        if (!mounted) {
+          return;
+        }
         context.read<IdentityBloc>().add(RemoveAllEvent());
         Navigator.of(context).popUntil((route) =>
             route.settings.name == AppRouter.homePage ||
             route.settings.name == AppRouter.homePageNoTransition);
       },
-      "cancel".tr(),
-    );
+      'cancel'.tr(),
+    ));
   }
 }

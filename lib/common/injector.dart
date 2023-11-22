@@ -160,7 +160,7 @@ Future<void> setup() async {
   dio.interceptors.add(RetryInterceptor(
     dio: dio,
     logPrint: (message) {
-      log.warning("[request retry] $message");
+      log.warning('[request retry] $message');
     },
     retryDelays: const [
       // set delays between retries
@@ -198,7 +198,7 @@ Future<void> setup() async {
       ));
 
   injector.registerLazySingleton(() => ChatApi(dio,
-      baseUrl: Environment.postcardChatServerUrl.replaceFirst("ws", "http")));
+      baseUrl: Environment.postcardChatServerUrl.replaceFirst('ws', 'http')));
   injector.registerLazySingleton(() => ChatAuthService(injector()));
   injector.registerLazySingleton(
       () => IAPApi(authenticatedDio, baseUrl: Environment.autonomyAuthURL));

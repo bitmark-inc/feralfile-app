@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
@@ -22,7 +23,7 @@ class AddressAlias extends StatefulWidget {
   static const String tag = 'address_alias';
   final AddressAliasPayload payload;
 
-  const AddressAlias({Key? key, required this.payload}) : super(key: key);
+  const AddressAlias({required this.payload, super.key});
 
   @override
   State<AddressAlias> createState() => _AddressAliasState();
@@ -39,13 +40,13 @@ class _AddressAliasState extends State<AddressAlias> {
     super.initState();
     switch (widget.payload.walletType) {
       case WalletType.Ethereum:
-        _nameAddress = "enter_eth_alias".tr();
+        _nameAddress = 'enter_eth_alias'.tr();
         break;
       case WalletType.Tezos:
-        _nameAddress = "enter_tex_alias".tr();
+        _nameAddress = 'enter_tex_alias'.tr();
         break;
       default:
-        _nameAddress = "name_address".tr();
+        _nameAddress = 'name_address'.tr();
         break;
     }
     focusNode.requestFocus();
@@ -63,7 +64,7 @@ class _AddressAliasState extends State<AddressAlias> {
     bool isProcessing = false;
     return Scaffold(
       appBar: getBackAppBar(context,
-          title: "address_alias".tr(),
+          title: 'address_alias'.tr(),
           onBack: () => Navigator.of(context).pop()),
       body: BlocConsumer<PersonaBloc, PersonaState>(
         listener: (context, state) async {
@@ -83,53 +84,51 @@ class _AddressAliasState extends State<AddressAlias> {
               break;
           }
         },
-        builder: (context, state) {
-          return Padding(
-            padding: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 40),
-                Text(
-                  _nameAddress,
-                  style: theme.textTheme.ppMori400Black14,
-                ),
-                const SizedBox(height: 10),
-                AuTextField(
-                    labelSemantics: "enter_alias_full",
-                    title: "",
-                    placeholder: "name_address".tr(),
-                    controller: _nameController,
-                    focusNode: focusNode,
-                    onChanged: (valueChanged) {
-                      if (_nameController.text.trim().isEmpty !=
-                          isSavingAliasDisabled) {
-                        saveAliasButtonChangedState();
-                      }
-                    }),
-                const Spacer(),
-                Row(
-                  children: [
-                    Expanded(
-                      child: PrimaryButton(
-                        text: "continue".tr(),
-                        isProcessing: isProcessing,
-                        onTap: isSavingAliasDisabled
-                            ? null
-                            : () {
-                                context.read<PersonaBloc>().add(
-                                    CreatePersonaAddressesEvent(
-                                        _nameController.text.trim(),
-                                        widget.payload.walletType));
-                              },
-                      ),
+        builder: (context, state) => Padding(
+          padding: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 40),
+              Text(
+                _nameAddress,
+                style: theme.textTheme.ppMori400Black14,
+              ),
+              const SizedBox(height: 10),
+              AuTextField(
+                  labelSemantics: 'enter_alias_full',
+                  title: '',
+                  placeholder: 'name_address'.tr(),
+                  controller: _nameController,
+                  focusNode: focusNode,
+                  onChanged: (valueChanged) {
+                    if (_nameController.text.trim().isEmpty !=
+                        isSavingAliasDisabled) {
+                      saveAliasButtonChangedState();
+                    }
+                  }),
+              const Spacer(),
+              Row(
+                children: [
+                  Expanded(
+                    child: PrimaryButton(
+                      text: 'continue'.tr(),
+                      isProcessing: isProcessing,
+                      onTap: isSavingAliasDisabled
+                          ? null
+                          : () {
+                              context.read<PersonaBloc>().add(
+                                  CreatePersonaAddressesEvent(
+                                      _nameController.text.trim(),
+                                      widget.payload.walletType));
+                            },
                     ),
-                  ],
-                )
-              ],
-            ),
-          );
-        },
+                  ),
+                ],
+              )
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -142,26 +141,29 @@ class _AddressAliasState extends State<AddressAlias> {
           await injector<AccountService>()
               .isAndroidEndToEndEncryptionAvailable();
 
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       final payload = CloudAndroidPagePayload(
           isEncryptionAvailable: isAndroidEndToEndEncryptionAvailable);
       if (isDoneOnboarding) {
-        Navigator.of(context).pushReplacementNamed(AppRouter.cloudAndroidPage,
-            arguments: payload);
+        unawaited(Navigator.of(context).pushReplacementNamed(
+            AppRouter.cloudAndroidPage,
+            arguments: payload));
       } else {
-        Navigator.of(context).pushNamedAndRemoveUntil(
+        unawaited(Navigator.of(context).pushNamedAndRemoveUntil(
             AppRouter.cloudAndroidPage, (route) => false,
-            arguments: payload);
+            arguments: payload));
       }
     } else {
-      final payload = CloudPagePayload(section: "nameAlias");
+      final payload = CloudPagePayload(section: 'nameAlias');
       if (isDoneOnboarding) {
-        Navigator.of(context)
-            .pushReplacementNamed(AppRouter.cloudPage, arguments: payload);
+        unawaited(Navigator.of(context)
+            .pushReplacementNamed(AppRouter.cloudPage, arguments: payload));
       } else {
-        Navigator.of(context).pushNamedAndRemoveUntil(
+        unawaited(Navigator.of(context).pushNamedAndRemoveUntil(
             AppRouter.cloudPage, (route) => false,
-            arguments: payload);
+            arguments: payload));
       }
     }
   }

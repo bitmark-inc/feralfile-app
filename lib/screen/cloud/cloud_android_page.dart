@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
@@ -23,7 +25,7 @@ import 'package:open_settings/open_settings.dart';
 class CloudAndroidPage extends StatefulWidget {
   final CloudAndroidPagePayload payload;
 
-  const CloudAndroidPage({Key? key, required this.payload}) : super(key: key);
+  const CloudAndroidPage({required this.payload, super.key});
 
   @override
   State<CloudAndroidPage> createState() => _CloudAndroidPageState();
@@ -54,18 +56,22 @@ class _CloudAndroidPageState extends State<CloudAndroidPage>
     super.didChangeAppLifecycleState(state);
 
     if (state == AppLifecycleState.resumed) {
-      checkCloudBackup();
+      unawaited(checkCloudBackup());
     }
   }
 
   Future checkCloudBackup() async {
-    if (isEncryptionAvailable == true) return;
+    if (isEncryptionAvailable == true) {
+      return;
+    }
 
     final accountService = injector<AccountService>();
     final isAndroidEndToEndEncryptionAvailable =
         await accountService.isAndroidEndToEndEncryptionAvailable();
 
-    if (isEncryptionAvailable == isAndroidEndToEndEncryptionAvailable) return;
+    if (isEncryptionAvailable == isAndroidEndToEndEncryptionAvailable) {
+      return;
+    }
 
     if (isEncryptionAvailable == null &&
         isAndroidEndToEndEncryptionAvailable != null) {
@@ -83,12 +89,12 @@ class _CloudAndroidPageState extends State<CloudAndroidPage>
     return Scaffold(
       appBar: getBackAppBar(
         context,
-        onBack: canPop == true
+        onBack: canPop
             ? () {
                 Navigator.of(context).pop();
               }
             : null,
-        title: "back_up".tr(),
+        title: 'back_up'.tr(),
       ),
       body: _contentWidget(context),
     );
@@ -108,17 +114,16 @@ class _CloudAndroidPageState extends State<CloudAndroidPage>
                   children: [
                     addTitleSpace(),
                     Text(
-                      "autonomy_will_auto_bk".tr(),
-                      //"Autonomy will automatically back up all of your account information securely, including cryptographic material from accounts you manage as well as links to your accounts. If you ever lose your phone, you will be able to recover everything.",
+                      'autonomy_will_auto_bk'.tr(),
                       style: theme.textTheme.ppMori400Black14,
                     ),
                     const SizedBox(height: 15),
                     ExternalAppInfoView(
-                      icon: Image.asset("assets/images/googleCloud.png"),
-                      appName: "google_cloud".tr(),
+                      icon: Image.asset('assets/images/googleCloud.png'),
+                      appName: 'google_cloud'.tr(),
                       status: isEncryptionAvailable == true
-                          ? "turned_on".tr()
-                          : "turned_off".tr(),
+                          ? 'turned_on'.tr()
+                          : 'turned_off'.tr(),
                       statusColor: isEncryptionAvailable != true
                           ? AppColor.red
                           : AppColor.auQuickSilver,
@@ -126,10 +131,10 @@ class _CloudAndroidPageState extends State<CloudAndroidPage>
                     const SizedBox(height: 15),
                     Text(
                       isEncryptionAvailable == true
-                          ? "you_backed_up".tr()
+                          ? 'you_backed_up'.tr()
                           : isEncryptionAvailable == false
-                              ? "automatic_google_cloud_bks".tr()
-                              : "recommend_google_cloud".tr(),
+                              ? 'automatic_google_cloud_bks'.tr()
+                              : 'recommend_google_cloud'.tr(),
                       style: theme.textTheme.ppMori700Black14,
                     ),
                   ]),
@@ -147,7 +152,7 @@ class _CloudAndroidPageState extends State<CloudAndroidPage>
         children: [
           Expanded(
             child: PrimaryButton(
-              text: "continue".tr(),
+              text: 'continue'.tr(),
               onTap: () => _continue(context),
             ),
           ),
@@ -160,10 +165,10 @@ class _CloudAndroidPageState extends State<CloudAndroidPage>
             children: [
               Expanded(
                 child: PrimaryButton(
-                  text: "open_device_setting".tr(),
+                  text: 'open_device_setting'.tr(),
                   onTap: () => isEncryptionAvailable == false
-                      ? OpenSettings.openMainSetting()
-                      : OpenSettings.openAddAccountSetting(),
+                      ? unawaited(OpenSettings.openMainSetting())
+                      : unawaited(OpenSettings.openAddAccountSetting()),
                 ),
               ),
             ],
@@ -171,7 +176,7 @@ class _CloudAndroidPageState extends State<CloudAndroidPage>
           const SizedBox(height: 10),
           OutlineButton(
             onTap: () => _continue(context),
-            text: "skip".tr(),
+            text: 'skip'.tr(),
             color: AppColor.white,
             borderColor: AppColor.primaryBlack,
             textColor: AppColor.primaryBlack,
@@ -198,6 +203,5 @@ class _CloudAndroidPageState extends State<CloudAndroidPage>
 class CloudAndroidPagePayload {
   final bool? isEncryptionAvailable;
 
-  CloudAndroidPagePayload(
-      {this.isEncryptionAvailable});
+  CloudAndroidPagePayload({this.isEncryptionAvailable});
 }

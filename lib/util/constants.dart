@@ -13,13 +13,14 @@ import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/util/eth_utils.dart';
+import 'package:autonomy_flutter/util/fee_util.dart';
 import 'package:autonomy_flutter/util/geolocation.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
-import 'fee_util.dart';
+// ignore_for_file: constant_identifier_names
 
 const INDEXER_TOKENS_MAXIMUM = 50;
 const INDEXER_UNKNOWN_SOURCE = 'unknown';
@@ -106,16 +107,15 @@ const MOMA_MEMENTO_6_CLAIM_ID = 'memento6';
 const MEMENTO_6_SERIES_ID_MAINNET = '2b75da9b-c605-4842-bf59-8e2e1fe04be6';
 const MEMENTO_6_SERIES_ID_TESTNET = '420f4f8e-f45f-4627-b36c-e9fa5bf6af43';
 
-String get memento6SeriesId =>
-    Environment.appTestnetConfig
-        ? MEMENTO_6_SERIES_ID_TESTNET
-        : MEMENTO_6_SERIES_ID_MAINNET;
+String get memento6SeriesId => Environment.appTestnetConfig
+    ? MEMENTO_6_SERIES_ID_TESTNET
+    : MEMENTO_6_SERIES_ID_MAINNET;
 
 const REMOVE_CUSTOMER_SUPPORT =
     '/bitmark-inc/autonomy-apps/main/customer_support/annoucement_os.md';
 const int cellPerRowPhone = 3;
 const int cellPerRowTablet = 6;
-const double cellSpacing = 3.0;
+const double cellSpacing = 3;
 
 const Duration SENT_ARTWORK_HIDE_TIME = Duration(minutes: 2);
 const Duration STAMPING_POSTCARD_LIMIT_TIME = Duration(minutes: 60);
@@ -128,10 +128,10 @@ const POSTCARD_ABOUT_THE_PROJECT =
     'https://www.moma.org/calendar/exhibitions/5618?preview=true';
 
 final moMAGeoLocation =
-GeoLocation(position: Location(lat: 40.761, lon: -73.980), address: 'MoMA');
+    GeoLocation(position: Location(lat: 40.761, lon: -73.980), address: 'MoMA');
 
 final internetUserGeoLocation =
-GeoLocation(position: Location(lat: null, lon: null), address: 'Web');
+    GeoLocation(position: Location(lat: null, lon: null), address: 'Web');
 
 const int MAX_STAMP_IN_POSTCARD = 15;
 
@@ -151,10 +151,9 @@ const String POSTCARD_FINISH_GETNEWSTAMP_MESSAGE = 'finish getNewStamp';
 const double POSTCARD_ASPECT_RATIO_ANDROID = 368.0 / 268;
 const double POSTCARD_ASPECT_RATIO_IOS = 348.0 / 268;
 
-double get postcardAspectRatio =>
-    Platform.isAndroid
-        ? POSTCARD_ASPECT_RATIO_ANDROID
-        : POSTCARD_ASPECT_RATIO_IOS;
+double get postcardAspectRatio => Platform.isAndroid
+    ? POSTCARD_ASPECT_RATIO_ANDROID
+    : POSTCARD_ASPECT_RATIO_IOS;
 
 const double STAMP_ASPECT_RATIO = 345.0 / 378;
 
@@ -163,10 +162,9 @@ const USDC_CONTRACT_ADDRESS_GOERLI =
 const USDC_CONTRACT_ADDRESS = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
 const DEFAULT_FEE_OPTION = FeeOption.MEDIUM;
 
-String get usdcContractAddress =>
-    Environment.appTestnetConfig
-        ? USDC_CONTRACT_ADDRESS_GOERLI
-        : USDC_CONTRACT_ADDRESS;
+String get usdcContractAddress => Environment.appTestnetConfig
+    ? USDC_CONTRACT_ADDRESS_GOERLI
+    : USDC_CONTRACT_ADDRESS;
 
 const publicTezosNodes = [
   'https://mainnet.api.tez.ie',
@@ -202,9 +200,7 @@ Future<bool> isAppCenterBuild() async {
   return info.packageName.contains('inhouse');
 }
 
-Future<bool> isPremium() async {
-  return injector<IAPService>().isSubscribed();
-}
+Future<bool> isPremium() async => injector<IAPService>().isSubscribed();
 
 Future<Pair<bool, bool>> logoState() async {
   final isAppCenter = await isAppCenterBuild();
@@ -212,13 +208,11 @@ Future<Pair<bool, bool>> logoState() async {
   return Pair(isAppCenter, isPro);
 }
 
-Future<String> getDemoAccount() async {
-  return await isAppCenterBuild() ? 'demo' : 'tv';
-}
+Future<String> getDemoAccount() async =>
+    await isAppCenterBuild() ? 'demo' : 'tv';
 
-Future<String> getAppVariant() async {
-  return await isAppCenterBuild() ? 'inhouse' : 'production';
-}
+Future<String> getAppVariant() async =>
+    await isAppCenterBuild() ? 'inhouse' : 'production';
 
 String feralFileExhibitionUrl(String slug) =>
     '${Environment.feralFileAPIURL}/exhibitions/$slug';
@@ -257,10 +251,7 @@ class GallerySortProperty {
 }
 
 extension RawValue on WalletApp {
-  String get rawValue =>
-      toString()
-          .split('.')
-          .last;
+  String get rawValue => toString().split('.').last;
 }
 
 class ReportIssueType {
@@ -273,8 +264,7 @@ class ReportIssueType {
   static const Announcement = 'announcement';
   static const MerchandiseIssue = 'merchandise postcard';
 
-  static List<String> get getList =>
-      [
+  static List<String> get getList => [
         Feature,
         Bug,
         Feedback,
@@ -332,10 +322,7 @@ enum PremiumFeature {
 }
 
 extension PremiumFeatureExtension on PremiumFeature {
-  String get rawValue =>
-      toString()
-          .split('.')
-          .last;
+  String get rawValue => toString().split('.').last;
 
   String get description {
     switch (rawValue) {
@@ -360,8 +347,10 @@ class ContextedAddress {
   final CryptoType cryptoType;
   final String address;
 
-  ContextedAddress(this.cryptoType,
-      this.address,);
+  ContextedAddress(
+    this.cryptoType,
+    this.address,
+  );
 }
 
 enum CryptoType {
