@@ -27,15 +27,13 @@ TextStyle makeLinkStyle(TextStyle style) {
 }
 
 MarkdownStyleSheet markDownLightStyle(BuildContext context,
-    {bool isDetailPage = false}) {
-  return isDetailPage
-      ? markDownDetailPageStyle(context, AppColor.primaryBlack)
-      : markDownStyle(context, AppColor.primaryBlack);
-}
+        {bool isDetailPage = false}) =>
+    isDetailPage
+        ? markDownDetailPageStyle(context, AppColor.primaryBlack)
+        : markDownStyle(context, AppColor.primaryBlack);
 
-MarkdownStyleSheet markDownBlackStyle(BuildContext context) {
-  return markDownStyle(context, AppColor.white);
-}
+MarkdownStyleSheet markDownBlackStyle(BuildContext context) =>
+    markDownStyle(context, AppColor.white);
 
 MarkdownStyleSheet markDownStyle(BuildContext context, Color textColor) {
   final theme = Theme.of(context);
@@ -72,8 +70,8 @@ MarkdownStyleSheet markDownStyle(BuildContext context, Color textColor) {
     blockquote: bodyText2,
     img: bodyText2,
     checkbox: bodyText2.copyWith(color: theme.colorScheme.secondary),
-    blockSpacing: 15.0,
-    listIndent: 24.0,
+    blockSpacing: 15,
+    listIndent: 24,
     listBullet: bodyText2,
     listBulletPadding: const EdgeInsets.only(right: 4),
     tableHead: const TextStyle(fontWeight: FontWeight.w600),
@@ -85,20 +83,20 @@ MarkdownStyleSheet markDownStyle(BuildContext context, Color textColor) {
     tableColumnWidth: const FlexColumnWidth(),
     tableCellsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
     tableCellsDecoration: const BoxDecoration(),
-    blockquotePadding: const EdgeInsets.all(8.0),
+    blockquotePadding: const EdgeInsets.all(8),
     blockquoteDecoration: BoxDecoration(
       color: Colors.blue.shade100,
-      borderRadius: BorderRadius.circular(2.0),
+      borderRadius: BorderRadius.circular(2),
     ),
-    codeblockPadding: const EdgeInsets.all(8.0),
+    codeblockPadding: const EdgeInsets.all(8),
     codeblockDecoration: BoxDecoration(
       color: Colors.transparent,
-      borderRadius: BorderRadius.circular(2.0),
+      borderRadius: BorderRadius.circular(2),
     ),
     horizontalRuleDecoration: BoxDecoration(
       border: Border(
         top: BorderSide(
-          width: 5.0,
+          width: 5,
           color: theme.dividerColor,
         ),
       ),
@@ -144,8 +142,8 @@ MarkdownStyleSheet markDownPostcardRightStyle(BuildContext context) {
     blockquote: bodyText2,
     img: bodyText2,
     checkbox: bodyText2.copyWith(color: theme.colorScheme.secondary),
-    blockSpacing: 16.0,
-    listIndent: 24.0,
+    blockSpacing: 16,
+    listIndent: 24,
     listBullet: bodyText2.copyWith(color: Colors.black),
     listBulletPadding: const EdgeInsets.only(right: 4),
     tableHead: const TextStyle(fontWeight: FontWeight.w600),
@@ -157,15 +155,15 @@ MarkdownStyleSheet markDownPostcardRightStyle(BuildContext context) {
     tableColumnWidth: const FlexColumnWidth(),
     tableCellsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
     tableCellsDecoration: const BoxDecoration(),
-    blockquotePadding: const EdgeInsets.all(8.0),
+    blockquotePadding: const EdgeInsets.all(8),
     blockquoteDecoration: BoxDecoration(
       color: Colors.blue.shade100,
-      borderRadius: BorderRadius.circular(2.0),
+      borderRadius: BorderRadius.circular(2),
     ),
-    codeblockPadding: const EdgeInsets.all(8.0),
+    codeblockPadding: const EdgeInsets.all(8),
     codeblockDecoration: BoxDecoration(
       color: Colors.transparent,
-      borderRadius: BorderRadius.circular(2.0),
+      borderRadius: BorderRadius.circular(2),
     ),
     horizontalRuleDecoration: const BoxDecoration(
       border: Border(
@@ -209,8 +207,8 @@ MarkdownStyleSheet markDownAnnouncementStyle(BuildContext context) {
     blockquote: bodyText2,
     img: bodyText2,
     checkbox: bodyText2.copyWith(color: theme.colorScheme.primary),
-    blockSpacing: 16.0,
-    listIndent: 24.0,
+    blockSpacing: 16,
+    listIndent: 24,
     listBullet: bodyText2.copyWith(color: Colors.black),
     listBulletPadding: const EdgeInsets.only(right: 4),
     tableHead: const TextStyle(fontWeight: FontWeight.w600),
@@ -222,15 +220,15 @@ MarkdownStyleSheet markDownAnnouncementStyle(BuildContext context) {
     tableColumnWidth: const FlexColumnWidth(),
     tableCellsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
     tableCellsDecoration: const BoxDecoration(),
-    blockquotePadding: const EdgeInsets.all(8.0),
+    blockquotePadding: const EdgeInsets.all(8),
     blockquoteDecoration: BoxDecoration(
       color: Colors.blue.shade100,
-      borderRadius: BorderRadius.circular(2.0),
+      borderRadius: BorderRadius.circular(2),
     ),
-    codeblockPadding: const EdgeInsets.all(8.0),
+    codeblockPadding: const EdgeInsets.all(8),
     codeblockDecoration: BoxDecoration(
       color: Colors.transparent,
-      borderRadius: BorderRadius.circular(2.0),
+      borderRadius: BorderRadius.circular(2),
     ),
     horizontalRuleDecoration: BoxDecoration(
       border: Border(
@@ -279,8 +277,8 @@ MarkdownStyleSheet markDownDetailPageStyle(
     blockquote: bodyText2,
     img: bodyText2,
     checkbox: bodyText2.copyWith(color: theme.colorScheme.secondary),
-    blockSpacing: 16.0,
-    listIndent: 24.0,
+    blockSpacing: 16,
+    listIndent: 24,
     listBullet: bodyText2.copyWith(color: Colors.black),
     listBulletPadding: const EdgeInsets.only(right: 4),
     tableHead: const TextStyle(fontWeight: FontWeight.w600),
@@ -292,15 +290,15 @@ MarkdownStyleSheet markDownDetailPageStyle(
     tableColumnWidth: const FlexColumnWidth(),
     tableCellsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
     tableCellsDecoration: const BoxDecoration(),
-    blockquotePadding: const EdgeInsets.all(8.0),
+    blockquotePadding: const EdgeInsets.all(8),
     blockquoteDecoration: BoxDecoration(
       color: Colors.blue.shade100,
-      borderRadius: BorderRadius.circular(2.0),
+      borderRadius: BorderRadius.circular(2),
     ),
-    codeblockPadding: const EdgeInsets.all(8.0),
+    codeblockPadding: const EdgeInsets.all(8),
     codeblockDecoration: BoxDecoration(
       color: Colors.transparent,
-      borderRadius: BorderRadius.circular(2.0),
+      borderRadius: BorderRadius.circular(2),
     ),
     horizontalRuleDecoration: BoxDecoration(
       border: Border(
@@ -350,8 +348,8 @@ MarkdownStyleSheet markDownChangeLogStyle(BuildContext context) {
     blockquote: textStyleBody,
     img: textStyleBody,
     checkbox: textStyleBody.copyWith(color: theme.colorScheme.secondary),
-    blockSpacing: 15.0,
-    listIndent: 24.0,
+    blockSpacing: 15,
+    listIndent: 24,
     listBullet: textStyleBody.copyWith(color: textColor),
     listBulletPadding: const EdgeInsets.only(right: 4),
     tableHead: const TextStyle(fontWeight: FontWeight.w600),
@@ -369,10 +367,10 @@ MarkdownStyleSheet markDownChangeLogStyle(BuildContext context) {
         left: BorderSide(width: 2, color: AppColor.auSuperTeal),
       ),
     ),
-    codeblockPadding: const EdgeInsets.all(8.0),
+    codeblockPadding: const EdgeInsets.all(8),
     codeblockDecoration: BoxDecoration(
       color: Colors.transparent,
-      borderRadius: BorderRadius.circular(2.0),
+      borderRadius: BorderRadius.circular(2),
     ),
     horizontalRuleDecoration: CustomBoxDecoration(
       color: AppColor.auSuperTeal,
@@ -418,8 +416,8 @@ MarkdownStyleSheet markDownStyleTipCard(BuildContext context) {
     blockquote: bodyText2,
     img: bodyText2,
     checkbox: bodyText2.copyWith(color: theme.colorScheme.secondary),
-    blockSpacing: 15.0,
-    listIndent: 24.0,
+    blockSpacing: 15,
+    listIndent: 24,
     listBullet: bodyText2,
     listBulletPadding: const EdgeInsets.only(right: 4),
     tableHead: const TextStyle(fontWeight: FontWeight.w600),
@@ -431,20 +429,20 @@ MarkdownStyleSheet markDownStyleTipCard(BuildContext context) {
     tableColumnWidth: const FlexColumnWidth(),
     tableCellsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
     tableCellsDecoration: const BoxDecoration(),
-    blockquotePadding: const EdgeInsets.all(8.0),
+    blockquotePadding: const EdgeInsets.all(8),
     blockquoteDecoration: BoxDecoration(
       color: Colors.blue.shade100,
-      borderRadius: BorderRadius.circular(2.0),
+      borderRadius: BorderRadius.circular(2),
     ),
-    codeblockPadding: const EdgeInsets.all(8.0),
+    codeblockPadding: const EdgeInsets.all(8),
     codeblockDecoration: BoxDecoration(
       color: Colors.transparent,
-      borderRadius: BorderRadius.circular(2.0),
+      borderRadius: BorderRadius.circular(2),
     ),
     horizontalRuleDecoration: BoxDecoration(
       border: Border(
         top: BorderSide(
-          width: 5.0,
+          width: 5,
           color: theme.dividerColor,
         ),
       ),
@@ -473,111 +471,93 @@ class CustomBoxDecoration extends ShapeDecoration {
         );
 
   @override
-  EdgeInsetsGeometry get padding => const EdgeInsets.symmetric(vertical: 22.0);
+  EdgeInsetsGeometry get padding => const EdgeInsets.symmetric(vertical: 22);
 }
 
-SizedBox addTitleSpace() {
-  return const SizedBox(height: 60);
-}
+SizedBox addTitleSpace() => const SizedBox(height: 60);
 
-Divider addDivider({double height = 32, Color? color}) {
-  return Divider(
-    height: height,
-    thickness: 1.0,
-    color: color,
-  );
-}
+Divider addDivider({double height = 32, Color? color}) => Divider(
+      height: height,
+      thickness: 1,
+      color: color,
+    );
 
-Divider headDivider() {
-  return const Divider(
-    height: 30,
-    thickness: 3,
-    color: AppColor.auSuperTeal,
-  );
-}
+Divider headDivider() => const Divider(
+      height: 30,
+      thickness: 3,
+      color: AppColor.auSuperTeal,
+    );
 
-Divider addOnlyDivider({Color? color}) {
-  return Divider(
-    height: 1.0,
-    thickness: 1.0,
-    color: color,
-  );
-}
+Divider addOnlyDivider({Color? color}) => Divider(
+      height: 1,
+      thickness: 1,
+      color: color,
+    );
 
-Divider addBoldDivider() {
-  return const Divider(
-    height: 1.0,
-    thickness: 1.0,
-    color: Colors.black,
-  );
-}
+Divider addBoldDivider() => const Divider(
+      height: 1,
+      thickness: 1,
+      color: Colors.black,
+    );
 
-Divider addDialogDivider({double height = 32}) {
-  return Divider(
-    height: height,
-    thickness: 1,
-    color: Colors.white,
-  );
-}
+Divider addDialogDivider({double height = 32}) => Divider(
+      height: height,
+      thickness: 1,
+      color: Colors.white,
+    );
 
 Widget loadingIndicator({
   double size = 27,
   Color valueColor = Colors.black,
   Color backgroundColor = Colors.black54,
   double strokeWidth = 2.0,
-}) {
-  return SizedBox(
-    width: size,
-    height: size,
-    child: CircularProgressIndicator(
-      backgroundColor: backgroundColor,
-      color: valueColor,
-      strokeWidth: strokeWidth,
-    ),
-  );
-}
+}) =>
+    SizedBox(
+      width: size,
+      height: size,
+      child: CircularProgressIndicator(
+        backgroundColor: backgroundColor,
+        color: valueColor,
+        strokeWidth: strokeWidth,
+      ),
+    );
 
-Widget closeIcon({Color color = Colors.black}) {
-  return SvgPicture.asset(
-    'assets/images/iconClose.svg',
-    colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    width: 32,
-    height: 32,
-  );
-}
+Widget closeIcon({Color color = Colors.black}) => SvgPicture.asset(
+      'assets/images/iconClose.svg',
+      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+      width: 32,
+      height: 32,
+    );
 
-Widget redDotIcon({Color color = Colors.red}) {
-  return Container(
-    width: 10,
-    height: 10,
-    decoration: BoxDecoration(
-      color: color,
-      shape: BoxShape.circle,
-    ),
-  );
-}
+Widget redDotIcon({Color color = Colors.red}) => Container(
+      width: 10,
+      height: 10,
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+      ),
+    );
 
 Widget iconWithRedDot(
-    {required Widget icon,
-    Color color = Colors.red,
-    EdgeInsetsGeometry? padding,
-    bool withReddot = true}) {
-  return withReddot
-      ? Stack(
-          alignment: Alignment.topRight,
-          children: [
-            Padding(
-              padding: padding ?? const EdgeInsets.only(right: 5),
-              child: icon,
-            ),
-            redDotIcon(color: color),
-          ],
-        )
-      : icon;
-}
+        {required Widget icon,
+        Color color = Colors.red,
+        EdgeInsetsGeometry? padding,
+        bool withReddot = true}) =>
+    withReddot
+        ? Stack(
+            alignment: Alignment.topRight,
+            children: [
+              Padding(
+                padding: padding ?? const EdgeInsets.only(right: 5),
+                child: icon,
+              ),
+              redDotIcon(color: color),
+            ],
+          )
+        : icon;
 
-var grantPermissions = [
-  "view_account".tr(),
+List<String> grantPermissions = [
+  'view_account'.tr(),
   'request_approval'.tr(),
 ];
 
@@ -586,7 +566,7 @@ String polishSource(String source) {
     case 'feralfile':
       return 'feral_file'.tr();
     case 'ArtBlocks':
-      return "art_blocks".tr();
+      return 'art_blocks'.tr();
     default:
       return source;
   }
@@ -625,14 +605,14 @@ class MomaPallet {
 }
 
 Map<String, String>? auHtmlStyle(dom.Element element) {
-  if (element.localName == "a") {
+  if (element.localName == 'a') {
     const linkColor = AppColor.auSuperTeal;
     // convert linkColor to hex string
     String hexColor =
         "#${(linkColor.value & 0xFFFFFF).toRadixString(16).padLeft(6, '0')}";
     return {
-      "color": hexColor,
-      "text-decoration": "none",
+      'color': hexColor,
+      'text-decoration': 'none',
     };
   }
   return null;
