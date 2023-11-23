@@ -17,21 +17,20 @@ class WalletDetailBalanceEvent extends WalletDetailEvent {
 }
 
 class WalletDetailState {
-  String balance = "";
-  String balanceInUSD = "";
+  String balance = '';
+  String balanceInUSD = '';
 
   WalletDetailState({
-    this.balance = "",
-    this.balanceInUSD = "",
+    this.balance = '',
+    this.balanceInUSD = '',
   });
 
   WalletDetailState copyWith({
     String? balance,
     String? balanceInUSD,
-  }) {
-    return WalletDetailState(
-      balance: balance ?? this.balance,
-      balanceInUSD: balanceInUSD ?? this.balanceInUSD,
-    );
-  }
+  }) =>
+      WalletDetailState(
+        balance: balance ?? this.balance,
+        balanceInUSD: balanceInUSD ?? this.balanceInUSD,
+      );
 }
