@@ -237,7 +237,7 @@ class AppRouter {
               injector(),
             ),
             child: ViewPlaylistScreen(
-              playListModel: settings.arguments! as PlayListModel?,
+              playListModel: settings.arguments as PlayListModel?,
             ),
           ),
         );
@@ -245,14 +245,14 @@ class AppRouter {
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) => AddNewPlaylistScreen(
-            playListModel: settings.arguments! as PlayListModel?,
+            playListModel: settings.arguments as PlayListModel?,
           ),
         );
       case editPlayListPage:
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) => EditPlaylistScreen(
-            playListModel: settings.arguments! as PlayListModel?,
+            playListModel: settings.arguments as PlayListModel?,
           ),
         );
       case onboardingPage:
