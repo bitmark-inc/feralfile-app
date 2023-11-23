@@ -5,10 +5,6 @@
 //  that can be found in the LICENSE file.
 //
 
-// ignore_for_file: cascade_invocations
-
-import 'dart:async';
-
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/util/dio_exception_ext.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
@@ -84,5 +80,4 @@ Dio baseDio(BaseOptions options) {
   return dio;
 }
 
-dynamic parseJson(String text) =>
-    unawaited(IsolatedUtil().parseAndDecode(text));
+Future<void> parseJson(String text) => IsolatedUtil().parseAndDecode(text);
