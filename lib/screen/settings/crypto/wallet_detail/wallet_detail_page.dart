@@ -688,7 +688,8 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                     blockchain: widget.payload.type.source,
                     accountNumber: address,
                     createdAt: walletAddress.createdAt);
-                unawaited(Navigator.of(context).pushNamed(GlobalReceiveDetailPage.tag,
+                unawaited(Navigator.of(context).pushNamed(
+                    GlobalReceiveDetailPage.tag,
                     arguments: GlobalReceivePayload(
                         address: address,
                         blockchain: widget.payload.type.source,
