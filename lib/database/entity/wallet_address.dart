@@ -49,4 +49,26 @@ class WalletAddress {
 
   AddressIndex get addressIndex =>
       AddressIndex(address: address, createdAt: createdAt);
+
+  // from Json
+  factory WalletAddress.fromJson(Map<String, dynamic> json) => WalletAddress(
+        address: json["address"],
+        uuid: json["uuid"],
+        index: json["index"],
+        cryptoType: json["cryptoType"],
+        createdAt: DateTime.parse(json["createdAt"]),
+        isHidden: json["isHidden"],
+        name: json["name"],
+      );
+
+  // to Json
+  Map<String, dynamic> toJson() => {
+        "address": address,
+        "uuid": uuid,
+        "index": index,
+        "cryptoType": cryptoType,
+        "createdAt": createdAt.toIso8601String(),
+        "isHidden": isHidden,
+        "name": name,
+      };
 }
