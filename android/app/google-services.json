@@ -1,66 +1,45 @@
 {
   "project_info": {
-    "project_number": "1049339402213",
-    "firebase_url": "https://bitmark-autonomy.firebaseio.com",
-    "project_id": "bitmark-autonomy",
-    "storage_bucket": "bitmark-autonomy.appspot.com"
+    "project_number": "887245084469",
+    "project_id": "my-first-project-sang",
+    "storage_bucket": "my-first-project-sang.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1049339402213:android:7265dc65bcc4e82715c10c",
+        "mobilesdk_app_id": "1:887245084469:android:1884bfad977da157e1de7c",
         "android_client_info": {
           "package_name": "com.bitmark.autonomy_client"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "1049339402213-4p8ded0ahoujss4hq73mlk46d4kmg3vo.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyD9pZXBE637fqM-Qz8mxhqMGpaWyENrm2w"
+          "current_key": "AIzaSyCZpjsOErKaHDsb_IefvZPJogyVEwicEzQ"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "1049339402213-4p8ded0ahoujss4hq73mlk46d4kmg3vo.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
+          "other_platform_oauth_client": []
         }
       }
     },
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1049339402213:android:ac2e79b3a7b8853215c10c",
+        "mobilesdk_app_id": "1:887245084469:android:9a5750f1a53e5368e1de7c",
         "android_client_info": {
           "package_name": "com.bitmark.autonomy_client.inhouse"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "1049339402213-4p8ded0ahoujss4hq73mlk46d4kmg3vo.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyD9pZXBE637fqM-Qz8mxhqMGpaWyENrm2w"
+          "current_key": "AIzaSyCZpjsOErKaHDsb_IefvZPJogyVEwicEzQ"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "1049339402213-4p8ded0ahoujss4hq73mlk46d4kmg3vo.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
+          "other_platform_oauth_client": []
         }
       }
     }
