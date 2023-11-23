@@ -107,7 +107,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
         // for erc20
         context.read<USDCBloc>().add(GetUSDCBalanceWithAddressEvent(address));
         continue allCrypto;
-        allCrypto:
+      allCrypto:
       case CryptoType.XTZ:
         context
             .read<WalletDetailBloc>()
