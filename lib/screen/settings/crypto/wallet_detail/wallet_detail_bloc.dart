@@ -33,16 +33,16 @@ class WalletDetailBloc extends AuBloc<WalletDetailEvent, WalletDetailState> {
         case CryptoType.ETH:
           final balance = await _ethereumService.getBalance(event.address);
           newState.balance =
-              "${EthAmountFormatter(balance.getInWei).format()} ETH";
-          final balanceInUSD =
-              "${FiatFormatter((balance.getInWei.toDouble() / pow(10, 18) / double.parse(exchangeRate.eth))).format()} USD";
+              '${EthAmountFormatter(balance.getInWei).format()} ETH';
+          final balanceInUSD = '''
+              ${FiatFormatter(balance.getInWei.toDouble() / pow(10, 18) / double.parse(exchangeRate.eth)).format()} USD''';
           newState.balanceInUSD = balanceInUSD;
           break;
         case CryptoType.XTZ:
           final balance = await _tezosService.getBalance(event.address);
-          newState.balance = "${XtzAmountFormatter(balance).format()} XTZ";
-          final balanceInUSD =
-              "${FiatFormatter((balance / pow(10, 6) / double.parse(exchangeRate.xtz))).format()} USD";
+          newState.balance = '${XtzAmountFormatter(balance).format()} XTZ';
+          final balanceInUSD = '''
+              ${FiatFormatter(balance / pow(10, 6) / double.parse(exchangeRate.xtz)).format()} USD''';
           newState.balanceInUSD = balanceInUSD;
 
           break;

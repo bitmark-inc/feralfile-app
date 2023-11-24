@@ -503,8 +503,6 @@ class AppRouter {
             builder: (context) => MultiBlocProvider(
                   providers: [
                     BlocProvider.value(value: accountsBloc),
-                    BlocProvider.value(value: ethereumBloc),
-                    BlocProvider.value(value: tezosBloc),
                     BlocProvider.value(value: usdcBloc),
                     BlocProvider.value(
                         value: ConnectionsBloc(
