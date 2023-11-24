@@ -17,7 +17,7 @@ main() {
   group('tezos service test', () {
     test('sign message', () async {
       final message = await tezosService.signMessage(
-          walletStorage, Uint8List.fromList(utf8.encode("message")));
+          walletStorage, 0, Uint8List.fromList(utf8.encode("message")));
 
       expect(message,
           "edsigtXomBKi5CTRf5cjATJWSyaRvhfYNHqSUGrn4SdbYRcGwQrUGjzEfQDTuqHhuA8b2d8NarZjz8TRf65WkpQmo423BtomS8Q");
@@ -83,17 +83,18 @@ class MockWalletStorage extends WalletStorage {
   MockWalletStorage(String uuid) : super(uuid);
 
   @override
-  Future<String> getTezosPublicKey() async {
+  Future<String> getTezosPublicKey({int index = 0}) async {
     return "edpkvB8a5H6uwbzKysXRzZ96EqT5pVouZFvz6Qye67sgcZFkSZS92x";
   }
 
   @override
-  Future<Uint8List> tezosSignMessage(Uint8List message) async {
+  Future<Uint8List> tezosSignMessage(Uint8List message, {int index = 0}) async {
     return Uint8List(64);
   }
 
   @override
-  Future<Uint8List> tezosSignTransaction(String forgedHex) async {
+  Future<Uint8List> tezosSignTransaction(String forgedHex,
+      {int index = 0}) async {
     return Uint8List(64);
   }
 }
