@@ -104,10 +104,11 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
     final cryptoType = widget.payload.type;
     switch (cryptoType) {
       case CryptoType.ETH:
-        // for erc20
+        context
+            .read<WalletDetailBloc>()
+            .add(WalletDetailBalanceEvent(cryptoType, address));
         context.read<USDCBloc>().add(GetUSDCBalanceWithAddressEvent(address));
-        continue allCrypto;
-      allCrypto:
+        break;
       case CryptoType.XTZ:
         context
             .read<WalletDetailBloc>()

@@ -95,10 +95,11 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
 
     switch (cryptoType) {
       case CryptoType.ETH:
-        // for erc20
+        context
+            .read<WalletDetailBloc>()
+            .add(WalletDetailBalanceEvent(cryptoType, _address));
         context.read<USDCBloc>().add(GetUSDCBalanceWithAddressEvent(_address));
-        continue allCrypto;
-      allCrypto:
+        break;
       case CryptoType.XTZ:
         context
             .read<WalletDetailBloc>()
