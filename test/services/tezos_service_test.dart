@@ -92,7 +92,5 @@ class MockWalletStorage extends WalletStorage {
 
   @override
   Future<Uint8List> tezosSignTransaction(String forgedHex,
-      {int index = 0}) async {
-    return Uint8List(64);
-  }
+      {int index = 0}) async => Uint8List(64);
 }
