@@ -83,9 +83,7 @@ class MockWalletStorage extends WalletStorage {
   MockWalletStorage(String uuid) : super(uuid);
 
   @override
-  Future<String> getTezosPublicKey({int index = 0}) async {
-    return "edpkvB8a5H6uwbzKysXRzZ96EqT5pVouZFvz6Qye67sgcZFkSZS92x";
-  }
+  Future<String> getTezosPublicKey({int index = 0}) async => 'edpkvB8a5H6uwbzKysXRzZ96EqT5pVouZFvz6Qye67sgcZFkSZS92x';
 
   @override
   Future<Uint8List> tezosSignMessage(Uint8List message, {int index = 0}) async => Uint8List(64);
