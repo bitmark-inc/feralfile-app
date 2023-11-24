@@ -13,6 +13,7 @@ part 'wc2_pairing.g.dart';
 @JsonSerializable()
 class Wc2Pairing {
   final String topic;
+  @JsonKey(defaultValue: 0)
   final int expiry;
   final AppMetadata? peerAppMetaData;
 
