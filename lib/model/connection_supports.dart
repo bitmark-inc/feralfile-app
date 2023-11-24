@@ -14,6 +14,7 @@ part 'connection_supports.g.dart';
 @JsonSerializable()
 class BeaconConnectConnection {
   String personaUuid;
+  @JsonKey(defaultValue: 0)
   int index;
   P2PPeer peer;
 
