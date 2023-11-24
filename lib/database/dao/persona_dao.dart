@@ -6,34 +6,97 @@
 //
 
 import 'package:autonomy_flutter/database/entity/persona.dart';
-import 'package:floor/floor.dart';
+import 'package:autonomy_flutter/service/cloud_firestore_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-@dao
 abstract class PersonaDao {
-  @Query('SELECT * FROM Persona')
   Future<List<Persona>> getPersonas();
 
-  @Query('SELECT * FROM Persona WHERE defaultAccount=1')
   Future<List<Persona>> getDefaultPersonas();
 
-  @Query('SELECT COUNT(*) FROM Persona')
   Future<int?> getPersonasCount();
 
-  @Insert(onConflict: OnConflictStrategy.replace)
   Future<void> insertPersona(Persona persona);
 
-  @Insert(onConflict: OnConflictStrategy.replace)
   Future<void> insertPersonas(List<Persona> personas);
 
-  @Query('SELECT * FROM Persona WHERE uuid = :uuid')
   Future<Persona?> findById(String uuid);
 
-  @update
   Future<void> updatePersona(Persona persona);
 
-  @delete
   Future<void> deletePersona(Persona persona);
 
-  @Query('DELETE FROM Persona')
   Future<void> removeAll();
+}
+
+class PersonaDaoImp implements PersonaDao {
+  CloudFirestoreService firestoreService;
+  final _collectionName = 'persona';
+
+  CollectionReference<Persona> get _collectionRef =>
+      firestoreService.getCollection(_collectionName).withConverter<Persona>(
+          fromFirestore: (snapshot, _) => Persona.fromJson(snapshot.data()!),
+          toFirestore: (persona, _) => persona.toJson());
+
+  PersonaDaoImp(this.firestoreService);
+
+  @override
+  Future<List<Persona>> getPersonas() async => _collectionRef.get().then(
+        (snapshot) => snapshot.docs.map((e) => e.data()).toList(),
+      );
+
+  @override
+  Future<List<Persona>> getDefaultPersonas() async =>
+      _collectionRef.where('defaultAccount', isEqualTo: 1).get().then(
+            (snapshot) => snapshot.docs.map((e) => e.data()).toList(),
+          );
+
+  @override
+  Future<int?> getPersonasCount() async => _collectionRef.get().then(
+        (snapshot) => snapshot.docs.map((e) => e.data()).toList().length,
+      );
+
+  @override
+  Future<void> insertPersona(Persona persona) async =>
+      _collectionRef.doc(persona.uuid).set(persona);
+
+  @override
+  Future<void> insertPersonas(List<Persona> personas) async {
+    final batch = firestoreService.getBatch();
+    for (var persona in personas) {
+      batch.set(_collectionRef.doc(persona.uuid), persona);
+    }
+    return batch.commit();
+  }
+
+  @override
+  Future<Persona?> findById(String uuid) async =>
+      _collectionRef.doc(uuid).get().then(
+        (snapshot) {
+          if (snapshot.exists) {
+            return snapshot.data();
+          } else {
+            return null;
+          }
+        },
+      );
+
+  @override
+  Future<void> updatePersona(Persona persona) async =>
+      _collectionRef.doc(persona.uuid).update(persona.toJson());
+
+  @override
+  Future<void> deletePersona(Persona persona) async =>
+      _collectionRef.doc(persona.uuid).delete();
+
+  @override
+  Future<void> removeAll() async => _collectionRef.get().then(
+        (snapshot) {
+          final batch = firestoreService.getBatch();
+          for (final doc in snapshot.docs) {
+            batch.delete(doc.reference);
+          }
+          return batch.commit();
+        },
+      );
 }

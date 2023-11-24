@@ -37,25 +37,25 @@ class KeySyncBloc extends AuBloc<KeySyncEvent, KeySyncState> {
           await _backupService.fetchBackupVersion(cloudWallet);
 
       if (cloudBackupVersion.isNotEmpty) {
-        const tmpCloudDbName = 'tmp_cloud_database.db';
-        await _backupService.restoreCloudDatabase(
-            cloudWallet, cloudBackupVersion,
-            dbName: tmpCloudDbName);
+        // const tmpCloudDbName = 'tmp_cloud_database.db';
+        // await _backupService.restoreCloudDatabase(
+        //     cloudWallet, cloudBackupVersion,
+        //     dbName: tmpCloudDbName);
 
-        final tmpCloudDb = await $FloorCloudDatabase
-            .databaseBuilder(tmpCloudDbName)
-            .addMigrations([
-          migrateCloudV1ToV2,
-          migrateCloudV2ToV3,
-          migrateCloudV3ToV4,
-          migrateCloudV4ToV5,
-          migrateCloudV5ToV6,
-          migrateCloudV6ToV7,
-          migrateCloudV7ToV8,
-        ]).build();
+        // final tmpCloudDb = await $FloorCloudDatabase
+        //     .databaseBuilder(tmpCloudDbName)
+        //     .addMigrations([
+        //   migrateCloudV1ToV2,
+        //   migrateCloudV2ToV3,
+        //   migrateCloudV3ToV4,
+        //   migrateCloudV4ToV5,
+        //   migrateCloudV5ToV6,
+        //   migrateCloudV6ToV7,
+        //   migrateCloudV7ToV8,
+        // ]).build();
 
-        final connections = await tmpCloudDb.connectionDao.getConnections();
-        await _cloudDatabase.connectionDao.insertConnections(connections);
+        // final connections = await tmpCloudDb.connectionDao.getConnections();
+        // await _cloudDatabase.connectionDao.insertConnections(connections);
       }
 
       if (state.isLocalSelected) {

@@ -34,10 +34,12 @@ class AuditServiceImpl extends AuditService {
   );
 
   @override
-  void auditFirstLog() async {
+  Future<void> auditFirstLog() async {
     final audits =
         await _cloudDB.auditDao.getAuditsBy(AuditCategory.fullAccount, 'init');
-    if (audits.isNotEmpty) return; // ignore if already init.
+    if (audits.isNotEmpty) {
+      return; // ignore if already init.
+    }
 
     final personas = await _cloudDB.personaDao.getPersonas();
     final metadata = {
@@ -64,8 +66,8 @@ class AuditServiceImpl extends AuditService {
 
   @override
   Future auditPersonaAction(String action, Persona? persona) async {
-    log.info(
-        "[AuditService] auditPersonaAction - action: $action, uuid: ${persona?.uuid}");
+    log.info('[AuditService] auditPersonaAction - action: '
+        '$action, uuid: ${persona?.uuid}');
 
     Map<String, dynamic> metadata = {};
 

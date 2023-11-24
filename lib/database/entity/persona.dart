@@ -91,6 +91,20 @@ class Persona {
     );
   }
 
+  // toJson method
+  Map<String, dynamic> toJson() {
+    return {
+      'uuid': uuid,
+      'name': name,
+      'createdAt': DateTimeConverter().encode(createdAt),
+      'defaultAccount': defaultAccount,
+      'ethereumIndex': ethereumIndex,
+      'tezosIndex': tezosIndex,
+      'ethereumIndexes': ethereumIndexes,
+      'tezosIndexes': tezosIndexes,
+    };
+  }
+
   WalletStorage wallet() {
     return LibAukDart.getWallet(uuid);
   }

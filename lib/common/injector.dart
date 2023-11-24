@@ -10,6 +10,10 @@ import 'dart:math';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/database/dao/address_dao.dart';
+import 'package:autonomy_flutter/database/dao/audit_dao.dart';
+import 'package:autonomy_flutter/database/dao/connection_dao.dart';
+import 'package:autonomy_flutter/database/dao/persona_dao.dart';
 import 'package:autonomy_flutter/gateway/activation_api.dart';
 import 'package:autonomy_flutter/gateway/airdrop_api.dart';
 import 'package:autonomy_flutter/gateway/announcement_api.dart';
@@ -40,6 +44,7 @@ import 'package:autonomy_flutter/service/canvas_client_service.dart';
 import 'package:autonomy_flutter/service/chat_auth_service.dart';
 import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
+import 'package:autonomy_flutter/service/cloud_firestore_service.dart';
 import 'package:autonomy_flutter/service/cloud_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/currency_service.dart';
@@ -68,6 +73,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:autonomy_flutter/util/dio_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -117,19 +123,6 @@ Future<void> setup() async {
     migrateV15ToV16,
     migrateV16ToV17
   ]).build();
-
-  final cloudDB = await $FloorCloudDatabase
-      .databaseBuilder('cloud_database.db')
-      .addMigrations([
-    migrateCloudV1ToV2,
-    migrateCloudV2ToV3,
-    migrateCloudV3ToV4,
-    migrateCloudV4ToV5,
-    migrateCloudV5ToV6,
-    migrateCloudV6ToV7,
-    migrateCloudV7ToV8,
-  ]).build();
-
   final BaseOptions dioOptions = BaseOptions(
     followRedirects: true,
     connectTimeout: const Duration(seconds: 10),
@@ -152,7 +145,18 @@ Future<void> setup() async {
   injector.registerLazySingleton(() => NftCollection.database.tokenDao);
   injector.registerLazySingleton(() => NftCollection.database.assetTokenDao);
   injector.registerLazySingleton(() => NftCollection.database.provenanceDao);
-  injector.registerLazySingleton(() => cloudDB);
+
+  injector.registerLazySingleton<CloudFirestoreService>(
+      () => CloudFirestoreService(FirebaseFirestore.instance));
+
+  injector.registerLazySingleton<PersonaDao>(() => PersonaDaoImp(injector()));
+  injector
+      .registerLazySingleton<ConnectionDao>(() => ConnectionDaoImp(injector()));
+  injector.registerLazySingleton<AuditDao>(() => AuditDaoImp(injector()));
+  injector.registerLazySingleton<WalletAddressDao>(
+      () => WalletAddressDaoImp(injector()));
+  injector.registerLazySingleton(
+      () => CloudDatabase(injector(), injector(), injector(), injector()));
 
   final authenticatedDio = Dio(); // Authenticated dio instance for AU servers
   authenticatedDio.interceptors.add(AutonomyAuthInterceptor());
@@ -175,7 +179,7 @@ Future<void> setup() async {
   authenticatedDio.options = dioOptions;
 
   // Services
-  final auditService = AuditServiceImpl(cloudDB);
+  final auditService = AuditServiceImpl(injector());
 
   injector.registerSingleton<ConfigurationService>(
       ConfigurationServiceImpl(sharedPreferences));
@@ -190,7 +194,7 @@ Future<void> setup() async {
       () => MixPanelClientService(injector(), injector(), injector()));
   injector.registerLazySingleton<CacheManager>(() => AUImageCacheManage());
   injector.registerLazySingleton<AccountService>(() => AccountServiceImpl(
-        cloudDB,
+        injector(),
         injector(),
         injector(),
         auditService,

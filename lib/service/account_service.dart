@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
@@ -20,6 +21,7 @@ import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
@@ -41,8 +43,6 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:synchronized/synchronized.dart';
 import 'package:uuid/uuid.dart';
 
-import 'iap_service.dart';
-
 abstract class AccountService {
   Future<WalletStorage> getDefaultAccount();
 
@@ -63,7 +63,7 @@ abstract class AccountService {
 
   Future androidRestoreKeys();
 
-  Future<Persona> createPersona({String name = "", bool isDefault = false});
+  Future<Persona> createPersona({String name = '', bool isDefault = false});
 
   Future<Persona> importPersona(String words,
       {WalletType walletType = WalletType.Autonomy});
@@ -132,7 +132,7 @@ class AccountServiceImpl extends AccountService {
 
   @override
   Future<Persona> createPersona(
-      {String name = "", bool isDefault = false}) async {
+      {String name = '', bool isDefault = false}) async {
     final uuid = const Uuid().v4();
     final walletStorage = LibAukDart.getWallet(uuid);
     await walletStorage.createKey(name);
@@ -142,10 +142,10 @@ class AccountServiceImpl extends AccountService {
     await androidBackupKeys();
     await _auditService.auditPersonaAction('create', persona);
     final metricClient = injector.get<MetricClientService>();
-    metricClient.addEvent(MixpanelEvent.createFullAccount,
-        data: {"isDefault": isDefault}, hashedData: {"id": persona.uuid});
-    _autonomyService.postLinkedAddresses();
-    log.info("[AccountService] Created persona ${persona.uuid}}");
+    unawaited(metricClient.addEvent(MixpanelEvent.createFullAccount,
+        data: {'isDefault': isDefault}, hashedData: {'id': persona.uuid}));
+    unawaited(_autonomyService.postLinkedAddresses());
+    log.info('[AccountService] Created persona ${persona.uuid}}');
     return persona;
   }
 
@@ -163,26 +163,24 @@ class AccountServiceImpl extends AccountService {
     final uuid = const Uuid().v4();
     final walletStorage = LibAukDart.getWallet(uuid);
     await walletStorage.importKey(
-        words, "", DateTime.now().microsecondsSinceEpoch);
+        words, '', DateTime.now().microsecondsSinceEpoch);
 
     final persona = Persona.newPersona(uuid: uuid);
     await _cloudDB.personaDao.insertPersona(persona);
     await androidBackupKeys();
     await _auditService.auditPersonaAction('import', persona);
     final metricClient = injector.get<MetricClientService>();
-    metricClient.addEvent(MixpanelEvent.importFullAccount, hashedData: {
-      "id": uuid,
-    });
-    log.info("[AccountService] imported persona ${persona.uuid}");
+    unawaited(
+        metricClient.addEvent(MixpanelEvent.importFullAccount, hashedData: {
+      'id': uuid,
+    }));
+    log.info('[AccountService] imported persona ${persona.uuid}');
     return persona;
   }
 
   @override
-  Future<WalletStorage> getDefaultAccount() async {
-    return _defaultAccountLock.synchronized(() async {
-      return await _getDefaultAccount();
-    });
-  }
+  Future<WalletStorage> getDefaultAccount() async =>
+      _defaultAccountLock.synchronized(() async => await _getDefaultAccount());
 
   @override
   Future<WalletStorage?> getCurrentDefaultAccount() async {
@@ -202,7 +200,9 @@ class AccountServiceImpl extends AccountService {
       personas = await _cloudDB.personaDao.getPersonas();
     }
 
-    if (personas.isEmpty) return null;
+    if (personas.isEmpty) {
+      return null;
+    }
     final defaultWallet = personas.first.wallet();
 
     return await defaultWallet.isWalletCreated() ? defaultWallet : null;
@@ -232,7 +232,7 @@ class AccountServiceImpl extends AccountService {
         }
     }
     throw AccountException(
-      message: "Wallet not found. Chain $chain, address: $address",
+      message: 'Wallet not found. Chain $chain, address: $address',
     );
   }
 
@@ -247,9 +247,9 @@ class AccountServiceImpl extends AccountService {
     var personas = await _cloudDB.personaDao.getDefaultPersonas();
 
     if (personas.isEmpty) {
-      await MigrationUtil(_configurationService, _cloudDB, this, injector(),
-              _auditService, _backupService)
-          .migrationFromKeychain();
+      // await MigrationUtil(_configurationService, _cloudDB, this, injector(),
+      //         _auditService, _backupService)
+      //     .migrationFromKeychain();
       await androidRestoreKeys();
 
       await Future.delayed(const Duration(seconds: 1));
@@ -260,11 +260,10 @@ class AccountServiceImpl extends AccountService {
     if (personas.isEmpty) {
       personas = await _cloudDB.personaDao.getPersonas();
       if (personas.isNotEmpty) {
-        defaultPersona = personas.first;
-        defaultPersona.defaultAccount = 1;
+        defaultPersona = personas.first..defaultAccount = 1;
         await _cloudDB.personaDao.updatePersona(defaultPersona);
       } else {
-        log.info("[AccountService] create default account");
+        log.info('[AccountService] create default account');
         defaultPersona = await createPersona(isDefault: true);
       }
     } else {
@@ -275,7 +274,7 @@ class AccountServiceImpl extends AccountService {
 
   @override
   Future deletePersona(Persona persona) async {
-    log.info("[AccountService] deletePersona start - ${persona.uuid}");
+    log.info('[AccountService] deletePersona start - ${persona.uuid}');
     await _cloudDB.personaDao.deletePersona(persona);
     await _auditService.auditPersonaAction('delete', persona);
 
@@ -285,8 +284,8 @@ class AccountServiceImpl extends AccountService {
     final connections = await _cloudDB.connectionDao.getConnections();
     Set<P2PPeer> bcPeers = {};
 
-    log.info(
-        "[AccountService] deletePersona - deleteConnections ${connections.length}");
+    log.info('[AccountService] deletePersona - '
+        'deleteConnections ${connections.length}');
     for (var connection in connections) {
       switch (connection.connectionType) {
         case 'beaconP2PPeer':
@@ -294,7 +293,9 @@ class AccountServiceImpl extends AccountService {
             await _cloudDB.connectionDao.deleteConnection(connection);
             injector<MetricClientService>().onRemoveConnection(connection);
             final bcPeer = connection.beaconConnectConnection?.peer;
-            if (bcPeer != null) bcPeers.add(bcPeer);
+            if (bcPeer != null) {
+              bcPeers.add(bcPeer);
+            }
           }
           break;
 
@@ -307,24 +308,24 @@ class AccountServiceImpl extends AccountService {
         await _tezosBeaconService.removePeer(peer);
       }
     } catch (exception) {
-      Sentry.captureException(exception);
+      unawaited(Sentry.captureException(exception));
     }
 
-    log.info("[AccountService] deletePersona finished - ${persona.uuid}");
+    log.info('[AccountService] deletePersona finished - ${persona.uuid}');
   }
 
   @override
   Future deleteLinkedAccount(Connection connection) async {
     await _cloudDB.connectionDao.deleteConnection(connection);
     final addressIndexes = connection.addressIndexes;
-    Future.wait(addressIndexes.map((element) async {
+    unawaited(Future.wait(addressIndexes.map((element) async {
       await setHideLinkedAccountInGallery(element.address, false);
-    }));
+    })));
     await _addressService
         .deleteAddresses(addressIndexes.map((e) => e.address).toList());
     final metricClient = injector.get<MetricClientService>();
-    metricClient.addEvent(MixpanelEvent.deleteLinkedAccount,
-        hashedData: {"address": connection.accountNumber});
+    unawaited(metricClient.addEvent(MixpanelEvent.deleteLinkedAccount,
+        hashedData: {'address': connection.accountNumber}));
   }
 
   @override
@@ -336,12 +337,12 @@ class AccountServiceImpl extends AccountService {
     }
     final personaAddress = await _cloudDB.addressDao.getAllAddresses();
     if (personaAddress.any((element) => element.address == checkSumAddress)) {
-      throw LinkAddressException(message: "already_imported_address".tr());
+      throw LinkAddressException(message: 'already_imported_address'.tr());
     }
     final doubleConnections = await _cloudDB.connectionDao
         .getConnectionsByAccountNumber(checkSumAddress);
     if (doubleConnections.isNotEmpty) {
-      throw LinkAddressException(message: "already_viewing_address".tr());
+      throw LinkAddressException(message: 'already_viewing_address'.tr());
     }
     final connection = Connection(
       key: checkSumAddress,
@@ -354,7 +355,7 @@ class AccountServiceImpl extends AccountService {
 
     await _cloudDB.connectionDao.insertConnection(connection);
     await _addressService.addAddresses([checkSumAddress]);
-    _autonomyService.postLinkedAddresses();
+    unawaited(_autonomyService.postLinkedAddresses());
     return connection;
   }
 
@@ -373,19 +374,18 @@ class AccountServiceImpl extends AccountService {
   }
 
   @override
-  bool isLinkedAccountHiddenInGallery(String address) {
-    return _configurationService.isLinkedAccountHiddenInGallery(address);
-  }
+  bool isLinkedAccountHiddenInGallery(String address) =>
+      _configurationService.isLinkedAccountHiddenInGallery(address);
 
   @override
   Future setHideLinkedAccountInGallery(String address, bool isEnabled) async {
     await _configurationService
         .setHideLinkedAccountInGallery([address], isEnabled);
     await _addressService.setIsHiddenAddresses([address], isEnabled);
-    injector<SettingsDataService>().backup();
+    unawaited(injector<SettingsDataService>().backup());
     final metricClient = injector.get<MetricClientService>();
-    metricClient.addEvent(MixpanelEvent.hideLinkedAccount,
-        hashedData: {"address": address});
+    unawaited(metricClient.addEvent(MixpanelEvent.hideLinkedAccount,
+        hashedData: {'address': address}));
   }
 
   @override
@@ -393,10 +393,10 @@ class AccountServiceImpl extends AccountService {
     await Future.wait(addresses
         .map((e) => _cloudDB.addressDao.setAddressIsHidden(e, isEnabled)));
     await _addressService.setIsHiddenAddresses(addresses, isEnabled);
-    injector<SettingsDataService>().backup();
+    unawaited(injector<SettingsDataService>().backup());
     final metricClient = injector.get<MetricClientService>();
-    metricClient.addEvent(MixpanelEvent.hideAddresses,
-        hashedData: {"addresses": addresses.join("||")});
+    unawaited(metricClient.addEvent(MixpanelEvent.hideAddresses,
+        hashedData: {'addresses': addresses.join('||')}));
   }
 
   @override
@@ -471,15 +471,16 @@ class AccountServiceImpl extends AccountService {
     final existingConnections = await _cloudDB.connectionDao
         .getConnectionsByAccountNumber(accountNumber);
 
-    if (existingConnections.isEmpty) return null;
+    if (existingConnections.isEmpty) {
+      return null;
+    }
 
     return existingConnections.first;
   }
 
   @override
-  Future<bool?> isAndroidEndToEndEncryptionAvailable() {
-    return _backupChannel.isEndToEndEncryptionAvailable();
-  }
+  Future<bool?> isAndroidEndToEndEncryptionAvailable() =>
+      _backupChannel.isEndToEndEncryptionAvailable();
 
   @override
   Future<List<String>> getAllAddresses({bool logHiddenAddress = false}) async {
@@ -497,13 +498,13 @@ class AccountServiceImpl extends AccountService {
     addresses.addAll(linkedAccounts.expand((e) => e.accountNumbers));
     if (logHiddenAddress) {
       log.info(
-          "[Account Service] all addresses (persona ${addressPersona.length}): ${addresses.join(", ")}");
+          '[Account Service] all addresses (persona ${addressPersona.length}): '
+          '${addresses.join(", ")}');
       final hiddenAddresses = addressPersona
           .where((element) => element.isHidden)
           .map((e) => e.address.maskOnly(5))
-          .toList();
-      hiddenAddresses
-          .addAll(_configurationService.getLinkedAccountsHiddenInGallery());
+          .toList()
+        ..addAll(_configurationService.getLinkedAccountsHiddenInGallery());
       log.info(
           "[Account Service] hidden addresses: ${hiddenAddresses.join(", ")}");
     }
@@ -540,12 +541,14 @@ class AccountServiceImpl extends AccountService {
     final personas = await _cloudDB.personaDao.getPersonas();
     for (var persona in personas) {
       final personaWallet = persona.wallet();
-      if (!await personaWallet.isWalletCreated()) continue;
+      if (!await personaWallet.isWalletCreated()) {
+        continue;
+      }
       switch (blockchain.toLowerCase()) {
-        case "tezos":
+        case 'tezos':
           addresses.addAll(await persona.getTezosAddresses());
           break;
-        case "ethereum":
+        case 'ethereum':
           final address = await personaWallet.getETHEip55Address();
           if (address.isNotEmpty) {
             addresses.addAll(await persona.getEthAddresses());
@@ -558,7 +561,9 @@ class AccountServiceImpl extends AccountService {
       final connections =
           await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
       for (var connection in connections) {
-        if (connection.accountNumber.isEmpty) continue;
+        if (connection.accountNumber.isEmpty) {
+          continue;
+        }
         final crytoType =
             CryptoType.fromAddress(connection.accountNumber).source;
         if (crytoType.toLowerCase() == blockchain.toLowerCase()) {
@@ -657,7 +662,7 @@ class AccountServiceImpl extends AccountService {
   @override
   Future<void> deleteAddressPersona(
       Persona persona, WalletAddress walletAddress) async {
-    _cloudDB.addressDao.deleteAddress(walletAddress);
+    unawaited(_cloudDB.addressDao.deleteAddress(walletAddress));
     final metricClientService = injector<MetricClientService>();
     await _addressService.deleteAddresses([walletAddress.address]);
     switch (CryptoType.fromSource(walletAddress.cryptoType)) {
@@ -666,7 +671,7 @@ class AccountServiceImpl extends AccountService {
             .getConnectionsByType(ConnectionType.dappConnect2.rawValue);
         for (var connection in connections) {
           if (connection.accountNumber.contains(walletAddress.address)) {
-            _cloudDB.connectionDao.deleteConnection(connection);
+            unawaited(_cloudDB.connectionDao.deleteConnection(connection));
             metricClientService.onRemoveConnection(connection);
           }
         }
@@ -679,7 +684,7 @@ class AccountServiceImpl extends AccountService {
           if (connection.beaconConnectConnection?.personaUuid == persona.uuid &&
               connection.beaconConnectConnection?.index ==
                   walletAddress.index) {
-            _cloudDB.connectionDao.deleteConnection(connection);
+            unawaited(_cloudDB.connectionDao.deleteConnection(connection));
             metricClientService.onRemoveConnection(connection);
           }
         }
@@ -696,7 +701,9 @@ class AccountServiceImpl extends AccountService {
 
   @override
   Future<void> restoreIfNeeded({bool isCreateNew = true}) async {
-    if (_configurationService.isDoneOnboarding()) return;
+    if (_configurationService.isDoneOnboarding()) {
+      return;
+    }
 
     final iapService = injector<IAPService>();
     final auditService = injector<AuditService>();
@@ -707,37 +714,41 @@ class AccountServiceImpl extends AccountService {
     final personas = await _cloudDB.personaDao.getPersonas();
     final connections = await _cloudDB.connectionDao.getConnections();
     if (personas.isNotEmpty || connections.isNotEmpty) {
-      _configurationService.setOldUser();
+      unawaited(_configurationService.setOldUser());
       final defaultAccount = await getDefaultAccount();
       final backupVersion =
           await _backupService.fetchBackupVersion(defaultAccount);
       if (backupVersion.isNotEmpty) {
         _backupService.restoreCloudDatabase(defaultAccount, backupVersion);
         for (var persona in personas) {
-          if (persona.name != "") {
-            persona.wallet().updateName(persona.name);
+          if (persona.name != '') {
+            unawaited(persona.wallet().updateName(persona.name));
           }
         }
         await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
-        _configurationService.setDoneOnboarding(true);
-        injector<MetricClientService>().mixPanelClient.initIfDefaultAccount();
-        injector<NavigationService>()
-            .navigateTo(AppRouter.homePageNoTransition);
+        unawaited(_configurationService.setDoneOnboarding(true));
+        await injector<MetricClientService>()
+            .mixPanelClient
+            .initIfDefaultAccount();
+        unawaited(injector<NavigationService>()
+            .navigateTo(AppRouter.homePageNoTransition));
       }
     } else if (isCreateNew) {
-      _configurationService.setDoneOnboarding(true);
+      unawaited(_configurationService.setDoneOnboarding(true));
       final persona = await createPersona();
       await persona.insertNextAddress(WalletType.Tezos);
       await persona.insertNextAddress(WalletType.Ethereum);
-      injector<MetricClientService>().mixPanelClient.initIfDefaultAccount();
-      injector<NavigationService>().navigateTo(AppRouter.homePageNoTransition);
+      unawaited(injector<MetricClientService>()
+          .mixPanelClient
+          .initIfDefaultAccount());
+      unawaited(injector<NavigationService>()
+          .navigateTo(AppRouter.homePageNoTransition));
     }
   }
 
   @override
-  Future<WalletAddress?> getAddressPersona(String address) async {
-    return await _cloudDB.addressDao.findByAddress(address);
-  }
+  Future<WalletAddress?> getAddressPersona(String address) async =>
+      await _cloudDB.addressDao.findByAddress(address);
 
   @override
   Future<List<Connection>> removeDoubleViewOnly(List<String> addresses) async {

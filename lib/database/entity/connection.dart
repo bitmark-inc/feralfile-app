@@ -7,11 +7,10 @@
 
 import 'dart:convert';
 
+import 'package:autonomy_flutter/model/connection_supports.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:floor/floor.dart';
-
-import 'package:autonomy_flutter/model/connection_supports.dart';
 import 'package:nft_collection/models/address_index.dart';
 
 enum ConnectionType {
@@ -148,4 +147,24 @@ class Connection {
         accountNumber.hashCode ^
         createdAt.hashCode;
   }
+
+  // from Json
+  factory Connection.fromJson(Map<String, dynamic> json) => Connection(
+        key: json["key"],
+        name: json["name"],
+        data: json["data"],
+        connectionType: json["connectionType"],
+        accountNumber: json["accountNumber"],
+        createdAt: DateTime.parse(json["createdAt"]),
+      );
+
+  // to Json
+  Map<String, dynamic> toJson() => {
+        "key": key,
+        "name": name,
+        "data": data,
+        "connectionType": connectionType,
+        "accountNumber": accountNumber,
+        "createdAt": createdAt.toIso8601String(),
+      };
 }
