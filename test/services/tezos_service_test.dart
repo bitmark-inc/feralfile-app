@@ -17,7 +17,7 @@ main() {
   group('tezos service test', () {
     test('sign message', () async {
       final message = await tezosService.signMessage(
-          walletStorage, 0, Uint8List.fromList(utf8.encode("message")));
+          walletStorage, 0, Uint8List.fromList(utf8.encode('message')));
 
       expect(message,
           "edsigtXomBKi5CTRf5cjATJWSyaRvhfYNHqSUGrn4SdbYRcGwQrUGjzEfQDTuqHhuA8b2d8NarZjz8TRf65WkpQmo423BtomS8Q");
