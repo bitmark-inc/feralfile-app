@@ -16,63 +16,61 @@ class HeaderView extends StatelessWidget {
   final Widget? action;
 
   const HeaderView(
-      {Key? key, required this.paddingTop, this.isWhite = false, this.action})
-      : super(key: key);
+      {required this.paddingTop, super.key, this.isWhite = false, this.action});
 
   @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Container(
-        padding: EdgeInsets.fromLTRB(0, paddingTop, 0, 40),
-        child: Column(
-          children: [
-            headDivider(),
-            const SizedBox(height: 7),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 15),
-                  child: AutonomyLogo(
-                    isWhite: isWhite,
+  Widget build(BuildContext context) => Align(
+        alignment: Alignment.centerLeft,
+        child: Container(
+          padding: EdgeInsets.fromLTRB(0, paddingTop, 0, 40),
+          child: Column(
+            children: [
+              headDivider(),
+              const SizedBox(height: 7),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 15),
+                    child: AutonomyLogo(
+                      isWhite: isWhite,
+                    ),
                   ),
-                ),
-                const Spacer(),
-                action ?? const SizedBox()
-              ],
-            ),
-          ],
+                  const Spacer(),
+                  action ?? const SizedBox()
+                ],
+              ),
+            ],
+          ),
         ),
-      ),
-    );
-  }
+      );
 }
 
 class AutonomyLogo extends StatelessWidget {
   final bool isWhite;
 
-  const AutonomyLogo({Key? key, this.isWhite = false}) : super(key: key);
+  const AutonomyLogo({super.key, this.isWhite = false});
 
   @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<bool>(
-        future: logoState(),
-        builder: (context, snapshot) {
-          if (snapshot.data == null) return const SizedBox(height: 50);
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SvgPicture.asset(
-                isWhite
-                    ? "assets/images/autonomy_icon_white.svg"
-                    : snapshot.data! == true
-                        ? "assets/images/logo_dev.svg"
-                        : "assets/images/penrose_moma.svg",
-                width: 50,
-                height: 50,
-              ),
-            ],
-          );
-        });
-  }
+  Widget build(BuildContext context) => FutureBuilder<bool>(
+      // ignore: discarded_futures
+      future: logoState(),
+      builder: (context, snapshot) {
+        if (snapshot.data == null) {
+          return const SizedBox(height: 50);
+        }
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SvgPicture.asset(
+              isWhite
+                  ? 'assets/images/autonomy_icon_white.svg'
+                  : snapshot.data!
+                      ? 'assets/images/logo_dev.svg'
+                      : 'assets/images/penrose_moma.svg',
+              width: 50,
+              height: 50,
+            ),
+          ],
+        );
+      });
 }

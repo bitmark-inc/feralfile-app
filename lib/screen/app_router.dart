@@ -111,7 +111,6 @@ import 'package:autonomy_flutter/screen/settings/hidden_artworks/hidden_artworks
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_page.dart';
 import 'package:autonomy_flutter/screen/settings/settings_page.dart';
-import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/au_sign_message_page.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_sign_message_page.dart';
@@ -927,14 +926,12 @@ class AppRouter {
       case preferencesPage:
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) {
-              return MultiBlocProvider(providers: [
-                BlocProvider(
-                  create: (_) => PreferencesBloc(injector()),
-                ),
-                BlocProvider.value(value: accountsBloc),
-              ], child: const PreferencePage());
-            });
+            builder: (context) => MultiBlocProvider(providers: [
+                  BlocProvider(
+                    create: (_) => PreferencesBloc(injector()),
+                  ),
+                  BlocProvider.value(value: accountsBloc),
+                ], child: const PreferencePage()));
 
       case dataManagementPage:
         return CupertinoPageRoute(
