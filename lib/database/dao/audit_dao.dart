@@ -6,68 +6,23 @@
 //
 
 import 'package:autonomy_flutter/database/entity/audit.dart';
-import 'package:autonomy_flutter/service/cloud_firestore_service.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:floor/floor.dart';
 
+@dao
 abstract class AuditDao {
+  @Query('SELECT * FROM Audit')
   Future<List<Audit>> getAudits();
 
+  @Insert(onConflict: OnConflictStrategy.replace)
   Future<void> insertAudit(Audit audit);
 
+  @Insert(onConflict: OnConflictStrategy.replace)
   Future<void> insertAudits(List<Audit> audits);
 
+  @Query(
+      'SELECT * FROM Audit WHERE category = (:category) AND "action" = (:action)')
   Future<List<Audit>> getAuditsBy(String category, String action);
 
+  @Query('DELETE FROM Audit')
   Future<void> removeAll();
-}
-
-class AuditDaoImp implements AuditDao {
-  final _collectionName = 'audit';
-  final CloudFirestoreService firestoreService;
-
-  CollectionReference<Audit> get _collectionRef =>
-      firestoreService.getCollection(_collectionName).withConverter<Audit>(
-          fromFirestore: (snapshot, _) => Audit.fromJson(snapshot.data()!),
-          toFirestore: (audit, _) => audit.toJson());
-
-  AuditDaoImp(this.firestoreService);
-
-  @override
-  Future<List<Audit>> getAudits() async => _collectionRef.get().then(
-        (snapshot) => snapshot.docs.map((e) => e.data()).toList(),
-      );
-
-  @override
-  Future<void> insertAudit(Audit audit) async {
-    await _collectionRef.doc(audit.uuid).set(audit);
-  }
-
-  @override
-  Future<void> insertAudits(List<Audit> audits) async {
-    final batch = firestoreService.getBatch();
-    for (final Audit audit in audits) {
-      batch.set(_collectionRef.doc(audit.uuid), audit);
-    }
-    await batch.commit();
-  }
-
-  @override
-  Future<List<Audit>> getAuditsBy(String category, String action) async {
-    final query = _collectionRef
-        .where('category', isEqualTo: category)
-        .where('action', isEqualTo: action);
-    return query.get().then(
-          (snapshot) => snapshot.docs.map((e) => e.data()).toList(),
-        );
-  }
-
-  @override
-  Future<void> removeAll() async {
-    final batch = firestoreService.getBatch();
-    final snapshot = await _collectionRef.get();
-    for (var doc in snapshot.docs) {
-      batch.delete(doc.reference);
-    }
-    await batch.commit();
-  }
 }

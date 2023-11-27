@@ -8,76 +8,25 @@
 import 'dart:convert';
 
 import 'package:autonomy_flutter/database/entity/connection.dart';
-import 'package:autonomy_flutter/service/cloud_firestore_service.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:floor/floor.dart';
 
+@dao
 abstract class ConnectionDao {
+  @Query('SELECT * FROM Connection')
   Future<List<Connection>> getConnections();
 
+  @Query(
+      'SELECT * FROM Connection WHERE connectionType NOT IN ("dappConnect", "dappConnect2", "walletConnect2", "beaconP2PPeer", "manuallyIndexerTokenID")')
   Future<List<Connection>> getLinkedAccounts();
 
-  Future<List<Connection>> getUpdatedLinkedAccounts();
-
-  Future<List<Connection>> getRelatedPersonaConnections();
-
-  Future<List<Connection>> getConnectionsByType(String type);
-
-  Future<List<Connection>> getConnectionsByAccountNumber(String accountNumber);
-
-  Future<void> insertConnection(Connection connection);
-
-  Future<void> insertConnections(List<Connection> connections);
-
-  Future<Connection?> findById(String key);
-
-  Future<void> removeAll();
-
-  Future<void> deleteConnection(Connection connection);
-
-  Future<void> deleteConnections(List<Connection> connections);
-
-  Future<void> deleteConnectionsByAccountNumber(String accountNumber);
-
-  Future<void> deleteConnectionsByType(String type);
-
-  Future<void> updateConnection(Connection connection);
-}
-
-class ConnectionDaoImp implements ConnectionDao {
-  final _collectionName = 'connection';
-  CloudFirestoreService firestoreService;
-
-  CollectionReference<Connection> get _collectionRef =>
-      firestoreService.getCollection(_collectionName).withConverter<Connection>(
-          fromFirestore: (snapshot, _) => Connection.fromJson(snapshot.data()!),
-          toFirestore: (connection, _) => connection.toJson());
-
-  ConnectionDaoImp(this.firestoreService);
-
-  @override
-  Future<List<Connection>> getConnections() async => _collectionRef.get().then(
-        (snapshot) => snapshot.docs.map((e) => e.data()).toList(),
-      );
-
-  @override
-  Future<List<Connection>> getLinkedAccounts() {
-    final query = _collectionRef.where('connectionType', whereNotIn: [
-      'dappConnect',
-      'dappConnect2',
-      'walletConnect2',
-      'beaconP2PPeer',
-      'manuallyIndexerTokenID'
-    ]);
-    return query.get().then(
-          (snapshot) => snapshot.docs.map((e) => e.data()).toList(),
-        );
-  }
-
-  @override
+  // getUpdatedLinkedAccounts:
+  //   - format ETH address as checksum address
   Future<List<Connection>> getUpdatedLinkedAccounts() async {
     final linkedAccounts = await getLinkedAccounts();
+
     final deprecatedConnections = linkedAccounts
-        .where((element) => element.connectionType != 'manuallyAddress');
+        .where((element) => element.connectionType != "manuallyAddress");
+
     if (deprecatedConnections.isNotEmpty) {
       await _migrateDeprecatedConnections(deprecatedConnections.toList());
       return getUpdatedLinkedAccounts();
@@ -86,121 +35,45 @@ class ConnectionDaoImp implements ConnectionDao {
     return linkedAccounts;
   }
 
-  @override
-  Future<List<Connection>> getRelatedPersonaConnections() {
-    final query = _collectionRef.where('connectionType', whereIn: [
-      'dappConnect',
-      'dappConnect2',
-      'beaconP2PPeer',
-    ]);
-    return query.get().then(
-          (snapshot) => snapshot.docs.map((e) => e.data()).toList(),
-        );
-  }
+  @Query(
+      'SELECT * FROM Connection WHERE connectionType IN ("dappConnect", "dappConnect2", "beaconP2PPeer")')
+  Future<List<Connection>> getRelatedPersonaConnections();
 
-  @override
-  Future<List<Connection>> getConnectionsByType(String type) async {
-    final query = _collectionRef.where('connectionType', isEqualTo: type);
-    // .orderBy('createdAt', descending: true);
-    final connections = await query.get();
-    if (connections.docs.isEmpty) {
-      return [];
-    } else {
-      return connections.docs.map((e) => e.data()).toList();
-    }
-  }
+  @Query(
+      'SELECT * FROM Connection WHERE connectionType = :type ORDER BY createdAt DESC')
+  Future<List<Connection>> getConnectionsByType(String type);
 
-  @override
-  Future<List<Connection>> getConnectionsByAccountNumber(String accountNumber) {
-    final query = _collectionRef
-        .where('accountNumber', isEqualTo: accountNumber)
-        .orderBy('createdAt', descending: true);
-    return query.get().then(
-          (snapshot) => snapshot.docs.map((e) => e.data()).toList(),
-        );
-  }
+  @Query(
+      'SELECT * FROM Connection WHERE accountNumber = :accountNumber COLLATE NOCASE')
+  Future<List<Connection>> getConnectionsByAccountNumber(String accountNumber);
 
-  @override
-  Future<void> insertConnection(Connection connection) =>
-      _collectionRef.doc(connection.key).set(connection);
+  @Insert(onConflict: OnConflictStrategy.replace)
+  Future<void> insertConnection(Connection connection);
 
-  @override
-  Future<void> insertConnections(List<Connection> connections) {
-    final batch = firestoreService.getBatch();
-    for (final connection in connections) {
-      batch.set(_collectionRef.doc(connection.key), connection);
-    }
-    return batch.commit();
-  }
+  @Insert(onConflict: OnConflictStrategy.replace)
+  Future<void> insertConnections(List<Connection> connections);
 
-  @override
-  Future<Connection?> findById(String key) =>
-      _collectionRef.doc(key).get().then(
-        (snapshot) {
-          if (snapshot.exists) {
-            return snapshot.data()!;
-          } else {
-            return null;
-          }
-        },
-      );
+  @Query('SELECT * FROM Connection WHERE key = :key')
+  Future<Connection?> findById(String key);
 
-  @override
-  Future<void> removeAll() => _collectionRef.get().then(
-        (snapshot) {
-          final batch = firestoreService.getBatch();
-          for (final doc in snapshot.docs) {
-            batch.delete(doc.reference);
-          }
-          return batch.commit();
-        },
-      );
+  @Query('DELETE FROM Connection')
+  Future<void> removeAll();
 
-  @override
-  Future<void> deleteConnection(Connection connection) =>
-      _collectionRef.doc(connection.key).delete();
+  @delete
+  Future<void> deleteConnection(Connection connection);
 
-  @override
-  Future<void> deleteConnections(List<Connection> connections) {
-    final batch = firestoreService.getBatch();
-    for (final connection in connections) {
-      batch.delete(_collectionRef.doc(connection.key));
-    }
-    return batch.commit();
-  }
+  @delete
+  Future<void> deleteConnections(List<Connection> connections);
 
-  @override
-  Future<void> deleteConnectionsByAccountNumber(String accountNumber) {
-    final query =
-        _collectionRef.where('accountNumber', isEqualTo: accountNumber);
-    return query.get().then(
-      (snapshot) {
-        final batch = firestoreService.getBatch();
-        for (final doc in snapshot.docs) {
-          batch.delete(doc.reference);
-        }
-        return batch.commit();
-      },
-    );
-  }
+  @Query(
+      'DELETE FROM Connection WHERE accountNumber = :accountNumber COLLATE NOCASE')
+  Future<void> deleteConnectionsByAccountNumber(String accountNumber);
 
-  @override
-  Future<void> deleteConnectionsByType(String type) {
-    final query = _collectionRef.where('connectionType', isEqualTo: type);
-    return query.get().then(
-      (snapshot) {
-        final batch = firestoreService.getBatch();
-        for (final doc in snapshot.docs) {
-          batch.delete(doc.reference);
-        }
-        return batch.commit();
-      },
-    );
-  }
+  @Query('DELETE FROM Connection WHERE connectionType = :type')
+  Future<void> deleteConnectionsByType(String type);
 
-  @override
-  Future<void> updateConnection(Connection connection) =>
-      _collectionRef.doc(connection.key).update(connection.toJson());
+  @update
+  Future<void> updateConnection(Connection connection);
 
   // migrate: combine ledgerEthereum and ledgerTezos into ledger
   Future _migrateDeprecatedConnections(List<Connection> connections) async {
@@ -209,6 +82,7 @@ class ConnectionDaoImp implements ConnectionDao {
       switch (oldConnection.connectionType) {
         case 'ledger':
           final jsonData = json.decode(oldConnection.data);
+          // there is a typo in creating connections for ledger code: etheremAddress
           final etheremAddress = (jsonData['etheremAddress'] == null
                   ? []
                   : (jsonData['etheremAddress'] as List<dynamic>))

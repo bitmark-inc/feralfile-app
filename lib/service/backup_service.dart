@@ -6,22 +6,18 @@
 //
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/cloud_database.dart';
-import 'package:autonomy_flutter/database/entity/wallet_address.dart';
+import 'package:autonomy_flutter/database/sqlite_cloud_database.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
-import 'package:autonomy_flutter/model/backup_versions.dart';
-import 'package:autonomy_flutter/util/cloud_firestore.dart';
-import 'package:autonomy_flutter/util/custom_exception.dart';
-import 'package:autonomy_flutter/util/helpers.dart';
+import 'package:autonomy_flutter/service/cloud_firestore_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration/migration_util.dart';
 import 'package:floor/floor.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -32,8 +28,9 @@ class BackupService {
   static const _dbEncryptedFileName = 'cloud_database.db.encrypted';
 
   final IAPApi _iapApi;
+  final CloudFirestoreService _cloudFirestoreService;
 
-  BackupService(this._iapApi);
+  BackupService(this._iapApi, this._cloudFirestoreService);
 
   Future backupCloudDatabase(WalletStorage account) async {
     log.info('[BackupService] start database backup');
@@ -53,83 +50,11 @@ class BackupService {
       await _iapApi.uploadProfile(
           deviceId, _dbEncryptedFileName, version, file);
       await file.delete();
-      unawaited(backupCloudFireStore(account));
     } catch (err) {
       debugPrint('[BackupService] error database backup, $err');
     }
 
     log.info('[BackupService] done database backup');
-  }
-
-  Future<void> backupCloudFireStore(WalletStorage account) async {
-    log.info('[BackupService] start firestore backup');
-    try {
-      //backup to firestore
-      final cloudFireStore = CloudFireStore();
-      final deviceId = await getBackupId();
-      final version = await fetchBackupVersion(account);
-      final deviceIdCollection = cloudFireStore.collection(deviceId);
-      final versionCollection = deviceIdCollection.getSubCollection(version);
-      final walletAddressCollection =
-          versionCollection.getSubCollection('WalletAddress');
-      final data = await injector<CloudDatabase>().addressDao.getAllAddresses();
-      for (WalletAddress address in data) {
-        final document = walletAddressCollection.doc(address.address);
-        await document.set(address.toJson());
-      }
-    } catch (err) {
-      debugPrint('[BackupService] error database backup, $err');
-    }
-
-    log.info('[BackupService] done database backup');
-  }
-
-  Future<String> fetchBackupVersion(WalletStorage account) async {
-    PackageInfo packageInfo = await PackageInfo.fromPlatform();
-    String version = packageInfo.version;
-
-    String? deviceId = await getBackupId();
-    final authToken = await getAuthToken(account);
-
-    final endpoint = Environment.autonomyAuthURL;
-
-    http.Response? response;
-
-    for (String filename in [_dbEncryptedFileName, _dbFileName]) {
-      try {
-        response = await http.get(
-            Uri.parse(
-                '$endpoint/apis/v1/premium/profile-data/versions?filename=$filename'),
-            headers: {
-              'requester': deviceId,
-              'Authorization': 'Bearer $authToken'
-            });
-        if (response.statusCode == 200) {
-          break;
-        }
-      } catch (e) {
-        log.warning('[BackupService] failed fetch $filename $e');
-      }
-    }
-
-    if (response == null || response.statusCode != 200) {
-      log.warning('[BackupService] failed fetchBackupVersion');
-      throw FailedFetchBackupVersion();
-    }
-
-    final result = BackupVersions.fromJson(json.decode(response.body));
-
-    var versions = result.versions..sort((a, b) => compareVersion(b, a));
-
-    String backupVersion = '';
-    for (String element in versions) {
-      if (compareVersion(element, version) <= 0) {
-        backupVersion = element;
-        break;
-      }
-    }
-
-    return backupVersion;
   }
 
   Future deleteAllProfiles(WalletStorage account) async {
@@ -144,63 +69,46 @@ class BackupService {
 
   Future restoreCloudDatabase(WalletStorage account, String version,
       {String dbName = 'cloud_database.db'}) async {
-    // log.info('[BackupService] start database restore');
-    // String? deviceId = await getBackupId();
-    // final authToken = await getAuthToken(account);
-    //
-    // final endpoint = Environment.autonomyAuthURL;
-    // final resp = await http.get(
-    //   Uri.parse(
-    //       '$endpoint/apis/v1/premium/profile-data?filename=$_dbEncryptedFileName&appVersion=$version'),
-    //   headers: {
-    //     'requester': deviceId,
-    //     'Authorization': 'Bearer $authToken',
-    //   },
-    // );
-    // if (resp.statusCode == 200) {
-    //   try {
-    //     final version = await injector<CloudDatabase>().database.getVersion();
-    //     final tempFilePath =
-    //         '${(await getTemporaryDirectory()).path}/$_dbEncryptedFileName';
-    //     final tempFile = File(tempFilePath);
-    //     await tempFile.writeAsBytes(resp.bodyBytes, flush: true);
-    //     const String tempDbName = 'temp_cloud_database.db';
-    //     final dbFilePath =
-    //         await sqfliteDatabaseFactory.getDatabasePath(tempDbName);
-    //     await account.decryptFile(
-    //       inputPath: tempFilePath,
-    //       outputPath: dbFilePath,
-    //     );
-    //     final tempDbOld = await sqfliteDatabaseFactory.openDatabase(dbFilePath);
-    //     final backUpVersion = await tempDbOld.getVersion();
-    //     if (version > backUpVersion) {
-    //       await MigrationAdapter.runMigrations(
-    //           tempDbOld, backUpVersion, version, [
-    //         migrateCloudV1ToV2,
-    //         migrateCloudV2ToV3,
-    //         migrateCloudV3ToV4,
-    //         migrateCloudV4ToV5,
-    //         migrateCloudV5ToV6,
-    //         migrateCloudV6ToV7,
-    //         migrateCloudV7ToV8,
-    //       ]);
-    //     }
-    //
-    //     final tempDb =
-    //         await $FloorCloudDatabase.databaseBuilder(tempDbName).build();
-    //     await injector<CloudDatabase>().copyDataFrom(tempDb);
-    //     await tempFile.delete();
-    //     await File(dbFilePath).delete();
-    //     log.info(
-    //         '[BackupService] Cloud database is restored $backUpVersion to $version');
-    //     return;
-    //   } catch (e) {
-    //     log.info('[BackupService] Failed to restore Cloud Database $e');
-    //     return;
-    //   }
-    // }
-    // injector<MetricClientService>().onRestore();
-    // log.info('[BackupService] done database restore');
+    log.info('[BackupService] start database restore');
+    String? deviceId = await getBackupId();
+    final authToken = await getAuthToken(account);
+
+    final endpoint = Environment.autonomyAuthURL;
+    final resp = await http.get(
+      Uri.parse(
+          '$endpoint/apis/v1/premium/profile-data?filename=$_dbEncryptedFileName&appVersion=$version'),
+      headers: {
+        'requester': deviceId,
+        'Authorization': 'Bearer $authToken',
+      },
+    );
+    if (resp.statusCode == 200) {
+      try {
+        final tempFilePath =
+            '${(await getTemporaryDirectory()).path}/$_dbEncryptedFileName';
+        final tempFile = File(tempFilePath);
+        await tempFile.writeAsBytes(resp.bodyBytes, flush: true);
+        const String tempDbName = 'temp_cloud_database.db';
+        final dbFilePath =
+            await sqfliteDatabaseFactory.getDatabasePath(tempDbName);
+        await account.decryptFile(
+          inputPath: tempFilePath,
+          outputPath: dbFilePath,
+        );
+        final tempDb =
+            await $FloorSqliteCloudDatabase.databaseBuilder(tempDbName).build();
+        await injector<SqliteCloudDatabase>().copyDataFrom(tempDb);
+        await tempFile.delete();
+        await File(dbFilePath).delete();
+        await _cloudFirestoreService.backupCloudDatabase();
+        return;
+      } catch (e) {
+        log.info('[BackupService] Failed to restore Cloud Database $e');
+        return;
+      }
+    }
+    injector<MetricClientService>().onRestore();
+    log.info('[BackupService] done database restore');
   }
 
   Future<String> getBackupId() async {

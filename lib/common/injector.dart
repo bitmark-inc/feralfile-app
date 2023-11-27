@@ -10,10 +10,11 @@ import 'dart:math';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
-import 'package:autonomy_flutter/database/dao/address_dao.dart';
-import 'package:autonomy_flutter/database/dao/audit_dao.dart';
-import 'package:autonomy_flutter/database/dao/connection_dao.dart';
-import 'package:autonomy_flutter/database/dao/persona_dao.dart';
+import 'package:autonomy_flutter/database/dao/firestore_address_dao.dart';
+import 'package:autonomy_flutter/database/dao/firestore_audit_dao.dart';
+import 'package:autonomy_flutter/database/dao/firestore_connection_dao.dart';
+import 'package:autonomy_flutter/database/dao/firestore_persona_dao.dart';
+import 'package:autonomy_flutter/database/sqlite_cloud_database.dart';
 import 'package:autonomy_flutter/gateway/activation_api.dart';
 import 'package:autonomy_flutter/gateway/airdrop_api.dart';
 import 'package:autonomy_flutter/gateway/announcement_api.dart';
@@ -123,6 +124,19 @@ Future<void> setup() async {
     migrateV15ToV16,
     migrateV16ToV17
   ]).build();
+
+  final cloudDB = await $FloorSqliteCloudDatabase
+      .databaseBuilder('cloud_database.db')
+      .addMigrations([
+    migrateCloudV1ToV2,
+    migrateCloudV2ToV3,
+    migrateCloudV3ToV4,
+    migrateCloudV4ToV5,
+    migrateCloudV5ToV6,
+    migrateCloudV6ToV7,
+    migrateCloudV7ToV8,
+  ]).build();
+
   final BaseOptions dioOptions = BaseOptions(
     followRedirects: true,
     connectTimeout: const Duration(seconds: 10),
@@ -145,16 +159,19 @@ Future<void> setup() async {
   injector.registerLazySingleton(() => NftCollection.database.tokenDao);
   injector.registerLazySingleton(() => NftCollection.database.assetTokenDao);
   injector.registerLazySingleton(() => NftCollection.database.provenanceDao);
+  injector.registerLazySingleton(() => cloudDB);
 
   injector.registerLazySingleton<CloudFirestoreService>(
       () => CloudFirestoreService(FirebaseFirestore.instance));
 
-  injector.registerLazySingleton<PersonaDao>(() => PersonaDaoImp(injector()));
-  injector
-      .registerLazySingleton<ConnectionDao>(() => ConnectionDaoImp(injector()));
-  injector.registerLazySingleton<AuditDao>(() => AuditDaoImp(injector()));
-  injector.registerLazySingleton<WalletAddressDao>(
-      () => WalletAddressDaoImp(injector()));
+  injector.registerLazySingleton<FirestorePersonaDao>(
+      () => FirestorePersonaDaoImp(injector()));
+  injector.registerLazySingleton<FirestoreConnectionDao>(
+      () => FirestoreConnectionDaoImp(injector()));
+  injector.registerLazySingleton<FirestoreAuditDao>(
+      () => FirestoreAuditDaoImp(injector()));
+  injector.registerLazySingleton<FirestoreWalletAddressDao>(
+      () => FirestoreWalletAddressDaoImp(injector()));
   injector.registerLazySingleton(
       () => CloudDatabase(injector(), injector(), injector(), injector()));
 
@@ -200,7 +217,6 @@ Future<void> setup() async {
         auditService,
         injector(),
         injector(),
-        injector(),
       ));
 
   injector.registerLazySingleton(() => ChatApi(dio,
@@ -225,7 +241,7 @@ Future<void> setup() async {
       () => FeedApi(authenticatedDio, baseUrl: Environment.feedURL));
   injector.registerLazySingleton(
       () => AuthService(injector(), injector(), injector(), injector()));
-  injector.registerLazySingleton(() => BackupService(injector()));
+  injector.registerLazySingleton(() => BackupService(injector(), injector()));
   injector
       .registerLazySingleton(() => TezosBeaconService(injector(), injector()));
 
@@ -243,6 +259,7 @@ Future<void> setup() async {
 
   injector
       .registerLazySingleton<SettingsDataService>(() => SettingsDataServiceImpl(
+            injector(),
             injector(),
             injector(),
             injector(),

@@ -7,19 +7,19 @@
 
 import 'dart:async';
 
-import 'package:autonomy_flutter/database/dao/address_dao.dart';
-import 'package:autonomy_flutter/database/dao/audit_dao.dart';
-import 'package:autonomy_flutter/database/dao/connection_dao.dart';
-import 'package:autonomy_flutter/database/dao/persona_dao.dart';
+import 'package:autonomy_flutter/database/dao/firestore_address_dao.dart';
+import 'package:autonomy_flutter/database/dao/firestore_audit_dao.dart';
+import 'package:autonomy_flutter/database/dao/firestore_connection_dao.dart';
+import 'package:autonomy_flutter/database/dao/firestore_persona_dao.dart';
 
 class CloudDatabase {
-  PersonaDao personaDao;
+  FirestorePersonaDao personaDao;
 
-  ConnectionDao connectionDao;
+  FirestoreConnectionDao connectionDao;
 
-  AuditDao auditDao;
+  FirestoreAuditDao auditDao;
 
-  WalletAddressDao addressDao;
+  FirestoreWalletAddressDao addressDao;
 
   CloudDatabase(
     this.personaDao,

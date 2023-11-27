@@ -5,8 +5,11 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/common/injector.dart';
 // ignore_for_file: unused_field
 
+import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -17,11 +20,7 @@ import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
-
-import '../../common/injector.dart';
-import '../../database/cloud_database.dart';
-import '../../database/entity/connection.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class AccessMethodPage extends StatefulWidget {
   static const tag = "access_method_page";
@@ -149,8 +148,10 @@ class _AccessMethodPageState extends State<AccessMethodPage> {
         ),
         TextButton(
             onPressed: () async {
-              await injector<CloudDatabase>().connectionDao.deleteConnectionsByType(
-                  ConnectionType.manuallyIndexerTokenID.rawValue);
+              await injector<CloudDatabase>()
+                  .connectionDao
+                  .deleteConnectionsByType(
+                      ConnectionType.manuallyIndexerTokenID.rawValue);
               injector<ClientTokenService>().refreshTokens();
             },
             child: Text("delete_all_debug_li".tr())),
