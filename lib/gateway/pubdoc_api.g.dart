@@ -160,13 +160,13 @@ class _PubdocAPI implements PubdocAPI {
       extra: _extra,
     )
         .compose(
-      _dio.options,
-      '/configs/postcard/postcard_configs.json',
-      queryParameters: queryParameters,
-      data: _data,
-    )
+          _dio.options,
+          '/configs/postcard/postcard_configs.json',
+          queryParameters: queryParameters,
+          data: _data,
+        )
         .copyWith(
-        baseUrl: _combineBaseUrls(
+            baseUrl: _combineBaseUrls(
           _dio.options.baseUrl,
           baseUrl,
         ))));
