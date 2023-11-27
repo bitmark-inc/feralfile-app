@@ -152,4 +152,3 @@ analyzer:
   exclude:
     - '**/*.g.dart'
     - 'auto-test/**'
-    - 'test/**'
