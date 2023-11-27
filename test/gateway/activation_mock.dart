@@ -41,8 +41,7 @@ class ActivationApiMock {
           error: 'activationIdReceiveTimeout'));
 
   static final MockData getActivationExceptionOther = MockData(
-      'activationIdDioExceptionOther',
-      Exception('activationIdExceptionOther'));
+      'activationIdDioExceptionOther', Exception('activationIdExceptionOther'));
 
   ///// claim
   static final MockData claimValid = MockData(
@@ -102,5 +101,4 @@ class ActivationApiMock {
           address: 'addressDioExceptionOther',
           airdropTOTPPasscode: 'airdropTOTPPasscodeDioExceptionOther'),
       Exception('claimExceptionOther'));
-
 }
