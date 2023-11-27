@@ -257,6 +257,7 @@ class AppRouter {
                 injector<CloudDatabase>(),
                 injector(),
                 injector<AuditService>(),
+                injector(),
               ),
             ),
           ], child: const OnboardingPage()),
