@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
@@ -31,14 +33,14 @@ class ArtworkPreviewWidget extends StatefulWidget {
   final bool useIndexer;
 
   const ArtworkPreviewWidget({
-    Key? key,
     required this.identity,
+    super.key,
     this.onLoaded,
     this.onDispose,
     this.isMute = false,
     this.focusNode,
     this.useIndexer = false,
-  }) : super(key: key);
+  });
 
   @override
   State<ArtworkPreviewWidget> createState() => _ArtworkPreviewWidgetState();
@@ -79,7 +81,7 @@ class _ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
 
   @override
   void didPushNext() {
-    _renderingWidget?.clearPrevious();
+    unawaited(_renderingWidget?.clearPrevious());
     super.didPushNext();
   }
 
@@ -89,90 +91,91 @@ class _ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
     _updateWebviewSize();
   }
 
-  _updateWebviewSize() {
+  void _updateWebviewSize() {
     if (_renderingWidget != null &&
         _renderingWidget is WebviewNFTRenderingWidget) {
+      // ignore: cast_nullable_to_non_nullable
       (_renderingWidget as WebviewNFTRenderingWidget).updateWebviewSize();
     }
   }
 
   @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<ArtworkPreviewDetailBloc, ArtworkPreviewDetailState>(
-      bloc: bloc,
-      builder: (context, state) {
-        switch (state.runtimeType) {
-          case ArtworkPreviewDetailLoadingState:
-            return const CircularProgressIndicator();
-          case ArtworkPreviewDetailLoadedState:
-            final assetToken =
-                (state as ArtworkPreviewDetailLoadedState).assetToken;
-            if (assetToken != null) {
-              return BlocProvider(
-                create: (_) => RetryCubit(),
-                child: BlocBuilder<RetryCubit, int>(
-                  builder: (context, attempt) {
-                    if (assetToken.isPostcard) {
-                      return Container(
-                          alignment: Alignment.center,
-                          child: PostcardRatio(assetToken: assetToken));
-                    }
-                    if (attempt > 0) {
-                      _renderingWidget?.dispose();
-                      _renderingWidget = null;
-                    }
-                    if (_renderingWidget == null ||
-                        _renderingWidget!.previewURL !=
-                            assetToken.getPreviewUrl()) {
-                      _renderingWidget = buildRenderingWidget(
-                        context,
-                        assetToken,
-                        attempt: attempt > 0 ? attempt : null,
-                        onLoaded: widget.onLoaded,
-                        onDispose: widget.onLoaded,
-                        overriddenHtml: state.overriddenHtml,
-                        isMute: widget.isMute,
-                        focusNode: widget.focusNode,
-                      );
-                    }
+  Widget build(BuildContext context) =>
+      BlocBuilder<ArtworkPreviewDetailBloc, ArtworkPreviewDetailState>(
+        bloc: bloc,
+        builder: (context, state) {
+          switch (state.runtimeType) {
+            case ArtworkPreviewDetailLoadingState:
+              return const CircularProgressIndicator();
+            case ArtworkPreviewDetailLoadedState:
+              final assetToken =
+                  (state as ArtworkPreviewDetailLoadedState).assetToken;
+              if (assetToken != null) {
+                return BlocProvider(
+                  create: (_) => RetryCubit(),
+                  child: BlocBuilder<RetryCubit, int>(
+                    builder: (context, attempt) {
+                      if (assetToken.isPostcard) {
+                        return Container(
+                            alignment: Alignment.center,
+                            child: PostcardRatio(assetToken: assetToken));
+                      }
+                      if (attempt > 0) {
+                        _renderingWidget?.dispose();
+                        _renderingWidget = null;
+                      }
+                      if (_renderingWidget == null ||
+                          _renderingWidget!.previewURL !=
+                              assetToken.getPreviewUrl()) {
+                        _renderingWidget = buildRenderingWidget(
+                          context,
+                          assetToken,
+                          attempt: attempt > 0 ? attempt : null,
+                          onLoaded: widget.onLoaded,
+                          onDispose: widget.onLoaded,
+                          overriddenHtml: state.overriddenHtml,
+                          isMute: widget.isMute,
+                          focusNode: widget.focusNode,
+                        );
+                      }
 
-                    switch (assetToken.getMimeType) {
-                      case RenderingType.image:
-                      case RenderingType.video:
-                      case RenderingType.gif:
-                      case RenderingType.pdf:
-                      case RenderingType.svg:
-                        return InteractiveViewer(
-                          minScale: 1,
-                          maxScale: 4,
-                          child: Center(
+                      switch (assetToken.getMimeType) {
+                        case RenderingType.image:
+                        case RenderingType.video:
+                        case RenderingType.gif:
+                        case RenderingType.svg:
+                          return InteractiveViewer(
+                            minScale: 1,
+                            maxScale: 4,
+                            child: Center(
+                              child: _artworkView(assetToken),
+                            ),
+                          );
+                        case RenderingType.pdf:
+                          return Center(
                             child: _artworkView(assetToken),
-                          ),
-                        );
-                      default:
-                        return Center(
-                          child: _artworkView(assetToken),
-                        );
-                    }
-                  },
-                ),
-              );
-            }
-            return const SizedBox();
-          default:
-            return Container();
-        }
-      },
-    );
-  }
-
-  Widget _artworkView(AssetToken assetToken) {
-    return GestureDetector(
-        onTap: () async {
-          await _renderingWidget?.pauseOrResume();
+                          );
+                        default:
+                          return Center(
+                            child: _artworkView(assetToken),
+                          );
+                      }
+                    },
+                  ),
+                );
+              }
+              return const SizedBox();
+            default:
+              return Container();
+          }
         },
-        child: _renderingWidget?.build(context) ?? const SizedBox());
-  }
+      );
+
+  Widget _artworkView(AssetToken assetToken) => GestureDetector(
+      onTap: () async {
+        await _renderingWidget?.pauseOrResume();
+      },
+      child: _renderingWidget?.build(context) ?? const SizedBox());
 }
 
 class PostcardPreviewWidget extends StatefulWidget {
@@ -180,10 +183,10 @@ class PostcardPreviewWidget extends StatefulWidget {
   final bool useIndexer;
 
   const PostcardPreviewWidget({
-    Key? key,
     required this.identity,
+    super.key,
     this.useIndexer = false,
-  }) : super(key: key);
+  });
 
   @override
   State<PostcardPreviewWidget> createState() => _PostcardPreviewWidgetState();
@@ -192,7 +195,7 @@ class PostcardPreviewWidget extends StatefulWidget {
 class _PostcardPreviewWidgetState extends State<PostcardPreviewWidget>
     with WidgetsBindingObserver, RouteAware {
   final bloc = PostcardDetailBloc(
-      injector(), injector(), injector(), injector(), injector());
+      injector(), injector(), injector(), injector(), injector(), injector());
 
   @override
   void initState() {
@@ -209,24 +212,21 @@ class _PostcardPreviewWidgetState extends State<PostcardPreviewWidget>
   }
 
   @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<PostcardDetailBloc, PostcardDetailState>(
-        bloc: bloc,
-        builder: (context, state) {
-          final assetToken = state.assetToken;
-          if (assetToken != null) {
-            return BlocProvider(
-              create: (_) => RetryCubit(),
-              child: BlocBuilder<RetryCubit, int>(
-                builder: (context, attempt) {
-                  return Container(
+  Widget build(BuildContext context) =>
+      BlocBuilder<PostcardDetailBloc, PostcardDetailState>(
+          bloc: bloc,
+          builder: (context, state) {
+            final assetToken = state.assetToken;
+            if (assetToken != null) {
+              return BlocProvider(
+                create: (_) => RetryCubit(),
+                child: BlocBuilder<RetryCubit, int>(
+                  builder: (context, attempt) => Container(
                       alignment: Alignment.center,
-                      child: PostcardRatio(assetToken: assetToken));
-                },
-              ),
-            );
-          }
-          return const SizedBox();
-        });
-  }
+                      child: PostcardRatio(assetToken: assetToken)),
+                ),
+              );
+            }
+            return const SizedBox();
+          });
 }

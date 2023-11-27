@@ -9,12 +9,12 @@ class ClaimPostCardRequest {
   List<double?> location;
 
   ClaimPostCardRequest({
+    required this.location,
     this.claimID,
     this.timestamp,
     this.publicKey,
     this.address,
     this.signature,
-    required this.location,
   });
 
   ClaimPostCardRequest copyWith({
@@ -24,49 +24,48 @@ class ClaimPostCardRequest {
     String? address,
     String? signature,
     List<double>? location,
-  }) {
-    return ClaimPostCardRequest(
-      claimID: claimID ?? this.claimID,
-      timestamp: timestamp ?? this.timestamp,
-      publicKey: publicKey ?? this.publicKey,
-      address: address ?? this.address,
-      signature: signature ?? this.signature,
-      location: location ?? this.location,
-    );
-  }
+  }) =>
+      ClaimPostCardRequest(
+        claimID: claimID ?? this.claimID,
+        timestamp: timestamp ?? this.timestamp,
+        publicKey: publicKey ?? this.publicKey,
+        address: address ?? this.address,
+        signature: signature ?? this.signature,
+        location: location ?? this.location,
+      );
 
-  Map<String, dynamic> toJson() {
-    return <String, dynamic>{
-      'claimID': claimID,
-      'timestamp': timestamp,
-      'publicKey': publicKey,
-      'address': address,
-      'signature': signature,
-      'location': location,
-    };
-  }
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'claimID': claimID,
+        'timestamp': timestamp,
+        'publicKey': publicKey,
+        'address': address,
+        'signature': signature,
+        'location': location,
+      };
 
-  factory ClaimPostCardRequest.fromJson(Map<String, dynamic> map) {
-    return ClaimPostCardRequest(
-      claimID: map['claimID'] != null ? map['claimID'] as String : null,
-      timestamp: map['timestamp'] != null ? map['timestamp'] as String : null,
-      publicKey: map['publicKey'] != null ? map['publicKey'] as String : null,
-      address: map['address'] != null ? map['address'] as String : null,
-      signature: map['signature'] != null ? map['signature'] as String : null,
-      location: map['location'] != null
-          ? List<double>.from(map['location'] as List)
-          : [],
-    );
-  }
+  factory ClaimPostCardRequest.fromJson(Map<String, dynamic> map) =>
+      ClaimPostCardRequest(
+        claimID: map['claimID'] != null ? map['claimID'] as String : null,
+        timestamp: map['timestamp'] != null ? map['timestamp'] as String : null,
+        publicKey: map['publicKey'] != null ? map['publicKey'] as String : null,
+        address: map['address'] != null ? map['address'] as String : null,
+        signature: map['signature'] != null ? map['signature'] as String : null,
+        location: map['location'] != null
+            ? List<double>.from(map['location'] as List)
+            : [],
+      );
 
   @override
-  String toString() {
-    return 'ClaimPostCardRequest(claimID: $claimID, timestamp: $timestamp, publicKey: $publicKey, address: $address, signature: $signature, location: $location)';
-  }
+  String toString() => '''
+      ClaimPostCardRequest(claimID: $claimID, timestamp: $timestamp, publicKey: 
+      $publicKey, address: $address, signature: $signature, location: $location)
+      ''';
 
   @override
   bool operator ==(covariant ClaimPostCardRequest other) {
-    if (identical(this, other)) return true;
+    if (identical(this, other)) {
+      return true;
+    }
 
     return other.claimID == claimID &&
         other.timestamp == timestamp &&
@@ -77,14 +76,13 @@ class ClaimPostCardRequest {
   }
 
   @override
-  int get hashCode {
-    return claimID.hashCode ^
-        timestamp.hashCode ^
-        publicKey.hashCode ^
-        address.hashCode ^
-        signature.hashCode ^
-        location.hashCode;
-  }
+  int get hashCode =>
+      claimID.hashCode ^
+      timestamp.hashCode ^
+      publicKey.hashCode ^
+      address.hashCode ^
+      signature.hashCode ^
+      location.hashCode;
 }
 
 class ClaimPostCardResponse {
@@ -108,47 +106,46 @@ class ClaimPostCardResponse {
     String? blockchain,
     String? owner,
     String? contractAddress,
-  }) {
-    return ClaimPostCardResponse(
-      tokenID: tokenID ?? this.tokenID,
-      imageCID: imageCID ?? this.imageCID,
-      blockchain: blockchain ?? this.blockchain,
-      owner: owner ?? this.owner,
-      contractAddress: contractAddress ?? this.contractAddress,
-    );
-  }
+  }) =>
+      ClaimPostCardResponse(
+        tokenID: tokenID ?? this.tokenID,
+        imageCID: imageCID ?? this.imageCID,
+        blockchain: blockchain ?? this.blockchain,
+        owner: owner ?? this.owner,
+        contractAddress: contractAddress ?? this.contractAddress,
+      );
 
-  Map<String, dynamic> toJson() {
-    return <String, dynamic>{
-      'tokenID': tokenID,
-      'imageCID': imageCID,
-      'blockchain': blockchain,
-      'owner': owner,
-      'contractAddress': contractAddress,
-    };
-  }
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'tokenID': tokenID,
+        'imageCID': imageCID,
+        'blockchain': blockchain,
+        'owner': owner,
+        'contractAddress': contractAddress,
+      };
 
-  factory ClaimPostCardResponse.fromJson(Map<String, dynamic> map) {
-    return ClaimPostCardResponse(
-      tokenID: map['tokenID'] != null ? map['tokenID'] as String : null,
-      imageCID: map['imageCID'] != null ? map['imageCID'] as String : null,
-      blockchain:
-          map['blockchain'] != null ? map['blockchain'] as String : null,
-      owner: map['owner'] != null ? map['owner'] as String : null,
-      contractAddress: map['contractAddress'] != null
-          ? map['contractAddress'] as String
-          : null,
-    );
-  }
+  factory ClaimPostCardResponse.fromJson(Map<String, dynamic> map) =>
+      ClaimPostCardResponse(
+        tokenID: map['tokenID'] != null ? map['tokenID'] as String : null,
+        imageCID: map['imageCID'] != null ? map['imageCID'] as String : null,
+        blockchain:
+            map['blockchain'] != null ? map['blockchain'] as String : null,
+        owner: map['owner'] != null ? map['owner'] as String : null,
+        contractAddress: map['contractAddress'] != null
+            ? map['contractAddress'] as String
+            : null,
+      );
 
   @override
-  String toString() {
-    return 'ClaimPostCardResponse(tokenID: $tokenID, imageCID: $imageCID, blockchain: $blockchain, owner: $owner, contractAddress: $contractAddress)';
-  }
+  String toString() => '''
+      ClaimPostCardResponse(tokenID: $tokenID, imageCID: $imageCID, blockchain:
+       $blockchain, owner: $owner, contractAddress: $contractAddress)
+       ''';
 
   @override
   bool operator ==(covariant ClaimPostCardResponse other) {
-    if (identical(this, other)) return true;
+    if (identical(this, other)) {
+      return true;
+    }
 
     return other.tokenID == tokenID &&
         other.imageCID == imageCID &&
@@ -158,39 +155,32 @@ class ClaimPostCardResponse {
   }
 
   @override
-  int get hashCode {
-    return tokenID.hashCode ^
-        imageCID.hashCode ^
-        blockchain.hashCode ^
-        owner.hashCode ^
-        contractAddress.hashCode;
-  }
+  int get hashCode =>
+      tokenID.hashCode ^
+      imageCID.hashCode ^
+      blockchain.hashCode ^
+      owner.hashCode ^
+      contractAddress.hashCode;
 }
 
 class RequestPostcardRequest {
   final String id;
   final String? otp;
 
-  RequestPostcardRequest({
-    required this.id,
-    this.otp
-  });
+  RequestPostcardRequest({required this.id, this.otp});
 
   // fromJson method
-  factory RequestPostcardRequest.fromJson(Map<String, dynamic> json) {
-    return RequestPostcardRequest(
-      id: json['id'] as String,
-      otp: json['otp'] as String?,
-    );
-  }
+  factory RequestPostcardRequest.fromJson(Map<String, dynamic> json) =>
+      RequestPostcardRequest(
+        id: json['id'] as String,
+        otp: json['otp'] as String?,
+      );
 
   // toJson method
-  Map<String, dynamic> toJson() {
-    return <String, dynamic>{
-      'id': id,
-      'totpCode': otp,
-    };
-  }
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'id': id,
+        'totpCode': otp,
+      };
 }
 
 class RequestPostcardResponse {
@@ -206,20 +196,50 @@ class RequestPostcardResponse {
   });
 
   // fromJson method
-  factory RequestPostcardResponse.fromJson(Map<String, dynamic> json) {
-    return RequestPostcardResponse(
-      claimID: json['claimID'] as String,
-      name: json['name'] as String,
-      previewURL: json['previewURL'] as String,
-    );
-  }
+  factory RequestPostcardResponse.fromJson(Map<String, dynamic> json) =>
+      RequestPostcardResponse(
+        claimID: json['claimID'] as String,
+        name: json['name'] as String,
+        previewURL: json['previewURL'] as String,
+      );
 
   // toJson method
-  Map<String, dynamic> toJson() {
-    return <String, dynamic>{
-      'claimID': claimID,
-      'name': name,
-      'previewURL': previewURL,
-    };
-  }
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'claimID': claimID,
+        'name': name,
+        'previewURL': previewURL,
+      };
+}
+
+class PayToMintRequest extends RequestPostcardResponse {
+  final String address;
+  final String tokenId;
+
+  //constructor
+  PayToMintRequest({
+    required this.address,
+    required this.tokenId,
+    required super.claimID,
+    required super.name,
+    required super.previewURL,
+  });
+
+  @override
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'claimID': claimID,
+        'name': name,
+        'previewURL': previewURL,
+        'address': address,
+        'tokenId': tokenId,
+      };
+
+  // fromJson method
+  factory PayToMintRequest.fromJson(Map<String, dynamic> json) =>
+      PayToMintRequest(
+        claimID: json['claimID'] as String,
+        name: json['name'] as String,
+        previewURL: json['previewURL'] as String,
+        address: json['address'] as String,
+        tokenId: json['tokenId'] as String,
+      );
 }

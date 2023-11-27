@@ -1,7 +1,9 @@
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/pending_token_service.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:nft_collection/widgets/nft_collection_bloc.dart';
 import 'package:nft_collection/widgets/nft_collection_bloc_event.dart';
 
@@ -10,9 +12,10 @@ class ClientTokenService {
   final CloudDatabase _cloudDatabase;
   final PendingTokenService _pendingTokenService;
   final NftCollectionBloc _nftBloc;
+  final MetricClientService _metricClientService;
 
   ClientTokenService(this._accountService, this._cloudDatabase,
-      this._pendingTokenService, this._nftBloc);
+      this._pendingTokenService, this._nftBloc, this._metricClientService);
 
   NftCollectionBloc get nftBloc => _nftBloc;
 
@@ -56,6 +59,11 @@ class ClientTokenService {
         _nftBloc.add(UpdateTokensEvent(
             tokens: pendingResults.expand((e) => e).toList()));
       }
+    }
+    try {
+      await _metricClientService.refreshNumberNfts();
+    } catch (e) {
+      log.info("Mixpanel refreshNumberNfts error: $e");
     }
   }
 }

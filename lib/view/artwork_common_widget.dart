@@ -5,11 +5,10 @@ import 'dart:math';
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
-import 'package:autonomy_flutter/screen/detail/royalty/royalty_bloc.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/address_utils.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
@@ -28,7 +27,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -173,7 +171,7 @@ Widget tokenGalleryThumbnailWidget(
       });
 
   return Semantics(
-    label: "gallery_artwork_${token.title}",
+    label: "gallery_artwork_${token.id}",
     child: Hero(
       tag: useHero
           ? "gallery_thumbnail_${token.id}_${token.owner}"
@@ -436,13 +434,9 @@ INFTRenderingWidget buildRenderingWidget(
   Function({int? time})? onDispose,
   FocusNode? focusNode,
   Widget? loadingWidget,
-  String? userAgent,
 }) {
   String mimeType = assetToken.getMimeType;
-  final version = injector<ConfigurationService>().getVersionInfo();
   final renderingWidget = typesOfNFTRenderingWidget(mimeType);
-
-  userAgent ??= "user_agent".tr(namedArgs: {"version": version.toString()});
 
   renderingWidget.setRenderWidgetBuilder(RenderingWidgetBuilder(
     previewURL: attempt == null
@@ -458,7 +452,6 @@ INFTRenderingWidget buildRenderingWidget(
     skipViewport: assetToken.scrollable ?? false,
     isMute: isMute,
     focusNode: focusNode,
-    userAgent: userAgent,
   ));
 
   return renderingWidget;
@@ -536,12 +529,6 @@ class BrokenTokenWidget extends StatefulWidget {
 class _BrokenTokenWidgetState extends State<BrokenTokenWidget>
     with AfterLayoutMixin<BrokenTokenWidget> {
   final metricClient = injector.get<MetricClientService>();
-
-  @override
-  void initState() {
-    injector<CustomerSupportService>().reportIPFSLoadingError(widget.token);
-    super.initState();
-  }
 
   @override
   void afterFirstLayout(BuildContext context) {
@@ -764,12 +751,6 @@ Widget artworkDetailsRightSection(BuildContext context, AssetToken assetToken) {
       ((assetToken.swapped ?? false) && assetToken.originTokenInfoId != null)
           ? assetToken.originTokenInfoId
           : assetToken.id.split("-").last;
-  if (assetToken.source == "feralfile") {
-    return ArtworkRightsView(
-      contract: FFContract("", "", assetToken.contractAddress ?? ""),
-      artworkID: artworkID,
-    );
-  }
   if (assetToken.isPostcard) {
     return PostcardRightsView(
       editionID: artworkID,
@@ -779,18 +760,20 @@ Widget artworkDetailsRightSection(BuildContext context, AssetToken assetToken) {
 }
 
 class ListItemExpandedWidget extends StatefulWidget {
-  final List<TextSpan> children;
+  final List<Widget> children;
   final TextSpan? divider;
   final int unexpandedCount;
-  final TextStyle? unreadStyle;
+  final Widget expandWidget;
+  final Widget unexpandWidget;
 
-  const ListItemExpandedWidget(
-      {Key? key,
-      required this.children,
-      this.divider,
-      required this.unexpandedCount,
-      this.unreadStyle})
-      : super(key: key);
+  const ListItemExpandedWidget({
+    Key? key,
+    required this.children,
+    this.divider,
+    required this.unexpandedCount,
+    required this.expandWidget,
+    required this.unexpandWidget,
+  }) : super(key: key);
 
   @override
   State<ListItemExpandedWidget> createState() => _ListItemExpandedWidgetState();
@@ -800,57 +783,43 @@ class _ListItemExpandedWidgetState extends State<ListItemExpandedWidget> {
   bool _isExpanded = false;
 
   Widget unexpanedWidget(BuildContext context) {
-    final theme = Theme.of(context);
     final expandText = (widget.children.length - widget.unexpandedCount > 0)
-        ? TextSpan(
-            text: " +${widget.children.length - widget.unexpandedCount}",
-            style: widget.unreadStyle ??
-                theme.textTheme.ppMori400SupperTeal12.copyWith(fontSize: 14),
-            recognizer: TapGestureRecognizer()
-              ..onTap = () {
-                setState(() {
-                  _isExpanded = true;
-                });
-              },
+        ? GestureDetector(
+            onTap: () {
+              setState(() {
+                _isExpanded = true;
+              });
+            },
+            child: widget.expandWidget,
           )
-        : const TextSpan();
+        : const SizedBox();
     final subList = widget.children
         .sublist(0, min(widget.unexpandedCount, widget.children.length));
-    return RichText(
-      text: TextSpan(
-        children: subList
-            .mapIndexed((index, child) => [
-                  child,
-                  if (index != widget.children.length - 1)
-                    widget.divider ??
-                        TextSpan(
-                          text: ", ",
-                          style: theme.textTheme.ppMori400White14,
-                        ),
-                ])
-            .flattened
-            .toList()
-          ..add(expandText),
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ...subList,
+        expandText,
+      ],
     );
   }
 
   Widget expanedWidget(BuildContext context) {
-    return RichText(
-      text: TextSpan(
-          children: widget.children
-              .mapIndexed((index, child) => [
-                    child,
-                    if (index != widget.children.length - 1)
-                      TextSpan(
-                        text: ", ",
-                        style: Theme.of(context).textTheme.ppMori400White14,
-                      ),
-                  ])
-              .flattened
-              .toList()
-          // ..add(hideText),
-          ),
+    final expandText = GestureDetector(
+      onTap: () {
+        setState(() {
+          _isExpanded = false;
+        });
+      },
+      child: widget.unexpandWidget,
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ...widget.children,
+        const SizedBox(height: 10),
+        expandText,
+      ],
     );
   }
 
@@ -962,10 +931,11 @@ class _SectionExpandedWidgetState extends State<SectionExpandedWidget> {
 }
 
 Widget postcardDetailsMetadataSection(
-    BuildContext context, AssetToken assetToken, List<String?> owners) {
+    BuildContext context, AssetToken assetToken, List<String?> artistNames) {
   final theme = Theme.of(context);
-  final ownersList = owners.whereNotNull().toList();
+  final artists = artistNames.whereNotNull().toList();
   final textStyle = theme.textTheme.moMASans400Black12;
+  final linkStyle = textStyle.copyWith(color: MoMAColors.moMA5);
   final titleStyle =
       theme.textTheme.moMASans400Grey12.copyWith(color: AppColor.auQuickSilver);
   const padding = EdgeInsets.only(left: 15, right: 15);
@@ -974,6 +944,7 @@ Widget postcardDetailsMetadataSection(
     size: 12,
     color: theme.colorScheme.primary,
   );
+  const unexpandedCount = 1;
   return SectionExpandedWidget(
     header: "metadata".tr(),
     headerStyle: theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
@@ -999,7 +970,7 @@ Widget postcardDetailsMetadataSection(
             valueStyle: theme.textTheme.moMASans400Black12,
           ),
         ),
-        if (ownersList.isNotEmpty) ...[
+        if (artists.isNotEmpty) ...[
           Divider(
             height: 32.0,
             color: theme.auLightGrey,
@@ -1010,20 +981,29 @@ Widget postcardDetailsMetadataSection(
               title: "artists".tr(),
               titleStyle: titleStyle,
               content: ListItemExpandedWidget(
-                children: [
-                  ...ownersList
-                      .mapIndexed((index, artistName) => TextSpan(
-                            text: artistName,
-                            style: textStyle,
-                          ))
-                      .toList(),
-                ],
-                unexpandedCount: 2,
+                expandWidget: Text(
+                  "_others".tr(namedArgs: {
+                    "number": "${artists.length - unexpandedCount}",
+                  }),
+                  style: linkStyle,
+                ),
+                unexpandWidget: Text(
+                  "show_less".tr(),
+                  style: linkStyle,
+                ),
+                unexpandedCount: unexpandedCount,
                 divider: TextSpan(
                   text: ", ",
                   style: textStyle,
                 ),
-                unreadStyle: textStyle.copyWith(color: MoMAColors.moMA5),
+                children: [
+                  ...artists
+                      .mapIndexed((index, artistName) => Text(
+                            artistName,
+                            style: textStyle,
+                          ))
+                      .toList(),
+                ],
               ),
             ),
           ),
@@ -1096,7 +1076,7 @@ Widget postcardDetailsMetadataSection(
             title: "date_minted".tr(),
             titleStyle: titleStyle,
             value: assetToken.mintedAt != null
-                ? localTimeString(assetToken.mintedAt!)
+                ? postcardTimeString(assetToken.mintedAt!)
                 : '',
             valueStyle: theme.textTheme.moMASans400Black12,
           ),
@@ -1268,31 +1248,8 @@ Widget _getEditionNameRow(BuildContext context, AssetToken assetToken) {
 }
 
 Widget postcardOwnership(
-    BuildContext context, AssetToken assetToken, List<String> addresses) {
+    BuildContext context, AssetToken assetToken, Map<String, int> owners) {
   final theme = Theme.of(context);
-
-  final sentTokens = injector<ConfigurationService>().getRecentlySentToken();
-  final expiredTime = DateTime.now().subtract(SENT_ARTWORK_HIDE_TIME);
-
-  final totalSentQuantity = sentTokens
-      .where((element) =>
-          element.tokenID == assetToken.id &&
-          element.timestamp.isAfter(expiredTime))
-      .fold<int>(
-          0, (previousValue, element) => previousValue + element.sentQuantity);
-
-  int ownedTokens = assetToken.balance ?? 0;
-  if (ownedTokens == 0) {
-    ownedTokens =
-        addresses.map((address) => assetToken.owners[address] ?? 0).sum;
-    if (ownedTokens == 0) {
-      ownedTokens = addresses.contains(assetToken.owner) ? 1 : 0;
-    }
-  }
-
-  if (ownedTokens > 0) {
-    ownedTokens -= totalSentQuantity;
-  }
   final linkStyle =
       theme.textTheme.moMASans400Black12.copyWith(color: MoMAColors.moMA5);
   final titleStyle = theme.textTheme.moMASans400Black12
@@ -1303,6 +1260,7 @@ Widget postcardOwnership(
     size: 12,
     color: theme.colorScheme.primary,
   );
+  const unexpandedCount = 1;
   return SectionExpandedWidget(
     header: "token_ownership".tr(),
     headerStyle: theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
@@ -1327,104 +1285,13 @@ Widget postcardOwnership(
           ),
         ),
         const SizedBox(height: 32.0),
-        Padding(
-          padding: padding,
-          child: MetaDataItem(
-            title: "shares".tr(),
-            titleStyle: titleStyle,
-            value: "${assetToken.maxEdition}",
-            tapLink: assetToken.tokenURL,
-            forceSafariVC: true,
-            valueStyle: theme.textTheme.moMASans400Black12,
-            linkStyle: linkStyle,
-          ),
-        ),
         Divider(
-          height: 32.0,
+          height: 40.0,
           color: theme.auLightGrey,
         ),
         Padding(
           padding: padding,
           child: MetaDataItem(
-            title: "owned".tr(),
-            titleStyle: titleStyle,
-            value: "$ownedTokens",
-            tapLink: assetToken.tokenURL,
-            forceSafariVC: true,
-            valueStyle: theme.textTheme.moMASans400Black12,
-            linkStyle: linkStyle,
-          ),
-        ),
-        const SizedBox(height: 16.0),
-      ],
-    ),
-  );
-}
-
-Widget leaderboardPostcardOwnership(BuildContext context, AssetToken assetToken,
-    List<String> addresses, List<String?> owners) {
-  final theme = Theme.of(context);
-  final ownersList = owners.whereNotNull().toList();
-  final sentTokens = injector<ConfigurationService>().getRecentlySentToken();
-  final expiredTime = DateTime.now().subtract(SENT_ARTWORK_HIDE_TIME);
-
-  final totalSentQuantity = sentTokens
-      .where((element) =>
-          element.tokenID == assetToken.id &&
-          element.timestamp.isAfter(expiredTime))
-      .fold<int>(
-          0, (previousValue, element) => previousValue + element.sentQuantity);
-
-  int ownedTokens = assetToken.balance ?? 0;
-  if (ownedTokens == 0) {
-    ownedTokens =
-        addresses.map((address) => assetToken.owners[address] ?? 0).sum;
-    if (ownedTokens == 0) {
-      ownedTokens = addresses.contains(assetToken.owner) ? 1 : 0;
-    }
-  }
-
-  if (ownedTokens > 0) {
-    ownedTokens -= totalSentQuantity;
-  }
-  final linkStyle =
-      theme.textTheme.moMASans400Black12.copyWith(color: MoMAColors.moMA5);
-  final titleStyle = theme.textTheme.moMASans400Black12
-      .copyWith(color: AppColor.auQuickSilver);
-  const padding = EdgeInsets.only(left: 15, right: 15);
-  final icon = Icon(
-    AuIcon.chevron_Sm,
-    size: 12,
-    color: theme.colorScheme.primary,
-  );
-  final textStyle = theme.textTheme.moMASans400Black12;
-  return SectionExpandedWidget(
-    header: "token_ownership".tr(),
-    headerStyle: theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
-    headerPadding: padding,
-    withDivicer: false,
-    iconOnExpanded: RotatedBox(
-      quarterTurns: 1,
-      child: icon,
-    ),
-    iconOnUnExpaneded: RotatedBox(
-      quarterTurns: 2,
-      child: icon,
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: padding,
-          child: Text(
-            "how_many_shares_you_own".tr(),
-            style: titleStyle,
-          ),
-        ),
-        const SizedBox(height: 32.0),
-        Padding(
-          padding: padding,
-          child: MetaDataItem(
             title: "shares".tr(),
             titleStyle: titleStyle,
             value: "${assetToken.maxEdition}",
@@ -1434,49 +1301,49 @@ Widget leaderboardPostcardOwnership(BuildContext context, AssetToken assetToken,
             linkStyle: linkStyle,
           ),
         ),
-        if (ownersList.isNotEmpty) ...[
-          Divider(
-            height: 32.0,
-            color: theme.auLightGrey,
-          ),
-          Padding(
-            padding: padding,
-            child: CustomMetaDataItem(
-              title: "token_holder".tr(),
-              titleStyle: titleStyle,
-              content: ListItemExpandedWidget(
-                children: [
-                  ...ownersList
-                      .mapIndexed((index, artistName) => TextSpan(
-                            text: artistName,
-                            style: textStyle,
-                          ))
-                      .toList(),
-                ],
-                unexpandedCount: 2,
-                divider: TextSpan(
-                  text: ", ",
-                  style: textStyle,
-                ),
-                unreadStyle: textStyle.copyWith(color: MoMAColors.moMA5),
+        const SizedBox(
+          height: 20,
+        ),
+        Divider(
+          height: 40.0,
+          color: theme.auLightGrey,
+        ),
+        Padding(
+          padding: padding,
+          child: CustomMetaDataItem(
+            title: "owners".tr(),
+            titleStyle: titleStyle,
+            content: ListItemExpandedWidget(
+              expandWidget: Text(
+                "_others".tr(namedArgs: {
+                  "number": "${owners.length - unexpandedCount}"
+                }),
+                style: linkStyle,
               ),
+              unexpandWidget: Text(
+                "show_less".tr(),
+                style: linkStyle,
+              ),
+              unexpandedCount: unexpandedCount,
+              children: [
+                ...owners.keys
+                    .mapIndexed((index, owner) => Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                owner,
+                                style: theme.textTheme.moMASans400Black12,
+                              ),
+                            ),
+                            Text(
+                              "${owners[owner]}",
+                              style: theme.textTheme.moMASans400Black12,
+                            ),
+                          ],
+                        ))
+                    .toList(),
+              ],
             ),
-          ),
-        ],
-        Divider(
-          height: 32.0,
-          color: theme.auLightGrey,
-        ),
-        Padding(
-          padding: padding,
-          child: MetaDataItem(
-            title: "token_hold".tr(),
-            titleStyle: titleStyle,
-            value: "$ownedTokens",
-            tapLink: assetToken.tokenURL,
-            forceSafariVC: true,
-            valueStyle: theme.textTheme.moMASans400Black12,
-            linkStyle: linkStyle,
           ),
         ),
         const SizedBox(height: 16.0),
@@ -1874,8 +1741,13 @@ class _PostcardRightsViewState extends State<PostcardRightsView> {
                     styleSheet: markDownPostcardRightStyle(context),
                     onTapLink: (text, href, title) async {
                       if (href == null) return;
-                      launchUrl(Uri.parse(href),
-                          mode: LaunchMode.externalApplication);
+                      if (href.isAutonomyDocumentLink) {
+                        injector<NavigationService>()
+                            .openAutonomyDocument(href, text);
+                      } else {
+                        launchUrl(Uri.parse(href),
+                            mode: LaunchMode.externalApplication);
+                      }
                     },
                   ),
                   const SizedBox(height: 23.0),
@@ -1889,77 +1761,6 @@ class _PostcardRightsViewState extends State<PostcardRightsView> {
         future: dio.get<String>(
           POSTCARD_RIGHTS_DOCS,
         ));
-  }
-}
-
-class ArtworkRightsView extends StatefulWidget {
-  final TextStyle? linkStyle;
-  final FFContract contract;
-  final String? artworkID;
-  final String? exhibitionID;
-
-  const ArtworkRightsView(
-      {Key? key,
-      this.linkStyle,
-      required this.contract,
-      this.artworkID,
-      this.exhibitionID})
-      : super(key: key);
-
-  @override
-  State<ArtworkRightsView> createState() => _ArtworkRightsViewState();
-}
-
-class _ArtworkRightsViewState extends State<ArtworkRightsView> {
-  @override
-  void initState() {
-    super.initState();
-    context.read<RoyaltyBloc>().add(GetRoyaltyInfoEvent(
-        exhibitionID: widget.exhibitionID,
-        artworkID: widget.artworkID,
-        contractAddress: widget.contract.address));
-  }
-
-  String getUrl(RoyaltyState state) {
-    if (state.exhibitionID != null) {
-      return "$FF_ARTIST_COLLECTOR/${state.exhibitionID}";
-    } else {
-      return FF_ARTIST_COLLECTOR;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<RoyaltyBloc, RoyaltyState>(builder: (context, state) {
-      if (state.markdownData != null) {
-        return SectionExpandedWidget(
-          header: "rights".tr(),
-          padding: const EdgeInsets.only(bottom: 23),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Markdown(
-                key: const Key("rightsSection"),
-                data: state.markdownData!.replaceAll(".**", "**"),
-                softLineBreak: true,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(0),
-                styleSheet: markDownRightStyle(context),
-                onTapLink: (text, href, title) async {
-                  if (href == null) return;
-                  launchUrl(Uri.parse(href),
-                      mode: LaunchMode.externalApplication);
-                },
-              ),
-              const SizedBox(height: 23.0),
-            ],
-          ),
-        );
-      } else {
-        return const SizedBox();
-      }
-    });
   }
 }
 
@@ -2050,28 +1851,6 @@ Widget _rowItem(
       )
     ],
   );
-}
-
-class ArtworkRightWidget extends StatelessWidget {
-  final FFContract? contract;
-  final String? exhibitionID;
-
-  const ArtworkRightWidget(
-      {Key? key, @required this.contract, this.exhibitionID})
-      : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final linkStyle = Theme.of(context).primaryTextTheme.linkStyle.copyWith(
-          color: Colors.white,
-          decorationColor: Colors.white,
-        );
-    return ArtworkRightsView(
-      linkStyle: linkStyle,
-      contract: FFContract("", "", ""),
-      exhibitionID: exhibitionID,
-    );
-  }
 }
 
 class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {

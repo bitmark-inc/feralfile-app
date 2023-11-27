@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ui';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
@@ -7,12 +8,16 @@ import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
+import 'package:autonomy_flutter/model/shared_postcard.dart';
+import 'package:autonomy_flutter/model/travel_infor.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
@@ -25,6 +30,7 @@ import 'package:nft_collection/models/origin_token_info.dart';
 import 'package:nft_collection/models/provenance.dart';
 import 'package:nft_rendering/nft_rendering.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:web3dart/crypto.dart';
 
 extension AssetTokenExtension on AssetToken {
@@ -55,7 +61,7 @@ extension AssetTokenExtension on AssetToken {
         } else if (sourceURL?.contains(FXHASH_IDENTIFIER) == true) {
           return assetURL ?? "";
         } else {
-          return "$OBJKT_ASSET_PREFIX$contractAddress/$tokenId";
+          return "$objktAssetPrefix$contractAddress/$tokenId";
         }
       default:
         return "";
@@ -271,34 +277,6 @@ extension AssetTokenExtension on AssetToken {
     return balance! - totalSentQuantity;
   }
 
-  StampingPostcard? get stampingPostcard {
-    if (asset?.artworkMetadata == null) {
-      return null;
-    }
-    final tokenId = this.tokenId ?? "";
-    final address = owner;
-    final counter = numberOwners;
-    final contractAddress = Environment.postcardContractAddress;
-    final imagePath = '${contractAddress}_${tokenId}_${counter}_image.png';
-    final metadataPath =
-        '${contractAddress}_${tokenId}_${counter}_metadata.json';
-    return StampingPostcard(
-      indexId: id,
-      address: address,
-      imagePath: imagePath,
-      metadataPath: metadataPath,
-      counter: counter,
-    );
-  }
-
-  PostcardMetadata get postcardMetadata {
-    return PostcardMetadata.fromJson(jsonDecode(asset!.artworkMetadata!));
-  }
-
-  String get twitterCaption {
-    return "#MoMAPostcardProject";
-  }
-
   bool get isPostcard => contractAddress == Environment.postcardContractAddress;
 
   // copyWith method
@@ -367,14 +345,6 @@ extension AssetTokenExtension on AssetToken {
       return [];
     }
     return lst.map((e) => Artist.fromJson(e)).toList().sublist(1);
-  }
-
-  bool get isAlreadyShowYouDidIt {
-    final listAlreadyShow =
-        injector<ConfigurationService>().getListPostcardAlreadyShowYouDidIt();
-    return listAlreadyShow
-        .where((element) => element.id == id && element.owner == owner)
-        .isNotEmpty;
   }
 
   bool get isAirdropToken {
@@ -626,16 +596,51 @@ extension AssetExt on Asset {
 
 extension PostcardExtension on AssetToken {
   int get stampIndex {
+    int index = -1;
     final listArtists = getArtists;
     if (listArtists.isEmpty) {
-      return -1;
+      index = -1;
     }
     final owner = this.owner;
-    return listArtists.indexWhere((element) => owner == element.id);
+    index = listArtists.indexWhere((element) => owner == element.id);
+    return index;
+  }
+
+  int get stampIndexWithStamping {
+    int index = stampIndex;
+    if (index == -1) {
+      index = numberOwners;
+    }
+    return index;
   }
 
   int get numberOwners {
     return maxEdition ?? 0;
+  }
+
+  ProcessingStampPostcard? get processingStampPostcard {
+    final processingStamp =
+        injector<ConfigurationService>().getProcessingStampPostcard();
+    return processingStamp.firstWhereOrNull((final element) {
+      final bool = element.indexId == tokenId &&
+          element.address == owner &&
+          element.counter == numberOwners &&
+          isLastOwner;
+      return bool;
+    });
+  }
+
+  bool get isProcessingStamp {
+    return processingStampPostcard != null;
+  }
+
+  bool get isStamping {
+    final stampingPostcard = injector<PostcardService>().getStampingPostcard();
+    return stampingPostcard.any((element) {
+      final bool =
+          (element.indexId == id && element.address == owner && isLastOwner);
+      return bool;
+    });
   }
 
   bool get isStamped {
@@ -658,16 +663,13 @@ extension PostcardExtension on AssetToken {
     final sharedPostcards =
         injector<ConfigurationService>().getSharedPostcard();
     return sharedPostcards.any((element) {
-      return !element.isExpired &&
-          element.owner == owner &&
-          element.tokenID == id;
+      return element.owner == owner && element.tokenID == id;
     });
   }
 
   bool get isLastOwner {
-    final artists = getArtists;
     final index = stampIndex;
-    return index == -1 || index == artists.length - 1;
+    return index == -1 || index == numberOwners - 1;
   }
 
   String getStamperName(String address) {
@@ -680,6 +682,86 @@ extension PostcardExtension on AssetToken {
       final index = artists.indexOf(artist) + 1;
       return "stamper_".tr(args: [index.toString()]);
     }
+  }
+
+  StampingPostcard? get stampingPostcard {
+    if (asset?.artworkMetadata == null) {
+      return null;
+    }
+    final tokenId = this.tokenId ?? '';
+    final address = owner;
+    final counter = numberOwners;
+    final contractAddress = Environment.postcardContractAddress;
+    final imagePath = '${contractAddress}_${tokenId}_${counter}_image.png';
+    final metadataPath =
+        '${contractAddress}_${tokenId}_${counter}_metadata.json';
+    return StampingPostcard(
+      indexId: id,
+      address: address,
+      imagePath: imagePath,
+      metadataPath: metadataPath,
+      counter: counter,
+    );
+  }
+
+  PostcardMetadata get postcardMetadata =>
+      PostcardMetadata.fromJson(jsonDecode(asset!.artworkMetadata!));
+
+  String get twitterCaption => '#MoMAPostcard';
+
+  bool get isAlreadyShowYouDidIt {
+    final listAlreadyShow =
+        injector<ConfigurationService>().getListPostcardAlreadyShowYouDidIt();
+    return listAlreadyShow
+        .where((element) => element.id == id && element.owner == owner)
+        .isNotEmpty;
+  }
+
+  Future<ShareResult?> sharePostcard({
+    Function? onSuccess,
+    Function? onDismissed,
+    Function(Object)? onFailed,
+    Rect? sharePositionOrigin,
+  }) async {
+    try {
+      final postcardService = injector<PostcardService>();
+      final configurationService = injector<ConfigurationService>();
+      final shareTime = DateTime.now();
+      final sharePostcardResponse = await postcardService.sharePostcard(this);
+      if (sharePostcardResponse.deeplink?.isNotEmpty ?? false) {
+        final shareMessage = "postcard_share_message".tr(namedArgs: {
+          'deeplink': sharePostcardResponse.deeplink!,
+        });
+        final result = await Share.shareWithResult(shareMessage,
+            sharePositionOrigin: sharePositionOrigin);
+        if (result.status == ShareResultStatus.success) {
+          await Future.delayed(const Duration(milliseconds: 100));
+          await configurationService
+              .updateSharedPostcard([SharedPostcard(id, owner, shareTime)]);
+
+          onSuccess?.call();
+        } else {
+          onDismissed?.call();
+        }
+      }
+    } catch (e) {
+      onFailed?.call(e);
+    }
+    return null;
+  }
+
+  double get totalDistance {
+    final listTravelInfo = postcardMetadata.listTravelInfoWithoutLocationName;
+    final totalDistance = listTravelInfo.totalDistance;
+    return totalDistance;
+  }
+
+  bool get didSendNext {
+    final artists = getArtists;
+    final artistOwner =
+        artists.firstWhereOrNull((element) => element.id == owner);
+    if (artistOwner == null) return false;
+    return artistOwner != artists.last;
   }
 }
 

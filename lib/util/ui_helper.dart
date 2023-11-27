@@ -48,7 +48,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:jiffy/jiffy.dart';
-import 'package:share/share.dart';
+import 'package:share_plus/share_plus.dart';
 
 enum ActionState { notRequested, loading, error, done }
 
@@ -1386,8 +1386,10 @@ class UIHelper {
 
   static showSharePostcardFailed(
       BuildContext context, DioException error) async {
-    return showErrorDialog(context, "Share Failed",
-        "${error.response?.data['message']}", "close".tr());
+    return _showPostcardError(
+      context,
+      message: "cannot_send_postcard".tr(),
+    );
   }
 
   static Future<void> showInvalidURI(BuildContext context) async {
@@ -1665,6 +1667,18 @@ class UIHelper {
     }, autoDismissAfter: const Duration(seconds: 2));
   }
 
+  static Future<void> showPostcardStampFailed(
+    final BuildContext context,
+  ) async {
+    await _showPostcardError(context, message: "postcard_stamp_failed".tr());
+  }
+
+  static Future<void> showPostcardClaimLimited(
+    final BuildContext context,
+  ) async {
+    await _showPostcardError(context, message: "postcard_claim_limited".tr());
+  }
+
   static Future<void> _showPostcardError(BuildContext context,
       {String message = "", Widget? icon}) async {
     final options = [
@@ -1679,7 +1693,7 @@ class UIHelper {
     ];
     await showAutoDismissDialog(context, showDialog: () async {
       return showPostcardDrawerAction(context, options: options);
-    }, autoDismissAfter: const Duration(seconds: 2));
+    }, autoDismissAfter: const Duration(seconds: 3));
   }
 
   static Future<void> _showPostcardInfo(BuildContext context,
@@ -1728,54 +1742,6 @@ class UIHelper {
         message: "_save_failed".tr(args: [title]),
         icon: SvgPicture.asset("assets/images/exit.svg"));
   }
-
-  static Future<void> showPostcardCancelInvitation(BuildContext context,
-      {Function()? onConfirm, Function()? onBack}) async {
-    final theme = Theme.of(context);
-    final options = [
-      OptionItem(
-          builder: (context, _) {
-            final theme = Theme.of(context);
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "cancel_invitation".tr(),
-                    style: theme.textTheme.moMASans700Black16
-                        .copyWith(fontSize: 18),
-                  ),
-                  const SizedBox(
-                    height: 20,
-                  ),
-                  Text("cancel_invitation_desc".tr(),
-                      style: theme.textTheme.moMASans400Black16
-                          .copyWith(fontSize: 12)),
-                ],
-              ),
-            );
-          },
-          separator: const Divider(
-            color: AppColor.auGrey,
-            height: 1,
-            thickness: 1.0,
-          )),
-      OptionItem(
-        title: "ok".tr(),
-        titleStyle: theme.textTheme.moMASans700Black16
-            .copyWith(fontSize: 18, color: MoMAColors.moMA3),
-        titleStyleOnPrecessing: theme.textTheme.moMASans700Black16
-            .copyWith(fontSize: 18, color: MoMAColors.moMA3Disable),
-        onTap: onConfirm,
-      ),
-      OptionItem(
-        title: "go_back".tr(),
-        onTap: onBack,
-      ),
-    ];
-    await showPostcardDrawerAction(context, options: options);
-  }
 }
 
 Widget loadingScreen(ThemeData theme, String text) {
@@ -1809,9 +1775,12 @@ class OptionItem {
   String? title;
   TextStyle? titleStyle;
   TextStyle? titleStyleOnPrecessing;
+  TextStyle? titleStyleOnDisable;
   Function()? onTap;
+  bool isEnable;
   Widget? icon;
   Widget? iconOnProcessing;
+  Widget? iconOnDisable;
   Widget Function(BuildContext context, OptionItem item)? builder;
   Widget? separator;
 
@@ -1819,9 +1788,12 @@ class OptionItem {
     this.title,
     this.titleStyle,
     this.titleStyleOnPrecessing,
+    this.titleStyleOnDisable,
     this.onTap,
+    this.isEnable = true,
     this.icon,
     this.iconOnProcessing,
+    this.iconOnDisable,
     this.builder,
     this.separator,
   });

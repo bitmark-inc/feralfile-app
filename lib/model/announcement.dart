@@ -4,10 +4,13 @@ part 'announcement.g.dart';
 
 @JsonSerializable()
 class Announcement {
+  @JsonKey(name: 'announcement_context_id')
   final String announcementContextId;
   final String title;
   final String body;
+  @JsonKey(name: 'created_at')
   final int createdAt;
+  @JsonKey(name: 'announce_at')
   final int announceAt;
   final String type;
 

@@ -69,13 +69,15 @@ jobs:
           ${{ github.event.inputs.testnet == 'true' }} && echo RENDERING_REPORT_URL=${{ secrets.RENDERING_REPORT_DEV_URL }} >> .env || echo RENDERING_REPORT_URL=${{ secrets.RENDERING_REPORT_STAGING_URL }} >> .env
           ${{ github.event.inputs.testnet == 'true' }} && echo FEED_URL=${{ secrets.FEED_DEV_URL }} >> .env || echo FEED_URL=${{ secrets.FEED_STAGING_URL }} >> .env
           echo CURRENCY_EXCHANGE_URL=${{ secrets.CURRENCY_EXCHANGE_URL }} >> .env
-          echo AUTONOMY_PUBDOC_URL=${{ secrets.AUTONOMY_PUBDOC_URL }} >> .env
           echo AUTONOMY_IPFS_PREFIX=${{ secrets.AUTONOMY_IPFS_PREFIX_DEV }} >> .env
           ${{ github.event.inputs.testnet == 'true' }} && echo AU_CLAIM_API_URL=${{ secrets.AU_CLAIM_API_TESTNET_URL }} >> .env || echo AU_CLAIM_API_URL=${{ secrets.AU_CLAIM_API_STAGING_URL }} >> .env
           ${{ github.event.inputs.testnet == 'true' }} && echo AU_CLAIM_SECRET_KEY=${{ secrets.AU_CLAIM_SECRET_KEY_TESTNET }} >> .env || echo AU_CLAIM_SECRET_KEY=${{ secrets.AU_CLAIM_SECRET_KEY_STAGING }} >> .env
           echo TZKT_TESTNET_URL=${{ secrets.TZKT_TESTNET_URL }} >> .env
           echo TZKT_MAINNET_URL=${{ secrets.TZKT_MAINNET_URL }} >> .env
           ${{ github.event.inputs.testnet == 'true' }} && echo POSTCARD_CONTRACT_ADDRESS=${{ secrets.POSTCARD_CONTRACT_ADDRESS_TESTNET }} >> .env || echo POSTCARD_CONTRACT_ADDRESS=${{ secrets.POSTCARD_CONTRACT_ADDRESS_MAINNET }} >> .env
+          ${{ github.event.inputs.testnet == 'true' }} && echo AUTONOMY_MERCHANDISE_BASE_URL=${{ secrets.AUTONOMY_MERCHANDISE_BASE_URL_TESTNET }} >> .env || echo AUTONOMY_MERCHANDISE_BASE_URL=${{ secrets.AUTONOMY_MERCHANDISE_BASE_URL_MAINNET }} >> .env
+          ${{ github.event.inputs.testnet == 'true' }} && echo PAY_TO_MINT_BASE_URL=${{ secrets.PAY_TO_MINT_BASE_URL_TESTNET }} >> .env || echo PAY_TO_MINT_BASE_URL=${{ secrets.PAY_TO_MINT_BASE_URL_MAINNET }} >> .env
+          ${{ github.event.inputs.testnet == 'true' }} && echo AUTONOMY_PUBDOC_URL=${{ secrets.AUTONOMY_PUBDOC_URL_DEV }} >> .env || echo AUTONOMY_PUBDOC_URL=${{ secrets.AUTONOMY_PUBDOC_URL_PRD }} >> .env
 
           echo FERAL_FILE_AUTHORIZATION_PREFIX=${{ secrets.FERAL_FILE_AUTHORIZATION_PREFIX }} >> .env
           echo SENTRY_DSN=${{ secrets.SENTRY_DSN }} >> .env

@@ -24,7 +24,6 @@ import 'package:autonomy_flutter/gateway/feralfile_api.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/gateway/postcard_api.dart';
 import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
-import 'package:autonomy_flutter/gateway/rendering_report_api.dart';
 import 'package:autonomy_flutter/gateway/tzkt_api.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/collection_pro/collection_pro_bloc.dart';
@@ -61,6 +60,7 @@ import 'package:autonomy_flutter/service/notification_service.dart';
 import 'package:autonomy_flutter/service/pending_token_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
+import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
@@ -220,6 +220,8 @@ Future<void> setup() async {
   injector.registerLazySingleton(() => BranchApi(dio));
   injector.registerLazySingleton(
       () => PubdocAPI(dio, baseUrl: Environment.pubdocURL));
+  injector.registerLazySingleton<RemoteConfigService>(
+      () => RemoteConfigServiceImpl(injector()));
   injector.registerLazySingleton(
       () => FeedApi(authenticatedDio, baseUrl: Environment.feedURL));
   injector.registerLazySingleton(
@@ -247,6 +249,7 @@ Future<void> setup() async {
             injector(),
             injector(),
           ));
+
   injector.registerLazySingleton<IAPService>(
       () => IAPServiceImpl(injector(), injector()));
 
@@ -267,9 +270,6 @@ Future<void> setup() async {
             mainnetDB.draftCustomerSupportDao,
             CustomerSupportApi(authenticatedDio,
                 baseUrl: Environment.customerSupportURL),
-            RenderingReportApi(authenticatedDio,
-                baseUrl: Environment.renderingReportURL),
-            injector(),
             injector(),
             mainnetDB.announcementDao,
             AnnouncementApi(authenticatedDio,
@@ -284,8 +284,8 @@ Future<void> setup() async {
   injector.registerLazySingleton(
       () => Web3Client(Environment.web3RpcURL, injector()));
 
-  injector.registerLazySingleton<ClientTokenService>(
-      () => ClientTokenService(injector(), injector(), injector(), injector()));
+  injector.registerLazySingleton<ClientTokenService>(() => ClientTokenService(
+      injector(), injector(), injector(), injector(), injector()));
 
   injector.registerLazySingleton(() => FolloweeService(injector(), injector()));
   final tezosNodeClientURL = Environment.appTestnetConfig
@@ -373,6 +373,7 @@ Future<void> setup() async {
       ));
 
   injector.registerLazySingleton<DeeplinkService>(() => DeeplinkServiceImpl(
+        injector(),
         injector(),
         injector(),
         injector(),

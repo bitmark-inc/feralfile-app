@@ -33,6 +33,7 @@ class Issue implements ChatThread {
   // only on local
   @JsonKey(includeFromJson: false, includeToJson: false)
   DraftCustomerSupport? draft;
+  @JsonKey(name: 'announcement_context_id')
   String? announcementID;
   @JsonKey(includeFromJson: false, includeToJson: false)
   AnnouncementLocal? announcement;

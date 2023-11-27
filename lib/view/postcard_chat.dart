@@ -1,23 +1,25 @@
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/chat_message.dart' as app;
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/chat/chat_thread_page.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/chat_service.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/chat_messsage_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
+import 'package:autonomy_flutter/util/distance_formater.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:uuid/uuid.dart';
-import 'package:autonomy_flutter/model/chat_message.dart' as app;
-import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 
 class MessagePreview extends StatefulWidget {
   final MessagePreviewPayload payload;
@@ -156,7 +158,6 @@ class _MessagePreviewState extends State<MessagePreview> {
                     child: MessageView(
                       message: _lastMessage!.toTypesMessage(),
                       assetToken: _assetToken,
-                      text: _lastMessage!.message,
                       expandAll: false,
                       showFullTime: true,
                     ),
@@ -188,9 +189,8 @@ class MessagePreviewPayload {
 }
 
 class MessageView extends StatelessWidget {
-  final types.Message message;
+  final types.SystemMessage message;
   final AssetToken assetToken;
-  final String text;
   final bool expandAll;
   final bool showFullTime;
 
@@ -198,14 +198,36 @@ class MessageView extends StatelessWidget {
       {Key? key,
       required this.message,
       required this.assetToken,
-      required this.text,
       this.expandAll = true,
       this.showFullTime = false})
       : super(key: key);
 
+  Widget completedPostcardMessageView(BuildContext context) {
+    final assetToken = this.assetToken;
+    final totalDistance = assetToken.totalDistance;
+    final distanceFormater = DistanceFormatter();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "postcard_complete_chat_message".tr(namedArgs: {
+            "distance": distanceFormater.format(
+                distance: totalDistance, withFullName: true),
+          }),
+          style: Theme.of(context).textTheme.moMASans400Black12,
+          overflow: expandAll ? null : TextOverflow.ellipsis,
+          maxLines: expandAll ? null : 1,
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    if (message.isCompletedPostcardMessage) {
+      return completedPostcardMessageView(context);
+    }
     final time = DateTime.fromMillisecondsSinceEpoch(message.createdAt ?? 0);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -229,7 +251,7 @@ class MessageView extends StatelessWidget {
           ],
         ),
         Text(
-          text,
+          message.text,
           style: theme.textTheme.moMASans400Black14,
           overflow: expandAll ? null : TextOverflow.ellipsis,
           maxLines: expandAll ? null : 1,

@@ -58,18 +58,19 @@ extension FilterEventExt on FilterEvent {
   }
 
   AssetToken? toAssetToken(String owner, DateTime timestamp) {
-    String? contractType;
+    String? contractType, toAddressStr;
     BigInt? tokenId;
 
     if (isErc1155()) {
       contractType = "erc1155";
       tokenId = getERC1155TokenId();
+      toAddressStr = topics![3]?.substring(26);
     } else if (isERC721()) {
       contractType = "erc721";
       tokenId = getERC721TokenId();
+      toAddressStr = topics![2]?.substring(26);
     }
 
-    final toAddressStr = topics![2]?.substring(26);
     if (toAddressStr == null) {
       return null;
     }

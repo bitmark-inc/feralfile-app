@@ -8,7 +8,7 @@ part of 'wc2_pairing.dart';
 
 Wc2Pairing _$Wc2PairingFromJson(Map<String, dynamic> json) => Wc2Pairing(
       json['topic'] as String,
-      json['expiry'] == null ? 0 : json['expiry'] as int,
+      json['expiry'] as int? ?? 0,
       json['peerAppMetaData'] == null
           ? null
           : AppMetadata.fromJson(

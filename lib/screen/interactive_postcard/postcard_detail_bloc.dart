@@ -5,13 +5,15 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
+
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/pair.dart';
-import 'package:autonomy_flutter/model/postcard_bigmap.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/leaderboard/postcard_leaderboard.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_state.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -33,16 +35,6 @@ class PostcardDetailGetInfoEvent extends PostcardDetailEvent {
   PostcardDetailGetInfoEvent(this.identity, {this.useIndexer = false});
 }
 
-class PostcardDetailGetValueEvent extends PostcardDetailEvent {
-  final String contractAddress;
-  final String tokenId;
-
-  PostcardDetailGetValueEvent({
-    required this.contractAddress,
-    required this.tokenId,
-  });
-}
-
 class FetchLeaderboardEvent extends PostcardDetailEvent {}
 
 class RefreshLeaderboardEvent extends PostcardDetailEvent {}
@@ -54,6 +46,7 @@ class PostcardDetailBloc
   final ProvenanceDao _provenanceDao;
   final IndexerService _indexerService;
   final PostcardService _postcardService;
+  final ConfigurationService _configurationService;
 
   PostcardDetailBloc(
     this._assetTokenDao,
@@ -61,7 +54,8 @@ class PostcardDetailBloc
     this._provenanceDao,
     this._indexerService,
     this._postcardService,
-  ) : super(PostcardDetailState(provenances: [], postcardValueLoaded: false)) {
+    this._configurationService,
+  ) : super(PostcardDetailState(provenances: [])) {
     on<PostcardDetailGetInfoEvent>((event, emit) async {
       if (event.useIndexer) {
         final request = QueryListTokensRequest(
@@ -71,24 +65,24 @@ class PostcardDetailBloc
             .where((element) => element.id == event.identity.id)
             .toList();
         if (assetToken.isNotEmpty) {
-          final paths = getUpdatingPath(state, assetToken.first);
+          final paths = getUpdatingPath(assetToken.first);
           emit(state.copyWith(
             assetToken: assetToken.first,
             provenances: assetToken.first.provenance,
             imagePath: paths.first,
             metadataPath: paths.second,
           ));
-          add(PostcardDetailGetValueEvent(
-              contractAddress: assetToken.first.contractAddress ?? "",
-              tokenId: assetToken.first.tokenId ?? ""));
         }
         return;
       } else {
         final tokenService = injector<TokensService>();
-        await tokenService.reindexAddresses([event.identity.owner]);
+        unawaited(tokenService.reindexAddresses([event.identity.owner]));
         final assetToken = await _assetTokenDao.findAssetTokenByIdAndOwner(
             event.identity.id, event.identity.owner);
-        final paths = getUpdatingPath(state, assetToken);
+        if (assetToken == null) {
+          log.info("ArtworkDetailGetInfoEvent: $event assetToken is null");
+        }
+        final paths = getUpdatingPath(assetToken);
         emit(state.copyWith(
             assetToken: assetToken,
             imagePath: paths.first,
@@ -97,10 +91,6 @@ class PostcardDetailBloc
         final provenances =
             await _provenanceDao.findProvenanceByTokenID(event.identity.id);
         emit(state.copyWith(provenances: provenances));
-
-        add(PostcardDetailGetValueEvent(
-            contractAddress: assetToken?.contractAddress ?? "",
-            tokenId: assetToken?.tokenId ?? ""));
 
         if (assetToken != null &&
             assetToken.asset != null &&
@@ -120,13 +110,6 @@ class PostcardDetailBloc
           }
         }
       }
-    });
-
-    on<PostcardDetailGetValueEvent>((event, emit) async {
-      final postcardValue = await _postcardService.getPostcardValue(
-          contractAddress: event.contractAddress, tokenId: event.tokenId);
-      emit(state.copyWith(
-          postcardValue: postcardValue, postcardValueLoaded: true));
     });
 
     on<FetchLeaderboardEvent>((event, emit) async {
@@ -167,38 +150,36 @@ class PostcardDetailBloc
     });
   }
 
-  Future<PostcardValue?> getPostcardValue(
-      String contractAddress, String tokenId) async {
-    try {
-      final postcardService = injector<PostcardService>();
-      final postcardValue = await postcardService.getPostcardValue(
-          contractAddress: contractAddress, tokenId: tokenId);
-      return postcardValue;
-    } catch (e) {
-      return null;
-    }
-  }
-
-  Pair<String?, String?> getUpdatingPath(
-      PostcardDetailState state, AssetToken? asset) {
+  Pair<String?, String?> getUpdatingPath(AssetToken? asset) {
     String? imagePath;
     String? metadataPath;
     if (asset != null) {
       final postcardService = injector<PostcardService>();
       final stampingPostcard =
           postcardService.getStampingPostcardWithPath(asset.stampingPostcard!);
-      if (stampingPostcard != null) {
-        if (state.isLastOwner &&
-            stampingPostcard.counter == asset.numberOwners) {
-          final isStamped = asset.isStamped;
-          if (!isStamped) {
-            log.info("[PostcardDetail] Stamping... ");
-            imagePath = stampingPostcard.imagePath;
-            metadataPath = stampingPostcard.metadataPath;
-          } else {
-            postcardService
-                .updateStampingPostcard([stampingPostcard], isRemove: true);
+      final processingStampPostcard = asset.processingStampPostcard;
+      final isStamped = asset.isStamped;
+      if (!isStamped) {
+        if (stampingPostcard != null) {
+          log.info("[PostcardDetail] Stamping... ");
+          imagePath = stampingPostcard.imagePath;
+          metadataPath = stampingPostcard.metadataPath;
+        } else {
+          if (processingStampPostcard != null) {
+            log.info("[PostcardDetail] Processing stamp... ");
+            imagePath = processingStampPostcard.imagePath;
+            metadataPath = processingStampPostcard.metadataPath;
           }
+        }
+      } else {
+        if (stampingPostcard != null) {
+          postcardService
+              .updateStampingPostcard([stampingPostcard], isRemove: true);
+        }
+        if (processingStampPostcard != null) {
+          _configurationService.setProcessingStampPostcard(
+              [processingStampPostcard],
+              isRemove: true);
         }
       }
     }

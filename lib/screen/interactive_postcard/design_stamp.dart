@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:autonomy_flutter/util/moma_style_color.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
@@ -96,18 +97,7 @@ class _DesignStampPageState extends State<DesignStampPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(height: 80),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            "all_cells_must_be_filled".tr(),
-                            style: theme.textTheme.moMASans400Grey12
-                                .copyWith(color: AppColor.auQuickSilver),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 70),
                       Container(
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(10),
@@ -229,17 +219,17 @@ class _DesignStampPageState extends State<DesignStampPage> {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 20),
-                      PostcardButton(
-                        text: "stamp_postcard".tr(),
+                      const SizedBox(height: 70),
+                      PostcardAsyncButton(
+                        text: "continue".tr(),
                         fontSize: 18,
-                        disabledTextColor: Colors.white,
+                        color: MoMAColors.moMA8,
                         enabled: _didPaint,
                         onTap: () async {
                           setState(() {
                             _line = false;
                           });
-                          Future.delayed(
+                          await Future.delayed(
                             const Duration(milliseconds: 200),
                             () async {
                               final bytes = await _controller.capture();

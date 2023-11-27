@@ -18,9 +18,6 @@ import 'package:autonomy_flutter/screen/collection_pro/collection_pro_screen.dar
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
-import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
-import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
-import 'package:autonomy_flutter/screen/settings/subscription/upgrade_view.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
@@ -39,6 +36,7 @@ import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/token_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -51,10 +49,8 @@ import 'package:nft_collection/models/models.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
-import '../../util/token_ext.dart';
-
 class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+  const HomePage({super.key});
 
   @override
   State<HomePage> createState() => HomePageState();
@@ -240,27 +236,6 @@ class HomePageState extends State<HomePage>
     final contentWidget =
         BlocConsumer<NftCollectionBloc, NftCollectionBlocState>(
       bloc: nftBloc,
-      listenWhen: (previousState, currentState) {
-        final currentNumber = currentState.tokens.items
-            .filterAssetToken(isShowHidden: true)
-            .length;
-        final previousNumber = previousState.tokens.items
-            .filterAssetToken(isShowHidden: true)
-            .length;
-        final diffLength = currentNumber - previousNumber;
-        if (diffLength != 0) {
-          _metricClient.addEvent(MixpanelEvent.addNFT, data: {
-            'number': diffLength,
-          });
-        }
-        if (diffLength != 0) {
-          _metricClient.addEvent(MixpanelEvent.numberNft, data: {
-            'number': currentNumber,
-          });
-          _metricClient.setLabel(MixpanelProp.numberNft, currentNumber);
-        }
-        return true;
-      },
       builder: (context, state) {
         return CollectionPro(
           key: collectionProKey,
@@ -436,14 +411,13 @@ class HomePageState extends State<HomePage>
 
     log.info("[HomePage] Show subscription notification");
     await configService.setLastTimeAskForSubscription(DateTime.now());
-    const key = Key("subscription");
-    if (!mounted) return;
-    showInfoNotification(key, "subscription_hint".tr(),
+    if (!mounted) {
+      return;
+    }
+    const key = Key('subscription');
+    showInfoNotification(key, 'subscription_hint'.tr(),
         duration: const Duration(seconds: 5), openHandler: () {
-      UpgradesView.showSubscriptionDialog(context, null, null, () {
-        hideOverlay(key);
-        context.read<UpgradesBloc>().add(UpgradePurchaseEvent());
-      });
+      Navigator.of(context).pushNamed(AppRouter.subscriptionPage);
     }, addOnTextSpan: [
       TextSpan(
         text: 'trial_today'.tr(),

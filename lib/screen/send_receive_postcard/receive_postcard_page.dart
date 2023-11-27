@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_utils.dart';
@@ -18,6 +19,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nft_collection/models/models.dart';
+import 'package:nft_collection/services/tokens_service.dart';
 
 class ReceivePostcardPageArgs {
   final AssetToken asset;
@@ -44,13 +46,19 @@ class ReceivePostCardPage extends StatefulWidget {
 
 class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
   final metricClient = injector.get<MetricClientService>();
+  final tokenService = injector.get<TokensService>();
   late bool _isProcessing;
+  late bool _isConfirming;
+  late AssetToken assetToken;
 
   @override
   void initState() {
     _fetchIdentities();
     super.initState();
     _isProcessing = false;
+    _isConfirming = !widget.asset.isStamped;
+    assetToken = widget.asset;
+    _waitUntilPostcardConfirm();
   }
 
   void _fetchIdentities() {
@@ -66,25 +74,41 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
 
   @override
   Widget build(BuildContext context) {
-    final asset = widget.asset;
     return PostcardExplain(
       payload: PostcardExplainPayload(
-        asset,
+        assetToken,
         PostcardButton(
-          text: "continue".tr(),
+          text: (_isConfirming)
+              ? "confirming_on_blockchain_".tr()
+              : "continue".tr(),
           fontSize: 18,
-          enabled: !(_isProcessing),
+          enabled: !(_isProcessing || _isConfirming),
           isProcessing: _isProcessing,
           onTap: () async {
             setState(() {
               _isProcessing = true;
             });
-            await _receivePostcard(context, asset);
+            await _receivePostcard(context, assetToken);
           },
-          color: const Color.fromRGBO(79, 174, 79, 1),
+          color: POSTCARD_GREEN_BUTTON_COLOR,
         ),
       ),
     );
+  }
+
+  Future<AssetToken> _waitUntilPostcardConfirm() async {
+    final tokenId = widget.asset.id;
+    bool isExit = false;
+    while (!isExit) {
+      final postcard = await injector<PostcardService>().getPostcard(tokenId);
+      if (postcard.isStamped) {
+        setState(() {
+          _isConfirming = false;
+          assetToken = postcard;
+        });
+        return postcard;
+      }
+    }
   }
 
   Future<AssetToken?> _receivePostcard(

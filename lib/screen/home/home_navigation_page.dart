@@ -35,6 +35,7 @@ import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/notification_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
+import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/announcement_ext.dart';
@@ -88,6 +89,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   final _metricClientService = injector<MetricClientService>();
   final _notificationService = injector<NotificationService>();
   final _playListService = injector<PlaylistService>();
+  final _remoteConfig = injector<RemoteConfigService>();
 
   StreamSubscription<FGBGType>? _fgbgSubscription;
 
@@ -462,6 +464,10 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       case "new_message":
         final groupId = data["group_id"];
 
+        if (!_remoteConfig.getBool(ConfigGroup.viewDetail, ConfigKey.chat)) {
+          return;
+        }
+
         final currentGroupId = memoryValues.currentGroupChatId;
         if (groupId != currentGroupId) {
           showNotifications(context, event.notification,
@@ -526,6 +532,9 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         _pageController.jumpToPage(HomeNavigatorTab.DISCOVER.index);
         break;
       case "new_message":
+        if (!_remoteConfig.getBool(ConfigGroup.viewDetail, ConfigKey.chat)) {
+          return;
+        }
         final data = notification.additionalData;
         if (data == null) return;
         final tokenId = data["group_id"];
@@ -643,7 +652,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
             .toList();
 
     final showAnnouncementInfo =
-        _configurationService.getShowAnouncementNotificationInfo();
+        _configurationService.getShowAnnouncementNotificationInfo();
     final shouldShowAnnouncements = announcements.where((element) =>
         (element.isMemento6 &&
             !_configurationService
@@ -654,7 +663,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         (announcement) async {
       await showAnnouncementNotification(announcement);
       await _configurationService
-          .updateShowAnouncementNotificationInfo(announcement);
+          .updateShowAnnouncementNotificationInfo(announcement);
     });
   }
 
@@ -666,6 +675,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     useAppTimer = Timer(USE_APP_MIN_DURATION, () async {
       await _metricClientService.onUseAppInForeground();
     });
+    await _remoteConfig.loadConfigs();
   }
 
   @override
