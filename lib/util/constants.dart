@@ -15,7 +15,6 @@ import 'package:autonomy_flutter/util/geolocation.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 
 // ignore_for_file: constant_identifier_names
 
@@ -192,10 +191,7 @@ const int LEADERBOARD_PAGE_SIZE = 50;
 
 const String POSTCARD_ONSITE_REQUEST_ID = 'moma-postcard-onsite';
 
-Future<bool> isAppCenterBuild() async {
-  final PackageInfo info = await PackageInfo.fromPlatform();
-  return info.packageName.contains('inhouse');
-}
+Future<bool> isAppCenterBuild() async => false;
 
 Future<bool> logoState() async {
   final isAppCenter = await isAppCenterBuild();
