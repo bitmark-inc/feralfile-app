@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+// ignore_for_file: cascade_invocations
+
 import 'dart:math';
 
 import 'package:autonomy_flutter/common/environment.dart';

@@ -138,7 +138,7 @@ class FirestoreConnectionDaoImp implements FirestoreConnectionDao {
       _collectionRef.doc(key).get().then(
         (snapshot) {
           if (snapshot.exists) {
-            return snapshot.data()!;
+            return snapshot.data();
           } else {
             return null;
           }

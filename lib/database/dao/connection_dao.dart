@@ -10,6 +10,8 @@ import 'dart:convert';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:floor/floor.dart';
 
+// ignore_for_file: lines_longer_than_80_chars
+
 @dao
 abstract class ConnectionDao {
   @Query('SELECT * FROM Connection')
@@ -25,7 +27,7 @@ abstract class ConnectionDao {
     final linkedAccounts = await getLinkedAccounts();
 
     final deprecatedConnections = linkedAccounts
-        .where((element) => element.connectionType != "manuallyAddress");
+        .where((element) => element.connectionType != 'manuallyAddress');
 
     if (deprecatedConnections.isNotEmpty) {
       await _migrateDeprecatedConnections(deprecatedConnections.toList());

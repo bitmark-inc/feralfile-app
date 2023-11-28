@@ -35,40 +35,39 @@ class WalletAddress {
     DateTime? createdAt,
     bool? isHidden,
     String? name,
-  }) {
-    return WalletAddress(
-      address: address ?? this.address,
-      uuid: uuid ?? this.uuid,
-      index: index ?? this.index,
-      cryptoType: cryptoType ?? this.cryptoType,
-      createdAt: createdAt ?? this.createdAt,
-      isHidden: isHidden ?? this.isHidden,
-      name: name ?? this.name,
-    );
-  }
+  }) =>
+      WalletAddress(
+        address: address ?? this.address,
+        uuid: uuid ?? this.uuid,
+        index: index ?? this.index,
+        cryptoType: cryptoType ?? this.cryptoType,
+        createdAt: createdAt ?? this.createdAt,
+        isHidden: isHidden ?? this.isHidden,
+        name: name ?? this.name,
+      );
 
   AddressIndex get addressIndex =>
       AddressIndex(address: address, createdAt: createdAt);
 
   // from Json
   factory WalletAddress.fromJson(Map<String, dynamic> json) => WalletAddress(
-        address: json["address"],
-        uuid: json["uuid"],
-        index: json["index"],
-        cryptoType: json["cryptoType"],
-        createdAt: DateTime.parse(json["createdAt"]),
-        isHidden: json["isHidden"],
-        name: json["name"],
+        address: json['address'],
+        uuid: json['uuid'],
+        index: json['index'],
+        cryptoType: json['cryptoType'],
+        createdAt: DateTime.parse(json['createdAt']),
+        isHidden: json['isHidden'],
+        name: json['name'],
       );
 
   // to Json
   Map<String, dynamic> toJson() => {
-        "address": address,
-        "uuid": uuid,
-        "index": index,
-        "cryptoType": cryptoType,
-        "createdAt": createdAt.toIso8601String(),
-        "isHidden": isHidden,
-        "name": name,
+        'address': address,
+        'uuid': uuid,
+        'index': index,
+        'cryptoType': cryptoType,
+        'createdAt': createdAt.toIso8601String(),
+        'isHidden': isHidden,
+        'name': name,
       };
 }
