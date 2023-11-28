@@ -217,6 +217,7 @@ Future<void> setup() async {
         auditService,
         injector(),
         injector(),
+        injector(),
       ));
 
   injector.registerLazySingleton(() => ChatApi(dio,

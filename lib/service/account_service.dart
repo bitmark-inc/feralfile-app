@@ -19,8 +19,8 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_state.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
+import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
@@ -115,6 +115,7 @@ class AccountServiceImpl extends AccountService {
   final AuditService _auditService;
   final AutonomyService _autonomyService;
   final AddressService _addressService;
+  final BackupService _backupService;
 
   final _defaultAccountLock = Lock();
 
@@ -125,6 +126,7 @@ class AccountServiceImpl extends AccountService {
     this._auditService,
     this._autonomyService,
     this._addressService,
+    this._backupService,
   );
 
   @override
@@ -185,8 +187,13 @@ class AccountServiceImpl extends AccountService {
 
     if (personas.isEmpty) {
       await MigrationUtil(
-              _configurationService, _cloudFDB, injector(), _auditService)
-          .migrationFromKeychain();
+        _configurationService,
+        _cloudFDB,
+        injector(),
+        _auditService,
+        injector(),
+        injector(),
+      ).migrationFromKeychain();
       await androidRestoreKeys();
 
       await Future.delayed(const Duration(seconds: 1));
@@ -424,9 +431,9 @@ class AccountServiceImpl extends AccountService {
         final existingAccount =
             await _cloudFDB.personaDao.findById(account.uuid);
         if (existingAccount == null) {
-          // final backupVersion = await _backupService
-          //     .fetchBackupVersion(LibAukDart.getWallet(account.uuid));
-          const defaultAccount = 1; //backupVersion.isNotEmpty ? 1 : null;
+          final backupVersion = await _backupService
+              .fetchBackupVersion(LibAukDart.getWallet(account.uuid));
+          final defaultAccount = backupVersion.isNotEmpty ? 1 : null;
 
           final persona = Persona.newPersona(
             uuid: account.uuid,
@@ -701,12 +708,15 @@ class AccountServiceImpl extends AccountService {
     if (_configurationService.isDoneOnboarding()) {
       return;
     }
-
-    final iapService = injector<IAPService>();
-    final auditService = injector<AuditService>();
-    final migrationUtil = MigrationUtil(
-        _configurationService, _cloudFDB, iapService, auditService);
     await androidBackupKeys();
+    final migrationUtil = MigrationUtil(
+      _configurationService,
+      _cloudFDB,
+      injector(),
+      _auditService,
+      injector(),
+      injector(),
+    );
     await migrationUtil.migrationFromKeychain();
     final personas = await _cloudFDB.personaDao.getPersonas();
     final connections = await _cloudFDB.connectionDao.getConnections();

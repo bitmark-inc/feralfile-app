@@ -98,11 +98,10 @@ _setupApp() async {
   await setup();
 
   await DeviceInfo.instance.init();
-
+  await injector<CloudFirestoreService>().initService();
   final metricClient = injector.get<MetricClientService>();
   await metricClient.initService();
   await injector<RemoteConfigService>().loadConfigs();
-  await injector<CloudFirestoreService>().initService();
 
   final countOpenApp = injector<ConfigurationService>().countOpenApp() ?? 0;
   injector<ConfigurationService>().setCountOpenApp(countOpenApp + 1);

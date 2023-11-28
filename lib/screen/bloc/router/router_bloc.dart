@@ -45,7 +45,12 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
       this._backupService)
       : super(RouterState(onboardingStep: OnboardingStep.undefined)) {
     final migrationUtil = MigrationUtil(
-        _configurationService, _cloudFirestoreDB, _iapService, _auditService);
+        _configurationService,
+        _cloudFirestoreDB,
+        _iapService,
+        _auditService,
+        _backupService,
+        _accountService);
 
     on<DefineViewRoutingEvent>((event, emit) async {
       if (state.onboardingStep != OnboardingStep.undefined) {
