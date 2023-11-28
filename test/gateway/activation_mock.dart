@@ -7,7 +7,7 @@ import 'constants.dart';
 class ActivationApiMock {
   ///// getActivation
   static final MockData getActivationValid = MockData(
-      activationIdValid,
+      activationId,
       ActivationInfo(
         name,
         description,
@@ -52,7 +52,7 @@ class ActivationApiMock {
   ///// claim
   static final MockData claimValid = MockData(
       ActivationClaimRequest(
-        activationID: activationIdValid,
+        activationID: activationId,
         address: address,
         airdropTOTPPasscode: airdropTOTPPasscode,
       ),
