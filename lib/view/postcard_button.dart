@@ -333,8 +333,12 @@ class _PostcardAsyncButtonState extends State<PostcardAsyncButton> {
             });
             try {
               await widget.onTap?.call();
+              if (!mounted) {
+                return;
+              }
             } catch (e) {
               log.info('Error: $e');
+              rethrow;
             } finally {
               setState(() {
                 _isProcessing = false;
