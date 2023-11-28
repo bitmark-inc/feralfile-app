@@ -30,7 +30,6 @@ const String tokenIDConnectionTimeout = 'tokenIDConnectionTimeout';
 const String tokenIDReceiveTimeout = 'tokenIDReceiveTimeout';
 const String tokenIDExceptionOther = 'tokenIDExceptionOther';
 
-
 const String name = 'name';
 const String description = 'description';
 const String blockchain = 'blockchain';
@@ -46,7 +45,7 @@ const String seriesID = 'seriesID';
 
 const String claimerID = 'claimerID';
 const String exhibitionID = 'exhibitionID';
-const String artworkID  = 'artworkID';
+const String artworkID = 'artworkID';
 const String txID = 'txID';
 const Map<String, dynamic> metadata = {'metadata': 'metadata'};
 
