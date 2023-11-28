@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/database/sqlite_cloud_database.dart';
 import 'package:autonomy_flutter/util/cloud_firestore.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration/migration_util.dart';
@@ -26,31 +27,74 @@ class CloudFirestoreService {
     return '${deviceId}_${packageInfo.packageName}';
   }
 
-  CollectionReference getCollection(String collectionName) => fireBaseFirestore
-      .collection('$deviceId/$virtualDocumentId/$collectionName');
+  CollectionReference getCollection(FirestoreCollection collection) =>
+      fireBaseFirestore
+          .collection('$deviceId/$virtualDocumentId/${collection.name}');
 
   // method getBatch
   WriteBatch getBatch() => fireBaseFirestore.batch();
 
   // backup from sqlite clouddatabase
-  Future<void> backupCloudDatabase() async {
+  Future<void> backupCloudDatabase(
+      {required SqliteCloudDatabase sqliteCloudDatabase}) async {
     log.info('[CloudFirestoreService] start database backup');
-    final cloudDatabase = injector<CloudDatabase>();
     final cloudFirestoreDatabase = injector<CloudDatabase>();
     try {
-      final personas = await cloudDatabase.personaDao.getPersonas();
-      unawaited(cloudFirestoreDatabase.personaDao.insertPersonas(personas));
+      final personas = await sqliteCloudDatabase.personaDao.getPersonas();
+      await cloudFirestoreDatabase.personaDao.insertPersonas(personas);
       final connections =
-          await cloudDatabase.connectionDao.getUpdatedLinkedAccounts();
-      unawaited(
-          cloudFirestoreDatabase.connectionDao.insertConnections(connections));
-      final audits = await cloudDatabase.auditDao.getAudits();
-      unawaited(cloudFirestoreDatabase.auditDao.insertAudits(audits));
-      final addresses = await cloudDatabase.addressDao.getAllAddresses();
-      unawaited(cloudFirestoreDatabase.addressDao.insertAddresses(addresses));
+          await sqliteCloudDatabase.connectionDao.getUpdatedLinkedAccounts();
+
+      await cloudFirestoreDatabase.connectionDao.insertConnections(connections);
+      final audits = await sqliteCloudDatabase.auditDao.getAudits();
+      await cloudFirestoreDatabase.auditDao.insertAudits(audits);
+      final addresses = await sqliteCloudDatabase.addressDao.getAllAddresses();
+      await cloudFirestoreDatabase.addressDao.insertAddresses(addresses);
     } catch (err) {
       log.info('[CloudFirestoreService] error database backup, $err');
     }
     log.info('[BackupService] done database backup');
+  }
+
+  Future<bool> isExist() => getCollection(FirestoreCollection.persona)
+      .limit(1)
+      .get()
+      .then((value) => value.docs.isNotEmpty);
+
+  Future<void> copyFromSqliteDatabase(
+      SqliteCloudDatabase sqliteCloudDatabase) async {
+    final cloudFirestoreDatabase = injector<CloudDatabase>();
+    final personas = await sqliteCloudDatabase.personaDao.getPersonas();
+    await cloudFirestoreDatabase.personaDao.insertPersonas(personas);
+    final connections =
+        await sqliteCloudDatabase.connectionDao.getUpdatedLinkedAccounts();
+    await cloudFirestoreDatabase.connectionDao.insertConnections(connections);
+    final audits = await sqliteCloudDatabase.auditDao.getAudits();
+    await cloudFirestoreDatabase.auditDao.insertAudits(audits);
+    final addresses = await sqliteCloudDatabase.addressDao.getAllAddresses();
+    await cloudFirestoreDatabase.addressDao.insertAddresses(addresses);
+  }
+}
+
+enum FirestoreCollection {
+  persona,
+  connection,
+  audit,
+  walletAddress,
+  settingsData;
+
+  String get name {
+    switch (this) {
+      case FirestoreCollection.persona:
+        return 'personas';
+      case FirestoreCollection.connection:
+        return 'connections';
+      case FirestoreCollection.audit:
+        return 'audit';
+      case FirestoreCollection.walletAddress:
+        return 'wallet_address';
+      case FirestoreCollection.settingsData:
+        return 'settings_data';
+    }
   }
 }

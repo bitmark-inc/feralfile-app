@@ -38,6 +38,7 @@ class SettingsDataServiceImpl implements SettingsDataService {
   final IAPApi _iapApi;
   final CloudDatabase _cloudDB;
   final CloudFirestoreService _cloudFirestoreService;
+  final _collection = FirestoreCollection.settingsData;
 
   var latestDataHash = '';
 
@@ -122,7 +123,7 @@ class SettingsDataServiceImpl implements SettingsDataService {
   Future firestoreBackup() async {
     final data = await _getSettingsDataBackup();
     final collection = _cloudFirestoreService
-        .getCollection('settings_data')
+        .getCollection(_collection)
         .withConverter<SettingsDataBackup>(
             fromFirestore: (snapshot, _) =>
                 SettingsDataBackup.fromJson(snapshot.data()!),
@@ -160,7 +161,7 @@ class SettingsDataServiceImpl implements SettingsDataService {
   @override
   Future restoreSettingsDataFromFirestore() {
     final collection = _cloudFirestoreService
-        .getCollection('settings_data')
+        .getCollection(_collection)
         .withConverter<SettingsDataBackup>(
             fromFirestore: (snapshot, _) =>
                 SettingsDataBackup.fromJson(snapshot.data()!),

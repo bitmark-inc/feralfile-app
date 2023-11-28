@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
+import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -26,6 +27,7 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
   final CloudDatabase _cloudFirestoreDB;
   final IAPService _iapService;
   final AuditService _auditService;
+  final BackupService _backupService;
 
   Future<bool> hasAccounts() async {
     final personas = await _cloudFirestoreDB.personaDao.getPersonas();
@@ -34,8 +36,13 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
     return personas.isNotEmpty || connections.isNotEmpty;
   }
 
-  RouterBloc(this._configurationService, this._accountService,
-      this._cloudFirestoreDB, this._iapService, this._auditService)
+  RouterBloc(
+      this._configurationService,
+      this._accountService,
+      this._cloudFirestoreDB,
+      this._iapService,
+      this._auditService,
+      this._backupService)
       : super(RouterState(onboardingStep: OnboardingStep.undefined)) {
     final migrationUtil = MigrationUtil(
         _configurationService, _cloudFirestoreDB, _iapService, _auditService);
@@ -61,12 +68,21 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
 
       if (await hasAccounts()) {
         unawaited(_configurationService.setOldUser());
-        await _configurationService.setDoneOnboarding(true);
-        unawaited(injector<MetricClientService>()
-            .mixPanelClient
-            .initIfDefaultAccount());
-        emit(RouterState(onboardingStep: OnboardingStep.dashboard));
-        return;
+        final backupVersion = await _backupService
+            .fetchBackupVersion(await _accountService.getDefaultAccount());
+        if (backupVersion.isNotEmpty) {
+          emit(RouterState(
+              onboardingStep: OnboardingStep.restore,
+              backupVersion: backupVersion));
+          add(RestoreCloudDatabaseRoutingEvent(backupVersion));
+        } else {
+          await _configurationService.setDoneOnboarding(true);
+          unawaited(injector<MetricClientService>()
+              .mixPanelClient
+              .initIfDefaultAccount());
+          emit(RouterState(onboardingStep: OnboardingStep.dashboard));
+          return;
+        }
       } else {
         emit(RouterState(onboardingStep: OnboardingStep.startScreen));
       }
@@ -76,8 +92,8 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
       if (_configurationService.isDoneOnboarding()) {
         return;
       }
-      // await _backupService.restoreCloudDatabase(
-      //     await _accountService.getDefaultAccount(), event.version);
+      await _backupService.restoreCloudDatabaseIfNeed(
+          await _accountService.getDefaultAccount(), event.version);
 
       await _accountService.androidRestoreKeys();
 

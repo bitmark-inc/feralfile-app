@@ -35,11 +35,10 @@ abstract class FirestoreWalletAddressDao {
 
 class FirestoreWalletAddressDaoImp implements FirestoreWalletAddressDao {
   CloudFirestoreService firestoreService;
-  final _collectionName = 'wallet_address';
+  final _collection = FirestoreCollection.walletAddress;
 
-  CollectionReference<WalletAddress> get _collectionRef => firestoreService
-      .getCollection(_collectionName)
-      .withConverter<WalletAddress>(
+  CollectionReference<WalletAddress> get _collectionRef =>
+      firestoreService.getCollection(_collection).withConverter<WalletAddress>(
           fromFirestore: (snapshot, _) =>
               WalletAddress.fromJson(snapshot.data()!),
           toFirestore: (address, _) => address.toJson());

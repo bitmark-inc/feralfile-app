@@ -22,11 +22,11 @@ abstract class FirestoreAuditDao {
 }
 
 class FirestoreAuditDaoImp implements FirestoreAuditDao {
-  final _collectionName = 'audit';
+  final _collection = FirestoreCollection.audit;
   final CloudFirestoreService firestoreService;
 
   CollectionReference<Audit> get _collectionRef =>
-      firestoreService.getCollection(_collectionName).withConverter<Audit>(
+      firestoreService.getCollection(_collection).withConverter<Audit>(
           fromFirestore: (snapshot, _) => Audit.fromJson(snapshot.data()!),
           toFirestore: (audit, _) => audit.toJson());
 

@@ -22,10 +22,8 @@ import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_blo
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/wallet/wallet_page.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/airdrop_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
-import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service.dart';
 import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
@@ -613,7 +611,6 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   }
 
   void _handleBackground() {
-    _cloudBackup();
     _metricClientService.useAppTimer?.cancel();
   }
 
@@ -680,7 +677,6 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
 
   @override
   FutureOr<void> afterFirstLayout(BuildContext context) {
-    _cloudBackup();
     final initialAction = _notificationService.initialAction;
     if (initialAction != null) {
       NotificationService.onActionReceivedMethod(initialAction);
@@ -688,11 +684,5 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     if (_selectedIndex == HomeNavigatorTab.DISCOVER.index) {
       _metricClientService.addEvent(MixpanelEvent.viewDiscovery);
     }
-  }
-
-  Future<void> _cloudBackup() async {
-    final accountService = injector<AccountService>();
-    final backup = injector<BackupService>();
-    await backup.backupCloudDatabase(await accountService.getDefaultAccount());
   }
 }

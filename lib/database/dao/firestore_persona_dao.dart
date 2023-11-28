@@ -31,10 +31,10 @@ abstract class FirestorePersonaDao {
 
 class FirestorePersonaDaoImp implements FirestorePersonaDao {
   CloudFirestoreService firestoreService;
-  final _collectionName = 'persona';
+  final _collection = FirestoreCollection.persona;
 
   CollectionReference<Persona> get _collectionRef =>
-      firestoreService.getCollection(_collectionName).withConverter<Persona>(
+      firestoreService.getCollection(_collection).withConverter<Persona>(
           fromFirestore: (snapshot, _) => Persona.fromJson(snapshot.data()!),
           toFirestore: (persona, _) => persona.toJson());
 

@@ -266,6 +266,7 @@ class AppRouter {
                 injector(),
                 injector(),
                 injector<AuditService>(),
+                injector(),
               ),
             ),
           ], child: const OnboardingPage()),

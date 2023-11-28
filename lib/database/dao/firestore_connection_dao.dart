@@ -44,11 +44,11 @@ abstract class FirestoreConnectionDao {
 }
 
 class FirestoreConnectionDaoImp implements FirestoreConnectionDao {
-  final _collectionName = 'connection';
+  final _collection = FirestoreCollection.connection;
   CloudFirestoreService firestoreService;
 
   CollectionReference<Connection> get _collectionRef =>
-      firestoreService.getCollection(_collectionName).withConverter<Connection>(
+      firestoreService.getCollection(_collection).withConverter<Connection>(
           fromFirestore: (snapshot, _) => Connection.fromJson(snapshot.data()!),
           toFirestore: (connection, _) => connection.toJson());
 
