@@ -133,20 +133,6 @@ class _SettingsPageState extends State<SettingsPage>
           child: Column(
             children: [
               const SizedBox(height: 30),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Tipcard(
-                    titleText: "try_autonomy_pro_free".tr(),
-                    onPressed: () {
-                      Navigator.of(context)
-                          .pushNamed(AppRouter.subscriptionPage);
-                    },
-                    buttonText: "start_free_trial".tr(),
-                    content: Text("experience_premium_features".tr(),
-                        style: theme.textTheme.ppMori400Black14),
-                    listener: injector<ConfigurationService>().showProTip),
-              ),
-              const SizedBox(height: 30),
               Column(
                 children: [
                   _settingItem(

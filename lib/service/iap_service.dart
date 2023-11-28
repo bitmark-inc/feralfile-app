@@ -226,10 +226,6 @@ class IAPServiceImpl implements IAPService {
           if (subscriptionStatus?.isPremium == true) {
             _configurationService.setIAPJWT(jwt);
             if (!_configurationService.isPremium()) {
-              Future.delayed(const Duration(seconds: 2), () async {
-                injector<CustomerSupportService>()
-                    .createAnnouncement(AnnouncementID.SUBSCRIBE);
-              });
               _configurationService.setPremium(true);
             }
             final status = subscriptionStatus!;

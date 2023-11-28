@@ -34,7 +34,6 @@ import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/token_ext.dart';
@@ -540,26 +539,8 @@ class HomePageState extends State<HomePage>
     final configurationService = injector<ConfigurationService>();
 
     final doneOnboardingTime = configurationService.getDoneOnboardingTime();
-    final subscriptionTime = configurationService.getSubscriptionTime();
 
     final now = DateTime.now();
-    if (subscriptionTime != null) {
-      if (now.isAfter(subscriptionTime.add(const Duration(hours: 24))) &&
-          !configurationService.getAlreadyShowTvAppTip()) {
-        configurationService.showTvAppTip.value = true;
-        await configurationService.setAlreadyShowTvAppTip(true);
-        unawaited(metricClient.addEvent(MixpanelEvent.showTipcard,
-            data: {'title': 'enjoy_your_collection'.tr()}));
-      }
-      if (now.isAfter(subscriptionTime.add(const Duration(hours: 24))) &&
-          !configurationService.getAlreadyShowCreatePlaylistTip() &&
-          injector<ConfigurationService>().getPlayList().isEmpty) {
-        configurationService.showCreatePlaylistTip.value = true;
-        unawaited(configurationService.setAlreadyShowCreatePlaylistTip(true));
-        unawaited(metricClient.addEvent(MixpanelEvent.showTipcard,
-            data: {'title': 'create_your_first_playlist'.tr()}));
-      }
-    }
 
     final remindTime = configurationService.getShowBackupSettingTip();
     final shouldRemindNow = remindTime == null || now.isAfter(remindTime);
@@ -590,15 +571,6 @@ class HomePageState extends State<HomePage>
         unawaited(metricClient.addEvent(MixpanelEvent.showTipcard,
             data: {'title': 'do_you_have_NFTs_in_other_wallets'.tr()}));
       }
-      final premium = await isPremium();
-      if (now.isAfter(doneOnboardingTime.add(const Duration(hours: 72))) &&
-          !premium &&
-          !configurationService.getAlreadyShowProTip()) {
-        configurationService.showProTip.value = true;
-        unawaited(configurationService.setAlreadyShowProTip(true));
-        unawaited(metricClient.addEvent(MixpanelEvent.showTipcard,
-            data: {'title': 'try_autonomy_pro_free'.tr()}));
-      }
     }
   }
 
@@ -622,43 +594,11 @@ class HomePageState extends State<HomePage>
     unawaited(_clientTokenService.refreshTokens(checkPendingToken: true));
     unawaited(refreshNotification());
     unawaited(_metricClient.addEvent('device_foreground'));
-    unawaited(_subscriptionNotify());
     unawaited(injector<VersionService>().checkForUpdate());
     // Reload token in Isolate
 
     unawaited(injector<CustomerSupportService>().getIssuesAndAnnouncement());
     unawaited(injector<CustomerSupportService>().processMessages());
-  }
-
-  Future _subscriptionNotify() async {
-    final configService = injector<ConfigurationService>();
-    final iapService = injector<IAPService>();
-
-    if (configService.isNotificationEnabled() != true ||
-        await iapService.isSubscribed() ||
-        !configService.shouldShowSubscriptionHint() ||
-        configService
-                .getLastTimeAskForSubscription()
-                ?.isAfter(DateTime.now().subtract(const Duration(days: 2))) ==
-            true) {
-      return;
-    }
-
-    log.info('[HomePage] Show subscription notification');
-    await configService.setLastTimeAskForSubscription(DateTime.now());
-    if (!mounted) {
-      return;
-    }
-    const key = Key('subscription');
-    showInfoNotification(key, 'subscription_hint'.tr(),
-        duration: const Duration(seconds: 5), openHandler: () {
-      Navigator.of(context).pushNamed(AppRouter.subscriptionPage);
-    }, addOnTextSpan: [
-      TextSpan(
-        text: 'trial_today'.tr(),
-        style: Theme.of(context).textTheme.ppMori400Green14,
-      )
-    ]);
   }
 
   void _handleBackground() {

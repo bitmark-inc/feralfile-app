@@ -8,10 +8,7 @@
 import 'dart:io';
 
 import 'package:autonomy_flutter/common/environment.dart';
-import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
-import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/util/eth_utils.dart';
 import 'package:autonomy_flutter/util/fee_util.dart';
 import 'package:autonomy_flutter/util/geolocation.dart';
@@ -200,12 +197,9 @@ Future<bool> isAppCenterBuild() async {
   return info.packageName.contains('inhouse');
 }
 
-Future<bool> isPremium() async => injector<IAPService>().isSubscribed();
-
-Future<Pair<bool, bool>> logoState() async {
+Future<bool> logoState() async {
   final isAppCenter = await isAppCenterBuild();
-  final isPro = await isPremium();
-  return Pair(isAppCenter, isPro);
+  return isAppCenter;
 }
 
 Future<String> getDemoAccount() async =>
