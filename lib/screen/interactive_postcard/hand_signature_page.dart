@@ -142,7 +142,7 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
                     Flexible(
                       child: PostcardButton(
                         onTap: _handleSkipButtonPressed,
-                        enabled: !skipping,
+                        enabled: !skipping && !loading && resizedStamp != null,
                         isProcessing: skipping,
                         text: 'skip'.tr(),
                         color: AppColor.white,
