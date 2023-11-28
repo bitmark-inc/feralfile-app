@@ -233,12 +233,13 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
       final imageDataFile = await _writeImageData(
           fileName: imageDataFilename, addSignature: addSignature);
 
-      setState(() {
-        savingStamp = false;
-      });
       if (!mounted) {
         return;
       }
+
+      setState(() {
+        savingStamp = false;
+      });
       unawaited(Navigator.of(context).popAndPushNamed(
         AppRouter.postcardLocationExplain,
         arguments: PostcardExplainPayload(
