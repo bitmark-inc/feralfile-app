@@ -22,14 +22,11 @@ import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_pag
 import 'package:autonomy_flutter/screen/playlists/list_playlists/list_playlists.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/cloud_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
-import 'package:autonomy_flutter/service/feed_service.dart';
-import 'package:autonomy_flutter/service/followee_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/locale_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -37,7 +34,6 @@ import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/token_ext.dart';
@@ -93,7 +89,7 @@ class HomePageState extends State<HomePage>
     WidgetsBinding.instance.addObserver(this);
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
     _controller = ScrollController()..addListener(_scrollListenerToLoadMore);
-    _configurationService.setAutoShowPostcard(true);
+    unawaited(_configurationService.setAutoShowPostcard(true));
     NftCollectionBloc.eventController.stream.listen((event) async {
       switch (event.runtimeType) {
         case ReloadEvent:
@@ -102,42 +98,27 @@ class HomePageState extends State<HomePage>
         case GetTokensBeforeByOwnerEvent:
           nftBloc.add(event);
           break;
-        case AddArtistsEvent:
-
-          /// add following
-          final addEvent = event as AddArtistsEvent;
-          log.info("AddArtistsEvent ${addEvent.artists}");
-          final artists = event.artists;
-          artists.removeWhere((element) =>
-              invalidAddress.contains(element) || element.length < 36);
-          injector<FolloweeService>().addArtistsCollection(artists);
-          break;
-        case RemoveArtistsEvent:
-
-          /// remove following
-          final removeEvent = event as RemoveArtistsEvent;
-          log.info("RemoveArtistsEvent ${removeEvent.artists}");
-          injector<FolloweeService>()
-              .deleteArtistsCollection(removeEvent.artists);
-          break;
         default:
       }
     });
-    _clientTokenService.refreshTokens(syncAddresses: true).then((value) {
+    unawaited(
+        _clientTokenService.refreshTokens(syncAddresses: true).then((value) {
       nftBloc.add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
-    });
+    }));
 
     context.read<HomeBloc>().add(CheckReviewAppEvent());
 
-    injector<IAPService>().setup();
+    unawaited(injector<IAPService>().setup());
     memoryValues.inGalleryView = true;
   }
 
-  _scrollListenerToLoadMore() {
+  void _scrollListenerToLoadMore() {
     if (_controller.position.pixels + 100 >=
         _controller.position.maxScrollExtent) {
       final nextKey = nftBloc.state.nextKey;
-      if (nextKey == null || nextKey.isLoaded) return;
+      if (nextKey == null || nextKey.isLoaded) {
+        return;
+      }
       nftBloc.add(GetTokensByOwnerEvent(pageKey: nextKey));
     }
   }
@@ -150,30 +131,32 @@ class HomePageState extends State<HomePage>
 
   @override
   void afterFirstLayout(BuildContext context) {
-    _handleForeground();
-    injector<AutonomyService>().postLinkedAddresses();
-    _checkForKeySync(context);
+    unawaited(_handleForeground());
+    unawaited(injector<AutonomyService>().postLinkedAddresses());
+    unawaited(_checkForKeySync(context));
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     routeObserver.unsubscribe(this);
-    _fgbgSubscription?.cancel();
+    unawaited(_fgbgSubscription?.cancel());
     _controller.dispose();
     super.dispose();
   }
 
   @override
-  void didPopNext() async {
+  Future<void> didPopNext() async {
     super.didPopNext();
-    final connectivityResult = await (Connectivity().checkConnectivity());
-    _clientTokenService.refreshTokens();
-    refreshNotification();
+    final connectivityResult = await Connectivity().checkConnectivity();
+    unawaited(_clientTokenService.refreshTokens());
+    unawaited(refreshNotification());
     if (connectivityResult == ConnectivityResult.mobile ||
         connectivityResult == ConnectivityResult.wifi) {
       Future.delayed(const Duration(milliseconds: 1000), () async {
-        if (!mounted) return;
+        if (!mounted) {
+          return;
+        }
         nftBloc
             .add(RequestIndexEvent(await _clientTokenService.getAddresses()));
       });
@@ -187,7 +170,7 @@ class HomePageState extends State<HomePage>
     super.didPushNext();
   }
 
-  void _onTokensUpdate(List<CompactedAssetToken> tokens) async {
+  Future<void> _onTokensUpdate(List<CompactedAssetToken> tokens) async {
     //check minted postcard and navigator to artwork detail
     final config = injector.get<ConfigurationService>();
     final listTokenMints = config.getListPostcardMint();
@@ -201,18 +184,18 @@ class HomePageState extends State<HomePage>
           .map((e) => e.identity)
           .toList();
       if (config.isAutoShowPostcard()) {
-        log.info("Auto show minted postcard");
+        log.info('Auto show minted postcard');
         final payload = PostcardDetailPagePayload(tokenMints, 0);
-        Navigator.of(context).pushNamed(
+        unawaited(Navigator.of(context).pushNamed(
           AppRouter.claimedPostcardDetailsPage,
           arguments: payload,
-        );
+        ));
       }
 
-      config.setListPostcardMint(
+      unawaited(config.setListPostcardMint(
         tokenMints.map((e) => e.id).toList(),
         isRemoved: true,
-      );
+      ));
     }
 
     // Check if there is any Tezos token in the list
@@ -225,8 +208,9 @@ class HomePageState extends State<HomePage>
             hashedAddresses &&
         tokens.any((asset) =>
             asset.blockchain == Blockchain.TEZOS.name.toLowerCase())) {
-      _metricClient.addEvent("collection_has_tezos");
-      _configurationService.setSentTezosArtworkMetric(hashedAddresses);
+      unawaited(_metricClient.addEvent('collection_has_tezos'));
+      unawaited(
+          _configurationService.setSentTezosArtworkMetric(hashedAddresses));
     }
   }
 
@@ -248,20 +232,18 @@ class HomePageState extends State<HomePage>
     final contentWidget =
         BlocConsumer<NftCollectionBloc, NftCollectionBlocState>(
       bloc: nftBloc,
-      builder: (context, state) {
-        return NftCollectionGrid(
-          state: state.state,
-          tokens: _updateTokens(state.tokens.items),
-          loadingIndicatorBuilder: _loadingView,
-          emptyGalleryViewBuilder: _emptyGallery,
-          customGalleryViewBuilder: (context, tokens) =>
-              _assetsWidget(context, tokens),
-        );
-      },
+      builder: (context, state) => NftCollectionGrid(
+        state: state.state,
+        tokens: _updateTokens(state.tokens.items),
+        loadingIndicatorBuilder: _loadingView,
+        emptyGalleryViewBuilder: _emptyGallery,
+        customGalleryViewBuilder: (context, tokens) =>
+            _assetsWidget(context, tokens),
+      ),
       listener: (context, state) async {
-        log.info("[NftCollectionBloc] State update $state");
+        log.info('[NftCollectionBloc] State update $state');
         if (state.state == NftLoadingState.done) {
-          _onTokensUpdate(state.tokens.items);
+          unawaited(_onTokensUpdate(state.tokens.items));
         }
       },
     );
@@ -301,7 +283,7 @@ class HomePageState extends State<HomePage>
         Padding(
           padding: const EdgeInsets.only(left: 15),
           child: Text(
-            "collection_empty_now".tr(),
+            'collection_empty_now'.tr(),
             //"Your collection is empty for now.",
             style: theme.textTheme.ppMori400Black14,
           ),
@@ -318,7 +300,7 @@ class HomePageState extends State<HomePage>
 
     const int cellPerRowPhone = 3;
     const int cellPerRowTablet = 6;
-    const double cellSpacing = 3.0;
+    const double cellSpacing = 3;
     int cellPerRow =
         ResponsiveLayout.isMobile ? cellPerRowPhone : cellPerRowTablet;
     final playlistIDsString = injector<ConfigurationService>()
@@ -381,7 +363,9 @@ class HomePageState extends State<HomePage>
                       usingThumbnailID: index > 50,
                     ),
               onTap: () {
-                if (asset.pending == true && !asset.hasMetadata) return;
+                if (asset.pending == true && !asset.hasMetadata) {
+                  return;
+                }
 
                 final index = tokens
                     .where((e) => e.pending != true || e.hasMetadata)
@@ -394,12 +378,12 @@ class HomePageState extends State<HomePage>
                 final pageName = asset.isPostcard
                     ? AppRouter.claimedPostcardDetailsPage
                     : AppRouter.artworkDetailsPage;
-                Navigator.of(context)
+                unawaited(Navigator.of(context)
                     .pushNamed(pageName, ////need change to pageName
-                        arguments: payload);
+                        arguments: payload));
 
-                _metricClient.addEvent(MixpanelEvent.viewArtwork,
-                    data: {"id": asset.id});
+                unawaited(_metricClient.addEvent(MixpanelEvent.viewArtwork,
+                    data: {'id': asset.id}));
               },
             );
           },
@@ -416,21 +400,18 @@ class HomePageState extends State<HomePage>
     );
   }
 
-  Widget _carouselTipcard(BuildContext context) {
-    return MultiValueListenableBuilder(
-      valueListenables: [
-        _configurationService.showTvAppTip,
-        _configurationService.showCreatePlaylistTip,
-        _configurationService.showLinkOrImportTip,
-        _configurationService.showBackupSettingTip,
-      ],
-      builder: (BuildContext context, List<dynamic> values, Widget? child) {
-        return CarouselWithIndicator(
+  Widget _carouselTipcard(BuildContext context) => MultiValueListenableBuilder(
+        valueListenables: [
+          _configurationService.showTvAppTip,
+          _configurationService.showCreatePlaylistTip,
+          _configurationService.showLinkOrImportTip,
+          _configurationService.showBackupSettingTip,
+        ],
+        builder: (BuildContext context, List<dynamic> values, Widget? child) =>
+            CarouselWithIndicator(
           items: _listTipcards(context, values),
-        );
-      },
-    );
-  }
+        ),
+      );
 
   List<Tipcard> _listTipcards(BuildContext context, List<dynamic> values) {
     final theme = Theme.of(context);
@@ -441,56 +422,57 @@ class HomePageState extends State<HomePage>
     return [
       if (isShowLinkOrImportTip)
         Tipcard(
-            titleText: "do_you_have_NFTs_in_other_wallets".tr(),
+            titleText: 'do_you_have_NFTs_in_other_wallets'.tr(),
             onPressed: () {},
-            buttonText: "add_wallet".tr(),
-            content: Text("you_can_link_or_import".tr(),
+            buttonText: 'add_wallet'.tr(),
+            content: Text('you_can_link_or_import'.tr(),
                 style: theme.textTheme.ppMori400Black14),
             listener: _configurationService.showLinkOrImportTip),
       if (isShowCreatePlaylistTip)
         Tipcard(
-            titleText: "create_your_first_playlist".tr(),
+            titleText: 'create_your_first_playlist'.tr(),
             onPressed: () {
-              Navigator.of(context).pushNamed(AppRouter.createPlayListPage);
+              unawaited(Navigator.of(context)
+                  .pushNamed(AppRouter.createPlayListPage));
             },
-            buttonText: "create_new_playlist".tr(),
-            content: Text("as_a_pro_sub_playlist".tr(),
+            buttonText: 'create_new_playlist'.tr(),
+            content: Text('as_a_pro_sub_playlist'.tr(),
                 style: theme.textTheme.ppMori400Black14),
             listener: _configurationService.showCreatePlaylistTip),
       if (isShowTvAppTip)
         Tipcard(
-            titleText: "enjoy_your_collection".tr(),
+            titleText: 'enjoy_your_collection'.tr(),
             onPressed: () {
-              Navigator.of(context).pushNamed(
+              unawaited(Navigator.of(context).pushNamed(
                 AppRouter.scanQRPage,
                 arguments: ScannerItem.GLOBAL,
-              );
+              ));
             },
-            buttonText: "sync_up_with_autonomy_tv".tr(),
+            buttonText: 'sync_up_with_autonomy_tv'.tr(),
             content: RichText(
               text: TextSpan(
-                text: "as_a_pro_sub_TV_app".tr(),
+                text: 'as_a_pro_sub_TV_app'.tr(),
                 style: theme.textTheme.ppMori400Black14,
                 children: [
                   TextSpan(
-                    text: "google_TV_app".tr(),
+                    text: 'google_TV_app'.tr(),
                     style: theme.textTheme.ppMori400Black14.copyWith(
                         color: theme.colorScheme.primary,
                         decoration: TextDecoration.underline),
                     recognizer: TapGestureRecognizer()
                       ..onTap = () {
                         final metricClient = injector<MetricClientService>();
-                        metricClient.addEvent(MixpanelEvent.tapLinkInTipCard,
-                            data: {
-                              "link": TV_APP_STORE_URL,
-                              "title": "enjoy_your_collection".tr()
-                            });
-                        launchUrl(Uri.parse(TV_APP_STORE_URL),
-                            mode: LaunchMode.externalApplication);
+                        unawaited(metricClient
+                            .addEvent(MixpanelEvent.tapLinkInTipCard, data: {
+                          'link': TV_APP_STORE_URL,
+                          'title': 'enjoy_your_collection'.tr()
+                        }));
+                        unawaited(launchUrl(Uri.parse(TV_APP_STORE_URL),
+                            mode: LaunchMode.externalApplication));
                       },
                   ),
                   TextSpan(
-                    text: "currently_available_on".tr(),
+                    text: 'currently_available_on'.tr(),
                   )
                 ],
               ),
@@ -498,21 +480,21 @@ class HomePageState extends State<HomePage>
             listener: _configurationService.showTvAppTip),
       if (isShowBackupSettingTip)
         Tipcard(
-            titleText: "backup_failed".tr(),
+            titleText: 'backup_failed'.tr(),
             onPressed: Platform.isAndroid
                 ? () {
-                    OpenSettings.openAddAccountSetting();
+                    unawaited(OpenSettings.openAddAccountSetting());
                   }
                 : () async {
-                    openAppSettings();
+                    unawaited(openAppSettings());
                   },
             buttonText: Platform.isAndroid
-                ? "open_device_setting".tr()
-                : "open_icloud_setting".tr(),
+                ? 'open_device_setting'.tr()
+                : 'open_icloud_setting'.tr(),
             content: Text(
                 Platform.isAndroid
-                    ? "backup_tip_card_content_android".tr()
-                    : "backup_tip_card_content_ios".tr(),
+                    ? 'backup_tip_card_content_android'.tr()
+                    : 'backup_tip_card_content_ios'.tr(),
                 style: theme.textTheme.ppMori400Black14),
             listener: _configurationService.showBackupSettingTip),
     ];
@@ -523,25 +505,27 @@ class HomePageState extends State<HomePage>
     final defaultAccounts = await cloudDatabase.personaDao.getDefaultPersonas();
 
     if (defaultAccounts.length >= 2) {
-      if (!mounted) return;
-      Navigator.of(context).pushNamed(AppRouter.keySyncPage);
+      if (!mounted) {
+        return;
+      }
+      unawaited(Navigator.of(context).pushNamed(AppRouter.keySyncPage));
     }
   }
 
   void scrollToTop() {
-    _controller.animateTo(0,
+    unawaited(_controller.animateTo(0,
         duration: const Duration(milliseconds: 500),
-        curve: Curves.fastOutSlowIn);
+        curve: Curves.fastOutSlowIn));
   }
 
   Future refreshNotification() async {
     await injector<CustomerSupportService>().getIssuesAndAnnouncement();
   }
 
-  void _handleForeBackground(FGBGType event) async {
+  Future<void> _handleForeBackground(FGBGType event) async {
     switch (event) {
       case FGBGType.foreground:
-        _handleForeground();
+        unawaited(_handleForeground());
         break;
       case FGBGType.background:
         _handleBackground();
@@ -551,36 +535,18 @@ class HomePageState extends State<HomePage>
 
   Future _checkTipCardShowTime() async {
     final metricClient = injector<MetricClientService>();
-    log.info("_checkTipCardShowTime");
+    log.info('_checkTipCardShowTime');
     final configurationService = injector<ConfigurationService>();
 
     final doneOnboardingTime = configurationService.getDoneOnboardingTime();
-    final subscriptionTime = configurationService.getSubscriptionTime();
 
     final now = DateTime.now();
-    if (subscriptionTime != null) {
-      if (now.isAfter(subscriptionTime.add(const Duration(hours: 24))) &&
-          !configurationService.getAlreadyShowTvAppTip()) {
-        configurationService.showTvAppTip.value = true;
-        await configurationService.setAlreadyShowTvAppTip(true);
-        metricClient.addEvent(MixpanelEvent.showTipcard,
-            data: {"title": "enjoy_your_collection".tr()});
-      }
-      if (now.isAfter(subscriptionTime.add(const Duration(hours: 24))) &&
-          !configurationService.getAlreadyShowCreatePlaylistTip() &&
-          injector<ConfigurationService>().getPlayList().isEmpty != false) {
-        configurationService.showCreatePlaylistTip.value = true;
-        configurationService.setAlreadyShowCreatePlaylistTip(true);
-        metricClient.addEvent(MixpanelEvent.showTipcard,
-            data: {"title": "create_your_first_playlist".tr()});
-      }
-    }
 
     final remindTime = configurationService.getShowBackupSettingTip();
     final shouldRemindNow = remindTime == null || now.isAfter(remindTime);
     if (shouldRemindNow) {
-      configurationService
-          .setShowBackupSettingTip(now.add(const Duration(days: 7)));
+      unawaited(configurationService
+          .setShowBackupSettingTip(now.add(const Duration(days: 7))));
       bool showTip = false;
       if (Platform.isAndroid) {
         final isAndroidEndToEndEncryptionAvailable =
@@ -591,35 +557,26 @@ class HomePageState extends State<HomePage>
         final iCloudAvailable = injector<CloudService>().isAvailableNotifier;
         showTip = !iCloudAvailable.value;
       }
-      if (showTip && configurationService.showBackupSettingTip.value == false) {
+      if (showTip && !configurationService.showBackupSettingTip.value) {
         configurationService.showBackupSettingTip.value = true;
-        metricClient.addEvent(MixpanelEvent.showTipcard,
-            data: {"title": "backup_failed".tr()});
+        unawaited(metricClient.addEvent(MixpanelEvent.showTipcard,
+            data: {'title': 'backup_failed'.tr()}));
       }
     }
     if (doneOnboardingTime != null) {
       if (now.isAfter(doneOnboardingTime.add(const Duration(hours: 24))) &&
           !configurationService.getAlreadyShowLinkOrImportTip()) {
         configurationService.showLinkOrImportTip.value = true;
-        configurationService.setAlreadyShowLinkOrImportTip(true);
-        metricClient.addEvent(MixpanelEvent.showTipcard,
-            data: {"title": "do_you_have_NFTs_in_other_wallets".tr()});
-      }
-      final premium = await isPremium();
-      if (now.isAfter(doneOnboardingTime.add(const Duration(hours: 72))) &&
-          !premium &&
-          !configurationService.getAlreadyShowProTip()) {
-        configurationService.showProTip.value = true;
-        configurationService.setAlreadyShowProTip(true);
-        metricClient.addEvent(MixpanelEvent.showTipcard,
-            data: {"title": "try_autonomy_pro_free".tr()});
+        unawaited(configurationService.setAlreadyShowLinkOrImportTip(true));
+        unawaited(metricClient.addEvent(MixpanelEvent.showTipcard,
+            data: {'title': 'do_you_have_NFTs_in_other_wallets'.tr()}));
       }
     }
   }
 
-  void _handleForeground() async {
+  Future<void> _handleForeground() async {
     final locale = Localizations.localeOf(context);
-    LocaleService.refresh(locale);
+    unawaited(LocaleService.refresh(locale));
     memoryValues.inForegroundAt = DateTime.now();
     await injector<ConfigurationService>().reload();
     await _checkTipCardShowTime();
@@ -630,62 +587,24 @@ class HomePageState extends State<HomePage>
         // if there is no backup, upload one.
         await injector<SettingsDataService>().backup();
       } else {
-        Sentry.captureException(exception);
+        unawaited(Sentry.captureException(exception));
       }
     }
 
-    _clientTokenService.refreshTokens(checkPendingToken: true);
-    refreshNotification();
-    _metricClient.addEvent("device_foreground");
-    _subscriptionNotify();
-    injector<VersionService>().checkForUpdate();
+    unawaited(_clientTokenService.refreshTokens(checkPendingToken: true));
+    unawaited(refreshNotification());
+    unawaited(_metricClient.addEvent('device_foreground'));
+    unawaited(injector<VersionService>().checkForUpdate());
     // Reload token in Isolate
-    final jwtToken =
-        (await injector<AuthService>().getAuthToken(forceRefresh: true))
-            .jwtToken;
 
-    final feedService = injector<FeedService>();
-    feedService.refreshJWTToken(jwtToken);
-
-    injector<CustomerSupportService>().getIssuesAndAnnouncement();
-    injector<CustomerSupportService>().processMessages();
-  }
-
-  Future _subscriptionNotify() async {
-    final configService = injector<ConfigurationService>();
-    final iapService = injector<IAPService>();
-
-    if (configService.isNotificationEnabled() != true ||
-        await iapService.isSubscribed() ||
-        !configService.shouldShowSubscriptionHint() ||
-        configService
-                .getLastTimeAskForSubscription()
-                ?.isAfter(DateTime.now().subtract(const Duration(days: 2))) ==
-            true) {
-      return;
-    }
-
-    log.info("[HomePage] Show subscription notification");
-    await configService.setLastTimeAskForSubscription(DateTime.now());
-    if (!mounted) {
-      return;
-    }
-    const key = Key('subscription');
-    showInfoNotification(key, 'subscription_hint'.tr(),
-        duration: const Duration(seconds: 5), openHandler: () {
-      Navigator.of(context).pushNamed(AppRouter.subscriptionPage);
-    }, addOnTextSpan: [
-      TextSpan(
-        text: 'trial_today'.tr(),
-        style: Theme.of(context).textTheme.ppMori400Green14,
-      )
-    ]);
+    unawaited(injector<CustomerSupportService>().getIssuesAndAnnouncement());
+    unawaited(injector<CustomerSupportService>().processMessages());
   }
 
   void _handleBackground() {
-    _metricClient.addEvent(MixpanelEvent.deviceBackground);
-    _metricClient.sendAndClearMetrics();
-    FileLogger.shrinkLogFileIfNeeded();
+    unawaited(_metricClient.addEvent(MixpanelEvent.deviceBackground));
+    unawaited(_metricClient.sendAndClearMetrics());
+    unawaited(FileLogger.shrinkLogFileIfNeeded());
   }
 
   @override

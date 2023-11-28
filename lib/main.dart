@@ -198,7 +198,6 @@ class MemoryValues {
   ValueNotifier<Map<dynamic, dynamic>?> branchDeeplinkData;
   ValueNotifier<String?> deepLink;
   ValueNotifier<String?> irlLink;
-  HomePageTab homePageInitialTab = HomePageTab.DISCOVER;
   String? currentGroupChatId;
   bool isForeground = true;
 
@@ -226,11 +225,9 @@ class MemoryValues {
 
 enum HomePageTab {
   HOME,
-  DISCOVER,
 }
 
 enum HomeNavigatorTab {
-  DISCOVER,
   COLLECTION,
   WALLET,
 }

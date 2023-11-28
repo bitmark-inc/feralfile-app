@@ -5,26 +5,24 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/feed_service.dart';
 
 class AuthService {
   final IAPApi _authApi;
   final AccountService _accountService;
   final ConfigurationService _configurationService;
-  final FeedService _feedService;
   JWT? _jwt;
 
   AuthService(
     this._authApi,
     this._accountService,
     this._configurationService,
-    this._feedService,
   );
 
   void reset() {
@@ -47,9 +45,9 @@ class AuthService {
     final signature = await account.getAccountDIDSignature(message);
 
     Map<String, dynamic> payload = {
-      "requester": accountDID,
-      "timestamp": message,
-      "signature": signature,
+      'requester': accountDID,
+      'timestamp': message,
+      'signature': signature,
     };
 
     // the receipt data can be set by passing the parameter,
@@ -70,7 +68,7 @@ class AuthService {
         platform = 'google';
       }
       payload.addAll({
-        "receipt": {'platform': platform, 'receipt_data': savedReceiptData}
+        'receipt': {'platform': platform, 'receipt_data': savedReceiptData}
       });
     }
 
@@ -79,14 +77,13 @@ class AuthService {
     _jwt = newJwt;
 
     if (newJwt.isValid(withSubscription: true)) {
-      _configurationService.setIAPReceipt(savedReceiptData);
-      _configurationService.setIAPJWT(newJwt);
+      unawaited(_configurationService.setIAPReceipt(savedReceiptData));
+      unawaited(_configurationService.setIAPJWT(newJwt));
     } else {
-      _configurationService.setIAPReceipt(null);
-      _configurationService.setIAPJWT(null);
+      unawaited(_configurationService.setIAPReceipt(null));
+      unawaited(_configurationService.setIAPJWT(null));
     }
 
-    _feedService.refreshJWTToken(newJwt.jwtToken);
     return newJwt;
   }
 }

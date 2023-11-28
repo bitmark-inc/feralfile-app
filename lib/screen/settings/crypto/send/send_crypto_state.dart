@@ -90,7 +90,7 @@ class SendCryptoState {
       this.maxAllow,
       this.balance,
       this.ethBalance,
-      this.exchangeRate = const CurrencyExchangeRate(eth: "1.0", xtz: "1.0"),
+      this.exchangeRate = const CurrencyExchangeRate(eth: '1.0', xtz: '1.0'),
       this.feeOption = DEFAULT_FEE_OPTION,
       this.feeOptionValue});
 

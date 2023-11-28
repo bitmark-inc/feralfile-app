@@ -5,13 +5,14 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/usdc/usdc_bloc.dart';
-import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_state.dart';
 import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
@@ -39,8 +40,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 class LinkedWalletDetailPage extends StatefulWidget {
   final LinkedWalletDetailsPayload payload;
 
-  const LinkedWalletDetailPage({Key? key, required this.payload})
-      : super(key: key);
+  const LinkedWalletDetailPage({required this.payload, super.key});
 
   @override
   State<LinkedWalletDetailPage> createState() => _LinkedWalletDetailPageState();
@@ -92,11 +92,25 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
 
   void _callBloc() {
     final cryptoType = widget.payload.type;
-    context
-        .read<WalletDetailBloc>()
-        .add(WalletDetailBalanceEvent(cryptoType, _address));
-    if (cryptoType == CryptoType.ETH) {
-      context.read<USDCBloc>().add(GetUSDCBalanceWithAddressEvent(_address));
+
+    switch (cryptoType) {
+      case CryptoType.ETH:
+        context
+            .read<WalletDetailBloc>()
+            .add(WalletDetailBalanceEvent(cryptoType, _address));
+        context.read<USDCBloc>().add(GetUSDCBalanceWithAddressEvent(_address));
+        break;
+      case CryptoType.XTZ:
+        context
+            .read<WalletDetailBloc>()
+            .add(WalletDetailBalanceEvent(cryptoType, _address));
+        break;
+      case CryptoType.USDC:
+        context.read<USDCBloc>().add(GetUSDCBalanceWithAddressEvent(_address));
+        break;
+      default:
+        // do nothing
+        break;
     }
   }
 
@@ -136,9 +150,9 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
               onSubmit: (String value) {
                 if (value.trim().isNotEmpty) {
                   _connection = _connection.copyWith(name: value);
-                  injector<CloudDatabase>()
+                  unawaited(injector<CloudDatabase>()
                       .connectionDao
-                      .updateConnection(_connection);
+                      .updateConnection(_connection));
                   setState(() {
                     _isRename = false;
                   });
@@ -167,96 +181,96 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
         children: [
           BlocConsumer<WalletDetailBloc, WalletDetailState>(
               listener: (context, state) async {},
-              builder: (context, state) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    hideConnection
-                        ? const SizedBox(height: 16)
-                        : addTitleSpace(),
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 3000),
-                      height: hideConnection ? 60 : null,
-                      child: _balanceSection(
-                          context, state.balance, state.balanceInUSD),
-                    ),
-                    Visibility(
-                        visible: hideConnection,
-                        child: Column(
-                          children: [
-                            const SizedBox(
-                              height: 12,
-                            ),
-                            addOnlyDivider(),
-                          ],
-                        )),
-                    Expanded(
-                      child: CustomScrollView(
-                        controller: controller,
-                        slivers: [
-                          SliverToBoxAdapter(
-                            child: Column(
-                              children: [
-                                AnimatedContainer(
-                                  duration: const Duration(milliseconds: 3000),
-                                  child: Column(
-                                    children: [
-                                      cryptoType == CryptoType.USDC
-                                          ? Padding(
-                                              padding:
-                                                  const EdgeInsets.fromLTRB(
-                                                      0, 26, 0, 12),
-                                              child: _erc20Tag(context),
-                                            )
-                                          : SizedBox(
-                                              height: hideConnection ? 48 : 16),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          linkedBox(context, fontSize: 14)
-                                        ],
-                                      ),
-                                      const SizedBox(height: 10),
-                                      Padding(
-                                        padding: padding,
-                                        child: _addressSection(context),
-                                      ),
-                                      const SizedBox(height: 24),
-                                      if (widget.payload.type ==
-                                          CryptoType.ETH) ...[
-                                        BlocBuilder<USDCBloc, USDCState>(
-                                            builder: (context, state) {
-                                          final usdcBalance =
-                                              state.usdcBalances[_address];
-                                          final balance = usdcBalance == null
-                                              ? "-- USDC"
-                                              : "${USDCAmountFormatter(usdcBalance).format()} USDC";
-                                          return Padding(
-                                            padding: padding,
-                                            child:
-                                                _usdcBalance(context, balance),
-                                          );
-                                        })
-                                      ],
-                                      addDivider(),
-                                      Padding(
-                                        padding: padding,
-                                        child: _txSection(context),
-                                      ),
-                                      addDivider(),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+              builder: (context, state) => Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      if (hideConnection)
+                        const SizedBox(height: 16)
+                      else
+                        addTitleSpace(),
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 3000),
+                        height: hideConnection ? 60 : null,
+                        child: _balanceSection(
+                            context, state.balance, state.balanceInUSD),
                       ),
-                    ),
-                  ],
-                );
-              }),
+                      Visibility(
+                          visible: hideConnection,
+                          child: Column(
+                            children: [
+                              const SizedBox(
+                                height: 12,
+                              ),
+                              addOnlyDivider(),
+                            ],
+                          )),
+                      Expanded(
+                        child: CustomScrollView(
+                          controller: controller,
+                          slivers: [
+                            SliverToBoxAdapter(
+                              child: Column(
+                                children: [
+                                  AnimatedContainer(
+                                    duration:
+                                        const Duration(milliseconds: 3000),
+                                    child: Column(
+                                      children: [
+                                        if (cryptoType == CryptoType.USDC)
+                                          Padding(
+                                            padding: const EdgeInsets.fromLTRB(
+                                                0, 26, 0, 12),
+                                            child: _erc20Tag(context),
+                                          )
+                                        else
+                                          SizedBox(
+                                              height: hideConnection ? 48 : 16),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            linkedBox(context, fontSize: 14)
+                                          ],
+                                        ),
+                                        const SizedBox(height: 10),
+                                        Padding(
+                                          padding: padding,
+                                          child: _addressSection(context),
+                                        ),
+                                        const SizedBox(height: 24),
+                                        if (widget.payload.type ==
+                                            CryptoType.ETH) ...[
+                                          BlocBuilder<USDCBloc, USDCState>(
+                                              builder: (context, state) {
+                                            final usdcBalance =
+                                                state.usdcBalances[_address];
+                                            final balance = usdcBalance == null
+                                                ? '-- USDC'
+                                                : '''${USDCAmountFormatter(usdcBalance).format()} USDC''';
+                                            return Padding(
+                                              padding: padding,
+                                              child: _usdcBalance(
+                                                  context, balance),
+                                            );
+                                          })
+                                        ],
+                                        addDivider(),
+                                        Padding(
+                                          padding: padding,
+                                          child: _txSection(context),
+                                        ),
+                                        addDivider(),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  )),
           if (_isRename)
             Container(
               color: const Color.fromRGBO(0, 0, 0, 0.5),
@@ -265,24 +279,6 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
         ],
       ),
     );
-  }
-
-  void _connectionIconTap() {
-    late ScannerItem scanItem;
-
-    switch (widget.payload.type) {
-      case CryptoType.ETH:
-        scanItem = ScannerItem.WALLET_CONNECT;
-        break;
-      case CryptoType.XTZ:
-        scanItem = ScannerItem.BEACON_CONNECT;
-        break;
-      default:
-        break;
-    }
-
-    Navigator.of(context)
-        .popAndPushNamed(AppRouter.scanQRPage, arguments: scanItem);
   }
 
   void _onRenameTap() {
@@ -310,7 +306,7 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
               ),
               const SizedBox(width: 15),
               Text(
-                "USDC",
+                'USDC',
                 style: theme.textTheme.ppMori700Black14,
               ),
               const SizedBox(width: 10),
@@ -328,8 +324,9 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
             type: CryptoType.USDC,
             personaName: widget.payload.personaName,
           );
-          Navigator.of(context)
-              .pushNamed(AppRouter.linkedWalletDetailsPage, arguments: payload);
+          unawaited(Navigator.of(context).pushNamed(
+              AppRouter.linkedWalletDetailsPage,
+              arguments: payload));
         });
   }
 
@@ -340,7 +337,7 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
           backgroundColor: Colors.transparent,
           shadowColor: Colors.transparent,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20.0),
+            borderRadius: BorderRadius.circular(20),
           ),
           side: const BorderSide(
             color: AppColor.auQuickSilver,
@@ -361,13 +358,13 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
         child: Column(
           children: [
             Text(
-              balance.isNotEmpty ? balance : "-- ${widget.payload.type.name}",
+              balance.isNotEmpty ? balance : '-- ${widget.payload.type.name}',
               style: hideConnection
                   ? theme.textTheme.ppMori400Black14.copyWith(fontSize: 24)
                   : theme.textTheme.ppMori400Black36,
             ),
             Text(
-              balanceInUSD.isNotEmpty ? balanceInUSD : "-- USD",
+              balanceInUSD.isNotEmpty ? balanceInUSD : '-- USD',
               style: hideConnection
                   ? theme.textTheme.ppMori400Grey14
                   : theme.textTheme.ppMori400Grey16,
@@ -382,8 +379,8 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
         builder: (context, state) {
           final usdcBalance = state.usdcBalances[_address];
           final balance = usdcBalance == null
-              ? "-- USDC"
-              : "${USDCAmountFormatter(usdcBalance).format()} USDC";
+              ? '-- USDC'
+              : '${USDCAmountFormatter(usdcBalance).format()} USDC';
           return SizedBox(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -411,7 +408,7 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
       child: Row(
         children: [
           Text(
-            "your_address".tr(),
+            'your_address'.tr(),
             style: theme.textTheme.ppMori400Grey14,
           ),
           const SizedBox(
@@ -422,47 +419,49 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
             style: theme.textTheme.ppMori400Black14,
           ),
           Expanded(
-            child: StatefulBuilder(builder: (context, setState) {
-              return Container(
-                  alignment: Alignment.bottomRight,
-                  child: SizedBox(
-                    //width: double.infinity,
-                    height: 28.0,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: isCopied
-                            ? AppColor.auSuperTeal
-                            : AppColor.auLightGrey,
-                        shadowColor: Colors.transparent,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(32.0),
+            child: StatefulBuilder(
+                builder: (context, setState) => Container(
+                    alignment: Alignment.bottomRight,
+                    child: SizedBox(
+                      //width: double.infinity,
+                      height: 28,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: isCopied
+                              ? AppColor.auSuperTeal
+                              : AppColor.auLightGrey,
+                          shadowColor: Colors.transparent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(32),
+                          ),
+                          side: BorderSide(
+                            color: isCopied
+                                ? Colors.transparent
+                                : AppColor.greyMedium,
+                          ),
+                          alignment: Alignment.center,
                         ),
-                        side: BorderSide(
-                          color: isCopied
-                              ? Colors.transparent
-                              : AppColor.greyMedium,
-                        ),
-                        alignment: Alignment.center,
+                        onPressed: () {
+                          if (isCopied) {
+                            return;
+                          }
+                          showInfoNotification(const Key('address'),
+                              'address_copied_to_clipboard'.tr());
+                          unawaited(
+                              Clipboard.setData(ClipboardData(text: _address)));
+                          setState(() {
+                            isCopied = true;
+                          });
+                        },
+                        child: isCopied
+                            ? Text(
+                                'copied'.tr(),
+                                style: theme.textTheme.ppMori400Black14,
+                              )
+                            : Text('copy'.tr(),
+                                style: theme.textTheme.ppMori400Grey14),
                       ),
-                      onPressed: () {
-                        if (isCopied) return;
-                        showInfoNotification(const Key("address"),
-                            "address_copied_to_clipboard".tr());
-                        Clipboard.setData(ClipboardData(text: _address));
-                        setState(() {
-                          isCopied = true;
-                        });
-                      },
-                      child: isCopied
-                          ? Text(
-                              'copied'.tr(),
-                              style: theme.textTheme.ppMori400Black14,
-                            )
-                          : Text('copy'.tr(),
-                              style: theme.textTheme.ppMori400Grey14),
-                    ),
-                  ));
-            }),
+                    ))),
           ),
         ],
       ),
@@ -475,63 +474,58 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
       TappableForwardRow(
         padding: EdgeInsets.zero,
         leftWidget: Text(
-          "show_history".tr(),
+          'show_history'.tr(),
           style: theme.textTheme.ppMori400Black14,
         ),
         onTap: () {
-          Navigator.of(context).pushNamed(
+          unawaited(Navigator.of(context).pushNamed(
             AppRouter.inappWebviewPage,
             arguments:
                 InAppWebViewPayload(addressURL(_address, widget.payload.type)),
-          );
+          ));
         },
       ),
     ]);
   }
 
-  _showOptionDialog() {
-    if (!mounted) return;
-    UIHelper.showDrawerAction(context, options: [
-      isHideGalleryEnabled
-          ? OptionItem(
-              title: 'unhide_from_collection_view'.tr(),
-              icon: SvgPicture.asset(
-                'assets/images/unhide.svg',
-                colorFilter: const ColorFilter.mode(
-                    AppColor.primaryBlack, BlendMode.srcIn),
-              ),
-              onTap: () {
-                injector<AccountService>().setHideLinkedAccountInGallery(
-                    _address, !isHideGalleryEnabled);
-                setState(() {
-                  isHideGalleryEnabled = !isHideGalleryEnabled;
-                });
-                Navigator.of(context).pop();
-              },
-            )
-          : OptionItem(
-              title: 'hide_from_collection_view'.tr(),
-              icon: const Icon(
-                AuIcon.hidden_artwork,
-                color: AppColor.primaryBlack,
-              ),
-              onTap: () {
-                injector<AccountService>().setHideLinkedAccountInGallery(
-                    _address, !isHideGalleryEnabled);
-                setState(() {
-                  isHideGalleryEnabled = !isHideGalleryEnabled;
-                });
-                Navigator.of(context).pop();
-              },
-            ),
-      OptionItem(
-        title: 'scan'.tr(),
-        icon: const Icon(
-          AuIcon.scan,
-          color: AppColor.primaryBlack,
+  void _showOptionDialog() {
+    if (!mounted) {
+      return;
+    }
+    unawaited(UIHelper.showDrawerAction(context, options: [
+      if (isHideGalleryEnabled)
+        OptionItem(
+          title: 'unhide_from_collection_view'.tr(),
+          icon: SvgPicture.asset(
+            'assets/images/unhide.svg',
+            colorFilter:
+                const ColorFilter.mode(AppColor.primaryBlack, BlendMode.srcIn),
+          ),
+          onTap: () {
+            unawaited(injector<AccountService>().setHideLinkedAccountInGallery(
+                _address, !isHideGalleryEnabled));
+            setState(() {
+              isHideGalleryEnabled = !isHideGalleryEnabled;
+            });
+            Navigator.of(context).pop();
+          },
+        )
+      else
+        OptionItem(
+          title: 'hide_from_collection_view'.tr(),
+          icon: const Icon(
+            AuIcon.hidden_artwork,
+            color: AppColor.primaryBlack,
+          ),
+          onTap: () {
+            unawaited(injector<AccountService>().setHideLinkedAccountInGallery(
+                _address, !isHideGalleryEnabled));
+            setState(() {
+              isHideGalleryEnabled = !isHideGalleryEnabled;
+            });
+            Navigator.of(context).pop();
+          },
         ),
-        onTap: _connectionIconTap,
-      ),
       OptionItem(
         title: 'rename'.tr(),
         icon: SvgPicture.asset(
@@ -542,7 +536,7 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
         onTap: _onRenameTap,
       ),
       OptionItem(),
-    ]);
+    ]));
   }
 }
 
