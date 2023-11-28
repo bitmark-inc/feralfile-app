@@ -38,8 +38,7 @@ class HandSignaturePage extends StatefulWidget {
 
 class _HandSignaturePageState extends State<HandSignaturePage> {
   bool didDraw = false;
-  bool loading = false;
-  bool skipping = false;
+  bool savingStamp = false;
   Uint8List? resizedStamp;
   final _controller = HandSignatureControl();
 
@@ -133,17 +132,16 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
                     Flexible(
                       child: PostcardButton(
                         onTap: _handleClearButtonPressed,
-                        enabled: !loading,
+                        enabled: !savingStamp,
                         text: 'clear'.tr(),
                         color: AppColor.white,
                         textColor: AppColor.auQuickSilver,
                       ),
                     ),
                     Flexible(
-                      child: PostcardButton(
+                      child: PostcardAsyncButton(
                         onTap: _handleSkipButtonPressed,
-                        enabled: !skipping && !loading && resizedStamp != null,
-                        isProcessing: skipping,
+                        enabled: !savingStamp && resizedStamp != null,
                         text: 'skip'.tr(),
                         color: AppColor.white,
                         textColor: AppColor.auQuickSilver,
@@ -151,9 +149,9 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
                     ),
                     Flexible(
                       flex: 3,
-                      child: PostcardButton(
-                        isProcessing: loading,
-                        enabled: !loading && didDraw && resizedStamp != null,
+                      child: PostcardAsyncButton(
+                        enabled:
+                            !savingStamp && didDraw && resizedStamp != null,
                         onTap: _handleSaveButtonPressed,
                         color: MoMAColors.moMA8,
                         text: 'continue'.tr(),
@@ -177,33 +175,11 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
   }
 
   Future<void> _handleSkipButtonPressed() async {
-    setState(() {
-      skipping = true;
-    });
-    try {
-      await _saveStampAndContinue(addSignature: false);
-    } catch (e) {
-      setState(() {
-        skipping = false;
-      });
-      log.info(['[POSTCARD][_handleSkipButtonPressed] [error] [$e ]']);
-      rethrow;
-    }
+    await _saveStampAndContinue(addSignature: false);
   }
 
   Future<void> _handleSaveButtonPressed() async {
-    setState(() {
-      loading = true;
-    });
-    try {
-      await _saveStampAndContinue();
-    } catch (e) {
-      setState(() {
-        loading = false;
-      });
-      log.info(['[POSTCARD][_handleSaveButtonPressed] [error] [$e ]']);
-      rethrow;
-    }
+    await _saveStampAndContinue();
   }
 
   Future<File> _writeImageData(
@@ -245,7 +221,7 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
 
   Future<void> _saveStampAndContinue({bool addSignature = true}) async {
     setState(() {
-      loading = true;
+      savingStamp = true;
     });
     try {
       final asset = widget.payload.asset;
@@ -258,7 +234,7 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
           fileName: imageDataFilename, addSignature: addSignature);
 
       setState(() {
-        loading = false;
+        savingStamp = false;
       });
       if (!mounted) {
         return;
@@ -305,9 +281,11 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
       ));
     } catch (e) {
       setState(() {
-        loading = false;
+        savingStamp = false;
       });
-      log.info(['[POSTCARD][_handleSaveButtonPressed] [error] [$e ]']);
+      log.info([
+        '[POSTCARD][_handleStampButtonPressed] signed= $addSignature [error] $e'
+      ]);
       rethrow;
     }
   }
