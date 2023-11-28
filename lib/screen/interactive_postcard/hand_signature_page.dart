@@ -39,6 +39,7 @@ class HandSignaturePage extends StatefulWidget {
 class _HandSignaturePageState extends State<HandSignaturePage> {
   bool didDraw = false;
   bool loading = false;
+  bool skipping = false;
   Uint8List? resizedStamp;
   final _controller = HandSignatureControl();
 
@@ -129,7 +130,7 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
                             AppColor.white, BlendMode.srcIn),
                       ),
                     ),
-                    Expanded(
+                    Flexible(
                       child: PostcardButton(
                         onTap: _handleClearButtonPressed,
                         enabled: !loading,
@@ -138,7 +139,18 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
                         textColor: AppColor.auQuickSilver,
                       ),
                     ),
-                    Expanded(
+                    Flexible(
+                      child: PostcardButton(
+                        onTap: _handleSkipButtonPressed,
+                        enabled: !skipping,
+                        isProcessing: skipping,
+                        text: 'skip'.tr(),
+                        color: AppColor.white,
+                        textColor: AppColor.auQuickSilver,
+                      ),
+                    ),
+                    Flexible(
+                      flex: 3,
                       child: PostcardButton(
                         isProcessing: loading,
                         enabled: !loading && didDraw && resizedStamp != null,
@@ -164,25 +176,60 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
     _controller.clear();
   }
 
+  Future<void> _handleSkipButtonPressed() async {
+    setState(() {
+      skipping = true;
+    });
+    try {
+      await _saveStampAndContinue(addSignature: false);
+    } catch (e) {
+      setState(() {
+        skipping = false;
+      });
+      log.info(['[POSTCARD][_handleSkipButtonPressed] [error] [$e ]']);
+      rethrow;
+    }
+  }
+
+  Future<void> _handleSaveButtonPressed() async {
+    setState(() {
+      loading = true;
+    });
+    try {
+      await _saveStampAndContinue();
+    } catch (e) {
+      setState(() {
+        loading = false;
+      });
+      log.info(['[POSTCARD][_handleSaveButtonPressed] [error] [$e ]']);
+      rethrow;
+    }
+  }
+
   Future<File> _writeImageData(
-      {required ByteData data, required String fileName}) async {
-    final data = await _controller.toImage(
-        color: Colors.black, background: Colors.transparent);
-    log.info(['[POSTCARD][_handleSaveButtonPressed] [data] [$data ]']);
-    final signature = img.decodePng(data!.buffer.asUint8List());
-    final newHeight = signature!.height * STAMP_SIZE ~/ signature.width;
-    final resizedSignature =
-        await resizeImage(ResizeImageParams(signature, STAMP_SIZE, newHeight));
+      {required String fileName, bool addSignature = true}) async {
     if (resizedStamp == null) {
       await resizeStamp();
     }
-    final image =
-        await compositeImage([resizedStamp!, img.encodePng(resizedSignature)]);
-    log.info('[POSTCARD][_handleSaveButtonPressed] [image] [$image');
     final dir = (await getApplicationDocumentsDirectory()).path;
     final imagePath = '$dir/$fileName';
     File imageFile = File(imagePath);
-    await imageFile.writeAsBytes(img.encodePng(image));
+    if (addSignature) {
+      final data = await _controller.toImage(
+          color: Colors.black, background: Colors.transparent);
+      log.info(['[POSTCARD][_handleSaveButtonPressed] [data] [$data ]']);
+      final signature = img.decodePng(data!.buffer.asUint8List());
+      final newHeight = signature!.height * STAMP_SIZE ~/ signature.width;
+      final resizedSignature = await resizeImage(
+          ResizeImageParams(signature, STAMP_SIZE, newHeight));
+      final image = await compositeImage(
+          [resizedStamp!, img.encodePng(resizedSignature)]);
+      log.info('[POSTCARD][_handleSaveButtonPressed] [image] [$image');
+      await imageFile.writeAsBytes(img.encodePng(image));
+    } else {
+      log.info('[POSTCARD][_handleSkipButtonPressed] ');
+      await imageFile.writeAsBytes(resizedStamp!);
+    }
     return imageFile;
   }
 
@@ -196,7 +243,7 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
     return metadataFile;
   }
 
-  Future<void> _handleSaveButtonPressed() async {
+  Future<void> _saveStampAndContinue({bool addSignature = true}) async {
     setState(() {
       loading = true;
     });
@@ -207,9 +254,8 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
       final contractAddress = Environment.postcardContractAddress;
 
       final imageDataFilename = '$contractAddress-$tokenId-$counter-image.png';
-      final imageData = await _controller.toImage();
-      final imageDataFile =
-          await _writeImageData(data: imageData!, fileName: imageDataFilename);
+      final imageDataFile = await _writeImageData(
+          fileName: imageDataFilename, addSignature: addSignature);
 
       setState(() {
         loading = false;
