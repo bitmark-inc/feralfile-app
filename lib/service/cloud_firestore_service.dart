@@ -44,9 +44,12 @@ class CloudFirestoreService {
     return data?['backup'] ?? false;
   }
 
+  CollectionReference _userCollection() => fireBaseFirestore
+      .collection('$mobileAppCloudDatabase/$virtualDocumentId/$deviceId');
+
   CollectionReference getCollection(FirestoreCollection collection) =>
       fireBaseFirestore.collection(
-          '$mobileAppCloudDatabase/$virtualDocumentId/$deviceId/$virtualDocumentId/${collection.name}');
+          '${_userCollection().path}/$virtualDocumentId/${collection.name}');
 
   // method getBatch
   WriteBatch getBatch() => fireBaseFirestore.batch();
@@ -71,6 +74,17 @@ class CloudFirestoreService {
       log.info('[CloudFirestoreService] error database backup, $err');
     }
     log.info('[BackupService] done database backup');
+  }
+
+  Future removeAll() {
+    final collection = _userCollection();
+    return collection.get().then((snapshot) {
+      final batch = getBatch();
+      for (var doc in snapshot.docs) {
+        batch.delete(doc.reference);
+      }
+      return batch.commit();
+    });
   }
 }
 
