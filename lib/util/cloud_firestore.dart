@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 const virtualDocumentId = 'virtualDocumentId';
+const mobileAppCloudDatabase = 'mobileAppCloudDatabase';
 
 class CloudFireStore {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;

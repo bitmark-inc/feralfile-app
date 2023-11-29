@@ -28,13 +28,13 @@ class CloudFirestoreService {
   }
 
   Future<void> setAlreadyBackupFromSqlite({bool value = true}) async {
-    final collection = getCollection(FirestoreCollection.settingsData);
+    final collection = getCollection(FirestoreCollection.firestoreSetting);
     final doc = collection.doc('backup');
     await doc.set({'backup': value});
   }
 
   Future<bool> isAlreadyBackupFromSqlite() async {
-    final collection = getCollection(FirestoreCollection.settingsData);
+    final collection = getCollection(FirestoreCollection.firestoreSetting);
     final doc = collection.doc('backup');
     final snapshot = await doc.get();
     if (!snapshot.exists) {
@@ -45,8 +45,8 @@ class CloudFirestoreService {
   }
 
   CollectionReference getCollection(FirestoreCollection collection) =>
-      fireBaseFirestore
-          .collection('$deviceId/$virtualDocumentId/${collection.name}');
+      fireBaseFirestore.collection(
+          '$mobileAppCloudDatabase/$virtualDocumentId/$deviceId/$virtualDocumentId/${collection.name}');
 
   // method getBatch
   WriteBatch getBatch() => fireBaseFirestore.batch();
