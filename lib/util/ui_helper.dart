@@ -8,6 +8,7 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ui';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
@@ -1120,74 +1121,106 @@ class UIHelper {
     UIHelper.hideInfoDialog(context);
     showCupertinoModalPopup(
         context: context,
-        builder: (context) {
-          return Center(
-            child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 15, vertical: 128),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: AppColor.auSuperTeal,
-                  borderRadius: BorderRadius.circular(5),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(15, 15, 5, 15),
-                  child: Column(
-                    children: [
-                      Expanded(
-                        child: Scrollbar(
-                          thumbVisibility: true,
-                          trackVisibility: true,
-                          thickness: 5,
-                          radius: const Radius.circular(10),
-                          scrollbarOrientation: ScrollbarOrientation.right,
-                          child: Padding(
-                            padding: const EdgeInsets.only(right: 10),
-                            child: SingleChildScrollView(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  content,
-                                  const SizedBox(height: 10),
-                                ],
+        builder: (context) => Center(
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 15, vertical: 128),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppColor.auSuperTeal,
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(15, 15, 5, 15),
+                    child: Column(
+                      children: [
+                        Expanded(
+                          child: Scrollbar(
+                            thumbVisibility: true,
+                            trackVisibility: true,
+                            thickness: 5,
+                            radius: const Radius.circular(10),
+                            scrollbarOrientation: ScrollbarOrientation.right,
+                            child: Padding(
+                              padding: const EdgeInsets.only(right: 10),
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    content,
+                                    const SizedBox(height: 10),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                      if (actionButtonOnTap != null)
-                        Column(
-                          children: [
-                            AuSecondaryButton(
-                              text: actionButton ?? "",
-                              onPressed: actionButtonOnTap,
-                              borderColor: AppColor.primaryBlack,
-                              textColor: AppColor.primaryBlack,
-                              backgroundColor: AppColor.auSuperTeal,
-                            ),
-                            const SizedBox(
-                              height: 15,
-                            )
-                          ],
+                        if (actionButtonOnTap != null)
+                          Column(
+                            children: [
+                              AuSecondaryButton(
+                                text: actionButton ?? "",
+                                onPressed: actionButtonOnTap,
+                                borderColor: AppColor.primaryBlack,
+                                textColor: AppColor.primaryBlack,
+                                backgroundColor: AppColor.auSuperTeal,
+                              ),
+                              const SizedBox(
+                                height: 15,
+                              )
+                            ],
+                          ),
+                        AuSecondaryButton(
+                          text: exitButton ?? "close".tr(),
+                          onPressed: exitButtonOnTap ??
+                              () {
+                                Navigator.pop(context);
+                              },
+                          borderColor: AppColor.primaryBlack,
+                          textColor: AppColor.primaryBlack,
+                          backgroundColor: AppColor.auSuperTeal,
                         ),
-                      AuSecondaryButton(
-                        text: exitButton ?? "close".tr(),
-                        onPressed: exitButtonOnTap ??
-                            () {
-                              Navigator.pop(context);
-                            },
-                        borderColor: AppColor.primaryBlack,
-                        textColor: AppColor.primaryBlack,
-                        backgroundColor: AppColor.auSuperTeal,
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-          );
-        });
+            ));
+  }
+
+  static Future<dynamic> showCenterEmptySheet(BuildContext context,
+      {required Widget content}) async {
+    UIHelper.hideInfoDialog(context);
+    return await showCupertinoModalPopup(
+        context: context,
+        builder: (context) => Scaffold(
+              body: Stack(
+                children: [
+                  GestureDetector(
+                    child: Container(
+                      color: AppColor.primaryBlack.withOpacity(0.8),
+                    ),
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                  ),
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 15, vertical: 128),
+                      child: Column(
+                        children: [
+                          const Spacer(),
+                          content,
+                          const Spacer(),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ));
   }
 
   static Future<void> showDrawerAction(BuildContext context,
