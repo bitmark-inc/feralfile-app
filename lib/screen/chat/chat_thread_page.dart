@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 import 'dart:ui' as ui;
@@ -20,7 +21,6 @@ import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
@@ -31,10 +31,10 @@ import 'package:nft_collection/models/asset_token.dart';
 import 'package:uuid/uuid.dart';
 
 class ChatThreadPage extends StatefulWidget {
-  static const String tag = "chat_thread_page";
+  static const String tag = 'chat_thread_page';
   final ChatThreadPagePayload payload;
 
-  const ChatThreadPage({Key? key, required this.payload}) : super(key: key);
+  const ChatThreadPage({required this.payload, super.key});
 
   @override
   State<ChatThreadPage> createState() => _ChatThreadPageState();
@@ -58,7 +58,7 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
     super.initState();
     _payload = widget.payload;
     _user = types.User(id: _payload.address);
-    _websocketInitAndFetchHistory();
+    unawaited(_websocketInitAndFetchHistory());
     memoryValues.currentGroupChatId = _payload.token.id;
     _checkReadPrivateChatBanner();
   }
@@ -70,7 +70,7 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
     if (_chatPrivateBannerTimestamp == null) {
       final newConfig = config.copyWith(
           firstTimeJoined: DateTime.now().millisecondsSinceEpoch);
-      _configurationService.setPostcardChatConfig(newConfig);
+      unawaited(_configurationService.setPostcardChatConfig(newConfig));
     }
   }
 
@@ -109,7 +109,9 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
     final unsentMessages = _messages
         .where((element) => element.status == types.Status.sending)
         .toList();
-    if (unsentMessages.isEmpty) return;
+    if (unsentMessages.isEmpty) {
+      return;
+    }
     unsentMessages
         .sort((a, b) => (a.createdAt ?? 0).compareTo(b.createdAt ?? 0));
     for (var element in unsentMessages) {
@@ -124,10 +126,10 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
     final id = historyId ?? const Uuid().v4();
     _postcardChatService.sendMessage(
       json.encode({
-        "command": "HISTORY",
-        "id": id,
-        "payload": {
-          "lastTimestamp": _lastMessageTimestamp,
+        'command': 'HISTORY',
+        'id': id,
+        'payload': {
+          'lastTimestamp': _lastMessageTimestamp,
         }
       }),
       listenerId: _chatListener?.id,
@@ -148,11 +150,11 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
         _historyRequestId = null;
       }
     } else {
-      final otherPeopleMessages = _convertMessages(newMessages);
-      otherPeopleMessages
-          .removeWhere((element) => element.author.id == _user.id);
-      _messages.insertAll(0, otherPeopleMessages);
-      _messages.sort((a, b) => (b.createdAt ?? 0).compareTo(a.createdAt ?? 0));
+      final otherPeopleMessages = _convertMessages(newMessages)
+        ..removeWhere((element) => element.author.id == _user.id);
+      _messages
+        ..insertAll(0, otherPeopleMessages)
+        ..sort((a, b) => (b.createdAt ?? 0).compareTo(a.createdAt ?? 0));
     }
     final currentMessageTimestamp =
         _messages.isNotEmpty ? _messages.first.createdAt ?? 0 : 0;
@@ -163,7 +165,7 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
         ? DateTime.now().millisecondsSinceEpoch
         : readTimestamp;
 
-    _updateLastMessageReadTimeStamp(readTimestamp + 1);
+    unawaited(_updateLastMessageReadTimeStamp(readTimestamp + 1));
 
     if (_chatPrivateBannerTimestamp != null) {
       _messages.removeWhere((element) => element.id == _chatPrivateBannerId);
@@ -178,8 +180,8 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
           types.SystemMessage(
             id: _chatPrivateBannerId,
             author: _user,
-            createdAt: _chatPrivateBannerTimestamp!,
-            text: "chat_is_private".tr(),
+            createdAt: _chatPrivateBannerTimestamp,
+            text: 'chat_is_private'.tr(),
             status: types.Status.delivered,
           ));
     }
@@ -222,7 +224,7 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
   @override
   void dispose() {
     if (_chatListener != null) {
-      _postcardChatService.removeListener(_chatListener!);
+      unawaited(_postcardChatService.removeListener(_chatListener!));
     }
     memoryValues.currentGroupChatId = null;
     super.dispose();
@@ -235,7 +237,7 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
         backgroundColor: AppColor.white,
         appBar: getBackAppBar(
           context,
-          title: "messages".tr(),
+          title: 'messages'.tr(),
           titleStyle: theme.textTheme.moMASans700Black18,
           onBack: () => Navigator.of(context).pop(),
         ),
@@ -243,7 +245,7 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
             margin: EdgeInsets.zero,
             child: Chat(
                 l10n: ChatL10nEn(
-                  inputPlaceholder: "message".tr(),
+                  inputPlaceholder: 'message'.tr(),
                 ),
                 onMessageVisibilityChanged: _onMessageVisibilityChanged,
                 customDateHeaderText: getChatDateTimeRepresentation,
@@ -259,27 +261,15 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
                 user: types.User(id: const Uuid().v4()),
                 customBottomWidget: Column(
                   children: [
-                    _chatPrivateBannerTimestamp == null
-                        ? _chatPrivateBanner(context)
-                        : const SizedBox(),
+                    if (_chatPrivateBannerTimestamp == null)
+                      _chatPrivateBanner(context)
+                    else
+                      const SizedBox(),
                     AuInputChat(
                       onSendPressed: _handleSendPressed,
                     ),
                   ],
                 ))));
-  }
-
-  String _getAvatarUrl(String address) {
-    final artists = widget.payload.token.getArtists;
-    final artist = artists.firstWhereOrNull((element) => element.id == address);
-    if (artists.isEmpty || artist == null) {
-      return "";
-    }
-    String index = artists.indexOf(artist).toString();
-    if (index.length == 1) {
-      index = "0$index";
-    }
-    return "${widget.payload.token.getPreviewUrl()}/assets/stamps/$index.png";
   }
 
   void _onMessageVisibilityChanged(types.Message message, bool visible) {
@@ -295,7 +285,7 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 60),
         child: Text(
-          text ?? "chat_is_private".tr(),
+          text ?? 'chat_is_private'.tr(),
           textAlign: TextAlign.center,
           style: theme.textTheme.moMASans400Black12,
         ),
@@ -308,7 +298,7 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
     final totalDistance = widget.payload.token.totalDistance;
     final distanceFormater = DistanceFormatter();
     return _chatPrivateBanner(context,
-        text: "postcard_complete_chat_message".tr(namedArgs: {
+        text: 'postcard_complete_chat_message'.tr(namedArgs: {
           'distance': distanceFormater.format(
               distance: totalDistance, withFullName: true),
         }));
@@ -321,27 +311,35 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
     if (message.isCompletedPostcardMessage) {
       return _postcardCompleteBuilder(context, message);
     }
+
     final isMe = message.author.id == _user.id;
-    final avatarUrl = _getAvatarUrl(message.author.id);
+    final assetToken = _payload.token;
+    final avatarUrl = message.author.getAvatarUrl(assetToken: assetToken);
+    final backgroundColor = isMe || message.isSystemMessage
+        ? AppColor.secondaryDimGreyBackground
+        : AppColor.white;
     return Column(
       children: [
         addOnlyDivider(color: AppColor.auLightGrey),
         Container(
           padding: const EdgeInsets.all(20),
-          color: isMe ? AppColor.secondaryDimGreyBackground : AppColor.white,
+          color: backgroundColor,
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              UserAvatar(key: Key(avatarUrl), url: avatarUrl),
+              if (message.isSystemMessage)
+                SystemUserAvatar(
+                  url: avatarUrl,
+                  key: Key(avatarUrl),
+                )
+              else
+                UserAvatar(key: Key(avatarUrl), url: avatarUrl),
               const SizedBox(width: 20),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    MessageView(
-                      message: message,
-                      assetToken: _payload.token,
-                    ),
+                    MessageView(message: message, assetToken: assetToken),
                   ],
                 ),
               ),
@@ -352,7 +350,7 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
     );
   }
 
-  _submit(String message) {
+  void _submit(String message) {
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     final messageId = const Uuid().v4();
 
@@ -373,11 +371,11 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
     _sendMessage(sendingMessage);
   }
 
-  _sendMessage(types.SystemMessage message) {
+  void _sendMessage(types.SystemMessage message) {
     _postcardChatService.sendMessage(json.encode({
-      "command": "SEND",
-      "id": message.id,
-      "payload": {"message": message.text}
+      'command': 'SEND',
+      'id': message.id,
+      'payload': {'message': message.text}
     }));
   }
 
@@ -389,8 +387,8 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
       backgroundColor: Colors.transparent,
       typingIndicatorTheme: const TypingIndicatorTheme(
         animatedCirclesColor: neutral1,
-        animatedCircleSize: 5.0,
-        bubbleBorder: BorderRadius.all(Radius.circular(27.0)),
+        animatedCircleSize: 5,
+        bubbleBorder: BorderRadius.all(Radius.circular(27)),
         bubbleColor: Colors.blue,
         countAvatarColor: primary,
         countTextColor: secondary,
@@ -425,15 +423,14 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
     );
   }
 
-  static const _chatPrivateBannerId = "chat_private_banner";
+  static const _chatPrivateBannerId = 'chat_private_banner';
 
-  void _handleSendPressed(types.PartialText message) async {
+  void _handleSendPressed(types.PartialText message) {
     _submit(message.text);
   }
 
-  List<types.Message> _convertMessages(List<app.Message> appMessages) {
-    return appMessages.map((e) => e.toTypesMessage()).toList();
-  }
+  List<types.Message> _convertMessages(List<app.Message> appMessages) =>
+      appMessages.map((e) => e.toTypesMessage()).toList();
 }
 
 class ChatThreadPagePayload {
@@ -455,26 +452,31 @@ class ChatThreadPagePayload {
 class UserAvatar extends StatelessWidget {
   final String url;
 
-  const UserAvatar({Key? key, required this.url}) : super(key: key);
+  const UserAvatar({required this.url, super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-        width: 41,
-        height: 41,
-        child: CachedNetworkImage(
-          imageUrl: url,
-          errorWidget: (context, url, error) {
-            return SvgPicture.asset("assets/images/default_avatar.svg");
-          },
-        ));
-  }
+  Widget build(BuildContext context) => SizedBox(
+      width: 41,
+      height: 41,
+      child: CachedNetworkImage(
+        imageUrl: url,
+        errorWidget: (context, url, error) =>
+            SvgPicture.asset('assets/images/default_avatar.svg'),
+      ));
+}
+
+class SystemUserAvatar extends UserAvatar {
+  const SystemUserAvatar({required super.url, super.key});
+
+  @override
+  Widget build(BuildContext context) =>
+      SizedBox(width: 41, height: 41, child: SvgPicture.asset(url));
 }
 
 class AuInputChat extends StatefulWidget {
   final void Function(types.PartialText) onSendPressed;
 
-  const AuInputChat({Key? key, required this.onSendPressed}) : super(key: key);
+  const AuInputChat({required this.onSendPressed, super.key});
 
   @override
   State<AuInputChat> createState() => _AuInputChatState();
@@ -487,7 +489,7 @@ class _AuInputChatState extends State<AuInputChat> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Container(
+    return DecoratedBox(
       decoration: BoxDecoration(
         color: theme.colorScheme.secondary,
         border: const Border(
@@ -513,7 +515,7 @@ class _AuInputChatState extends State<AuInputChat> {
                       focusedBorder: _contentBorder,
                       contentPadding: const EdgeInsets.symmetric(
                           horizontal: 20, vertical: 10),
-                      hintText: "message".tr(),
+                      hintText: 'message'.tr(),
                       hintStyle: theme.textTheme.moMASans400Black14.copyWith(
                         color: AppColor.auQuickSilver,
                       ),
@@ -547,13 +549,13 @@ class _AuInputChatState extends State<AuInputChat> {
                 },
                 child: Container(
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(28.0),
+                    borderRadius: BorderRadius.circular(28),
                     color: AppColor.auLightGrey,
                   ),
                   padding:
                       const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   child: SvgPicture.asset(
-                    "assets/images/send_arrow.svg",
+                    'assets/images/send_arrow.svg',
                     width: 21,
                     height: 21,
                     colorFilter: ui.ColorFilter.mode(
@@ -594,23 +596,20 @@ class PostcardChatConfig {
     this.lastMessageReadTimeStamp,
   });
 
-  Map<String, dynamic> toJson() {
-    return {
-      "address": address,
-      "tokenId": tokenId,
-      "firstTimeJoined": firstTimeJoined,
-      "lastMessageReadTimeStamp": lastMessageReadTimeStamp,
-    };
-  }
+  Map<String, dynamic> toJson() => {
+        'address': address,
+        'tokenId': tokenId,
+        'firstTimeJoined': firstTimeJoined,
+        'lastMessageReadTimeStamp': lastMessageReadTimeStamp,
+      };
 
-  factory PostcardChatConfig.fromJson(Map<String, dynamic> json) {
-    return PostcardChatConfig(
-      address: json["address"] as String,
-      tokenId: json["tokenId"] as String,
-      firstTimeJoined: json["firstTimeJoined"] as int?,
-      lastMessageReadTimeStamp: json["lastMessageReadTimeStamp"] as int?,
-    );
-  }
+  factory PostcardChatConfig.fromJson(Map<String, dynamic> json) =>
+      PostcardChatConfig(
+        address: json['address'] as String,
+        tokenId: json['tokenId'] as String,
+        firstTimeJoined: json['firstTimeJoined'] as int?,
+        lastMessageReadTimeStamp: json['lastMessageReadTimeStamp'] as int?,
+      );
 
   //copyWith
   PostcardChatConfig copyWith({
@@ -618,13 +617,12 @@ class PostcardChatConfig {
     String? tokenId,
     int? firstTimeJoined,
     int? lastMessageReadTimeStamp,
-  }) {
-    return PostcardChatConfig(
-      address: address ?? this.address,
-      tokenId: tokenId ?? this.tokenId,
-      firstTimeJoined: firstTimeJoined ?? this.firstTimeJoined,
-      lastMessageReadTimeStamp:
-          lastMessageReadTimeStamp ?? this.lastMessageReadTimeStamp,
-    );
-  }
+  }) =>
+      PostcardChatConfig(
+        address: address ?? this.address,
+        tokenId: tokenId ?? this.tokenId,
+        firstTimeJoined: firstTimeJoined ?? this.firstTimeJoined,
+        lastMessageReadTimeStamp:
+            lastMessageReadTimeStamp ?? this.lastMessageReadTimeStamp,
+      );
 }
