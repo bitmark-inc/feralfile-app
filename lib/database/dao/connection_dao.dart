@@ -37,26 +37,8 @@ abstract class ConnectionDao {
     return linkedAccounts;
   }
 
-  @Query(
-      'SELECT * FROM Connection WHERE connectionType IN ("dappConnect", "dappConnect2", "beaconP2PPeer")')
-  Future<List<Connection>> getRelatedPersonaConnections();
-
-  @Query(
-      'SELECT * FROM Connection WHERE connectionType = :type ORDER BY createdAt DESC')
-  Future<List<Connection>> getConnectionsByType(String type);
-
-  @Query(
-      'SELECT * FROM Connection WHERE accountNumber = :accountNumber COLLATE NOCASE')
-  Future<List<Connection>> getConnectionsByAccountNumber(String accountNumber);
-
-  @Insert(onConflict: OnConflictStrategy.replace)
-  Future<void> insertConnection(Connection connection);
-
   @Insert(onConflict: OnConflictStrategy.replace)
   Future<void> insertConnections(List<Connection> connections);
-
-  @Query('SELECT * FROM Connection WHERE key = :key')
-  Future<Connection?> findById(String key);
 
   @Query('DELETE FROM Connection')
   Future<void> removeAll();

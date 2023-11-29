@@ -100,8 +100,9 @@ class FirestoreConnectionDaoImp implements FirestoreConnectionDao {
 
   @override
   Future<List<Connection>> getConnectionsByType(String type) async {
-    final query = _collectionRef.where('connectionType', isEqualTo: type);
-    // .orderBy('createdAt', descending: true);
+    final query = _collectionRef
+        .where('connectionType', isEqualTo: type)
+        .orderBy('createdAt', descending: true);
     final connections = await query.get();
     if (connections.docs.isEmpty) {
       return [];
