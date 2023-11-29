@@ -96,9 +96,10 @@ class BackupService {
   Future<bool> restoreCloudDatabaseIfNeed(WalletStorage account, String version,
       {String dbName = 'cloud_database.db'}) async {
     log.info('[BackupService] start database restore');
-    final isDatabaseExistOnFirestore = await _cloudFirestoreService.isExist();
-    if (isDatabaseExistOnFirestore) {
-      log.info('[BackupService] database not exist on firestore');
+    final alreadyBackupSqliteDatabase =
+        await _cloudFirestoreService.isAlreadyBackupFromSqlite();
+    if (alreadyBackupSqliteDatabase) {
+      log.info('[BackupService] already backup from sqlite database');
       return false;
     }
 
@@ -140,6 +141,7 @@ class BackupService {
       }
     }
     injector<MetricClientService>().onRestore();
+    await _cloudFirestoreService.setAlreadyBackupFromSqlite();
     log.info('[BackupService] done database restore');
     return true;
   }

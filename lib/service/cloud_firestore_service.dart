@@ -27,6 +27,23 @@ class CloudFirestoreService {
     return '${deviceId}_${packageInfo.packageName}';
   }
 
+  Future<void> setAlreadyBackupFromSqlite({bool value = true}) async {
+    final collection = getCollection(FirestoreCollection.settingsData);
+    final doc = collection.doc('backup');
+    await doc.set({'backup': value});
+  }
+
+  Future<bool> isAlreadyBackupFromSqlite() async {
+    final collection = getCollection(FirestoreCollection.settingsData);
+    final doc = collection.doc('backup');
+    final snapshot = await doc.get();
+    if (!snapshot.exists) {
+      return false;
+    }
+    final data = snapshot.data() as Map<String, dynamic>?;
+    return data?['backup'] ?? false;
+  }
+
   CollectionReference getCollection(FirestoreCollection collection) =>
       fireBaseFirestore
           .collection('$deviceId/$virtualDocumentId/${collection.name}');
@@ -55,25 +72,6 @@ class CloudFirestoreService {
     }
     log.info('[BackupService] done database backup');
   }
-
-  Future<bool> isExist() => getCollection(FirestoreCollection.persona)
-      .limit(1)
-      .get()
-      .then((value) => value.docs.isNotEmpty);
-
-  Future<void> copyFromSqliteDatabase(
-      SqliteCloudDatabase sqliteCloudDatabase) async {
-    final cloudFirestoreDatabase = injector<CloudDatabase>();
-    final personas = await sqliteCloudDatabase.personaDao.getPersonas();
-    await cloudFirestoreDatabase.personaDao.insertPersonas(personas);
-    final connections =
-        await sqliteCloudDatabase.connectionDao.getUpdatedLinkedAccounts();
-    await cloudFirestoreDatabase.connectionDao.insertConnections(connections);
-    final audits = await sqliteCloudDatabase.auditDao.getAudits();
-    await cloudFirestoreDatabase.auditDao.insertAudits(audits);
-    final addresses = await sqliteCloudDatabase.addressDao.getAllAddresses();
-    await cloudFirestoreDatabase.addressDao.insertAddresses(addresses);
-  }
 }
 
 enum FirestoreCollection {
@@ -81,7 +79,8 @@ enum FirestoreCollection {
   connection,
   audit,
   walletAddress,
-  settingsData;
+  settingsData,
+  firestoreSetting;
 
   String get name {
     switch (this) {
@@ -95,6 +94,8 @@ enum FirestoreCollection {
         return 'wallet_address';
       case FirestoreCollection.settingsData:
         return 'settings_data';
+      case FirestoreCollection.firestoreSetting:
+        return 'firestore_setting';
     }
   }
 }

@@ -1,19 +1,19 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-const virtualDocumentId = "virtualDocumentId";
+const virtualDocumentId = 'virtualDocumentId';
 
 class CloudFireStore {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  CollectionReference collection(String CollectionName) =>
-      _firestore.collection(CollectionName);
+  CollectionReference collection(String collectionName) =>
+      _firestore.collection(collectionName);
 }
 
 extension CloudFireStoreCollectionExtension on CollectionReference {
   CollectionReference getSubCollection(String subCollectionName) {
     final firestore = this.firestore;
     final path = this.path;
-    final subCollectionPath = "$path/$virtualDocumentId/$subCollectionName";
+    final subCollectionPath = '$path/$virtualDocumentId/$subCollectionName';
     return firestore.collection(subCollectionPath);
   }
 

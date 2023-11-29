@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
+import 'package:autonomy_flutter/service/cloud_firestore_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -31,6 +32,7 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
   final IAPService _iapService;
   final AuditService _auditService;
   final SettingsDataService _settingsDataService;
+  final CloudFirestoreService _cloudFirestoreService;
 
   Future<bool> hasAccounts() async {
     final personas = await _cloudFirestoreDB.personaDao.getPersonas();
@@ -46,7 +48,8 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
       this._cloudFirestoreDB,
       this._iapService,
       this._auditService,
-      this._settingsDataService)
+      this._settingsDataService,
+      this._cloudFirestoreService)
       : super(RouterState(onboardingStep: OnboardingStep.undefined)) {
     final migrationUtil = MigrationUtil(
         _configurationService,
@@ -88,6 +91,7 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
           add(RestoreCloudDatabaseRoutingEvent(backupVersion));
           return;
         } else {
+          await _cloudFirestoreService.setAlreadyBackupFromSqlite();
           await _configurationService.setDoneOnboarding(true);
           unawaited(injector<MetricClientService>()
               .mixPanelClient
