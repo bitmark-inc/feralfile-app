@@ -1,6 +1,8 @@
+// ignore_for_file: discarded_futures
+
 import 'package:autonomy_flutter/gateway/activation_api.dart';
 import 'package:dio/dio.dart';
-
+import 'package:mockito/mockito.dart';
 import 'api_mock_data.dart';
 import 'constants.dart';
 
@@ -108,4 +110,16 @@ class ActivationApiMock {
           address: address,
           airdropTOTPPasscode: airdropTOTPPasscode),
       Exception('claimExceptionOther'));
+
+  static void setup(ActivationApi mockActivationApi) {
+    when(mockActivationApi
+            .getActivation(ActivationApiMock.getActivationValid.req))
+        .thenAnswer((_) async =>
+            ActivationApiMock.getActivationValid.res as ActivationInfo);
+
+    when(mockActivationApi
+            .getActivation(ActivationApiMock.getActivationDioException4xx.req))
+        .thenThrow(
+            ActivationApiMock.getActivationDioException4xx.res as DioException);
+  }
 }
