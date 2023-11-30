@@ -43,12 +43,46 @@ void main() async {
           activationID: ActivationApiMock.getActivationDioException4xx.req);
       expect(
           error, throwsA(ActivationApiMock.getActivationDioException4xx.res));
-
-      // Add more assertions based on your actual data
-
-      // Verify that the getActivation method on ActivationApi was called
       verify(mockActivationApi.getActivation(
               ActivationApiMock.getActivationDioException4xx.req))
+          .called(1);
+    });
+
+    test('getActivation case 500', () async {
+      final error = activationService.getActivation(
+          activationID: ActivationApiMock.getActivationDioException5xx.req);
+      expect(
+          error, throwsA(ActivationApiMock.getActivationDioException5xx.res));
+      verify(mockActivationApi.getActivation(
+              ActivationApiMock.getActivationDioException5xx.req))
+          .called(1);
+    });
+
+    test('getActivation case connectionTimeout', () async {
+      final error = activationService.getActivation(
+          activationID: ActivationApiMock.getActivationConnectionTimeout.req);
+      expect(
+          error, throwsA(ActivationApiMock.getActivationConnectionTimeout.res));
+      verify(mockActivationApi.getActivation(
+              ActivationApiMock.getActivationConnectionTimeout.req))
+          .called(1);
+    });
+
+    test('getActivation case receiveTimeout', () async {
+      final error = activationService.getActivation(
+          activationID: ActivationApiMock.getActivationReceiveTimeout.req);
+      expect(error, throwsA(ActivationApiMock.getActivationReceiveTimeout.res));
+      verify(mockActivationApi
+              .getActivation(ActivationApiMock.getActivationReceiveTimeout.req))
+          .called(1);
+    });
+
+    test('getActivation case exceptionOther', () async {
+      final error = activationService.getActivation(
+          activationID: ActivationApiMock.getActivationExceptionOther.req);
+      expect(error, throwsA(ActivationApiMock.getActivationExceptionOther.res));
+      verify(mockActivationApi
+              .getActivation(ActivationApiMock.getActivationExceptionOther.req))
           .called(1);
     });
 

@@ -121,5 +121,45 @@ class ActivationApiMock {
             .getActivation(ActivationApiMock.getActivationDioException4xx.req))
         .thenThrow(
             ActivationApiMock.getActivationDioException4xx.res as DioException);
+
+    when(mockActivationApi
+            .getActivation(ActivationApiMock.getActivationDioException5xx.req))
+        .thenThrow(
+            ActivationApiMock.getActivationDioException5xx.res as DioException);
+
+    when(mockActivationApi.getActivation(
+            ActivationApiMock.getActivationConnectionTimeout.req))
+        .thenThrow(ActivationApiMock.getActivationConnectionTimeout.res
+            as DioException);
+
+    when(mockActivationApi
+            .getActivation(ActivationApiMock.getActivationReceiveTimeout.req))
+        .thenThrow(
+            ActivationApiMock.getActivationReceiveTimeout.res as DioException);
+
+    when(mockActivationApi
+            .getActivation(ActivationApiMock.getActivationExceptionOther.req))
+        .thenThrow(
+            ActivationApiMock.getActivationExceptionOther.res as Exception);
+
+    when(mockActivationApi.claim(ActivationApiMock.claimValid.req)).thenAnswer(
+        (_) async =>
+            ActivationApiMock.claimValid.res as ActivationClaimResponse);
+
+    when(mockActivationApi.claim(ActivationApiMock.claimDioException4xx.req))
+        .thenThrow(ActivationApiMock.claimDioException4xx.res as DioException);
+
+    when(mockActivationApi.claim(ActivationApiMock.claimDioException5xx.req))
+        .thenThrow(ActivationApiMock.claimDioException5xx.res as DioException);
+
+    when(mockActivationApi.claim(ActivationApiMock.claimConnectionTimeout.req))
+        .thenThrow(
+            ActivationApiMock.claimConnectionTimeout.res as DioException);
+
+    when(mockActivationApi.claim(ActivationApiMock.claimReceiveTimeout.req))
+        .thenThrow(ActivationApiMock.claimReceiveTimeout.res as DioException);
+
+    when(mockActivationApi.claim(ActivationApiMock.claimDioExceptionOther.req))
+        .thenThrow(ActivationApiMock.claimDioExceptionOther.res as Exception);
   }
 }
