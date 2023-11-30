@@ -91,6 +91,7 @@ class ClaimPostCardResponse {
   String? blockchain;
   String? owner;
   String? contractAddress;
+  String? prompt;
 
   ClaimPostCardResponse({
     this.tokenID,
@@ -98,6 +99,7 @@ class ClaimPostCardResponse {
     this.blockchain,
     this.owner,
     this.contractAddress,
+    this.prompt,
   });
 
   ClaimPostCardResponse copyWith({
@@ -106,6 +108,7 @@ class ClaimPostCardResponse {
     String? blockchain,
     String? owner,
     String? contractAddress,
+    String? prompt,
   }) =>
       ClaimPostCardResponse(
         tokenID: tokenID ?? this.tokenID,
@@ -113,6 +116,7 @@ class ClaimPostCardResponse {
         blockchain: blockchain ?? this.blockchain,
         owner: owner ?? this.owner,
         contractAddress: contractAddress ?? this.contractAddress,
+        prompt: prompt ?? this.prompt,
       );
 
   Map<String, dynamic> toJson() => <String, dynamic>{
@@ -121,6 +125,7 @@ class ClaimPostCardResponse {
         'blockchain': blockchain,
         'owner': owner,
         'contractAddress': contractAddress,
+        'prompt': prompt,
       };
 
   factory ClaimPostCardResponse.fromJson(Map<String, dynamic> map) =>
@@ -133,12 +138,14 @@ class ClaimPostCardResponse {
         contractAddress: map['contractAddress'] != null
             ? map['contractAddress'] as String
             : null,
+        prompt: map['prompt'] != null ? map['prompt'] as String : null,
       );
 
   @override
   String toString() => '''
       ClaimPostCardResponse(tokenID: $tokenID, imageCID: $imageCID, blockchain:
-       $blockchain, owner: $owner, contractAddress: $contractAddress)
+       $blockchain, owner: $owner, contractAddress: $contractAddress,
+       prompt: $prompt)
        ''';
 
   @override
@@ -151,7 +158,8 @@ class ClaimPostCardResponse {
         other.imageCID == imageCID &&
         other.blockchain == blockchain &&
         other.owner == owner &&
-        other.contractAddress == contractAddress;
+        other.contractAddress == contractAddress &&
+        other.prompt == prompt;
   }
 
   @override
@@ -160,7 +168,8 @@ class ClaimPostCardResponse {
       imageCID.hashCode ^
       blockchain.hashCode ^
       owner.hashCode ^
-      contractAddress.hashCode;
+      contractAddress.hashCode ^
+      prompt.hashCode;
 }
 
 class RequestPostcardRequest {
@@ -214,6 +223,7 @@ class RequestPostcardResponse {
 class PayToMintRequest extends RequestPostcardResponse {
   final String address;
   final String tokenId;
+  final String? prompt;
 
   //constructor
   PayToMintRequest({
@@ -222,6 +232,7 @@ class PayToMintRequest extends RequestPostcardResponse {
     required super.claimID,
     required super.name,
     required super.previewURL,
+    this.prompt,
   });
 
   @override
@@ -231,6 +242,7 @@ class PayToMintRequest extends RequestPostcardResponse {
         'previewURL': previewURL,
         'address': address,
         'tokenId': tokenId,
+        'prompt': prompt,
       };
 
   // fromJson method
@@ -241,5 +253,6 @@ class PayToMintRequest extends RequestPostcardResponse {
         previewURL: json['previewURL'] as String,
         address: json['address'] as String,
         tokenId: json['tokenId'] as String,
+        prompt: json['prompt'] as String?,
       );
 }

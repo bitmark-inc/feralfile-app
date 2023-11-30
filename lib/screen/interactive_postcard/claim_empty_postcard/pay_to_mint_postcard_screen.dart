@@ -15,7 +15,9 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+// ignore: always_use_package_imports
 import 'claim_empty_postcard_bloc.dart';
+// ignore: always_use_package_imports
 import 'claim_empty_postcard_state.dart';
 
 class PayToMintPostcardScreen extends StatefulWidget {

@@ -20,6 +20,7 @@ import 'package:autonomy_flutter/screen/interactive_postcard/leaderboard/postcar
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/request_response.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -46,11 +47,9 @@ import 'package:nft_collection/widgets/nft_collection_bloc_event.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
-import 'account_service.dart';
-
 abstract class PostcardService {
   Future<ReceivePostcardResponse> receivePostcard(
-      {required String shareCode, Location? location, required String address});
+      {required String shareCode, required String address, Location? location});
 
   Future<ClaimPostCardResponse> claimEmptyPostcard(
       ClaimPostCardRequest request);
@@ -142,8 +141,8 @@ class PostcardServiceImpl extends PostcardService {
   @override
   Future<ReceivePostcardResponse> receivePostcard({
     required String shareCode,
-    Location? location,
     required String address,
+    Location? location,
   }) async {
     log.info('receivePostcard shareCode: $shareCode, address: $address');
     try {
@@ -283,17 +282,18 @@ class PostcardServiceImpl extends PostcardService {
       final ok = result['metadataCID'] as String;
       final isStampSuccess = ok.isNotEmpty;
       if (isStampSuccess) {
-        _metricClientService.addEvent(MixpanelEvent.postcardStamp, data: {
+        unawaited(
+            _metricClientService.addEvent(MixpanelEvent.postcardStamp, data: {
           'postcardId': tokenId,
           'index': counter,
-        });
+        }));
         if (counter == MAX_STAMP_IN_POSTCARD) {
           try {
-            _chatService.sendPostcardCompleteMessage(
+            unawaited(_chatService.sendPostcardCompleteMessage(
               address,
               getTokenId(tokenId),
               Pair(wallet, index),
-            );
+            ));
           } catch (e) {
             unawaited(Sentry.captureException(e));
             log.info('[Postcard Service] sendPostcardCompleteMessage $e');
@@ -519,11 +519,13 @@ class PostcardServiceImpl extends PostcardService {
       location: [moMAGeoLocation.position.lat, moMAGeoLocation.position.lon],
     );
     final result = await claimEmptyPostcard(claimRequest);
-    _metricClientService.addEvent(MixpanelEvent.postcardClaimEmpty, data: {
+    unawaited(
+        _metricClientService.addEvent(MixpanelEvent.postcardClaimEmpty, data: {
       'postcardId': result.tokenID,
-    });
+    }));
     final tokenID = 'tez-${result.contractAddress}-${result.tokenID}';
     final postcardMetadata = PostcardMetadata(
+      prompt: result.prompt,
       locationInformation: [],
     );
     final token = AssetToken(
@@ -559,8 +561,9 @@ class PostcardServiceImpl extends PostcardService {
     );
 
     await _tokensService.setCustomTokens([token]);
-    _tokensService.reindexAddresses([address]);
-    injector.get<ConfigurationService>().setListPostcardMint([tokenID]);
+    unawaited(_tokensService.reindexAddresses([address]));
+    unawaited(
+        injector.get<ConfigurationService>().setListPostcardMint([tokenID]));
     NftCollectionBloc.eventController.add(
       GetTokensByOwnerEvent(pageKey: PageKey.init()),
     );
@@ -594,7 +597,7 @@ class PostcardServiceImpl extends PostcardService {
 
     final tokenService = injector<TokensService>();
     await tokenService.setCustomTokens([pendingToken]);
-    tokenService.reindexAddresses([address]);
+    unawaited(tokenService.reindexAddresses([address]));
     NftCollectionBloc.eventController.add(
       GetTokensByOwnerEvent(pageKey: PageKey.init()),
     );
@@ -662,7 +665,7 @@ class PostcardServiceImpl extends PostcardService {
       newAsset?.artworkMetadata = jsonEncode(postcardMetadata.toJson());
       final pendingToken = asset.copyWith(asset: newAsset);
       await _tokensService.setCustomTokens([pendingToken]);
-      _tokensService.reindexAddresses([address]);
+      unawaited(_tokensService.reindexAddresses([address]));
       NftCollectionBloc.eventController.add(
         GetTokensByOwnerEvent(pageKey: PageKey.init()),
       );
