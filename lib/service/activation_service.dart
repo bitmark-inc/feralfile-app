@@ -22,9 +22,8 @@ class ActivationService {
   const ActivationService(
       this._airdropApi, this._tokensService, this._navigationService);
 
-  Future<ActivationInfo> getActivation({required String activationID}) {
-    return _airdropApi.getActivation(activationID);
-  }
+  Future<ActivationInfo> getActivation({required String activationID}) async =>
+      await _airdropApi.getActivation(activationID);
 
   Future<ActivationClaimResponse> claimActivation(
       {required ActivationClaimRequest request,
