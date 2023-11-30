@@ -234,42 +234,44 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-        backgroundColor: AppColor.white,
-        appBar: getBackAppBar(
-          context,
-          title: 'messages'.tr(),
-          titleStyle: theme.textTheme.moMASans700Black18,
-          onBack: () => Navigator.of(context).pop(),
+      backgroundColor: POSTCARD_BACKGROUND_COLOR,
+      appBar: getBackAppBar(
+        context,
+        title: 'messages'.tr(),
+        titleStyle: theme.textTheme.moMASans700Black18,
+        onBack: () => Navigator.of(context).pop(),
+        statusBarColor: POSTCARD_BACKGROUND_COLOR,
+        backgroundColor: POSTCARD_BACKGROUND_COLOR,
+      ),
+      body: Chat(
+        l10n: ChatL10nEn(
+          inputPlaceholder: 'message'.tr(),
         ),
-        body: Container(
-            margin: EdgeInsets.zero,
-            child: Chat(
-                l10n: ChatL10nEn(
-                  inputPlaceholder: 'message'.tr(),
-                ),
-                onMessageVisibilityChanged: _onMessageVisibilityChanged,
-                customDateHeaderText: getChatDateTimeRepresentation,
-                systemMessageBuilder: _systemMessageBuilder,
-                bubbleRtlAlignment: BubbleRtlAlignment.left,
-                isLastPage: false,
-                theme: _chatTheme,
-                dateHeaderThreshold: 12 * 60 * 60 * 1000,
-                groupMessagesThreshold: DateTime.now().millisecondsSinceEpoch,
-                emptyState: const SizedBox(),
-                messages: _messages,
-                onSendPressed: (_) {},
-                user: types.User(id: const Uuid().v4()),
-                customBottomWidget: Column(
-                  children: [
-                    if (_chatPrivateBannerTimestamp == null)
-                      _chatPrivateBanner(context)
-                    else
-                      const SizedBox(),
-                    AuInputChat(
-                      onSendPressed: _handleSendPressed,
-                    ),
-                  ],
-                ))));
+        onMessageVisibilityChanged: _onMessageVisibilityChanged,
+        customDateHeaderText: getChatDateTimeRepresentation,
+        systemMessageBuilder: _systemMessageBuilder,
+        bubbleRtlAlignment: BubbleRtlAlignment.left,
+        isLastPage: false,
+        theme: _chatTheme,
+        dateHeaderThreshold: 12 * 60 * 60 * 1000,
+        groupMessagesThreshold: DateTime.now().millisecondsSinceEpoch,
+        emptyState: const SizedBox(),
+        messages: _messages,
+        onSendPressed: (_) {},
+        user: types.User(id: const Uuid().v4()),
+        customBottomWidget: Column(
+          children: [
+            if (_chatPrivateBannerTimestamp == null)
+              _chatPrivateBanner(context)
+            else
+              const SizedBox(),
+            AuInputChat(
+              onSendPressed: _handleSendPressed,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   void _onMessageVisibilityChanged(types.Message message, bool visible) {
@@ -317,12 +319,12 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
     final avatarUrl = message.author.getAvatarUrl(assetToken: assetToken);
     final backgroundColor = isMe || message.isSystemMessage
         ? AppColor.secondaryDimGreyBackground
-        : AppColor.white;
+        : POSTCARD_BACKGROUND_COLOR;
     return Column(
       children: [
         addOnlyDivider(color: AppColor.auLightGrey),
         Container(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(15),
           color: backgroundColor,
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -486,94 +488,75 @@ class _AuInputChatState extends State<AuInputChat> {
   final TextEditingController _textController = TextEditingController();
   bool _isTyping = false;
 
+  Widget _sendIcon(BuildContext context) => SvgPicture.asset(
+        'assets/images/sendMessage.svg',
+        width: 22,
+        height: 22,
+        colorFilter: ui.ColorFilter.mode(
+            _isTyping ? AppColor.primaryBlack : AppColor.auQuickSilver,
+            BlendMode.srcIn),
+      );
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return DecoratedBox(
+    return Container(
       decoration: BoxDecoration(
         color: theme.colorScheme.secondary,
-        border: const Border(
-          top: BorderSide(
-            color: AppColor.auQuickSilver,
-            width: 0.5,
-          ),
-        ),
       ),
-      child: Padding(
-          padding: const EdgeInsets.fromLTRB(15, 20, 15, 40),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _textController,
-                  style: theme.textTheme.moMASans400Black14,
-                  cursorColor: theme.colorScheme.primary,
-                  decoration: InputDecoration(
-                      constraints: const BoxConstraints(maxHeight: 200),
-                      border: _contentBorder,
-                      focusedBorder: _contentBorder,
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 10),
-                      hintText: 'message'.tr(),
-                      hintStyle: theme.textTheme.moMASans400Black14.copyWith(
-                        color: AppColor.auQuickSilver,
-                      ),
-                      isDense: true),
-                  maxLines: 5,
-                  minLines: 1,
-                  onChanged: (text) {
-                    if (_isTyping && text.trim() == '' ||
-                        !_isTyping && text.trim() != '') {
-                      setState(() {
-                        _isTyping = text.trim() != '';
-                      });
-                    }
-                  },
-                  onTap: () {},
-                  textCapitalization: TextCapitalization.sentences,
-                ),
-              ),
-              const SizedBox(width: 25),
-              GestureDetector(
-                onTap: () {
-                  final trimmedText = _textController.text.trim();
-                  if (trimmedText.isNotEmpty) {
-                    widget.onSendPressed
-                        .call(types.PartialText(text: trimmedText));
-                    _textController.clear();
-                    setState(() {
-                      _isTyping = false;
-                    });
-                  }
-                },
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(28),
-                    color: AppColor.auLightGrey,
+      padding: const EdgeInsets.fromLTRB(15, 20, 15, 40),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _textController,
+              style: theme.textTheme.moMASans400Black14,
+              cursorColor: theme.colorScheme.primary,
+              decoration: InputDecoration(
+                  constraints: const BoxConstraints(maxHeight: 24),
+                  contentPadding: EdgeInsets.zero,
+                  border: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  hintText: 'write_a_message'.tr(),
+                  hintStyle: theme.textTheme.moMASans400Black14.copyWith(
+                    color: AppColor.auQuickSilver,
                   ),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  child: SvgPicture.asset(
-                    'assets/images/send_arrow.svg',
-                    width: 21,
-                    height: 21,
-                    colorFilter: ui.ColorFilter.mode(
-                        _isTyping
-                            ? AppColor.primaryBlack
-                            : AppColor.auQuickSilver,
-                        BlendMode.srcIn),
-                  ),
-                ),
-              )
-            ],
-          )),
+                  isDense: true),
+              cursorWidth: 1,
+              textAlignVertical: TextAlignVertical.center,
+              maxLines: 5,
+              minLines: 1,
+              onChanged: (text) {
+                if (_isTyping && text.trim() == '' ||
+                    !_isTyping && text.trim() != '') {
+                  setState(() {
+                    _isTyping = text.trim() != '';
+                  });
+                }
+              },
+              onTap: () {},
+              textCapitalization: TextCapitalization.sentences,
+            ),
+          ),
+          const SizedBox(width: 57),
+          GestureDetector(
+            onTap: () {
+              final trimmedText = _textController.text.trim();
+              if (trimmedText.isNotEmpty) {
+                widget.onSendPressed.call(types.PartialText(text: trimmedText));
+                _textController.clear();
+                setState(() {
+                  _isTyping = false;
+                });
+              }
+            },
+            child: _sendIcon(context),
+          )
+        ],
+      ),
     );
   }
-
-  final _contentBorder = const OutlineInputBorder(
-      borderSide: BorderSide(color: AppColor.auQuickSilver),
-      borderRadius: BorderRadius.all(Radius.circular(28)));
 
   @override
   void dispose() {
