@@ -40,7 +40,7 @@ class PromptView extends StatelessWidget {
                     Text(
                       text,
                       style: theme.textTheme.moMASans700Black18,
-                      maxLines: expandable ? null : 2 ,
+                      maxLines: expandable ? null : 2,
                       overflow: expandable ? null : TextOverflow.ellipsis,
                     ),
                   ],

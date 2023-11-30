@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/hand_signature_page.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/moma_style_color.dart';
@@ -7,6 +8,7 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/prompt_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -55,8 +57,12 @@ class _DesignStampPageState extends State<DesignStampPage> {
 
     ///
     /// TODO: remove this
-    _prompt =
-        'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisl eget aliquam ultricies, nisl nisl aliquam nisl, eget aliquam nisl nisl eget.';
+    ///
+    _prompt = '''
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+        Donec euismod, nisl eget aliquam ultricies, nisl nisl aliquam nisl, 
+        eget aliquam nisl nisl eget.
+        ''';
 
     stampColors.shuffle();
     _selectedColor = stampColors[0];
@@ -107,6 +113,14 @@ class _DesignStampPageState extends State<DesignStampPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      PrimaryButton(
+                        text: 'to prompt page',
+                        onTap: () async {
+                          await Navigator.of(context).pushNamed(
+                              AppRouter.promptPage,
+                              arguments: widget.payload);
+                        },
+                      ),
                       if (_prompt != null)
                         PromptView(
                           text: _prompt!,
