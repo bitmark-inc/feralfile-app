@@ -5,9 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/model/p2p_peer.dart';
 import 'package:json_annotation/json_annotation.dart';
-
-import 'p2p_peer.dart';
 
 part 'connection_supports.g.dart';
 

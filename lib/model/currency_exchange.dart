@@ -15,13 +15,13 @@ class CurrencyExchange {
 
   factory CurrencyExchange.fromJson(Map<String, dynamic> json) =>
       CurrencyExchange(
-        currency: json["currency"],
-        rates: CurrencyExchangeRate.fromJson(json["rates"]),
+        currency: json['currency'],
+        rates: CurrencyExchangeRate.fromJson(json['rates']),
       );
 
   Map<String, dynamic> toJson() => {
-        "currency": currency,
-        "rates": rates.toJson(),
+        'currency': currency,
+        'rates': rates.toJson(),
       };
 }
 
@@ -33,21 +33,18 @@ class CurrencyExchangeRate {
 
   factory CurrencyExchangeRate.fromJson(Map<String, dynamic> json) =>
       CurrencyExchangeRate(
-        eth: json["ETH"],
-        xtz: json["XTZ"],
+        eth: json['ETH'],
+        xtz: json['XTZ'],
       );
 
   Map<String, dynamic> toJson() => {
-        "ETH": eth,
-        "XTZ": xtz,
+        'ETH': eth,
+        'XTZ': xtz,
       };
 
-  String ethToUsd(BigInt amount) {
-    return (amount.toDouble() / pow(10, 18) / double.parse(eth))
-        .toStringAsFixed(2);
-  }
+  String ethToUsd(BigInt amount) =>
+      (amount.toDouble() / pow(10, 18) / double.parse(eth)).toStringAsFixed(2);
 
-  String xtzToUsd(int amount) {
-    return (amount / pow(10, 6) / double.parse(xtz)).toStringAsFixed(2);
-  }
+  String xtzToUsd(int amount) =>
+      (amount / pow(10, 6) / double.parse(xtz)).toStringAsFixed(2);
 }

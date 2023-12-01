@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+// ignore_for_file: constant_identifier_names
 enum Network { TESTNET, MAINNET }
 
 extension RawValue on Network {

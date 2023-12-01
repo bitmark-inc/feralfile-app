@@ -7,9 +7,9 @@
 
 import 'package:autonomy_flutter/database/entity/announcement_local.dart';
 import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:collection/collection.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 
 part 'customer_support.g.dart';
 
@@ -30,6 +30,7 @@ class Issue implements ChatThread {
   int rating;
   @JsonKey(name: 'last_message')
   Message? lastMessage;
+
   // only on local
   @JsonKey(includeFromJson: false, includeToJson: false)
   DraftCustomerSupport? draft;
@@ -47,8 +48,8 @@ class Issue implements ChatThread {
     required this.total,
     required this.unread,
     required this.lastMessage,
-    this.draft,
     required this.rating,
+    this.draft,
     this.announcementID,
   });
 
@@ -56,16 +57,13 @@ class Issue implements ChatThread {
 
   Map<String, dynamic> toJson() => _$IssueToJson(this);
 
-  String get reportIssueType {
-    return ReportIssueType.getList
-            .firstWhereOrNull((element) => tags.contains(element)) ??
-        "";
-  }
+  String get reportIssueType =>
+      ReportIssueType.getList
+          .firstWhereOrNull((element) => tags.contains(element)) ??
+      '';
 
   @override
-  String getListTitle() {
-    return ReportIssueType.toTitle(reportIssueType);
-  }
+  String getListTitle() => ReportIssueType.toTitle(reportIssueType);
 }
 
 @JsonSerializable()
@@ -109,7 +107,8 @@ class ReceiveAttachment {
 
   Map<String, dynamic> toJson() => _$ReceiveAttachmentToJson(this);
 
-  // Because logs are big and aren't valuable for user. I don't store  the local logs files
+  // Because logs are big and aren't valuable for user.
+  // I don't store  the local logs files
   // I join the size of file inside the attachment's title
   static List<dynamic> extractSizeAndRealTitle(String title) {
     final fileInfos = title.split('_');
@@ -145,10 +144,12 @@ class Message {
   });
 
   String get filteredMessage {
-    if (message.isEmpty || message == EMPTY_ISSUE_MESSAGE) return "";
+    if (message.isEmpty || message == EMPTY_ISSUE_MESSAGE) {
+      return '';
+    }
     return message
-        .replaceAll(RegExp(r"\[MUTED\](.|\n)*\[/MUTED\]"), '')
-        .replaceAll(RegExp(r"^(\n)*"), "");
+        .replaceAll(RegExp(r'\[MUTED\](.|\n)*\[/MUTED\]'), '')
+        .replaceAll(RegExp(r'^(\n)*'), '');
   }
 
   factory Message.fromJson(Map<String, dynamic> json) =>

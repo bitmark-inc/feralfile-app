@@ -14,10 +14,10 @@ class Wc2EthereumTransactionParam {
   });
 
   factory Wc2EthereumTransactionParam.fromJson(Map<String, dynamic> json) {
-    final to = EthereumAddress.fromHex(json["to"] as String);
-    final value = BigInt.parse(json["value"] as String);
-    final gas = BigInt.parse(json["gas"] as String);
-    final data = json["data"] as String?;
+    final to = EthereumAddress.fromHex(json['to'] as String);
+    final value = BigInt.parse(json['value'] as String);
+    final gas = BigInt.parse(json['gas'] as String);
+    final data = json['data'] as String?;
     return Wc2EthereumTransactionParam(
       to: to,
       value: value,

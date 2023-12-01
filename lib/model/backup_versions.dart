@@ -13,8 +13,8 @@ class BackupVersions {
   List<dynamic> versions;
 
   factory BackupVersions.fromJson(Map<String, dynamic> json) => BackupVersions(
-        versions: json["result"],
+        versions: json['result'],
       );
 
-  Map<String, dynamic> toJson() => {"result": versions};
+  Map<String, dynamic> toJson() => {'result': versions};
 }
