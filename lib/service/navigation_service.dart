@@ -10,7 +10,6 @@ import 'dart:async';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/otp.dart';
-import 'package:autonomy_flutter/model/prompt.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/claim/activation/claim_activation_page.dart';
 import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
@@ -72,6 +71,7 @@ class NavigationService {
 
     if (routeName == AppRouter.wcConnectPage && _isWCConnectInShow) {
       log.info(
+          // ignore: lines_longer_than_80_chars
           '[NavigationService] skip popAndPushNamed because WCConnectPage is in showing');
       return null;
     }
@@ -87,7 +87,7 @@ class NavigationService {
 
   Future<void> selectPromptsThenStamp(
       BuildContext context, AssetToken asset) async {
-    final prompts = //[Prompt(id: "id", description: "description", color: "po", cid: "")];
+    final prompts =
         await injector<PostcardService>().getPrompts(asset.tokenId!);
     if (!mounted) {
       return;
