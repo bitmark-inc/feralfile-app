@@ -283,7 +283,7 @@ class PostcardServiceImpl extends PostcardService {
           lat: lat,
           lon: lon,
           counter: counter,
-          promptID: counter > 1 ? null : prompt?.id ) as Map<String, dynamic>;
+          promptID: counter > 1 ? null : prompt?.id) as Map<String, dynamic>;
 
       final ok = result['metadataCID'] as String;
       final isStampSuccess = ok.isNotEmpty;
