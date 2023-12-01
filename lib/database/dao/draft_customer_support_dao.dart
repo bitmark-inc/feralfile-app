@@ -13,8 +13,8 @@ abstract class DraftCustomerSupportDao {
   @Query('SELECT * FROM DraftCustomerSupport ORDER BY createdAt LIMIT :limit')
   Future<List<DraftCustomerSupport>> fetchDrafts(int limit);
 
-  @Query(
-      'SELECT * FROM DraftCustomerSupport WHERE issueID = :issueID ORDER BY createdAt DESC')
+  @Query('SELECT * FROM DraftCustomerSupport '
+      'WHERE issueID = :issueID ORDER BY createdAt DESC')
   Future<List<DraftCustomerSupport>> getDrafts(String issueID);
 
   @Query('SELECT * FROM DraftCustomerSupport WHERE uuid = :uuid')
@@ -23,8 +23,8 @@ abstract class DraftCustomerSupportDao {
   @Query('SELECT * FROM DraftCustomerSupport ORDER BY createdAt DESC')
   Future<List<DraftCustomerSupport>> getAllDrafts();
 
-  @Query(
-      'UPDATE DraftCustomerSupport SET issueID = :newIssueID WHERE issueID = :oldIssueID')
+  @Query('UPDATE DraftCustomerSupport '
+      'SET issueID = :newIssueID WHERE issueID = :oldIssueID')
   Future<void> updateIssueID(String oldIssueID, String newIssueID);
 
   @Insert(onConflict: OnConflictStrategy.replace)

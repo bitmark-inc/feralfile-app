@@ -19,8 +19,8 @@ abstract class AuditDao {
   @Insert(onConflict: OnConflictStrategy.replace)
   Future<void> insertAudits(List<Audit> audits);
 
-  @Query(
-      'SELECT * FROM Audit WHERE category = (:category) AND "action" = (:action)')
+  @Query('SELECT * FROM Audit '
+      'WHERE category = (:category) AND "action" = (:action)')
   Future<List<Audit>> getAuditsBy(String category, String action);
 
   @Query('DELETE FROM Audit')
