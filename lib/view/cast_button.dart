@@ -6,8 +6,7 @@ class CastButton extends StatelessWidget {
   final VoidCallback? onCastTap;
   final bool isCasting;
 
-  const CastButton({Key? key, this.onCastTap, this.isCasting = false})
-      : super(key: key);
+  const CastButton({super.key, this.onCastTap, this.isCasting = false});
 
   @override
   Widget build(BuildContext context) {

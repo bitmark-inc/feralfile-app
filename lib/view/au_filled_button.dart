@@ -20,16 +20,15 @@ class AuFilledButton extends StatelessWidget {
   final bool isProcessing;
 
   const AuFilledButton(
-      {Key? key,
-      required this.text,
+      {required this.text,
       required this.onPress,
+      super.key,
       this.icon,
       this.enabled = true,
       this.color = AppColor.primaryBlack,
       this.isProcessing = false,
       this.textStyle,
-      this.textAlign})
-      : super(key: key);
+      this.textAlign});
 
   @override
   Widget build(BuildContext context) {
@@ -51,22 +50,23 @@ class AuFilledButton extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            isProcessing
-                ? Container(
-                    height: 14.0,
-                    width: 14.0,
-                    margin: const EdgeInsets.only(right: 8.0),
-                    child: CircularProgressIndicator(
-                      color: theme.colorScheme.primary,
-                      backgroundColor: theme.colorScheme.surface,
-                      strokeWidth: 2.0,
-                    ),
-                  )
-                : const SizedBox(),
-            icon != null
-                ? Container(
-                    margin: const EdgeInsets.only(right: 8.0), child: icon!)
-                : const SizedBox(),
+            if (isProcessing)
+              Container(
+                height: 14,
+                width: 14,
+                margin: const EdgeInsets.only(right: 8),
+                child: CircularProgressIndicator(
+                  color: theme.colorScheme.primary,
+                  backgroundColor: theme.colorScheme.surface,
+                  strokeWidth: 2,
+                ),
+              )
+            else
+              const SizedBox(),
+            if (icon != null)
+              Container(margin: const EdgeInsets.only(right: 8), child: icon)
+            else
+              const SizedBox(),
             Text(
               text,
               style: textStyle ?? theme.primaryTextTheme.labelLarge,

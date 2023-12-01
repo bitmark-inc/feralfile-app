@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 class HowItWorksView extends StatelessWidget {
   final int counter;
 
-  const HowItWorksView({super.key, required this.counter});
+  const HowItWorksView({required this.counter, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +14,7 @@ class HowItWorksView extends StatelessWidget {
     const dividerColor = AppColor.primaryBlack;
     const backgroundColor = AppColor.auGreyBackground;
     final theme = Theme.of(context);
-    return Container(
+    return DecoratedBox(
       decoration: BoxDecoration(
         color: backgroundColor,
         borderRadius: BorderRadius.circular(10),

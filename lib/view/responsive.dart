@@ -16,11 +16,11 @@ class ResponsiveLayout extends StatelessWidget {
   final Widget? desktop;
 
   const ResponsiveLayout({
-    Key? key,
     required this.mobile,
+    super.key,
     this.tablet,
     this.desktop,
-  }) : super(key: key);
+  });
 
   static bool get isMobile =>
       AutonomyApp.maxWidth < Constants.kTabletBreakpoint ||
@@ -36,15 +36,13 @@ class ResponsiveLayout extends StatelessWidget {
       !DeviceInfo.instance.isPhone;
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      child: isMobile
-          ? mobile
-          : isTablet
-              ? tablet ?? mobile
-              : desktop ?? tablet ?? mobile,
-    );
-  }
+  Widget build(BuildContext context) => Container(
+        child: isMobile
+            ? mobile
+            : isTablet
+                ? tablet ?? mobile
+                : desktop ?? tablet ?? mobile,
+      );
 
   static EdgeInsets get getPadding => isMobile
       ? Constants.paddingMobile
@@ -95,5 +93,6 @@ class ResponsiveLayout extends StatelessWidget {
 
   static EdgeInsets get pageHorizontalEdgeInsets =>
       EdgeInsets.symmetric(horizontal: padding);
+
   static EdgeInsets get paddingAll => EdgeInsets.all(padding);
 }

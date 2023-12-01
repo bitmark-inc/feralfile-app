@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:flutter/material.dart';
 
 class TextFieldWidget extends StatefulWidget {
   final String? labelText;
@@ -16,8 +16,9 @@ class TextFieldWidget extends StatefulWidget {
   final Function(String)? onChanged;
   final FocusNode? focusNode;
   final TextAlign textAlign;
+
   const TextFieldWidget({
-    Key? key,
+    super.key,
     this.labelText,
     this.style,
     this.hintText,
@@ -32,7 +33,7 @@ class TextFieldWidget extends StatefulWidget {
     this.focusNode,
     this.onChanged,
     this.textAlign = TextAlign.start,
-  }) : super(key: key);
+  });
 
   @override
   State<TextFieldWidget> createState() => _TextFieldWidgetState();

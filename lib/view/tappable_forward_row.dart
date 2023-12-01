@@ -17,44 +17,39 @@ class TappableForwardRow extends StatelessWidget {
   final Widget? forwardIcon;
 
   const TappableForwardRow(
-      {Key? key,
+      {required this.onTap,
+      super.key,
       this.leftWidget,
       this.rightWidget,
-      required this.onTap,
       this.forwardIcon,
-      this.padding = const EdgeInsets.symmetric(vertical: 16)})
-      : super(key: key);
+      this.padding = const EdgeInsets.symmetric(vertical: 16)});
 
   @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.translucent,
-      onTap: onTap,
-      child: _contentRow(),
-    );
-  }
+  Widget build(BuildContext context) => GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: onTap,
+        child: _contentRow(),
+      );
 
-  Widget _contentRow() {
-    return Padding(
-      padding: padding,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(child: leftWidget ?? const SizedBox()),
-          Row(
-            children: [
-              rightWidget ?? const SizedBox(),
-              if (onTap != null) ...[
-                const SizedBox(width: 8.0),
-                forwardIcon ??
-                    SvgPicture.asset('assets/images/iconForward.svg'),
+  Widget _contentRow() => Padding(
+        padding: padding,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(child: leftWidget ?? const SizedBox()),
+            Row(
+              children: [
+                rightWidget ?? const SizedBox(),
+                if (onTap != null) ...[
+                  const SizedBox(width: 8),
+                  forwardIcon ??
+                      SvgPicture.asset('assets/images/iconForward.svg'),
+                ],
               ],
-            ],
-          )
-        ],
-      ),
-    );
-  }
+            )
+          ],
+        ),
+      );
 }
 
 class TappableForwardRowWithContent extends StatelessWidget {
@@ -65,51 +60,45 @@ class TappableForwardRowWithContent extends StatelessWidget {
   final EdgeInsets padding;
 
   const TappableForwardRowWithContent(
-      {Key? key,
-      required this.leftWidget,
-      this.rightWidget,
+      {required this.leftWidget,
       required this.bottomWidget,
-      required this.onTap, this.padding  = const EdgeInsets.symmetric(vertical: 16)})
-      : super(key: key);
+      required this.onTap,
+      super.key,
+      this.rightWidget,
+      this.padding = const EdgeInsets.symmetric(vertical: 16)});
 
   @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.translucent,
-      onTap: onTap,
-      child: _content(),
-    );
-  }
+  Widget build(BuildContext context) => GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: onTap,
+        child: _content(),
+      );
 
-  Widget _content() {
-    return Padding(
-      padding: padding,
-      child: Column(
-        children: [
-          _contentRow(),
-          const SizedBox(height: 16),
-          Row(children: [Expanded(child: bottomWidget)]),
-        ],
-      ),
-    );
-  }
-
-  Widget _contentRow() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Expanded(child: leftWidget),
-        Row(
+  Widget _content() => Padding(
+        padding: padding,
+        child: Column(
           children: [
-            rightWidget ?? const SizedBox(),
-            if (onTap != null) ...[
-              const SizedBox(width: 8.0),
-              SvgPicture.asset('assets/images/iconForward.svg'),
-            ],
+            _contentRow(),
+            const SizedBox(height: 16),
+            Row(children: [Expanded(child: bottomWidget)]),
           ],
-        )
-      ],
-    );
-  }
+        ),
+      );
+
+  Widget _contentRow() => Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(child: leftWidget),
+          Row(
+            children: [
+              rightWidget ?? const SizedBox(),
+              if (onTap != null) ...[
+                const SizedBox(width: 8),
+                SvgPicture.asset('assets/images/iconForward.svg'),
+              ],
+            ],
+          )
+        ],
+      );
 }

@@ -13,13 +13,12 @@ class PostcardExplainView extends StatelessWidget {
   final String message;
 
   const PostcardExplainView(
-      {Key? key,
-      required this.counter,
-      this.message = "",
+      {required this.counter,
+      super.key,
+      this.message = '',
       this.textColor = AppColor.primaryBlack,
       this.backgroundColor = AppColor.white,
-      this.dividerColor = AppColor.auGrey})
-      : super(key: key);
+      this.dividerColor = AppColor.auGrey});
 
   Widget _explainRow(BuildContext context, String title, String content) {
     final theme = Theme.of(context);
@@ -111,19 +110,16 @@ class PostcardExplainView extends StatelessWidget {
               ],
             ),
           ...explainTexts
-              .mapIndexed((index, text) {
-                return [
-                  _explainRow(
-                    context,
-                    "${index + 1}",
-                    text.tr(),
-                  ),
-                  if (index != explainTexts.length - 1)
-                    addOnlyDivider(color: dividerColor)
-                ];
-              })
+              .mapIndexed((index, text) => [
+                    _explainRow(
+                      context,
+                      '${index + 1}',
+                      text.tr(),
+                    ),
+                    if (index != explainTexts.length - 1)
+                      addOnlyDivider(color: dividerColor)
+                  ])
               .flattened
-              .toList()
         ],
       ),
     );

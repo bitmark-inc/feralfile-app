@@ -12,7 +12,7 @@ class TouchPad extends StatefulWidget {
   final List<CanvasDevice> devices;
   final Function()? onExpand;
 
-  const TouchPad({super.key, required this.devices, this.onExpand});
+  const TouchPad({required this.devices, super.key, this.onExpand});
 
   @override
   State<TouchPad> createState() => _TouchPadState();
@@ -39,23 +39,23 @@ class _TouchPadState extends State<TouchPad> with AfterLayoutMixin {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Container(
+    return DecoratedBox(
       decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20), color: Colors.black),
       child: Stack(
         children: [
           GestureDetector(
             key: _touchPadKey,
-            onTap: () {
-              log.info("[Touchpad] onTap");
-              _canvasClient.tap(widget.devices);
+            onTap: () async {
+              log.info('[Touchpad] onTap');
+              await _canvasClient.tap(widget.devices);
             },
             onPanStart: (panDetails) {
               _getSize();
             },
-            onPanUpdate: (panDetails) {
+            onPanUpdate: (panDetails) async {
               Offset delta = panDetails.delta;
-              _canvasClient.drag(widget.devices, delta, _touchpadSize!);
+              await _canvasClient.drag(widget.devices, delta, _touchpadSize!);
             },
           ),
           Positioned(
@@ -63,7 +63,7 @@ class _TouchPadState extends State<TouchPad> with AfterLayoutMixin {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
               child: Text(
-                "touchpad".tr(),
+                'touchpad'.tr(),
                 style: theme.textTheme.ppMori400White14
                     .copyWith(color: AppColor.auGreyBackground),
               ),
@@ -73,10 +73,9 @@ class _TouchPadState extends State<TouchPad> with AfterLayoutMixin {
             bottom: 0,
             right: 0,
             child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 15),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
               child: GestureDetector(
-                child: SvgPicture.asset("assets/images/Expand.svg"),
+                child: SvgPicture.asset('assets/images/Expand.svg'),
                 onTap: () {
                   widget.onExpand?.call();
                 },
