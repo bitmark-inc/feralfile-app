@@ -1,4 +1,3 @@
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
@@ -37,11 +36,13 @@ class Prompt {
       };
 
   Color? get colorAsColor {
-    if (color == null) {
+    if (color == null || color!.isEmpty) {
       return null;
     }
-
-    /// TODO: implement colorAsColor
-    return MomaPallet.pink;
+    try {
+      return Color(int.parse(color!.substring(1), radix: 16) + 0xFF000000);
+    } catch (e) {
+      return null;
+    }
   }
 }
