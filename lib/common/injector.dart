@@ -142,15 +142,15 @@ Future<void> setup() async {
       apiLogger: apiLog,
       dio: dio);
   injector
-      .registerLazySingleton<TokensService>(() => NftCollection.tokenService);
-  injector.registerLazySingleton(() => NftCollection.prefs);
-  injector.registerLazySingleton(() => NftCollection.database);
-  injector.registerLazySingleton(() => NftCollection.addressService);
-  injector.registerLazySingleton(() => NftCollection.database.assetDao);
-  injector.registerLazySingleton(() => NftCollection.database.tokenDao);
-  injector.registerLazySingleton(() => NftCollection.database.assetTokenDao);
-  injector.registerLazySingleton(() => NftCollection.database.provenanceDao);
-  injector.registerLazySingleton(() => cloudDB);
+    ..registerLazySingleton<TokensService>(() => NftCollection.tokenService)
+    ..registerLazySingleton(() => NftCollection.prefs)
+    ..registerLazySingleton(() => NftCollection.database)
+    ..registerLazySingleton(() => NftCollection.addressService)
+    ..registerLazySingleton(() => NftCollection.database.assetDao)
+    ..registerLazySingleton(() => NftCollection.database.tokenDao)
+    ..registerLazySingleton(() => NftCollection.database.assetTokenDao)
+    ..registerLazySingleton(() => NftCollection.database.provenanceDao)
+    ..registerLazySingleton(() => cloudDB);
 
   final authenticatedDio = Dio(); // Authenticated dio instance for AU servers
   authenticatedDio.interceptors.add(AutonomyAuthInterceptor());
@@ -169,197 +169,135 @@ Future<void> setup() async {
       Duration(seconds: 3),
     ],
   ));
-  authenticatedDio.addSentry();
-  authenticatedDio.options = dioOptions;
+  authenticatedDio
+    ..addSentry()
+    ..options = dioOptions;
 
   // Services
   final auditService = AuditServiceImpl(cloudDB);
 
-  injector.registerSingleton<ConfigurationService>(
-      ConfigurationServiceImpl(sharedPreferences));
-
-  injector.registerLazySingleton(() => Client());
-  injector.registerLazySingleton(() => NavigationService());
-  injector.registerLazySingleton<AutonomyService>(
-      () => AutonomyServiceImpl(injector(), injector()));
   injector
-      .registerLazySingleton<MetricClientService>(() => MetricClientService());
-  injector.registerLazySingleton<MixPanelClientService>(
-      () => MixPanelClientService(injector(), injector(), injector()));
-  injector.registerLazySingleton<CacheManager>(() => AUImageCacheManage());
-  injector.registerLazySingleton<AccountService>(() => AccountServiceImpl(
-        cloudDB,
-        injector(),
-        injector(),
-        auditService,
-        injector(),
-        injector(),
-        injector(),
-      ));
-
-  injector.registerLazySingleton(() => ChatApi(dio,
-      baseUrl: Environment.postcardChatServerUrl.replaceFirst('ws', 'http')));
-  injector.registerLazySingleton(() => ChatAuthService(injector()));
-  injector.registerLazySingleton(
-      () => IAPApi(authenticatedDio, baseUrl: Environment.autonomyAuthURL));
-  injector.registerLazySingleton(() =>
-      AutonomyApi(authenticatedDio, baseUrl: Environment.autonomyAuthURL));
+    ..registerSingleton<ConfigurationService>(
+        ConfigurationServiceImpl(sharedPreferences))
+    ..registerLazySingleton(() => Client())
+    ..registerLazySingleton(() => NavigationService())
+    ..registerLazySingleton<AutonomyService>(
+        () => AutonomyServiceImpl(injector(), injector()))
+    ..registerLazySingleton<MetricClientService>(() => MetricClientService())
+    ..registerLazySingleton<MixPanelClientService>(
+        () => MixPanelClientService(injector(), injector(), injector()))
+    ..registerLazySingleton<CacheManager>(() => AUImageCacheManage())
+    ..registerLazySingleton<AccountService>(() => AccountServiceImpl(
+          cloudDB,
+          injector(),
+          injector(),
+          auditService,
+          injector(),
+          injector(),
+          injector(),
+        ))
+    ..registerLazySingleton(() => ChatApi(dio,
+        baseUrl: Environment.postcardChatServerUrl.replaceFirst('ws', 'http')))
+    ..registerLazySingleton(() => ChatAuthService(injector()))
+    ..registerLazySingleton(
+        () => IAPApi(authenticatedDio, baseUrl: Environment.autonomyAuthURL))
+    ..registerLazySingleton(() =>
+        AutonomyApi(authenticatedDio, baseUrl: Environment.autonomyAuthURL));
 
   final tzktUrl = Environment.appTestnetConfig
       ? Environment.tzktTestnetURL
       : Environment.tzktMainnetURL;
-  injector.registerLazySingleton(() => TZKTApi(dio, baseUrl: tzktUrl));
-  injector.registerLazySingleton(() => EtherchainApi(dio));
-  injector.registerLazySingleton(() => BranchApi(dio));
-  injector.registerLazySingleton(
-      () => PubdocAPI(dio, baseUrl: Environment.pubdocURL));
-  injector.registerLazySingleton<RemoteConfigService>(
-      () => RemoteConfigServiceImpl(injector()));
-  injector.registerLazySingleton(
-      () => AuthService(injector(), injector(), injector()));
-  injector.registerLazySingleton(() => BackupService(injector()));
   injector
-      .registerLazySingleton(() => TezosBeaconService(injector(), injector()));
-
-  injector.registerFactoryParam<NftCollectionBloc, bool?, dynamic>(
-      (p1, p2) => NftCollectionBloc(
-            injector(),
-            injector(),
-            injector(),
-            injector(),
-            pendingTokenExpire: pendingTokenExpireMs != null
-                ? Duration(milliseconds: pendingTokenExpireMs)
-                : const Duration(hours: 4),
-            isSortedToken: p1 ?? true,
-          ));
-
-  injector
-      .registerLazySingleton<SettingsDataService>(() => SettingsDataServiceImpl(
-            injector(),
-            injector(),
-            injector(),
-            injector(),
-          ));
-
-  injector.registerLazySingleton<IAPService>(
-      () => IAPServiceImpl(injector(), injector()));
-
-  injector.registerLazySingleton(() => Wc2Service(
-        injector(),
-        injector(),
-        injector(),
-      ));
-  injector.registerLazySingleton<CurrencyExchangeApi>(
-      () => CurrencyExchangeApi(dio, baseUrl: Environment.currencyExchangeURL));
-  injector.registerLazySingleton<CurrencyService>(
-      () => CurrencyServiceImpl(injector()));
-  injector.registerLazySingleton(
-      () => VersionService(injector(), injector(), injector()));
-
-  injector.registerLazySingleton<CustomerSupportService>(
-      () => CustomerSupportServiceImpl(
-            mainnetDB.draftCustomerSupportDao,
-            CustomerSupportApi(authenticatedDio,
-                baseUrl: Environment.customerSupportURL),
-            injector(),
-            mainnetDB.announcementDao,
-            AnnouncementApi(authenticatedDio,
-                baseUrl: Environment.customerSupportURL),
-          ));
-
-  injector.registerLazySingleton<AuditService>(() => auditService);
+    ..registerLazySingleton(() => TZKTApi(dio, baseUrl: tzktUrl))
+    ..registerLazySingleton(() => EtherchainApi(dio))
+    ..registerLazySingleton(() => BranchApi(dio))
+    ..registerLazySingleton(
+        () => PubdocAPI(dio, baseUrl: Environment.pubdocURL))
+    ..registerLazySingleton<RemoteConfigService>(
+        () => RemoteConfigServiceImpl(injector()))
+    ..registerLazySingleton(
+        () => AuthService(injector(), injector(), injector()))
+    ..registerLazySingleton(() => BackupService(injector()))
+    ..registerLazySingleton(() => TezosBeaconService(injector(), injector()))
+    ..registerFactoryParam<NftCollectionBloc, bool?, dynamic>(
+        (p1, p2) => NftCollectionBloc(
+              injector(),
+              injector(),
+              injector(),
+              injector(),
+              pendingTokenExpire: pendingTokenExpireMs != null
+                  ? Duration(milliseconds: pendingTokenExpireMs)
+                  : const Duration(hours: 4),
+              isSortedToken: p1 ?? true,
+            ))
+    ..registerLazySingleton<SettingsDataService>(() => SettingsDataServiceImpl(
+          injector(),
+          injector(),
+          injector(),
+          injector(),
+        ))
+    ..registerLazySingleton<IAPService>(
+        () => IAPServiceImpl(injector(), injector()))
+    ..registerLazySingleton(() => Wc2Service(
+          injector(),
+          injector(),
+          injector(),
+        ))
+    ..registerLazySingleton<CurrencyExchangeApi>(() =>
+        CurrencyExchangeApi(dio, baseUrl: Environment.currencyExchangeURL))
+    ..registerLazySingleton<CurrencyService>(
+        () => CurrencyServiceImpl(injector()))
+    ..registerLazySingleton(
+        () => VersionService(injector(), injector(), injector()))
+    ..registerLazySingleton<CustomerSupportService>(
+        () => CustomerSupportServiceImpl(
+              mainnetDB.draftCustomerSupportDao,
+              CustomerSupportApi(authenticatedDio,
+                  baseUrl: Environment.customerSupportURL),
+              injector(),
+              mainnetDB.announcementDao,
+              AnnouncementApi(authenticatedDio,
+                  baseUrl: Environment.customerSupportURL),
+            ))
+    ..registerLazySingleton<AuditService>(() => auditService);
 
   final cloudService = CloudService();
-  injector.registerLazySingleton(() => cloudService);
-
-  injector.registerLazySingleton(
-      () => Web3Client(Environment.web3RpcURL, injector()));
-
-  injector.registerLazySingleton<ClientTokenService>(() => ClientTokenService(
-      injector(), injector(), injector(), injector(), injector()));
+  injector
+    ..registerLazySingleton(() => cloudService)
+    ..registerLazySingleton(
+        () => Web3Client(Environment.web3RpcURL, injector()))
+    ..registerLazySingleton<ClientTokenService>(() => ClientTokenService(
+        injector(), injector(), injector(), injector(), injector()));
 
   final tezosNodeClientURL = Environment.appTestnetConfig
       ? Environment.tezosNodeClientTestnetURL
       : publicTezosNodes[Random().nextInt(publicTezosNodes.length)];
-  injector.registerLazySingleton(() => TezartClient(tezosNodeClientURL));
-  injector.registerLazySingleton<FeralFileApi>(() => FeralFileApi(
-      feralFileDio(dioOptions),
-      baseUrl: Environment.feralFileAPIURL));
-  injector.registerLazySingleton<IndexerApi>(
-      () => IndexerApi(dio, baseUrl: Environment.indexerURL));
-
-  injector.registerLazySingleton<PostcardApi>(() => PostcardApi(
-      postcardDio(dioOptions.copyWith(
-          connectTimeout: const Duration(seconds: 30),
-          receiveTimeout: const Duration(seconds: 30))),
-      baseUrl: Environment.auClaimAPIURL));
+  injector
+    ..registerLazySingleton(() => TezartClient(tezosNodeClientURL))
+    ..registerLazySingleton<FeralFileApi>(() => FeralFileApi(
+        feralFileDio(dioOptions),
+        baseUrl: Environment.feralFileAPIURL))
+    ..registerLazySingleton<IndexerApi>(
+        () => IndexerApi(dio, baseUrl: Environment.indexerURL))
+    ..registerLazySingleton<PostcardApi>(() => PostcardApi(
+        postcardDio(dioOptions.copyWith(
+            connectTimeout: const Duration(seconds: 30),
+            receiveTimeout: const Duration(seconds: 30))),
+        baseUrl: Environment.auClaimAPIURL));
 
   final indexerClient = IndexerClient(Environment.indexerURL);
-  injector.registerLazySingleton<IndexerService>(
-      () => IndexerService(indexerClient));
-
-  injector.registerLazySingleton<EthereumService>(
-      () => EthereumServiceImpl(injector(), injector()));
   injector
-      .registerLazySingleton<TezosService>(() => TezosServiceImpl(injector()));
-  injector.registerLazySingleton<AppDatabase>(() => mainnetDB);
-  injector.registerLazySingleton<PlaylistService>(
-      () => PlayListServiceImp(injector(), injector(), injector()));
-
-  injector.registerLazySingleton<CanvasClientService>(
-      () => CanvasClientService(injector()));
-
-  injector.registerLazySingleton<PostcardService>(
-    () => PostcardServiceImpl(
-      injector(),
-      injector(),
-      injector(),
-      injector(),
-      injector(),
-      injector(),
-      injector(),
-      injector(),
-    ),
-  );
-
-  injector.registerLazySingleton<ChatService>(() => ChatServiceImpl());
-
-  injector.registerLazySingleton<AirdropService>(
-    () => AirdropService(
-      injector(),
-      injector(),
-      injector(),
-      injector(),
-      injector(),
-      injector(),
-      injector(),
-      injector(),
-    ),
-  );
-
-  injector.registerLazySingleton<ActivationService>(() => ActivationService(
-        injector(),
-        injector(),
-        injector(),
-      ));
-
-  injector
-      .registerLazySingleton<NotificationService>(() => NotificationService());
-
-  injector.registerLazySingleton<AirdropApi>(() => AirdropApi(
-      airdropDio(dioOptions.copyWith(followRedirects: true)),
-      baseUrl: Environment.autonomyAirdropURL));
-
-  injector.registerLazySingleton<ActivationApi>(() => ActivationApi(
-      airdropDio(dioOptions.copyWith(followRedirects: true)),
-      baseUrl: Environment.autonomyActivationURL));
-
-  injector.registerLazySingleton<FeralFileService>(() => FeralFileServiceImpl(
-        injector(),
-        injector(),
-      ));
-
-  injector.registerLazySingleton<DeeplinkService>(() => DeeplinkServiceImpl(
+    ..registerLazySingleton<IndexerService>(() => IndexerService(indexerClient))
+    ..registerLazySingleton<EthereumService>(
+        () => EthereumServiceImpl(injector(), injector()))
+    ..registerLazySingleton<TezosService>(() => TezosServiceImpl(injector()))
+    ..registerLazySingleton<AppDatabase>(() => mainnetDB)
+    ..registerLazySingleton<PlaylistService>(
+        () => PlayListServiceImp(injector(), injector(), injector()))
+    ..registerLazySingleton<CanvasClientService>(
+        () => CanvasClientService(injector()))
+    ..registerLazySingleton<PostcardService>(
+      () => PostcardServiceImpl(
         injector(),
         injector(),
         injector(),
@@ -368,24 +306,60 @@ Future<void> setup() async {
         injector(),
         injector(),
         injector(),
+      ),
+    )
+    ..registerLazySingleton<ChatService>(() => ChatServiceImpl())
+    ..registerLazySingleton<AirdropService>(
+      () => AirdropService(
         injector(),
         injector(),
         injector(),
-      ));
-
-  injector.registerLazySingleton<PendingTokenService>(() => PendingTokenService(
         injector(),
         injector(),
         injector(),
-        NftCollection.database.assetTokenDao,
-        NftCollection.database.tokenDao,
-        NftCollection.database.assetDao,
-      ));
-  injector.registerFactory<AddNewPlaylistBloc>(
-      () => AddNewPlaylistBloc(injector()));
-  injector
-      .registerFactory<ViewPlaylistBloc>(() => ViewPlaylistBloc(injector()));
-  injector.registerFactory<EditPlaylistBloc>(() => EditPlaylistBloc());
-  injector
-      .registerFactory<ClaimEmptyPostCardBloc>(() => ClaimEmptyPostCardBloc());
+        injector(),
+        injector(),
+      ),
+    )
+    ..registerLazySingleton<ActivationService>(() => ActivationService(
+          injector(),
+          injector(),
+          injector(),
+        ))
+    ..registerLazySingleton<NotificationService>(() => NotificationService())
+    ..registerLazySingleton<AirdropApi>(() => AirdropApi(
+        airdropDio(dioOptions.copyWith(followRedirects: true)),
+        baseUrl: Environment.autonomyAirdropURL))
+    ..registerLazySingleton<ActivationApi>(() => ActivationApi(
+        airdropDio(dioOptions.copyWith(followRedirects: true)),
+        baseUrl: Environment.autonomyActivationURL))
+    ..registerLazySingleton<FeralFileService>(() => FeralFileServiceImpl(
+          injector(),
+          injector(),
+        ))
+    ..registerLazySingleton<DeeplinkService>(() => DeeplinkServiceImpl(
+          injector(),
+          injector(),
+          injector(),
+          injector(),
+          injector(),
+          injector(),
+          injector(),
+          injector(),
+          injector(),
+          injector(),
+          injector(),
+        ))
+    ..registerLazySingleton<PendingTokenService>(() => PendingTokenService(
+          injector(),
+          injector(),
+          injector(),
+          NftCollection.database.assetTokenDao,
+          NftCollection.database.tokenDao,
+          NftCollection.database.assetDao,
+        ))
+    ..registerFactory<AddNewPlaylistBloc>(() => AddNewPlaylistBloc(injector()))
+    ..registerFactory<ViewPlaylistBloc>(() => ViewPlaylistBloc(injector()))
+    ..registerFactory<EditPlaylistBloc>(() => EditPlaylistBloc())
+    ..registerFactory<ClaimEmptyPostCardBloc>(() => ClaimEmptyPostCardBloc());
 }
