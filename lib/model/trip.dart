@@ -7,9 +7,8 @@ class Trip {
   final String to;
   final double? distance;
 
-  static Trip sendingTrip(String from) {
-    return Trip(from: from, to: "unknow".tr(), distance: null);
-  }
+  static Trip sendingTrip(String from) =>
+      Trip(from: from, to: 'unknow'.tr(), distance: null);
 
   Trip({required this.from, required this.to, required this.distance});
 }

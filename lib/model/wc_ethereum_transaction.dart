@@ -29,9 +29,10 @@ class WCEthereumTransaction {
   Map<String, dynamic> toJson() => _$WCEthereumTransactionToJson(this);
 
   @override
-  String toString() {
-    return 'WCEthereumTransaction(from: $from, to: $to, nonce: $nonce, gasPrice: $gasPrice, gas: $gas, gasLimit: $gasLimit, value: $value, data: $data)';
-  }
+  String toString() =>
+      'WCEthereumTransaction(from: $from, to: $to, nonce: $nonce, '
+      'gasPrice: $gasPrice, gas: $gas, '
+      'gasLimit: $gasLimit, value: $value, data: $data)';
 }
 
 WCEthereumTransaction _$WCEthereumTransactionFromJson(

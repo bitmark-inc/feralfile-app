@@ -15,25 +15,21 @@ class SentArtwork {
   SentArtwork(this.tokenID, this.address, this.timestamp, this.sentQuantity,
       this.isSentAll);
 
-  factory SentArtwork.fromJson(Map<String, dynamic> json) {
-    return SentArtwork(
-      json['tokenID'] as String,
-      json['address'] as String,
-      DateTime.parse(json['timestamp'] as String),
-      (json['sentQuantity'] ?? 1) as int,
-      (json['isSentAll'] ?? true) as bool,
-    );
-  }
+  factory SentArtwork.fromJson(Map<String, dynamic> json) => SentArtwork(
+        json['tokenID'] as String,
+        json['address'] as String,
+        DateTime.parse(json['timestamp'] as String),
+        (json['sentQuantity'] ?? 1) as int,
+        (json['isSentAll'] ?? true) as bool,
+      );
 
-  Map<String, dynamic> toJson() {
-    return {
-      'tokenID': tokenID,
-      'address': address,
-      'timestamp': timestamp.toIso8601String(),
-      'sentQuantity': sentQuantity,
-      'isSentAll': isSentAll,
-    };
-  }
+  Map<String, dynamic> toJson() => {
+        'tokenID': tokenID,
+        'address': address,
+        'timestamp': timestamp.toIso8601String(),
+        'sentQuantity': sentQuantity,
+        'isSentAll': isSentAll,
+      };
 
   bool isHidden(
       {required String tokenID,

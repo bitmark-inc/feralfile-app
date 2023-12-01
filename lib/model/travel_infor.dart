@@ -26,13 +26,12 @@ class TravelInfo {
     int? index,
     String? sentLocation,
     String? receivedLocation,
-  }) {
-    return TravelInfo(
-      from ?? this.from,
-      to ?? this.to,
-      index ?? this.index,
-    );
-  }
+  }) =>
+      TravelInfo(
+        from ?? this.from,
+        to ?? this.to,
+        index ?? this.index,
+      );
 
   double? getDistance() {
     if (from.isInternet || to.isInternet) {
@@ -64,9 +63,7 @@ class TravelInfo {
   }
 
   // convert degree to radian
-  double deg2rad(double deg) {
-    return deg * (pi / 180);
-  }
+  double deg2rad(double deg) => deg * (pi / 180);
 
   Future<void> _getSentLocation() async {
     await from.getAddress();

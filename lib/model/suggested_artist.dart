@@ -14,13 +14,11 @@ class SuggestedArtist {
   });
 
   // fromJson
-  factory SuggestedArtist.fromJson(Map<String, dynamic> map) {
-    return SuggestedArtist(
-      address: map['address'] as String,
-      name: map['name'] as String,
-      blockchain: map['blockchain'] as String,
-      domain: map['domain'] as String,
-      tokenIDs: List<String>.from((map['tokenIDs'] as List<dynamic>)),
-    );
-  }
+  factory SuggestedArtist.fromJson(Map<String, dynamic> map) => SuggestedArtist(
+        address: map['address'] as String,
+        name: map['name'] as String,
+        blockchain: map['blockchain'] as String,
+        domain: map['domain'] as String,
+        tokenIDs: List<String>.from(map['tokenIDs'] as List<dynamic>),
+      );
 }

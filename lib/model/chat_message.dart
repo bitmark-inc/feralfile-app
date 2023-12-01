@@ -14,36 +14,31 @@ class Message {
   });
 
   // from json method
-  factory Message.fromJson(Map<String, dynamic> json) {
-    return Message(
-      id: json['id'] as String,
-      timestamp: json['timestamp'] as int,
-      sender: json['sender'] as String,
-      message: json['message'] as String,
-    );
-  }
+  factory Message.fromJson(Map<String, dynamic> json) => Message(
+        id: json['id'] as String,
+        timestamp: json['timestamp'] as int,
+        sender: json['sender'] as String,
+        message: json['message'] as String,
+      );
 
   // to json method
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'timestamp': timestamp,
-      'sender': sender,
-      'message': message,
-    };
-  }
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'timestamp': timestamp,
+        'sender': sender,
+        'message': message,
+      };
 
   types.SystemMessage toTypesMessage(
-      {types.Status status = types.Status.sent}) {
-    return types.SystemMessage(
-      id: id,
-      author: types.User(id: sender),
-      createdAt: timestamp,
-      text: message,
-      status: status,
-      type: types.MessageType.system,
-    );
-  }
+          {types.Status status = types.Status.sent}) =>
+      types.SystemMessage(
+        id: id,
+        author: types.User(id: sender),
+        createdAt: timestamp,
+        text: message,
+        status: status,
+        type: types.MessageType.system,
+      );
 }
 
 class WebsocketMessage {
@@ -57,11 +52,10 @@ class WebsocketMessage {
     required this.payload,
   });
 
-  factory WebsocketMessage.fromJson(Map<String, dynamic> json) {
-    return WebsocketMessage(
-      command: json['command'] as String,
-      id: json['id'] as String,
-      payload: json['payload'],
-    );
-  }
+  factory WebsocketMessage.fromJson(Map<String, dynamic> json) =>
+      WebsocketMessage(
+        command: json['command'] as String,
+        id: json['id'] as String,
+        payload: json['payload'],
+      );
 }

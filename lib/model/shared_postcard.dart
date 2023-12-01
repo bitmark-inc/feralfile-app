@@ -24,35 +24,29 @@ class SharedPostcard {
           owner == other.owner;
 
   // fromJson method
-  factory SharedPostcard.fromJson(Map<String, dynamic> json) {
-    return SharedPostcard(
-      json["tokenID"] as String,
-      json["owner"] as String,
-      json["sharedAt"] == null
-          ? null
-          : DateTime.parse(json["sharedAt"] as String),
-    );
-  }
+  factory SharedPostcard.fromJson(Map<String, dynamic> json) => SharedPostcard(
+        json['tokenID'] as String,
+        json['owner'] as String,
+        json['sharedAt'] == null
+            ? null
+            : DateTime.parse(json['sharedAt'] as String),
+      );
 
-  Map<String, dynamic> toJson() {
-    return {
-      "tokenID": tokenID,
-      "owner": owner,
-      "sharedAt": sharedAt?.toIso8601String(),
-    };
-  }
+  Map<String, dynamic> toJson() => {
+        'tokenID': tokenID,
+        'owner': owner,
+        'sharedAt': sharedAt?.toIso8601String(),
+      };
 
   @override
-  int get hashCode {
-    return tokenID.hashCode ^ owner.hashCode;
-  }
+  int get hashCode => tokenID.hashCode ^ owner.hashCode;
 }
 
 extension Unique<E, Id> on List<E> {
   List<E> unique([Id Function(E element)? id, bool inplace = true]) {
     final ids = <Id>{};
-    var list = inplace ? this : List<E>.from(this);
-    list.retainWhere((x) => ids.add(id != null ? id(x) : x as Id));
+    var list = inplace ? this : List<E>.from(this)
+      ..retainWhere((x) => ids.add(id != null ? id(x) : x as Id));
     return list;
   }
 }
