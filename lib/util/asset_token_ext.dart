@@ -151,8 +151,12 @@ extension AssetTokenExtension on AssetToken {
     return null;
   }
 
-  void setPreviewUrlWithCID(String cid) {
-    asset?.previewURL = 'https://ipfs.test.bitmark.com/ipfs/$cid/';
+  void updatePostcardCID(String cid) {
+    if (Environment.appTestnetConfig) {
+      asset?.previewURL = '$POSTCARD_IPFS_PREFIX_TEST/$cid/';
+    } else {
+      asset?.previewURL = '$POSTCARD_IPFS_PREFIX_PROD/$cid/';
+    }
   }
 
   Future<bool> isViewOnly() async {

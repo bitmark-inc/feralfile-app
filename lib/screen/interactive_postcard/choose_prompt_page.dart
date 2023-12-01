@@ -57,7 +57,7 @@ class ChoosePromptPage extends StatelessWidget {
                           ..asset?.artworkMetadata =
                               jsonEncode(postcardMetadata.toJson());
                         if (prompt.cid != null) {
-                          asset.setPreviewUrlWithCID(prompt.cid!);
+                          asset.updatePostcardCID(prompt.cid!);
                         }
 
                         await Navigator.of(context).pushNamed(
