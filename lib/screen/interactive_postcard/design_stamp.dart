@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:autonomy_flutter/model/prompt.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/hand_signature_page.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/moma_style_color.dart';
@@ -35,7 +36,7 @@ class _DesignStampPageState extends State<DesignStampPage> {
   bool _line = true;
   late SimpleStack _undoController;
   bool _didPaint = false;
-  String? _prompt;
+  late final Prompt? _prompt;
 
   @override
   void initState() {
@@ -52,15 +53,6 @@ class _DesignStampPageState extends State<DesignStampPage> {
     );
 
     _prompt = widget.payload.asset.postcardMetadata.prompt;
-
-    ///
-    /// TODO: remove this
-    ///
-    _prompt = '''
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-        Donec euismod, nisl eget aliquam ultricies, nisl nisl aliquam nisl, 
-        eget aliquam nisl nisl eget.
-        ''';
 
     stampColors.shuffle();
     _selectedColor = stampColors[0];
@@ -90,16 +82,29 @@ class _DesignStampPageState extends State<DesignStampPage> {
     const backgroundColor = AppColor.chatPrimaryColor;
     return Scaffold(
       backgroundColor: backgroundColor,
-      appBar: getCloseAppBar(
-        context,
-        title: 'design_your_stamp'.tr(),
-        titleStyle: theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
-        onClose: () {
-          Navigator.of(context).pop();
-        },
-        withBottomDivider: false,
-        statusBarColor: backgroundColor,
-      ),
+      appBar: widget.payload.allowPop
+          ? getBackAppBar(
+              context,
+              title: 'design_your_stamp'.tr(),
+              titleStyle:
+                  theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
+              onBack: () {
+                Navigator.of(context).pop();
+              },
+              withDivider: false,
+              statusBarColor: backgroundColor,
+            )
+          : getCloseAppBar(
+              context,
+              title: 'design_your_stamp'.tr(),
+              titleStyle:
+                  theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
+              onClose: () {
+                Navigator.of(context).pop();
+              },
+              withBottomDivider: false,
+              statusBarColor: backgroundColor,
+            ),
       body: Padding(
         padding: EdgeInsets.only(bottom: ResponsiveLayout.padding),
         child: Column(
@@ -113,12 +118,12 @@ class _DesignStampPageState extends State<DesignStampPage> {
                     children: [
                       if (_prompt != null)
                         PromptView(
-                          text: _prompt!,
+                          prompt: _prompt!,
                           onTap: () async {
                             await UIHelper.showCenterEmptySheet(context,
                                 content: PromptView(
                                   key: const Key('prompt_view_full'),
-                                  text: _prompt!,
+                                  prompt: _prompt!,
                                   expandable: true,
                                 ));
                           },
@@ -432,6 +437,7 @@ class StampPainter extends CustomPainter {
 
 class DesignStampPayload {
   final AssetToken asset;
+  final bool allowPop;
 
-  DesignStampPayload(this.asset);
+  DesignStampPayload(this.asset, this.allowPop);
 }

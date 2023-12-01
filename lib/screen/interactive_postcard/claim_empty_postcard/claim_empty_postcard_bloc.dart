@@ -48,7 +48,6 @@ class ClaimEmptyPostCardBloc
             previewURL: event.claimRequest.previewURL,
             artworkMetadata: event.createMetadata
                 ? jsonEncode(PostcardMetadata(
-                    prompt: payToMintRequest.prompt,
                     locationInformation: [],
                   ).toJson())
                 : null,

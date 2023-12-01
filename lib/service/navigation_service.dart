@@ -10,13 +10,17 @@ import 'dart:async';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/otp.dart';
+import 'package:autonomy_flutter/model/prompt.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/claim/activation/claim_activation_page.dart';
 import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/choose_prompt_page.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
 import 'package:autonomy_flutter/service/airdrop_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
@@ -27,11 +31,9 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:nft_collection/models/asset_token.dart';
 
 // ignore: implementation_imports
-import 'package:nft_collection/models/asset_token.dart'; // ignore: implementation_imports
 import 'package:overlay_support/src/overlay_state_finder.dart';
 
 class NavigationService {
@@ -40,7 +42,8 @@ class NavigationService {
   static const Key contactingKey = Key('tezos_beacon_contacting');
 
   // to prevent showing duplicate ConnectPage
-  // workaround solution for unknown reason ModalRoute(navigatorKey.currentContext) returns nil
+  // workaround solution for unknown reason
+  // ModalRoute(navigatorKey.currentContext) returns nil
   bool _isWCConnectInShow = false;
 
   BuildContext get context => navigatorKey.currentContext!;
@@ -80,6 +83,22 @@ class NavigationService {
 
     return navigatorKey.currentState
         ?.popAndPushNamed(routeName, arguments: arguments);
+  }
+
+  Future<void> selectPromptsThenStamp(
+      BuildContext context, AssetToken asset) async {
+    final prompts = //[Prompt(id: "id", description: "description", color: "po", cid: "")];
+        await injector<PostcardService>().getPrompts(asset.tokenId!);
+    if (!mounted) {
+      return;
+    }
+    if (prompts.isEmpty) {
+      await popAndPushNamed(AppRouter.designStamp,
+          arguments: DesignStampPayload(asset, false));
+    } else {
+      await Navigator.of(context).pushNamed(AppRouter.choosePromptPage,
+          arguments: ChoosePromptPayload(assetToken: asset, prompts: prompts));
+    }
   }
 
   Future<dynamic>? navigateUntil(

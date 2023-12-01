@@ -32,16 +32,11 @@ class ReceivePostCardPage extends StatefulWidget {
   final AssetToken asset;
   final String shareCode;
 
-  const ReceivePostCardPage({
-    Key? key,
-    required this.asset,
-    required this.shareCode,
-  }) : super(key: key);
+  const ReceivePostCardPage(
+      {required this.asset, required this.shareCode, super.key});
 
   @override
-  State<StatefulWidget> createState() {
-    return _ReceivePostCardPageState();
-  }
+  State<StatefulWidget> createState() => _ReceivePostCardPageState();
 }
 
 class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
@@ -58,14 +53,13 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
     _isProcessing = false;
     _isConfirming = !widget.asset.isStamped;
     assetToken = widget.asset;
-    _waitUntilPostcardConfirm();
+    unawaited(_waitUntilPostcardConfirm());
   }
 
   void _fetchIdentities() {
     final neededIdentities = [
       widget.asset.artistName ?? '',
-    ];
-    neededIdentities.removeWhere((element) => element == '');
+    ]..removeWhere((element) => element == '');
 
     if (neededIdentities.isNotEmpty) {
       context.read<IdentityBloc>().add(GetIdentityEvent(neededIdentities));
@@ -73,28 +67,26 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return PostcardExplain(
-      payload: PostcardExplainPayload(
-        assetToken,
-        PostcardButton(
-          text: (_isConfirming)
-              ? "confirming_on_blockchain_".tr()
-              : "continue".tr(),
-          fontSize: 18,
-          enabled: !(_isProcessing || _isConfirming),
-          isProcessing: _isProcessing,
-          onTap: () async {
-            setState(() {
-              _isProcessing = true;
-            });
-            await _receivePostcard(context, assetToken);
-          },
-          color: POSTCARD_GREEN_BUTTON_COLOR,
+  Widget build(BuildContext context) => PostcardExplain(
+        payload: PostcardExplainPayload(
+          assetToken,
+          PostcardButton(
+            text: _isConfirming
+                ? 'confirming_on_blockchain_'.tr()
+                : 'continue'.tr(),
+            fontSize: 18,
+            enabled: !(_isProcessing || _isConfirming),
+            isProcessing: _isProcessing,
+            onTap: () async {
+              setState(() {
+                _isProcessing = true;
+              });
+              await _receivePostcard(context, assetToken);
+            },
+            color: POSTCARD_GREEN_BUTTON_COLOR,
+          ),
         ),
-      ),
-    );
-  }
+      );
 
   Future<AssetToken> _waitUntilPostcardConfirm() async {
     final tokenId = widget.asset.id;
@@ -126,7 +118,9 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
     } else if (addresses.length == 1) {
       address = addresses.first;
     } else {
-      if (!mounted) return null;
+      if (!mounted) {
+        return null;
+      }
       final navigationService = injector.get<NavigationService>();
       address = await navigationService.navigateTo(
         AppRouter.selectAddressScreen,
@@ -148,25 +142,31 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
                   location: geoLocation.position,
                   shareCode: widget.shareCode,
                 );
-        if (!mounted) return null;
-        Navigator.of(context).pushNamedAndRemoveUntil(
+        if (!mounted) {
+          return null;
+        }
+        unawaited(Navigator.of(context).pushNamedAndRemoveUntil(
           AppRouter.homePage,
           (route) => false,
-        );
-        Navigator.of(context).pushNamed(AppRouter.designStamp,
-            arguments: DesignStampPayload(pendingToken));
+        ));
+        unawaited(Navigator.of(context).pushNamed(AppRouter.designStamp,
+            arguments: DesignStampPayload(pendingToken, false)));
       } catch (e) {
         if (e is DioException) {
-          if (!mounted) return null;
+          if (!mounted) {
+            return null;
+          }
           await UIHelper.showAlreadyClaimedPostcard(
             context,
             e,
           );
-          if (!mounted) return null;
-          Navigator.of(context).pushNamedAndRemoveUntil(
+          if (!mounted) {
+            return null;
+          }
+          unawaited(Navigator.of(context).pushNamedAndRemoveUntil(
             AppRouter.homePage,
             (route) => false,
-          );
+          ));
         }
       }
     }
@@ -187,15 +187,14 @@ class ReceivePostcardResponse {
   ReceivePostcardResponse(this.tokenID, this.imageCID, this.blockchain,
       this.owner, this.contractAddress);
 
-  factory ReceivePostcardResponse.fromJson(Map<String, dynamic> json) {
-    return ReceivePostcardResponse(
-      json['tokenID'],
-      json['imageCID'],
-      json['blockchain'],
-      json['owner'],
-      json['contractAddress'],
-    );
-  }
+  factory ReceivePostcardResponse.fromJson(Map<String, dynamic> json) =>
+      ReceivePostcardResponse(
+        json['tokenID'],
+        json['imageCID'],
+        json['blockchain'],
+        json['owner'],
+        json['contractAddress'],
+      );
 
   Map<String, dynamic> toJson() => {
         'tokenID': tokenID,

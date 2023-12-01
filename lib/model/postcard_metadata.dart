@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/model/prompt.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/geolocation.dart';
 import 'package:autonomy_flutter/util/position_utils.dart';
@@ -5,7 +6,7 @@ import 'package:collection/collection.dart';
 
 class PostcardMetadata {
   List<Location> locationInformation;
-  String? prompt;
+  Prompt? prompt;
 
   // constructor
   PostcardMetadata({required this.locationInformation, this.prompt});
@@ -23,7 +24,9 @@ class PostcardMetadata {
           })
           .whereNotNull()
           .toList(),
-      prompt: json['prompt'] as String?,
+      prompt: json['prompt'] == null
+          ? null
+          : Prompt.fromJson(json['prompt'] as Map<String, dynamic>),
     );
     return metadata;
   }
@@ -33,7 +36,7 @@ class PostcardMetadata {
         'locationInformation': locationInformation
             .map((e) => {'stampedLocation': e.toJson()})
             .toList(),
-        'prompt': prompt,
+        'prompt': prompt?.toJson(),
       };
 }
 

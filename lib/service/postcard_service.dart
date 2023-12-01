@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/gateway/postcard_api.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
+import 'package:autonomy_flutter/model/prompt.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/leaderboard/postcard_leaderboard.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
@@ -73,7 +74,8 @@ abstract class PostcardService {
       File metadata,
       Location? location,
       int counter,
-      String contractAddress);
+      String contractAddress,
+      Prompt? prompt);
 
   List<StampingPostcard> getStampingPostcard();
 
@@ -108,6 +110,8 @@ abstract class PostcardService {
 
   Future<bool> finalizeStamp(AssetToken asset, String imagePath,
       String metadataPath, Location location);
+
+  Future<List<Prompt>> getPrompts(String tokenId);
 }
 
 class PostcardServiceImpl extends PostcardService {
@@ -248,7 +252,8 @@ class PostcardServiceImpl extends PostcardService {
       File metadata,
       Location? location,
       int counter,
-      String contractAddress) async {
+      String contractAddress,
+      Prompt? prompt) async {
     try {
       final data = [
         TezosPack.packAddress(contractAddress),
@@ -277,7 +282,8 @@ class PostcardServiceImpl extends PostcardService {
           publicKey: publicKey,
           lat: lat,
           lon: lon,
-          counter: counter) as Map<String, dynamic>;
+          counter: counter,
+          promptID: counter > 1 ? null : prompt?.id ) as Map<String, dynamic>;
 
       final ok = result['metadataCID'] as String;
       final isStampSuccess = ok.isNotEmpty;
@@ -525,7 +531,6 @@ class PostcardServiceImpl extends PostcardService {
     }));
     final tokenID = 'tez-${result.contractAddress}-${result.tokenID}';
     final postcardMetadata = PostcardMetadata(
-      prompt: result.prompt,
       locationInformation: [],
     );
     final token = AssetToken(
@@ -642,6 +647,7 @@ class PostcardServiceImpl extends PostcardService {
       location,
       counter,
       contractAddress,
+      asset.postcardMetadata.prompt,
     );
     if (isStampSuccess != false) {
       await _configurationService.setProcessingStampPostcard(
@@ -671,6 +677,13 @@ class PostcardServiceImpl extends PostcardService {
       );
     }
     return isStampSuccess != false;
+  }
+
+  @override
+  Future<List<Prompt>> getPrompts(String tokenId) async {
+    final prompts = await _postcardApi.getPrompts(tokenId);
+    log.info('[POSTCARD] getPrompts: $prompts');
+    return prompts;
   }
 }
 

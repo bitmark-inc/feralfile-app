@@ -151,6 +151,10 @@ extension AssetTokenExtension on AssetToken {
     return null;
   }
 
+  void setPreviewUrlWithCID(String cid) {
+    asset?.previewURL = 'https://ipfs.test.bitmark.com/ipfs/$cid/';
+  }
+
   Future<bool> isViewOnly() async {
     final cloudDB = injector<CloudDatabase>();
     final walletAddress = await cloudDB.addressDao.findByAddress(owner);

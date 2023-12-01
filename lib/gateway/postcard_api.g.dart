@@ -166,9 +166,10 @@ class _PostcardApi implements PostcardApi {
     required String signature,
     required String address,
     required String publicKey,
+    required int counter,
     double? lat,
     double? lon,
-    required int counter,
+    String? promptID,
   }) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
@@ -201,6 +202,10 @@ class _PostcardApi implements PostcardApi {
       'publicKey',
       publicKey,
     ));
+    _data.fields.add(MapEntry(
+      'counter',
+      counter.toString(),
+    ));
     if (lat != null) {
       _data.fields.add(MapEntry(
         'lat',
@@ -213,10 +218,12 @@ class _PostcardApi implements PostcardApi {
         lon.toString(),
       ));
     }
-    _data.fields.add(MapEntry(
-      'counter',
-      counter.toString(),
-    ));
+    if (promptID != null) {
+      _data.fields.add(MapEntry(
+        'promptID',
+        promptID,
+      ));
+    }
     final _result = await _dio.fetch(_setStreamType<dynamic>(Options(
       method: 'POST',
       headers: _headers,
@@ -270,6 +277,35 @@ class _PostcardApi implements PostcardApi {
               baseUrl,
             ))));
     final value = GetLeaderboardResponse.fromJson(_result.data!);
+    return value;
+  }
+
+  @override
+  Future<List<Prompt>> getPrompts(String tokenId) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
+    final _result =
+        await _dio.fetch<List<dynamic>>(_setStreamType<List<Prompt>>(Options(
+      method: 'GET',
+      headers: _headers,
+      extra: _extra,
+    )
+            .compose(
+              _dio.options,
+              '/v1/postcard/${tokenId}/prompts',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(
+                baseUrl: _combineBaseUrls(
+              _dio.options.baseUrl,
+              baseUrl,
+            ))));
+    var value = _result.data!
+        .map((dynamic i) => Prompt.fromJson(i as Map<String, dynamic>))
+        .toList();
     return value;
   }
 
