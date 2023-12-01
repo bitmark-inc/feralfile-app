@@ -21,8 +21,8 @@ abstract class WalletAddressDao {
   @Query('SELECT * FROM WalletAddress WHERE isHidden = :isHidden')
   Future<List<WalletAddress>> findAddressesWithHiddenStatus(bool isHidden);
 
-  @Query(
-      'SELECT * FROM WalletAddress WHERE uuid = :uuid AND cryptoType = :cryptoType')
+  @Query('SELECT * FROM WalletAddress '
+      'WHERE uuid = :uuid AND cryptoType = :cryptoType')
   Future<List<WalletAddress>> getAddresses(String uuid, String cryptoType);
 
   @Query('SELECT * FROM WalletAddress WHERE cryptoType = :cryptoType')
