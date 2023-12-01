@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/prompt.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -10,6 +11,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/prompt_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
@@ -73,6 +75,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
     final pages = widget.payload.pages ??
         [
           _page1(_controller),
+          _promptExplain(context),
           _page3(1, _colouringController),
           _page2(2, totalDistance: 0),
           _page2(3, totalDistance: 7926),
@@ -255,6 +258,27 @@ class _PostcardExplainState extends State<PostcardExplain> {
           )
         ],
       ),
+    );
+  }
+
+  Widget _promptExplain(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        PromptView(
+            prompt: Prompt(
+          id: '',
+          description: 'prompt_example'.tr(),
+        )),
+        const SizedBox(height: 8),
+        Text(
+          'prompt_explain_desc'.tr(),
+          style: theme.textTheme.moMASans400Black18,
+        ),
+        const SizedBox(height: 40),
+      ],
     );
   }
 
