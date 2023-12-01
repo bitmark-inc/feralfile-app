@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
@@ -24,7 +25,7 @@ import 'package:uuid/uuid.dart';
 class MessagePreview extends StatefulWidget {
   final MessagePreviewPayload payload;
 
-  const MessagePreview({Key? key, required this.payload}) : super(key: key);
+  const MessagePreview({required this.payload, super.key});
 
   @override
   State<MessagePreview> createState() => _MessagePreviewState();
@@ -43,7 +44,7 @@ class _MessagePreviewState extends State<MessagePreview> {
   void initState() {
     super.initState();
     _assetToken = widget.payload.asset;
-    _websocketInit();
+    unawaited(_websocketInit());
   }
 
   Future<void> _websocketInit() async {
@@ -65,19 +66,19 @@ class _MessagePreviewState extends State<MessagePreview> {
       onDoneCalled: () {},
       id: const Uuid().v4(),
     );
-    _postcardChatService.addListener(_chatListener!);
-
-    _postcardChatService.sendMessage(
-      json.encode({
-        "command": "HISTORY",
-        "id": _fetchId,
-        "payload": {
-          "lastTimestamp": DateTime.now().millisecondsSinceEpoch,
-        }
-      }),
-      requestId: _fetchId,
-      listenerId: _chatListener?.id,
-    );
+    _postcardChatService
+      ..addListener(_chatListener!)
+      ..sendMessage(
+        json.encode({
+          'command': 'HISTORY',
+          'id': _fetchId,
+          'payload': {
+            'lastTimestamp': DateTime.now().millisecondsSinceEpoch,
+          }
+        }),
+        requestId: _fetchId,
+        listenerId: _chatListener?.id,
+      );
   }
 
   void _refreshLastMessage(List<app.Message> messages) {
@@ -117,7 +118,7 @@ class _MessagePreviewState extends State<MessagePreview> {
           textBaseline: TextBaseline.alphabetic,
           children: [
             Text(
-              "messages".tr(),
+              'messages'.tr(),
               style: theme.textTheme.moMASans700Black18,
             ),
             const SizedBox(width: 30),
@@ -134,7 +135,7 @@ class _MessagePreviewState extends State<MessagePreview> {
                 token: _assetToken,
                 wallet: widget.payload.wallet,
                 address: _assetToken.owner,
-                cryptoType: _assetToken.blockchain == "ethereum"
+                cryptoType: _assetToken.blockchain == 'ethereum'
                     ? CryptoType.ETH
                     : CryptoType.XTZ,
                 name: _assetToken.title ?? ''),
@@ -147,7 +148,7 @@ class _MessagePreviewState extends State<MessagePreview> {
         bottomWidget: _lastMessage == null
             ? _didFetch
                 ? Text(
-                    "no_message_start".tr(),
+                    'no_message_start'.tr(),
                     style: theme.textTheme.moMASans400Black12
                         .copyWith(color: AppColor.auQuickSilver),
                   )
@@ -170,12 +171,12 @@ class _MessagePreviewState extends State<MessagePreview> {
 
   String _getNewMessageString(int num) {
     if (num == 0) {
-      return "";
+      return '';
     }
     if (num > 99) {
-      return "_new".tr(args: ["99+"]);
+      return '_new'.tr(args: ['99+']);
     }
-    return "_new".tr(args: [num.toString()]);
+    return '_new'.tr(args: [num.toString()]);
   }
 }
 
@@ -195,12 +196,11 @@ class MessageView extends StatelessWidget {
   final bool showFullTime;
 
   const MessageView(
-      {Key? key,
-      required this.message,
+      {required this.message,
       required this.assetToken,
+      super.key,
       this.expandAll = true,
-      this.showFullTime = false})
-      : super(key: key);
+      this.showFullTime = false});
 
   Widget completedPostcardMessageView(BuildContext context) {
     final assetToken = this.assetToken;
@@ -210,8 +210,8 @@ class MessageView extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "postcard_complete_chat_message".tr(namedArgs: {
-            "distance": distanceFormater.format(
+          'postcard_complete_chat_message'.tr(namedArgs: {
+            'distance': distanceFormater.format(
                 distance: totalDistance, withFullName: true),
           }),
           style: Theme.of(context).textTheme.moMASans400Black12,
@@ -235,13 +235,13 @@ class MessageView extends StatelessWidget {
         Row(
           children: [
             Text(
-              assetToken.getStamperName(message.author.id),
+              message.author.getName(assetToken: assetToken),
               style: theme.textTheme.moMASans700Black12,
             ),
             const SizedBox(width: 15),
             Text(
               message.status == types.Status.sending
-                  ? "sending".tr()
+                  ? 'sending'.tr()
                   : showFullTime
                       ? getChatDateTimeRepresentation(time)
                       : getLocalTimeOnly(time),
