@@ -30,6 +30,7 @@ import 'package:autonomy_flutter/util/notification_util.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_buttons.dart';
+import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/confetti.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_flutter/view/postcard_common_widget.dart';
@@ -1194,6 +1195,8 @@ class UIHelper {
     return await showCupertinoModalPopup(
         context: context,
         builder: (context) => Scaffold(
+              backgroundColor: Colors.transparent,
+              appBar: getDarkEmptyAppBar(),
               body: Stack(
                 children: [
                   GestureDetector(
@@ -1204,17 +1207,14 @@ class UIHelper {
                       Navigator.pop(context);
                     },
                   ),
-                  Center(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 15, vertical: 128),
-                      child: Column(
-                        children: [
-                          const Spacer(),
-                          content,
-                          const Spacer(),
-                        ],
-                      ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 15, vertical: 128),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        content,
+                      ],
                     ),
                   ),
                 ],
