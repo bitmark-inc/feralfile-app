@@ -10,19 +10,19 @@ import 'package:retrofit/retrofit.dart';
 
 part 'autonomy_api.g.dart';
 
-@RestApi(baseUrl: "")
+@RestApi(baseUrl: '')
 abstract class AutonomyApi {
   factory AutonomyApi(Dio dio, {String baseUrl}) = _AutonomyApi;
 
-  @POST("/apis/v1/me/link-addresses")
+  @POST('/apis/v1/me/link-addresses')
   Future postLinkedAddressed(@Body() Map<String, List<String>> body);
 
-  @POST("/apis/v1/me/keypairs")
+  @POST('/apis/v1/me/keypairs')
   Future addKeypair(@Body() Map<String, String> body);
 
-  @GET("/apis/v1/me/keypairs")
+  @GET('/apis/v1/me/keypairs')
   Future getKeypairs();
 
-  @DELETE("/apis/v1/me/keypairs")
+  @DELETE('/apis/v1/me/keypairs')
   Future deleteKeypair(@Body() Map<String, String> body);
 }
