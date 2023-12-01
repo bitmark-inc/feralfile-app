@@ -13,12 +13,13 @@ class EthAmountFormatter {
 
   final BigInt amount;
   final int digit;
+
   String format({
-    fromUnit = EtherUnit.wei,
-    toUnit = EtherUnit.ether,
+    EtherUnit fromUnit = EtherUnit.wei,
+    EtherUnit toUnit = EtherUnit.ether,
   }) {
     final formater =
-        NumberFormat("${'#' * 10}0.0${'#' * (digit - 1)}", "en_US");
+        NumberFormat("${'#' * 10}0.0${'#' * (digit - 1)}", 'en_US');
 
     return formater.format(
         EtherAmount.fromBigInt(fromUnit, amount).getValueInUnit(toUnit));

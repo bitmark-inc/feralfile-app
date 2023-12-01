@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:core';
 import 'dart:io';
 
@@ -42,15 +43,16 @@ APIErrorCode? getAPIErrorCode(int code) {
 
 Future<File> getLogFile() async {
   final directory = (await getTemporaryDirectory()).path;
-  const fileName = "app.log";
+  const fileName = 'app.log';
 
-  return _createLogFile("$directory/$fileName");
+  return _createLogFile('$directory/$fileName');
 }
 
 Future<File> _createLogFile(canonicalLogFileName) async =>
     File(canonicalLogFileName).create(recursive: true);
 
-int? decodeErrorResponse(dynamic e) {
+// ignore: type_annotate_public_apis
+int? decodeErrorResponse(e) {
   if (e is DioException && e.type == DioExceptionType.badResponse) {
     return e.response?.data['error']['code'] as int;
   }
@@ -72,7 +74,7 @@ class FileLogger {
 
     final current = await _logFile.readAsBytes();
     if (current.length > shrinkSize) {
-      _logFile.writeAsBytes(current.sublist(current.length - shrinkSize),
+      await _logFile.writeAsBytes(current.sublist(current.length - shrinkSize),
           flush: true);
     }
 
@@ -80,22 +82,22 @@ class FileLogger {
 
     /// per its documentation, `writeAsString` “Opens the file, writes
     /// the string in the given encoding, and closes the file”
-    _logFile.writeAsString(text, mode: FileMode.append, flush: true);
+    await _logFile.writeAsString(text, mode: FileMode.append, flush: true);
 
     return _logFile;
   }
 
-  static setLogFile(File file) {
+  static void setLogFile(File file) {
     _logFile = file;
   }
 
-  static get logFile => _logFile;
+  static File get logFile => _logFile;
 
   static Future log(LogRecord record) async {
-    final text = '${record.toString()}\n';
+    final text = '$record\n';
     debugPrint(text);
     return _lock.synchronized(() async {
-      await _logFile.writeAsString("${record.time}: $text",
+      await _logFile.writeAsString('${record.time}: $text',
           mode: FileMode.append, flush: true);
     });
   }
@@ -113,9 +115,9 @@ class SentryBreadcrumbLogger {
       type = 'error';
       level = SentryLevel.warning;
     }
-    Sentry.addBreadcrumb(Breadcrumb(
+    unawaited(Sentry.addBreadcrumb(Breadcrumb(
         message: '[${record.level}] ${record.message}',
         level: level,
-        type: type));
+        type: type)));
   }
 }

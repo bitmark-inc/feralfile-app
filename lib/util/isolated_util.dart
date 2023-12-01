@@ -12,12 +12,12 @@ import 'dart:isolate';
 import 'package:collection/collection.dart';
 import 'package:uuid/uuid.dart';
 
+// ignore_for_file: constant_identifier_names
+
 class IsolatedUtil {
   static final IsolatedUtil _singleton = IsolatedUtil._internal();
 
-  factory IsolatedUtil() {
-    return _singleton;
-  }
+  factory IsolatedUtil() => _singleton;
 
   IsolatedUtil._internal();
 
@@ -36,7 +36,9 @@ class IsolatedUtil {
   static const JSON_DECODE = 'JSON_DECODE';
 
   Future<void> start() async {
-    if (_sendPort != null || _receivePort != null) return;
+    if (_sendPort != null || _receivePort != null) {
+      return;
+    }
 
     _receivePort = ReceivePort();
     _receivePort!.listen(_handleMessageInMain);
@@ -89,15 +91,14 @@ class IsolatedUtil {
     return completer.future;
   }
 
-  static void _isolateEntry(SendPort sendPort) async {
-    final receivePort = ReceivePort();
-    receivePort.listen(_handleMessageInIsolate);
+  static Future<void> _isolateEntry(SendPort sendPort) async {
+    final receivePort = ReceivePort()..listen(_handleMessageInIsolate);
 
     sendPort.send(receivePort.sendPort);
     _isolateSendPort = sendPort;
   }
 
-  void _handleMessageInMain(dynamic message) async {
+  Future<void> _handleMessageInMain(message) async {
     if (message is SendPort) {
       _sendPort = message;
       _isolateReady.complete();
@@ -115,7 +116,7 @@ class IsolatedUtil {
     }
   }
 
-  static void _handleMessageInIsolate(dynamic message) {
+  static void _handleMessageInIsolate(message) {
     if (message is List<dynamic>) {
       switch (message[0]) {
         case SHOULD_SHORT_CURL_LOG:
@@ -132,14 +133,14 @@ class IsolatedUtil {
   }
 
   static void _shortCurlLog(String uuid, String curl) {
-    final matched = RegExp(r'.*support.*\/issues.*').hasMatch(curl);
+    final matched = RegExp('.*support.*/issues.*').hasMatch(curl);
     _isolateSendPort?.send(BoolResult(uuid, matched));
   }
 
   static void _shortAPIResponseLog(String uuid, String curl) {
     List<RegExp> logFilterRegex = [
-      RegExp(r'.*\/nft.*'),
-      RegExp(r'.*support.*\/issues.*'),
+      RegExp('.*/nft.*'),
+      RegExp('.*support.*/issues.*'),
     ];
 
     final matched =

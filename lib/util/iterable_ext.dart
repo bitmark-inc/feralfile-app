@@ -1,3 +1,5 @@
+// ignore_for_file: type_annotate_public_apis
+
 extension IterableExtension<E> on Iterable<E> {
   Iterable<E> distinctBy<K extends Comparable<K>>({
     required K Function(E e) keyOf,
@@ -24,7 +26,9 @@ extension IterableExtension<E> on Iterable<E> {
     }
 
     for (var element in this) {
-      if (func(element)) return element;
+      if (func(element)) {
+        return element;
+      }
     }
 
     return null;
@@ -32,7 +36,9 @@ extension IterableExtension<E> on Iterable<E> {
 
   E? lastOrDefault([bool Function(E element)? func]) {
     if (func == null) {
-      if (isNotNullOrEmpty) return last;
+      if (isNotNullOrEmpty) {
+        return last;
+      }
       return null;
     }
 
@@ -45,11 +51,13 @@ extension IterableExtension<E> on Iterable<E> {
       }
     }
 
-    if (foundMatching) return result;
+    if (foundMatching) {
+      return result;
+    }
     return null;
   }
 
-  dynamic foldLeft(dynamic val, func) {
+  dynamic foldLeft(val, func) {
     forEach((entry) => val = func(val, entry));
     return val;
   }
@@ -73,7 +81,9 @@ extension IterableNullExtension<E> on Iterable<E>? {
     }
 
     for (var element in this ?? <E>[]) {
-      if (func?.call(element) ?? false) return element;
+      if (func?.call(element) ?? false) {
+        return element;
+      }
     }
 
     return null;
@@ -81,7 +91,9 @@ extension IterableNullExtension<E> on Iterable<E>? {
 
   E? lastOrDefault([bool Function(E element)? func]) {
     if (func == null) {
-      if (isNotNullOrEmpty) return this?.last;
+      if (isNotNullOrEmpty) {
+        return this?.last;
+      }
       return null;
     }
 
@@ -96,11 +108,13 @@ extension IterableNullExtension<E> on Iterable<E>? {
       }
     }
 
-    if (foundMatching) return result;
+    if (foundMatching) {
+      return result;
+    }
     return null;
   }
 
-  dynamic foldLeft(dynamic val, func) {
+  dynamic foldLeft(val, func) {
     for (var element in this ?? <E>[]) {
       val = func(val, element);
     }

@@ -12,43 +12,40 @@ import 'package:flutter/material.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:overlay_support/overlay_support.dart';
-
 // ignore: implementation_imports
 import 'package:overlay_support/src/overlay_state_finder.dart';
 
 Widget _notificationToast(BuildContext context, OSNotification notification,
-    {Function(OSNotification notification)? notificationOpenedHandler}) {
-  return _SimpleNotificationToast(
-    notification: notification.body ?? "",
-    key: Key(notification.notificationId),
-    notificationOpenedHandler: () {
-      if (notificationOpenedHandler != null) {
-        notificationOpenedHandler(notification);
-      }
-    },
-    addOnTextSpan: [
-      TextSpan(
-        text: ' ${'tap_to_view'.tr()}',
-        style: Theme.of(context).textTheme.ppMori400Green14,
-      )
-    ],
-  );
-}
+        {Function(OSNotification notification)? notificationOpenedHandler}) =>
+    _SimpleNotificationToast(
+      notification: notification.body ?? '',
+      key: Key(notification.notificationId),
+      notificationOpenedHandler: () {
+        if (notificationOpenedHandler != null) {
+          notificationOpenedHandler(notification);
+        }
+      },
+      addOnTextSpan: [
+        TextSpan(
+          text: ' ${'tap_to_view'.tr()}',
+          style: Theme.of(context).textTheme.ppMori400Green14,
+        )
+      ],
+    );
 
 Widget _inAppNotificationToast(BuildContext context, String body, String key,
-    {Function()? notificationOpenedHandler}) {
-  return _SimpleNotificationToast(
-    notification: body,
-    key: Key(key),
-    notificationOpenedHandler: notificationOpenedHandler,
-    addOnTextSpan: [
-      TextSpan(
-        text: ' ${'tap_to_view'.tr()}',
-        style: Theme.of(context).textTheme.ppMori400Green14,
-      )
-    ],
-  );
-}
+        {Function()? notificationOpenedHandler}) =>
+    _SimpleNotificationToast(
+      notification: body,
+      key: Key(key),
+      notificationOpenedHandler: notificationOpenedHandler,
+      addOnTextSpan: [
+        TextSpan(
+          text: ' ${'tap_to_view'.tr()}',
+          style: Theme.of(context).textTheme.ppMori400Green14,
+        )
+      ],
+    );
 
 class _SimpleNotificationToast extends StatelessWidget {
   const _SimpleNotificationToast({
@@ -196,7 +193,7 @@ void showNotifications(BuildContext context, OSNotification notification,
 void showInAppNotifications(BuildContext context, String body, String key,
     {Function()? notificationOpenedHandler}) {
   showSimpleNotification(
-    _inAppNotificationToast(context, body, "",
+    _inAppNotificationToast(context, body, '',
         notificationOpenedHandler: notificationOpenedHandler),
     background: Colors.transparent,
     duration: const Duration(seconds: 3),
@@ -277,7 +274,7 @@ void showCustomNotifications(BuildContext context, String notification, Key key,
 void hideOverlay(Key key) {
   final OverlaySupportState? overlaySupport = findOverlayState();
   if (overlaySupport == null) {
-    log.warning("Cannot find overlay key: $key");
+    log.warning('Cannot find overlay key: $key');
     return;
   }
 

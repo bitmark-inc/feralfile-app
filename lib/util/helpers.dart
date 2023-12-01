@@ -10,9 +10,9 @@ import 'package:http/http.dart' as http;
 
 int compareVersion(String version1, String version2) {
   final ver1 =
-      version1.split(".").map((e) => int.tryParse(e)).whereNotNull().toList();
+      version1.split('.').map((e) => int.tryParse(e)).whereNotNull().toList();
   final ver2 =
-      version2.split(".").map((e) => int.tryParse(e)).whereNotNull().toList();
+      version2.split('.').map((e) => int.tryParse(e)).whereNotNull().toList();
 
   var i = 0;
   while (i < ver1.length && i < ver2.length) {
@@ -25,9 +25,5 @@ int compareVersion(String version1, String version2) {
   return ver1.length - ver2.length;
 }
 
-Future<http.Response> callRequest(Uri uri) async {
-  return await http.get(uri, headers: {
-    "Connection": "Keep-Alive",
-    "Keep-Alive": "timeout=5, max=1000"
-  });
-}
+Future<http.Response> callRequest(Uri uri) async => await http.get(uri,
+    headers: {'Connection': 'Keep-Alive', 'Keep-Alive': 'timeout=5, max=1000'});

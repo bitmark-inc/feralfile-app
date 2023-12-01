@@ -1,6 +1,7 @@
+import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:easy_localization/easy_localization.dart';
 
-import '../service/tezos_service.dart';
+// ignore_for_file: constant_identifier_names
 
 enum FeeOption {
   LOW,
@@ -23,11 +24,11 @@ extension FeeOptionExtention on FeeOption {
   String get name {
     switch (this) {
       case FeeOption.LOW:
-        return "low".tr();
+        return 'low'.tr();
       case FeeOption.MEDIUM:
-        return "medium".tr();
+        return 'medium'.tr();
       default:
-        return "high".tr();
+        return 'high'.tr();
     }
   }
 

@@ -1,12 +1,13 @@
-import 'dart:io';
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
+import 'dart:math' as math;
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:html/parser.dart' show parse;
-import 'dart:math' as math;
-
+import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -37,7 +38,8 @@ class VersionCheck {
   ///
   /// optional packageName : uses package_info if not provided.
   /// optional packageVersion : uses package_info if not provided.
-  /// optional getStoreVersionUrl : function for getting version and url from store. (too override default implementation)
+  /// optional getStoreVersionUrl : function for getting version
+  /// and url from store. (too override default implementation)
   /// optional showUpdateDialog : function for displaying custom update dialog.
   /// optional country : for ios/mac version check (default: 'us').
   VersionCheck({
@@ -69,7 +71,7 @@ class VersionCheck {
           getStoreVersionAndUrl = _getMacStoreVersionAndUrl;
           break;
         default:
-          throw "Platform ${Platform.operatingSystem} not supported.";
+          throw 'Platform ${Platform.operatingSystem} not supported.';
       }
     }
 
@@ -86,9 +88,13 @@ class VersionCheck {
   }
 
   /// check if update is available
-  get hasUpdate {
-    if (packageVersion == null) return false;
-    if (storeVersion == null) return false;
+  bool get hasUpdate {
+    if (packageVersion == null) {
+      return false;
+    }
+    if (storeVersion == null) {
+      return false;
+    }
     return _shouldUpdate(packageVersion, storeVersion);
   }
 
@@ -102,10 +108,10 @@ class VersionCheck {
     }
   }
 
-  /// compare packageVersion and storeVersion and return true if update is needed.
-  static bool shouldUpdate(String? packageVersion, String? storeVersion) {
-    return _shouldUpdate(packageVersion, storeVersion);
-  }
+  /// compare packageVersion and storeVersion
+  /// and return true if update is needed.
+  static bool shouldUpdate(String? packageVersion, String? storeVersion) =>
+      _shouldUpdate(packageVersion, storeVersion);
 }
 
 Future<StoreVersionAndUrl?> _getIOSStoreVersionAndUrl(String bundleId) async {
@@ -131,7 +137,7 @@ Future<StoreVersionAndUrl?> _getAndroidStoreVersionAndUrl(
   final resp = await http.get(uri, headers: {
     'referer': 'http://www.google.com',
     'user-agent':
-        "Mozilla/5.0 (Windows; U; WindowsNT 5.1; en-US; rv1.8.1.6) Gecko/20070725 Firefox/2.0.0.6",
+        'Mozilla/5.0 (Windows; U; WindowsNT 5.1; en-US; rv1.8.1.6) Gecko/20070725 Firefox/2.0.0.6',
   });
 
   if (resp.statusCode == 200) {
@@ -150,7 +156,7 @@ Future<StoreVersionAndUrl?> _getAndroidStoreVersionAndUrl(
       final elements = doc.getElementsByTagName('script');
 
       for (var e in elements) {
-        var match = RegExp('"(\\d+\\.\\d+\\.\\d+)"').firstMatch(e.text);
+        var match = RegExp(r'"(\d+\.\d+\.\d+)"').firstMatch(e.text);
         if (match != null) {
           return StoreVersionAndUrl(match.group(1)!, url);
         }
@@ -187,7 +193,9 @@ Future<StoreVersionAndUrl?> _getMacStoreVersionAndUrl(String bundleId) async {
 }
 
 bool _shouldUpdate(String? packageVersion, String? storeVersion) {
-  if (packageVersion == storeVersion) return false;
+  if (packageVersion == storeVersion) {
+    return false;
+  }
 
   final arr1 = packageVersion!.split('.');
   final arr2 = storeVersion!.split('.');
@@ -209,13 +217,15 @@ bool _shouldUpdate(String? packageVersion, String? storeVersion) {
     }
   }
 
-  if (arr2.length > arr1.length) return true;
+  if (arr2.length > arr1.length) {
+    return true;
+  }
 
   return false;
 }
 
 void _showUpdateDialog(VersionCheck versionCheck) {
-  showDialog(
+  unawaited(showDialog(
     context: injector<NavigationService>().navigatorKey.currentContext!,
     barrierDismissible: false,
     builder: (context) => AlertDialog(
@@ -244,5 +254,5 @@ void _showUpdateDialog(VersionCheck versionCheck) {
         ),
       ],
     ),
-  );
+  ));
 }

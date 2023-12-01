@@ -7,7 +7,7 @@
 
 import 'dart:math';
 
-var random = Random.secure();
+Random random = Random.secure();
 
 String generateRandomString(int len) {
   const chars =
@@ -16,7 +16,5 @@ String generateRandomString(int len) {
       .join();
 }
 
-String generateRandomHex(int len) {
-  return List<String>.generate(
-      len, (i) => random.nextInt(256).toRadixString(16).padLeft(2, '0')).join();
-}
+String generateRandomHex(int len) => List<String>.generate(
+    len, (i) => random.nextInt(256).toRadixString(16).padLeft(2, '0')).join();

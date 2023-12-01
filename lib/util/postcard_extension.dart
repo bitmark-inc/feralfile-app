@@ -9,7 +9,7 @@ extension PostcardMetadataExtension on PostcardMetadata {
     int lastStampLocation = 0;
     for (int i = 1; i < stamps.length; i++) {
       final stamp = stamps[i];
-      if (!(stamp.isInternet)) {
+      if (!stamp.isInternet) {
         final from =
             GeoLocation(position: stamps[lastStampLocation], address: null);
         final to = GeoLocation(position: stamp, address: null);
@@ -22,7 +22,7 @@ extension PostcardMetadataExtension on PostcardMetadata {
         final to = GeoLocation(position: stamp, address: null);
         travelInfo.add(TravelInfo(from, to, i));
       }
-      if (!(stamp.isInternet)) {
+      if (!stamp.isInternet) {
         lastStampLocation = i;
       }
     }

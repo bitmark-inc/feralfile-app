@@ -11,6 +11,6 @@ import 'package:local_auth/local_auth.dart';
 Future<bool> authenticateIsAvailable() async {
   LocalAuthentication localAuth = LocalAuthentication();
   final isDeviceSupported = await localAuth.isDeviceSupported();
-  log.info("authenticateIsAvailable: isDeviceSupported = $isDeviceSupported");
+  log.info('authenticateIsAvailable: isDeviceSupported = $isDeviceSupported');
   return isDeviceSupported;
 }

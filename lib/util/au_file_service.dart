@@ -16,7 +16,7 @@ import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:path_provider/path_provider.dart';
 
-String _cacheKey = "AUCache";
+String _cacheKey = 'AUCache';
 
 class Info {
   final String url;
@@ -37,6 +37,8 @@ class Info {
 class AUImageCacheManage extends CacheManager with ImageCacheManager {
   static final AUImageCacheManage _instance = AUImageCacheManage._();
 
+  factory AUImageCacheManage() => _instance;
+
   AUImageCacheManage._()
       : super(
           Config(_cacheKey,
@@ -44,10 +46,6 @@ class AUImageCacheManage extends CacheManager with ImageCacheManager {
               stalePeriod: const Duration(days: 30),
               maxNrOfCacheObjects: 10000),
         );
-
-  factory AUImageCacheManage() {
-    return _instance;
-  }
 }
 
 class AuFileServiceResponse extends FileServiceResponse {
@@ -61,6 +59,7 @@ class AuFileServiceResponse extends FileServiceResponse {
   }) : _localFile = File(filePath);
 
   @override
+  // ignore: discarded_futures
   Stream<List<int>> get content => _localFile.readAsBytes().asStream();
 
   @override
@@ -70,7 +69,7 @@ class AuFileServiceResponse extends FileServiceResponse {
   String? get eTag => null;
 
   @override
-  String get fileExtension => ".$fileExt";
+  String get fileExtension => '.$fileExt';
 
   @override
   int get statusCode => 200;
@@ -87,18 +86,18 @@ class AuFileService extends FileService {
   final ReceivePort _port = ReceivePort();
   late String _saveDir;
 
-  AuFileService._();
-
   factory AuFileService() => _instance;
+
+  AuFileService._();
 
   Future<dynamic> setup() async {
     String tempDir = (await getTemporaryDirectory()).path;
-    _saveDir = "$tempDir/$_cacheKey/";
+    _saveDir = '$tempDir/$_cacheKey/';
     await Directory(_saveDir).create(recursive: true);
     FlutterImageCompress.validator.ignoreCheckExtName = true;
     IsolateNameServer.registerPortWithName(
         _port.sendPort, 'downloader_send_port');
-    _port.listen((dynamic data) async {
+    _port.listen((data) async {
       String id = data[0];
       DownloadTaskStatus status = DownloadTaskStatus.fromInt(data[1] as int);
       int progress = data[2];
@@ -114,8 +113,8 @@ class AuFileService extends FileService {
         File localFile = File(_saveDir + info.localFile);
         final fileSize = await localFile.length();
         if (fileSize <= 0) {
-          log.info("File is empty ${info.url}");
-          info.task.completeError(Exception("File is empty ${info.url}"));
+          log.info('File is empty ${info.url}');
+          info.task.completeError(Exception('File is empty ${info.url}'));
         } else if (info.url.startsWith(Environment.cloudFlareImageUrlPrefix)) {
           info.task.complete(AuFileServiceResponse(
             filePath: _saveDir + info.localFile,
@@ -124,7 +123,7 @@ class AuFileService extends FileService {
         } else {
           try {
             final originalFile = _saveDir + info.localFile;
-            final compressedFile = "${_saveDir}resized_${info.localFile}.jpeg";
+            final compressedFile = '${_saveDir}resized_${info.localFile}.jpeg';
             await FlutterImageCompress.compressAndGetFile(
               originalFile,
               compressedFile,
@@ -134,7 +133,7 @@ class AuFileService extends FileService {
               await File(originalFile).delete();
               info.task.complete(AuFileServiceResponse(
                 filePath: compressedFile,
-                fileExt: "jpeg",
+                fileExt: 'jpeg',
               ));
             } else {
               info.task.complete(AuFileServiceResponse(
@@ -152,12 +151,12 @@ class AuFileService extends FileService {
         }
         _taskId2Info.remove(id);
       } else if (status == DownloadTaskStatus.failed) {
-        log.info("[AuFileService] Download failed: ${info.url}");
-        info.task.completeError(Exception("Download failed ${info.url}"));
+        log.info('[AuFileService] Download failed: ${info.url}');
+        info.task.completeError(Exception('Download failed ${info.url}'));
         _taskId2Info.remove(id);
       } else if (status == DownloadTaskStatus.canceled) {
-        log.info("[AuFileService] Download cancelled: ${info.url}");
-        info.task.completeError(Exception("Download cancelled ${info.url}"));
+        log.info('[AuFileService] Download cancelled: ${info.url}');
+        info.task.completeError(Exception('Download cancelled ${info.url}'));
         _taskId2Info.remove(id);
       }
     }
@@ -179,10 +178,10 @@ class AuFileService extends FileService {
         );
       }
       if (!(Uri.tryParse(fallbackUrl ?? url)?.hasAbsolutePath ?? false)) {
-        return Future.error(Exception("Invalid url $url"));
+        return Future.error(Exception('Invalid url $url'));
       }
 
-      final fileName = "${md5.convert(utf8.encode(url))}.${fileInfo.extension}";
+      final fileName = '${md5.convert(utf8.encode(url))}.${fileInfo.extension}';
       final taskId = await FlutterDownloader.enqueue(
         url: fallbackUrl ?? url,
         headers: headers ?? {},
@@ -192,8 +191,8 @@ class AuFileService extends FileService {
         openFileFromNotification: false,
         timeout: 5000,
       );
-      info = Info(url, fileInfo.extension, taskId ?? "", fileName, Completer());
-      _taskId2Info[taskId ?? ""] = info;
+      info = Info(url, fileInfo.extension, taskId ?? '', fileName, Completer());
+      _taskId2Info[taskId ?? ''] = info;
     }
     return info.task.future;
   }
