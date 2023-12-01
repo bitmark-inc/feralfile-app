@@ -3,15 +3,15 @@ import 'package:retrofit/retrofit.dart';
 
 part 'activation_api.g.dart';
 
-@RestApi(baseUrl: "")
+@RestApi(baseUrl: '')
 abstract class ActivationApi {
   factory ActivationApi(Dio dio, {String baseUrl}) = _ActivationApi;
 
-  @GET("/v1/activation/{activation_id}")
+  @GET('/v1/activation/{activation_id}')
   Future<ActivationInfo> getActivation(
-      @Path("activation_id") String activationId);
+      @Path('activation_id') String activationId);
 
-  @POST("/v1/activation/claim")
+  @POST('/v1/activation/claim')
   Future<ActivationClaimResponse> claim(@Body() ActivationClaimRequest body);
 }
 
@@ -25,15 +25,13 @@ class ActivationInfo {
   ActivationInfo(this.name, this.description, this.blockchain,
       this.contractAddress, this.tokenID);
 
-  factory ActivationInfo.fromJson(Map<String, dynamic> json) {
-    return ActivationInfo(
-      json['name'],
-      json['description'],
-      json['blockchain'],
-      json['contractAddress'],
-      json['tokenID'],
-    );
-  }
+  factory ActivationInfo.fromJson(Map<String, dynamic> json) => ActivationInfo(
+        json['name'],
+        json['description'],
+        json['blockchain'],
+        json['contractAddress'],
+        json['tokenID'],
+      );
 
   Map<String, dynamic> toJson() => {
         'name': name,
@@ -60,21 +58,18 @@ class ActivationClaimRequest {
         'airdropTOTPPasscode': airdropTOTPPasscode,
       };
 
-  factory ActivationClaimRequest.fromJson(Map<String, dynamic> json) {
-    return ActivationClaimRequest(
-      activationID: json['activationID'],
-      address: json['address'],
-      airdropTOTPPasscode: json['airdropTOTPPasscode'],
-    );
-  }
+  factory ActivationClaimRequest.fromJson(Map<String, dynamic> json) =>
+      ActivationClaimRequest(
+        activationID: json['activationID'],
+        address: json['address'],
+        airdropTOTPPasscode: json['airdropTOTPPasscode'],
+      );
 }
 
 class ActivationClaimResponse {
   ActivationClaimResponse();
 
-  factory ActivationClaimResponse.fromJson(Map<String, dynamic> json) {
-    return ActivationClaimResponse();
-  }
+  factory ActivationClaimResponse.fromJson() => ActivationClaimResponse();
 
   Map<String, dynamic> toJson() => {};
 }

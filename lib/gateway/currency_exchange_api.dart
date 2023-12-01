@@ -11,10 +11,10 @@ import 'package:retrofit/retrofit.dart';
 
 part 'currency_exchange_api.g.dart';
 
-@RestApi(baseUrl: "")
+@RestApi(baseUrl: '')
 abstract class CurrencyExchangeApi {
   factory CurrencyExchangeApi(Dio dio, {String baseUrl}) = _CurrencyExchangeApi;
 
-  @GET("/v2/exchange-rates")
+  @GET('/v2/exchange-rates')
   Future<Map<String, CurrencyExchange>> getExchangeRates();
 }

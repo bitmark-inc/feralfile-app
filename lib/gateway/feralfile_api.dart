@@ -11,32 +11,32 @@ import 'package:retrofit/retrofit.dart';
 
 part 'feralfile_api.g.dart';
 
-@RestApi(baseUrl: "")
+@RestApi(baseUrl: '')
 abstract class FeralFileApi {
   factory FeralFileApi(Dio dio, {String baseUrl}) = _FeralFileApi;
 
-  @GET("/api/exhibitions/{exhibitionId}")
+  @GET('/api/exhibitions/{exhibitionId}')
   Future<ExhibitionResponse> getExhibition(
-      @Path("exhibitionId") String exhibitionId);
+      @Path('exhibitionId') String exhibitionId);
 
-  @GET("/api/series/{seriesId}")
-  Future<FFSeriesResponse> getSeries(@Path("seriesId") String seriesId);
+  @GET('/api/series/{seriesId}')
+  Future<FFSeriesResponse> getSeries(@Path('seriesId') String seriesId);
 
-  @POST("/api/series/{seriesId}/claim")
+  @POST('/api/series/{seriesId}/claim')
   Future<TokenClaimResponse> claimSeries(
-    @Path("seriesId") String seriesId,
+    @Path('seriesId') String seriesId,
     @Body() Map<String, dynamic> body,
   );
 
-  @GET("/api/exhibitions/{exhibitionID}/revenue-setting/resale")
+  @GET('/api/exhibitions/{exhibitionID}/revenue-setting/resale')
   Future<ResaleResponse> getResaleInfo(
-      @Path("exhibitionID") String exhibitionID);
+      @Path('exhibitionID') String exhibitionID);
 
-  @GET("/api/artworks/{tokenID}")
+  @GET('/api/artworks/{tokenID}')
   Future<ArtworkResponse> getArtworks(
-    @Path("tokenID") String tokenID, {
-    @Query("includeSeries") bool includeSeries = true,
-    @Query("includeExhibition") bool includeExhibition = true,
-    @Query("includeArtist") bool includeArtist = true,
+    @Path('tokenID') String tokenID, {
+    @Query('includeSeries') bool includeSeries = true,
+    @Query('includeExhibition') bool includeExhibition = true,
+    @Query('includeArtist') bool includeArtist = true,
   });
 }

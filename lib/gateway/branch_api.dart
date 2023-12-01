@@ -10,16 +10,16 @@ import 'package:retrofit/http.dart';
 
 part 'branch_api.g.dart';
 
-@RestApi(baseUrl: "https://api2.branch.io")
+@RestApi(baseUrl: 'https://api2.branch.io')
 abstract class BranchApi {
   factory BranchApi(Dio dio, {String baseUrl}) = _BranchApi;
 
-  @GET("/v1/url")
+  @GET('/v1/url')
   Future<dynamic> getParams(
-    @Query("branch_key") String? key,
-    @Query("url") String? url,
+    @Query('branch_key') String? key,
+    @Query('url') String? url,
   );
 
-  @POST("/v1/url")
+  @POST('/v1/url')
   Future<dynamic> getUrl(@Body() Map<String, dynamic> body);
 }
