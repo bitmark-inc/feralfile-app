@@ -151,6 +151,14 @@ extension AssetTokenExtension on AssetToken {
     return null;
   }
 
+  void updatePostcardCID(String cid) {
+    if (Environment.appTestnetConfig) {
+      asset?.previewURL = '$POSTCARD_IPFS_PREFIX_TEST/$cid/';
+    } else {
+      asset?.previewURL = '$POSTCARD_IPFS_PREFIX_PROD/$cid/';
+    }
+  }
+
   Future<bool> isViewOnly() async {
     final cloudDB = injector<CloudDatabase>();
     final walletAddress = await cloudDB.addressDao.findByAddress(owner);

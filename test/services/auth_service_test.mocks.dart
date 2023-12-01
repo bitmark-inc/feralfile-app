@@ -796,28 +796,6 @@ class MockConfigurationService extends _i1.Mock
         returnValue: false,
       ) as bool);
   @override
-  _i12.Future<void> setHiddenFeed(
-    List<String>? tokenIds, {
-    bool? isOverride = false,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #setHiddenFeed,
-          [tokenIds],
-          {#isOverride: isOverride},
-        ),
-        returnValue: _i12.Future<void>.value(),
-        returnValueForMissingStub: _i12.Future<void>.value(),
-      ) as _i12.Future<void>);
-  @override
-  List<String> getHiddenFeeds() => (super.noSuchMethod(
-        Invocation.method(
-          #getHiddenFeeds,
-          [],
-        ),
-        returnValue: <String>[],
-      ) as List<String>);
-  @override
   _i12.Future<void> setAnnouncementLastPullTime(int? lastPullTime) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -1181,40 +1159,6 @@ class MockConfigurationService extends _i1.Mock
         returnValue: _i12.Future<void>.value(),
         returnValueForMissingStub: _i12.Future<void>.value(),
       ) as _i12.Future<void>);
-  @override
-  _i12.Future<void> setLastTimeOpenFeed(int? timestamp) => (super.noSuchMethod(
-        Invocation.method(
-          #setLastTimeOpenFeed,
-          [timestamp],
-        ),
-        returnValue: _i12.Future<void>.value(),
-        returnValueForMissingStub: _i12.Future<void>.value(),
-      ) as _i12.Future<void>);
-  @override
-  int getLastTimeOpenFeed() => (super.noSuchMethod(
-        Invocation.method(
-          #getLastTimeOpenFeed,
-          [],
-        ),
-        returnValue: 0,
-      ) as int);
-  @override
-  _i12.Future<void> setHasFeed(bool? value) => (super.noSuchMethod(
-        Invocation.method(
-          #setHasFeed,
-          [value],
-        ),
-        returnValue: _i12.Future<void>.value(),
-        returnValueForMissingStub: _i12.Future<void>.value(),
-      ) as _i12.Future<void>);
-  @override
-  bool hasFeed() => (super.noSuchMethod(
-        Invocation.method(
-          #hasFeed,
-          [],
-        ),
-        returnValue: false,
-      ) as bool);
   @override
   bool isDemoArtworksMode() => (super.noSuchMethod(
         Invocation.method(

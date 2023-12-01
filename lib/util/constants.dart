@@ -54,6 +54,9 @@ const MOMA_MEMENTO_EXHIBITION_IDS = [
   '3ee3e8a4-90dd-4843-8ec3-858e6bea1965'
 ];
 
+const POSTCARD_IPFS_PREFIX_TEST = 'https://ipfs.test.bitmark.com/ipfs';
+const POSTCARD_IPFS_PREFIX_PROD = 'https://ipfs.bitmark.com/ipfs';
+
 const TEIA_ART_CONTRACT_ADDRESSES = ['KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton'];
 const OPENSEA_ASSET_PREFIX = 'https://opensea.io/assets/';
 const OBJKT_ASSET_PREFIX_MAINNET = 'https://objkt.com/asset/';

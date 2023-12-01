@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
+import 'package:autonomy_flutter/model/prompt.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_bloc.dart';
@@ -31,11 +32,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nft_collection/models/asset_token.dart';
 
 class StampPreview extends StatefulWidget {
-  static const String tag = "stamp_preview";
+  static const String tag = 'stamp_preview';
   final StampPreviewPayload payload;
-  static const double cellSize = 20.0;
+  static const double cellSize = 20;
 
-  const StampPreview({Key? key, required this.payload}) : super(key: key);
+  const StampPreview({required this.payload, super.key});
 
   @override
   State<StampPreview> createState() => _StampPreviewState();
@@ -55,10 +56,10 @@ class _StampPreviewState extends State<StampPreview> with AfterLayoutMixin {
 
   @override
   void initState() {
-    log.info('[POSTCARD][StampPreview] payload: ${widget.payload.toString()}');
+    log.info('[POSTCARD][StampPreview] payload: ${widget.payload}');
     confirming = false;
     isSending = false;
-    _configurationService.setAutoShowPostcard(false);
+    unawaited(_configurationService.setAutoShowPostcard(false));
     super.initState();
   }
 
@@ -67,7 +68,7 @@ class _StampPreviewState extends State<StampPreview> with AfterLayoutMixin {
     setState(() {
       confirming = true;
     });
-    _postcardService
+    unawaited(_postcardService
         .finalizeStamp(widget.payload.asset, widget.payload.imagePath,
             widget.payload.metadataPath, widget.payload.location)
         .then((final bool isStampSuccess) {
@@ -80,7 +81,7 @@ class _StampPreviewState extends State<StampPreview> with AfterLayoutMixin {
           confirming = false;
         });
       }
-    });
+    }));
   }
 
   @override
@@ -91,7 +92,7 @@ class _StampPreviewState extends State<StampPreview> with AfterLayoutMixin {
   }
 
   void _refreshPostcard() {
-    log.info("Refresh postcard");
+    log.info('Refresh postcard');
     context.read<PostcardDetailBloc>().add(PostcardDetailGetInfoEvent(
           ArtworkIdentity(widget.payload.asset.id, widget.payload.asset.owner),
           useIndexer: true,
@@ -113,14 +114,12 @@ class _StampPreviewState extends State<StampPreview> with AfterLayoutMixin {
     final theme = Theme.of(context);
     const backgroundColor = AppColor.chatPrimaryColor;
     return WillPopScope(
-      onWillPop: () async {
-        return !confirming;
-      },
+      onWillPop: () async => !confirming,
       child: Scaffold(
         backgroundColor: backgroundColor,
         appBar: getCloseAppBar(
           context,
-          title: widget.payload.asset.title ?? "",
+          title: widget.payload.asset.title ?? '',
           titleStyle: theme.textTheme.moMASans700Black16.copyWith(
             fontSize: 18,
           ),
@@ -129,13 +128,15 @@ class _StampPreviewState extends State<StampPreview> with AfterLayoutMixin {
               ? null
               : () {
                   _navigationService.popUntilHomeOrSettings();
-                  if (!mounted) return;
-                  Navigator.of(context).pushNamed(
+                  if (!mounted) {
+                    return;
+                  }
+                  unawaited(Navigator.of(context).pushNamed(
                     AppRouter.claimedPostcardDetailsPage,
                     arguments: PostcardDetailPagePayload(
                         [widget.payload.asset.identity], 0),
-                  );
-                  _configurationService.setAutoShowPostcard(true);
+                  ));
+                  unawaited(_configurationService.setAutoShowPostcard(true));
                 },
           withBottomDivider: false,
           disableIcon: closeIcon(color: AppColor.disabledColor),
@@ -186,7 +187,7 @@ class _StampPreviewState extends State<StampPreview> with AfterLayoutMixin {
     if (showCondition) {
       return PostcardButton(
         enabled: !showCondition,
-        text: "confirming_on_blockchain".tr(),
+        text: 'confirming_on_blockchain'.tr(),
         isProcessing: showCondition,
         fontSize: 18,
       );
@@ -195,63 +196,63 @@ class _StampPreviewState extends State<StampPreview> with AfterLayoutMixin {
     if (!assetToken.isFinal) {
       return Column(
         children: [
-          Builder(builder: (final context) {
-            return PostcardAsyncButton(
-              text: "send_postcard".tr(),
-              fontSize: 18,
-              color: MoMAColors.moMA8,
-              onTap: () async {
-                bool isStampSuccess = true;
-                if (assetToken.isProcessingStamp) {
-                  setState(() {
-                    confirming = true;
-                  });
-                  isStampSuccess = await _postcardService.finalizeStamp(
-                    assetToken,
-                    widget.payload.imagePath,
-                    widget.payload.metadataPath,
-                    widget.payload.location,
-                  );
-                  if (mounted) {
-                    if (!isStampSuccess) {
-                      await UIHelper.showPostcardStampFailed(context);
-                    }
-                    setState(() {
-                      confirming = false;
-                    });
-                  }
-                }
-                if (!isStampSuccess) {
-                  return;
-                }
-                final box = context.findRenderObject() as RenderBox?;
-                await assetToken.sharePostcard(
-                  onSuccess: () async {
-                    if (mounted) {
-                      setState(() {
-                        isSending = assetToken.isSending;
-                      });
-                    }
-                  },
-                  onFailed: (e) {
-                    if (e is DioException) {
-                      if (mounted) {
-                        UIHelper.showSharePostcardFailed(context, e);
+          Builder(
+              builder: (final context) => PostcardAsyncButton(
+                    text: 'send_postcard'.tr(),
+                    fontSize: 18,
+                    color: MoMAColors.moMA8,
+                    onTap: () async {
+                      bool isStampSuccess = true;
+                      if (assetToken.isProcessingStamp) {
+                        setState(() {
+                          confirming = true;
+                        });
+                        isStampSuccess = await _postcardService.finalizeStamp(
+                          assetToken,
+                          widget.payload.imagePath,
+                          widget.payload.metadataPath,
+                          widget.payload.location,
+                        );
+                        if (mounted) {
+                          if (!isStampSuccess) {
+                            await UIHelper.showPostcardStampFailed(context);
+                          }
+                          setState(() {
+                            confirming = false;
+                          });
+                        }
                       }
-                    }
-                  },
-                  sharePositionOrigin: box == null
-                      ? null
-                      : box.localToGlobal(Offset.zero) & box.size,
-                );
-              },
-            );
-          }),
+                      if (!mounted || !isStampSuccess) {
+                        return;
+                      }
+                      // ignore: use_build_context_synchronously
+                      final box = context.findRenderObject() as RenderBox?;
+                      await assetToken.sharePostcard(
+                        onSuccess: () async {
+                          if (mounted) {
+                            setState(() {
+                              isSending = assetToken.isSending;
+                            });
+                          }
+                        },
+                        onFailed: (e) {
+                          if (e is DioException) {
+                            if (mounted) {
+                              UIHelper.showSharePostcardFailed(context, e);
+                            }
+                          }
+                        },
+                        sharePositionOrigin: box == null
+                            ? null
+                            : box.localToGlobal(Offset.zero) & box.size,
+                      );
+                    },
+                  )),
           const SizedBox(
             height: 20,
           ),
           Text(
-            "send_the_postcard_to_someone".tr(),
+            'send_the_postcard_to_someone'.tr(),
             style: theme.textTheme.ppMori400Black12,
           ),
         ],
@@ -283,6 +284,7 @@ class StampingPostcard {
   final String imagePath;
   final String metadataPath;
   final int counter;
+  final Prompt? prompt;
 
   // constructor
   StampingPostcard({
@@ -292,31 +294,33 @@ class StampingPostcard {
     required this.metadataPath,
     required this.counter,
     DateTime? timestamp,
+    this.prompt,
   }) : timestamp = timestamp ?? DateTime.now();
 
   //constructor
 
-  static StampingPostcard fromJson(Map<String, dynamic> json) {
-    return StampingPostcard(
-      indexId: json['indexId'],
-      address: json['address'],
-      timestamp: DateTime.parse(json['timestamp']),
-      imagePath: json['imagePath'],
-      metadataPath: json['metadataPath'],
-      counter: json['counter'],
-    );
-  }
+  static StampingPostcard fromJson(Map<String, dynamic> json) =>
+      StampingPostcard(
+        indexId: json['indexId'],
+        address: json['address'],
+        timestamp: DateTime.parse(json['timestamp']),
+        imagePath: json['imagePath'],
+        metadataPath: json['metadataPath'],
+        counter: json['counter'],
+        prompt: json['prompt'] == null
+            ? null
+            : Prompt.fromJson(json['prompt'] as Map<String, dynamic>),
+      );
 
-  Map<String, dynamic> toJson() {
-    return {
-      'indexId': indexId,
-      'address': address,
-      'timestamp': timestamp.toIso8601String(),
-      'imagePath': imagePath,
-      'metadataPath': metadataPath,
-      'counter': counter,
-    };
-  }
+  Map<String, dynamic> toJson() => {
+        'indexId': indexId,
+        'address': address,
+        'timestamp': timestamp.toIso8601String(),
+        'imagePath': imagePath,
+        'metadataPath': metadataPath,
+        'counter': counter,
+        'prompt': prompt?.toJson(),
+      };
 
   @override
   bool operator ==(Object other) =>
@@ -335,44 +339,37 @@ class ProcessingStampPostcard extends StampingPostcard {
   Location location;
 
   ProcessingStampPostcard({
-    required String indexId,
-    required String address,
-    required String imagePath,
-    required String metadataPath,
-    required int counter,
-    required DateTime timestamp,
+    required super.indexId,
+    required super.address,
+    required super.imagePath,
+    required super.metadataPath,
+    required super.counter,
+    required DateTime super.timestamp,
     required this.location,
-  }) : super(
-          indexId: indexId,
-          address: address,
-          imagePath: imagePath,
-          metadataPath: metadataPath,
-          counter: counter,
-          timestamp: timestamp,
-        );
+    super.prompt,
+  });
 
-  static ProcessingStampPostcard fromJson(Map<String, dynamic> json) {
-    return ProcessingStampPostcard(
-      indexId: json['indexId'],
-      address: json['address'],
-      timestamp: DateTime.parse(json['timestamp']),
-      imagePath: json['imagePath'],
-      metadataPath: json['metadataPath'],
-      counter: json['counter'],
-      location: Location.fromJson(json['location']),
-    );
-  }
+  static ProcessingStampPostcard fromJson(Map<String, dynamic> json) =>
+      ProcessingStampPostcard(
+        indexId: json['indexId'],
+        address: json['address'],
+        timestamp: DateTime.parse(json['timestamp']),
+        imagePath: json['imagePath'],
+        metadataPath: json['metadataPath'],
+        counter: json['counter'],
+        location: Location.fromJson(json['location']),
+        prompt: json['prompt'] == null ? null : Prompt.fromJson(json['prompt']),
+      );
 
   @override
-  Map<String, dynamic> toJson() {
-    return {
-      'indexId': indexId,
-      'address': address,
-      'timestamp': timestamp.toIso8601String(),
-      'imagePath': imagePath,
-      'metadataPath': metadataPath,
-      'counter': counter,
-      'location': location.toJson(),
-    };
-  }
+  Map<String, dynamic> toJson() => {
+        'indexId': indexId,
+        'address': address,
+        'timestamp': timestamp.toIso8601String(),
+        'imagePath': imagePath,
+        'metadataPath': metadataPath,
+        'counter': counter,
+        'location': location.toJson(),
+        'prompt': prompt?.toJson(),
+      };
 }

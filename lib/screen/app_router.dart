@@ -62,6 +62,7 @@ import 'package:autonomy_flutter/screen/global_receive/receive_detail_page.dart'
 import 'package:autonomy_flutter/screen/global_receive/receive_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_navigation_page.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/choose_prompt_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/claim_empty_postcard/claim_empty_postcard_screen.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/claim_empty_postcard/pay_to_mint_postcard_screen.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
@@ -71,6 +72,7 @@ import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_blo
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_explain.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_get_location.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/prompt_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_bloc.dart';
 import 'package:autonomy_flutter/screen/irl_screen/sign_message_screen.dart';
@@ -185,6 +187,8 @@ class AppRouter {
   static const inappWebviewPage = 'inapp_webview_page';
   static const postcardExplain = 'postcard_explain_screen';
   static const designStamp = 'design_stamp_screen';
+  static const promptPage = 'prompt_page';
+  static const choosePromptPage = 'choose_prompt_page';
   static const handSignaturePage = 'hand_signature_page';
   static const stampPreview = 'stamp_preview';
   static const claimEmptyPostCard = 'claim_empty_postcard';
@@ -340,6 +344,27 @@ class AppRouter {
           reverseDuration: const Duration(milliseconds: 300),
           child: DesignStampPage(
               payload: settings.arguments! as DesignStampPayload),
+        );
+
+      case promptPage:
+        return PageTransition(
+          settings: settings,
+          type: PageTransitionType.rightToLeft,
+          curve: Curves.easeIn,
+          duration: const Duration(milliseconds: 300),
+          reverseDuration: const Duration(milliseconds: 300),
+          child: PromptPage(payload: settings.arguments! as DesignStampPayload),
+        );
+
+      case choosePromptPage:
+        return PageTransition(
+          settings: settings,
+          type: PageTransitionType.rightToLeft,
+          curve: Curves.easeIn,
+          duration: const Duration(milliseconds: 300),
+          reverseDuration: const Duration(milliseconds: 300),
+          child: ChoosePromptPage(
+              payload: settings.arguments! as ChoosePromptPayload),
         );
 
       case AccessMethodPage.tag:

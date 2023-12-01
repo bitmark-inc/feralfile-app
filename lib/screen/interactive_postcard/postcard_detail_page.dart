@@ -14,6 +14,7 @@ import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/pair.dart';
+import 'package:autonomy_flutter/model/prompt.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
@@ -52,6 +53,7 @@ import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_flutter/view/postcard_chat.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
+import 'package:autonomy_flutter/view/prompt_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
@@ -111,6 +113,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   final _configurationService = injector<ConfigurationService>();
   final _postcardService = injector<PostcardService>();
   final _remoteConfig = injector<RemoteConfigService>();
+  Prompt? _prompt;
 
   @override
   void initState() {
@@ -264,6 +267,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         location,
         counter,
         contractAddress,
+        assetToken.postcardMetadata.prompt,
       );
       if (isStampSuccess != false) {
         await _configurationService.setProcessingStampPostcard(
@@ -276,6 +280,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             imagePath: processingStampPostcard.imagePath,
             metadataPath: processingStampPostcard.metadataPath,
             counter: counter,
+            prompt: assetToken.postcardMetadata.prompt,
           )
         ]);
       }
@@ -290,7 +295,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
     distanceFormatter = DistanceFormatter();
     final hasKeyboard = currentAsset?.medium == 'software' ||
         currentAsset?.medium == 'other' ||
@@ -323,6 +327,9 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         if (!mounted) {
           return;
         }
+        _prompt ??= assetToken.postcardMetadata.prompt ??
+            assetToken.stampingPostcard?.prompt ??
+            assetToken.processingStampPostcard?.prompt;
         if (isAutoStampIfNeed && !isProcessingStampPostcard) {
           isAutoStampIfNeed = false;
           unawaited(
@@ -475,6 +482,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                               const SizedBox()
                             else
                               FutureBuilder<Pair<WalletStorage, int>?>(
+                                  // ignore: discarded_futures
                                   future: state.assetToken!.getOwnerWallet(),
                                   builder: (context, snapshot) {
                                     if (snapshot.hasData) {
@@ -494,8 +502,23 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                                     }
                                     return const SizedBox();
                                   }),
+                            if (_prompt != null)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 15),
+                                child: PromptView(
+                                  prompt: _prompt!,
+                                  onTap: () async {
+                                    await UIHelper.showCenterEmptySheet(context,
+                                        content: PromptView(
+                                          key: const Key('prompt_view_full'),
+                                          prompt: _prompt!,
+                                          expandable: true,
+                                        ));
+                                  },
+                                ),
+                              ),
                             const SizedBox(
-                              height: 30,
+                              height: 15,
                             ),
                             Hero(
                               tag: 'detail_${asset.id}',
@@ -624,7 +647,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     if (!(asset.isStamping || asset.isStamped || asset.isProcessingStamp)) {
       return PostcardButton(
         text: 'stamp_postcard'.tr(),
-        onTap: () {
+        onTap: () async {
           if (asset.numberOwners > 1) {
             final button = PostcardAsyncButton(
               text: 'continue'.tr(),
@@ -632,7 +655,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
               onTap: () async {
                 unawaited(injector<NavigationService>().popAndPushNamed(
                     AppRouter.designStamp,
-                    arguments: DesignStampPayload(asset)));
+                    arguments: DesignStampPayload(asset, false)));
               },
               color: AppColor.momaGreen,
             );
@@ -642,8 +665,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
               arguments: PostcardExplainPayload(asset, button, pages: [page]),
             ));
           } else {
-            unawaited(Navigator.of(context).pushNamed(AppRouter.designStamp,
-                arguments: DesignStampPayload(asset)));
+            unawaited(injector<NavigationService>()
+                .selectPromptsThenStamp(context, asset));
           }
         },
         color: MoMAColors.moMA8,

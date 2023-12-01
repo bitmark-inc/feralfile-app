@@ -2,9 +2,8 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_explain.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/dio_exception_ext.dart';
@@ -15,7 +14,10 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+// ignore: always_use_package_imports
 import 'claim_empty_postcard_bloc.dart';
+
+// ignore: always_use_package_imports
 import 'claim_empty_postcard_state.dart';
 
 class PayToMintPostcardScreen extends StatefulWidget {
@@ -77,12 +79,12 @@ class _PayToMintPostcardScreenState extends State<PayToMintPostcardScreen> {
                   enabled: state.isClaiming != true,
                   isProcessing: state.isClaiming == true,
                   onTap: () {
-                    unawaited(Navigator.of(context).popAndPushNamed(
-                        AppRouter.designStamp,
-                        arguments: DesignStampPayload(state.assetToken!
-                            .copyWith(
+                    unawaited(injector<NavigationService>()
+                        .selectPromptsThenStamp(
+                            context,
+                            state.assetToken!.copyWith(
                                 owner: widget.claimRequest.address,
-                                tokenId: widget.claimRequest.tokenId))));
+                                tokenId: widget.claimRequest.tokenId)));
                   },
                   color: POSTCARD_GREEN_BUTTON_COLOR,
                 ),
