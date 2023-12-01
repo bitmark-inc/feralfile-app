@@ -250,7 +250,7 @@ class _DesignStampPageState extends State<DesignStampPage> {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 70),
+                      const SizedBox(height: 30),
                       PostcardAsyncButton(
                         text: 'continue'.tr(),
                         fontSize: 18,
