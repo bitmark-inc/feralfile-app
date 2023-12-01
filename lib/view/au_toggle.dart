@@ -14,24 +14,22 @@ class AuToggle extends StatelessWidget {
   final bool value;
 
   const AuToggle({
-    Key? key,
     required this.value,
+    super.key,
     this.onToggle,
-  }) : super(key: key);
+  });
 
   @override
-  Widget build(BuildContext context) {
-    return FlutterSwitch(
-      height: 25,
-      width: 48,
-      toggleSize: 19.2,
-      padding: 2,
-      value: value,
-      onToggle: onToggle ?? (bool p) {},
-      activeColor: AppColor.auSuperTeal,
-      toggleColor: AppColor.primaryBlack,
-      inactiveColor: AppColor.auLightGrey,
-      inactiveToggleColor: AppColor.greyMedium,
-    );
-  }
+  Widget build(BuildContext context) => FlutterSwitch(
+        height: 25,
+        width: 48,
+        toggleSize: 19.2,
+        padding: 2,
+        value: value,
+        onToggle: onToggle ?? (bool p) {},
+        activeColor: AppColor.auSuperTeal,
+        toggleColor: AppColor.primaryBlack,
+        inactiveColor: AppColor.auLightGrey,
+        inactiveToggleColor: AppColor.greyMedium,
+      );
 }

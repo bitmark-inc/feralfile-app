@@ -13,10 +13,10 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 AppBar getBackAppBar(
   BuildContext context, {
-  String backTitle = "BACK",
-  String title = "",
-  TextStyle? titleStyle,
   required Function()? onBack,
+  String backTitle = 'BACK',
+  String title = '',
+  TextStyle? titleStyle,
   Widget? icon,
   Widget? titleIcon,
   Function()? action,
@@ -39,10 +39,10 @@ AppBar getBackAppBar(
     leadingWidth: 44,
     leading: onBack != null
         ? Semantics(
-            label: "BACK",
+            label: 'BACK',
             child: IconButton(
               onPressed: onBack,
-              constraints: const BoxConstraints(maxWidth: 36.0),
+              constraints: const BoxConstraints(maxWidth: 36),
               icon: SvgPicture.asset(
                 'assets/images/icon_back.svg',
                 colorFilter: ColorFilter.mode(primaryColor, BlendMode.srcIn),
@@ -66,21 +66,22 @@ AppBar getBackAppBar(
     ),
     actions: [
       ...actions ?? [],
-      action != null
-          ? Padding(
-              padding: const EdgeInsets.only(right: 15),
-              child: IconButton(
-                tooltip: "AppbarAction",
-                constraints: const BoxConstraints(maxWidth: 36.0),
-                onPressed: action,
-                icon: icon ??
-                    Icon(
-                      Icons.more_horiz,
-                      color: primaryColor,
-                    ),
-              ),
-            )
-          : const SizedBox(width: 36),
+      if (action != null)
+        Padding(
+          padding: const EdgeInsets.only(right: 15),
+          child: IconButton(
+            tooltip: 'AppbarAction',
+            constraints: const BoxConstraints(maxWidth: 36),
+            onPressed: action,
+            icon: icon ??
+                Icon(
+                  Icons.more_horiz,
+                  color: primaryColor,
+                ),
+          ),
+        )
+      else
+        const SizedBox(width: 36),
     ],
     backgroundColor: backgroundColor ?? Colors.transparent,
     shadowColor: Colors.transparent,
@@ -96,10 +97,10 @@ AppBar getBackAppBar(
 }
 
 AppBar getTitleEditAppBar(BuildContext context,
-    {String backTitle = "BACK",
-    required TextEditingController controller,
+    {required TextEditingController controller,
     required FocusNode focusNode,
     required Function(String value) onSubmit,
+    String backTitle = 'BACK',
     bool hasBack = true,
     Widget? icon,
     Widget? titleIcon,
@@ -118,10 +119,10 @@ AppBar getTitleEditAppBar(BuildContext context,
     leadingWidth: 44,
     leading: hasBack
         ? Semantics(
-            label: "BACK",
+            label: 'BACK',
             child: IconButton(
               onPressed: () {},
-              constraints: const BoxConstraints(maxWidth: 36.0),
+              constraints: const BoxConstraints(maxWidth: 36),
               icon: SvgPicture.asset(
                 'assets/images/icon_back.svg',
                 colorFilter: ColorFilter.mode(primaryColor, BlendMode.srcIn),
@@ -135,7 +136,7 @@ AppBar getTitleEditAppBar(BuildContext context,
       children: [
         if (titleIcon != null) ...[titleIcon, const SizedBox(width: 10)],
         ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 100.0),
+          constraints: const BoxConstraints(maxWidth: 100),
           child: TextField(
             autocorrect: false,
             focusNode: focusNode,
@@ -152,8 +153,8 @@ AppBar getTitleEditAppBar(BuildContext context,
         Padding(
           padding: const EdgeInsets.only(right: 15),
           child: IconButton(
-            tooltip: "AppbarAction",
-            constraints: const BoxConstraints(maxWidth: 36.0),
+            tooltip: 'AppbarAction',
+            constraints: const BoxConstraints(maxWidth: 36),
             onPressed: () {},
             icon: icon ??
                 Icon(
@@ -175,9 +176,9 @@ AppBar getTitleEditAppBar(BuildContext context,
 
 AppBar getCloseAppBar(
   BuildContext context, {
-  String title = "",
-  TextStyle? titleStyle,
   required Function()? onClose,
+  String title = '',
+  TextStyle? titleStyle,
   Widget? icon,
   Widget? disableIcon,
   bool withBottomDivider = true,
@@ -206,7 +207,7 @@ AppBar getCloseAppBar(
     actions: [
       if (onClose != null)
         IconButton(
-          tooltip: "CLOSE",
+          tooltip: 'CLOSE',
           onPressed: onClose,
           icon: icon ?? closeIcon(color: primaryColor),
         )
@@ -226,24 +227,20 @@ AppBar getCloseAppBar(
   );
 }
 
-AppBar getDarkEmptyAppBar() {
-  return AppBar(
-    systemOverlayStyle: systemUiOverlayDarkStyle,
-    toolbarHeight: 0,
-    shadowColor: Colors.transparent,
-    elevation: 0,
-  );
-}
+AppBar getDarkEmptyAppBar() => AppBar(
+      systemOverlayStyle: systemUiOverlayDarkStyle,
+      toolbarHeight: 0,
+      shadowColor: Colors.transparent,
+      elevation: 0,
+    );
 
-AppBar getLightEmptyAppBar([Color? statusBarColor]) {
-  return AppBar(
-    systemOverlayStyle: systemUiOverlayLightStyle(statusBarColor),
-    backgroundColor: Colors.transparent,
-    toolbarHeight: 0,
-    shadowColor: Colors.transparent,
-    elevation: 0,
-  );
-}
+AppBar getLightEmptyAppBar([Color? statusBarColor]) => AppBar(
+      systemOverlayStyle: systemUiOverlayLightStyle(statusBarColor),
+      backgroundColor: Colors.transparent,
+      toolbarHeight: 0,
+      shadowColor: Colors.transparent,
+      elevation: 0,
+    );
 
 SystemUiOverlayStyle get systemUiOverlayDarkStyle => const SystemUiOverlayStyle(
       statusBarColor: AppColor.primaryBlack,

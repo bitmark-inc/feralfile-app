@@ -14,8 +14,8 @@ import 'package:flutter/material.dart';
 class TextShuffler extends StatefulWidget {
   final String text;
   final TextStyle? style;
-  const TextShuffler({Key? key, required this.text, required this.style})
-      : super(key: key);
+
+  const TextShuffler({required this.text, required this.style, super.key});
 
   @override
   State<TextShuffler> createState() => _TextShufflerState();
@@ -30,7 +30,8 @@ class _TextShufflerState extends State<TextShuffler> {
   int _numberOfInitialDashes = 0;
   ShufflerStep _step = ShufflerStep.dashes;
   final characters =
-      "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890!@#\$%^&*-=";
+      // ignore: lines_longer_than_80_chars
+      r'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890!@#$%^&*-=';
   final Random _rnd = Random();
   Timer? _timer;
 
@@ -45,12 +46,10 @@ class _TextShufflerState extends State<TextShuffler> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Text(
-      _currentText,
-      style: widget.style,
-    );
-  }
+  Widget build(BuildContext context) => Text(
+        _currentText,
+        style: widget.style,
+      );
 
   @override
   void dispose() {
@@ -94,7 +93,7 @@ class _TextShufflerState extends State<TextShuffler> {
       return _currentText;
     }
 
-    return "$_currentText-";
+    return '$_currentText-';
   }
 
   String _fillRandomPositions() {

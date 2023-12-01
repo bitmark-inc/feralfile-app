@@ -44,7 +44,7 @@ class _MobileInfo extends IDeviceInfo {
 
   @override
   bool get isDesktop =>
-      (Platform.isMacOS || Platform.isWindows || Platform.isLinux);
+      Platform.isMacOS || Platform.isWindows || Platform.isLinux;
 
   @override
   bool get isTablet => _isTablet;
@@ -103,11 +103,11 @@ class _MobileInfo extends IDeviceInfo {
     if (isAndroid) {
       final androidInfo = await _deviceInfo.androidInfo;
       final version = androidInfo.version.release;
-      return version.isEmpty || int.parse(version.split(".")[0]) > 8;
+      return version.isEmpty || int.parse(version.split('.')[0]) > 8;
     } else {
       final iOSInfo = await _deviceInfo.iosInfo;
       final version = iOSInfo.systemVersion;
-      return version.isEmpty || int.parse(version.split(".")[0]) > 14;
+      return version.isEmpty || int.parse(version.split('.')[0]) > 14;
     }
   }
 

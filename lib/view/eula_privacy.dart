@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
+
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -25,23 +27,23 @@ Widget privacyView(BuildContext context) {
       Column(
         children: [
           Text(
-            "believe_transparency".tr(),
+            'believe_transparency'.tr(),
             style: theme.textTheme.atlasBlackBold14,
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                "autonomy_is_".tr(),
+                'autonomy_is_'.tr(),
                 style: theme.textTheme.atlasBlackNormal14,
               ),
               GestureDetector(
                 child: Text(
-                  "open_source".tr(),
+                  'open_source'.tr(),
                   style: customLinkStyle.copyWith(fontSize: 14),
                 ),
-                onTap: () =>
-                    launchUrl(uri, mode: LaunchMode.externalApplication),
+                onTap: () => unawaited(
+                    launchUrl(uri, mode: LaunchMode.externalApplication)),
               ),
             ],
           ),
@@ -50,15 +52,15 @@ Widget privacyView(BuildContext context) {
       const SizedBox(height: 16),
       GestureDetector(
         child: Text(
-          "privacy_policy".tr(),
+          'privacy_policy'.tr(),
           style: customLinkStyle.copyWith(fontSize: 14),
         ),
-        onTap: () => Navigator.of(context)
+        onTap: () => unawaited(Navigator.of(context)
             .pushNamed(AppRouter.githubDocPage, arguments: {
-          "prefix": "/bitmark-inc/autonomy.io/main/apps/docs/",
-          "document": "privacy.md",
-          "title": ""
-        }),
+          'prefix': '/bitmark-inc/autonomy.io/main/apps/docs/',
+          'document': 'privacy.md',
+          'title': ''
+        })),
       ),
     ],
   );

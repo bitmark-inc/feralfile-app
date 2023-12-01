@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -15,12 +17,12 @@ class Tipcard extends StatelessWidget {
   final ValueNotifier<bool> listener;
 
   const Tipcard({
-    super.key,
     required this.titleText,
-    this.onPressed,
-    this.buttonText,
     required this.content,
     required this.listener,
+    super.key,
+    this.onPressed,
+    this.buttonText,
     this.onClosed,
   });
 
@@ -31,66 +33,64 @@ class Tipcard extends StatelessWidget {
 
     return ValueListenableBuilder<bool>(
       valueListenable: listener,
-      builder: (context, value, Widget? child) {
-        return value
-            ? Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-                decoration: BoxDecoration(
-                  color: AppColor.auSuperTeal,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
-                        Text(titleText,
-                            style: theme.textTheme.ppMori700Black14),
-                        const Spacer(),
-                        IconButton(
-                          padding: EdgeInsets.zero,
-                          constraints:
-                              const BoxConstraints(minWidth: 16, minHeight: 16),
-                          icon: const Icon(
-                            Icons.close,
-                          ),
-                          color: AppColor.primaryBlack,
-                          onPressed: () {
-                            if (onClosed != null) onClosed!();
-                            metricClient
-                                .addEvent(MixpanelEvent.closeTipcard, data: {
-                              'title': titleText,
-                            });
-                            listener.value = false;
-                          },
+      builder: (context, value, Widget? child) => value
+          ? Container(
+              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+              decoration: BoxDecoration(
+                color: AppColor.auSuperTeal,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Text(titleText, style: theme.textTheme.ppMori700Black14),
+                      const Spacer(),
+                      IconButton(
+                        padding: EdgeInsets.zero,
+                        constraints:
+                            const BoxConstraints(minWidth: 16, minHeight: 16),
+                        icon: const Icon(
+                          Icons.close,
                         ),
-                      ],
-                    ),
+                        color: AppColor.primaryBlack,
+                        onPressed: () {
+                          if (onClosed != null) {
+                            onClosed!();
+                          }
+                          unawaited(metricClient
+                              .addEvent(MixpanelEvent.closeTipcard, data: {
+                            'title': titleText,
+                          }));
+                          listener.value = false;
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 15),
+                  content,
+                  if (buttonText != null || onPressed != null) ...[
                     const SizedBox(height: 15),
-                    content,
-                    if (buttonText != null || onPressed != null) ...[
-                      const SizedBox(height: 15),
-                      OutlineButton(
-                          color: AppColor.auSuperTeal,
-                          textColor: AppColor.primaryBlack,
-                          borderColor: AppColor.primaryBlack,
-                          text: buttonText ?? "close".tr(),
-                          onTap: () {
-                            () {};
-                            metricClient
-                                .addEvent(MixpanelEvent.pressTipcard, data: {
-                              'title': titleText,
-                            });
-                            listener.value = false;
-                          }),
-                    ]
-                  ],
-                ),
-              )
-            : const SizedBox();
-      },
+                    OutlineButton(
+                        color: AppColor.auSuperTeal,
+                        textColor: AppColor.primaryBlack,
+                        borderColor: AppColor.primaryBlack,
+                        text: buttonText ?? 'close'.tr(),
+                        onTap: () {
+                          () {};
+                          unawaited(metricClient
+                              .addEvent(MixpanelEvent.pressTipcard, data: {
+                            'title': titleText,
+                          }));
+                          listener.value = false;
+                        }),
+                  ]
+                ],
+              ),
+            )
+          : const SizedBox(),
     );
   }
 }

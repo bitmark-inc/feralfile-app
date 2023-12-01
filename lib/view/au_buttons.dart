@@ -16,66 +16,62 @@ class AuSecondaryButton extends StatelessWidget {
   final Color? borderColor;
 
   const AuSecondaryButton({
-    Key? key,
     required this.onPressed,
     required this.text,
+    super.key,
     this.backgroundColor,
     this.textColor,
     this.borderColor,
-  }) : super(key: key);
+  });
 
   @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      height: 43.0,
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: backgroundColor ?? Colors.transparent,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            side: BorderSide(color: borderColor ?? Colors.white),
-            borderRadius: BorderRadius.circular(32.0),
+  Widget build(BuildContext context) => SizedBox(
+        width: double.infinity,
+        height: 43,
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: backgroundColor ?? Colors.transparent,
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              side: BorderSide(color: borderColor ?? Colors.white),
+              borderRadius: BorderRadius.circular(32),
+            ),
+          ),
+          onPressed: onPressed,
+          child: Text(
+            text,
+            style: Theme.of(context)
+                .textTheme
+                .ppMori400White14
+                .copyWith(color: textColor),
           ),
         ),
-        onPressed: onPressed,
-        child: Text(
-          text,
-          style: Theme.of(context)
-              .textTheme
-              .ppMori400White14
-              .copyWith(color: textColor),
-        ),
-      ),
-    );
-  }
+      );
 }
 
 class AuCustomButton extends StatelessWidget {
   final Function()? onPressed;
   final Widget? child;
 
-  const AuCustomButton({Key? key, required this.onPressed, required this.child})
-      : super(key: key);
+  const AuCustomButton(
+      {required this.onPressed, required this.child, super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      height: 43.0,
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColor.white,
-          shadowColor: Colors.transparent,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(32.0),
+  Widget build(BuildContext context) => SizedBox(
+        width: double.infinity,
+        height: 43,
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColor.white,
+            shadowColor: Colors.transparent,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(32),
+            ),
+            side: const BorderSide(),
+            alignment: Alignment.center,
           ),
-          side: const BorderSide(),
-          alignment: Alignment.center,
+          onPressed: onPressed,
+          child: child,
         ),
-        onPressed: onPressed,
-        child: child,
-      ),
-    );
-  }
+      );
 }

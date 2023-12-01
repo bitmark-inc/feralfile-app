@@ -7,9 +7,9 @@ class PostcardDrawerItem extends StatefulWidget {
   final OptionItem item;
 
   const PostcardDrawerItem({
-    Key? key,
     required this.item,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<PostcardDrawerItem> createState() => _PostcardDrawerItemState();
@@ -83,8 +83,12 @@ class _PostcardDrawerItemState extends State<PostcardDrawerItem> {
     );
     return GestureDetector(
       onTap: () async {
-        if (item.isEnable != true) return;
-        if (isProcessing) return;
+        if (!item.isEnable) {
+          return;
+        }
+        if (isProcessing) {
+          return;
+        }
         setState(() {
           isProcessing = true;
         });

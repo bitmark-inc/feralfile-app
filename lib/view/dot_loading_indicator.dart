@@ -42,41 +42,37 @@ class _DotsLoadingState extends State<DotsLoading> {
     super.dispose();
   }
 
-  Widget _selectedDefaultLoadingDot() {
-    return Container(
-      width: 3,
-      height: 3,
-      decoration: const BoxDecoration(
-        color: Colors.black,
-      ),
-    );
-  }
+  Widget _selectedDefaultLoadingDot() => Container(
+        width: 3,
+        height: 3,
+        decoration: const BoxDecoration(
+          color: Colors.black,
+        ),
+      );
 
-  Widget _unselectedDefaultLoadingDot() {
-    return Container(
-      width: 3,
-      height: 3,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-      ),
-    );
-  }
+  Widget _unselectedDefaultLoadingDot() => Container(
+        width: 3,
+        height: 3,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+        ),
+      );
 
   @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: List.generate(widget.numberOfDots, (index) {
-        return [
-          (index == _selected)
-              ? (widget.activeDotBuilder?.call() ??
-                  _selectedDefaultLoadingDot())
-              : (widget.inactiveDotBuilder?.call() ??
-                  _unselectedDefaultLoadingDot()),
-          (index != widget.numberOfDots - 1)
-              ? SizedBox(width: widget.innerPadding)
-              : null
-        ];
-      }).flattened.whereNotNull().toList(),
-    );
-  }
+  Widget build(BuildContext context) => Row(
+        children: List.generate(
+            widget.numberOfDots,
+            (index) => [
+                  if (index == _selected)
+                    widget.activeDotBuilder?.call() ??
+                        _selectedDefaultLoadingDot()
+                  else
+                    widget.inactiveDotBuilder?.call() ??
+                        _unselectedDefaultLoadingDot(),
+                  if (index != widget.numberOfDots - 1)
+                    SizedBox(width: widget.innerPadding)
+                  else
+                    null
+                ]).flattened.whereNotNull().toList(),
+      );
 }
