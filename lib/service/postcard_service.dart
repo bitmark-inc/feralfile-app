@@ -634,6 +634,7 @@ class PostcardServiceImpl extends PostcardService {
           counter: counter,
           timestamp: DateTime.now(),
           location: location,
+          prompt: asset.postcardMetadata.prompt,
         );
     await _configurationService.setProcessingStampPostcard([
       processingStampPostcard,
@@ -662,6 +663,7 @@ class PostcardServiceImpl extends PostcardService {
           imagePath: imagePath,
           metadataPath: metadataPath,
           counter: counter,
+          prompt: asset.postcardMetadata.prompt,
         ),
       ]);
       final postcardMetadata = asset.postcardMetadata;

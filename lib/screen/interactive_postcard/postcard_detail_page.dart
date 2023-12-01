@@ -280,6 +280,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             imagePath: processingStampPostcard.imagePath,
             metadataPath: processingStampPostcard.metadataPath,
             counter: counter,
+            prompt: assetToken.postcardMetadata.prompt,
           )
         ]);
       }
@@ -326,8 +327,9 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         if (!mounted) {
           return;
         }
-        _prompt ??= assetToken.postcardMetadata.prompt;
-        log.info('prompt: ${_prompt?.toJson()}');
+        _prompt ??= assetToken.postcardMetadata.prompt ??
+            assetToken.stampingPostcard?.prompt ??
+            assetToken.processingStampPostcard?.prompt;
         if (isAutoStampIfNeed && !isProcessingStampPostcard) {
           isAutoStampIfNeed = false;
           unawaited(
@@ -500,7 +502,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                                     }
                                     return const SizedBox();
                                   }),
-
                             if (_prompt != null)
                               Padding(
                                 padding: const EdgeInsets.only(top: 15),

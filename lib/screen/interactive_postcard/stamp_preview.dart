@@ -284,6 +284,7 @@ class StampingPostcard {
   final String imagePath;
   final String metadataPath;
   final int counter;
+  final Prompt? prompt;
 
   // constructor
   StampingPostcard({
@@ -293,6 +294,7 @@ class StampingPostcard {
     required this.metadataPath,
     required this.counter,
     DateTime? timestamp,
+    this.prompt,
   }) : timestamp = timestamp ?? DateTime.now();
 
   //constructor
@@ -305,6 +307,9 @@ class StampingPostcard {
         imagePath: json['imagePath'],
         metadataPath: json['metadataPath'],
         counter: json['counter'],
+        prompt: json['prompt'] == null
+            ? null
+            : Prompt.fromJson(json['prompt'] as Map<String, dynamic>),
       );
 
   Map<String, dynamic> toJson() => {
@@ -314,6 +319,7 @@ class StampingPostcard {
         'imagePath': imagePath,
         'metadataPath': metadataPath,
         'counter': counter,
+        'prompt': prompt?.toJson(),
       };
 
   @override
@@ -331,7 +337,6 @@ class StampingPostcard {
 
 class ProcessingStampPostcard extends StampingPostcard {
   Location location;
-  Prompt? prompt;
 
   ProcessingStampPostcard({
     required super.indexId,
@@ -341,7 +346,7 @@ class ProcessingStampPostcard extends StampingPostcard {
     required super.counter,
     required DateTime super.timestamp,
     required this.location,
-    this.prompt,
+    super.prompt,
   });
 
   static ProcessingStampPostcard fromJson(Map<String, dynamic> json) =>
