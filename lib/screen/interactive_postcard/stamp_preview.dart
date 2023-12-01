@@ -75,7 +75,8 @@ class _StampPreviewState extends State<StampPreview> with AfterLayoutMixin {
         });
         if (!isStampSuccess) {
           await UIHelper.showPostcardStampFailed(context);
-        } else {
+        }
+        if (mounted) {
           await Navigator.of(context).pushNamed(
             AppRouter.claimedPostcardDetailsPage,
             arguments:
