@@ -5,8 +5,10 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:flutter/services.dart';
+import 'dart:async';
 import 'dart:io';
+
+import 'package:flutter/services.dart';
 
 class CloudChannel {
   static const EventChannel _eventChannel = EventChannel('cloud/event');
@@ -14,10 +16,10 @@ class CloudChannel {
   final CloudHandler handler;
 
   CloudChannel({required this.handler}) {
-    listen();
+    unawaited(listen());
   }
 
-  void listen() async {
+  Future<void> listen() async {
     // TODO: Update observeAccountStatus for Android
     if (Platform.isAndroid) {
       handler.observeCloudStatus(true);

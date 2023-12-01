@@ -15,7 +15,7 @@ class USDCAmountFormatter {
 
   String format() {
     final formater =
-        NumberFormat("${'#' * 10}0.0${'#' * (digit - 1)}", "en_US");
+        NumberFormat("${'#' * 10}0.0${'#' * (digit - 1)}", 'en_US');
     return formater.format(amount.toDouble() / 1000000);
   }
 }

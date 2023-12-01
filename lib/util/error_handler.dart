@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -40,8 +42,8 @@ enum ErrorItemState {
 }
 
 const onlySentryExceptionIdentifier = [
-  "Future already completed",
-  "Out of Memory"
+  'Future already completed',
+  'Out of Memory'
 ];
 
 class ErrorEvent {
@@ -57,14 +59,15 @@ PlatformException? lastException;
 
 extension DioErrorEvent on DioException {
   ErrorEvent? get errorEvent {
-    log.info("Dio Error: $this");
+    log.info('Dio Error: $this');
     switch (type) {
       case DioExceptionType.badResponse:
         if ((response?.statusCode ?? 0) / 100 == 5) {
           return ErrorEvent(
               null,
-              "Server error",
-              "We apologise and are fixing the problem.\nPlease try again at later stage.",
+              'Server error',
+              'We apologise and are fixing the problem.'
+                  '\nPlease try again at later stage.',
               ErrorItemState.close);
         } else {
           return null;
@@ -82,33 +85,20 @@ ErrorEvent? translateError(Object exception) {
       return dioErrorEvent;
     }
   } else if (exception is CameraException) {
-    return ErrorEvent(null, "enable_camera".tr(), "qr_scan_require".tr(),
+    return ErrorEvent(null, 'enable_camera'.tr(), 'qr_scan_require'.tr(),
         ErrorItemState.camera);
   } else if (exception is PlatformException) {
     switch (exception.code) {
       case 'invalidDeeplink':
         return ErrorEvent(
-            exception, "😵", "link_not_valid".tr(), ErrorItemState.close);
+            exception, '😵', 'link_not_valid'.tr(), ErrorItemState.close);
       default:
         break;
     }
   } else if (exception is LinkingFailedException) {
-    return ErrorEvent(
-        exception,
-        "🤔",
-        "problem_connect_wallet".tr(),
-        //"There seems to be a problem connecting to your wallet.. We’ve automatically filed a bug report and will look into it. If you require further support or want to tell us more about the issue, please tap the button below.",
+    return ErrorEvent(exception, '🤔', 'problem_connect_wallet'.tr(),
         ErrorItemState.getReport);
   }
-
-  // Ignore other errors
-  // return ErrorEvent(
-  //   exception,
-  //   "😵",
-  //   "Autonomy has encountered an unexpected problem. We have automatically filed a crash report, and we will look into it. If you require further support or want to tell us more about the issue, please tap the button below.",
-  //   ErrorItemState.getReport,
-  // );
-
   return null;
 }
 
@@ -142,7 +132,7 @@ Future showErrorDialog(BuildContext context, String title, String description,
               .add(const Duration(seconds: 2))
               .compareTo(DateTime.now()) >
           0) {
-    log.info("showErrorDialog is working");
+    log.info('showErrorDialog is working');
     return;
   }
 
@@ -159,58 +149,56 @@ Future showErrorDialog(BuildContext context, String title, String description,
               ? double.infinity
               : Constants.maxWidthModalTablet),
       barrierColor: Colors.black.withOpacity(0.5),
-      builder: (context) {
-        return Container(
-          color: Colors.transparent,
-          child: Container(
-            decoration: BoxDecoration(
-              color: theme.auGreyBackground,
-              borderRadius: const BorderRadius.only(
-                topRight: Radius.circular(20),
+      builder: (context) => Container(
+            color: Colors.transparent,
+            child: Container(
+              decoration: BoxDecoration(
+                color: theme.auGreyBackground,
+                borderRadius: const BorderRadius.only(
+                  topRight: Radius.circular(20),
+                ),
               ),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 32),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(title, style: theme.primaryTextTheme.ppMori700White24),
-                if (description.isNotEmpty) ...[
-                  const SizedBox(height: 40),
-                  Text(
-                    description,
-                    style: theme.primaryTextTheme.ppMori400White14,
-                  ),
-                  const SizedBox(height: 40),
-                  PrimaryButton(
-                    text: defaultButton,
-                    onTap: () {
-                      Navigator.of(context).pop();
-                      if (defaultButtonOnPress != null) {
-                        defaultButtonOnPress();
-                      }
-                    },
-                  ),
-                  if (cancelButton != null) ...[
-                    const SizedBox(height: 10),
-                    OutlineButton(
-                      text: cancelButton,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 32),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(title, style: theme.primaryTextTheme.ppMori700White24),
+                  if (description.isNotEmpty) ...[
+                    const SizedBox(height: 40),
+                    Text(
+                      description,
+                      style: theme.primaryTextTheme.ppMori400White14,
+                    ),
+                    const SizedBox(height: 40),
+                    PrimaryButton(
+                      text: defaultButton,
                       onTap: () {
                         Navigator.of(context).pop();
-
-                        if (cancelButtonOnPress != null) {
-                          cancelButtonOnPress();
+                        if (defaultButtonOnPress != null) {
+                          defaultButtonOnPress();
                         }
                       },
                     ),
-                  ]
+                    if (cancelButton != null) ...[
+                      const SizedBox(height: 10),
+                      OutlineButton(
+                        text: cancelButton,
+                        onTap: () {
+                          Navigator.of(context).pop();
+
+                          if (cancelButtonOnPress != null) {
+                            cancelButtonOnPress();
+                          }
+                        },
+                      ),
+                    ]
+                  ],
+                  const SizedBox(height: 40),
                 ],
-                const SizedBox(height: 40),
-              ],
+              ),
             ),
-          ),
-        );
-      });
+          ));
 
   await Future.delayed(const Duration(seconds: 1), () {
     isShowErrorDialogWorking = null;
@@ -223,38 +211,38 @@ void showErrorDiablog(
   Function()? defaultAction,
   Function()? cancelAction,
 }) {
-  String defaultButton = "";
+  String defaultButton = '';
   String? cancelButton;
   switch (event.state) {
     case ErrorItemState.close:
-      defaultButton = "close".tr();
+      defaultButton = 'close'.tr();
       break;
 
     case ErrorItemState.getReport:
-      defaultButton = "get_support".tr();
-      cancelButton = "continue".tr();
+      defaultButton = 'get_support'.tr();
+      cancelButton = 'continue'.tr();
       break;
 
     case ErrorItemState.tryAgain:
-      defaultButton = "try_again".tr();
-      cancelButton = cancelAction != null ? "close".tr() : null;
+      defaultButton = 'try_again'.tr();
+      cancelButton = cancelAction != null ? 'close'.tr() : null;
       break;
 
     case ErrorItemState.camera:
-      defaultButton = "open_settings".tr();
+      defaultButton = 'open_settings'.tr();
       defaultAction = () async => await openAppSettings();
       break;
 
     case ErrorItemState.seeAccount:
-      defaultButton = "see_account".tr();
-      cancelButton = "close".tr();
+      defaultButton = 'see_account'.tr();
+      cancelButton = 'close'.tr();
       break;
 
     default:
       break;
   }
-  showErrorDialog(context, event.title, event.message, defaultButton,
-      defaultAction, cancelButton, cancelAction);
+  unawaited(showErrorDialog(context, event.title, event.message, defaultButton,
+      defaultAction, cancelButton, cancelAction));
 }
 
 Future<bool> showErrorDialogFromException(Object exception,
@@ -269,12 +257,13 @@ Future<bool> showErrorDialogFromException(Object exception,
     lastException = exception;
   } else if (context != null) {
     if (exception is AbortedException) {
-      UIHelper.showInfoDialog(context, "aborted".tr(), "action_aborted".tr(),
-          isDismissible: true, autoDismissAfter: 3);
+      unawaited(UIHelper.showInfoDialog(
+          context, 'aborted'.tr(), 'action_aborted'.tr(),
+          isDismissible: true, autoDismissAfter: 3));
       return true;
     } else if (exception is InvalidDeeplink) {
-      UIHelper.showInfoDialog(context, "😵", "link_not_valid".tr(),
-          isDismissible: true, autoDismissAfter: 3);
+      unawaited(UIHelper.showInfoDialog(context, '😵', 'link_not_valid'.tr(),
+          isDismissible: true, autoDismissAfter: 3));
       return true;
     }
   }
@@ -285,19 +274,19 @@ Future<bool> showErrorDialogFromException(Object exception,
               .subtract(const Duration(seconds: 5))
               .compareTo(memoryValues.inForegroundAt!) <
           0) {
-    Sentry.captureException(exception,
+    unawaited(Sentry.captureException(exception,
         stackTrace: stackTrace,
-        withScope: (Scope? scope) => scope?.setTag("library", library ?? ''));
+        withScope: (Scope? scope) => scope?.setTag('library', library ?? '')));
     return true;
   }
 
-  log.warning("Unhandled error: $exception", exception);
+  log.warning('Unhandled error: $exception', exception);
 
   if (library != null || onlySentryException(exception)) {
     // Send error directly to Sentry if it comes from specific libraries
-    Sentry.captureException(exception,
+    unawaited(Sentry.captureException(exception,
         stackTrace: stackTrace,
-        withScope: (Scope? scope) => scope?.setTag("library", library ?? ''));
+        withScope: (Scope? scope) => scope?.setTag('library', library ?? '')));
     return true;
   }
 
@@ -306,9 +295,9 @@ Future<bool> showErrorDialogFromException(Object exception,
   if (context != null && event != null) {
     if (event.state == ErrorItemState.getReport) {
       final sentryID = await reportSentry(
-          {"exception": exception, "stackTrace": stackTrace});
-      var sentryMetadata = "";
-      if (sentryID == "00000000000000000000000000000000") {
+          {'exception': exception, 'stackTrace': stackTrace});
+      var sentryMetadata = '';
+      if (sentryID == '00000000000000000000000000000000') {
         sentryMetadata = exception.toString();
       }
 
@@ -326,9 +315,9 @@ Future<bool> showErrorDialogFromException(Object exception,
       return true;
     }
   } else {
-    Sentry.captureException(exception,
+    unawaited(Sentry.captureException(exception,
         stackTrace: stackTrace,
-        withScope: (Scope? scope) => scope?.setTag("library", library ?? ''));
+        withScope: (Scope? scope) => scope?.setTag('library', library ?? '')));
     return false;
   }
 }
@@ -338,26 +327,25 @@ void hideInfoDialog(BuildContext context) {
 }
 
 String getTezosErrorMessage(TezartNodeError err) {
-  String message = "";
+  String message = '';
   final tezosError = getTezosError(err);
   if (tezosError == TezosError.notEnoughMoney) {
-    message = "not_enough_tz".tr();
-    //"Transaction is likely to fail. Please make sure you have enough of Tezos balance to perform this action.";
+    message = 'not_enough_tz'.tr();
   } else if (tezosError == TezosError.contractMalformed) {
-    message = "contract_malformed"
+    message = 'contract_malformed'
         .tr(); // "The operation failed. Contract malformed or deprecated.";
   } else {
-    message = "operation_failed_with".tr(args: [err.message]);
+    message = 'operation_failed_with'.tr(args: [err.message]);
   }
 
   return message;
 }
 
 TezosError getTezosError(TezartNodeError err) {
-  if (err.message.contains("empty_implicit_contract") ||
-      err.message.contains("balance_too_low")) {
+  if (err.message.contains('empty_implicit_contract') ||
+      err.message.contains('balance_too_low')) {
     return TezosError.notEnoughMoney;
-  } else if (err.message.contains("script_rejected")) {
+  } else if (err.message.contains('script_rejected')) {
     return TezosError.contractMalformed;
   } else {
     return TezosError.other;

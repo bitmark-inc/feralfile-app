@@ -11,41 +11,36 @@ import 'package:easy_localization/easy_localization.dart';
 
 class DistanceFormatter {
   //function convert kms to miles
-  double convertKmToMiles(double km) {
-    return km * 0.621371;
-  }
+  double convertKmToMiles(double km) => km * 0.621371;
 
-  final _numberFormat = NumberFormat("#,##0", "en_US");
+  final _numberFormat = NumberFormat('#,##0', 'en_US');
 
   // check is miles or km
-  static bool isMiles() {
-    return LocaleService.measurementSystem == "imperial";
-  }
+  static bool isMiles() => LocaleService.measurementSystem == 'imperial';
 
-  static DistanceUnit get getDistanceUnit {
-    return isMiles() ? DistanceUnit.mile : DistanceUnit.km;
-  }
+  static DistanceUnit get getDistanceUnit =>
+      isMiles() ? DistanceUnit.mile : DistanceUnit.km;
 
   DistanceFormatter();
 
-  String format({double? distance, withFullName = false, String? prefix}) {
+  String format({double? distance, bool withFullName = false, String? prefix}) {
     if (distance == null) {
       return '-';
     }
     String result = '';
     if (withFullName) {
       if (isMiles()) {
-        result = "_miles"
+        result = '_miles'
             .tr(args: [_numberFormat.format(convertKmToMiles(distance))]);
       } else {
-        result = "_kilometers".tr(args: [_numberFormat.format(distance)]);
+        result = '_kilometers'.tr(args: [_numberFormat.format(distance)]);
       }
     } else {
       if (isMiles()) {
         result =
-            "_mi".tr(args: [_numberFormat.format(convertKmToMiles(distance))]);
+            '_mi'.tr(args: [_numberFormat.format(convertKmToMiles(distance))]);
       } else {
-        result = "_km".tr(args: [_numberFormat.format(distance)]);
+        result = '_km'.tr(args: [_numberFormat.format(distance)]);
       }
     }
     result = prefix != null ? '$prefix $result' : result;

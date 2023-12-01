@@ -12,9 +12,7 @@ extension AnnouncementLocalExt on AnnouncementLocal {
     }
   }
 
-  bool get isMemento6 {
-    return announcementType == AnnouncementType.Memento6;
-  }
+  bool get isMemento6 => announcementType == AnnouncementType.Memento6;
 
   String get notificationTitle {
     switch (announcementType) {
@@ -26,6 +24,7 @@ extension AnnouncementLocalExt on AnnouncementLocal {
   }
 }
 
+// ignore_for_file: constant_identifier_names
 enum AnnouncementType {
   Memento6,
   Unknown;
@@ -80,13 +79,13 @@ class ShowAnouncementNotificationInfo {
   }
 
   // toJson
-  Map<String, dynamic> toJson() {
-    return showAnnouncementMap;
-  }
+  Map<String, dynamic> toJson() => showAnnouncementMap;
 
   // fromJson
   factory ShowAnouncementNotificationInfo.fromJson(Map<String, dynamic> json) {
-    if (json.isEmpty) return ShowAnouncementNotificationInfo();
+    if (json.isEmpty) {
+      return ShowAnouncementNotificationInfo();
+    }
     return ShowAnouncementNotificationInfo.withMap(
         showAnnouncementMap: json.map((key, value) =>
             MapEntry(key, int.tryParse(value.toString()) ?? 0)));

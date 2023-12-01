@@ -12,9 +12,10 @@ class FiatFormatter {
 
   final double amount;
   final int digit;
+
   String format() {
     final formater =
-        NumberFormat("${'#' * 10}0.0${'#' * (digit - 1)}", "en_US");
+        NumberFormat("${'#' * 10}0.0${'#' * (digit - 1)}", 'en_US');
     return formater.format(amount);
   }
 }

@@ -1,5 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 
+// ignore_for_file: constant_identifier_names
+
 enum WalletType {
   Autonomy,
   Ethereum,
@@ -22,11 +24,11 @@ extension WalletTypeExtension on WalletType {
   String getString() {
     switch (this) {
       case WalletType.Ethereum:
-        return "Ethereum";
+        return 'Ethereum';
       case WalletType.Tezos:
-        return "Tezos";
+        return 'Tezos';
       default:
-        return "au_multi_chains".tr();
+        return 'au_multi_chains'.tr();
     }
   }
 }

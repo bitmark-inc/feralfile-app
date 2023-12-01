@@ -1,8 +1,8 @@
 import 'package:autonomy_flutter/model/play_control_model.dart';
 import 'package:autonomy_flutter/view/cast_button.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 
 class PlaylistControl extends StatelessWidget {
   final PlayControlModel playControl;
@@ -14,15 +14,15 @@ class PlaylistControl extends StatelessWidget {
   final bool isCasting;
 
   const PlaylistControl({
-    Key? key,
+    required this.playControl,
+    required this.isCasting,
+    super.key,
     this.onPlayTap,
     this.onTimerTap,
     this.onShuffleTap,
     this.showPlay = true,
-    required this.playControl,
     this.onCastTap,
-    required this.isCasting,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -122,7 +122,7 @@ class PlaylistControl extends StatelessWidget {
                 },
               ),
               Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: const EdgeInsets.all(8),
                 child: CastButton(
                   onCastTap: () => {onCastTap?.call()},
                   isCasting: isCasting,
@@ -143,12 +143,12 @@ class ControlItem extends StatefulWidget {
   final Function()? onTap;
 
   const ControlItem({
-    Key? key,
     required this.icon,
     required this.iconFocus,
+    super.key,
     this.isActive = false,
     this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   State<ControlItem> createState() => _ControlItemState();
@@ -163,7 +163,7 @@ class _ControlItemState extends State<ControlItem> {
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.all(8),
             child: widget.isActive ? widget.iconFocus : widget.icon,
           ),
           Container(

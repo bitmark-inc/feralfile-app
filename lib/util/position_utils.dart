@@ -1,11 +1,13 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/geolocation.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:collection/collection.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:hive/hive.dart';
 
-import 'log.dart';
-
+// ignore: constant_identifier_names
 const coordinate_digit_number = 3;
 
 String getLocationName(Placemark placeMark) {
@@ -31,7 +33,7 @@ String getLocationName(Placemark placeMark) {
   while (locationLevel.length > 3) {
     locationLevel.removeAt(0);
   }
-  return locationLevel.join(", ");
+  return locationLevel.join(', ');
 }
 
 // get placeMark from longitude and latitude
@@ -39,7 +41,7 @@ Future<Placemark?> getPlaceMarkFromCoordinates(
     double latitude, double longitude) async {
   List<Placemark> placeMarks = await placemarkFromCoordinates(
       latitude, longitude,
-      localeIdentifier: "en_US");
+      localeIdentifier: 'en_US');
   if (placeMarks.isEmpty) {
     return null;
   }
@@ -56,21 +58,21 @@ Future<String> getLocationNameFromCoordinates(
     return geoLocation.address!;
   }
   final box = await Hive.openBox(POSTCARD_LOCATION_HIVE_BOX);
-  final key =
-      "${latitude.toStringAsFixed(coordinate_digit_number)}|${longitude.toStringAsFixed(coordinate_digit_number)}";
+  final key = '${latitude.toStringAsFixed(coordinate_digit_number)}|'
+      '${longitude.toStringAsFixed(coordinate_digit_number)}';
   if (box.containsKey(key)) {
     return box.get(key) as String;
   }
   try {
     final placeMark = await getPlaceMarkFromCoordinates(latitude, longitude);
     if (placeMark == null) {
-      return "";
+      return '';
     }
     final location = getLocationName(placeMark);
-    box.put(key, location);
+    unawaited(box.put(key, location));
     return location;
   } catch (e) {
-    log.info("Error getting location name from coordinates: $e");
-    return "";
+    log.info('Error getting location name from coordinates: $e');
+    return '';
   }
 }
