@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/prompt.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -10,6 +11,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/prompt_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
@@ -73,6 +75,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
     final pages = widget.payload.pages ??
         [
           _page1(_controller),
+          _promptExplain(context),
           _page3(1, _colouringController),
           _page2(2, totalDistance: 0),
           _page2(3, totalDistance: 7926),
@@ -218,14 +221,12 @@ class _PostcardExplainState extends State<PostcardExplain> {
             children: [
               Text(
                 'moma_project_invite'.tr(),
-                style:
-                    theme.textTheme.moMASans400Black16.copyWith(fontSize: 18),
+                style: theme.textTheme.moMASans400Black18,
               ),
               const SizedBox(height: 8),
               Text(
                 'with_15_blank_stamps'.tr(),
-                style:
-                    theme.textTheme.moMASans400Black16.copyWith(fontSize: 18),
+                style: theme.textTheme.moMASans400Black18,
               ),
               const SizedBox(height: 40),
               Text.rich(
@@ -258,6 +259,31 @@ class _PostcardExplainState extends State<PostcardExplain> {
     );
   }
 
+  Widget _promptExplain(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          height: 265,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              PromptView(
+                prompt: Prompt(id: '', description: 'prompt_example'.tr()),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 60),
+        Text(
+          'prompt_explain_desc'.tr(),
+          style: theme.textTheme.moMASans400Black18,
+        ),
+      ],
+    );
+  }
+
   Widget _page2(int index, {double? totalDistance}) {
     final imagePath = 'assets/images/postcard_explain_$index.png';
     final theme = Theme.of(context);
@@ -287,8 +313,8 @@ class _PostcardExplainState extends State<PostcardExplain> {
                   'distance': distanceFormatter.showDistance(
                       distance: totalDistance, distanceUnit: DistanceUnit.mile)
                 }),
-                style: theme.textTheme.moMASans400Black14.copyWith(
-                    fontSize: 18, color: const Color.fromRGBO(131, 79, 196, 1)))
+                style: theme.textTheme.moMASans400Black18
+                    .copyWith(color: const Color.fromRGBO(131, 79, 196, 1)))
           else
             const SizedBox(height: 24),
           const SizedBox(height: 24),
@@ -296,14 +322,8 @@ class _PostcardExplainState extends State<PostcardExplain> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '$index.',
-                style:
-                    theme.textTheme.moMASans400Black14.copyWith(fontSize: 18),
-              ),
-              Text(
                 'moma_explain_$index'.tr(),
-                style:
-                    theme.textTheme.moMASans400Black14.copyWith(fontSize: 18),
+                style: theme.textTheme.moMASans400Black18,
               ),
             ],
           )
@@ -332,14 +352,8 @@ class _PostcardExplainState extends State<PostcardExplain> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '$index.',
-                style:
-                    theme.textTheme.moMASans400Black14.copyWith(fontSize: 18),
-              ),
-              Text(
                 'moma_explain_$index'.tr(),
-                style:
-                    theme.textTheme.moMASans400Black14.copyWith(fontSize: 18),
+                style: theme.textTheme.moMASans400Black18,
               ),
             ],
           )
@@ -363,15 +377,12 @@ class _PostcardExplainState extends State<PostcardExplain> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title,
-                style:
-                    theme.textTheme.moMASans400Black14.copyWith(fontSize: 18)),
+            Text(title, style: theme.textTheme.moMASans400Black18),
             Text(
                 distanceFormatter.showDistance(
                     distance: totalDistance, distanceUnit: DistanceUnit.mile),
-                style: theme.textTheme.moMASans400Black14.copyWith(
-                    fontSize: 18,
-                    color: const Color.fromRGBO(131, 79, 196, 1))),
+                style: theme.textTheme.moMASans400Black18
+                    .copyWith(color: const Color.fromRGBO(131, 79, 196, 1))),
           ],
         )
       ],
@@ -405,13 +416,11 @@ class _PostcardExplainState extends State<PostcardExplain> {
             children: [
               Text(
                 '$index.',
-                style:
-                    theme.textTheme.moMASans400Black14.copyWith(fontSize: 18),
+                style: theme.textTheme.moMASans400Black18,
               ),
               Text(
                 'moma_explain_$index'.tr(),
-                style:
-                    theme.textTheme.moMASans400Black14.copyWith(fontSize: 18),
+                style: theme.textTheme.moMASans400Black18,
               ),
             ],
           )
@@ -447,8 +456,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
             children: [
               Text(
                 'this_is_your_group_postcard'.tr(),
-                style:
-                    theme.textTheme.moMASans400Black14.copyWith(fontSize: 18),
+                style: theme.textTheme.moMASans400Black18,
               ),
             ],
           )

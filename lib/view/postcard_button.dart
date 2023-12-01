@@ -15,6 +15,7 @@ class PostcardButton extends StatelessWidget {
   final Color? textColor;
   final Color? disabledTextColor;
   final double? fontSize;
+  final TextStyle? textStyle;
 
   const PostcardButton({
     super.key,
@@ -28,6 +29,7 @@ class PostcardButton extends StatelessWidget {
     this.textColor,
     this.disabledTextColor,
     this.fontSize,
+    this.textStyle,
   });
 
   @override
@@ -72,9 +74,10 @@ class PostcardButton extends StatelessWidget {
                   const SizedBox(),
                 Text(
                   text ?? '',
-                  style: theme.textTheme.moMASans700Black18.copyWith(
-                      color: enabled ? textColor : disabledTextColor,
-                      fontSize: fontSize),
+                  style: (textStyle ?? theme.textTheme.moMASans700Black18)
+                      .copyWith(
+                          color: enabled ? textColor : disabledTextColor,
+                          fontSize: fontSize),
                 ),
               ],
             ),

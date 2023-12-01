@@ -19,6 +19,7 @@ import 'package:nft_collection/models/models.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:nft_collection/services/tokens_service.dart';
 
+// ignore: always_use_package_imports
 import 'claim_empty_postcard_state.dart';
 
 class ClaimEmptyPostCardBloc
@@ -31,9 +32,6 @@ class ClaimEmptyPostCardBloc
 
   ClaimEmptyPostCardBloc() : super(ClaimEmptyPostCardState()) {
     on<GetTokenEvent>((event, emit) async {
-      final postcardMetadata = PostcardMetadata(
-        locationInformation: [],
-      );
       if (event.claimRequest is PayToMintRequest) {
         final payToMintRequest = event.claimRequest as PayToMintRequest;
         final indexId = payToMintRequest.tokenId;
@@ -49,7 +47,9 @@ class ClaimEmptyPostCardBloc
             medium: 'software',
             previewURL: event.claimRequest.previewURL,
             artworkMetadata: event.createMetadata
-                ? jsonEncode(postcardMetadata.toJson())
+                ? jsonEncode(PostcardMetadata(
+                    locationInformation: [],
+                  ).toJson())
                 : null,
           ),
           blockchain: 'tezos',
@@ -90,7 +90,9 @@ class ClaimEmptyPostCardBloc
             medium: 'software',
             previewURL: event.claimRequest.previewURL,
             artworkMetadata: event.createMetadata
-                ? jsonEncode(postcardMetadata.toJson())
+                ? jsonEncode(PostcardMetadata(
+                    locationInformation: [],
+                  ).toJson())
                 : null,
           ),
           blockchain: 'tezos',

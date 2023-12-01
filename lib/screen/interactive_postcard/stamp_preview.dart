@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
+import 'package:autonomy_flutter/model/prompt.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_bloc.dart';
@@ -217,6 +218,7 @@ class StampingPostcard {
   final String imagePath;
   final String metadataPath;
   final int counter;
+  final Prompt? prompt;
 
   // constructor
   StampingPostcard({
@@ -226,6 +228,7 @@ class StampingPostcard {
     required this.metadataPath,
     required this.counter,
     DateTime? timestamp,
+    this.prompt,
   }) : timestamp = timestamp ?? DateTime.now();
 
   //constructor
@@ -238,6 +241,9 @@ class StampingPostcard {
         imagePath: json['imagePath'],
         metadataPath: json['metadataPath'],
         counter: json['counter'],
+        prompt: json['prompt'] == null
+            ? null
+            : Prompt.fromJson(json['prompt'] as Map<String, dynamic>),
       );
 
   Map<String, dynamic> toJson() => {
@@ -247,6 +253,7 @@ class StampingPostcard {
         'imagePath': imagePath,
         'metadataPath': metadataPath,
         'counter': counter,
+        'prompt': prompt?.toJson(),
       };
 
   @override
@@ -273,6 +280,7 @@ class ProcessingStampPostcard extends StampingPostcard {
     required super.counter,
     required DateTime super.timestamp,
     required this.location,
+    super.prompt,
   });
 
   static ProcessingStampPostcard fromJson(Map<String, dynamic> json) =>
@@ -284,6 +292,7 @@ class ProcessingStampPostcard extends StampingPostcard {
         metadataPath: json['metadataPath'],
         counter: json['counter'],
         location: Location.fromJson(json['location']),
+        prompt: json['prompt'] == null ? null : Prompt.fromJson(json['prompt']),
       );
 
   @override
@@ -295,5 +304,6 @@ class ProcessingStampPostcard extends StampingPostcard {
         'metadataPath': metadataPath,
         'counter': counter,
         'location': location.toJson(),
+        'prompt': prompt?.toJson(),
       };
 }
