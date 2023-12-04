@@ -727,9 +727,9 @@ extension PostcardExtension on AssetToken {
   }
 
   AssetToken setAssetPrompt(Prompt prompt) {
-    postcardMetadata.prompt = prompt;
+    final metadata = postcardMetadata..prompt = prompt;
 
-    asset?.artworkMetadata = jsonEncode(postcardMetadata.toJson());
+    asset?.artworkMetadata = jsonEncode(metadata.toJson());
     if (prompt.cid != null) {
       updatePostcardCID(prompt.cid!);
     }
