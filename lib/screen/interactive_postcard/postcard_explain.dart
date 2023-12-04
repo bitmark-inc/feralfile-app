@@ -72,9 +72,13 @@ class _PostcardExplainState extends State<PostcardExplain> {
   @override
   Widget build(BuildContext context) {
     final asset = widget.payload.asset;
-    final hasPrompt = widget.payload.asset.postcardMetadata.prompt != null;
-    final isShare =
-        widget.payload.asset.postcardMetadata.locationInformation.isNotEmpty;
+    final metadata = asset.asset?.artworkMetadata;
+    final hasPrompt = metadata != null
+        ? widget.payload.asset.postcardMetadata.prompt != null
+        : false;
+    final isShare = metadata != null
+        ? widget.payload.asset.postcardMetadata.locationInformation.isNotEmpty
+        : false;
     final pages = widget.payload.pages ??
         [
           _page1(_controller),

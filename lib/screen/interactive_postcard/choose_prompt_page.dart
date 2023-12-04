@@ -49,20 +49,13 @@ class ChoosePromptPage extends StatelessWidget {
                       prompt: prompt,
                       expandable: true,
                       onTap: () async {
-                        final postcardMetadata = payload
-                            .assetToken.postcardMetadata
-                          ..prompt = prompt;
-
-                        final asset = payload.assetToken
-                          ..asset?.artworkMetadata =
-                              jsonEncode(postcardMetadata.toJson());
-                        if (prompt.cid != null) {
-                          asset.updatePostcardCID(prompt.cid!);
-                        }
+                        final assetWithPrompt =
+                            setAssetPrompt(payload.assetToken, prompt);
 
                         await Navigator.of(context).pushNamed(
                             AppRouter.designStamp,
-                            arguments: DesignStampPayload(asset, true));
+                            arguments:
+                                DesignStampPayload(assetWithPrompt, true));
                       },
                     ),
                   )),
@@ -71,6 +64,16 @@ class ChoosePromptPage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  static AssetToken setAssetPrompt(AssetToken asset, Prompt prompt) {
+    final postcardMetadata = asset.postcardMetadata..prompt = prompt;
+
+    asset.asset?.artworkMetadata = jsonEncode(postcardMetadata.toJson());
+    if (prompt.cid != null) {
+      asset.updatePostcardCID(prompt.cid!);
+    }
+    return asset;
   }
 }
 

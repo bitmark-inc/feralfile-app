@@ -95,7 +95,14 @@ class NavigationService {
     if (prompts.isEmpty) {
       await popAndPushNamed(AppRouter.designStamp,
           arguments: DesignStampPayload(asset, false));
+    }
+    if (prompts.length == 1) {
+      final assetWithPrompt =
+          ChoosePromptPage.setAssetPrompt(asset, prompts.first);
+      await popAndPushNamed(AppRouter.designStamp,
+          arguments: DesignStampPayload(assetWithPrompt, true));
     } else {
+      // ignore: use_build_context_synchronously
       await Navigator.of(context).pushNamed(AppRouter.choosePromptPage,
           arguments: ChoosePromptPayload(assetToken: asset, prompts: prompts));
     }
