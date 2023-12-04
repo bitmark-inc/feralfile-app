@@ -86,7 +86,7 @@ class PostcardDetailBloc
         final assetToken = await _assetTokenDao.findAssetTokenByIdAndOwner(
             event.identity.id, event.identity.owner);
         if (assetToken == null) {
-          log.info("ArtworkDetailGetInfoEvent: $event assetToken is null");
+          log.info('ArtworkDetailGetInfoEvent: $event assetToken is null');
         }
 
         final tempsPrompt = assetToken?.stampingPostcardConfig?.prompt ??
@@ -114,11 +114,11 @@ class PostcardDetailBloc
               final res = await http
                   .head(uri)
                   .timeout(const Duration(milliseconds: 10000));
-              assetToken.asset!.mimeType = res.headers["content-type"];
+              assetToken.asset!.mimeType = res.headers['content-type'];
               _assetDao.updateAsset(assetToken.asset!);
               emit(state.copyWith(assetToken: assetToken));
             } catch (error) {
-              log.info("ArtworkDetailGetInfoEvent: preview url error", error);
+              log.info('ArtworkDetailGetInfoEvent: preview url error', error);
             }
           }
         }
@@ -146,7 +146,7 @@ class PostcardDetailBloc
         emit(state.copyWith(
             leaderboard: newLeaderboard, isFetchingLeaderboard: false));
       } catch (e) {
-        log.info("FetchLeaderboardEvent: error ${e.toString()}");
+        log.info('FetchLeaderboardEvent: error ${e.toString()}');
       }
     });
     on<RefreshLeaderboardEvent>((event, emit) async {
@@ -158,7 +158,7 @@ class PostcardDetailBloc
             offset: offset);
         emit(state.copyWith(leaderboard: leaderboard));
       } catch (e) {
-        log.info("RefreshLeaderboardEvent: error ${e.toString()}");
+        log.info('RefreshLeaderboardEvent: error ${e.toString()}');
       }
     });
   }
@@ -174,12 +174,12 @@ class PostcardDetailBloc
       final isStamped = asset.isStamped;
       if (!isStamped) {
         if (stampingPostcard != null) {
-          log.info("[PostcardDetail] Stamping... ");
+          log.info('[PostcardDetail] Stamping... ');
           imagePath = stampingPostcard.imagePath;
           metadataPath = stampingPostcard.metadataPath;
         } else {
           if (processingStampPostcard != null) {
-            log.info("[PostcardDetail] Processing stamp... ");
+            log.info('[PostcardDetail] Processing stamp... ');
             imagePath = processingStampPostcard.imagePath;
             metadataPath = processingStampPostcard.metadataPath;
           }

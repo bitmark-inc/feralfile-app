@@ -633,9 +633,8 @@ extension PostcardExtension on AssetToken {
     final stampingPostcard =
         injector<ConfigurationService>().getStampingPostcard();
     return stampingPostcard.firstWhereOrNull((final element) {
-      final bool = element.indexId == tokenId &&
+      final bool = element.indexId == id &&
           element.address == owner &&
-          element.counter == numberOwners &&
           isLastOwner;
       return bool;
     });
