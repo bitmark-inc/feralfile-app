@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:autonomy_flutter/model/prompt.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
@@ -49,20 +47,13 @@ class ChoosePromptPage extends StatelessWidget {
                       prompt: prompt,
                       expandable: true,
                       onTap: () async {
-                        final postcardMetadata = payload
-                            .assetToken.postcardMetadata
-                          ..prompt = prompt;
-
-                        final asset = payload.assetToken
-                          ..asset?.artworkMetadata =
-                              jsonEncode(postcardMetadata.toJson());
-                        if (prompt.cid != null) {
-                          asset.updatePostcardCID(prompt.cid!);
-                        }
+                        final assetWithPrompt =
+                            payload.assetToken.setAssetPrompt(prompt);
 
                         await Navigator.of(context).pushNamed(
                             AppRouter.designStamp,
-                            arguments: DesignStampPayload(asset, true));
+                            arguments:
+                                DesignStampPayload(assetWithPrompt, true));
                       },
                     ),
                   )),

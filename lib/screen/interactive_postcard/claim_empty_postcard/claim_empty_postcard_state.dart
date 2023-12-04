@@ -22,20 +22,20 @@ class ClaimEmptyPostCardState {
     bool? isClaiming,
     bool? isClaimed,
     Object? error,
-  }) => ClaimEmptyPostCardState(
-      assetToken: assetToken ?? this.assetToken,
-      isClaiming: isClaiming ?? this.isClaiming,
-      isClaimed: isClaimed ?? this.isClaimed,
-      error: error,
-    );
+  }) =>
+      ClaimEmptyPostCardState(
+        assetToken: assetToken ?? this.assetToken,
+        isClaiming: isClaiming ?? this.isClaiming,
+        isClaimed: isClaimed ?? this.isClaimed,
+        error: error,
+      );
 }
 
 class GetTokenEvent extends ClaimEmptyPostCardEvent {
   final RequestPostcardResponse claimRequest;
-  final bool createMetadata;
 
   // constructor
-  GetTokenEvent(this.claimRequest, {this.createMetadata = false});
+  GetTokenEvent(this.claimRequest);
 }
 
 class AcceptGiftEvent extends ClaimEmptyPostCardEvent {

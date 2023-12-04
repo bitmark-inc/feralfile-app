@@ -8,6 +8,7 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
+import 'package:autonomy_flutter/model/prompt.dart';
 import 'package:autonomy_flutter/model/shared_postcard.dart';
 import 'package:autonomy_flutter/model/travel_infor.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
@@ -723,6 +724,16 @@ extension PostcardExtension on AssetToken {
       onFailed?.call(e);
     }
     return null;
+  }
+
+  AssetToken setAssetPrompt(Prompt prompt) {
+    postcardMetadata.prompt = prompt;
+
+    asset?.artworkMetadata = jsonEncode(postcardMetadata.toJson());
+    if (prompt.cid != null) {
+      updatePostcardCID(prompt.cid!);
+    }
+    return this;
   }
 
   double get totalDistance {
