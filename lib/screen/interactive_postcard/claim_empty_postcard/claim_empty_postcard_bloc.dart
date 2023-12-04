@@ -39,19 +39,16 @@ class ClaimEmptyPostCardBloc
         log.info('[Pay to mint] tokenId: $tokenId');
         final token = AssetToken(
           asset: Asset.init(
-            indexID: tokenId,
-            artistName: 'MoMa',
-            maxEdition: 1,
-            mimeType: 'image/png',
-            title: event.claimRequest.name,
-            medium: 'software',
-            previewURL: event.claimRequest.previewURL,
-            artworkMetadata: event.createMetadata
-                ? jsonEncode(PostcardMetadata(
-                    locationInformation: [],
-                  ).toJson())
-                : null,
-          ),
+              indexID: tokenId,
+              artistName: 'MoMa',
+              maxEdition: 1,
+              mimeType: 'image/png',
+              title: event.claimRequest.name,
+              medium: 'software',
+              previewURL: event.claimRequest.previewURL,
+              artworkMetadata: jsonEncode(PostcardMetadata(
+                locationInformation: [],
+              ).toJson())),
           blockchain: 'tezos',
           fungible: true,
           contractType: 'fa2',
@@ -83,18 +80,15 @@ class ClaimEmptyPostCardBloc
       } else {
         final token = AssetToken(
           asset: Asset.init(
-            artistName: 'MoMa',
-            maxEdition: 1,
-            mimeType: 'image/png',
-            title: event.claimRequest.name,
-            medium: 'software',
-            previewURL: event.claimRequest.previewURL,
-            artworkMetadata: event.createMetadata
-                ? jsonEncode(PostcardMetadata(
-                    locationInformation: [],
-                  ).toJson())
-                : null,
-          ),
+              artistName: 'MoMa',
+              maxEdition: 1,
+              mimeType: 'image/png',
+              title: event.claimRequest.name,
+              medium: 'software',
+              previewURL: event.claimRequest.previewURL,
+              artworkMetadata: jsonEncode(PostcardMetadata(
+                locationInformation: [],
+              ).toJson())),
           blockchain: 'tezos',
           fungible: true,
           contractType: 'fa2',

@@ -36,7 +36,7 @@ class _PayToMintPostcardScreenState extends State<PayToMintPostcardScreen> {
   @override
   void initState() {
     super.initState();
-    bloc.add(GetTokenEvent(widget.claimRequest, createMetadata: true));
+    bloc.add(GetTokenEvent(widget.claimRequest));
   }
 
   void _handleError(final Object error) {

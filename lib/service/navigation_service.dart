@@ -20,6 +20,7 @@ import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_p
 import 'package:autonomy_flutter/service/airdrop_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
@@ -97,8 +98,7 @@ class NavigationService {
           arguments: DesignStampPayload(asset, false));
     }
     if (prompts.length == 1) {
-      final assetWithPrompt =
-          ChoosePromptPage.setAssetPrompt(asset, prompts.first);
+      final assetWithPrompt = asset.setAssetPrompt(prompts.first);
       await popAndPushNamed(AppRouter.designStamp,
           arguments: DesignStampPayload(assetWithPrompt, true));
     } else {
