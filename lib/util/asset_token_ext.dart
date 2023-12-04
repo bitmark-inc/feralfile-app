@@ -629,6 +629,17 @@ extension PostcardExtension on AssetToken {
     });
   }
 
+  StampingPostcard? get stampingPostcardConfig {
+    final stampingPostcard =
+        injector<ConfigurationService>().getStampingPostcard();
+    return stampingPostcard.firstWhereOrNull((final element) {
+      final bool = element.indexId == id &&
+          element.address == owner &&
+          isLastOwner;
+      return bool;
+    });
+  }
+
   bool get isProcessingStamp => processingStampPostcard != null;
 
   bool get isStamping {

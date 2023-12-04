@@ -327,9 +327,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         if (!mounted) {
           return;
         }
-        _prompt ??= assetToken.postcardMetadata.prompt ??
-            assetToken.stampingPostcard?.prompt ??
-            assetToken.processingStampPostcard?.prompt;
+        _prompt ??= assetToken.postcardMetadata.prompt;
+
         if (isAutoStampIfNeed && !isProcessingStampPostcard) {
           isAutoStampIfNeed = false;
           unawaited(
