@@ -78,8 +78,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
     final pages = widget.payload.pages ??
         [
           _page1(_controller),
-          if (hasPrompt && !isShare)
-            _promptExplain(context),
+          if (hasPrompt || !isShare) _promptExplain(context),
           _page3(1, _colouringController),
           _page2(2, totalDistance: 0),
           _page2(3, totalDistance: 7926),
