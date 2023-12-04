@@ -327,9 +327,13 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         if (!mounted) {
           return;
         }
-        _prompt ??= assetToken.postcardMetadata.prompt ??
-            assetToken.stampingPostcard?.prompt ??
+        final tempsPrompt = assetToken.stampingPostcard?.prompt ??
             assetToken.processingStampPostcard?.prompt;
+        if (tempsPrompt != null && assetToken.postcardMetadata.prompt == null) {
+          assetToken.setAssetPrompt(tempsPrompt);
+        }
+        _prompt ??= assetToken.postcardMetadata.prompt;
+
         if (isAutoStampIfNeed && !isProcessingStampPostcard) {
           isAutoStampIfNeed = false;
           unawaited(
