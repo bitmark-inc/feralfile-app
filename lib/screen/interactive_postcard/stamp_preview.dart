@@ -78,14 +78,22 @@ class _StampPreviewState extends State<StampPreview> with AfterLayoutMixin {
           await UIHelper.showPostcardStampFailed(context);
         }
         if (mounted) {
-          await Navigator.of(context).pushNamed(
-            AppRouter.claimedPostcardDetailsPage,
-            arguments:
-                PostcardDetailPagePayload([widget.payload.asset.identity], 0),
-          );
+          _onClose(context);
         }
       }
     });
+  }
+
+  void _onClose(BuildContext context) {
+    _navigationService.popUntilHomeOrSettings();
+    if (!mounted) {
+      return;
+    }
+    unawaited(Navigator.of(context).pushNamed(
+      AppRouter.claimedPostcardDetailsPage,
+      arguments: PostcardDetailPagePayload([widget.payload.asset.identity], 0),
+    ));
+    unawaited(_configurationService.setAutoShowPostcard(true));
   }
 
   @override
@@ -131,16 +139,7 @@ class _StampPreviewState extends State<StampPreview> with AfterLayoutMixin {
           onClose: confirming
               ? null
               : () async {
-                  _navigationService.popUntilHomeOrSettings();
-                  if (!mounted) {
-                    return;
-                  }
-                  unawaited(Navigator.of(context).pushNamed(
-                    AppRouter.claimedPostcardDetailsPage,
-                    arguments: PostcardDetailPagePayload(
-                        [widget.payload.asset.identity], 0),
-                  ));
-                  unawaited(_configurationService.setAutoShowPostcard(true));
+                  _onClose(context);
                 },
           withBottomDivider: false,
           disableIcon: closeIcon(color: AppColor.disabledColor),
