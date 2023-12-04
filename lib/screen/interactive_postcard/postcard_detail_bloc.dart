@@ -115,7 +115,7 @@ class PostcardDetailBloc
                   .head(uri)
                   .timeout(const Duration(milliseconds: 10000));
               assetToken.asset!.mimeType = res.headers['content-type'];
-              _assetDao.updateAsset(assetToken.asset!);
+              unawaited(_assetDao.updateAsset(assetToken.asset!));
               emit(state.copyWith(assetToken: assetToken));
             } catch (error) {
               log.info('ArtworkDetailGetInfoEvent: preview url error', error);
@@ -146,7 +146,7 @@ class PostcardDetailBloc
         emit(state.copyWith(
             leaderboard: newLeaderboard, isFetchingLeaderboard: false));
       } catch (e) {
-        log.info('FetchLeaderboardEvent: error ${e.toString()}');
+        log.info('FetchLeaderboardEvent: error $e');
       }
     });
     on<RefreshLeaderboardEvent>((event, emit) async {
@@ -158,7 +158,7 @@ class PostcardDetailBloc
             offset: offset);
         emit(state.copyWith(leaderboard: leaderboard));
       } catch (e) {
-        log.info('RefreshLeaderboardEvent: error ${e.toString()}');
+        log.info('RefreshLeaderboardEvent: error $e');
       }
     });
   }
@@ -186,13 +186,13 @@ class PostcardDetailBloc
         }
       } else {
         if (stampingPostcard != null) {
-          postcardService
-              .updateStampingPostcard([stampingPostcard], isRemove: true);
+          unawaited(postcardService
+              .updateStampingPostcard([stampingPostcard], isRemove: true));
         }
         if (processingStampPostcard != null) {
-          _configurationService.setProcessingStampPostcard(
+          unawaited(_configurationService.setProcessingStampPostcard(
               [processingStampPostcard],
-              isRemove: true);
+              isRemove: true));
         }
       }
     }
