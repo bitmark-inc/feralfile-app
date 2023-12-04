@@ -72,10 +72,14 @@ class _PostcardExplainState extends State<PostcardExplain> {
   @override
   Widget build(BuildContext context) {
     final asset = widget.payload.asset;
+    final hasPrompt = widget.payload.asset.postcardMetadata.prompt != null;
+    final isShare =
+        widget.payload.asset.postcardMetadata.locationInformation.isNotEmpty;
     final pages = widget.payload.pages ??
         [
           _page1(_controller),
-          _promptExplain(context),
+          if (hasPrompt && !isShare)
+            _promptExplain(context),
           _page3(1, _colouringController),
           _page2(2, totalDistance: 0),
           _page2(3, totalDistance: 7926),
