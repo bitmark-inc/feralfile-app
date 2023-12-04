@@ -65,6 +65,12 @@ class PostcardDetailBloc
             .where((element) => element.id == event.identity.id)
             .toList();
         if (assetToken.isNotEmpty) {
+          final tempsPrompt = assetToken.first.stampingPostcardConfig?.prompt ??
+              assetToken.first.processingStampPostcard?.prompt;
+          if (tempsPrompt != null &&
+              assetToken.first.postcardMetadata.prompt == null) {
+            assetToken.first.setAssetPrompt(tempsPrompt);
+          }
           final paths = getUpdatingPath(assetToken.first);
           emit(state.copyWith(
             assetToken: assetToken.first,
@@ -81,6 +87,13 @@ class PostcardDetailBloc
             event.identity.id, event.identity.owner);
         if (assetToken == null) {
           log.info("ArtworkDetailGetInfoEvent: $event assetToken is null");
+        }
+
+        final tempsPrompt = assetToken?.stampingPostcardConfig?.prompt ??
+            assetToken?.processingStampPostcard?.prompt;
+        if (tempsPrompt != null &&
+            assetToken?.postcardMetadata.prompt == null) {
+          assetToken?.setAssetPrompt(tempsPrompt);
         }
         final paths = getUpdatingPath(assetToken);
         emit(state.copyWith(

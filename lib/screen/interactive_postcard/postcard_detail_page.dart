@@ -327,11 +327,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         if (!mounted) {
           return;
         }
-        final tempsPrompt = assetToken.stampingPostcard?.prompt ??
-            assetToken.processingStampPostcard?.prompt;
-        if (tempsPrompt != null && assetToken.postcardMetadata.prompt == null) {
-          assetToken.setAssetPrompt(tempsPrompt);
-        }
         _prompt ??= assetToken.postcardMetadata.prompt;
 
         if (isAutoStampIfNeed && !isProcessingStampPostcard) {
