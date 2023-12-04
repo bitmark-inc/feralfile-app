@@ -421,6 +421,13 @@ class NavigationService {
     }
   }
 
+  Future<void> showPostcardNotInMiami() async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await UIHelper.showPostcardNotInMiami(navigatorKey.currentContext!);
+    }
+  }
+
   Future<void> openAutonomyDocument(String href, String title) async {
     if (navigatorKey.currentContext != null &&
         navigatorKey.currentState?.mounted == true) {

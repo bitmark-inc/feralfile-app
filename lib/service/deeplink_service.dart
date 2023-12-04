@@ -638,9 +638,15 @@ class DeeplinkServiceImpl extends DeeplinkService {
       ));
     } catch (e) {
       log.info('[DeeplinkService] _handleClaimEmptyPostcardDeeplink error $e');
-      if (e is DioException && e.isPostcardClaimEmptyLimited) {
-        unawaited(_navigationService.showPostcardClaimLimited());
-        return;
+      if (e is DioException) {
+        if (e.isPostcardClaimEmptyLimited) {
+          unawaited(_navigationService.showPostcardClaimLimited());
+          return;
+        }
+        if (e.isPostcardNotInMiami) {
+          unawaited(_navigationService.showPostcardNotInMiami());
+          return;
+        }
       }
       if (otp == null) {
         unawaited(_navigationService.showPostcardRunOut());
