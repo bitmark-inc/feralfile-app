@@ -26,6 +26,7 @@ void main() async {
       accountService = MockAccountService();
       configService = MockConfigurationService();
       authService = AuthService(authApi, accountService, configService);
+
     }
 
     test('get auth token', () async {
