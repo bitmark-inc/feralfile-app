@@ -5,6 +5,10 @@ const String activationIdConnectionTimeout = 'activationIdConnectionTimeout';
 const String activationIdReceiveTimeout = 'activationIdReceiveTimeout';
 const String activationIdExceptionOther = 'activationIdExceptionOther';
 
+const String cannotSelfClaim = 'cannot self claim';
+const String invalidClaim = 'invalid claim';
+const String alreadyShare = 'the token is not available for share';
+
 const String id = 'id';
 const String idDioException4xx = 'idDioException4xx';
 const String idDioException5xx = 'idDioException5xx';
