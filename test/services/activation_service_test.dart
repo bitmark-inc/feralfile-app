@@ -99,6 +99,73 @@ void main() async {
           .called(1);
     });
 
+    test('claimActivation: case 400', () async {
+      final error = activationService.claimActivation(
+          request: ActivationApiMock.claimDioException4xx.req,
+          assetToken: TokenServiceMockData.anyAssetToken);
+      expect(error, throwsA(ActivationApiMock.claimDioException4xx.res));
+      verify(mockActivationApi
+              .claim(ActivationApiMock.claimDioException4xx.req))
+          .called(1);
+    });
+
+    test('claimActivation: case 500', () async {
+      final error = activationService
+          .claimActivation(
+              request: ActivationApiMock.claimDioException5xx.req,
+              assetToken: TokenServiceMockData.anyAssetToken)
+          .then((value) {
+        verify(mockNavigationService.showActivationError(
+                value, TokenServiceMockData.anyAssetToken.id))
+            .called(1);
+      });
+      expect(error, throwsA(ActivationApiMock.claimDioException5xx.res));
+      verify(mockActivationApi
+              .claim(ActivationApiMock.claimDioException5xx.req))
+          .called(1);
+    });
+
+    test('claimActivation: case connectionTimeout', () async {
+      final error = activationService.claimActivation(
+          request: ActivationApiMock.claimConnectionTimeout.req,
+          assetToken: TokenServiceMockData.anyAssetToken).then((value) {
+        verify(mockNavigationService.showActivationError(
+            value, TokenServiceMockData.anyAssetToken.id))
+            .called(1);
+      });
+      expect(error, throwsA(ActivationApiMock.claimConnectionTimeout.res));
+      verify(mockActivationApi
+              .claim(ActivationApiMock.claimConnectionTimeout.req))
+          .called(1);
+    });
+
+    test('claimActivation: case receiveTimeout', () async {
+      final error = activationService.claimActivation(
+          request: ActivationApiMock.claimReceiveTimeout.req,
+          assetToken: TokenServiceMockData.anyAssetToken).then((value) {
+        verify(mockNavigationService.showActivationError(
+            value, TokenServiceMockData.anyAssetToken.id))
+            .called(1);
+      });
+      expect(error, throwsA(ActivationApiMock.claimReceiveTimeout.res));
+      verify(mockActivationApi.claim(ActivationApiMock.claimReceiveTimeout.req))
+          .called(1);
+    });
+
+    test('claimActivation: case exceptionOther', () async {
+      final error = activationService.claimActivation(
+          request: ActivationApiMock.claimDioExceptionOther.req,
+          assetToken: TokenServiceMockData.anyAssetToken).then((value) {
+        verify(mockNavigationService.showActivationError(
+            value, TokenServiceMockData.anyAssetToken.id))
+            .called(0);
+      });
+      expect(error, throwsA(ActivationApiMock.claimDioExceptionOther.res));
+      verify(mockActivationApi
+              .claim(ActivationApiMock.claimDioExceptionOther.req))
+          .called(1);
+    });
+
     test('claimActivation: error self claim', () async {
       final error = activationService
           .claimActivation(

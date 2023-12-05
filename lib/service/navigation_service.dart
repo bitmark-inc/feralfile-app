@@ -373,6 +373,13 @@ class NavigationService {
     }
   }
 
+  Future<void> showActivationError(Object e, String id) async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await UIHelper.showActivationError(navigatorKey.currentContext!, e, id);
+    }
+  }
+
   Future<void> showAirdropClaimFailed() async {
     if (navigatorKey.currentContext != null &&
         navigatorKey.currentState?.mounted == true) {

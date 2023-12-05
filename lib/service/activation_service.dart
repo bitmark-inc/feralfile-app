@@ -56,8 +56,7 @@ class ActivationService {
             unawaited(_navigationService.showAirdropAlreadyClaimed());
             break;
           default:
-            unawaited(UIHelper.showActivationError(
-              _navigationService.navigatorKey.currentContext!,
+            unawaited(_navigationService.showActivationError(
               e,
               assetToken.id,
             ));
