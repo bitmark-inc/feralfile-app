@@ -92,8 +92,8 @@ class _PromptPageState extends State<PromptPage> {
                       enabled: _enableSave,
                       onTap: () async {
                         final assetWithPrompt = widget.payload.asset
-                            .setAssetPrompt(Prompt(
-                                id: '', description: _controller.text.trim()));
+                            .setAssetPrompt(
+                                Prompt.getUserPrompt(_controller.text.trim()));
                         await Navigator.of(context).pushNamed(
                             AppRouter.designStamp,
                             arguments:
