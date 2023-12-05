@@ -20,7 +20,7 @@ class PromptPage extends StatefulWidget {
 
 class _PromptPageState extends State<PromptPage> {
   final TextEditingController _controller = TextEditingController();
-  bool _enableSave = false;
+  bool _isPromptValid = false;
 
   @override
   Widget build(BuildContext context) {
@@ -62,9 +62,9 @@ class _PromptPageState extends State<PromptPage> {
                         textAlign: TextAlign.center,
                         onChanged: (value) {
                           final isValid = _isValidPrompt(value);
-                          if (isValid != _enableSave) {
+                          if (isValid != _isPromptValid) {
                             setState(() {
-                              _enableSave = isValid;
+                              _isPromptValid = isValid;
                             });
                           }
                         },
@@ -89,7 +89,7 @@ class _PromptPageState extends State<PromptPage> {
                     flex: 4,
                     child: PostcardButton(
                       text: 'save_prompt'.tr(),
-                      enabled: _enableSave,
+                      enabled: _isPromptValid,
                       onTap: () async {
                         final assetWithPrompt = widget.payload.asset
                             .setAssetPrompt(
