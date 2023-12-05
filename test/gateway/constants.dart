@@ -57,3 +57,8 @@ const timestamp = 'timestamp';
 const ownerPublicKey = 'ownerPublicKey';
 const signature = 'signature';
 const deepLink = 'deepLink';
+const publicKey = 'publicKey';
+const imageCID = 'imageCID';
+const owner = 'owner';
+
+const location = [0.0, 0.0];
