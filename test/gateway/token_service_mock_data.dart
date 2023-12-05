@@ -7,8 +7,8 @@ import '../services/activation_service_test.mocks.dart';
 import 'constants.dart';
 
 class TokenServiceMockData {
-
-  static AssetToken anyAssetToken = AssetToken(id: id,
+  static AssetToken anyAssetToken = AssetToken(
+      id: id,
       edition: 0,
       editionName: 'editionName',
       blockchain: blockchain,
@@ -25,7 +25,7 @@ class TokenServiceMockData {
       balance: null);
 
   static void setUp(MockTokensService tokensService) {
-    when(tokensService.setCustomTokens(any)).thenAnswer((_) async =>
-    {Future.delayed(const Duration(milliseconds: 100), () => true)});
+    when(tokensService.setCustomTokens(any))
+        .thenAnswer((_) => Future.value()); // ignore: always_specify_types
   }
 }
