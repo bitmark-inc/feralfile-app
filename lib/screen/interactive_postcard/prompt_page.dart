@@ -1,4 +1,7 @@
+import 'package:autonomy_flutter/model/prompt.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -17,6 +20,7 @@ class PromptPage extends StatefulWidget {
 
 class _PromptPageState extends State<PromptPage> {
   final TextEditingController _controller = TextEditingController();
+  bool _enableSave = false;
 
   @override
   Widget build(BuildContext context) {
@@ -56,6 +60,14 @@ class _PromptPageState extends State<PromptPage> {
                       child: TextField(
                         controller: _controller,
                         textAlign: TextAlign.center,
+                        onChanged: (value) {
+                          final isValid = isValidPrompt(value);
+                          if (isValid != _enableSave) {
+                            setState(() {
+                              _enableSave = isValid;
+                            });
+                          }
+                        },
                         decoration: InputDecoration(
                           border: InputBorder.none,
                           hintText: 'add_prompt_hint'.tr(),
@@ -77,8 +89,15 @@ class _PromptPageState extends State<PromptPage> {
                     flex: 4,
                     child: PostcardButton(
                       text: 'save_prompt'.tr(),
-                      onTap: () {
-                        Navigator.of(context).pop();
+                      enabled: _enableSave,
+                      onTap: () async {
+                        final assetWithPrompt = widget.payload.asset
+                            .setAssetPrompt(Prompt(
+                                id: '', description: _controller.text.trim()));
+                        await Navigator.of(context).pushNamed(
+                            AppRouter.designStamp,
+                            arguments:
+                                DesignStampPayload(assetWithPrompt, true));
                       },
                     )),
                 Flexible(
@@ -87,8 +106,9 @@ class _PromptPageState extends State<PromptPage> {
                   color: backgroundColor,
                   textColor: AppColor.auQuickSilver,
                   textStyle: theme.textTheme.moMASans400Grey12,
-                  onTap: () {
-                    Navigator.of(context).pop();
+                  onTap: () async {
+                    await Navigator.of(context).pushNamed(AppRouter.designStamp,
+                        arguments: widget.payload);
                   },
                 )),
               ],
@@ -98,4 +118,7 @@ class _PromptPageState extends State<PromptPage> {
       ),
     );
   }
+
+  bool isValidPrompt(String prompt) =>
+      prompt.trim().isNotEmpty && prompt.trim().length <= 1000;
 }

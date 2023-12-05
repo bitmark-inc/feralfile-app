@@ -274,16 +274,18 @@ class PostcardServiceImpl extends PostcardService {
          lat: $lat, lon: $lon, counter: $counter
         ''');
       final result = await _postcardApi.updatePostcard(
-          tokenId: tokenId,
-          data: image,
-          metadata: metadata,
-          signature: signature,
-          address: address,
-          publicKey: publicKey,
-          lat: lat,
-          lon: lon,
-          counter: counter,
-          promptID: counter > 1 ? null : prompt?.id) as Map<String, dynamic>;
+        tokenId: tokenId,
+        data: image,
+        metadata: metadata,
+        signature: signature,
+        address: address,
+        publicKey: publicKey,
+        lat: lat,
+        lon: lon,
+        counter: counter,
+        promptID: counter > 1 ? null : prompt?.id,
+        prompt: counter > 1 ? null : prompt?.description,
+      ) as Map<String, dynamic>;
 
       final ok = result['metadataCID'] as String;
       final isStampSuccess = ok.isNotEmpty;

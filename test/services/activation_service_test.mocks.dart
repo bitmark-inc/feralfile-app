@@ -262,6 +262,22 @@ class MockNavigationService extends _i1.Mock implements _i9.NavigationService {
         {#arguments: arguments},
       )) as _i5.Future<dynamic>?);
   @override
+  _i5.Future<void> selectPromptsThenStamp(
+    _i3.BuildContext? context,
+    _i7.AssetToken? asset,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #selectPromptsThenStamp,
+          [
+            context,
+            asset,
+          ],
+        ),
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
+  @override
   _i5.Future<dynamic>? navigateUntil(
     String? routeName,
     _i3.RoutePredicate? predicate, {
@@ -554,6 +570,15 @@ class MockNavigationService extends _i1.Mock implements _i9.NavigationService {
   _i5.Future<void> showPostcardClaimLimited() => (super.noSuchMethod(
         Invocation.method(
           #showPostcardClaimLimited,
+          [],
+        ),
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
+  @override
+  _i5.Future<void> showPostcardNotInMiami() => (super.noSuchMethod(
+        Invocation.method(
+          #showPostcardNotInMiami,
           [],
         ),
         returnValue: _i5.Future<void>.value(),
