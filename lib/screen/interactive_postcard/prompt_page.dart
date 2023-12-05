@@ -61,7 +61,7 @@ class _PromptPageState extends State<PromptPage> {
                         controller: _controller,
                         textAlign: TextAlign.center,
                         onChanged: (value) {
-                          final isValid = isValidPrompt(value);
+                          final isValid = _isValidPrompt(value);
                           if (isValid != _enableSave) {
                             setState(() {
                               _enableSave = isValid;
@@ -119,6 +119,6 @@ class _PromptPageState extends State<PromptPage> {
     );
   }
 
-  bool isValidPrompt(String prompt) =>
+  bool _isValidPrompt(String prompt) =>
       prompt.trim().isNotEmpty && prompt.trim().length <= 1000;
 }
