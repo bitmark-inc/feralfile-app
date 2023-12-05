@@ -112,6 +112,12 @@ void main() async {
                 .claim(PostcardApiMock.claimDioExceptionOther.req))
             .called(1);
       });
+      test('Claim Limit', () {
+        // TODO: implement test
+      });
+      test('Claim Location not in Miami', () {
+        // TODO: implement test
+      });
     });
   });
 }

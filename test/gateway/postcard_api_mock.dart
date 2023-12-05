@@ -43,65 +43,101 @@ class PostcardApiMock {
         .thenThrow(claimDioExceptionOther.res);
   }
 
-  static final MockData claimValid =
-      MockData<ClaimPostCardRequest, ClaimPostCardResponse>(
-          req: ClaimPostCardRequest(
-            location: [0.0, 0.0],
-            address: 'address',
-            signature: 'signature',
-            timestamp: '0',
-            publicKey: 'publicKey',
-          ),
-          res: ClaimPostCardResponse(
-            tokenID: 'tokenID',
-            imageCID: 'imageCID',
-            blockchain: 'blockchain',
-            owner: 'owner',
-            contractAddress: 'contractAddress',
-          ));
-
-  static final MockData claimException4xx =
-      MockData<ClaimPostCardRequest, DioException>(
-          req: ClaimPostCardRequest(
-              location: [0, 0], claimID: claimIDDioException4xx),
-          res: DioException(
-              requestOptions: RequestOptions(path: 'path'),
-              response: Response(
-                  requestOptions: RequestOptions(path: 'path'),
-                  statusCode: 400,
-                  data: {'message': 'invalid id'})));
-  static final MockData claimException5xx =
-      MockData<ClaimPostCardRequest, DioException>(
-    req:
-        ClaimPostCardRequest(location: [0, 0], claimID: claimIDDioException5xx),
+  static final MockData<ClaimPostCardRequest, ClaimPostCardResponse>
+      claimValid = MockData(
+    req: ClaimPostCardRequest(
+      location: listLocation,
+      address: address,
+      signature: signature,
+      timestamp: timestamp,
+      publicKey: publicKey,
+    ),
+    res: ClaimPostCardResponse(
+      tokenID: tokenID,
+      imageCID: imageCID,
+      blockchain: blockchain,
+      owner: owner,
+      contractAddress: contractAddress,
+    ),
+  );
+  static final MockData<ClaimPostCardRequest, DioException> claimException4xx =
+      MockData(
+    req: ClaimPostCardRequest(
+      location: listLocation,
+      claimID: claimIDDioException4xx,
+    ),
+    res: DioException(
+      requestOptions: RequestOptions(path: 'path'),
+      response: Response(
+        requestOptions: RequestOptions(path: 'path'),
+        statusCode: 400,
+        data: {
+          'message': 'invalid id',
+        },
+      ),
+    ),
+  );
+  static final MockData<ClaimPostCardRequest, DioException> claimException5xx =
+      MockData(
+    req: ClaimPostCardRequest(
+      location: listLocation,
+      claimID: claimIDDioException5xx,
+    ),
+    res: DioException(
+      requestOptions: RequestOptions(path: 'path'),
+      response: Response(
+        requestOptions: RequestOptions(path: 'path'),
+        statusCode: 500,
+        data: {
+          'message': 'internal server error',
+        },
+      ),
+    ),
+  );
+  static final MockData<ClaimPostCardRequest, DioException>
+      claimConnectionTimeout = MockData(
+    req: ClaimPostCardRequest(
+      location: listLocation,
+      claimID: claimIDConnectionTimeout,
+    ),
+    res: DioException(
+      requestOptions: RequestOptions(path: 'path'),
+      type: DioExceptionType.connectionTimeout,
+      error: 'claimConnectionTimeout',
+    ),
+  );
+  static final MockData<ClaimPostCardRequest, DioException>
+      claimReceiveTimeout = MockData(
+    req: ClaimPostCardRequest(
+      location: listLocation,
+      claimID: claimIDReceiveTimeout,
+    ),
+    res: DioException(
+      requestOptions: RequestOptions(path: 'path'),
+      type: DioExceptionType.receiveTimeout,
+      error: 'claimReceiveTimeout',
+    ),
+  );
+  static final MockData<ClaimPostCardRequest, Exception>
+      claimDioExceptionOther = MockData(
+    req: ClaimPostCardRequest(
+      location: listLocation,
+      claimID: claimIDExceptionOther,
+    ),
+    res: Exception('claimExceptionOther'),
+  );
+  static final MockData<ClaimPostCardRequest, DioException> claimLimit =
+      MockData(
+    req: ClaimPostCardRequest(
+      location: listLocation,
+      claimID: claimIDLimit,
+    ),
     res: DioException(
         requestOptions: RequestOptions(path: 'path'),
         response: Response(
             requestOptions: RequestOptions(path: 'path'),
-            statusCode: 500,
-            data: {'message': 'internal server error'})),
-  );
-  static final MockData claimConnectionTimeout =
-      MockData<ClaimPostCardRequest, DioException>(
-    req: ClaimPostCardRequest(
-        location: [0, 0], claimID: claimIDConnectionTimeout),
-    res: DioException(
-        requestOptions: RequestOptions(path: 'path'),
-        type: DioExceptionType.connectionTimeout,
-        error: 'claimConnectionTimeout'),
-  );
-  static final MockData claimReceiveTimeout =
-      MockData<ClaimPostCardRequest, DioException>(
-    req: ClaimPostCardRequest(location: [0, 0], claimID: claimIDReceiveTimeout),
-    res: DioException(
-        requestOptions: RequestOptions(path: 'path'),
-        type: DioExceptionType.receiveTimeout,
-        error: 'claimReceiveTimeout'),
-  );
-  static final MockData claimDioExceptionOther =
-      MockData<ClaimPostCardRequest, Exception>(
-    req: ClaimPostCardRequest(location: [0, 0], claimID: claimIDExceptionOther),
-    res: Exception('claimExceptionOther'),
+            statusCode: 429,
+            data: {'message': 'claim limit'})),
   );
 
   static void _setupReceiveApi(PostcardApi postcardApi) {
@@ -130,15 +166,15 @@ class PostcardApiMock {
         .thenThrow(receiveDioExceptionOther.res);
   }
 
-  static final MockData receiveValid =
-      MockData<ReceivePostcardRequest, ReceivePostcardResponse>(
+  static final MockData<ReceivePostcardRequest, ReceivePostcardResponse>
+      receiveValid = MockData(
     req: {
       'shareCode': shareCode,
       'location': location,
       'address': address,
       'signature': signature,
       'timestamp': timestamp,
-      'publicKey': publicKey
+      'publicKey': publicKey,
     },
     res: ReceivePostcardResponse(
       tokenID,
@@ -148,57 +184,57 @@ class PostcardApiMock {
       contractAddress,
     ),
   );
-
-  static final MockData receiveException4xx =
-      MockData<ReceivePostcardRequest, DioException>(
+  static final MockData<ReceivePostcardRequest, DioException>
+      receiveException4xx = MockData(
     req: {
       'shareCode': shareCodeDioException4xx,
       'location': location,
       'address': address,
       'signature': signature,
       'timestamp': timestamp,
-      'publicKey': publicKey
+      'publicKey': publicKey,
     },
     res: DioException(
       requestOptions: RequestOptions(path: 'path'),
       response: Response(
         requestOptions: RequestOptions(path: 'path'),
         statusCode: 400,
-        data: {'message': 'invalid id'},
+        data: {
+          'message': 'invalid id',
+        },
       ),
     ),
   );
-
-  static final MockData receiveException5xx =
-      MockData<ReceivePostcardRequest, DioException>(
+  static final MockData<ReceivePostcardRequest, DioException>
+      receiveException5xx = MockData(
     req: {
       'shareCode': shareCodeDioException5xx,
       'location': location,
       'address': address,
       'signature': signature,
       'timestamp': timestamp,
-      'publicKey': publicKey
+      'publicKey': publicKey,
     },
     res: DioException(
       requestOptions: RequestOptions(path: 'path'),
       response: Response(
         requestOptions: RequestOptions(path: 'path'),
         statusCode: 500,
-        data: {'message': 'internal server error'},
+        data: {
+          'message': 'internal server error',
+        },
       ),
     ),
   );
-
-  // connectionTimeout case
-  static final MockData receiveConnectionTimeout =
-      MockData<ReceivePostcardRequest, DioException>(
+  static final MockData<ReceivePostcardRequest, DioException>
+      receiveConnectionTimeout = MockData(
     req: {
       'shareCode': shareCodeConnectionTimeout,
       'location': location,
       'address': address,
       'signature': signature,
       'timestamp': timestamp,
-      'publicKey': publicKey
+      'publicKey': publicKey,
     },
     res: DioException(
       requestOptions: RequestOptions(path: 'path'),
@@ -206,17 +242,15 @@ class PostcardApiMock {
       error: 'receiveConnectionTimeout',
     ),
   );
-
-  // receiveTimeout case
-  static final MockData receiveReceiveTimeout =
-      MockData<ReceivePostcardRequest, DioException>(
+  static final MockData<ReceivePostcardRequest, DioException>
+      receiveReceiveTimeout = MockData(
     req: {
       'shareCode': shareCodeReceiveTimeout,
       'location': location,
       'address': address,
       'signature': signature,
       'timestamp': timestamp,
-      'publicKey': publicKey
+      'publicKey': publicKey,
     },
     res: DioException(
       requestOptions: RequestOptions(path: 'path'),
@@ -224,9 +258,8 @@ class PostcardApiMock {
       error: 'receiveReceiveTimeout',
     ),
   );
-
-  static final MockData receiveDioExceptionOther =
-      MockData<ReceivePostcardRequest, DioException>(
+  static final MockData<ReceivePostcardRequest, DioException>
+      receiveDioExceptionOther = MockData(
     req: {
       'shareCode': shareCodeExceptionOther,
       'location': location,

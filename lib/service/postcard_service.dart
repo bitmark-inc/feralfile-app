@@ -11,7 +11,6 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:autonomy_flutter/common/environment.dart';
-import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/postcard_api.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
@@ -152,8 +151,7 @@ class PostcardServiceImpl extends PostcardService {
     try {
       final timestamp =
           (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
-      final accountService = injector<AccountService>();
-      final walletIndex = await accountService.getAccountByAddress(
+      final walletIndex = await _accountService.getAccountByAddress(
           chain: 'tezos', address: address);
       final publicKey =
           await walletIndex.wallet.getTezosPublicKey(index: walletIndex.index);
@@ -507,14 +505,13 @@ class PostcardServiceImpl extends PostcardService {
   Future<AssetToken> claimEmptyPostcardToAddress(
       {required String address,
       required RequestPostcardResponse requestPostcardResponse}) async {
-    final tezosService = injector.get<TezosService>();
     final timestamp =
         (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
     final account = await _accountService.getAccountByAddress(
       chain: 'tezos',
       address: address,
     );
-    final signature = await tezosService.signMessage(account.wallet,
+    final signature = await _tezosService.signMessage(account.wallet,
         account.index, Uint8List.fromList(utf8.encode(timestamp)));
     final publicKey =
         await account.wallet.getTezosPublicKey(index: account.index);
@@ -569,8 +566,7 @@ class PostcardServiceImpl extends PostcardService {
 
     await _tokensService.setCustomTokens([token]);
     unawaited(_tokensService.reindexAddresses([address]));
-    unawaited(
-        injector.get<ConfigurationService>().setListPostcardMint([tokenID]));
+    unawaited(_configurationService.setListPostcardMint([tokenID]));
     NftCollectionBloc.eventController.add(
       GetTokensByOwnerEvent(pageKey: PageKey.init()),
     );
@@ -602,9 +598,8 @@ class PostcardServiceImpl extends PostcardService {
       owners: newOwners,
     );
 
-    final tokenService = injector<TokensService>();
-    await tokenService.setCustomTokens([pendingToken]);
-    unawaited(tokenService.reindexAddresses([address]));
+    await _tokensService.setCustomTokens([pendingToken]);
+    unawaited(_tokensService.reindexAddresses([address]));
     NftCollectionBloc.eventController.add(
       GetTokensByOwnerEvent(pageKey: PageKey.init()),
     );
