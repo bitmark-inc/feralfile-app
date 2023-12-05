@@ -12,14 +12,14 @@ import 'constants.dart';
 typedef ReceivePostcardRequest = Map<String, dynamic>;
 
 class PostcardApiMock {
-  void setup(PostcardApi postcardApi) {
+  static void setup(PostcardApi postcardApi) {
     _setupClaimEmptyApi(postcardApi);
     _setupReceiveApi(postcardApi);
   }
 
-  void _setupClaimEmptyApi(PostcardApi postcardApi) {
+  static void _setupClaimEmptyApi(PostcardApi postcardApi) {
     final claimValid = PostcardApiMock.claimValid;
-    when(postcardApi.claim(claimValid.res))
+    when(postcardApi.claim(claimValid.req))
         .thenAnswer((_) async => claimValid.res);
 
     final claimException4xx = PostcardApiMock.claimException4xx;
@@ -104,7 +104,7 @@ class PostcardApiMock {
     res: Exception('claimExceptionOther'),
   );
 
-  void _setupReceiveApi(PostcardApi postcardApi) {
+  static void _setupReceiveApi(PostcardApi postcardApi) {
     final receiveValid = PostcardApiMock.receiveValid;
     when(postcardApi.receive(receiveValid.req))
         .thenAnswer((_) async => receiveValid.res);
