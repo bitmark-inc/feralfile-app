@@ -111,6 +111,42 @@ class ActivationApiMock {
           airdropTOTPPasscode: airdropTOTPPasscode),
       Exception('claimExceptionOther'));
 
+  static final MockData claimSelfClaim = MockData(
+      ActivationClaimRequest(
+          activationID: cannotSelfClaim,
+          address: address,
+          airdropTOTPPasscode: airdropTOTPPasscode),
+      DioException(
+          requestOptions: RequestOptions(path: 'path'),
+          response: Response(
+              requestOptions: RequestOptions(path: 'path'),
+              statusCode: 403,
+              data: {'message': cannotSelfClaim})));
+
+  static final MockData claimInvalidClaim = MockData(
+      ActivationClaimRequest(
+          activationID: invalidClaim,
+          address: address,
+          airdropTOTPPasscode: airdropTOTPPasscode),
+      DioException(
+          requestOptions: RequestOptions(path: 'path'),
+          response: Response(
+              requestOptions: RequestOptions(path: 'path'),
+              statusCode: 403,
+              data: {'message': invalidClaim})));
+
+  static final MockData claimAlreadyShare = MockData(
+      ActivationClaimRequest(
+          activationID: alreadyShare,
+          address: address,
+          airdropTOTPPasscode: airdropTOTPPasscode),
+      DioException(
+          requestOptions: RequestOptions(path: 'path'),
+          response: Response(
+              requestOptions: RequestOptions(path: 'path'),
+              statusCode: 403,
+              data: {'message': alreadyShare})));
+
   static void setup(ActivationApi mockActivationApi) {
     when(mockActivationApi
             .getActivation(ActivationApiMock.getActivationValid.req))
@@ -161,5 +197,17 @@ class ActivationApiMock {
 
     when(mockActivationApi.claim(ActivationApiMock.claimDioExceptionOther.req))
         .thenThrow(ActivationApiMock.claimDioExceptionOther.res as Exception);
+
+    when(mockActivationApi.claim(ActivationApiMock.claimSelfClaim.req))
+        .thenAnswer((_) async =>
+            throw ActivationApiMock.claimSelfClaim.res as DioException);
+
+    when(mockActivationApi.claim(ActivationApiMock.claimInvalidClaim.req))
+        .thenAnswer((_) async =>
+            throw ActivationApiMock.claimInvalidClaim.res as DioException);
+
+    when(mockActivationApi.claim(ActivationApiMock.claimAlreadyShare.req))
+        .thenAnswer((_) async =>
+            throw ActivationApiMock.claimAlreadyShare.res as DioException);
   }
 }

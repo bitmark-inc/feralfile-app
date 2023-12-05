@@ -7,6 +7,7 @@ import 'package:mockito/mockito.dart';
 import 'package:nft_collection/services/tokens_service.dart';
 
 import '../gateway/activation_mock.dart';
+import '../gateway/token_service_mock_data.dart';
 import 'activation_service_test.mocks.dart';
 
 @GenerateMocks([ActivationApi, TokensService, NavigationService])
@@ -25,6 +26,7 @@ void main() async {
           mockActivationApi, mockTokensService, mockNavigationService);
 
       ActivationApiMock.setup(mockActivationApi);
+      TokenServiceMockData.setUp(mockTokensService as MockTokensService);
     });
 
     test('getActivation case valid', () async {
@@ -84,6 +86,53 @@ void main() async {
       verify(mockActivationApi
               .getActivation(ActivationApiMock.getActivationExceptionOther.req))
           .called(1);
+    });
+
+    test('claimActivation: case valid', () async {
+      expect(
+          await activationService.claimActivation(
+              request: ActivationApiMock.claimValid.req,
+              assetToken: TokenServiceMockData.anyAssetToken),
+          ActivationApiMock.claimValid.res);
+
+      verify(mockActivationApi.claim(ActivationApiMock.claimValid.req))
+          .called(1);
+    });
+
+    test('claimActivation: error self claim', () async {
+      final error = activationService
+          .claimActivation(
+              request: ActivationApiMock.claimSelfClaim.req,
+              assetToken: TokenServiceMockData.anyAssetToken)
+          .then((value) {
+        verify(mockNavigationService.showAirdropJustOnce()).called(1);
+      });
+
+      expect(error, throwsA(ActivationApiMock.claimSelfClaim.res));
+    });
+
+    test('claimActivation: error invalid claim', () async {
+      final error = activationService
+          .claimActivation(
+              request: ActivationApiMock.claimInvalidClaim.req,
+              assetToken: TokenServiceMockData.anyAssetToken)
+          .then((value) {
+        verify(mockNavigationService.showAirdropAlreadyClaimed()).called(1);
+      });
+
+      expect(error, throwsA(ActivationApiMock.claimInvalidClaim.res));
+    });
+
+    test('claimActivation: error already share', () async {
+      final error = activationService
+          .claimActivation(
+              request: ActivationApiMock.claimAlreadyShare.req,
+              assetToken: TokenServiceMockData.anyAssetToken)
+          .then((value) {
+        verify(mockNavigationService.showAirdropAlreadyClaimed()).called(1);
+      });
+
+      expect(error, throwsA(ActivationApiMock.claimAlreadyShare.res));
     });
 
     // Add more test cases for other methods if needed
