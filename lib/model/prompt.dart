@@ -17,6 +17,11 @@ class Prompt {
     this.cid,
   });
 
+  static Prompt getUserPrompt(String promptDescription) => Prompt(
+        id: '',
+        description: promptDescription,
+      );
+
   // from json factory
   factory Prompt.fromJson(Map<String, dynamic> map) => Prompt(
         id: (map['id'] as String?) ?? const Uuid().v4(),

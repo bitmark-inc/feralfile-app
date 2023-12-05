@@ -170,6 +170,7 @@ class _PostcardApi implements PostcardApi {
     double? lat,
     double? lon,
     String? promptID,
+    String? prompt,
   }) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
@@ -222,6 +223,12 @@ class _PostcardApi implements PostcardApi {
       _data.fields.add(MapEntry(
         'promptID',
         promptID,
+      ));
+    }
+    if (prompt != null) {
+      _data.fields.add(MapEntry(
+        'prompt',
+        prompt,
       ));
     }
     final _result = await _dio.fetch(_setStreamType<dynamic>(Options(
