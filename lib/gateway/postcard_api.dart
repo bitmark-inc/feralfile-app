@@ -44,6 +44,7 @@ abstract class PostcardApi {
     @Part(name: 'lat') double? lat,
     @Part(name: 'lon') double? lon,
     @Part(name: 'promptID') String? promptID,
+    @Part(name: 'prompt') String? prompt,
   });
 
   @GET('/v1/leaderboard')

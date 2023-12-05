@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
+
 import 'package:autonomy_flutter/gateway/activation_api.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
@@ -37,28 +39,27 @@ class ActivationService {
             balance: 1,
             lastActivityTime: DateTime.now(),
             lastRefreshedTime: DateTime(1),
-            asset: assetToken.asset?.copyWith(initialSaleModel: "airdrop"))
+            asset: assetToken.asset?.copyWith(initialSaleModel: 'airdrop'))
       ]);
       return response;
     } catch (e) {
-      log.info("[Activation service] claimActivation: $e");
+      log.info('[Activation service] claimActivation: $e');
       if (e is DioException) {
         switch (e.response?.data['message']) {
-          case "cannot self claim":
-            _navigationService.showAirdropJustOnce();
+          case 'cannot self claim':
+            await _navigationService.showAirdropJustOnce();
             break;
-          case "invalid claim":
-            _navigationService.showAirdropAlreadyClaimed();
+          case 'invalid claim':
+            unawaited(_navigationService.showAirdropAlreadyClaimed());
             break;
-          case "the token is not available for share":
-            _navigationService.showAirdropAlreadyClaimed();
+          case 'the token is not available for share':
+            unawaited(_navigationService.showAirdropAlreadyClaimed());
             break;
           default:
-            UIHelper.showActivationError(
-              _navigationService.navigatorKey.currentContext!,
+            unawaited(_navigationService.showActivationError(
               e,
               assetToken.id,
-            );
+            ));
         }
       }
       rethrow;
@@ -68,9 +69,9 @@ class ActivationService {
   String getIndexerID(String chain, String contract, String tokenID) {
     switch (chain) {
       case 'ethereum':
-        return "eth-$contract-$tokenID";
+        return 'eth-$contract-$tokenID';
       case 'tezos':
-        return "tez-$contract-$tokenID";
+        return 'tez-$contract-$tokenID';
       default:
         return '';
     }

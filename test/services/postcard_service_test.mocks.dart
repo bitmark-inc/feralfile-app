@@ -307,6 +307,7 @@ class MockPostcardApi extends _i1.Mock implements _i4.PostcardApi {
     double? lat,
     double? lon,
     String? promptID,
+    String? prompt,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -323,6 +324,7 @@ class MockPostcardApi extends _i1.Mock implements _i4.PostcardApi {
             #lat: lat,
             #lon: lon,
             #promptID: promptID,
+            #prompt: prompt,
           },
         ),
         returnValue: _i15.Future<dynamic>.value(),

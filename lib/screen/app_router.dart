@@ -62,7 +62,6 @@ import 'package:autonomy_flutter/screen/global_receive/receive_detail_page.dart'
 import 'package:autonomy_flutter/screen/global_receive/receive_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_navigation_page.dart';
-import 'package:autonomy_flutter/screen/interactive_postcard/choose_prompt_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/claim_empty_postcard/claim_empty_postcard_screen.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/claim_empty_postcard/pay_to_mint_postcard_screen.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
@@ -354,17 +353,6 @@ class AppRouter {
           duration: const Duration(milliseconds: 300),
           reverseDuration: const Duration(milliseconds: 300),
           child: PromptPage(payload: settings.arguments! as DesignStampPayload),
-        );
-
-      case choosePromptPage:
-        return PageTransition(
-          settings: settings,
-          type: PageTransitionType.rightToLeft,
-          curve: Curves.easeIn,
-          duration: const Duration(milliseconds: 300),
-          reverseDuration: const Duration(milliseconds: 300),
-          child: ChoosePromptPage(
-              payload: settings.arguments! as ChoosePromptPayload),
         );
 
       case AccessMethodPage.tag:

@@ -13,7 +13,6 @@ import 'package:autonomy_flutter/model/otp.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/claim/activation/claim_activation_page.dart';
 import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
-import 'package:autonomy_flutter/screen/interactive_postcard/choose_prompt_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
@@ -94,17 +93,12 @@ class NavigationService {
       return;
     }
     if (prompts.isEmpty) {
-      await popAndPushNamed(AppRouter.designStamp,
-          arguments: DesignStampPayload(asset, false));
-    }
-    if (prompts.length == 1) {
+      await popAndPushNamed(AppRouter.promptPage,
+          arguments: DesignStampPayload(asset, true));
+    } else {
       final assetWithPrompt = asset.setAssetPrompt(prompts.first);
       await popAndPushNamed(AppRouter.designStamp,
           arguments: DesignStampPayload(assetWithPrompt, true));
-    } else {
-      // ignore: use_build_context_synchronously
-      await Navigator.of(context).pushNamed(AppRouter.choosePromptPage,
-          arguments: ChoosePromptPayload(assetToken: asset, prompts: prompts));
     }
   }
 
@@ -376,6 +370,13 @@ class NavigationService {
     if (navigatorKey.currentContext != null &&
         navigatorKey.currentState?.mounted == true) {
       await UIHelper.showAirdropAlreadyClaim(navigatorKey.currentContext!);
+    }
+  }
+
+  Future<void> showActivationError(Object e, String id) async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await UIHelper.showActivationError(navigatorKey.currentContext!, e, id);
     }
   }
 
