@@ -3,14 +3,15 @@
 import 'package:autonomy_flutter/gateway/activation_api.dart';
 import 'package:dio/dio.dart';
 import 'package:mockito/mockito.dart';
+
 import 'api_mock_data.dart';
 import 'constants.dart';
 
 class ActivationApiMock {
   ///// getActivation
   static final MockData getActivationValid = MockData(
-      activationId,
-      ActivationInfo(
+      req: activationId,
+      res: ActivationInfo(
         name,
         description,
         blockchain,
@@ -18,16 +19,16 @@ class ActivationApiMock {
         tokenID,
       ));
   static final MockData getActivationDioException4xx = MockData(
-      activationIdDioException4xx,
-      DioException(
+      req: activationIdDioException4xx,
+      res: DioException(
           requestOptions: RequestOptions(path: 'path'),
           response: Response(
               requestOptions: RequestOptions(path: 'path'),
               statusCode: 400,
               data: {'message': 'invalid id'})));
   static final MockData getActivationDioException5xx = MockData(
-      activationIdDioException5xx,
-      DioException(
+      req: activationIdDioException5xx,
+      res: DioException(
           requestOptions: RequestOptions(path: 'path'),
           response: Response(
               requestOptions: RequestOptions(path: 'path'),
@@ -35,37 +36,38 @@ class ActivationApiMock {
               data: {'message': 'internal server error'})));
 
   static final MockData getActivationConnectionTimeout = MockData(
-      activationIdConnectionTimeout,
-      DioException(
+      req: activationIdConnectionTimeout,
+      res: DioException(
           requestOptions: RequestOptions(path: 'path'),
           type: DioExceptionType.connectionTimeout,
           error: 'activationIdConnectionTimeout'));
 
   static final MockData getActivationReceiveTimeout = MockData(
-      activationIdReceiveTimeout,
-      DioException(
+      req: activationIdReceiveTimeout,
+      res: DioException(
           requestOptions: RequestOptions(path: 'path'),
           type: DioExceptionType.receiveTimeout,
           error: 'activationIdReceiveTimeout'));
 
   static final MockData getActivationExceptionOther = MockData(
-      activationIdExceptionOther, Exception('activationIdExceptionOther'));
+      req: activationIdExceptionOther,
+      res: Exception('activationIdExceptionOther'));
 
   ///// claim
   static final MockData claimValid = MockData(
-      ActivationClaimRequest(
+      req: ActivationClaimRequest(
         activationID: activationId,
         address: address,
         airdropTOTPPasscode: airdropTOTPPasscode,
       ),
-      ActivationClaimResponse());
+      res: ActivationClaimResponse());
 
   static final MockData claimDioException4xx = MockData(
-      ActivationClaimRequest(
+      req: ActivationClaimRequest(
           activationID: activationIdDioException4xx,
           address: address,
           airdropTOTPPasscode: airdropTOTPPasscode),
-      DioException(
+      res: DioException(
           requestOptions: RequestOptions(path: 'path'),
           response: Response(
               requestOptions: RequestOptions(path: 'path'),
@@ -73,11 +75,11 @@ class ActivationApiMock {
               data: {'message': 'invalid claim'})));
 
   static final MockData claimDioException5xx = MockData(
-      ActivationClaimRequest(
+      req: ActivationClaimRequest(
           activationID: activationIdDioException5xx,
           address: address,
           airdropTOTPPasscode: airdropTOTPPasscode),
-      DioException(
+      res: DioException(
           requestOptions: RequestOptions(path: 'path'),
           response: Response(
               requestOptions: RequestOptions(path: 'path'),
@@ -85,38 +87,38 @@ class ActivationApiMock {
               data: {'message': 'internal server error'})));
 
   static final MockData claimConnectionTimeout = MockData(
-      ActivationClaimRequest(
+      req: ActivationClaimRequest(
           activationID: activationIdConnectionTimeout,
           address: address,
           airdropTOTPPasscode: airdropTOTPPasscode),
-      DioException(
+      res: DioException(
           requestOptions: RequestOptions(path: 'path'),
           type: DioExceptionType.connectionTimeout,
           error: 'claimConnectionTimeout'));
 
   static final MockData claimReceiveTimeout = MockData(
-      ActivationClaimRequest(
+      req: ActivationClaimRequest(
           activationID: activationIdReceiveTimeout,
           address: address,
           airdropTOTPPasscode: airdropTOTPPasscode),
-      DioException(
+      res: DioException(
           requestOptions: RequestOptions(path: 'path'),
           type: DioExceptionType.receiveTimeout,
           error: 'claimReceiveTimeout'));
 
   static final MockData claimDioExceptionOther = MockData(
-      ActivationClaimRequest(
+      req: ActivationClaimRequest(
           activationID: activationIdExceptionOther,
           address: address,
           airdropTOTPPasscode: airdropTOTPPasscode),
-      Exception('claimExceptionOther'));
+      res: Exception('claimExceptionOther'));
 
   static final MockData claimSelfClaim = MockData(
-      ActivationClaimRequest(
+      req: ActivationClaimRequest(
           activationID: cannotSelfClaim,
           address: address,
           airdropTOTPPasscode: airdropTOTPPasscode),
-      DioException(
+      res: DioException(
           requestOptions: RequestOptions(path: 'path'),
           response: Response(
               requestOptions: RequestOptions(path: 'path'),
@@ -124,11 +126,11 @@ class ActivationApiMock {
               data: {'message': cannotSelfClaim})));
 
   static final MockData claimInvalidClaim = MockData(
-      ActivationClaimRequest(
+      req: ActivationClaimRequest(
           activationID: invalidClaim,
           address: address,
           airdropTOTPPasscode: airdropTOTPPasscode),
-      DioException(
+      res: DioException(
           requestOptions: RequestOptions(path: 'path'),
           response: Response(
               requestOptions: RequestOptions(path: 'path'),
@@ -136,11 +138,11 @@ class ActivationApiMock {
               data: {'message': invalidClaim})));
 
   static final MockData claimAlreadyShare = MockData(
-      ActivationClaimRequest(
+      req: ActivationClaimRequest(
           activationID: alreadyShare,
           address: address,
           airdropTOTPPasscode: airdropTOTPPasscode),
-      DioException(
+      res: DioException(
           requestOptions: RequestOptions(path: 'path'),
           response: Response(
               requestOptions: RequestOptions(path: 'path'),

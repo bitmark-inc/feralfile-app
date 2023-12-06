@@ -117,7 +117,7 @@ class Location {
   final double? lon;
 
   // constructor
-  Location({required this.lat, required this.lon});
+  const Location({required this.lat, required this.lon});
 
   // from json method
   factory Location.fromJson(Map<String, dynamic> json) {

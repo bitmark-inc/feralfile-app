@@ -1,3 +1,5 @@
+import 'package:autonomy_flutter/model/postcard_metadata.dart';
+
 const String activationId = 'activationId';
 const String activationIdDioException4xx = 'activationIdDioException4xx';
 const String activationIdDioException5xx = 'activationIdDioException5xx';
@@ -21,6 +23,7 @@ const String claimIDDioException5xx = 'claimIDDioException5xx';
 const String claimIDConnectionTimeout = 'claimIDConnectionTimeout';
 const String claimIDReceiveTimeout = 'claimIDReceiveTimeout';
 const String claimIDExceptionOther = 'claimIDExceptionOther';
+const String claimIDLimit = 'claimIDLimit';
 
 const String shareCodeDioException4xx = 'shareCodeDioException4xx';
 const String shareCodeDioException5xx = 'shareCodeDioException5xx';
@@ -61,3 +64,9 @@ const timestamp = 'timestamp';
 const ownerPublicKey = 'ownerPublicKey';
 const signature = 'signature';
 const deepLink = 'deepLink';
+const publicKey = 'publicKey';
+const imageCID = 'imageCID';
+const owner = 'owner';
+
+const location = Location(lat: 0, lon: 0);
+const listLocation = [0.0, 0.0];

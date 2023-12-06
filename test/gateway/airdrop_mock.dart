@@ -8,21 +8,21 @@ import 'constants.dart';
 class AirdropApiMock {
   //// requestClaim
   static final MockData requestClaimValid = MockData(
-    AirdropRequestClaimRequest(
+    req: AirdropRequestClaimRequest(
       ownerAddress: ownerAddress,
       id: id,
       indexID: indexID,
     ),
-    AirdropRequestClaimResponse(claimID: claimID, seriesID: seriesID),
+    res: AirdropRequestClaimResponse(claimID: claimID, seriesID: seriesID),
   );
 
   static final MockData requestClaimDioException4xx = MockData(
-    AirdropRequestClaimRequest(
+    req: AirdropRequestClaimRequest(
       ownerAddress: ownerAddress,
       id: idDioException4xx,
       indexID: indexID,
     ),
-    DioException(
+    res: DioException(
       requestOptions: RequestOptions(path: 'path'),
       response: Response(
         requestOptions: RequestOptions(path: 'path'),
@@ -33,12 +33,12 @@ class AirdropApiMock {
   );
 
   static final MockData requestClaimDioException5xx = MockData(
-    AirdropRequestClaimRequest(
+    req: AirdropRequestClaimRequest(
       ownerAddress: ownerAddress,
       id: idDioException5xx,
       indexID: indexID,
     ),
-    DioException(
+    res: DioException(
       requestOptions: RequestOptions(path: 'path'),
       response: Response(
         requestOptions: RequestOptions(path: 'path'),
@@ -49,12 +49,12 @@ class AirdropApiMock {
   );
 
   static final MockData requestClaimConnectionTimeout = MockData(
-    AirdropRequestClaimRequest(
+    req: AirdropRequestClaimRequest(
       ownerAddress: ownerAddress,
       id: idConnectionTimeout,
       indexID: indexID,
     ),
-    DioException(
+    res: DioException(
       requestOptions: RequestOptions(path: 'path'),
       type: DioExceptionType.connectionTimeout,
       error: 'requestClaimConnectionTimeout',
@@ -62,12 +62,12 @@ class AirdropApiMock {
   );
 
   static final MockData requestClaimReceiveTimeout = MockData(
-    AirdropRequestClaimRequest(
+    req: AirdropRequestClaimRequest(
       ownerAddress: ownerAddress,
       id: idReceiveTimeout,
       indexID: indexID,
     ),
-    DioException(
+    res: DioException(
       requestOptions: RequestOptions(path: 'path'),
       type: DioExceptionType.receiveTimeout,
       error: 'requestClaimReceiveTimeout',
@@ -75,17 +75,17 @@ class AirdropApiMock {
   );
 
   static final MockData requestClaimExceptionOther = MockData(
-    AirdropRequestClaimRequest(
+    req: AirdropRequestClaimRequest(
       ownerAddress: ownerAddress,
       id: idExceptionOther,
       indexID: indexID,
     ),
-    Exception('requestClaimExceptionOther'),
+    res: Exception('requestClaimExceptionOther'),
   );
 
   //// claim
   static final MockData claimValid = MockData(
-    AirdropClaimRequest(
+    req: AirdropClaimRequest(
       claimId: claimID,
       shareCode: shareCode,
       receivingAddress: receivingAddress,
@@ -93,7 +93,7 @@ class AirdropApiMock {
       didSignature: didSignature,
       timestamp: timestamp,
     ),
-    TokenClaimResponse(TokenClaimResult(
+    res: TokenClaimResponse(TokenClaimResult(
       id,
       claimerID,
       exhibitionID,
@@ -105,7 +105,7 @@ class AirdropApiMock {
   );
 
   static final MockData claimDioException4xx = MockData(
-    AirdropClaimRequest(
+    req: AirdropClaimRequest(
       claimId: claimIDDioException4xx,
       shareCode: shareCode,
       receivingAddress: receivingAddress,
@@ -113,7 +113,7 @@ class AirdropApiMock {
       didSignature: didSignature,
       timestamp: timestamp,
     ),
-    DioException(
+    res: DioException(
       requestOptions: RequestOptions(path: 'path'),
       response: Response(
         requestOptions: RequestOptions(path: 'path'),
@@ -124,7 +124,7 @@ class AirdropApiMock {
   );
 
   static final MockData claimDioException5xx = MockData(
-    AirdropClaimRequest(
+    req: AirdropClaimRequest(
       claimId: claimIDDioException5xx,
       shareCode: shareCode,
       receivingAddress: receivingAddress,
@@ -132,7 +132,7 @@ class AirdropApiMock {
       didSignature: didSignature,
       timestamp: timestamp,
     ),
-    DioException(
+    res: DioException(
       requestOptions: RequestOptions(path: 'path'),
       response: Response(
         requestOptions: RequestOptions(path: 'path'),
@@ -143,7 +143,7 @@ class AirdropApiMock {
   );
 
   static final MockData claimConnectionTimeout = MockData(
-    AirdropClaimRequest(
+    req: AirdropClaimRequest(
       claimId: claimIDConnectionTimeout,
       shareCode: shareCode,
       receivingAddress: receivingAddress,
@@ -151,7 +151,7 @@ class AirdropApiMock {
       didSignature: didSignature,
       timestamp: timestamp,
     ),
-    DioException(
+    res: DioException(
       requestOptions: RequestOptions(path: 'path'),
       type: DioExceptionType.connectionTimeout,
       error: 'claimConnectionTimeout',
@@ -159,7 +159,7 @@ class AirdropApiMock {
   );
 
   static final MockData claimReceiveTimeout = MockData(
-    AirdropClaimRequest(
+    req: AirdropClaimRequest(
       claimId: claimIDReceiveTimeout,
       shareCode: shareCode,
       receivingAddress: receivingAddress,
@@ -167,7 +167,7 @@ class AirdropApiMock {
       didSignature: didSignature,
       timestamp: timestamp,
     ),
-    DioException(
+    res: DioException(
       requestOptions: RequestOptions(path: 'path'),
       type: DioExceptionType.receiveTimeout,
       error: 'claimReceiveTimeout',
@@ -175,7 +175,7 @@ class AirdropApiMock {
   );
 
   static final MockData claimExceptionOther = MockData(
-    AirdropClaimRequest(
+    req: AirdropClaimRequest(
       claimId: claimIDExceptionOther,
       shareCode: shareCode,
       receivingAddress: receivingAddress,
@@ -183,18 +183,18 @@ class AirdropApiMock {
       didSignature: didSignature,
       timestamp: timestamp,
     ),
-    Exception('claimExceptionOther'),
+    res: Exception('claimExceptionOther'),
   );
 
   //// claimShare
   static final MockData claimShareValid = MockData(
-    shareCode,
-    AirdropClaimShareResponse(shareCode: shareCode, seriesID: seriesID),
+    req: shareCode,
+    res: AirdropClaimShareResponse(shareCode: shareCode, seriesID: seriesID),
   );
 
   static final MockData claimShareDioException4xx = MockData(
-    shareCodeDioException4xx,
-    DioException(
+    req: shareCodeDioException4xx,
+    res: DioException(
       requestOptions: RequestOptions(path: 'path'),
       response: Response(
         requestOptions: RequestOptions(path: 'path'),
@@ -205,8 +205,8 @@ class AirdropApiMock {
   );
 
   static final MockData claimShareDioException5xx = MockData(
-    shareCodeDioException5xx,
-    DioException(
+    req: shareCodeDioException5xx,
+    res: DioException(
       requestOptions: RequestOptions(path: 'path'),
       response: Response(
         requestOptions: RequestOptions(path: 'path'),
@@ -217,8 +217,8 @@ class AirdropApiMock {
   );
 
   static final MockData claimShareConnectionTimeout = MockData(
-    shareCodeConnectionTimeout,
-    DioException(
+    req: shareCodeConnectionTimeout,
+    res: DioException(
       requestOptions: RequestOptions(path: 'path'),
       type: DioExceptionType.connectionTimeout,
       error: 'claimShareConnectionTimeout',
@@ -226,8 +226,8 @@ class AirdropApiMock {
   );
 
   static final MockData claimShareReceiveTimeout = MockData(
-    shareCodeReceiveTimeout,
-    DioException(
+    req: shareCodeReceiveTimeout,
+    res: DioException(
       requestOptions: RequestOptions(path: 'path'),
       type: DioExceptionType.receiveTimeout,
       error: 'claimShareReceiveTimeout',
@@ -235,13 +235,13 @@ class AirdropApiMock {
   );
 
   static final MockData claimShareExceptionOther = MockData(
-    shareCodeExceptionOther,
-    Exception('claimShareExceptionOther'),
+    req: shareCodeExceptionOther,
+    res: Exception('claimShareExceptionOther'),
   );
 
   //// share
   static final MockData shareValid = MockData(
-    [
+    req: [
       tokenID,
       AirdropShareRequest(
         tokenId: tokenID,
@@ -251,11 +251,11 @@ class AirdropApiMock {
         signature: signature,
       )
     ],
-    AirdropShareResponse(deepLink: deepLink),
+    res: AirdropShareResponse(deepLink: deepLink),
   );
 
   static final MockData shareDioException4xx = MockData(
-    [
+    req: [
       tokenIDDioException4xx,
       AirdropShareRequest(
         tokenId: tokenIDDioException4xx,
@@ -265,7 +265,7 @@ class AirdropApiMock {
         signature: signature,
       )
     ],
-    DioException(
+    res: DioException(
       requestOptions: RequestOptions(path: 'path'),
       response: Response(
         requestOptions: RequestOptions(path: 'path'),
@@ -276,7 +276,7 @@ class AirdropApiMock {
   );
 
   static final MockData shareDioException5xx = MockData(
-    [
+    req: [
       tokenIDDioException5xx,
       AirdropShareRequest(
         tokenId: tokenIDDioException5xx,
@@ -286,7 +286,7 @@ class AirdropApiMock {
         signature: signature,
       )
     ],
-    DioException(
+    res: DioException(
       requestOptions: RequestOptions(path: 'path'),
       response: Response(
         requestOptions: RequestOptions(path: 'path'),
@@ -297,7 +297,7 @@ class AirdropApiMock {
   );
 
   static final MockData shareConnectionTimeout = MockData(
-    [
+    req: [
       tokenIDConnectionTimeout,
       AirdropShareRequest(
         tokenId: tokenIDConnectionTimeout,
@@ -307,7 +307,7 @@ class AirdropApiMock {
         signature: signature,
       )
     ],
-    DioException(
+    res: DioException(
       requestOptions: RequestOptions(path: 'path'),
       type: DioExceptionType.connectionTimeout,
       error: 'shareConnectionTimeout',
@@ -315,7 +315,7 @@ class AirdropApiMock {
   );
 
   static final MockData shareReceiveTimeout = MockData(
-    [
+    req: [
       tokenIDReceiveTimeout,
       AirdropShareRequest(
         tokenId: tokenIDReceiveTimeout,
@@ -325,7 +325,7 @@ class AirdropApiMock {
         signature: signature,
       )
     ],
-    DioException(
+    res: DioException(
       requestOptions: RequestOptions(path: 'path'),
       type: DioExceptionType.receiveTimeout,
       error: 'shareReceiveTimeout',
@@ -333,7 +333,7 @@ class AirdropApiMock {
   );
 
   static final MockData shareExceptionOther = MockData(
-    [
+    req: [
       tokenIDExceptionOther,
       AirdropShareRequest(
         tokenId: tokenIDExceptionOther,
@@ -343,6 +343,6 @@ class AirdropApiMock {
         signature: signature,
       )
     ],
-    Exception('shareExceptionOther'),
+    res: Exception('shareExceptionOther'),
   );
 }
