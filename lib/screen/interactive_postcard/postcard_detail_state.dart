@@ -17,6 +17,7 @@ class PostcardDetailState {
   String? metadataPath;
   PostcardLeaderboard? leaderboard;
   bool isFetchingLeaderboard;
+  bool? showMerch;
 
   PostcardDetailState({
     required this.provenances,
@@ -25,6 +26,7 @@ class PostcardDetailState {
     this.metadataPath,
     this.leaderboard,
     this.isFetchingLeaderboard = false,
+    this.showMerch,
   });
 
   ArtworkDetailState toArtworkDetailState() => ArtworkDetailState(
@@ -39,6 +41,7 @@ class PostcardDetailState {
     String? metadataPath,
     PostcardLeaderboard? leaderboard,
     bool? isFetchingLeaderboard,
+    bool? showMerch,
   }) =>
       PostcardDetailState(
         assetToken: assetToken ?? this.assetToken,
@@ -48,5 +51,6 @@ class PostcardDetailState {
         leaderboard: leaderboard ?? this.leaderboard,
         isFetchingLeaderboard:
             isFetchingLeaderboard ?? this.isFetchingLeaderboard,
+        showMerch: showMerch ?? this.showMerch,
       );
 }

@@ -9,6 +9,7 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/gateway/merchandise_api.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/leaderboard/postcard_leaderboard.dart';
@@ -78,6 +79,11 @@ class PostcardDetailBloc
             imagePath: paths.first,
             metadataPath: paths.second,
           ));
+
+          final hasMerch = await _hasMerchProduct(assetToken.first.id);
+          if (hasMerch != state.showMerch) {
+            emit(state.copyWith(showMerch: hasMerch));
+          }
         }
         return;
       } else {
@@ -96,14 +102,22 @@ class PostcardDetailBloc
           assetToken?.setAssetPrompt(tempsPrompt);
         }
         final paths = getUpdatingPath(assetToken);
-        emit(state.copyWith(
+        emit(
+          state.copyWith(
             assetToken: assetToken,
             imagePath: paths.first,
-            metadataPath: paths.second));
+            metadataPath: paths.second,
+          ),
+        );
 
         final provenances =
             await _provenanceDao.findProvenanceByTokenID(event.identity.id);
         emit(state.copyWith(provenances: provenances));
+
+        final hasMerch = await _hasMerchProduct(assetToken?.id);
+        if (hasMerch != state.showMerch) {
+          emit(state.copyWith(showMerch: hasMerch));
+        }
 
         if (assetToken != null &&
             assetToken.asset != null &&
@@ -197,5 +211,18 @@ class PostcardDetailBloc
       }
     }
     return Pair(imagePath, metadataPath);
+  }
+
+  Future<bool> _hasMerchProduct(String? indexId) async {
+    if (indexId == null) {
+      return false;
+    }
+    try {
+      final merchApi = injector<MerchandiseApi>();
+      final products = await merchApi.getProducts(indexId);
+      return products.isNotEmpty;
+    } catch (e) {
+      return false;
+    }
   }
 }

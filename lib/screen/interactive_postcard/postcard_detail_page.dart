@@ -564,7 +564,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                                     ConfigKey.enable) &&
                                 (_remoteConfig.getBool(ConfigGroup.merchandise,
                                         ConfigKey.allowViewOnly) ||
-                                    !isViewOnly)) ...[
+                                    !isViewOnly) &&
+                                state.showMerch == true) ...[
                               _postcardPhysical(context, asset),
                               const SizedBox(
                                 height: 20,

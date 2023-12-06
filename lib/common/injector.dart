@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+// ignore_for_file: cascade_invocations
+
 import 'dart:math';
 
 import 'package:autonomy_flutter/common/environment.dart';
@@ -21,6 +23,7 @@ import 'package:autonomy_flutter/gateway/customer_support_api.dart';
 import 'package:autonomy_flutter/gateway/etherchain_api.dart';
 import 'package:autonomy_flutter/gateway/feralfile_api.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
+import 'package:autonomy_flutter/gateway/merchandise_api.dart';
 import 'package:autonomy_flutter/gateway/postcard_api.dart';
 import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
 import 'package:autonomy_flutter/gateway/tzkt_api.dart';
@@ -293,6 +296,9 @@ Future<void> setup() async {
           connectTimeout: const Duration(seconds: 30),
           receiveTimeout: const Duration(seconds: 30))),
       baseUrl: Environment.auClaimAPIURL));
+
+  injector.registerLazySingleton<MerchandiseApi>(
+      () => MerchandiseApi(dio, baseUrl: Environment.merchandiseApiUrl));
 
   final indexerClient = IndexerClient(Environment.indexerURL);
   injector.registerLazySingleton<IndexerService>(
