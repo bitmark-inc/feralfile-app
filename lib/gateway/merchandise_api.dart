@@ -8,6 +8,5 @@ abstract class MerchandiseApi {
   factory MerchandiseApi(Dio dio, {String baseUrl}) = _MerchandiseApi;
 
   @GET('/v1/products')
-  Future<dynamic> getProducts(
-      @Query('index_id') String indexId);
+  Future<dynamic> getProducts(@Query('index_id') String indexId);
 }
