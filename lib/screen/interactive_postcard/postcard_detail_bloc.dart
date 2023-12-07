@@ -105,7 +105,7 @@ class PostcardDetailBloc
           assetToken?.setAssetPrompt(tempsPrompt);
         }
         final paths = getUpdatingPath(assetToken);
-        final isViewOnly = await _isViewOnly(assetToken);
+        final isViewOnly = await assetToken?.isViewOnly();
         emit(
           state.copyWith(
               assetToken: assetToken,
@@ -223,13 +223,6 @@ class PostcardDetailBloc
     return Pair(imagePath, metadataPath);
   }
 
-  Future<bool?> _isViewOnly(AssetToken? asset) async {
-    if (asset == null) {
-      return null;
-    }
-    return await asset.isViewOnly();
-  }
-
   Future<bool> _showMerchProduct(AssetToken? asset, bool isViewOnly) async {
     if (asset == null) {
       return false;
@@ -246,7 +239,7 @@ class PostcardDetailBloc
       final products = await _merchandiseApi.getProducts(asset.id);
       return products.isNotEmpty;
     } catch (e) {
-      return true;
+      return false;
     }
   }
 
