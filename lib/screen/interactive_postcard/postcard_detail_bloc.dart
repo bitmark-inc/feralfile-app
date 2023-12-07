@@ -8,7 +8,6 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/au_bloc.dart';
-import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/merchandise_api.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
@@ -16,6 +15,7 @@ import 'package:autonomy_flutter/screen/interactive_postcard/leaderboard/postcar
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
+import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
@@ -32,8 +32,10 @@ abstract class PostcardDetailEvent {}
 class PostcardDetailGetInfoEvent extends PostcardDetailEvent {
   final ArtworkIdentity identity;
   final bool useIndexer;
+  final bool isFromLeaderboard;
 
-  PostcardDetailGetInfoEvent(this.identity, {this.useIndexer = false});
+  PostcardDetailGetInfoEvent(this.identity,
+      {this.useIndexer = false, this.isFromLeaderboard = false});
 }
 
 class FetchLeaderboardEvent extends PostcardDetailEvent {}
@@ -48,6 +50,9 @@ class PostcardDetailBloc
   final IndexerService _indexerService;
   final PostcardService _postcardService;
   final ConfigurationService _configurationService;
+  final TokensService _tokenService;
+  final MerchandiseApi _merchandiseApi;
+  final RemoteConfigService _remoteConfig;
 
   PostcardDetailBloc(
     this._assetTokenDao,
@@ -56,9 +61,12 @@ class PostcardDetailBloc
     this._indexerService,
     this._postcardService,
     this._configurationService,
-  ) : super(PostcardDetailState(provenances: [])) {
+    this._tokenService,
+    this._merchandiseApi,
+    this._remoteConfig,
+  ) : super(PostcardDetailState(provenances: [], isViewOnly: true)) {
     on<PostcardDetailGetInfoEvent>((event, emit) async {
-      if (event.useIndexer) {
+      if (event.useIndexer || event.isFromLeaderboard) {
         final request = QueryListTokensRequest(
           owners: [event.identity.owner],
         );
@@ -73,22 +81,26 @@ class PostcardDetailBloc
             assetToken.first.setAssetPrompt(tempsPrompt);
           }
           final paths = getUpdatingPath(assetToken.first);
+
+          final isViewOnly =
+              await _isViewOnly(assetToken.first, event.isFromLeaderboard);
           emit(state.copyWith(
             assetToken: assetToken.first,
             provenances: assetToken.first.provenance,
             imagePath: paths.first,
             metadataPath: paths.second,
+            isViewOnly: isViewOnly,
           ));
 
-          final hasMerch = await _hasMerchProduct(assetToken.first.id);
+          final hasMerch =
+              await _showMerchProduct(assetToken.first, isViewOnly);
           if (hasMerch != state.showMerch) {
             emit(state.copyWith(showMerch: hasMerch));
           }
         }
         return;
       } else {
-        final tokenService = injector<TokensService>();
-        unawaited(tokenService.reindexAddresses([event.identity.owner]));
+        unawaited(_tokenService.reindexAddresses([event.identity.owner]));
         final assetToken = await _assetTokenDao.findAssetTokenByIdAndOwner(
             event.identity.id, event.identity.owner);
         if (assetToken == null) {
@@ -102,19 +114,25 @@ class PostcardDetailBloc
           assetToken?.setAssetPrompt(tempsPrompt);
         }
         final paths = getUpdatingPath(assetToken);
+        final isViewOnly =
+            await _isViewOnly(assetToken, event.isFromLeaderboard);
         emit(
           state.copyWith(
-            assetToken: assetToken,
-            imagePath: paths.first,
-            metadataPath: paths.second,
-          ),
+              assetToken: assetToken,
+              imagePath: paths.first,
+              metadataPath: paths.second,
+              isViewOnly: isViewOnly),
         );
 
-        final provenances =
-            await _provenanceDao.findProvenanceByTokenID(event.identity.id);
-        emit(state.copyWith(provenances: provenances));
+        final showProvenances =
+            _remoteConfig.getBool(ConfigGroup.viewDetail, ConfigKey.provenance);
+        if (showProvenances) {
+          final provenances =
+              await _provenanceDao.findProvenanceByTokenID(event.identity.id);
+          emit(state.copyWith(provenances: provenances));
+        }
 
-        final hasMerch = await _hasMerchProduct(assetToken?.id);
+        final hasMerch = await _showMerchProduct(assetToken, isViewOnly);
         if (hasMerch != state.showMerch) {
           emit(state.copyWith(showMerch: hasMerch));
         }
@@ -181,9 +199,8 @@ class PostcardDetailBloc
     String? imagePath;
     String? metadataPath;
     if (asset != null) {
-      final postcardService = injector<PostcardService>();
       final stampingPostcard =
-          postcardService.getStampingPostcardWithPath(asset.stampingPostcard!);
+          _postcardService.getStampingPostcardWithPath(asset.stampingPostcard!);
       final processingStampPostcard = asset.processingStampPostcard;
       final isStamped = asset.isStamped;
       if (!isStamped) {
@@ -200,7 +217,7 @@ class PostcardDetailBloc
         }
       } else {
         if (stampingPostcard != null) {
-          unawaited(postcardService
+          unawaited(_postcardService
               .updateStampingPostcard([stampingPostcard], isRemove: true));
         }
         if (processingStampPostcard != null) {
@@ -213,13 +230,29 @@ class PostcardDetailBloc
     return Pair(imagePath, metadataPath);
   }
 
-  Future<bool> _hasMerchProduct(String? indexId) async {
-    if (indexId == null) {
+  Future<bool> _isViewOnly(AssetToken? asset, bool isFromLeaderboard) async {
+    if (asset == null) {
+      return true;
+    }
+    return (await asset.isViewOnly()) || isFromLeaderboard;
+  }
+
+  Future<bool> _showMerchProduct(AssetToken? asset, bool isViewOnly) async {
+    if (asset == null) {
+      return false;
+    }
+    final isShowConfig = (asset.isCompleted ||
+            !_remoteConfig.getBool(
+                ConfigGroup.merchandise, ConfigKey.mustCompleted)) &&
+        _remoteConfig.getBool(ConfigGroup.merchandise, ConfigKey.enable) &&
+        (_remoteConfig.getBool(
+                ConfigGroup.merchandise, ConfigKey.allowViewOnly) ||
+            !isViewOnly);
+    if (!isShowConfig) {
       return false;
     }
     try {
-      final merchApi = injector<MerchandiseApi>();
-      final products = await merchApi.getProducts(indexId);
+      final products = await _merchandiseApi.getProducts(asset.id);
       return products.isNotEmpty;
     } catch (e) {
       return false;

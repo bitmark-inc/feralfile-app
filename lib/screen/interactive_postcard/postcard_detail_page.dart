@@ -127,8 +127,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     context.read<PostcardDetailBloc>().add(
           PostcardDetailGetInfoEvent(
               widget.payload.identities[widget.payload.currentIndex],
-              useIndexer: widget.payload.isFromLeaderboard ||
-                  widget.payload.useIndexer),
+              useIndexer: widget.payload.isFromLeaderboard,
+              isFromLeaderboard: widget.payload.useIndexer),
         );
     context.read<PostcardDetailBloc>().add(FetchLeaderboardEvent());
     context.read<AccountsBloc>().add(FetchAllAddressesEvent());
@@ -322,8 +322,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         return;
       }
       final assetToken = state.assetToken;
+
       if (assetToken != null) {
-        final viewOnly = isViewOnly || (await assetToken.isViewOnly());
         if (!mounted) {
           return;
         }
@@ -340,10 +340,10 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         }
         setState(() {
           currentAsset = state.assetToken;
-          isViewOnly = viewOnly;
+          isViewOnly = state.isViewOnly;
           isSending = state.assetToken?.isSending ?? false;
         });
-        if (viewOnly) {
+        if (isViewOnly) {
           return;
         }
         if (withSharing) {
@@ -431,8 +431,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                     child: Semantics(
                       label: 'artworkDotIcon',
                       child: IconButton(
-                        onPressed: () => unawaited(
-                            _showArtworkOptionsDialog(context, asset)),
+                        onPressed: () => unawaited(_showArtworkOptionsDialog(
+                            context, asset, state.isViewOnly)),
                         constraints: const BoxConstraints(
                           maxWidth: 44,
                           maxHeight: 44,
@@ -556,16 +556,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                                 height: 20,
                               ),
                             ],
-                            if ((asset.isCompleted ||
-                                    !_remoteConfig.getBool(
-                                        ConfigGroup.merchandise,
-                                        ConfigKey.mustCompleted)) &&
-                                _remoteConfig.getBool(ConfigGroup.merchandise,
-                                    ConfigKey.enable) &&
-                                (_remoteConfig.getBool(ConfigGroup.merchandise,
-                                        ConfigKey.allowViewOnly) ||
-                                    !isViewOnly) &&
-                                state.showMerch == true) ...[
+                            if (state.showMerch == true) ...[
                               _postcardPhysical(context, asset),
                               const SizedBox(
                                 height: 20,
@@ -890,8 +881,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                   ),
                 ),
                 const SizedBox(height: 20),
-              ] else if (_remoteConfig.getBool(
-                  ConfigGroup.viewDetail, ConfigKey.provenance)) ...[
+              ] else ...[
                 if (provenances.isNotEmpty)
                   PostcardContainer(
                       child: _provenanceView(context, provenances))
@@ -927,9 +917,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       );
 
   Future _showArtworkOptionsDialog(
-      BuildContext context, AssetToken asset) async {
+      BuildContext context, AssetToken asset, bool isViewOnly) async {
     final theme = Theme.of(context);
-    final isViewOnly = await asset.isViewOnly();
     if (!mounted) {
       return;
     }
