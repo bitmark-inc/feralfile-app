@@ -32,10 +32,8 @@ abstract class PostcardDetailEvent {}
 class PostcardDetailGetInfoEvent extends PostcardDetailEvent {
   final ArtworkIdentity identity;
   final bool useIndexer;
-  final bool isFromLeaderboard;
 
-  PostcardDetailGetInfoEvent(this.identity,
-      {this.useIndexer = false, this.isFromLeaderboard = false});
+  PostcardDetailGetInfoEvent(this.identity, {this.useIndexer = false});
 }
 
 class FetchLeaderboardEvent extends PostcardDetailEvent {}
@@ -64,9 +62,9 @@ class PostcardDetailBloc
     this._tokenService,
     this._merchandiseApi,
     this._remoteConfig,
-  ) : super(PostcardDetailState(provenances: [], isViewOnly: true)) {
+  ) : super(PostcardDetailState(provenances: [])) {
     on<PostcardDetailGetInfoEvent>((event, emit) async {
-      if (event.useIndexer || event.isFromLeaderboard) {
+      if (event.useIndexer) {
         final request = QueryListTokensRequest(
           owners: [event.identity.owner],
         );
@@ -82,21 +80,14 @@ class PostcardDetailBloc
           }
           final paths = getUpdatingPath(assetToken.first);
 
-          final isViewOnly =
-              await _isViewOnly(assetToken.first, event.isFromLeaderboard);
           emit(state.copyWith(
             assetToken: assetToken.first,
             provenances: assetToken.first.provenance,
             imagePath: paths.first,
             metadataPath: paths.second,
-            isViewOnly: isViewOnly,
+            showMerch: false,
+            enableMerch: false,
           ));
-
-          final hasMerch =
-              await _showMerchProduct(assetToken.first, isViewOnly);
-          if (hasMerch != state.showMerch) {
-            emit(state.copyWith(showMerch: hasMerch));
-          }
         }
         return;
       } else {
@@ -114,8 +105,7 @@ class PostcardDetailBloc
           assetToken?.setAssetPrompt(tempsPrompt);
         }
         final paths = getUpdatingPath(assetToken);
-        final isViewOnly =
-            await _isViewOnly(assetToken, event.isFromLeaderboard);
+        final isViewOnly = await _isViewOnly(assetToken);
         emit(
           state.copyWith(
               assetToken: assetToken,
@@ -132,9 +122,12 @@ class PostcardDetailBloc
           emit(state.copyWith(provenances: provenances));
         }
 
-        final hasMerch = await _showMerchProduct(assetToken, isViewOnly);
-        if (hasMerch != state.showMerch) {
-          emit(state.copyWith(showMerch: hasMerch));
+        final showMerch =
+            await _showMerchProduct(assetToken, isViewOnly ?? true);
+        if (showMerch != state.showMerch) {
+          emit(state.copyWith(
+              showMerch: showMerch,
+              enableMerch: showMerch && _enableMerch(assetToken)));
         }
 
         if (assetToken != null &&
@@ -230,24 +223,22 @@ class PostcardDetailBloc
     return Pair(imagePath, metadataPath);
   }
 
-  Future<bool> _isViewOnly(AssetToken? asset, bool isFromLeaderboard) async {
+  Future<bool?> _isViewOnly(AssetToken? asset) async {
     if (asset == null) {
-      return true;
+      return null;
     }
-    return (await asset.isViewOnly()) || isFromLeaderboard;
+    return await asset.isViewOnly();
   }
 
   Future<bool> _showMerchProduct(AssetToken? asset, bool isViewOnly) async {
     if (asset == null) {
       return false;
     }
-    final isShowConfig = (asset.isCompleted ||
-            !_remoteConfig.getBool(
-                ConfigGroup.merchandise, ConfigKey.mustCompleted)) &&
+    final isShowConfig =
         _remoteConfig.getBool(ConfigGroup.merchandise, ConfigKey.enable) &&
-        (_remoteConfig.getBool(
-                ConfigGroup.merchandise, ConfigKey.allowViewOnly) ||
-            !isViewOnly);
+            (_remoteConfig.getBool(
+                    ConfigGroup.merchandise, ConfigKey.allowViewOnly) ||
+                !isViewOnly);
     if (!isShowConfig) {
       return false;
     }
@@ -255,7 +246,17 @@ class PostcardDetailBloc
       final products = await _merchandiseApi.getProducts(asset.id);
       return products.isNotEmpty;
     } catch (e) {
+      return true;
+    }
+  }
+
+  bool _enableMerch(AssetToken? asset) {
+    if (asset == null) {
       return false;
     }
+    final isEnable = asset.isCompleted ||
+        !_remoteConfig.getBool(
+            ConfigGroup.merchandise, ConfigKey.mustCompleted);
+    return isEnable;
   }
 }

@@ -98,7 +98,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     with AfterLayoutMixin<ClaimedPostcardDetailPage> {
   late ScrollController _scrollController;
   late bool withSharing;
-  late bool isViewOnly;
+  late bool isNotOwner;
   late bool isSending;
   late bool alreadyShowPopup;
   late bool isProcessingStampPostcard;
@@ -118,7 +118,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   @override
   void initState() {
     _scrollController = ScrollController();
-    isViewOnly = widget.payload.isFromLeaderboard;
+    isNotOwner = widget.payload.isFromLeaderboard;
     isSending = false;
     alreadyShowPopup = false;
     isProcessingStampPostcard = false;
@@ -127,8 +127,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     context.read<PostcardDetailBloc>().add(
           PostcardDetailGetInfoEvent(
               widget.payload.identities[widget.payload.currentIndex],
-              useIndexer: widget.payload.isFromLeaderboard,
-              isFromLeaderboard: widget.payload.useIndexer),
+              useIndexer: widget.payload.useIndexer ||
+                  widget.payload.isFromLeaderboard),
         );
     context.read<PostcardDetailBloc>().add(FetchLeaderboardEvent());
     context.read<AccountsBloc>().add(FetchAllAddressesEvent());
@@ -304,7 +304,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       if (previous.assetToken?.isCompleted != true &&
           current.assetToken?.isCompleted == true &&
           current.assetToken?.isAlreadyShowYouDidIt == false &&
-          !isViewOnly) {
+          !isNotOwner &&
+          current.isViewOnly == false) {
         unawaited(_youDidIt(context, current.assetToken!));
       }
       return true;
@@ -340,10 +341,10 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         }
         setState(() {
           currentAsset = state.assetToken;
-          isViewOnly = state.isViewOnly;
+          isNotOwner = isNotOwner || (state.isViewOnly ?? true);
           isSending = state.assetToken?.isSending ?? false;
         });
-        if (isViewOnly) {
+        if (isNotOwner) {
           return;
         }
         if (withSharing) {
@@ -431,8 +432,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                     child: Semantics(
                       label: 'artworkDotIcon',
                       child: IconButton(
-                        onPressed: () => unawaited(_showArtworkOptionsDialog(
-                            context, asset, state.isViewOnly)),
+                        onPressed: () => unawaited(
+                            _showArtworkOptionsDialog(context, asset)),
                         constraints: const BoxConstraints(
                           maxWidth: 44,
                           maxHeight: 44,
@@ -623,7 +624,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       'place_15_stamps'.tr(),
       style: theme.textTheme.moMASans400Black12,
     );
-    if (asset.isCompleted || isViewOnly || !asset.isLastOwner) {
+    if (asset.isCompleted || isNotOwner || !asset.isLastOwner) {
       return const SizedBox();
     }
     if (isProcessingStampPostcard ||
@@ -917,7 +918,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       );
 
   Future _showArtworkOptionsDialog(
-      BuildContext context, AssetToken asset, bool isViewOnly) async {
+      BuildContext context, AssetToken asset) async {
     final theme = Theme.of(context);
     if (!mounted) {
       return;
@@ -961,7 +962,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             Navigator.of(context).pop();
           },
         ),
-        if (!isViewOnly) ...[
+        if (!isNotOwner) ...[
           if (_remoteConfig.getBool(
               ConfigGroup.feature, ConfigKey.downloadStamp))
             OptionItem(
