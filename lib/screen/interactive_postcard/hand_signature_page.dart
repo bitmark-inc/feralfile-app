@@ -274,7 +274,8 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
                       imagePath: imageDataFile.path,
                       metadataPath: metadataFile.path,
                       asset: asset,
-                      location: geoLocation.position)));
+                      location: geoLocation.position,
+                      shareCode: widget.payload.shareCode)));
             },
             color: AppColor.momaGreen,
           ),
@@ -295,9 +296,11 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
 class HandSignaturePayload {
   final Uint8List image;
   final AssetToken asset;
+  final String? shareCode;
 
   HandSignaturePayload(
     this.image,
     this.asset,
+    this.shareCode,
   );
 }

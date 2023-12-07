@@ -654,7 +654,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
               onTap: () async {
                 unawaited(injector<NavigationService>().popAndPushNamed(
                     AppRouter.designStamp,
-                    arguments: DesignStampPayload(asset, false)));
+                    arguments: DesignStampPayload(asset, false, null)));
               },
               color: AppColor.momaGreen,
             );
@@ -665,7 +665,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             ));
           } else {
             unawaited(injector<NavigationService>()
-                .selectPromptsThenStamp(context, asset));
+                .selectPromptsThenStamp(context, asset, null));
           }
         },
         color: MoMAColors.moMA8,

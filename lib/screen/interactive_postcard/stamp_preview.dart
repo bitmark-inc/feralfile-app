@@ -65,23 +65,31 @@ class _StampPreviewState extends State<StampPreview> with AfterLayoutMixin {
     setState(() {
       confirming = true;
     });
-    await _postcardService
-        .finalizeStamp(widget.payload.asset, widget.payload.imagePath,
-            widget.payload.metadataPath, widget.payload.location)
-        .then((final bool isStampSuccess) async {
-      _setTimer();
-      if (mounted) {
-        setState(() {
-          confirming = false;
-        });
-        if (!isStampSuccess) {
-          await UIHelper.showPostcardStampFailed(context);
-        }
+    try {
+      await _postcardService
+          .finalizeStamp(
+              asset: widget.payload.asset,
+              imagePath: widget.payload.imagePath,
+              metadataPath: widget.payload.metadataPath,
+              location: widget.payload.location,
+              shareCode: widget.payload.shareCode)
+          .then((final bool isStampSuccess) async {
+        _setTimer();
         if (mounted) {
-          _onClose(context);
+          setState(() {
+            confirming = false;
+          });
+          if (!isStampSuccess) {
+            await UIHelper.showPostcardStampFailed(context);
+          }
+          if (mounted) {
+            _onClose(context);
+          }
         }
-      }
-    });
+      });
+    } catch (e) {
+      log.info(e);
+    }
   }
 
   void _onClose(BuildContext context) {
@@ -200,6 +208,7 @@ class StampPreviewPayload {
   final String imagePath;
   final String metadataPath;
   final Location location;
+  final String? shareCode;
 
   // constructor
   StampPreviewPayload({
@@ -207,6 +216,7 @@ class StampPreviewPayload {
     required this.imagePath,
     required this.metadataPath,
     required this.location,
+    required this.shareCode,
   });
 }
 

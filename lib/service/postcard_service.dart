@@ -100,15 +100,18 @@ abstract class PostcardService {
       {required String address,
       required RequestPostcardResponse requestPostcardResponse});
 
-  Future<AssetToken> claimSharedPostcardToAddress({
-    required String address,
+  AssetToken getPendingTokenAfterClaimShare({
     required AssetToken assetToken,
-    required String shareCode,
-    required Location location,
+    required String address,
   });
 
-  Future<bool> finalizeStamp(AssetToken asset, String imagePath,
-      String metadataPath, Location location);
+  Future<bool> finalizeStamp({
+    required AssetToken asset,
+    required String imagePath,
+    required String metadataPath,
+    required Location location,
+    required String? shareCode,
+  });
 
   Future<List<Prompt>> getPrompts(String tokenId);
 }
@@ -574,16 +577,8 @@ class PostcardServiceImpl extends PostcardService {
   }
 
   @override
-  Future<AssetToken> claimSharedPostcardToAddress(
-      {required String address,
-      required AssetToken assetToken,
-      required String shareCode,
-      required Location location}) async {
-    await receivePostcard(
-      shareCode: shareCode,
-      location: location,
-      address: address,
-    );
+  AssetToken getPendingTokenAfterClaimShare(
+      {required AssetToken assetToken, required String address}) {
     var postcardMetadata = assetToken.postcardMetadata;
     log.info(
         'claimSharedPostcardToAddress metadata ${postcardMetadata.toJson()}');
@@ -597,18 +592,16 @@ class PostcardServiceImpl extends PostcardService {
       balance: 1,
       owners: newOwners,
     );
-
-    await _tokensService.setCustomTokens([pendingToken]);
-    unawaited(_tokensService.reindexAddresses([address]));
-    NftCollectionBloc.eventController.add(
-      GetTokensByOwnerEvent(pageKey: PageKey.init()),
-    );
     return pendingToken;
   }
 
   @override
-  Future<bool> finalizeStamp(AssetToken asset, String imagePath,
-      String metadataPath, Location location) async {
+  Future<bool> finalizeStamp(
+      {required AssetToken asset,
+      required String imagePath,
+      required String metadataPath,
+      required Location location,
+      required String? shareCode}) async {
     File imageFile = File(imagePath);
     File metadataFile = File(metadataPath);
 
@@ -636,6 +629,32 @@ class PostcardServiceImpl extends PostcardService {
     await _configurationService.setProcessingStampPostcard([
       processingStampPostcard,
     ]);
+    if (shareCode != null) {
+      try {
+        await receivePostcard(
+          shareCode: shareCode,
+          location: location,
+          address: address,
+        );
+      } catch (e) {
+        if (e is DioException) {
+          if (!mounted) {
+            return null;
+          }
+          await UIHelper.showAlreadyClaimedPostcard(
+            context,
+            e,
+          );
+          if (!mounted) {
+            return null;
+          }
+          unawaited(Navigator.of(context).pushNamedAndRemoveUntil(
+            AppRouter.homePage,
+            (route) => false,
+          ));
+        }
+      }
+    }
     final isStampSuccess = await stampPostcard(
       tokenId,
       walletIndex.first,
