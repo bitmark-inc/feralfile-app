@@ -517,9 +517,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                                   },
                                 ),
                               ),
-                            const SizedBox(
-                              height: 15,
-                            ),
+                            const SizedBox(height: 15),
                             Hero(
                               tag: 'detail_${asset.id}',
                               child: Stack(
@@ -547,47 +545,34 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                                 ],
                               ),
                             ),
-                            const SizedBox(
-                              height: 20,
-                            ),
+                            const SizedBox(height: 20),
                             if (_remoteConfig.getBool(ConfigGroup.viewDetail,
                                 ConfigKey.actionButton)) ...[
                               _postcardAction(context, asset),
-                              const SizedBox(
-                                height: 20,
-                              ),
+                              const SizedBox(height: 20),
                             ],
                             if (state.showMerch == true) ...[
-                              _postcardPhysical(context, asset),
-                              const SizedBox(
-                                height: 20,
-                              ),
+                              _postcardPhysical(
+                                  context, asset, state.enableMerch ?? false),
+                              const SizedBox(height: 20),
                             ],
                             _postcardInfo(context, asset),
-                            const SizedBox(
-                              height: 20,
-                            ),
+                            const SizedBox(height: 20),
                             if (_remoteConfig.getBool(ConfigGroup.viewDetail,
                                 ConfigKey.leaderBoard)) ...[
                               _postcardLeaderboard(
                                   context, state.leaderboard, asset),
-                              const SizedBox(
-                                height: 20,
-                              ),
+                              const SizedBox(height: 20),
                             ],
                             if (_remoteConfig.getBool(ConfigGroup.viewDetail,
                                 ConfigKey.aboutMoma)) ...[
                               _aboutTheProject(context),
-                              const SizedBox(
-                                height: 20,
-                              ),
+                              const SizedBox(height: 20),
                             ],
                             if (_remoteConfig.getBool(ConfigGroup.viewDetail,
                                 ConfigKey.glossary)) ...[
                               _web3Glossary(context, asset),
-                              const SizedBox(
-                                height: 20,
-                              ),
+                              const SizedBox(height: 20),
                             ],
                             _artworkInfo(context, asset, state.provenances,
                                 artistNames, owners),
@@ -620,10 +605,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
 
   Widget _postcardAction(final BuildContext context, final AssetToken asset) {
     final theme = Theme.of(context);
-    final place15StampsText = Text(
-      'place_15_stamps'.tr(),
-      style: theme.textTheme.moMASans400Black12,
-    );
     if (asset.isCompleted || isNotOwner || !asset.isLastOwner) {
       return const SizedBox();
     }
@@ -676,10 +657,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           style: theme.textTheme.moMASans400Black12,
         ),
       ),
-      Padding(
-        padding: const EdgeInsets.only(left: 16, right: 15, top: 10),
-        child: place15StampsText,
-      ),
     ];
     if (!asset.isFinal) {
       if (!isSending) {
@@ -730,12 +707,19 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     return const SizedBox();
   }
 
-  Widget _postcardPhysical(BuildContext context, AssetToken assetToken) =>
+  Widget _postcardPhysical(
+          BuildContext context, AssetToken assetToken, bool isEnable) =>
       Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           PostcardButton(
-            text: 'unlock_physical_objects'.tr(),
-            color: POSTCARD_PINK_BUTTON_COLOR,
+            text: 'buy_merch'.tr(),
+            enabled: isEnable,
+            icon: SvgPicture.asset(
+              isEnable
+                  ? 'assets/images/lock_icon.svg'
+                  : 'assets/images/unlock_icon.svg',
+            ),
             onTap: () async {
               final indexId = assetToken.id;
               final jwtToken =
@@ -753,6 +737,16 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                       isPlainUI: true, localStorageItems: {'token': jwtToken}));
             },
           ),
+          if (!isEnable) ...[
+            const SizedBox(height: 10),
+            Padding(
+              padding: const EdgeInsets.only(left: 16, right: 15),
+              child: Text(
+                'must_complete_to_unlock'.tr(),
+                style: Theme.of(context).textTheme.moMASans400Black12,
+              ),
+            ),
+          ]
         ],
       );
 
