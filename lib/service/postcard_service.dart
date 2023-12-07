@@ -630,30 +630,11 @@ class PostcardServiceImpl extends PostcardService {
       processingStampPostcard,
     ]);
     if (shareCode != null) {
-      try {
-        await receivePostcard(
-          shareCode: shareCode,
-          location: location,
-          address: address,
-        );
-      } catch (e) {
-        if (e is DioException) {
-          if (!mounted) {
-            return null;
-          }
-          await UIHelper.showAlreadyClaimedPostcard(
-            context,
-            e,
-          );
-          if (!mounted) {
-            return null;
-          }
-          unawaited(Navigator.of(context).pushNamedAndRemoveUntil(
-            AppRouter.homePage,
-            (route) => false,
-          ));
-        }
-      }
+      await receivePostcard(
+        shareCode: shareCode,
+        location: location,
+        address: address,
+      );
     }
     final isStampSuccess = await stampPostcard(
       tokenId,

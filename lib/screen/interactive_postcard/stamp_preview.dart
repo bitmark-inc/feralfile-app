@@ -22,6 +22,7 @@ import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
+import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -88,7 +89,22 @@ class _StampPreviewState extends State<StampPreview> with AfterLayoutMixin {
         }
       });
     } catch (e) {
-      log.info(e);
+      if (e is DioException) {
+        if (!mounted) {
+          return;
+        }
+        await UIHelper.showAlreadyClaimedPostcard(
+          context,
+          e,
+        );
+        if (!mounted) {
+          return;
+        }
+        unawaited(Navigator.of(context).pushNamedAndRemoveUntil(
+          AppRouter.homePage,
+          (route) => false,
+        ));
+      }
     }
   }
 
