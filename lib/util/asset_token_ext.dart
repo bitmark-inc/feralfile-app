@@ -633,9 +633,8 @@ extension PostcardExtension on AssetToken {
     final stampingPostcard =
         injector<ConfigurationService>().getStampingPostcard();
     return stampingPostcard.firstWhereOrNull((final element) {
-      final bool = element.indexId == id &&
-          element.address == owner &&
-          isLastOwner;
+      final bool =
+          element.indexId == id && element.address == owner && isLastOwner;
       return bool;
     });
   }
@@ -662,8 +661,8 @@ extension PostcardExtension on AssetToken {
   bool get isSending {
     final sharedPostcards =
         injector<ConfigurationService>().getSharedPostcard();
-    return sharedPostcards
-        .any((element) => element.owner == owner && element.tokenID == id);
+    return sharedPostcards.any((element) =>
+        !element.isExpired && element.owner == owner && element.tokenID == id);
   }
 
   bool get isLastOwner {
@@ -761,5 +760,16 @@ extension PostcardExtension on AssetToken {
       return false;
     }
     return artistOwner != artists.last;
+  }
+
+  bool get isShareExpired {
+    final sharedPostcards =
+        injector<ConfigurationService>().getSharedPostcard();
+    final sharedPostcard = sharedPostcards.firstWhereOrNull(
+        (element) => element.owner == owner && element.tokenID == id);
+    if (sharedPostcard == null) {
+      return false;
+    }
+    return sharedPostcard.isExpired;
   }
 }

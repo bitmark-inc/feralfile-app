@@ -4,7 +4,12 @@
 //  Use of this source code is governed by the BSD-2-Clause Plus Patent License
 //  that can be found in the LICENSE file.
 //
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/constants.dart';
+import 'package:collection/collection.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:nft_collection/database/dao/asset_token_dao.dart';
 
 @JsonSerializable()
 class SharedPostcard {
@@ -42,9 +47,35 @@ class SharedPostcard {
     };
   }
 
+  bool get isExpired {
+    if (sharedAt == null) {
+      return false;
+    }
+    return sharedAt!
+        .add(POSTCARD_SHARE_LINK_VALID_DURATION)
+        .isBefore(DateTime.now());
+  }
+
   @override
   int get hashCode {
     return tokenID.hashCode ^ owner.hashCode;
+  }
+}
+
+extension ListSharedPostcard on List<SharedPostcard> {
+  Future<List<SharedPostcard>> get expiredPostcards async {
+    final expiredPostcards = <SharedPostcard>[];
+    await Future.forEach(this, (SharedPostcard postcard) async {
+      if (postcard.isExpired) {
+        final token = await injector<AssetTokenDao>()
+            .findAssetTokenByIdAndOwner(postcard.tokenID, postcard.owner);
+        if (token != null &&
+            token.getArtists.lastOrNull?.id == postcard.owner) {
+          expiredPostcards.add(postcard);
+        }
+      }
+    });
+    return expiredPostcards;
   }
 }
 
