@@ -537,7 +537,6 @@ class _ArtworkView extends StatelessWidget {
     final mimeType = token.getMimeType;
     switch (mimeType) {
       case "image":
-      case "svg":
       case 'gif':
       case "audio":
       case "video":
