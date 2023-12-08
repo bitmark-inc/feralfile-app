@@ -159,7 +159,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             const SizedBox(width: 18),
             Expanded(
               child: Text(
-                "you_need_resend".tr(),
+                'you_need_resend'.tr(),
                 style: Theme.of(context).textTheme.moMASans700Black18,
               ),
             ),
@@ -178,7 +178,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             const SizedBox(width: 18),
             Expanded(
               child: Text(
-                "no_one_received".tr(),
+                'no_one_received'.tr(),
                 style: Theme.of(context).textTheme.moMASans700AuGrey18,
               ),
             ),
@@ -197,7 +197,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             const SizedBox(width: 18),
             Expanded(
               child: Text(
-                "resend_new_link".tr(),
+                'resend_new_link'.tr(),
                 style: Theme.of(context).textTheme.moMASans700AuGrey18,
               ),
             ),
