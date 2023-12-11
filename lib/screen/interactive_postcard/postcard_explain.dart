@@ -72,13 +72,13 @@ class _PostcardExplainState extends State<PostcardExplain> {
   @override
   Widget build(BuildContext context) {
     final asset = widget.payload.asset;
-    final hasPrompt = widget.payload.asset.postcardMetadata.prompt != null;
+    final prompt = widget.payload.asset.postcardMetadata.prompt;
     final isShare =
         widget.payload.asset.postcardMetadata.locationInformation.isNotEmpty;
     final pages = widget.payload.pages ??
         [
           _page1(_controller),
-          if (hasPrompt || !isShare) _promptExplain(context),
+          if (!isShare) _promptExplain(context, prompt),
           _page3(1, _colouringController),
           _page2(2, totalDistance: 0),
           _page2(3, totalDistance: 7926),
@@ -262,7 +262,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
     );
   }
 
-  Widget _promptExplain(BuildContext context) {
+  Widget _promptExplain(BuildContext context, Prompt? prompt) {
     final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -273,7 +273,8 @@ class _PostcardExplainState extends State<PostcardExplain> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               PromptView(
-                prompt: Prompt(id: '', description: 'prompt_example'.tr()),
+                prompt: prompt ??
+                    Prompt(id: '', description: 'prompt_example'.tr()),
               ),
             ],
           ),
