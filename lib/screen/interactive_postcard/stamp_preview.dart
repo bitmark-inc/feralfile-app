@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/dio_exception_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -93,10 +94,17 @@ class _StampPreviewState extends State<StampPreview> with AfterLayoutMixin {
         if (!mounted) {
           return;
         }
-        await UIHelper.showAlreadyClaimedPostcard(
-          context,
-          e,
-        );
+        if (e.isAlreadyClaimedPostcard) {
+          await UIHelper.showAlreadyClaimedPostcard(
+            context,
+            e,
+          );
+        } else if (e.isFailToClaimPostcard) {
+          await UIHelper.showReceivePostcardFailed(
+            context,
+            e,
+          );
+        }
         if (!mounted) {
           return;
         }
