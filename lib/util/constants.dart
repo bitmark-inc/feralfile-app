@@ -395,7 +395,9 @@ enum AnnouncementID {
 
 enum StatusCode {
   notFound(404),
-  success(200);
+  success(200),
+  forbidden(403),
+  badRequest(400);
 
   const StatusCode(this.value);
 
