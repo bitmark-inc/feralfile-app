@@ -2,15 +2,15 @@ import 'package:autonomy_flutter/gateway/activation_api.dart';
 import 'package:autonomy_flutter/service/activation_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:nft_collection/services/tokens_service.dart';
 
 import '../gateway/activation_mock.dart';
 import '../gateway/token_service_mock_data.dart';
-import 'activation_service_test.mocks.dart';
+import '../generate_mock/gateway/mock_activation_api.mocks.dart';
+import '../generate_mock/service/mock_navigation_service.mocks.dart';
+import '../generate_mock/service/mock_tokens_service.mocks.dart';
 
-@GenerateMocks([ActivationApi, TokensService, NavigationService])
 void main() async {
   group('ActivationService tests', () {
     late ActivationApi mockActivationApi;
