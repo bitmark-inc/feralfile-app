@@ -122,12 +122,11 @@ class PostcardDetailBloc
           emit(state.copyWith(provenances: provenances));
         }
 
-        final showMerch =
+        final showMerch = !_enableMerch(assetToken) ||
             await _showMerchProduct(assetToken, isViewOnly ?? true);
         if (showMerch != state.showMerch) {
           emit(state.copyWith(
-              showMerch: showMerch,
-              enableMerch: showMerch && _enableMerch(assetToken)));
+              showMerch: showMerch, enableMerch: _enableMerch(assetToken)));
         }
 
         if (assetToken != null &&
