@@ -44,10 +44,9 @@ class _PostcardExplainState extends State<PostcardExplain> {
   @override
   void initState() {
     _viewClaimPage = !widget.payload.isPayToMint;
+    unawaited(_initColouringPlayer(widget.payload.isPayToMint));
     if (_viewClaimPage) {
       unawaited(_initPlayer());
-    } else {
-      unawaited(_colouringController.play());
     }
     _swiperController = SwiperController();
     super.initState();
@@ -61,11 +60,16 @@ class _PostcardExplainState extends State<PostcardExplain> {
       setState(() {});
       _controller.play();
     });
-    await _colouringController.initialize().then((_) {
-      _colouringController.setLooping(true);
-    });
 
     await _controller.play();
+  }
+
+  Future<void> _initColouringPlayer(bool doPlay) async {
+    await _colouringController.initialize().then((_) {
+      _colouringController.setLooping(true);
+      setState(() {});
+      _colouringController.play();
+    });
   }
 
   @override
