@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
+import 'package:autonomy_flutter/model/prompt.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -34,9 +35,15 @@ class ClaimEmptyPostCardBloc
     on<GetTokenEvent>((event, emit) async {
       final indexId = event.claimRequest.tokenId;
       final tokenId = 'tez-${Environment.postcardContractAddress}-$indexId';
-      final prompts = await _postcardService.getPrompts(indexId);
+      late final Prompt? prompt;
+      try {
+        final prompts = await _postcardService.getPrompts(indexId);
+        prompt = prompts.isNotEmpty ? prompts.first : null;
+      } catch (e) {
+        prompt = null;
+      }
       final postcardMetadata = PostcardMetadata(
-        prompt: prompts.isNotEmpty ? prompts.first : null,
+        prompt: prompt,
         locationInformation: [],
       );
       if (event.claimRequest is PayToMintRequest) {
