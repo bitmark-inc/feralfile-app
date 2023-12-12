@@ -44,7 +44,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
   @override
   void initState() {
     _viewClaimPage = !widget.payload.isPayToMint;
-    unawaited(_initColouringPlayer(widget.payload.isPayToMint));
+    unawaited(_initColouringPlayer(!_viewClaimPage));
     if (_viewClaimPage) {
       unawaited(_initPlayer());
     }
