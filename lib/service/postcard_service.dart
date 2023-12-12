@@ -92,6 +92,8 @@ abstract class PostcardService {
     required int stampIndex,
   });
 
+  Future<bool> isMerchandiseEnable(String tokenId);
+
   Future<void> downloadPostcard(String tokenId);
 
   String getTokenId(String id);
@@ -379,6 +381,13 @@ class PostcardServiceImpl extends PostcardService {
   @override
   Future<void> cancelSharePostcard(AssetToken asset) async {
     await sharePostcard(asset);
+  }
+
+  @override
+  Future<bool> isMerchandiseEnable(String tokenId) async {
+    final response = await _postcardApi.getMerchandiseEnable(tokenId);
+    final result = jsonDecode(response)['enabled'] as bool;
+    return result;
   }
 
   @override

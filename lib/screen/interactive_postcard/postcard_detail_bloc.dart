@@ -8,7 +8,6 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/au_bloc.dart';
-import 'package:autonomy_flutter/gateway/merchandise_api.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/leaderboard/postcard_leaderboard.dart';
@@ -49,7 +48,6 @@ class PostcardDetailBloc
   final PostcardService _postcardService;
   final ConfigurationService _configurationService;
   final TokensService _tokenService;
-  final MerchandiseApi _merchandiseApi;
   final RemoteConfigService _remoteConfig;
 
   PostcardDetailBloc(
@@ -60,7 +58,6 @@ class PostcardDetailBloc
     this._postcardService,
     this._configurationService,
     this._tokenService,
-    this._merchandiseApi,
     this._remoteConfig,
   ) : super(PostcardDetailState(provenances: [])) {
     on<PostcardDetailGetInfoEvent>((event, emit) async {
@@ -122,7 +119,7 @@ class PostcardDetailBloc
           emit(state.copyWith(provenances: provenances));
         }
 
-        final showMerch = !_enableMerch(assetToken) ||
+        final showMerch =
             await _showMerchProduct(assetToken, isViewOnly ?? true);
         if (showMerch != state.showMerch) {
           emit(state.copyWith(
@@ -235,8 +232,9 @@ class PostcardDetailBloc
       return false;
     }
     try {
-      final products = await _merchandiseApi.getProducts(asset.id);
-      return products.isNotEmpty;
+      final enableMerch =
+          await _postcardService.isMerchandiseEnable(asset.tokenId ?? '');
+      return enableMerch;
     } catch (e) {
       return false;
     }
