@@ -67,8 +67,10 @@ class _PostcardExplainState extends State<PostcardExplain> {
   Future<void> _initColouringPlayer(bool doPlay) async {
     await _colouringController.initialize().then((_) {
       _colouringController.setLooping(true);
-      setState(() {});
-      _colouringController.play();
+      if (doPlay) {
+        setState(() {});
+        _colouringController.play();
+      }
     });
   }
 
