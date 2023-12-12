@@ -17,12 +17,11 @@ class ScanWalletState {
 
   //add new addresses
   ScanWalletState addNewAddresses(List<AddressInfo> addresses,
-      {bool? hitStopGap, bool? isScanning}) {
-    return ScanWalletState(
-        addresses: [...this.addresses, ...addresses],
-        hitStopGap: hitStopGap ?? this.hitStopGap,
-        isScanning: isScanning ?? this.isScanning);
-  }
+          {bool? hitStopGap, bool? isScanning}) =>
+      ScanWalletState(
+          addresses: [...this.addresses, ...addresses],
+          hitStopGap: hitStopGap ?? this.hitStopGap,
+          isScanning: isScanning ?? this.isScanning);
 }
 
 abstract class ScanWalletEvent {}
@@ -87,19 +86,14 @@ class EthereumAddressInfo implements AddressInfo {
 
   // override toString
   @override
-  String toString() {
-    return 'EthereumAddressInfo{index: $index, address: $address, balance: ${balance.getInWei}}';
-  }
+  String toString() => 'EthereumAddressInfo{index: $index, '
+      'address: $address, balance: ${balance.getInWei}}';
 
   @override
-  String getBalance() {
-    return "${EthAmountFormatter(balance.getInWei).format()} ETH";
-  }
+  String getBalance() => '${EthAmountFormatter().format(balance.getInWei)} ETH';
 
   @override
-  getCryptoType() {
-    return CryptoType.ETH;
-  }
+  CryptoType getCryptoType() => CryptoType.ETH;
 
   @override
   bool hasBalance() => balance.getInWei > BigInt.zero;
@@ -117,19 +111,14 @@ class TezosAddressInfo implements AddressInfo {
 
   // override toString
   @override
-  String toString() {
-    return 'TezosAddressInfo{index: $index, address: $address, balance: $balance}';
-  }
+  String toString() =>
+      'TezosAddressInfo{index: $index, address: $address, balance: $balance}';
 
   @override
-  String getBalance() {
-    return "${XtzAmountFormatter(balance).format()} XTZ";
-  }
+  String getBalance() => '${XtzAmountFormatter().format(balance)} XTZ';
 
   @override
-  CryptoType getCryptoType() {
-    return CryptoType.XTZ;
-  }
+  CryptoType getCryptoType() => CryptoType.XTZ;
 
   @override
   bool hasBalance() => balance > 0;

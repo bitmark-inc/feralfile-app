@@ -66,6 +66,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
   bool _isRename = false;
   final TextEditingController _renameController = TextEditingController();
   final FocusNode _renameFocusNode = FocusNode();
+  final usdcFormatter = USDCAmountFormatter();
 
   @override
   void initState() {
@@ -275,7 +276,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                                                 state.usdcBalances[address];
                                             final balance = usdcBalance == null
                                                 ? '-- USDC'
-                                                : '''${USDCAmountFormatter(usdcBalance).format()} USDC''';
+                                                : '''${usdcFormatter.format(usdcBalance)} USDC''';
                                             return Padding(
                                               padding: padding,
                                               child: _usdcBalance(balance),
@@ -436,7 +437,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
           final usdcBalance = state.usdcBalances[address];
           final balance = usdcBalance == null
               ? '-- USDC'
-              : '${USDCAmountFormatter(usdcBalance).format()} USDC';
+              : '${usdcFormatter.format(usdcBalance)} USDC';
           return SizedBox(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,

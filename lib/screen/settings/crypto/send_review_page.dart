@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_page.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
@@ -33,7 +35,7 @@ class SendReviewPage extends StatefulWidget {
 
   final SendCryptoPayload payload;
 
-  const SendReviewPage({Key? key, required this.payload}) : super(key: key);
+  const SendReviewPage({required this.payload, super.key});
 
   @override
   State<SendReviewPage> createState() => _SendReviewPageState();
@@ -41,8 +43,11 @@ class SendReviewPage extends StatefulWidget {
 
 class _SendReviewPageState extends State<SendReviewPage> {
   bool _isSending = false;
+  final ethFormatter = EthAmountFormatter();
+  final xtzFormatter = XtzAmountFormatter();
+  final usdcFormatter = USDCAmountFormatter();
 
-  void _send() async {
+  Future<void> _send() async {
     setState(() {
       _isSending = true;
     });
@@ -67,10 +72,12 @@ class _SendReviewPageState extends State<SendReviewPage> {
               null,
               feeOption: widget.payload.feeOption);
 
-          if (!mounted) return;
+          if (!mounted) {
+            return;
+          }
           final payload = {
-            "isTezos": false,
-            "hash": txHash,
+            'isTezos': false,
+            'hash': txHash,
           };
           Navigator.of(context).pop(payload);
           break;
@@ -82,10 +89,12 @@ class _SendReviewPageState extends State<SendReviewPage> {
               widget.payload.amount.toInt(),
               baseOperationCustomFee:
                   widget.payload.feeOption.tezosBaseOperationCustomFee);
-          if (!mounted) return;
+          if (!mounted) {
+            return;
+          }
           final payload = {
-            "isTezos": true,
-            "hash": opHash,
+            'isTezos': true,
+            'hash': opHash,
           };
           Navigator.of(context).pop(payload);
           break;
@@ -109,10 +118,12 @@ class _SendReviewPageState extends State<SendReviewPage> {
               data,
               feeOption: widget.payload.feeOption);
 
-          if (!mounted) return;
+          if (!mounted) {
+            return;
+          }
           final payload = {
-            "isTezos": false,
-            "hash": txHash,
+            'isTezos': false,
+            'hash': txHash,
           };
           Navigator.of(context).pop(payload);
           break;
@@ -120,12 +131,14 @@ class _SendReviewPageState extends State<SendReviewPage> {
           break;
       }
     } catch (e) {
-      if (!mounted) return;
-      UIHelper.showMessageAction(
+      if (!mounted) {
+        return;
+      }
+      unawaited(UIHelper.showMessageAction(
         context,
         'transaction_failed'.tr(),
         'try_later'.tr(),
-      );
+      ));
     }
 
     setState(() {
@@ -136,13 +149,13 @@ class _SendReviewPageState extends State<SendReviewPage> {
   String _titleText() {
     switch (widget.payload.type) {
       case CryptoType.ETH:
-        return "send_eth".tr();
+        return 'send_eth'.tr();
       case CryptoType.XTZ:
-        return "send_xtz".tr();
+        return 'send_xtz'.tr();
       case CryptoType.USDC:
-        return "send_usdc".tr();
+        return 'send_usdc'.tr();
       default:
-        return "";
+        return '';
     }
   }
 
@@ -156,7 +169,7 @@ class _SendReviewPageState extends State<SendReviewPage> {
     return Scaffold(
       appBar: getBackAppBar(
         context,
-        title: "confirmation".tr(),
+        title: 'confirmation'.tr(),
         onBack: () {
           Navigator.of(context).pop();
         },
@@ -188,7 +201,7 @@ class _SendReviewPageState extends State<SendReviewPage> {
                           SizedBox(
                             width: 120,
                             child: Text(
-                              "amount".tr(),
+                              'amount'.tr(),
                               style: theme.textTheme.ppMori400Grey14,
                             ),
                           ),
@@ -204,7 +217,7 @@ class _SendReviewPageState extends State<SendReviewPage> {
                           SizedBox(
                             width: 120,
                             child: Text(
-                              "total_amount".tr(),
+                              'total_amount'.tr(),
                               style: theme.textTheme.ppMori400Grey14,
                             ),
                           ),
@@ -225,20 +238,20 @@ class _SendReviewPageState extends State<SendReviewPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              "to".tr(),
+                              'to'.tr(),
                               style: theme.textTheme.ppMori400Grey14,
                             ),
-                            const SizedBox(height: 8.0),
+                            const SizedBox(height: 8),
                             Text(
                               widget.payload.address,
                               style: theme.textTheme.ppMori400White14,
                             ),
                             addDivider(color: AppColor.white),
                             Text(
-                              "gas_fee2".tr(),
+                              'gas_fee2'.tr(),
                               style: theme.textTheme.ppMori400Grey14,
                             ),
-                            const SizedBox(height: 8.0),
+                            const SizedBox(height: 8),
                             Text(
                               _amountFormat(widget.payload.fee, isETH: true),
                               style: theme.textTheme.ppMori400White14,
@@ -256,7 +269,7 @@ class _SendReviewPageState extends State<SendReviewPage> {
                     children: [
                       Expanded(
                         child: PrimaryButton(
-                          text: _isSending ? "sending".tr() : "send".tr(),
+                          text: _isSending ? 'sending'.tr() : 'send'.tr(),
                           isProcessing: _isSending,
                           onTap: _isSending ? null : _send,
                         ),
@@ -267,9 +280,10 @@ class _SendReviewPageState extends State<SendReviewPage> {
               ],
             ),
           ),
-          _isSending
-              ? const Center(child: CupertinoActivityIndicator())
-              : const SizedBox(),
+          if (_isSending)
+            const Center(child: CupertinoActivityIndicator())
+          else
+            const SizedBox(),
         ],
       ),
     );
@@ -278,17 +292,20 @@ class _SendReviewPageState extends State<SendReviewPage> {
   String _amountFormat(BigInt amount, {bool isETH = false}) {
     switch (widget.payload.type) {
       case CryptoType.ETH:
-        return "${EthAmountFormatter(amount).format()} ETH (${widget.payload.exchangeRate.ethToUsd(amount)} USD)";
+        return '${ethFormatter.format(amount)} ETH '
+            '(${widget.payload.exchangeRate.ethToUsd(amount)} USD)';
       case CryptoType.XTZ:
-        return "${XtzAmountFormatter(amount.toInt()).format()} XTZ (${widget.payload.exchangeRate.xtzToUsd(amount.toInt())} USD)";
+        return '${xtzFormatter.format(amount.toInt())} XTZ '
+            '(${widget.payload.exchangeRate.xtzToUsd(amount.toInt())} USD)';
       case CryptoType.USDC:
         if (isETH) {
-          return "${EthAmountFormatter(amount).format()} ETH (${widget.payload.exchangeRate.ethToUsd(amount)} USD)";
+          return '${ethFormatter.format(amount)} ETH '
+              '(${widget.payload.exchangeRate.ethToUsd(amount)} USD)';
         } else {
-          return "${USDCAmountFormatter(amount).format()} USDC";
+          return '${usdcFormatter.format(amount)} USDC';
         }
       default:
-        return "";
+        return '';
     }
   }
 }

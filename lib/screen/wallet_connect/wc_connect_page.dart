@@ -379,6 +379,7 @@ class _WCConnectPageState extends State<WCConnectPage>
                               .getOrCreateDefaultPersona();
                           selectedPersona = WalletIndex(persona.wallet(), 0);
                         }
+                        if (!mounted) return;
                         if (stateCategorizedAccounts == null ||
                             stateCategorizedAccounts.isEmpty) {
                           setState(() {
@@ -388,7 +389,9 @@ class _WCConnectPageState extends State<WCConnectPage>
                         }
                         categorizedAccounts = stateCategorizedAccounts;
                         await _autoSelectDefault(categorizedAccounts);
-                        setState(() {});
+                        if (mounted) {
+                          setState(() {});
+                        }
                       }, builder: (context, state) {
                         return _selectAccount(context);
                       }),
@@ -650,6 +653,7 @@ class _WCConnectPageState extends State<WCConnectPage>
         : WalletType.Ethereum);
     injector<ConfigurationService>().setDoneOnboarding(true);
     injector<MetricClientService>().mixPanelClient.initIfDefaultAccount();
+    if (!mounted) return;
     setState(() {
       selectedPersona = WalletIndex(persona.wallet(), 0);
     });

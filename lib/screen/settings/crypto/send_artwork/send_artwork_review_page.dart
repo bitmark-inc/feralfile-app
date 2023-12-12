@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -40,8 +41,7 @@ import 'package:web3dart/web3dart.dart';
 class SendArtworkReviewPage extends StatefulWidget {
   final SendArtworkReviewPayload payload;
 
-  const SendArtworkReviewPage({Key? key, required this.payload})
-      : super(key: key);
+  const SendArtworkReviewPage({required this.payload, super.key});
 
   @override
   State<SendArtworkReviewPage> createState() => _SendArtworkReviewPageState();
@@ -49,8 +49,11 @@ class SendArtworkReviewPage extends StatefulWidget {
 
 class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
   bool _isSending = false;
+  final tokensService = injector<TokensService>();
+  final ethFormatter = EthAmountFormatter();
+  final xtzFormatter = XtzAmountFormatter();
 
-  void _sendArtwork() async {
+  Future<void> _sendArtwork() async {
     setState(() {
       _isSending = true;
     });
@@ -64,7 +67,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
 
     try {
       final assetToken = widget.payload.assetToken;
-      if (widget.payload.assetToken.blockchain == "ethereum") {
+      if (widget.payload.assetToken.blockchain == 'ethereum') {
         final ethereumService = injector<EthereumService>();
 
         final contractAddress =
@@ -74,7 +77,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
             .getETHEip55Address(index: widget.payload.index));
         final tokenId = assetToken.tokenId!;
 
-        final data = widget.payload.assetToken.contractType == "erc1155"
+        final data = widget.payload.assetToken.contractType == 'erc1155'
             ? await ethereumService.getERC1155TransferTransactionData(
                 contractAddress, from, to, tokenId, widget.payload.quantity,
                 feeOption: widget.payload.feeOption)
@@ -99,22 +102,24 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
               Uint8List.fromList(utf8.encode(timestamp)));
           final pendingTxParams = PendingTxParams(
             blockchain: assetToken.blockchain,
-            id: assetToken.tokenId ?? "",
-            contractAddress: assetToken.contractAddress ?? "",
+            id: assetToken.tokenId ?? '',
+            contractAddress: assetToken.contractAddress ?? '',
             ownerAccount: assetToken.owner,
             pendingTx: txHash,
             timestamp: timestamp,
             signature: signature,
           );
-          injector<TokensService>().postPendingToken(pendingTxParams);
+          unawaited(tokensService.postPendingToken(pendingTxParams));
         }
 
-        if (!mounted) return;
+        if (!mounted) {
+          return;
+        }
         final payload = {
-          "isTezos": false,
-          "hash": txHash,
-          "isSentAll": widget.payload.quantity >= widget.payload.ownedTokens,
-          "sentQuantity": widget.payload.quantity,
+          'isTezos': false,
+          'hash': txHash,
+          'isSentAll': widget.payload.quantity >= widget.payload.ownedTokens,
+          'sentQuantity': widget.payload.quantity,
         };
         Navigator.of(context).pop(payload);
       } else {
@@ -144,32 +149,36 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
               wallet, index, Uint8List.fromList(utf8.encode(timestamp)));
           final pendingTxParams = PendingTxParams(
             blockchain: assetToken.blockchain,
-            id: assetToken.tokenId ?? "",
-            contractAddress: assetToken.contractAddress ?? "",
+            id: assetToken.tokenId ?? '',
+            contractAddress: assetToken.contractAddress ?? '',
             ownerAccount: assetToken.owner,
             pendingTx: opHash,
             timestamp: timestamp,
             signature: signature,
             publicKey: publicKey,
           );
-          injector<TokensService>().postPendingToken(pendingTxParams);
+          unawaited(tokensService.postPendingToken(pendingTxParams));
         }
-        if (!mounted) return;
+        if (!mounted) {
+          return;
+        }
         final payload = {
-          "isTezos": true,
-          "hash": opHash,
-          "isSentAll": widget.payload.quantity >= widget.payload.ownedTokens,
-          "sentQuantity": widget.payload.quantity,
+          'isTezos': true,
+          'hash': opHash,
+          'isSentAll': widget.payload.quantity >= widget.payload.ownedTokens,
+          'sentQuantity': widget.payload.quantity,
         };
         Navigator.of(context).pop(payload);
       }
     } catch (e) {
-      if (!mounted) return;
-      UIHelper.showMessageAction(
+      if (!mounted) {
+        return;
+      }
+      unawaited(UIHelper.showMessageAction(
         context,
         'transaction_failed'.tr(),
         'try_later'.tr(),
-      );
+      ));
     }
     setState(() {
       _isSending = false;
@@ -192,7 +201,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
       child: Scaffold(
         appBar: getBackAppBar(
           context,
-          title: "confirmation".tr(),
+          title: 'confirmation'.tr(),
           onBack: () {
             Navigator.of(context).pop();
           },
@@ -214,11 +223,11 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                           Padding(
                             padding: padding,
                             child: Text(
-                              "send_artwork".tr(),
+                              'send_artwork'.tr(),
                               style: theme.textTheme.ppMori400Black16,
                             ),
                           ),
-                          const SizedBox(height: 40.0),
+                          const SizedBox(height: 40),
                           divider,
                           Padding(
                             padding: padding,
@@ -226,56 +235,54 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                               children: [
                                 _item(
                                   context: context,
-                                  title: "title".tr(),
+                                  title: 'title'.tr(),
                                   content: assetToken.title ?? '',
                                 ),
                                 divider,
                                 _item(
                                     context: context,
-                                    title: "artist".tr(),
-                                    content: artistName ?? "",
+                                    title: 'artist'.tr(),
+                                    content: artistName ?? '',
                                     tapLink: assetToken.artistURL),
                                 divider,
-                                if (!(widget.payload.assetToken.fungible ==
-                                    true)) ...[
+                                if (!widget.payload.assetToken.fungible) ...[
                                   _item(
                                       context: context,
-                                      title: "edition".tr(),
+                                      title: 'edition'.tr(),
                                       content: assetToken.editionSlashMax),
                                   divider,
                                 ],
                                 _item(
                                     context: context,
-                                    title: "token".tr(),
+                                    title: 'token'.tr(),
                                     content:
-                                        polishSource(assetToken.source ?? ""),
+                                        polishSource(assetToken.source ?? ''),
                                     tapLink: assetToken.assetURL),
                                 divider,
                                 _item(
                                   context: context,
-                                  title: "contract".tr(),
+                                  title: 'contract'.tr(),
                                   content: assetToken.blockchain.capitalize(),
                                   tapLink: assetToken.getBlockchainUrl(),
                                 ),
                                 divider,
                                 _item(
                                     context: context,
-                                    title: "minted".tr(),
+                                    title: 'minted'.tr(),
                                     content: assetToken.mintedAt != null
                                         ? localTimeString(assetToken.mintedAt!)
                                         : ''),
                                 divider,
-                                if (widget.payload.assetToken.fungible ==
-                                    true) ...[
+                                if (widget.payload.assetToken.fungible) ...[
                                   _item(
                                       context: context,
-                                      title: "owned_tokens".tr(),
-                                      content: "${widget.payload.ownedTokens}"),
+                                      title: 'owned_tokens'.tr(),
+                                      content: '${widget.payload.ownedTokens}'),
                                   divider,
                                   _item(
                                       context: context,
-                                      title: "quantity_sent".tr(),
-                                      content: "${widget.payload.quantity}"),
+                                      title: 'quantity_sent'.tr(),
+                                      content: '${widget.payload.quantity}'),
                                   divider,
                                 ],
                                 const SizedBox(height: 16),
@@ -289,26 +296,26 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        "to".tr(),
+                                        'to'.tr(),
                                         style: theme.textTheme.ppMori400Grey14,
                                       ),
-                                      const SizedBox(height: 8.0),
+                                      const SizedBox(height: 8),
                                       Text(
                                         widget.payload.address,
                                         style: theme.textTheme.ppMori400White14,
                                       ),
                                       addDivider(color: AppColor.white),
                                       Text(
-                                        "gas_fee2".tr(),
+                                        'gas_fee2'.tr(),
                                         style: theme.textTheme.ppMori400Grey14,
                                       ),
-                                      const SizedBox(height: 8.0),
+                                      const SizedBox(height: 8),
                                       Text(
                                         _amountFormat(
                                           fee,
                                           isETH: widget.payload.assetToken
                                                   .blockchain ==
-                                              "ethereum",
+                                              'ethereum',
                                         ),
                                         style: theme.textTheme.ppMori400White14,
                                       ),
@@ -328,14 +335,14 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                       children: [
                         Expanded(
                           child: PrimaryButton(
-                              text: _isSending ? "sending".tr() : "sendH".tr(),
+                              text: _isSending ? 'sending'.tr() : 'sendH'.tr(),
                               isProcessing: _isSending,
                               onTap: _isSending ? null : _sendArtwork),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 16.0),
+                  const SizedBox(height: 16),
                 ],
               ),
             ),
@@ -358,10 +365,10 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
 
     if (tapLink != null) {
       final uri = Uri.parse(tapLink);
-      onValueTap = () => launchUrl(uri,
-          mode: forceSafariVC == true
+      onValueTap = () => unawaited(launchUrl(uri,
+          mode: forceSafariVC
               ? LaunchMode.externalApplication
-              : LaunchMode.platformDefault);
+              : LaunchMode.platformDefault));
     }
     return Row(
       children: [
@@ -386,11 +393,11 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
     );
   }
 
-  String _amountFormat(BigInt fee, {required bool isETH}) {
-    return isETH
-        ? "${EthAmountFormatter(fee).format()} ETH (${widget.payload.exchangeRate.ethToUsd(fee)} USD)"
-        : "${XtzAmountFormatter(fee.toInt()).format()} XTZ (${widget.payload.exchangeRate.xtzToUsd(fee.toInt())} USD)";
-  }
+  String _amountFormat(BigInt fee, {required bool isETH}) => isETH
+      ? '${ethFormatter.format(fee)} ETH '
+          '(${widget.payload.exchangeRate.ethToUsd(fee)} USD)'
+      : '${xtzFormatter.format(fee.toInt())} XTZ '
+          '(${widget.payload.exchangeRate.xtzToUsd(fee.toInt())} USD)';
 }
 
 class SendArtworkReviewPayload {
