@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
+
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_state.dart';
@@ -48,8 +50,7 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
     final type =
         _asset.blockchain == 'ethereum' ? CryptoType.ETH : CryptoType.XTZ;
     on<GetBalanceEvent>((event, emit) async {
-      final newState = state.clone();
-      newState.wallet = event.wallet;
+      final newState = state.clone()..wallet = event.wallet;
 
       final exchangeRate = await _currencyService.getExchangeRates();
       newState.exchangeRate = exchangeRate;
@@ -81,39 +82,39 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
 
     on<QuantityUpdateEvent>((event, emit) async {
       log.info('[SendArtworkBloc] QuantityUpdateEvent: ${event.quantity}');
-      final newState = state.clone();
-      newState.quantity = event.quantity;
-      newState.isQuantityError =
-          event.quantity <= 0 || event.quantity > event.maxQuantity;
-      newState.isEstimating = false;
-      newState.fee = null;
+      final newState = state.clone()
+        ..quantity = event.quantity
+        ..isQuantityError =
+            event.quantity <= 0 || event.quantity > event.maxQuantity
+        ..isEstimating = false
+        ..fee = null;
       newState.isValid = _isValid(newState);
       emit(newState);
       if (cachedAddress != null && !newState.isQuantityError) {
         add(AddressChangedEvent(cachedAddress!, event.index));
       }
-    }, transformer: (events, mapper) {
-      return events
-          .debounceTime(const Duration(milliseconds: 300))
-          .distinct()
-          .switchMap(mapper);
-    });
+    },
+        transformer: (events, mapper) => events
+            .debounceTime(const Duration(milliseconds: 300))
+            .distinct()
+            .switchMap(mapper));
 
     on<AddressChangedEvent>((event, emit) async {
       log.info('AddressChangedEvent: ${event.address}');
-      final newState = state.clone();
-      newState.isScanQR = event.address.isEmpty;
-      newState.isAddressError = false;
-      newState.isEstimating = false;
-      newState.fee = null;
+      final newState = state.clone()
+        ..isScanQR = event.address.isEmpty
+        ..isAddressError = false
+        ..isEstimating = false
+        ..fee = null;
 
       if (event.address.isNotEmpty) {
         switch (type) {
           case CryptoType.ETH:
             try {
               final address = EthereumAddress.fromHex(event.address);
-              newState.address = address.hexEip55;
-              newState.isAddressError = false;
+              newState
+                ..address = address.hexEip55
+                ..isAddressError = false;
 
               add(EstimateFeeEvent(address.hexEip55, event.index,
                   _asset.contractAddress!, _asset.tokenId!, state.quantity));
@@ -123,8 +124,9 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
             break;
           case CryptoType.XTZ:
             if (event.address.isValidTezosAddress) {
-              newState.address = event.address;
-              newState.isAddressError = false;
+              newState
+                ..address = event.address
+                ..isAddressError = false;
 
               add(EstimateFeeEvent(event.address, event.index,
                   _asset.contractAddress!, _asset.tokenId!, state.quantity));
@@ -136,8 +138,9 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
             break;
         }
       } else {
-        newState.isAddressError = true;
-        newState.address = '';
+        newState
+          ..isAddressError = true
+          ..address = '';
       }
       newState.isValid = _isValid(newState);
       cachedAddress = newState.address;
@@ -154,7 +157,9 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
         case CryptoType.ETH:
           final wallet = state.wallet;
           final index = event.index;
-          if (wallet == null) return;
+          if (wallet == null) {
+            return;
+          }
 
           final contractAddress =
               EthereumAddress.fromHex(event.contractAddress);
@@ -197,7 +202,9 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
         case CryptoType.XTZ:
           final wallet = state.wallet;
           final index = event.index;
-          if (wallet == null) return;
+          if (wallet == null) {
+            return;
+          }
           try {
             final operation = await _tezosService.getFa2TransferOperation(
                 event.contractAddress,
@@ -222,19 +229,19 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
                     baseOperationCustomFeeHigh));
           } on TezartNodeError catch (err) {
             if (!emit.isDone) {
-              UIHelper.showInfoDialog(
+              unawaited(UIHelper.showInfoDialog(
                 injector<NavigationService>().navigatorKey.currentContext!,
                 'estimation_failed'.tr(),
                 getTezosErrorMessage(err),
                 isDismissible: true,
-              );
+              ));
               fee = BigInt.zero;
               feeOptionValue =
                   FeeOptionValue(BigInt.zero, BigInt.zero, BigInt.zero);
             }
           } catch (err) {
             if (!emit.isDone) {
-              showErrorDialogFromException(err);
+              unawaited(showErrorDialogFromException(err));
             }
             fee = BigInt.zero;
             feeOptionValue =
@@ -250,32 +257,38 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
 
       if (!emit.isDone) {
         final newState =
-            event.newState == null ? state.clone() : event.newState!.clone();
-        newState.fee = fee;
-        newState.feeOptionValue = feeOptionValue;
-        newState.isEstimating = false;
+            event.newState == null ? state.clone() : event.newState!.clone()
+              ..fee = fee
+              ..feeOptionValue = feeOptionValue
+              ..isEstimating = false;
         newState.isValid = _isValid(newState);
         emit(newState);
       }
-    }, transformer: (events, mapper) {
-      return events
-          .debounceTime(const Duration(milliseconds: 300))
-          .switchMap(mapper);
-    });
+    },
+        transformer: (events, mapper) => events
+            .debounceTime(const Duration(milliseconds: 300))
+            .switchMap(mapper));
 
     on<FeeOptionChangedEvent>((event, emit) async {
-      final newState = state.clone();
-      newState.feeOption = event.feeOption;
+      final newState = state.clone()..feeOption = event.feeOption;
       newState.fee = newState.feeOptionValue?.getFee(event.feeOption);
       emit(newState);
     });
   }
 
   bool _isValid(SendArtworkState state) {
-    if (state.address == null) return false;
-    if (state.balance == null) return false;
-    if (state.fee == null) return false;
-    if (state.isQuantityError) return false;
+    if (state.address == null) {
+      return false;
+    }
+    if (state.balance == null) {
+      return false;
+    }
+    if (state.fee == null) {
+      return false;
+    }
+    if (state.isQuantityError) {
+      return false;
+    }
 
     return state.fee! <= state.balance! - _safeBuffer;
   }

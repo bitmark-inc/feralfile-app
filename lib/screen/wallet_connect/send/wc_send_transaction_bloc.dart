@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -76,15 +77,13 @@ class WCSendTransactionBloc
 
     on<WCSendTransactionSendEvent>((event, emit) async {
       log.info('[WCSendTransactionBloc][Start] send transaction');
-      final sendingState = state.clone();
-      sendingState.isSending = true;
+      final sendingState = state.clone()..isSending = true;
       emit(sendingState);
 
       final didAuthenticate = await LocalAuthenticationService.checkLocalAuth();
 
       if (!didAuthenticate) {
-        final newState = sendingState.clone();
-        newState.isSending = false;
+        final newState = sendingState.clone()..isSending = false;
         emit(newState);
         return;
       }
@@ -104,9 +103,9 @@ class WCSendTransactionBloc
         if (!event.isIRL) {
           await _wc2Service.respondOnApprove(event.topic ?? '', txHash);
         }
-        log.info(
-            '[WCSendTransactionBloc][End] send transaction success, txHash: $txHash');
-        injector<PendingTokenService>()
+        log.info('[WCSendTransactionBloc][End] '
+            'send transaction success, txHash: $txHash');
+        unawaited(injector<PendingTokenService>()
             .checkPendingEthereumTokens(
           await persona.getETHEip55Address(index: index),
           txHash,
@@ -118,15 +117,15 @@ class WCSendTransactionBloc
             NftCollectionBloc.eventController
                 .add(UpdateTokensEvent(tokens: tokens));
           }
-        });
+        }));
         _navigationService.goBack(result: txHash);
       } catch (e) {
         log.info(
             '[WCSendTransactionBloc][End] send transaction error, error: $e');
-        final newState = sendingState.clone();
-        newState.balance = balance.getInWei;
-        newState.isSending = false;
-        newState.isError = true;
+        final newState = sendingState.clone()
+          ..balance = balance.getInWei
+          ..isSending = false
+          ..isError = true;
         emit(newState);
         return;
       }
@@ -135,14 +134,13 @@ class WCSendTransactionBloc
     on<WCSendTransactionRejectEvent>((event, emit) async {
       log.info('[WCSendTransactionBloc][End] send transaction reject');
       if (!event.isIRL) {
-        _wc2Service.respondOnReject(event.topic ?? '');
+        await _wc2Service.respondOnReject(event.topic ?? '');
       }
       _navigationService.goBack();
     });
 
     on<FeeOptionChangedEvent>((event, emit) async {
-      final newState = state.clone();
-      newState.feeOption = event.feeOption;
+      final newState = state.clone()..feeOption = event.feeOption;
       newState.fee = newState.feeOptionValue!.getFee(newState.feeOption);
       emit(newState);
     });
