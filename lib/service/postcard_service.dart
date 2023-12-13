@@ -112,7 +112,7 @@ abstract class PostcardService {
   Future<bool> finalizeStamp(AssetToken asset, String imagePath,
       String metadataPath, Location location);
 
-  Future<List<Prompt>> getPrompts(String tokenId);
+  Future<Prompt?> getPrompt(String tokenId);
 }
 
 class PostcardServiceImpl extends PostcardService {
@@ -538,7 +538,9 @@ class PostcardServiceImpl extends PostcardService {
       'postcardId': result.tokenID,
     }));
     final tokenID = 'tez-${result.contractAddress}-${result.tokenID}';
+    final prompt = await getPrompt(result.tokenID ?? '');
     final postcardMetadata = PostcardMetadata(
+      prompt: prompt,
       locationInformation: [],
     );
     final token = AssetToken(
@@ -550,7 +552,7 @@ class PostcardServiceImpl extends PostcardService {
         title: requestPostcardResponse.name,
         previewURL: requestPostcardResponse.previewURL,
         source: 'postcard',
-        artworkMetadata: jsonEncode(postcardMetadata.toJson()),
+        artworkMetadata: jsonEncode(postcardMetadata),
         medium: 'software',
       ),
       blockchain: 'tezos',
@@ -688,10 +690,15 @@ class PostcardServiceImpl extends PostcardService {
   }
 
   @override
-  Future<List<Prompt>> getPrompts(String tokenId) async {
-    final prompts = await _postcardApi.getPrompts(tokenId);
-    log.info('[POSTCARD] getPrompts: $prompts');
-    return prompts;
+  Future<Prompt?> getPrompt(String tokenId) async {
+    try {
+      final prompts = await _postcardApi.getPrompts(tokenId);
+      log.info('[POSTCARD] getPrompts: $prompts');
+      final prompt = prompts.isNotEmpty ? prompts.first : null;
+      return prompt;
+    } catch (e) {
+      return null;
+    }
   }
 }
 
