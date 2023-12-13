@@ -142,6 +142,71 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     );
   }
 
+  Future<void> _showSharingExpired(BuildContext context) async {
+    await UIHelper.showPostcardDrawerAction(context, options: [
+      OptionItem(
+        builder: (context, _) => Row(
+          children: [
+            const SizedBox(width: 15),
+            SizedBox(
+              width: 30,
+              child: SvgPicture.asset(
+                'assets/images/restart.svg',
+                width: 24,
+                height: 24,
+              ),
+            ),
+            const SizedBox(width: 18),
+            Expanded(
+              child: Text(
+                'you_need_resend'.tr(),
+                style: Theme.of(context).textTheme.moMASans700Black18,
+              ),
+            ),
+          ],
+        ),
+      ),
+      OptionItem(
+        builder: (context, _) => Row(
+          children: [
+            const SizedBox(width: 15),
+            SvgPicture.asset(
+              'assets/images/arrow_right.svg',
+              width: 24,
+              height: 24,
+            ),
+            const SizedBox(width: 18),
+            Expanded(
+              child: Text(
+                'no_one_received'.tr(),
+                style: Theme.of(context).textTheme.moMASans700AuGrey18,
+              ),
+            ),
+          ],
+        ),
+      ),
+      OptionItem(
+        builder: (context, _) => Row(
+          children: [
+            const SizedBox(width: 15),
+            SvgPicture.asset(
+              'assets/images/cross.svg',
+              width: 24,
+              height: 24,
+            ),
+            const SizedBox(width: 18),
+            Expanded(
+              child: Text(
+                'resend_new_link'.tr(),
+                style: Theme.of(context).textTheme.moMASans700AuGrey18,
+              ),
+            ),
+          ],
+        ),
+      )
+    ]);
+  }
+
   Future<void> _removeShareConfig(AssetToken assetToken) async {
     await _configurationService.removeSharedPostcardWhere(
         (p) => p.owner == assetToken.owner && p.tokenID == assetToken.id);
@@ -382,6 +447,15 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         }
 
         if (assetToken.didSendNext) {
+          unawaited(_removeShareConfig(assetToken));
+        }
+
+        if (assetToken.isShareExpired &&
+            (assetToken.isLastOwner && !isViewOnly)) {
+          if (!mounted) {
+            return;
+          }
+          unawaited(_showSharingExpired(context));
           unawaited(_removeShareConfig(assetToken));
         }
       }
@@ -644,7 +718,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       );
     }
     if (!(asset.isStamping || asset.isStamped || asset.isProcessingStamp)) {
-      return PostcardButton(
+      return PostcardAsyncButton(
         text: 'stamp_postcard'.tr(),
         onTap: () async {
           if (asset.numberOwners > 1) {
@@ -652,20 +726,20 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
               text: 'continue'.tr(),
               fontSize: 18,
               onTap: () async {
-                unawaited(injector<NavigationService>().popAndPushNamed(
+                await injector<NavigationService>().popAndPushNamed(
                     AppRouter.designStamp,
-                    arguments: DesignStampPayload(asset, false)));
+                    arguments: DesignStampPayload(asset, false, null));
               },
               color: AppColor.momaGreen,
             );
             final page = _postcardPreview(context, asset);
-            unawaited(Navigator.of(context).pushNamed(
+            await Navigator.of(context).pushNamed(
               AppRouter.postcardExplain,
               arguments: PostcardExplainPayload(asset, button, pages: [page]),
-            ));
+            );
           } else {
-            unawaited(injector<NavigationService>()
-                .selectPromptsThenStamp(context, asset));
+            await injector<NavigationService>()
+                .selectPromptsThenStamp(context, asset, null);
           }
         },
         color: MoMAColors.moMA8,

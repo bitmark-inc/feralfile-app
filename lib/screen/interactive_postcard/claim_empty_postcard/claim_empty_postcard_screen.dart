@@ -56,7 +56,7 @@ class _ClaimEmptyPostCardScreenState extends State<ClaimEmptyPostCardScreen> {
           listener: (context, state) {
             if (state.isClaimed == true) {
               unawaited(injector<NavigationService>()
-                  .selectPromptsThenStamp(context, state.assetToken!));
+                  .selectPromptsThenStamp(context, state.assetToken!, null));
             }
             if (state.error != null) {
               _handleError(state.error!);
