@@ -18,7 +18,6 @@ import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
 import 'package:autonomy_flutter/service/airdrop_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
@@ -85,19 +84,11 @@ class NavigationService {
 
   Future<void> selectPromptsThenStamp(
       BuildContext context, AssetToken asset, String? shareCode) async {
-    final prompts =
-        await injector<PostcardService>().getPrompts(asset.tokenId!);
-    if (!mounted) {
-      return;
-    }
-    if (prompts.isEmpty) {
-      await popAndPushNamed(AppRouter.promptPage,
-          arguments: DesignStampPayload(asset, true, shareCode));
-    } else {
-      final assetWithPrompt = asset.setAssetPrompt(prompts.first);
-      await popAndPushNamed(AppRouter.designStamp,
-          arguments: DesignStampPayload(assetWithPrompt, true, shareCode));
-    }
+    final prompt = asset.postcardMetadata.prompt;
+
+    await popAndPushNamed(
+        prompt == null ? AppRouter.promptPage : AppRouter.designStamp,
+        arguments: DesignStampPayload(asset, true, shareCode));
   }
 
   Future<dynamic>? navigateUntil(
