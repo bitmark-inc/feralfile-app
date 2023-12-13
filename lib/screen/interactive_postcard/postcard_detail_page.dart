@@ -452,7 +452,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         }
 
         if (assetToken.isShareExpired &&
-            (assetToken.isLastOwner && !isViewOnly)) {
+            (assetToken.isLastOwner && !isNotOwner)) {
           if (!mounted) {
             return;
           }
