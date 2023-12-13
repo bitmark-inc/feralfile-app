@@ -717,8 +717,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             enabled: isEnable,
             icon: SvgPicture.asset(
               isEnable
-                  ? 'assets/images/lock_icon.svg'
-                  : 'assets/images/unlock_icon.svg',
+                  ? 'assets/images/unlock_icon.svg'
+                  : 'assets/images/lock_icon.svg',
             ),
             onTap: () async {
               final indexId = assetToken.id;
