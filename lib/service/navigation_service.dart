@@ -29,9 +29,7 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:nft_collection/models/asset_token.dart';
-
-// ignore: implementation_imports
+import 'package:nft_collection/models/asset_token.dart'; // ignore: implementation_imports
 import 'package:overlay_support/src/overlay_state_finder.dart';
 
 class NavigationService {
@@ -85,12 +83,12 @@ class NavigationService {
   }
 
   Future<void> selectPromptsThenStamp(
-      BuildContext context, AssetToken asset) async {
+      BuildContext context, AssetToken asset, String? shareCode) async {
     final prompt = asset.postcardMetadata.prompt;
 
     await popAndPushNamed(
         prompt == null ? AppRouter.promptPage : AppRouter.designStamp,
-        arguments: DesignStampPayload(asset, true));
+        arguments: DesignStampPayload(asset, true, shareCode));
   }
 
   Future<dynamic>? navigateUntil(
