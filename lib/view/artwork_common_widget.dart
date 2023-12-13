@@ -942,6 +942,7 @@ Widget postcardDetailsMetadataSection(
     color: theme.colorScheme.primary,
   );
   const unexpandedCount = 1;
+  final otherCount = artists.length - unexpandedCount;
   return SectionExpandedWidget(
     header: "metadata".tr(),
     headerStyle: theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
@@ -979,8 +980,8 @@ Widget postcardDetailsMetadataSection(
               titleStyle: titleStyle,
               content: ListItemExpandedWidget(
                 expandWidget: Text(
-                  "_others".tr(namedArgs: {
-                    "number": "${artists.length - unexpandedCount}",
+                  (otherCount == 1 ? '_other' : "_others").tr(namedArgs: {
+                    "number": "${otherCount}",
                   }),
                   style: linkStyle,
                 ),
@@ -1258,6 +1259,7 @@ Widget postcardOwnership(
     color: theme.colorScheme.primary,
   );
   const unexpandedCount = 1;
+  final otherCount = owners.length - unexpandedCount;
   return SectionExpandedWidget(
     header: "token_ownership".tr(),
     headerStyle: theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
@@ -1312,9 +1314,8 @@ Widget postcardOwnership(
             titleStyle: titleStyle,
             content: ListItemExpandedWidget(
               expandWidget: Text(
-                "_others".tr(namedArgs: {
-                  "number": "${owners.length - unexpandedCount}"
-                }),
+                (otherCount == 1 ? '_other' : "_others")
+                    .tr(namedArgs: {"number": "$otherCount"}),
                 style: linkStyle,
               ),
               unexpandWidget: Text(
