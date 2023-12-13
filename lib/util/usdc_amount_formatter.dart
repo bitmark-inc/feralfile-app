@@ -13,20 +13,20 @@ class USDCAmountFormatter {
   final int digit;
 
   String format(BigInt amount) {
-    final formater =
+    final formatter =
         NumberFormat("${'#' * 10}0.0${'#' * (digit - 1)}", 'en_US');
-    return formater.format(amount.toDouble() / 1000000);
+    return formatter.format(amount.toDouble() / 1000000);
   }
 }
 
 class USDAmountFormatter {
-  late NumberFormat formater;
+  late NumberFormat formatter;
 
   USDAmountFormatter({this.digit = 2}) {
-    formater = NumberFormat("${'#' * 10}0.0${'#' * (digit - 1)}", 'en_US');
+    formatter = NumberFormat("${'#' * 10}0.0${'#' * (digit - 1)}", 'en_US');
   }
 
   final int digit;
 
-  String format(double amount) => formater.format(amount / 100);
+  String format(double amount) => formatter.format(amount / 100);
 }
