@@ -104,7 +104,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
         padding: const EdgeInsets.only(bottom: 32),
         child: Column(
           children: [
-            const SizedBox(height: 25),
+            const SizedBox(height: 40),
             Padding(
               padding: const EdgeInsets.only(left: 15, right: 15),
               child: Row(
@@ -138,7 +138,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
                 ],
               ),
             ),
-            const SizedBox(height: 80),
+            const SizedBox(height: 25),
             Expanded(
               child: _viewClaimPage
                   ? Padding(
@@ -157,7 +157,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
                             });
                           },
                           itemBuilder: (context, index) => Padding(
-                            padding: padding,
+                            padding: padding.copyWith(top: 40),
                             child: pages[index],
                           ),
                           itemCount: swiperSize,
@@ -223,12 +223,12 @@ class _PostcardExplainState extends State<PostcardExplain> {
             children: [
               Text(
                 'moma_project_invite'.tr(),
-                style: theme.textTheme.moMASans400Black18,
+                style: theme.textTheme.moMASans400Black14,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 20),
               Text(
                 'with_15_blank_stamps'.tr(),
-                style: theme.textTheme.moMASans400Black18,
+                style: theme.textTheme.moMASans400Black14,
               ),
               const SizedBox(height: 40),
               Text.rich(
