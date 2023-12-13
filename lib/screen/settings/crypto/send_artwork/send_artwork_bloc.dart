@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/fee_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/rpc_error_extension.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
@@ -23,6 +24,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:tezart/tezart.dart';
+import 'package:web3dart/json_rpc.dart';
 import 'package:web3dart/web3dart.dart';
 
 class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
@@ -44,7 +46,7 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
     this._asset,
   ) : super(SendArtworkState()) {
     final type =
-        _asset.blockchain == "ethereum" ? CryptoType.ETH : CryptoType.XTZ;
+        _asset.blockchain == 'ethereum' ? CryptoType.ETH : CryptoType.XTZ;
     on<GetBalanceEvent>((event, emit) async {
       final newState = state.clone();
       newState.wallet = event.wallet;
@@ -78,7 +80,7 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
     });
 
     on<QuantityUpdateEvent>((event, emit) async {
-      log.info("[SendArtworkBloc] QuantityUpdateEvent: ${event.quantity}");
+      log.info('[SendArtworkBloc] QuantityUpdateEvent: ${event.quantity}');
       final newState = state.clone();
       newState.quantity = event.quantity;
       newState.isQuantityError =
@@ -98,7 +100,7 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
     });
 
     on<AddressChangedEvent>((event, emit) async {
-      log.info("AddressChangedEvent: ${event.address}");
+      log.info('AddressChangedEvent: ${event.address}');
       final newState = state.clone();
       newState.isScanQR = event.address.isEmpty;
       newState.isAddressError = false;
@@ -135,7 +137,7 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
         }
       } else {
         newState.isAddressError = true;
-        newState.address = "";
+        newState.address = '';
       }
       newState.isValid = _isValid(newState);
       cachedAddress = newState.address;
@@ -143,7 +145,7 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
     });
 
     on<EstimateFeeEvent>((event, emit) async {
-      log.info("[SendArtworkBloc] Estimate fee: ${event.quantity}");
+      log.info('[SendArtworkBloc] Estimate fee: ${event.quantity}');
       emit(state.copyWith(isEstimating: true));
 
       BigInt? fee;
@@ -160,7 +162,7 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
           final from = EthereumAddress.fromHex(
               await state.wallet!.getETHEip55Address(index: index));
 
-          final data = _asset.contractType == "erc1155"
+          final data = _asset.contractType == 'erc1155'
               ? await _ethereumService.getERC1155TransferTransactionData(
                   contractAddress, from, to, event.tokenId, event.quantity,
                   feeOption: state.feeOption)
@@ -172,9 +174,18 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
             feeOptionValue = await _ethereumService.estimateFee(
                 wallet, index, contractAddress, EtherAmount.zero(), data);
             fee = feeOptionValue.getFee(state.feeOption);
+          } on RPCError catch (e) {
+            _navigationService.showErrorDialog(
+                ErrorEvent(e, 'estimation_failed'.tr(), e.errorMessage,
+                    ErrorItemState.tryAgain), cancelAction: () {
+              _navigationService.hideInfoDialog();
+              return;
+            }, defaultAction: () {
+              add(event);
+            });
           } catch (e) {
             _navigationService.showErrorDialog(
-                ErrorEvent(e, "estimation_failed".tr(), e.toString(),
+                ErrorEvent(e, 'estimation_failed'.tr(), e.toString(),
                     ErrorItemState.tryAgain), cancelAction: () {
               _navigationService.hideInfoDialog();
               return;
@@ -213,7 +224,7 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
             if (!emit.isDone) {
               UIHelper.showInfoDialog(
                 injector<NavigationService>().navigatorKey.currentContext!,
-                "estimation_failed".tr(),
+                'estimation_failed'.tr(),
                 getTezosErrorMessage(err),
                 isDismissible: true,
               );
