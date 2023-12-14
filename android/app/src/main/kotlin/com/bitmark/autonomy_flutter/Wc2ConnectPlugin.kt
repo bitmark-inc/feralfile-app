@@ -4,7 +4,6 @@ import android.app.Application
 import com.bitmark.autonomy_flutter.util.toJsonElement
 import com.bitmark.autonomy_flutter.wc2.toPairing
 import com.bitmark.autonomy_flutter.wc2.toProposalNamespace
-import com.bitmark.autonomy_flutter.wc2.ProposalNamespace
 import com.google.gson.Gson
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
