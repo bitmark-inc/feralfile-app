@@ -79,8 +79,7 @@ class Wc2Proposal extends ConnectionRequest {
   bool get isAutonomyConnect => _isAutonomyConnect();
 
   bool _isAutonomyConnect() {
-    final proposalChains =
-        allNamespaces.keys.toSet();
+    final proposalChains = allNamespaces.keys.toSet();
     return proposalChains.contains(Wc2Chain.autonomy);
   }
 
