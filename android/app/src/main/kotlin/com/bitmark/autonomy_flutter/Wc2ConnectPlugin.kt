@@ -4,6 +4,7 @@ import android.app.Application
 import com.bitmark.autonomy_flutter.util.toJsonElement
 import com.bitmark.autonomy_flutter.wc2.toPairing
 import com.bitmark.autonomy_flutter.wc2.toProposalNamespace
+import com.bitmark.autonomy_flutter.wc2.ProposalNamespace
 import com.google.gson.Gson
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
@@ -126,7 +127,10 @@ class Wc2ConnectPlugin(private val application: Application) : FlutterPlugin,
             override fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal) {
                 Timber.d("[WalletDelegate] onSessionProposal $sessionProposal")
                 pendingProposals.add(sessionProposal)
-                val namespaces = sessionProposal.requiredNamespaces.mapValues { e ->
+                val requiredNamespaces = sessionProposal.requiredNamespaces.mapValues { e ->
+                    e.value.toProposalNamespace()
+                }
+                val optionalNamespaces = sessionProposal.optionalNamespaces.mapValues { e ->
                     e.value.toProposalNamespace()
                 }
                 val proposer = mapOf(
@@ -138,7 +142,8 @@ class Wc2ConnectPlugin(private val application: Application) : FlutterPlugin,
                 val params = mapOf(
                     "id" to sessionProposal.proposerPublicKey,
                     "proposer" to Gson().toJson(proposer),
-                    "requiredNamespaces" to Json.encodeToString(namespaces)
+                    "requiredNamespaces" to Json.encodeToString(requiredNamespaces),
+                    "optionalNamespaces" to Json.encodeToString(optionalNamespaces)
                 )
                 mainScope?.launch {
                     eventPublisher.emit(
@@ -247,7 +252,7 @@ class Wc2ConnectPlugin(private val application: Application) : FlutterPlugin,
             result.error("-1", "Proposal not found", null)
             return
         }
-        val namespaces = proposal.requiredNamespaces.mapValues {
+        val namespaces = (proposal.requiredNamespaces + proposal.optionalNamespaces).mapValues {
             Sign.Model.Namespace.Session(
                 chains = it.value.chains,
                 methods = it.value.methods,
