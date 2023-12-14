@@ -123,7 +123,8 @@ class PostcardDetailBloc
             await _showMerchProduct(assetToken, isViewOnly ?? true);
         if (showMerch != state.showMerch) {
           emit(state.copyWith(
-              showMerch: showMerch, enableMerch: _enableMerch(assetToken)));
+              showMerch: showMerch,
+              enableMerch: assetToken?.enabledMerch ?? false));
         }
 
         if (assetToken != null &&
@@ -238,15 +239,5 @@ class PostcardDetailBloc
     } catch (e) {
       return false;
     }
-  }
-
-  bool _enableMerch(AssetToken? asset) {
-    if (asset == null) {
-      return false;
-    }
-    final isEnable = asset.isCompleted ||
-        !_remoteConfig.getBool(
-            ConfigGroup.merchandise, ConfigKey.mustCompleted);
-    return isEnable;
   }
 }
