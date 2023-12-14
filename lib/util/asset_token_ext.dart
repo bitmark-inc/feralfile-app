@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
+import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -767,5 +768,12 @@ extension PostcardExtension on AssetToken {
         injector<ConfigurationService>().getSharedPostcard();
     return sharedPostcards.any((element) =>
         element.owner == owner && element.tokenID == id && element.isExpired);
+  }
+
+  bool get enabledMerch {
+    final remoteConfig = injector<RemoteConfigService>();
+    final isEnable = isCompleted ||
+        !remoteConfig.getBool(ConfigGroup.merchandise, ConfigKey.mustCompleted);
+    return isEnable;
   }
 }

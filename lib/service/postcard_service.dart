@@ -92,6 +92,8 @@ abstract class PostcardService {
     required int stampIndex,
   });
 
+  Future<bool> isMerchandiseEnable(String tokenId);
+
   Future<void> downloadPostcard(String tokenId);
 
   String getTokenId(String id);
@@ -113,7 +115,7 @@ abstract class PostcardService {
     required String? shareCode,
   });
 
-  Future<List<Prompt>> getPrompts(String tokenId);
+  Future<Prompt?> getPrompt(String tokenId);
 }
 
 class PostcardServiceImpl extends PostcardService {
@@ -385,6 +387,13 @@ class PostcardServiceImpl extends PostcardService {
   }
 
   @override
+  Future<bool> isMerchandiseEnable(String tokenId) async {
+    final response = await _postcardApi.getMerchandiseEnable(tokenId);
+    final result = jsonDecode(response)['enabled'] as bool;
+    return result;
+  }
+
+  @override
   Future<PostcardLeaderboard> fetchPostcardLeaderboard(
       {required String unit, required int size, required int offset}) async {
     final leaderboardResponse =
@@ -532,7 +541,9 @@ class PostcardServiceImpl extends PostcardService {
       'postcardId': result.tokenID,
     }));
     final tokenID = 'tez-${result.contractAddress}-${result.tokenID}';
+    final prompt = await getPrompt(result.tokenID ?? '');
     final postcardMetadata = PostcardMetadata(
+      prompt: prompt,
       locationInformation: [],
     );
     final token = AssetToken(
@@ -544,7 +555,7 @@ class PostcardServiceImpl extends PostcardService {
         title: requestPostcardResponse.name,
         previewURL: requestPostcardResponse.previewURL,
         source: 'postcard',
-        artworkMetadata: jsonEncode(postcardMetadata.toJson()),
+        artworkMetadata: jsonEncode(postcardMetadata),
         medium: 'software',
       ),
       blockchain: 'tezos',
@@ -679,10 +690,15 @@ class PostcardServiceImpl extends PostcardService {
   }
 
   @override
-  Future<List<Prompt>> getPrompts(String tokenId) async {
-    final prompts = await _postcardApi.getPrompts(tokenId);
-    log.info('[POSTCARD] getPrompts: $prompts');
-    return prompts;
+  Future<Prompt?> getPrompt(String tokenId) async {
+    try {
+      final prompts = await _postcardApi.getPrompts(tokenId);
+      log.info('[POSTCARD] getPrompts: $prompts');
+      final prompt = prompts.isNotEmpty ? prompts.first : null;
+      return prompt;
+    } catch (e) {
+      return null;
+    }
   }
 }
 

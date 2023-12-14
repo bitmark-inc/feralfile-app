@@ -17,14 +17,20 @@ class PostcardDetailState {
   String? metadataPath;
   PostcardLeaderboard? leaderboard;
   bool isFetchingLeaderboard;
+  bool? showMerch;
+  bool? enableMerch;
+  bool? isViewOnly;
 
   PostcardDetailState({
     required this.provenances,
+    this.isViewOnly,
     this.assetToken,
     this.imagePath,
     this.metadataPath,
     this.leaderboard,
     this.isFetchingLeaderboard = false,
+    this.showMerch,
+    this.enableMerch,
   });
 
   ArtworkDetailState toArtworkDetailState() => ArtworkDetailState(
@@ -39,6 +45,9 @@ class PostcardDetailState {
     String? metadataPath,
     PostcardLeaderboard? leaderboard,
     bool? isFetchingLeaderboard,
+    bool? showMerch,
+    bool? isViewOnly,
+    bool? enableMerch,
   }) =>
       PostcardDetailState(
         assetToken: assetToken ?? this.assetToken,
@@ -48,5 +57,8 @@ class PostcardDetailState {
         leaderboard: leaderboard ?? this.leaderboard,
         isFetchingLeaderboard:
             isFetchingLeaderboard ?? this.isFetchingLeaderboard,
+        showMerch: showMerch ?? this.showMerch,
+        isViewOnly: isViewOnly ?? this.isViewOnly,
+        enableMerch: enableMerch ?? this.enableMerch,
       );
 }
