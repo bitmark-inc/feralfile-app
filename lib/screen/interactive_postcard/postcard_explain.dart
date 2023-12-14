@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/model/prompt.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -11,7 +10,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
-import 'package:autonomy_flutter/view/prompt_view.dart';
+import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
@@ -24,7 +23,6 @@ import 'package:nft_collection/models/asset_token.dart';
 import 'package:video_player/video_player.dart';
 
 class PostcardExplain extends StatefulWidget {
-  static const String tag = 'postcard_explain_screen';
   final PostcardExplainPayload payload;
 
   const PostcardExplain({required this.payload, super.key});
@@ -41,10 +39,15 @@ class _PostcardExplainState extends State<PostcardExplain> {
       VideoPlayerController.asset('assets/videos/colouring_video.mp4');
   late int _currentIndex;
   late SwiperController _swiperController;
+  late bool _viewClaimPage;
 
   @override
   void initState() {
-    unawaited(_initPlayer());
+    _viewClaimPage = !widget.payload.isPayToMint;
+    unawaited(_initColouringPlayer(!_viewClaimPage));
+    if (_viewClaimPage) {
+      unawaited(_initPlayer());
+    }
     _swiperController = SwiperController();
     super.initState();
     unawaited(injector<ConfigurationService>().setAutoShowPostcard(false));
@@ -57,8 +60,17 @@ class _PostcardExplainState extends State<PostcardExplain> {
       setState(() {});
       _controller.play();
     });
+
+    await _controller.play();
+  }
+
+  Future<void> _initColouringPlayer(bool doPlay) async {
     await _colouringController.initialize().then((_) {
       _colouringController.setLooping(true);
+      if (doPlay) {
+        setState(() {});
+        _colouringController.play();
+      }
     });
   }
 
@@ -72,13 +84,8 @@ class _PostcardExplainState extends State<PostcardExplain> {
   @override
   Widget build(BuildContext context) {
     final asset = widget.payload.asset;
-    final hasPrompt = widget.payload.asset.postcardMetadata.prompt != null;
-    final isShare =
-        widget.payload.asset.postcardMetadata.locationInformation.isNotEmpty;
     final pages = widget.payload.pages ??
         [
-          _page1(_controller),
-          if (hasPrompt || !isShare) _promptExplain(context),
           _page3(1, _colouringController),
           _page2(2, totalDistance: 0),
           _page2(3, totalDistance: 7926),
@@ -123,23 +130,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
                     ],
                   ),
                   const Spacer(),
-                  if (_currentIndex == 0 || isLastPage) ...[
-                    IconButton(
-                      tooltip: 'CLOSE',
-                      onPressed: () {
-                        Navigator.of(context).pop(false);
-                      },
-                      icon: SvgPicture.asset(
-                        'assets/images/close.svg',
-                        width: 22,
-                        height: 22,
-                        colorFilter: const ColorFilter.mode(
-                            AppColor.primaryBlack, BlendMode.srcIn),
-                      ),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    )
-                  ] else ...[
+                  if (!_viewClaimPage && !isLastPage) ...[
                     _skipButton(context, () async {
                       await _swiperController.move(swiperSize - 1);
                     })
@@ -149,50 +140,52 @@ class _PostcardExplainState extends State<PostcardExplain> {
             ),
             const SizedBox(height: 80),
             Expanded(
-              child: Stack(
-                children: [
-                  Swiper(
-                    onIndexChanged: (index) {
-                      setState(() {
-                        _currentIndex = index;
-                        if (index == 0) {
-                          unawaited(_controller.play());
-                        }
-                        if (index == 1) {
-                          unawaited(_colouringController.play());
-                        }
-                      });
-                    },
-                    itemBuilder: (context, index) => Padding(
+              child: _viewClaimPage
+                  ? Padding(
                       padding: padding,
-                      child: pages[index],
+                      child: _page1(_controller),
+                    )
+                  : Stack(
+                      children: [
+                        Swiper(
+                          onIndexChanged: (index) {
+                            setState(() {
+                              _currentIndex = index;
+                              if (index == 0) {
+                                unawaited(_colouringController.play());
+                              }
+                            });
+                          },
+                          itemBuilder: (context, index) => Padding(
+                            padding: padding,
+                            child: pages[index],
+                          ),
+                          itemCount: swiperSize,
+                          pagination: const SwiperPagination(
+                              builder: DotSwiperPaginationBuilder(
+                                  color: AppColor.auLightGrey,
+                                  activeColor: MomaPallet.lightYellow)),
+                          control: const SwiperControl(
+                              color: Colors.transparent,
+                              disableColor: Colors.transparent,
+                              size: 0),
+                          loop: false,
+                          controller: _swiperController,
+                        ),
+                        Visibility(
+                          visible: isLastPage,
+                          child: Positioned(
+                            bottom: 0,
+                            left: 0,
+                            right: 0,
+                            child: Padding(
+                              padding: padding,
+                              child: widget.payload.startButton,
+                            ),
+                          ),
+                        )
+                      ],
                     ),
-                    itemCount: swiperSize,
-                    pagination: const SwiperPagination(
-                        builder: DotSwiperPaginationBuilder(
-                            color: AppColor.auLightGrey,
-                            activeColor: MomaPallet.lightYellow)),
-                    control: const SwiperControl(
-                        color: Colors.transparent,
-                        disableColor: Colors.transparent,
-                        size: 0),
-                    loop: false,
-                    controller: _swiperController,
-                  ),
-                  Visibility(
-                    visible: isLastPage,
-                    child: Positioned(
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      child: Padding(
-                        padding: padding,
-                        child: widget.payload.startButton,
-                      ),
-                    ),
-                  )
-                ],
-              ),
             ),
           ],
         ),
@@ -203,7 +196,13 @@ class _PostcardExplainState extends State<PostcardExplain> {
   Widget _skipButton(BuildContext context, Function()? onSkip) =>
       GestureDetector(
         onTap: onSkip,
-        child: SvgPicture.asset('assets/images/skip.svg'),
+        child: Text(
+          'skip'.tr(),
+          style: Theme.of(context)
+              .textTheme
+              .moMASans400Grey14
+              .copyWith(color: AppColor.auQuickSilver),
+        ),
       );
 
   Widget _page1(VideoPlayerController controller) {
@@ -254,36 +253,31 @@ class _PostcardExplainState extends State<PostcardExplain> {
                     ),
                   ],
                 ),
-              )
+              ),
+              const SizedBox(height: 40),
+              PostcardButton(
+                text: 'claim_postcard'.tr(),
+                onTap: () {
+                  setState(() {
+                    _viewClaimPage = false;
+                  });
+                  Future.delayed(const Duration(milliseconds: 50), () {
+                    unawaited(_colouringController.play());
+                  });
+                },
+              ),
+              const SizedBox(height: 10),
+              PostcardButton(
+                text: 'decline_postcard'.tr(),
+                color: AppColor.secondarySpanishGrey,
+                onTap: () {
+                  Navigator.of(context).pop(false);
+                },
+              ),
             ],
           )
         ],
       ),
-    );
-  }
-
-  Widget _promptExplain(BuildContext context) {
-    final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          height: 265,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              PromptView(
-                prompt: Prompt(id: '', description: 'prompt_example'.tr()),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 60),
-        Text(
-          'prompt_explain_desc'.tr(),
-          style: theme.textTheme.moMASans400Black18,
-        ),
-      ],
     );
   }
 
@@ -418,10 +412,6 @@ class _PostcardExplainState extends State<PostcardExplain> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '$index.',
-                style: theme.textTheme.moMASans400Black18,
-              ),
-              Text(
                 'moma_explain_$index'.tr(),
                 style: theme.textTheme.moMASans400Black18,
               ),
@@ -448,6 +438,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
                       postcardAspectRatio,
                   child: PostcardViewWidget(
                     assetToken: asset,
+                    withPreviewStamp: true,
                   ),
                 ),
               ),

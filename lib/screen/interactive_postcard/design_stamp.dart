@@ -270,9 +270,9 @@ class _DesignStampPageState extends State<DesignStampPage> {
                               await Navigator.of(context).pushNamed(
                                   HandSignaturePage.handSignaturePage,
                                   arguments: HandSignaturePayload(
-                                    bytes!,
-                                    widget.payload.asset,
-                                  ));
+                                      bytes!,
+                                      widget.payload.asset,
+                                      widget.payload.shareCode));
 
                               setState(() {
                                 _line = true;
@@ -438,6 +438,7 @@ class StampPainter extends CustomPainter {
 class DesignStampPayload {
   final AssetToken asset;
   final bool allowPop;
+  final String? shareCode;
 
-  DesignStampPayload(this.asset, this.allowPop);
+  DesignStampPayload(this.asset, this.allowPop, this.shareCode);
 }
