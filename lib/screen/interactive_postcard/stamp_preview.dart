@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/dio_exception_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -22,6 +23,7 @@ import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
+import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -65,23 +67,53 @@ class _StampPreviewState extends State<StampPreview> with AfterLayoutMixin {
     setState(() {
       confirming = true;
     });
-    await _postcardService
-        .finalizeStamp(widget.payload.asset, widget.payload.imagePath,
-            widget.payload.metadataPath, widget.payload.location)
-        .then((final bool isStampSuccess) async {
-      _setTimer();
-      if (mounted) {
-        setState(() {
-          confirming = false;
-        });
-        if (!isStampSuccess) {
-          await UIHelper.showPostcardStampFailed(context);
-        }
+    try {
+      await _postcardService
+          .finalizeStamp(
+              asset: widget.payload.asset,
+              imagePath: widget.payload.imagePath,
+              metadataPath: widget.payload.metadataPath,
+              location: widget.payload.location,
+              shareCode: widget.payload.shareCode)
+          .then((final bool isStampSuccess) async {
+        _setTimer();
         if (mounted) {
-          _onClose(context);
+          setState(() {
+            confirming = false;
+          });
+          if (!isStampSuccess) {
+            await UIHelper.showPostcardStampFailed(context);
+          }
+          if (mounted) {
+            _onClose(context);
+          }
         }
+      });
+    } catch (e) {
+      if (e is DioException) {
+        if (!mounted) {
+          return;
+        }
+        if (e.isAlreadyClaimedPostcard) {
+          await UIHelper.showAlreadyClaimedPostcard(
+            context,
+            e,
+          );
+        } else if (e.isFailToClaimPostcard) {
+          await UIHelper.showReceivePostcardFailed(
+            context,
+            e,
+          );
+        }
+        if (!mounted) {
+          return;
+        }
+        unawaited(Navigator.of(context).pushNamedAndRemoveUntil(
+          AppRouter.homePage,
+          (route) => false,
+        ));
       }
-    });
+    }
   }
 
   void _onClose(BuildContext context) {
@@ -200,6 +232,7 @@ class StampPreviewPayload {
   final String imagePath;
   final String metadataPath;
   final Location location;
+  final String? shareCode;
 
   // constructor
   StampPreviewPayload({
@@ -207,6 +240,7 @@ class StampPreviewPayload {
     required this.imagePath,
     required this.metadataPath,
     required this.location,
+    required this.shareCode,
   });
 }
 

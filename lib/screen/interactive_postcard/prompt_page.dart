@@ -96,8 +96,8 @@ class _PromptPageState extends State<PromptPage> {
                                 Prompt.getUserPrompt(_controller.text.trim()));
                         await Navigator.of(context).pushNamed(
                             AppRouter.designStamp,
-                            arguments:
-                                DesignStampPayload(assetWithPrompt, true));
+                            arguments: DesignStampPayload(assetWithPrompt, true,
+                                widget.payload.shareCode));
                       },
                     )),
                 Flexible(

@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
+import 'package:autonomy_flutter/model/prompt.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -32,10 +33,21 @@ class ClaimEmptyPostCardBloc
 
   ClaimEmptyPostCardBloc() : super(ClaimEmptyPostCardState()) {
     on<GetTokenEvent>((event, emit) async {
+      final indexId = event.claimRequest.tokenId;
+      final tokenId = 'tez-${Environment.postcardContractAddress}-$indexId';
+      late final Prompt? prompt;
+      try {
+        final prompts = await _postcardService.getPrompts(indexId);
+        prompt = prompts.isNotEmpty ? prompts.first : null;
+      } catch (e) {
+        prompt = null;
+      }
+      final postcardMetadata = PostcardMetadata(
+        prompt: prompt,
+        locationInformation: [],
+      );
       if (event.claimRequest is PayToMintRequest) {
         final payToMintRequest = event.claimRequest as PayToMintRequest;
-        final indexId = payToMintRequest.tokenId;
-        final tokenId = 'tez-${Environment.postcardContractAddress}-$indexId';
         log.info('[Pay to mint] tokenId: $tokenId');
         final token = AssetToken(
           asset: Asset.init(
@@ -46,9 +58,7 @@ class ClaimEmptyPostCardBloc
               title: event.claimRequest.name,
               medium: 'software',
               previewURL: event.claimRequest.previewURL,
-              artworkMetadata: jsonEncode(PostcardMetadata(
-                locationInformation: [],
-              ).toJson())),
+              artworkMetadata: jsonEncode(postcardMetadata)),
           blockchain: 'tezos',
           fungible: true,
           contractType: 'fa2',
@@ -86,17 +96,15 @@ class ClaimEmptyPostCardBloc
               title: event.claimRequest.name,
               medium: 'software',
               previewURL: event.claimRequest.previewURL,
-              artworkMetadata: jsonEncode(PostcardMetadata(
-                locationInformation: [],
-              ).toJson())),
+              artworkMetadata: jsonEncode(postcardMetadata)),
           blockchain: 'tezos',
           fungible: true,
           contractType: 'fa2',
-          tokenId: '1',
+          tokenId: indexId,
           contractAddress: Environment.postcardContractAddress,
           edition: 0,
           editionName: '',
-          id: 'tez-',
+          id: tokenId,
           balance: 1,
           owner: 'owner',
           lastActivityTime: DateTime.now(),
