@@ -5,8 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/service/wc2_service.dart';
-import 'package:collection/collection.dart';
+import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:tezart/tezart.dart';
 
 abstract class ConnectionRequest {
@@ -80,11 +79,9 @@ class Wc2Proposal extends ConnectionRequest {
   bool get isAutonomyConnect => _isAutonomyConnect();
 
   bool _isAutonomyConnect() {
-    final proposalMethods =
-        allNamespaces.values.map((e) => e.methods).flattened.toSet();
-    final unsupportedMethods =
-        proposalMethods.difference(Wc2Service.autonomyMethods);
-    return unsupportedMethods.isEmpty;
+    final proposalChains =
+        allNamespaces.keys.toSet();
+    return proposalChains.contains(Wc2Chain.autonomy);
   }
 
   AppMetadata proposer;
