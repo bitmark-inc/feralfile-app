@@ -1390,7 +1390,7 @@ class UIHelper {
   static showReceivePostcardFailed(
           BuildContext context, DioException error) async =>
       showErrorDialog(context, 'accept_postcard_failed'.tr(),
-          error.response?.data['message'], 'close'.tr());
+          'postcard_has_been_claimed'.tr(), 'close'.tr());
 
   static showAlreadyClaimedPostcard(
           BuildContext context, DioException error) async =>

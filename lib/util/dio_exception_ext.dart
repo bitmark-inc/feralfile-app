@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:dio/dio.dart';
 
 extension PostcardExepctionExt on DioException {
@@ -21,12 +22,22 @@ extension PostcardExepctionExt on DioException {
   bool get isPostcardNotInMiami =>
       statusCode == PostcardExceptionType.notInMiami.statusCode &&
       dataMessage == PostcardExceptionType.notInMiami.errorMessage;
+
+  bool get isAlreadyClaimedPostcard =>
+      dataMessage == PostcardExceptionType.alreadyClaimed.errorMessage &&
+      statusCode == PostcardExceptionType.alreadyClaimed.statusCode;
+
+  bool get isFailToClaimPostcard =>
+      dataMessage == PostcardExceptionType.failToClaimPostcard.errorMessage &&
+      statusCode == PostcardExceptionType.failToClaimPostcard.statusCode;
 }
 
 enum PostcardExceptionType {
   alreadyStamped,
   tooManyRequest,
-  notInMiami;
+  notInMiami,
+  alreadyClaimed,
+  failToClaimPostcard;
 
   String get errorMessage {
     switch (this) {
@@ -34,6 +45,10 @@ enum PostcardExceptionType {
         return 'blockchain tx request is already existed';
       case PostcardExceptionType.notInMiami:
         return 'only allowed in Miami';
+      case PostcardExceptionType.alreadyClaimed:
+        return 'fail to claim a postcard';
+      case PostcardExceptionType.failToClaimPostcard:
+        return 'fail to claim a postcard';
       default:
         return '';
     }
@@ -45,6 +60,10 @@ enum PostcardExceptionType {
         return 429;
       case PostcardExceptionType.notInMiami:
         return 403;
+      case PostcardExceptionType.alreadyClaimed:
+        return StatusCode.forbidden.value;
+      case PostcardExceptionType.failToClaimPostcard:
+        return StatusCode.badRequest.value;
       default:
         return 0;
     }
