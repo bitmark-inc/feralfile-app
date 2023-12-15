@@ -8,7 +8,6 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/wc_ethereum_transaction.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_bloc.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_state.dart';
@@ -74,16 +73,8 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
       onWillPop: () async {
         unawaited(metricClient.addEvent(MixpanelEvent.backConfirmTransaction));
 
-        context.read<WCSendTransactionBloc>().add(
-              WCSendTransactionRejectEvent(
-                widget.args.peerMeta,
-                widget.args.id,
-                isWalletConnect2: widget.args.isWalletConnect2,
-                topic: widget.args.topic,
-                isIRL: widget.args.isIRL,
-              ),
-            );
-        return true;
+        Navigator.of(context).pop(false);
+        return false;
       },
       child: Scaffold(
         appBar: getBackAppBar(
@@ -92,15 +83,8 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
           onBack: () {
             unawaited(
                 metricClient.addEvent(MixpanelEvent.backConfirmTransaction));
-            context.read<WCSendTransactionBloc>().add(
-                  WCSendTransactionRejectEvent(
-                    widget.args.peerMeta,
-                    widget.args.id,
-                    isWalletConnect2: widget.args.isWalletConnect2,
-                    topic: widget.args.topic,
-                    isIRL: widget.args.isIRL,
-                  ),
-                );
+            Navigator.of(context).pop(false);
+            return false;
           },
         ),
         body: BlocConsumer<WCSendTransactionBloc, WCSendTransactionState>(

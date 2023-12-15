@@ -16,7 +16,7 @@ abstract class ConnectionRequest {
 
   bool get isBeaconConnect => false;
 
-  String get id;
+  dynamic get id;
 
   String? get name;
 
@@ -86,10 +86,15 @@ class Wc2Proposal extends ConnectionRequest {
 
   PairingMetadata proposer;
   Map<String, RequiredNamespace> requiredNamespaces;
+  Map<String, RequiredNamespace> optionalNamespaces;
+
+  Map<String, RequiredNamespace> get allNamespaces =>
+      {...requiredNamespaces, ...optionalNamespaces};
+
   final int _id;
 
   @override
-  String get id => _id;
+  int get id => _id;
 
   @override
   String? get name => proposer.name;

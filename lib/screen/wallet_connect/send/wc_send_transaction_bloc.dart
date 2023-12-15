@@ -99,7 +99,8 @@ class WCSendTransactionBloc
             persona, index, Uint8List.fromList(utf8.encode(timestamp)));
 
         if (!event.isIRL) {
-          await _wc2Service.respondOnApprove(event.topic ?? '', txHash);
+          await injector<Wc2Service>()
+              .respondOnApprove(event.topic ?? '', txHash);
         }
         log.info('[WCSendTransactionBloc][End] '
             'send transaction success, txHash: $txHash');
@@ -127,14 +128,6 @@ class WCSendTransactionBloc
         emit(newState);
         return;
       }
-    });
-
-    on<WCSendTransactionRejectEvent>((event, emit) async {
-      log.info('[WCSendTransactionBloc][End] send transaction reject');
-      if (!event.isIRL) {
-        await _wc2Service.respondOnReject(event.topic ?? '');
-      }
-      _navigationService.goBack();
     });
 
     on<FeeOptionChangedEvent>((event, emit) async {

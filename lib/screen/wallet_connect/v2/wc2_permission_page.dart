@@ -82,6 +82,7 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
               getTezos: _selectXTZAddress,
               autoAddAddress: true),
         );
+    print('initState');
     injector<NavigationService>().setIsWCConnectInShow(true);
   }
 

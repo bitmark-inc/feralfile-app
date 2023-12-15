@@ -257,7 +257,7 @@ class _WCConnectPageState extends State<WCConnectPage>
       Navigator.of(context).pop();
       return;
     }
-
+    ///
     final payload = PersonaConnectionsPayload(
       personaUUID: selectedPersona!.wallet.uuid,
       index: selectedPersona!.index,
