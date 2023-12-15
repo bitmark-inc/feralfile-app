@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
@@ -17,6 +19,17 @@ final DateFormat dateFormatterWdHM = DateFormat('EEEE HH:mm', "en_US");
 
 String localTimeString(DateTime date) {
   return dateFormatterYMDHM.format(date.toLocal()).toUpperCase();
+}
+
+String postcardTimeString(DateTime date) {
+  final countryCode =
+      Localizations.localeOf(injector<NavigationService>().context).countryCode;
+  final languageCode =
+      Localizations.localeOf(injector<NavigationService>().context)
+          .languageCode;
+  final formater =
+      DateFormat("yyyy-MMM-dd HH:mm", "$languageCode-$countryCode");
+  return formater.format(date.toLocal()).toUpperCase();
 }
 
 String localTimeStringFromISO8601(String str) {

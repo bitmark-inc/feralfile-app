@@ -124,8 +124,16 @@ class WC2ChannelHandler: NSObject {
             return
         }
         
+        var allNamespaces = proposal.requiredNamespaces
+
+        if let optionalNamespaces = proposal.optionalNamespaces {
+            allNamespaces.merge(optionalNamespaces) { requiredNamespaces, _ in
+                return requiredNamespaces
+            }
+        }
+        
         var sessionNamespaces = [String: SessionNamespace]()
-        proposal.requiredNamespaces.forEach {
+        allNamespaces.forEach {
             let caip2Namespace = $0.key
             let proposalNamespace = $0.value
             let accounts = Set(proposalNamespace.chains!.compactMap { Account($0.absoluteString + ":\(account)") })
@@ -165,10 +173,12 @@ extension WC2ChannelHandler: FlutterStreamHandler {
                 
                 var params: [String: Any] = [:]
                 let proposer = try? JSONEncoder().encode(sessionProposal.proposer)
-                let namespaces = try? JSONEncoder().encode(sessionProposal.requiredNamespaces)
+                let requiredNamespaces = try? JSONEncoder().encode(sessionProposal.requiredNamespaces)
+                let optionalNamespaces = try? JSONEncoder().encode(sessionProposal.optionalNamespaces)
                 params["id"] = sessionProposal.id
                 params["proposer"] = proposer != nil ? String(data: proposer!, encoding: .utf8) : nil
-                params["requiredNamespaces"] = namespaces != nil ? String(data: namespaces!, encoding: .utf8) : nil
+                params["requiredNamespaces"] = requiredNamespaces != nil ? String(data: requiredNamespaces!, encoding: .utf8) : nil
+                params["optionalNamespaces"] = optionalNamespaces != nil ? String(data: optionalNamespaces!, encoding: .utf8) : nil
                 
                 events([
                     "eventName": "onSessionProposal",

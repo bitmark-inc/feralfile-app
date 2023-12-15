@@ -7,9 +7,7 @@ import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
 import 'package:autonomy_flutter/util/geolocation.dart';
-import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/moma_style_color.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
 import 'package:collection/collection.dart';
@@ -21,13 +19,12 @@ import 'package:nft_collection/models/asset_token.dart';
 class PostcardJourney extends StatefulWidget {
   final AssetToken assetToken;
   final List<TravelInfo> listTravelInfo;
-  final Function()? onCancelShare;
 
-  const PostcardJourney(
-      {super.key,
-      required this.assetToken,
-      required this.listTravelInfo,
-      this.onCancelShare});
+  const PostcardJourney({
+    super.key,
+    required this.assetToken,
+    required this.listTravelInfo,
+  });
 
   @override
   State<PostcardJourney> createState() => _PostcardJourneyState();
@@ -173,25 +170,6 @@ class _PostcardJourneyState extends State<PostcardJourney> {
                 overrideColor: AppColor.auQuickSilver,
               ),
             ),
-            const Spacer(),
-            GestureDetector(
-              child: Text(
-                "cancel".tr(),
-                style: theme.textTheme.moMASans400Grey12
-                    .copyWith(color: const Color.fromRGBO(131, 79, 196, 1)),
-              ),
-              onTap: () {
-                UIHelper.showPostcardCancelInvitation(context,
-                    onConfirm: () async {
-                  await cancelShare(asset);
-                  if (mounted) {
-                    Navigator.of(context).pop();
-                  }
-                }, onBack: () {
-                  Navigator.of(context).pop();
-                });
-              },
-            )
           ],
         ),
       ],
@@ -264,22 +242,5 @@ class _PostcardJourneyState extends State<PostcardJourney> {
           _sendingTripItem(context, asset, travelInfo.length + 1)
       ],
     );
-  }
-
-  Future<void> cancelShare(AssetToken asset) async {
-    try {
-      await _postcardService.cancelSharePostcard(asset);
-      await _configurationService.removeSharedPostcardWhere((sharedPostcard) =>
-          sharedPostcard.tokenID == asset.id &&
-          sharedPostcard.owner == asset.owner);
-      if (mounted) {
-        setState(() {
-          isSending = asset.isSending;
-        });
-      }
-      widget.onCancelShare?.call();
-    } catch (error) {
-      log.info("Cancel share postcard failed: error ${error.toString()}");
-    }
   }
 }

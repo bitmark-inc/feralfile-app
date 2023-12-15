@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:ui';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
@@ -6,12 +8,18 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
+import 'package:autonomy_flutter/model/prompt.dart';
+import 'package:autonomy_flutter/model/shared_postcard.dart';
+import 'package:autonomy_flutter/model/travel_infor.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/postcard_service.dart';
+import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
@@ -24,55 +32,53 @@ import 'package:nft_collection/models/origin_token_info.dart';
 import 'package:nft_collection/models/provenance.dart';
 import 'package:nft_rendering/nft_rendering.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:web3dart/crypto.dart';
 
 extension AssetTokenExtension on AssetToken {
   static final Map<String, Map<String, String>> _tokenUrlMap = {
-    "MAIN": {
-      "ethereum": "https://etherscan.io/token/{contract}?a={tokenId}",
-      "tezos": "https://tzkt.io/{contract}/tokens/{tokenId}/transfers"
+    'MAIN': {
+      'ethereum': 'https://etherscan.io/token/{contract}?a={tokenId}',
+      'tezos': 'https://tzkt.io/{contract}/tokens/{tokenId}/transfers'
     },
-    "TEST": {
-      "ethereum": "https://goerli.etherscan.io/token/{contract}?a={tokenId}",
-      "tezos":
-          "https://kathmandunet.tzkt.io/{contract}/tokens/{tokenId}/transfers"
+    'TEST': {
+      'ethereum': 'https://goerli.etherscan.io/token/{contract}?a={tokenId}',
+      'tezos':
+          'https://kathmandunet.tzkt.io/{contract}/tokens/{tokenId}/transfers'
     }
   };
 
-  bool get hasMetadata {
-    // FIXME
-    return galleryThumbnailURL != null;
-  }
+  bool get hasMetadata => galleryThumbnailURL != null;
 
   String get secondaryMarketURL {
     switch (blockchain) {
-      case "ethereum":
-        return "$OPENSEA_ASSET_PREFIX$contractAddress/$tokenId";
-      case "tezos":
+      case 'ethereum':
+        return '$OPENSEA_ASSET_PREFIX$contractAddress/$tokenId';
+      case 'tezos':
         if (TEIA_ART_CONTRACT_ADDRESSES.contains(contractAddress)) {
-          return "$TEIA_ART_ASSET_PREFIX$tokenId";
+          return '$TEIA_ART_ASSET_PREFIX$tokenId';
         } else if (sourceURL?.contains(FXHASH_IDENTIFIER) == true) {
-          return assetURL ?? "";
+          return assetURL ?? '';
         } else {
-          return "$objktAssetPrefix$contractAddress/$tokenId";
+          return '$objktAssetPrefix$contractAddress/$tokenId';
         }
       default:
-        return "";
+        return '';
     }
   }
 
   bool get isAirdrop {
     final saleModel = initialSaleModel?.toLowerCase();
-    return ["airdrop", "shopping_airdrop"].contains(saleModel);
+    return ['airdrop', 'shopping_airdrop'].contains(saleModel);
   }
 
   ArtworkIdentity get identity => ArtworkIdentity(id, owner);
 
   String? get tokenURL {
-    final network = Environment.appTestnetConfig ? "TEST" : "MAIN";
+    final network = Environment.appTestnetConfig ? 'TEST' : 'MAIN';
     final url = _tokenUrlMap[network]?[blockchain]
-        ?.replaceAll("{tokenId}", tokenId ?? "")
-        .replaceAll("{contract}", contractAddress ?? "");
+        ?.replaceAll('{tokenId}', tokenId ?? '')
+        .replaceAll('{contract}', contractAddress ?? '');
     return url;
   }
 
@@ -80,10 +86,10 @@ extension AssetTokenExtension on AssetToken {
     final editionStr = (editionName != null && editionName!.isNotEmpty)
         ? editionName
         : edition.toString();
-    final hasNumber = RegExp(r'[0-9]').hasMatch(editionStr!);
+    final hasNumber = RegExp('[0-9]').hasMatch(editionStr!);
     final maxEditionStr =
-        (((maxEdition ?? 0) > 0) && hasNumber) ? "/$maxEdition" : "";
-    return "$editionStr$maxEditionStr";
+        (((maxEdition ?? 0) > 0) && hasNumber) ? '/$maxEdition' : '';
+    return '$editionStr$maxEditionStr';
   }
 
   Future<Pair<WalletStorage, int>?> getOwnerWallet(
@@ -91,9 +97,11 @@ extension AssetTokenExtension on AssetToken {
     if ((checkContract && contractAddress == null) || tokenId == null) {
       return null;
     }
-    if (!(blockchain == "ethereum" &&
-            (contractType == "erc721" || contractType == "erc1155")) &&
-        !(blockchain == "tezos" && contractType == "fa2")) return null;
+    if (!(blockchain == 'ethereum' &&
+            (contractType == 'erc721' || contractType == 'erc1155')) &&
+        !(blockchain == 'tezos' && contractType == 'fa2')) {
+      return null;
+    }
 
     //check asset is able to send
 
@@ -111,7 +119,7 @@ extension AssetTokenExtension on AssetToken {
   String _intToHex(String intValue) {
     try {
       final hex = BigInt.parse(intValue, radix: 10).toRadixString(16);
-      return hex.padLeft(64, "0");
+      return hex.padLeft(64, '0');
     } catch (e) {
       return intValue;
     }
@@ -131,7 +139,7 @@ extension AssetTokenExtension on AssetToken {
       hex = '0$hex';
     }
     final bytes = hexToBytes(hex);
-    final hashHex = '0x${sha256.convert(bytes).toString()}';
+    final hashHex = '0x${sha256.convert(bytes)}';
     return hashHex;
   }
 
@@ -145,6 +153,14 @@ extension AssetTokenExtension on AssetToken {
     return null;
   }
 
+  void updatePostcardCID(String cid) {
+    if (Environment.appTestnetConfig) {
+      asset?.previewURL = '$POSTCARD_IPFS_PREFIX_TEST/$cid/';
+    } else {
+      asset?.previewURL = '$POSTCARD_IPFS_PREFIX_PROD/$cid/';
+    }
+  }
+
   Future<bool> isViewOnly() async {
     final cloudDB = injector<CloudDatabase>();
     final walletAddress = await cloudDB.addressDao.findByAddress(owner);
@@ -156,88 +172,88 @@ extension AssetTokenExtension on AssetToken {
   }
 
   String? getBlockchainUrl() {
-    final network = Environment.appTestnetConfig ? "TESTNET" : "MAINNET";
-    switch ("${network}_$blockchain") {
-      case "MAINNET_ethereum":
-        return "https://etherscan.io/address/$contractAddress";
+    final network = Environment.appTestnetConfig ? 'TESTNET' : 'MAINNET';
+    switch ('${network}_$blockchain') {
+      case 'MAINNET_ethereum':
+        return 'https://etherscan.io/address/$contractAddress';
 
-      case "TESTNET_ethereum":
-        return "https://goerli.etherscan.io/address/$contractAddress";
+      case 'TESTNET_ethereum':
+        return 'https://goerli.etherscan.io/address/$contractAddress';
 
-      case "MAINNET_tezos":
-      case "TESTNET_tezos":
-        return "https://tzkt.io/$contractAddress";
+      case 'MAINNET_tezos':
+      case 'TESTNET_tezos':
+        return 'https://tzkt.io/$contractAddress';
 
-      case "MAINNET_bitmark":
-        return "https://registry.bitmark.com/bitmark/$tokenId";
+      case 'MAINNET_bitmark':
+        return 'https://registry.bitmark.com/bitmark/$tokenId';
 
-      case "TESTNET_bitmark":
-        return "https://registry.test.bitmark.com/bitmark/$tokenId";
+      case 'TESTNET_bitmark':
+        return 'https://registry.test.bitmark.com/bitmark/$tokenId';
     }
     return null;
   }
 
   String get getMimeType {
     switch (mimeType) {
-      case "image/avif":
-      case "image/bmp":
-      case "image/jpeg":
-      case "image/jpg":
-      case "image/png":
-      case "image/tiff":
+      case 'image/avif':
+      case 'image/bmp':
+      case 'image/jpeg':
+      case 'image/jpg':
+      case 'image/png':
+      case 'image/tiff':
         return RenderingType.image;
 
-      case "image/svg+xml":
+      case 'image/svg+xml':
         return RenderingType.svg;
 
-      case "image/gif":
+      case 'image/gif':
         return RenderingType.gif;
 
-      case "audio/aac":
-      case "audio/midi":
-      case "audio/x-midi":
-      case "audio/mpeg":
-      case "audio/ogg":
-      case "audio/opus":
-      case "audio/wav":
-      case "audio/webm":
-      case "audio/3gpp":
-      case "audio/vnd.wave":
+      case 'audio/aac':
+      case 'audio/midi':
+      case 'audio/x-midi':
+      case 'audio/mpeg':
+      case 'audio/ogg':
+      case 'audio/opus':
+      case 'audio/wav':
+      case 'audio/webm':
+      case 'audio/3gpp':
+      case 'audio/vnd.wave':
         return RenderingType.audio;
 
-      case "video/x-msvideo":
-      case "video/3gpp":
-      case "video/mp4":
-      case "video/mpeg":
-      case "video/ogg":
-      case "video/3gpp2":
-      case "video/quicktime":
-      case "application/x-mpegURL":
-      case "video/x-flv":
-      case "video/MP2T":
-      case "video/webm":
-      case "application/octet-stream":
+      case 'video/x-msvideo':
+      case 'video/3gpp':
+      case 'video/mp4':
+      case 'video/mpeg':
+      case 'video/ogg':
+      case 'video/3gpp2':
+      case 'video/quicktime':
+      case 'application/x-mpegURL':
+      case 'video/x-flv':
+      case 'video/MP2T':
+      case 'video/webm':
+      case 'application/octet-stream':
         return RenderingType.video;
 
-      case "application/pdf":
+      case 'application/pdf':
         return RenderingType.pdf;
 
-      case "model/gltf-binary":
+      case 'model/gltf-binary':
         return RenderingType.modelViewer;
 
       default:
         if (mimeType?.isNotEmpty ?? false) {
-          Sentry.captureMessage(
+          unawaited(Sentry.captureMessage(
             'Unsupport mimeType: $mimeType',
             level: SentryLevel.warning,
             params: [id],
-          );
+          ));
         }
         return mimeType ?? RenderingType.webview;
     }
   }
 
-  String? getGalleryThumbnailUrl({usingThumbnailID = true}) {
+  String? getGalleryThumbnailUrl({bool usingThumbnailID = true}) {
     if (galleryThumbnailURL == null || galleryThumbnailURL!.isEmpty) {
       return null;
     }
@@ -247,7 +263,7 @@ extension AssetTokenExtension on AssetToken {
         return null;
       }
       return _refineToCloudflareURL(
-          galleryThumbnailURL!, thumbnailID!, "thumbnail");
+          galleryThumbnailURL!, thumbnailID!, 'thumbnail');
     }
 
     return replaceIPFS(galleryThumbnailURL!);
@@ -268,34 +284,6 @@ extension AssetTokenExtension on AssetToken {
         .fold<int>(0,
             (previousValue, element) => previousValue + element.sentQuantity);
     return balance! - totalSentQuantity;
-  }
-
-  StampingPostcard? get stampingPostcard {
-    if (asset?.artworkMetadata == null) {
-      return null;
-    }
-    final tokenId = this.tokenId ?? "";
-    final address = owner;
-    final counter = numberOwners;
-    final contractAddress = Environment.postcardContractAddress;
-    final imagePath = '${contractAddress}_${tokenId}_${counter}_image.png';
-    final metadataPath =
-        '${contractAddress}_${tokenId}_${counter}_metadata.json';
-    return StampingPostcard(
-      indexId: id,
-      address: address,
-      imagePath: imagePath,
-      metadataPath: metadataPath,
-      counter: counter,
-    );
-  }
-
-  PostcardMetadata get postcardMetadata {
-    return PostcardMetadata.fromJson(jsonDecode(asset!.artworkMetadata!));
-  }
-
-  String get twitterCaption {
-    return "#MoMAPostcardProject";
   }
 
   bool get isPostcard => contractAddress == Environment.postcardContractAddress;
@@ -329,69 +317,55 @@ extension AssetTokenExtension on AssetToken {
     String? originTokenInfoId,
     bool? ipfsPinned,
     Asset? asset,
-  }) {
-    return AssetToken(
-      id: id ?? this.id,
-      edition: edition ?? this.edition,
-      editionName: editionName ?? this.editionName,
-      blockchain: blockchain ?? this.blockchain,
-      fungible: fungible ?? this.fungible,
-      mintedAt: mintedAt ?? this.mintedAt,
-      contractType: contractType ?? this.contractType,
-      tokenId: tokenId ?? this.tokenId,
-      contractAddress: contractAddress ?? this.contractAddress,
-      balance: balance ?? this.balance,
-      owner: owner ?? this.owner,
-      owners: owners ?? this.owners,
-      projectMetadata: projectMetadata ?? this.projectMetadata,
-      lastActivityTime: lastActivityTime ?? this.lastActivityTime,
-      lastRefreshedTime: lastRefreshedTime ?? this.lastRefreshedTime,
-      provenance: provenance ?? this.provenance,
-      originTokenInfo: originTokenInfo ?? this.originTokenInfo,
-      swapped: swapped ?? this.swapped,
-      attributes: attributes ?? this.attributes,
-      burned: burned ?? this.burned,
-      pending: pending ?? this.pending,
-      isDebugged: isDebugged ?? this.isDebugged,
-      scrollable: scrollable ?? this.scrollable,
-      originTokenInfoId: originTokenInfoId ?? this.originTokenInfoId,
-      ipfsPinned: ipfsPinned ?? this.ipfsPinned,
-      asset: asset ?? this.asset,
-    );
-  }
+  }) =>
+      AssetToken(
+        id: id ?? this.id,
+        edition: edition ?? this.edition,
+        editionName: editionName ?? this.editionName,
+        blockchain: blockchain ?? this.blockchain,
+        fungible: fungible ?? this.fungible,
+        mintedAt: mintedAt ?? this.mintedAt,
+        contractType: contractType ?? this.contractType,
+        tokenId: tokenId ?? this.tokenId,
+        contractAddress: contractAddress ?? this.contractAddress,
+        balance: balance ?? this.balance,
+        owner: owner ?? this.owner,
+        owners: owners ?? this.owners,
+        projectMetadata: projectMetadata ?? this.projectMetadata,
+        lastActivityTime: lastActivityTime ?? this.lastActivityTime,
+        lastRefreshedTime: lastRefreshedTime ?? this.lastRefreshedTime,
+        provenance: provenance ?? this.provenance,
+        originTokenInfo: originTokenInfo ?? this.originTokenInfo,
+        swapped: swapped ?? this.swapped,
+        attributes: attributes ?? this.attributes,
+        burned: burned ?? this.burned,
+        pending: pending ?? this.pending,
+        isDebugged: isDebugged ?? this.isDebugged,
+        scrollable: scrollable ?? this.scrollable,
+        originTokenInfoId: originTokenInfoId ?? this.originTokenInfoId,
+        ipfsPinned: ipfsPinned ?? this.ipfsPinned,
+        asset: asset ?? this.asset,
+      );
 
   List<Artist> get getArtists {
-    final lst = jsonDecode(artists ?? "[]") as List<dynamic>;
+    final lst = jsonDecode(artists ?? '[]') as List<dynamic>;
     if (lst.length <= 1) {
       return [];
     }
     return lst.map((e) => Artist.fromJson(e)).toList().sublist(1);
   }
 
-  bool get isAlreadyShowYouDidIt {
-    final listAlreadyShow =
-        injector<ConfigurationService>().getListPostcardAlreadyShowYouDidIt();
-    return listAlreadyShow
-        .where((element) => element.id == id && element.owner == owner)
-        .isNotEmpty;
-  }
+  bool get isAirdropToken =>
+      Environment.autonomyAirDropContractAddress == contractAddress;
 
-  bool get isAirdropToken {
-    return Environment.autonomyAirDropContractAddress == contractAddress;
-  }
-
-  bool get isMoMAMemento {
-    return [
-      ...momaMementoContractAddresses,
-      Environment.autonomyAirDropContractAddress
-    ].contains(contractAddress);
-  }
+  bool get isMoMAMemento => [
+        ...momaMementoContractAddresses,
+        Environment.autonomyAirDropContractAddress
+      ].contains(contractAddress);
 }
 
 extension CompactedAssetTokenExtension on CompactedAssetToken {
-  bool get hasMetadata {
-    return galleryThumbnailURL != null;
-  }
+  bool get hasMetadata => galleryThumbnailURL != null;
 
   ArtworkIdentity get identity => ArtworkIdentity(id, owner);
 
@@ -403,65 +377,65 @@ extension CompactedAssetTokenExtension on CompactedAssetToken {
 
   String get getMimeType {
     switch (mimeType) {
-      case "image/avif":
-      case "image/bmp":
-      case "image/jpeg":
-      case "image/jpg":
-      case "image/png":
-      case "image/tiff":
+      case 'image/avif':
+      case 'image/bmp':
+      case 'image/jpeg':
+      case 'image/jpg':
+      case 'image/png':
+      case 'image/tiff':
         return RenderingType.image;
 
-      case "image/svg+xml":
+      case 'image/svg+xml':
         return RenderingType.svg;
 
-      case "image/gif":
+      case 'image/gif':
         return RenderingType.gif;
 
-      case "audio/aac":
-      case "audio/midi":
-      case "audio/x-midi":
-      case "audio/mpeg":
-      case "audio/ogg":
-      case "audio/opus":
-      case "audio/wav":
-      case "audio/webm":
-      case "audio/3gpp":
-      case "audio/vnd.wave":
+      case 'audio/aac':
+      case 'audio/midi':
+      case 'audio/x-midi':
+      case 'audio/mpeg':
+      case 'audio/ogg':
+      case 'audio/opus':
+      case 'audio/wav':
+      case 'audio/webm':
+      case 'audio/3gpp':
+      case 'audio/vnd.wave':
         return RenderingType.audio;
 
-      case "video/x-msvideo":
-      case "video/3gpp":
-      case "video/mp4":
-      case "video/mpeg":
-      case "video/ogg":
-      case "video/3gpp2":
-      case "video/quicktime":
-      case "application/x-mpegURL":
-      case "video/x-flv":
-      case "video/MP2T":
-      case "video/webm":
-      case "application/octet-stream":
+      case 'video/x-msvideo':
+      case 'video/3gpp':
+      case 'video/mp4':
+      case 'video/mpeg':
+      case 'video/ogg':
+      case 'video/3gpp2':
+      case 'video/quicktime':
+      case 'application/x-mpegURL':
+      case 'video/x-flv':
+      case 'video/MP2T':
+      case 'video/webm':
+      case 'application/octet-stream':
         return RenderingType.video;
 
-      case "application/pdf":
+      case 'application/pdf':
         return RenderingType.pdf;
 
-      case "model/gltf-binary":
+      case 'model/gltf-binary':
         return RenderingType.modelViewer;
 
       default:
         if (mimeType?.isNotEmpty ?? false) {
-          Sentry.captureMessage(
+          unawaited(Sentry.captureMessage(
             'Unsupport mimeType: $mimeType',
             level: SentryLevel.warning,
             params: [id],
-          );
+          ));
         }
         return mimeType ?? RenderingType.webview;
     }
   }
 
-  String? getGalleryThumbnailUrl({usingThumbnailID = true}) {
+  String? getGalleryThumbnailUrl({bool usingThumbnailID = true}) {
     if (galleryThumbnailURL == null || galleryThumbnailURL!.isEmpty) {
       return null;
     }
@@ -475,7 +449,7 @@ extension CompactedAssetTokenExtension on CompactedAssetToken {
         return replaceIPFS(galleryThumbnailURL!); // return null;
       }
       return _refineToCloudflareURL(
-          galleryThumbnailURL!, thumbnailID!, "thumbnail");
+          galleryThumbnailURL!, thumbnailID!, 'thumbnail');
     }
 
     return replaceIPFS(galleryThumbnailURL!);
@@ -491,13 +465,13 @@ String _replaceIPFSPreviewURL(String url, String medium) {
   // }
 
   url =
-      url.replacePrefix(IPFS_PREFIX, "${Environment.autonomyIpfsPrefix}/ipfs/");
+      url.replacePrefix(IPFS_PREFIX, '${Environment.autonomyIpfsPrefix}/ipfs/');
   return url.replacePrefix(DEFAULT_IPFS_PREFIX, Environment.autonomyIpfsPrefix);
 }
 
 String replaceIPFS(String url) {
   url =
-      url.replacePrefix(IPFS_PREFIX, "${Environment.autonomyIpfsPrefix}/ipfs/");
+      url.replacePrefix(IPFS_PREFIX, '${Environment.autonomyIpfsPrefix}/ipfs/');
   return url.replacePrefix(DEFAULT_IPFS_PREFIX, Environment.autonomyIpfsPrefix);
 }
 
@@ -505,7 +479,7 @@ String _refineToCloudflareURL(String url, String thumbnailID, String variant) {
   final cloudFlareImageUrlPrefix = Environment.cloudFlareImageUrlPrefix;
   return thumbnailID.isEmpty
       ? replaceIPFS(url)
-      : "$cloudFlareImageUrlPrefix$thumbnailID/$variant";
+      : '$cloudFlareImageUrlPrefix$thumbnailID/$variant';
 }
 
 AssetToken createPendingAssetToken({
@@ -532,26 +506,26 @@ AssetToken createPendingAssetToken({
       null,
       null,
       series.maxEdition,
-      "airdrop",
+      'airdrop',
       null,
       series.thumbnailURI,
       series.thumbnailURI,
       series.thumbnailURI,
       null,
       null,
-      "airdrop",
+      'airdrop',
       null,
       null,
       null,
     ),
-    blockchain: exhibition?.mintBlockchain.toLowerCase() ?? "tezos",
+    blockchain: exhibition?.mintBlockchain.toLowerCase() ?? 'tezos',
     fungible: false,
     contractType: '',
     tokenId: tokenId,
     contractAddress: contract?.address,
     edition: 0,
-    editionName: "",
-    id: indexerId ?? "",
+    editionName: '',
+    id: indexerId ?? '',
     mintedAt: series.createdAt ?? DateTime.now(),
     balance: 1,
     owner: owner,
@@ -593,91 +567,213 @@ extension AssetExt on Asset {
     String? initialSaleModel,
     String? originalFileURL,
     String? artworkMetadata,
-  }) {
-    return Asset(
-      indexID ?? this.indexID,
-      thumbnailID ?? this.thumbnailID,
-      lastRefreshedTime ?? this.lastRefreshedTime,
-      artistID ?? this.artistID,
-      artistName ?? artistName,
-      artistURL ?? this.artistURL,
-      artists ?? this.artists,
-      assetID ?? this.assetID,
-      title ?? this.title,
-      description ?? this.description,
-      mimeType ?? this.mimeType,
-      medium ?? this.medium,
-      maxEdition ?? this.maxEdition,
-      source ?? this.source,
-      sourceURL ?? this.sourceURL,
-      previewURL ?? this.previewURL,
-      thumbnailURL ?? this.thumbnailURL,
-      galleryThumbnailURL ?? this.galleryThumbnailURL,
-      assetData ?? this.assetData,
-      assetURL ?? this.assetURL,
-      initialSaleModel ?? this.initialSaleModel,
-      originalFileURL ?? this.originalFileURL,
-      isFeralfileFrame ?? this.isFeralfileFrame,
-      artworkMetadata ?? this.artworkMetadata,
-    );
-  }
+  }) =>
+      Asset(
+        indexID ?? this.indexID,
+        thumbnailID ?? this.thumbnailID,
+        lastRefreshedTime ?? this.lastRefreshedTime,
+        artistID ?? this.artistID,
+        artistName ?? artistName,
+        artistURL ?? this.artistURL,
+        artists ?? this.artists,
+        assetID ?? this.assetID,
+        title ?? this.title,
+        description ?? this.description,
+        mimeType ?? this.mimeType,
+        medium ?? this.medium,
+        maxEdition ?? this.maxEdition,
+        source ?? this.source,
+        sourceURL ?? this.sourceURL,
+        previewURL ?? this.previewURL,
+        thumbnailURL ?? this.thumbnailURL,
+        galleryThumbnailURL ?? this.galleryThumbnailURL,
+        assetData ?? this.assetData,
+        assetURL ?? this.assetURL,
+        initialSaleModel ?? this.initialSaleModel,
+        originalFileURL ?? this.originalFileURL,
+        isFeralfileFrame ?? this.isFeralfileFrame,
+        artworkMetadata ?? this.artworkMetadata,
+      );
 }
 
 extension PostcardExtension on AssetToken {
   int get stampIndex {
+    int index = -1;
     final listArtists = getArtists;
     if (listArtists.isEmpty) {
-      return -1;
+      index = -1;
     }
     final owner = this.owner;
-    return listArtists.indexWhere((element) => owner == element.id);
+    index = listArtists.indexWhere((element) => owner == element.id);
+    return index;
   }
 
-  int get numberOwners {
-    return maxEdition ?? 0;
+  int get stampIndexWithStamping {
+    int index = stampIndex;
+    if (index == -1) {
+      index = numberOwners;
+    }
+    return index;
   }
 
-  bool get isStamped {
-    return numberOwners == getArtists.length;
+  int get numberOwners => maxEdition ?? 0;
+
+  ProcessingStampPostcard? get processingStampPostcard {
+    final processingStamp =
+        injector<ConfigurationService>().getProcessingStampPostcard();
+    return processingStamp.firstWhereOrNull((final element) {
+      final bool = element.indexId == tokenId &&
+          element.address == owner &&
+          element.counter == numberOwners &&
+          isLastOwner;
+      return bool;
+    });
   }
 
-  bool get isFinalClaimed {
-    return numberOwners == MAX_STAMP_IN_POSTCARD - 1;
+  StampingPostcard? get stampingPostcardConfig {
+    final stampingPostcard =
+        injector<ConfigurationService>().getStampingPostcard();
+    return stampingPostcard.firstWhereOrNull((final element) {
+      final bool =
+          element.indexId == id && element.address == owner && isLastOwner;
+      return bool;
+    });
   }
 
-  bool get isFinal {
-    return numberOwners == MAX_STAMP_IN_POSTCARD;
+  bool get isProcessingStamp => processingStampPostcard != null;
+
+  bool get isStamping {
+    final stampingPostcard = injector<PostcardService>().getStampingPostcard();
+    return stampingPostcard.any((element) {
+      final bool =
+          element.indexId == id && element.address == owner && isLastOwner;
+      return bool;
+    });
   }
 
-  bool get isCompleted {
-    return isFinal && isStamped;
-  }
+  bool get isStamped => numberOwners == getArtists.length;
+
+  bool get isFinalClaimed => numberOwners == MAX_STAMP_IN_POSTCARD - 1;
+
+  bool get isFinal => numberOwners == MAX_STAMP_IN_POSTCARD;
+
+  bool get isCompleted => isFinal && isStamped;
 
   bool get isSending {
     final sharedPostcards =
         injector<ConfigurationService>().getSharedPostcard();
-    return sharedPostcards.any((element) {
-      return !element.isExpired &&
-          element.owner == owner &&
-          element.tokenID == id;
-    });
+    return sharedPostcards.any((element) =>
+        !element.isExpired && element.owner == owner && element.tokenID == id);
   }
 
   bool get isLastOwner {
-    final artists = getArtists;
     final index = stampIndex;
-    return index == -1 || index == artists.length - 1;
+    return index == -1 || index == numberOwners - 1;
   }
 
-  String getStamperName(String address) {
-    final artists = getArtists;
-    artists.removeWhere((element) => element.id == null);
-    final artist = artists.firstWhereOrNull((element) => element.id == address);
-    if (artists.isEmpty || artist == null) {
-      return "pending_stamper".tr();
-    } else {
-      final index = artists.indexOf(artist) + 1;
-      return "stamper_".tr(args: [index.toString()]);
+  StampingPostcard? get stampingPostcard {
+    if (asset?.artworkMetadata == null) {
+      return null;
     }
+    final tokenId = this.tokenId ?? '';
+    final address = owner;
+    final counter = numberOwners;
+    final contractAddress = Environment.postcardContractAddress;
+    final imagePath = '${contractAddress}_${tokenId}_${counter}_image.png';
+    final metadataPath =
+        '${contractAddress}_${tokenId}_${counter}_metadata.json';
+    return StampingPostcard(
+      indexId: id,
+      address: address,
+      imagePath: imagePath,
+      metadataPath: metadataPath,
+      counter: counter,
+    );
+  }
+
+  PostcardMetadata get postcardMetadata =>
+      PostcardMetadata.fromJson(jsonDecode(asset!.artworkMetadata!));
+
+  String get twitterCaption => '#MoMAPostcard';
+
+  bool get isAlreadyShowYouDidIt {
+    final listAlreadyShow =
+        injector<ConfigurationService>().getListPostcardAlreadyShowYouDidIt();
+    return listAlreadyShow
+        .where((element) => element.id == id && element.owner == owner)
+        .isNotEmpty;
+  }
+
+  Future<ShareResult?> sharePostcard({
+    Function? onSuccess,
+    Function? onDismissed,
+    Function(Object)? onFailed,
+    Rect? sharePositionOrigin,
+  }) async {
+    try {
+      final postcardService = injector<PostcardService>();
+      final configurationService = injector<ConfigurationService>();
+      final shareTime = DateTime.now();
+      final sharePostcardResponse = await postcardService.sharePostcard(this);
+      if (sharePostcardResponse.deeplink?.isNotEmpty ?? false) {
+        final shareMessage = 'postcard_share_message'.tr(namedArgs: {
+          'deeplink': sharePostcardResponse.deeplink!,
+        });
+        final result = await Share.shareWithResult(shareMessage,
+            sharePositionOrigin: sharePositionOrigin);
+        if (result.status == ShareResultStatus.success) {
+          await Future.delayed(const Duration(milliseconds: 100));
+          await configurationService
+              .updateSharedPostcard([SharedPostcard(id, owner, shareTime)]);
+
+          onSuccess?.call();
+        } else {
+          onDismissed?.call();
+        }
+      }
+    } catch (e) {
+      onFailed?.call(e);
+    }
+    return null;
+  }
+
+  AssetToken setAssetPrompt(Prompt prompt) {
+    final metadata = postcardMetadata..prompt = prompt;
+
+    asset?.artworkMetadata = jsonEncode(metadata.toJson());
+    if (prompt.cid != null) {
+      updatePostcardCID(prompt.cid!);
+    }
+    return this;
+  }
+
+  double get totalDistance {
+    final listTravelInfo = postcardMetadata.listTravelInfoWithoutLocationName;
+    final totalDistance = listTravelInfo.totalDistance;
+    return totalDistance;
+  }
+
+  bool get didSendNext {
+    final artists = getArtists;
+    final artistOwner =
+        artists.firstWhereOrNull((element) => element.id == owner);
+    if (artistOwner == null) {
+      return false;
+    }
+    return artistOwner != artists.last;
+  }
+
+  bool get isShareExpired {
+    final sharedPostcards =
+        injector<ConfigurationService>().getSharedPostcard();
+    return sharedPostcards.any((element) =>
+        element.owner == owner && element.tokenID == id && element.isExpired);
+  }
+
+  bool get enabledMerch {
+    final remoteConfig = injector<RemoteConfigService>();
+    final isEnable = isCompleted ||
+        !remoteConfig.getBool(ConfigGroup.merchandise, ConfigKey.mustCompleted);
+    return isEnable;
   }
 }

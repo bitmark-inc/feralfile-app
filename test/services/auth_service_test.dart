@@ -12,33 +12,34 @@ import 'package:uuid/uuid.dart';
 import 'auth_service_test.mocks.dart';
 
 @GenerateMocks([IAPApi, AccountService, ConfigurationService])
-main() async {
+void main() async {
   late IAPApi authApi;
   late AccountService accountService;
   late ConfigurationService configService;
   late AuthService authService;
   const jwt =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
+      '''eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c''';
 
   group('auth service test', () {
-    setup() {
+    void setup() {
       authApi = MockIAPApi();
       accountService = MockAccountService();
       configService = MockConfigurationService();
       authService = AuthService(authApi, accountService, configService);
+
     }
 
     test('get auth token', () async {
       setup();
 
       final message = DateTime.now().millisecondsSinceEpoch.toString();
-      when(accountService.getDefaultAccount()).thenAnswer(
-          (_) async => MockWalletStorage(const Uuid().v4().toString()));
+      when(accountService.getDefaultAccount())
+          .thenAnswer((_) async => MockWalletStorage(const Uuid().v4()));
       when(configService.getIAPReceipt()).thenReturn(null);
       when(authApi.auth({
-        "requester": "account_did",
-        "timestamp": message,
-        "signature": "signature",
+        'requester': 'account_did',
+        'timestamp': message,
+        'signature': 'signature',
       })).thenAnswer((_) async => JWT(jwtToken: jwt));
 
       final token = await authService.getAuthToken(messageToSign: message);
@@ -50,13 +51,13 @@ main() async {
       setup();
 
       final message = DateTime.now().millisecondsSinceEpoch.toString();
-      when(accountService.getDefaultAccount()).thenAnswer(
-          (_) async => MockWalletStorage(const Uuid().v4().toString()));
+      when(accountService.getDefaultAccount())
+          .thenAnswer((_) async => MockWalletStorage(const Uuid().v4()));
       when(configService.getIAPReceipt()).thenReturn(null);
       when(authApi.auth({
-        "requester": "account_did",
-        "timestamp": message,
-        "signature": "signature",
+        'requester': 'account_did',
+        'timestamp': message,
+        'signature': 'signature',
       })).thenAnswer((_) async => JWT(jwtToken: jwt));
 
       final token1 = await authService.getAuthToken(messageToSign: message);
@@ -66,9 +67,9 @@ main() async {
       verify(accountService.getDefaultAccount()).called(2);
       verify(configService.getIAPReceipt()).called(2);
       verify(authApi.auth({
-        "requester": "account_did",
-        "timestamp": message,
-        "signature": "signature",
+        'requester': 'account_did',
+        'timestamp': message,
+        'signature': 'signature',
       })).called(2);
 
       expect(token1.jwtToken, jwt);
@@ -78,15 +79,11 @@ main() async {
 }
 
 class MockWalletStorage extends WalletStorage {
-  MockWalletStorage(String uuid) : super(uuid);
+  MockWalletStorage(super.uuid);
 
   @override
-  Future<String> getAccountDID() async {
-    return "account_did";
-  }
+  Future<String> getAccountDID() async => 'account_did';
 
   @override
-  Future<String> getAccountDIDSignature(String message) async {
-    return "signature";
-  }
+  Future<String> getAccountDIDSignature(String message) async => 'signature';
 }

@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+// ignore_for_file: cascade_invocations
+
 import 'dart:math';
 
 import 'package:autonomy_flutter/common/environment.dart';
@@ -19,12 +21,10 @@ import 'package:autonomy_flutter/gateway/chat_api.dart';
 import 'package:autonomy_flutter/gateway/currency_exchange_api.dart';
 import 'package:autonomy_flutter/gateway/customer_support_api.dart';
 import 'package:autonomy_flutter/gateway/etherchain_api.dart';
-import 'package:autonomy_flutter/gateway/feed_api.dart';
 import 'package:autonomy_flutter/gateway/feralfile_api.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/gateway/postcard_api.dart';
 import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
-import 'package:autonomy_flutter/gateway/rendering_report_api.dart';
 import 'package:autonomy_flutter/gateway/tzkt_api.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/claim_empty_postcard/claim_empty_postcard_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist_bloc.dart';
@@ -47,9 +47,7 @@ import 'package:autonomy_flutter/service/currency_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
-import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
-import 'package:autonomy_flutter/service/followee_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
@@ -58,6 +56,7 @@ import 'package:autonomy_flutter/service/notification_service.dart';
 import 'package:autonomy_flutter/service/pending_token_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
+import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
@@ -115,7 +114,8 @@ Future<void> setup() async {
     migrateV13ToV14,
     migrateV14ToV15,
     migrateV15ToV16,
-    migrateV16ToV17
+    migrateV16ToV17,
+    migrateV17ToV18,
   ]).build();
 
   final cloudDB = await $FloorCloudDatabase
@@ -162,7 +162,7 @@ Future<void> setup() async {
   dio.interceptors.add(RetryInterceptor(
     dio: dio,
     logPrint: (message) {
-      log.warning("[request retry] $message");
+      log.warning('[request retry] $message');
     },
     retryDelays: const [
       // set delays between retries
@@ -200,7 +200,7 @@ Future<void> setup() async {
       ));
 
   injector.registerLazySingleton(() => ChatApi(dio,
-      baseUrl: Environment.postcardChatServerUrl.replaceFirst("ws", "http")));
+      baseUrl: Environment.postcardChatServerUrl.replaceFirst('ws', 'http')));
   injector.registerLazySingleton(() => ChatAuthService(injector()));
   injector.registerLazySingleton(
       () => IAPApi(authenticatedDio, baseUrl: Environment.autonomyAuthURL));
@@ -215,10 +215,10 @@ Future<void> setup() async {
   injector.registerLazySingleton(() => BranchApi(dio));
   injector.registerLazySingleton(
       () => PubdocAPI(dio, baseUrl: Environment.pubdocURL));
+  injector.registerLazySingleton<RemoteConfigService>(
+      () => RemoteConfigServiceImpl(injector()));
   injector.registerLazySingleton(
-      () => FeedApi(authenticatedDio, baseUrl: Environment.feedURL));
-  injector.registerLazySingleton(
-      () => AuthService(injector(), injector(), injector(), injector()));
+      () => AuthService(injector(), injector(), injector()));
   injector.registerLazySingleton(() => BackupService(injector()));
   injector
       .registerLazySingleton(() => TezosBeaconService(injector(), injector()));
@@ -242,6 +242,7 @@ Future<void> setup() async {
             injector(),
             injector(),
           ));
+
   injector.registerLazySingleton<IAPService>(
       () => IAPServiceImpl(injector(), injector()));
 
@@ -262,9 +263,6 @@ Future<void> setup() async {
             mainnetDB.draftCustomerSupportDao,
             CustomerSupportApi(authenticatedDio,
                 baseUrl: Environment.customerSupportURL),
-            RenderingReportApi(authenticatedDio,
-                baseUrl: Environment.renderingReportURL),
-            injector(),
             injector(),
             mainnetDB.announcementDao,
             AnnouncementApi(authenticatedDio,
@@ -282,7 +280,6 @@ Future<void> setup() async {
   injector.registerLazySingleton<ClientTokenService>(() => ClientTokenService(
       injector(), injector(), injector(), injector(), injector()));
 
-  injector.registerLazySingleton(() => FolloweeService(injector(), injector()));
   final tezosNodeClientURL = Environment.appTestnetConfig
       ? Environment.tezosNodeClientTestnetURL
       : publicTezosNodes[Random().nextInt(publicTezosNodes.length)];
@@ -308,9 +305,6 @@ Future<void> setup() async {
   injector
       .registerLazySingleton<TezosService>(() => TezosServiceImpl(injector()));
   injector.registerLazySingleton<AppDatabase>(() => mainnetDB);
-
-  injector
-      .registerLazySingleton<FeedService>(() => FeedServiceImpl(injector()));
   injector.registerLazySingleton<PlaylistService>(
       () => PlayListServiceImp(injector(), injector(), injector()));
 
@@ -368,6 +362,7 @@ Future<void> setup() async {
       ));
 
   injector.registerLazySingleton<DeeplinkService>(() => DeeplinkServiceImpl(
+        injector(),
         injector(),
         injector(),
         injector(),

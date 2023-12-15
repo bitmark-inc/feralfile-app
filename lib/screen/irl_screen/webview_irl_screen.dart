@@ -1,5 +1,9 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/model/wc_ethereum_transaction.dart';
@@ -9,6 +13,8 @@ import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -25,11 +31,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:tezart/tezart.dart';
 import 'package:walletconnect_flutter_v2/apis/core/pairing/utils/pairing_models.dart';
+import 'package:uuid/uuid.dart';
 
 class IRLWebScreen extends StatefulWidget {
-  final String url;
+  final IRLWebScreenPayload payload;
 
-  const IRLWebScreen({Key? key, required this.url}) : super(key: key);
+  const IRLWebScreen({required this.payload, super.key});
 
   @override
   State<IRLWebScreen> createState() => _IRLWebScreenState();
@@ -54,12 +61,12 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
 
   JSResult _logAndReturnJSResult(String func, JSResult result) {
     log.info('[IRLWebScreen] $func: ${result.toJson()}');
-    _metricClient.addEvent(MixpanelEvent.callIrlFunction, data: {
+    unawaited(_metricClient.addEvent(MixpanelEvent.callIrlFunction, data: {
       'function': func,
       'error': result.errorMessage,
       'result': result.result.toString(),
-      'url': widget.url,
-    });
+      'url': widget.payload.url,
+    }));
     return result;
   }
 
@@ -72,7 +79,7 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
           JSResult.error('Payload is invalid'),
         );
       }
-      final arguments = (args.firstOrNull as Map);
+      final arguments = args.firstOrNull as Map;
 
       final chain = arguments['chain'];
       if (chain == null) {
@@ -105,10 +112,12 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
       if (addresses.length == 1) {
         address = addresses.first.address;
       } else {
-        if (!mounted) return null;
+        if (!mounted) {
+          return null;
+        }
         address = await UIHelper.showDialog(
           context,
-          "select_address_to_connect".tr(),
+          'select_address_to_connect'.tr(),
           SelectAddressView(
             addresses: addresses,
           ),
@@ -122,13 +131,67 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
       }
       return _logAndReturnJSResult(
         '_getAddress',
-        JSResult.error("User rejected"),
+        JSResult.error('User rejected'),
       );
     } catch (e) {
       return _logAndReturnJSResult(
         '_getAddress',
         JSResult.error(e.toString()),
       );
+    }
+  }
+
+  Future<void> _receiveData(List<dynamic> args) async {
+    final argument = args.firstOrNull;
+    log.info('[IRLWebScreen] passData: $argument');
+    if (argument == null) {
+      return;
+    }
+    final type = argument['type'];
+    switch (type) {
+      case 'customer_support':
+        final customerSupportService = injector<CustomerSupportService>();
+        final messageType = CSMessageType.CreateIssue.rawValue;
+        final issueID = 'TEMP-${const Uuid().v4()}';
+        final data = argument['data'] as Map<String, dynamic>;
+        final title = data['title'];
+        final text = data['text'];
+        final orderId = data['orderId'];
+        final indexId = data['indexId'];
+        final draft = DraftCustomerSupport(
+          uuid: const Uuid().v4(),
+          issueID: issueID,
+          type: messageType,
+          data: json.encode(DraftCustomerSupportData(text: text, title: title)),
+          createdAt: DateTime.now(),
+          reportIssueType: ReportIssueType.MerchandiseIssue,
+          mutedMessages: [orderId, indexId].join('[SEPARATOR]'),
+        );
+
+        await customerSupportService.draftMessage(draft);
+        await injector<ConfigurationService>()
+            .setHasMerchandiseSupport(data['indexId']);
+        return;
+      case 'open_customer_support':
+        if (!mounted) {
+          return;
+        }
+        unawaited(Navigator.of(context).pushNamed(AppRouter.supportListPage));
+        return;
+      case 'pay_to_mint_success':
+        final data = argument['data'] as Map<String, dynamic>;
+        Map<String, dynamic> response = {
+          'result': true,
+        };
+        response.addAll(data);
+        if (!mounted) {
+          return;
+        }
+        Navigator.of(context).pop(response);
+
+        return;
+      default:
+        return;
     }
   }
 
@@ -153,7 +216,10 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
         return _logAndReturnJSResult(
           '_signMessage',
           JSResult.error(
-            'Wallet not found. Chain ${argument.chain}, address: ${argument.sourceAddress}',
+            '''
+            Wallet not found. Chain ${argument.chain}, 
+            address: ${argument.sourceAddress}
+            ''',
           ),
         );
       }
@@ -213,7 +279,10 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
         return _logAndReturnJSResult(
           '_sendTransaction',
           JSResult.error(
-            'Wallet not found. Chain ${argument.chain}, address: ${argument.sourceAddress}',
+            '''
+            Wallet not found. Chain ${argument.chain}, 
+            address: ${argument.sourceAddress}
+            ''',
           ),
         );
       }
@@ -228,9 +297,13 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
         case Wc2Chain.ethereum:
           try {
             var transaction = argument.transactions.firstOrNull ?? {};
-            if (transaction["data"] == null) transaction["data"] = "";
-            if (transaction["gas"] == null) transaction["gas"] = "";
-            if (transaction["to"] == null) {
+            if (transaction['data'] == null) {
+              transaction['data'] = '';
+            }
+            if (transaction['gas'] == null) {
+              transaction['gas'] = '';
+            }
+            if (transaction['to'] == null) {
               return _logAndReturnJSResult(
                 '_sendTransaction',
                 JSResult.error('Invalid transaction: no recipient'),
@@ -314,6 +387,11 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
     );
 
     _controller?.addJavaScriptHandler(
+      handlerName: 'passData',
+      callback: _receiveData,
+    );
+
+    _controller?.addJavaScriptHandler(
       handlerName: 'signMessage',
       callback: _signMessage,
     );
@@ -325,47 +403,57 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
     _controller?.addJavaScriptHandler(
       handlerName: 'closeWebview',
       callback: (args) async {
-        injector.get<NavigationService>().popUntilHomeOrSettings();
-        _metricClient.addEvent(MixpanelEvent.callIrlFunction, data: {
+        injector.get<NavigationService>().goBack();
+        unawaited(_metricClient.addEvent(MixpanelEvent.callIrlFunction, data: {
           'function': IrlWebviewFunction.closeWebview,
-          'url': widget.url,
-        });
+          'url': widget.payload.url,
+        }));
       },
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        systemOverlayStyle: const SystemUiOverlayStyle(
-          statusBarColor: Colors.white,
-          statusBarIconBrightness: Brightness.dark,
-          statusBarBrightness: Brightness.light,
-        ),
-        backgroundColor: Colors.white,
-        toolbarHeight: 0,
-        shadowColor: Colors.transparent,
-        elevation: 0,
-      ),
-      body: SafeArea(
-        bottom: false,
-        child: Column(
-          children: [
-            Expanded(
-              child: InAppWebViewPage(
-                payload: InAppWebViewPayload(widget.url,
-                    onWebViewCreated: (controller) {
-                  _controller = controller;
-                  _addJavaScriptHandler();
-                }),
-              ),
-            )
-          ],
-        ),
-      ),
-    );
+  void _addLocalStorageItems(Map<String, dynamic> items) {
+    items.forEach((key, value) {
+      unawaited(
+          _controller?.webStorage.localStorage.setItem(key: key, value: value));
+    });
   }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+        appBar: AppBar(
+          systemOverlayStyle: SystemUiOverlayStyle(
+            statusBarColor: widget.payload.statusBarColor ?? Colors.white,
+            statusBarIconBrightness: Brightness.dark,
+            statusBarBrightness: Brightness.light,
+          ),
+          backgroundColor: Colors.white,
+          toolbarHeight: 0,
+          shadowColor: Colors.transparent,
+          elevation: 0,
+        ),
+        body: SafeArea(
+          bottom: false,
+          child: Column(
+            children: [
+              Expanded(
+                child: InAppWebViewPage(
+                  payload: InAppWebViewPayload(widget.payload.url,
+                      isPlainUI: widget.payload.isPlainUI,
+                      backgroundColor: widget.payload.statusBarColor,
+                      onWebViewCreated: (final controller) {
+                    _controller = controller;
+                    _addJavaScriptHandler();
+                    if (widget.payload.localStorageItems != null) {
+                      _addLocalStorageItems(widget.payload.localStorageItems!);
+                    }
+                  }),
+                ),
+              )
+            ],
+          ),
+        ),
+      );
 
   CryptoType? _getCryptoType(String chain) {
     switch (chain.toLowerCase()) {
@@ -389,30 +477,32 @@ class JSResult {
     this.result,
   });
 
-  Map<String, dynamic> toJson() {
-    return <String, dynamic>{
-      'errorMessage': errorMessage,
-      'result': result,
-    };
-  }
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'errorMessage': errorMessage,
+        'result': result,
+      };
 
-  factory JSResult.fromJson(Map<String, dynamic> map) {
-    return JSResult(
-      errorMessage:
-          map['errorMessage'] != null ? map['errorMessage'] as String : null,
-      result: map['result'] != null ? map['result'] as dynamic : null,
-    );
-  }
+  factory JSResult.fromJson(Map<String, dynamic> map) => JSResult(
+        errorMessage:
+            map['errorMessage'] != null ? map['errorMessage'] as String : null,
+        result: map['result'] != null ? map['result'] as dynamic : null,
+      );
 
-  factory JSResult.error(String error) {
-    return JSResult(
-      errorMessage: error,
-    );
-  }
+  factory JSResult.error(String error) => JSResult(
+        errorMessage: error,
+      );
 
-  factory JSResult.result(dynamic result) {
-    return JSResult(
-      result: result,
-    );
-  }
+  factory JSResult.result(result) => JSResult(
+        result: result,
+      );
+}
+
+class IRLWebScreenPayload {
+  final String url;
+  final bool isPlainUI;
+  final Map<String, dynamic>? localStorageItems;
+  final Color? statusBarColor;
+
+  IRLWebScreenPayload(this.url,
+      {this.isPlainUI = false, this.localStorageItems, this.statusBarColor});
 }

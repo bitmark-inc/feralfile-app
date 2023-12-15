@@ -8,6 +8,7 @@
 // ignore_for_file: unused_field
 
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_toggle.dart';
@@ -147,9 +148,10 @@ class _AccessMethodPageState extends State<AccessMethodPage> {
               .pushNamed(AppRouter.linkManually, arguments: 'indexerTokenID'),
         ),
         TextButton(
-            onPressed: () {
-              injector<CloudDatabase>().connectionDao.deleteConnectionsByType(
+            onPressed: () async {
+              await injector<CloudDatabase>().connectionDao.deleteConnectionsByType(
                   ConnectionType.manuallyIndexerTokenID.rawValue);
+              injector<ClientTokenService>().refreshTokens();
             },
             child: Text("delete_all_debug_li".tr())),
       ],

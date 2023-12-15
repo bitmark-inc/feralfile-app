@@ -159,6 +159,32 @@ class _PostcardApi implements PostcardApi {
   }
 
   @override
+  Future<String> getMerchandiseEnable(String tokenId) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
+    final _result = await _dio.fetch<String>(_setStreamType<String>(Options(
+      method: 'GET',
+      headers: _headers,
+      extra: _extra,
+    )
+        .compose(
+          _dio.options,
+          '/v1/postcard/${tokenId}/merchandise_enabled',
+          queryParameters: queryParameters,
+          data: _data,
+        )
+        .copyWith(
+            baseUrl: _combineBaseUrls(
+          _dio.options.baseUrl,
+          baseUrl,
+        ))));
+    final value = _result.data!;
+    return value;
+  }
+
+  @override
   Future<dynamic> updatePostcard({
     required String tokenId,
     required File data,
@@ -166,9 +192,11 @@ class _PostcardApi implements PostcardApi {
     required String signature,
     required String address,
     required String publicKey,
+    required int counter,
     double? lat,
     double? lon,
-    required int counter,
+    String? promptID,
+    String? prompt,
   }) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
@@ -177,14 +205,14 @@ class _PostcardApi implements PostcardApi {
     final _data = FormData();
     _data.files.add(MapEntry(
       'image',
-      MultipartFile.fromFileSync(
+      MultipartFileRecreatable.fromFileSync(
         data.path,
         filename: data.path.split(Platform.pathSeparator).last,
       ),
     ));
     _data.files.add(MapEntry(
       'metadata',
-      MultipartFile.fromFileSync(
+      MultipartFileRecreatable.fromFileSync(
         metadata.path,
         filename: metadata.path.split(Platform.pathSeparator).last,
       ),
@@ -201,6 +229,10 @@ class _PostcardApi implements PostcardApi {
       'publicKey',
       publicKey,
     ));
+    _data.fields.add(MapEntry(
+      'counter',
+      counter.toString(),
+    ));
     if (lat != null) {
       _data.fields.add(MapEntry(
         'lat',
@@ -213,10 +245,18 @@ class _PostcardApi implements PostcardApi {
         lon.toString(),
       ));
     }
-    _data.fields.add(MapEntry(
-      'counter',
-      counter.toString(),
-    ));
+    if (promptID != null) {
+      _data.fields.add(MapEntry(
+        'promptID',
+        promptID,
+      ));
+    }
+    if (prompt != null) {
+      _data.fields.add(MapEntry(
+        'prompt',
+        prompt,
+      ));
+    }
     final _result = await _dio.fetch(_setStreamType<dynamic>(Options(
       method: 'POST',
       headers: _headers,
@@ -270,6 +310,35 @@ class _PostcardApi implements PostcardApi {
               baseUrl,
             ))));
     final value = GetLeaderboardResponse.fromJson(_result.data!);
+    return value;
+  }
+
+  @override
+  Future<List<Prompt>> getPrompts(String tokenId) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
+    final _result =
+        await _dio.fetch<List<dynamic>>(_setStreamType<List<Prompt>>(Options(
+      method: 'GET',
+      headers: _headers,
+      extra: _extra,
+    )
+            .compose(
+              _dio.options,
+              '/v1/postcard/${tokenId}/prompts',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(
+                baseUrl: _combineBaseUrls(
+              _dio.options.baseUrl,
+              baseUrl,
+            ))));
+    var value = _result.data!
+        .map((dynamic i) => Prompt.fromJson(i as Map<String, dynamic>))
+        .toList();
     return value;
   }
 

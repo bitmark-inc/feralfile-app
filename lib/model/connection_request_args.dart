@@ -5,8 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/service/wc2_service.dart';
-import 'package:collection/collection.dart';
+import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:tezart/tezart.dart';
 import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
 
@@ -17,7 +16,7 @@ abstract class ConnectionRequest {
 
   bool get isBeaconConnect => false;
 
-  get id;
+  String get id;
 
   String? get name;
 
@@ -43,7 +42,7 @@ class BeaconRequest extends ConnectionRequest {
   bool get isBeaconConnect => true;
 
   @override
-  get id => _id;
+  String get id => _id;
 
   @override
   String? get name => appName;
@@ -71,6 +70,7 @@ class Wc2Proposal extends ConnectionRequest {
     this._id, {
     required this.proposer,
     required this.requiredNamespaces,
+    this.optionalNamespaces = const {},
   });
 
   @override
@@ -80,11 +80,8 @@ class Wc2Proposal extends ConnectionRequest {
   bool get isAutonomyConnect => _isAutonomyConnect();
 
   bool _isAutonomyConnect() {
-    final proposalMethods =
-        requiredNamespaces.values.map((e) => e.methods).flattened.toSet();
-    final unsupportedMethods =
-        proposalMethods.difference(Wc2Service.autonomyMethods);
-    return unsupportedMethods.isEmpty;
+    final proposalChains = allNamespaces.keys.toSet();
+    return proposalChains.contains(Wc2Chain.autonomy);
   }
 
   PairingMetadata proposer;
@@ -92,7 +89,7 @@ class Wc2Proposal extends ConnectionRequest {
   final int _id;
 
   @override
-  get id => _id;
+  String get id => _id;
 
   @override
   String? get name => proposer.name;
@@ -115,17 +112,17 @@ class AppMetadata {
   String description;
 
   factory AppMetadata.fromJson(Map<String, dynamic> json) => AppMetadata(
-        icons: List<String>.from(json["icons"].map((x) => x)),
-        name: json["name"],
-        url: json["url"],
-        description: json["description"],
+        icons: List<String>.from(json['icons'].map((x) => x)),
+        name: json['name'],
+        url: json['url'],
+        description: json['description'],
       );
 
   Map<String, dynamic> toJson() => {
-        "icons": List<dynamic>.from(icons.map((x) => x)),
-        "name": name,
-        "url": url,
-        "description": description,
+        'icons': List<dynamic>.from(icons.map((x) => x)),
+        'name': name,
+        'url': url,
+        'description': description,
       };
 }
 
@@ -141,14 +138,14 @@ class Wc2Namespace {
   List<dynamic> events;
 
   factory Wc2Namespace.fromJson(Map<String, dynamic> json) => Wc2Namespace(
-        chains: List<String>.from(json["chains"].map((x) => x)),
-        methods: List<String>.from(json["methods"].map((x) => x)),
-        events: List<dynamic>.from(json["events"].map((x) => x)),
+        chains: List<String>.from(json['chains'].map((x) => x)),
+        methods: List<String>.from(json['methods'].map((x) => x)),
+        events: List<dynamic>.from(json['events'].map((x) => x)),
       );
 
   Map<String, dynamic> toJson() => {
-        "chains": List<dynamic>.from(chains.map((x) => x)),
-        "methods": List<dynamic>.from(methods.map((x) => x)),
-        "events": List<dynamic>.from(events.map((x) => x)),
+        'chains': List<dynamic>.from(chains.map((x) => x)),
+        'methods': List<dynamic>.from(methods.map((x) => x)),
+        'events': List<dynamic>.from(events.map((x) => x)),
       };
 }

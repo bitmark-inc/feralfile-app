@@ -15,8 +15,6 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
-import 'package:autonomy_flutter/screen/discover/discover_page.dart';
-import 'package:autonomy_flutter/screen/feed/feed_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
@@ -31,10 +29,10 @@ import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
-import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/notification_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
+import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/announcement_ext.dart';
@@ -53,7 +51,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
-import 'package:multi_value_listenable_builder/multi_value_listenable_builder.dart';
 import 'package:nft_collection/database/dao/asset_token_dao.dart';
 import 'package:nft_collection/database/nft_collection_database.dart';
 import 'package:nft_collection/nft_collection.dart';
@@ -63,8 +60,7 @@ import 'package:url_launcher/url_launcher.dart';
 class HomeNavigationPage extends StatefulWidget {
   final bool fromOnboarding;
 
-  const HomeNavigationPage({Key? key, this.fromOnboarding = false})
-      : super(key: key);
+  const HomeNavigationPage({super.key, this.fromOnboarding = false});
 
   @override
   State<HomeNavigationPage> createState() => _HomeNavigationPageState();
@@ -80,14 +76,13 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   late List<Widget> _pages;
   late List<BottomNavigationBarItem> _bottomItems;
   final GlobalKey<HomePageState> _homePageKey = GlobalKey();
-  final GlobalKey<DiscoverPageState> _discoverPageStateKey = GlobalKey();
   final _configurationService = injector<ConfigurationService>();
-  final _feedService = injector<FeedService>();
   late Timer? _timer;
   final _clientTokenService = injector<ClientTokenService>();
   final _metricClientService = injector<MetricClientService>();
   final _notificationService = injector<NotificationService>();
   final _playListService = injector<PlaylistService>();
+  final _remoteConfig = injector<RemoteConfigService>();
 
   StreamSubscription<FGBGType>? _fgbgSubscription;
 
@@ -98,54 +93,29 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   }
 
   void _onItemTapped(int index) {
-    if (index != _pages.length) {
+    if (index < _pages.length) {
       if (_selectedIndex == index) {
-        if (index == 1) {
-          _homePageKey.currentState?.scrollToTop();
-        }
         if (index == 0) {
-          _discoverPageStateKey.currentState?.scrollToTop();
+          _homePageKey.currentState?.scrollToTop();
         }
       }
       setState(() {
         _selectedIndex = index;
       });
       _pageController.jumpToPage(_selectedIndex);
-      if (index == 1) {
-        _clientTokenService.refreshTokens().then((value) {
-          _feedService.checkNewFeeds();
-        });
-        _playListService.refreshPlayLists();
-      } else if (index == 0) {
-        _clientTokenService.refreshTokens().then((value) {
-          _feedService.checkNewFeeds();
-        });
-        final metricClient = injector<MetricClientService>();
-        if (_configurationService.hasFeed()) {
-          final feedBloc = context.read<FeedBloc>();
-          feedBloc.add(OpenFeedEvent());
-          feedBloc.add(GetFeedsEvent());
-          metricClient.addEvent(MixpanelEvent.viewDiscovery);
-          metricClient.timerEvent(MixpanelEvent.timeViewDiscovery);
-        }
+      if (index == 0) {
+        unawaited(_clientTokenService.refreshTokens());
+        unawaited(_playListService.refreshPlayLists());
       }
+    } else if (index == _pages.length) {
+      unawaited(Navigator.of(context).pushNamed(
+        AppRouter.scanQRPage,
+        arguments: ScannerItem.GLOBAL,
+      ));
     } else {
-      UIHelper.showDrawerAction(
+      unawaited(UIHelper.showDrawerAction(
         context,
         options: [
-          OptionItem(
-            title: 'Scan',
-            icon: const Icon(
-              AuIcon.scan,
-            ),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.of(context).pushNamed(
-                AppRouter.scanQRPage,
-                arguments: ScannerItem.GLOBAL,
-              );
-            },
-          ),
           OptionItem(
               title: 'Settings',
               icon: const Icon(
@@ -161,51 +131,39 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
                 valueListenable:
                     injector<CustomerSupportService>().numberOfIssuesInfo,
                 builder: (BuildContext context, List<int>? numberOfIssuesInfo,
-                    Widget? child) {
-                  return iconWithRedDot(
-                    icon: const Icon(
-                      AuIcon.help,
-                    ),
-                    padding: const EdgeInsets.only(right: 2, top: 2),
-                    withReddot: (numberOfIssuesInfo != null &&
-                        numberOfIssuesInfo[1] > 0),
-                  );
-                },
+                        Widget? child) =>
+                    iconWithRedDot(
+                  icon: const Icon(
+                    AuIcon.help,
+                  ),
+                  padding: const EdgeInsets.only(right: 2, top: 2),
+                  withReddot:
+                      numberOfIssuesInfo != null && numberOfIssuesInfo[1] > 0,
+                ),
               ),
               onTap: () {
                 Navigator.pop(context);
                 Navigator.of(context).pushNamed(AppRouter.supportCustomerPage);
               }),
         ],
-      );
+      ));
     }
   }
 
   @override
   void initState() {
-    injector<CustomerSupportService>().getIssuesAndAnnouncement();
+    unawaited(injector<CustomerSupportService>().getIssuesAndAnnouncement());
     super.initState();
-    if (memoryValues.homePageInitialTab != HomePageTab.DISCOVER) {
-      _selectedIndex = HomeNavigatorTab.COLLECTION.index;
-    } else {
-      _selectedIndex = HomeNavigatorTab.DISCOVER.index;
-    }
+    _selectedIndex = HomeNavigatorTab.COLLECTION.index;
     _pageController = PageController(initialPage: _selectedIndex);
 
-    _clientTokenService.refreshTokens().then((value) {
-      _feedService.checkNewFeeds();
-    });
+    unawaited(_clientTokenService.refreshTokens());
 
     _timer = Timer.periodic(const Duration(minutes: 1), (timer) {
-      _clientTokenService.refreshTokens();
+      unawaited(_clientTokenService.refreshTokens());
     });
 
     _pages = <Widget>[
-      ValueListenableBuilder<bool>(
-          valueListenable: _feedService.hasFeed,
-          builder: (BuildContext context, bool isShowDiscover, Widget? child) {
-            return DiscoverPage(key: _discoverPageStateKey);
-          }),
       HomePage(key: _homePageKey),
       MultiBlocProvider(
         providers: [
@@ -215,62 +173,6 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       ),
     ];
     _bottomItems = [
-      BottomNavigationBarItem(
-        icon: MultiValueListenableBuilder(
-            valueListenables: [
-              _feedService.unviewedCount,
-            ],
-            builder:
-                (BuildContext context, List<dynamic> values, Widget? child) {
-              final unviewCount = values[0] as int;
-              if (unviewCount > 0) {
-                context.read<FeedBloc>().add(GetFeedsEvent());
-              }
-              return Stack(
-                children: [
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 15.0),
-                    child: Icon(
-                      AuIcon.discover,
-                      size: 25,
-                    ),
-                  ),
-                  if (unviewCount > 0) ...[
-                    Positioned(
-                      left: 28,
-                      top: 0,
-                      child: Container(
-                        padding: const EdgeInsets.only(
-                          left: 3,
-                          right: 3,
-                        ),
-                        height: 11,
-                        decoration: BoxDecoration(
-                          color: Colors.red,
-                          borderRadius: BorderRadius.circular(50),
-                        ),
-                        constraints: const BoxConstraints(minWidth: 11),
-                        child: Center(
-                          child: Text(
-                            "$unviewCount",
-                            style: Theme.of(context)
-                                .textTheme
-                                .ppMori700White12
-                                .copyWith(
-                                  fontSize: 8,
-                                ),
-                            overflow: TextOverflow.visible,
-                            maxLines: 1,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ]
-                ],
-              );
-            }),
-        label: '',
-      ),
       const BottomNavigationBarItem(
         icon: Icon(
           AuIcon.playlists,
@@ -285,83 +187,88 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         ),
         label: '',
       ),
+      const BottomNavigationBarItem(
+        icon: Icon(
+          AuIcon.scan,
+          size: 25,
+        ),
+        label: '',
+      ),
       BottomNavigationBarItem(
         icon: ValueListenableBuilder<List<int>?>(
           valueListenable:
               injector<CustomerSupportService>().numberOfIssuesInfo,
           builder: (BuildContext context, List<int>? numberOfIssuesInfo,
-              Widget? child) {
-            return iconWithRedDot(
-              icon: const Icon(
-                AuIcon.drawer,
-                size: 25,
-              ),
-              padding: const EdgeInsets.only(right: 2, top: 2),
-              withReddot:
-                  (numberOfIssuesInfo != null && numberOfIssuesInfo[1] > 0),
-            );
-          },
+                  Widget? child) =>
+              iconWithRedDot(
+            icon: const Icon(
+              AuIcon.drawer,
+              size: 25,
+            ),
+            padding: const EdgeInsets.only(right: 2, top: 2),
+            withReddot: numberOfIssuesInfo != null && numberOfIssuesInfo[1] > 0,
+          ),
         ),
         label: '',
       ),
     ];
 
     if (!_configurationService.isReadRemoveSupport()) {
-      _showRemoveCustomerSupport();
+      unawaited(_showRemoveCustomerSupport());
     }
     OneSignal.shared
         .setNotificationWillShowInForegroundHandler(_shouldShowNotifications);
     injector<AuditService>().auditFirstLog();
     OneSignal.shared.setNotificationOpenedHandler((openedResult) {
       Future.delayed(const Duration(milliseconds: 500), () {
-        _handleNotificationClicked(openedResult.notification);
+        unawaited(_handleNotificationClicked(openedResult.notification));
       });
     });
 
     if (!widget.fromOnboarding) {
-      injector<TezosBeaconService>().cleanup();
-      injector<Wc2Service>().cleanup();
+      unawaited(injector<TezosBeaconService>().cleanup());
+      unawaited(injector<Wc2Service>().cleanup());
     }
     WidgetsBinding.instance.addObserver(this);
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
 
-    injector<CanvasClientService>().init();
-    _syncArtist();
+    unawaited(injector<CanvasClientService>().init());
+    unawaited(_syncArtist());
   }
 
-  _syncArtist() async {
+  Future<void> _syncArtist() async {
     if (_configurationService.getDidSyncArtists()) {
       return;
     }
     final artists = await injector<AssetTokenDao>().findAllArtists();
     NftCollectionBloc.addEventFollowing(AddArtistsEvent(artists: artists));
-    _configurationService.setDidSyncArtists(true);
+    unawaited(_configurationService.setDidSyncArtists(true));
   }
 
   @override
-  void didPopNext() async {
+  Future<void> didPopNext() async {
     super.didPopNext();
-    injector<CustomerSupportService>().getIssuesAndAnnouncement();
+    unawaited(injector<CustomerSupportService>().getIssuesAndAnnouncement());
   }
 
-  _showRemoveCustomerSupport() async {
+  Future<void> _showRemoveCustomerSupport() async {
     final device = DeviceInfo.instance;
     if (!(await device.isSupportOS())) {
       final dio = baseDio(BaseOptions(
-        baseUrl: "https://raw.githubusercontent.com",
+        baseUrl: 'https://raw.githubusercontent.com',
         connectTimeout: const Duration(seconds: 5),
       ));
       final data = await dio.get<String>(REMOVE_CUSTOMER_SUPPORT);
       if (data.statusCode == 200) {
         final Uri uri = Uri.parse(AUTONOMY_CLIENT_GITHUB_LINK);
-        String? gitHubContent = data.data ?? "";
+        String? gitHubContent = data.data ?? '';
         Future.delayed(const Duration(seconds: 3), () {
           showInAppNotifications(
-              context, "au_has_announcement".tr(), "remove_customer_support",
+              context, 'au_has_announcement'.tr(), 'remove_customer_support',
               notificationOpenedHandler: () {
             UIHelper.showCenterSheet(context,
                 content: Markdown(
-                  key: const Key("remove_customer_support"),
+                  key: const Key('remove_customer_support'),
                   data: gitHubContent,
                   softLineBreak: true,
                   shrinkWrap: true,
@@ -369,14 +276,14 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
                   padding: const EdgeInsets.all(0),
                   styleSheet: markDownAnnouncementStyle(context),
                 ),
-                actionButton: "follow_github".tr(),
+                actionButton: 'follow_github'.tr(),
                 actionButtonOnTap: () =>
                     launchUrl(uri, mode: LaunchMode.externalApplication),
                 exitButtonOnTap: () {
                   _configurationService.readRemoveSupport(true);
                   Navigator.of(context).pop();
                 },
-                exitButton: "i_understand_".tr());
+                exitButton: 'i_understand_'.tr());
           });
         });
       }
@@ -387,7 +294,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   void dispose() {
     _pageController.dispose();
     WidgetsBinding.instance.removeObserver(this);
-    _fgbgSubscription?.cancel();
+    unawaited(_fgbgSubscription?.cancel());
     _timer?.cancel();
     super.dispose();
   }
@@ -415,21 +322,25 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     );
   }
 
-  void _shouldShowNotifications(OSNotificationReceivedEvent event) {
-    log.info("Receive notification: ${event.notification}");
+  Future<void> _shouldShowNotifications(
+      OSNotificationReceivedEvent event) async {
+    log.info('Receive notification: ${event.notification}');
     final data = event.notification.additionalData;
-    if (data == null) return;
+    if (data == null) {
+      return;
+    }
     if (_configurationService.isNotificationEnabled() != true) {
       _configurationService.showNotifTip.value = true;
     }
 
     switch (data['notification_type']) {
-      case "customer_support_new_message":
-      case "customer_support_close_issue":
+      case 'customer_support_new_message':
+      case 'customer_support_close_issue':
         final notificationIssueID =
             '${event.notification.additionalData?['issue_id']}';
         injector<CustomerSupportService>().triggerReloadMessages.value += 1;
-        injector<CustomerSupportService>().getIssuesAndAnnouncement();
+        unawaited(
+            injector<CustomerSupportService>().getIssuesAndAnnouncement());
         if (notificationIssueID == memoryValues.viewingSupportThreadIssueID) {
           event.complete(null);
           return;
@@ -438,29 +349,31 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
 
       case 'gallery_new_nft':
       case 'new_postcard_trip':
-        _clientTokenService.refreshTokens();
+        unawaited(_clientTokenService.refreshTokens());
         break;
-      case "artwork_created":
-      case "artwork_received":
-        _feedService.checkNewFeeds();
-        context.read<FeedBloc>().add(GetFeedsEvent());
+      case 'artwork_created':
+      case 'artwork_received':
         break;
     }
     switch (data['notification_type']) {
-      case "customer_support_new_announcement":
+      case 'customer_support_new_announcement':
         showInfoNotification(
-            const Key("Announcement"), "au_has_announcement".tr(),
+            const Key('Announcement'), 'au_has_announcement'.tr(),
             addOnTextSpan: [
               TextSpan(
-                  text: "tap_to_view".tr(),
+                  text: 'tap_to_view'.tr(),
                   style: Theme.of(context).textTheme.ppMori400Green14),
             ], openHandler: () async {
           final announcementID = '${data["id"]}';
-          _openAnnouncement(announcementID);
+          unawaited(_openAnnouncement(announcementID));
         });
         break;
-      case "new_message":
-        final groupId = data["group_id"];
+      case 'new_message':
+        final groupId = data['group_id'];
+
+        if (!_remoteConfig.getBool(ConfigGroup.viewDetail, ConfigKey.chat)) {
+          return;
+        }
 
         final currentGroupId = memoryValues.currentGroupChatId;
         if (groupId != currentGroupId) {
@@ -475,80 +388,92 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     event.complete(null);
   }
 
-  void _handleNotificationClicked(OSNotification notification) async {
+  Future<void> _handleNotificationClicked(OSNotification notification) async {
     if (notification.additionalData == null) {
       // Skip handling the notification without data
       return;
     }
 
-    log.info(
-        "Tap to notification: ${notification.body ?? "empty"} \nAdditional data: ${notification.additionalData!}");
-    final notificationType = notification.additionalData!["notification_type"];
-    _metricClientService.addEvent(MixpanelEvent.tabNotification, data: {
+    log.info("Tap to notification: ${notification.body ?? "empty"} "
+        '\nAdditional data: ${notification.additionalData!}');
+    final notificationType = notification.additionalData!['notification_type'];
+    unawaited(
+        _metricClientService.addEvent(MixpanelEvent.tabNotification, data: {
       'type': notificationType,
-    });
+    }));
     switch (notificationType) {
-      case "gallery_new_nft":
+      case 'gallery_new_nft':
         Navigator.of(context).popUntil((route) =>
             route.settings.name == AppRouter.homePage ||
             route.settings.name == AppRouter.homePageNoTransition);
         _pageController.jumpToPage(HomeNavigatorTab.COLLECTION.index);
         break;
 
-      case "customer_support_new_message":
-      case "customer_support_close_issue":
+      case 'customer_support_new_message':
+      case 'customer_support_close_issue':
         final issueID = '${notification.additionalData!["issue_id"]}';
         final announcement = await injector<CustomerSupportService>()
             .findAnnouncementFromIssueId(issueID);
-        if (!mounted) return;
-        Navigator.of(context).pushNamedAndRemoveUntil(
+        if (!mounted) {
+          return;
+        }
+        unawaited(Navigator.of(context).pushNamedAndRemoveUntil(
           AppRouter.supportThreadPage,
-          ((route) =>
+          (route) =>
               route.settings.name == AppRouter.homePage ||
-              route.settings.name == AppRouter.homePageNoTransition),
+              route.settings.name == AppRouter.homePageNoTransition,
           arguments: DetailIssuePayload(
-              reportIssueType: "",
+              reportIssueType: '',
               issueID: issueID,
               announcement: announcement),
-        );
+        ));
         break;
-      case "customer_support_new_announcement":
+      case 'customer_support_new_announcement':
         final announcementID = '${notification.additionalData!["id"]}';
-        _openAnnouncement(announcementID);
+        unawaited(_openAnnouncement(announcementID));
         break;
 
-      case "artwork_created":
-      case "artwork_received":
+      case 'artwork_created':
+      case 'artwork_received':
         Navigator.of(context).popUntil((route) =>
             route.settings.name == AppRouter.homePage ||
             route.settings.name == AppRouter.homePageNoTransition);
-        memoryValues.homePageInitialTab = HomePageTab.DISCOVER;
-        _pageController.jumpToPage(HomeNavigatorTab.DISCOVER.index);
+        _pageController.jumpToPage(HomeNavigatorTab.COLLECTION.index);
         break;
-      case "new_message":
+      case 'new_message':
+        if (!_remoteConfig.getBool(ConfigGroup.viewDetail, ConfigKey.chat)) {
+          return;
+        }
         final data = notification.additionalData;
-        if (data == null) return;
-        final tokenId = data["group_id"];
+        if (data == null) {
+          return;
+        }
+        final tokenId = data['group_id'];
         final tokens = await injector<NftCollectionDatabase>()
             .assetTokenDao
             .findAllAssetTokensByTokenIDs([tokenId]);
         final owner = tokens.first.owner;
         final isSkip =
             injector<ChatService>().isConnecting(address: owner, id: tokenId);
-        if (isSkip) return;
+        if (isSkip) {
+          return;
+        }
         final GlobalKey<ClaimedPostcardDetailPageState> key = GlobalKey();
         final postcardDetailPayload = PostcardDetailPagePayload(
             [ArtworkIdentity(tokenId, owner)], 0,
             key: key);
-        if (!mounted) return;
-        Navigator.of(context).pushNamed(AppRouter.claimedPostcardDetailsPage,
-            arguments: postcardDetailPayload);
+        if (!mounted) {
+          return;
+        }
+        unawaited(Navigator.of(context).pushNamed(
+            AppRouter.claimedPostcardDetailsPage,
+            arguments: postcardDetailPayload));
         Timer.periodic(const Duration(milliseconds: 100), (timer) async {
           final state = key.currentState;
           final assetToken =
               key.currentContext?.read<PostcardDetailBloc>().state.assetToken;
           if (state != null && assetToken != null) {
-            state.gotoChatThread(key.currentContext!);
+            unawaited(state.gotoChatThread(key.currentContext!));
             timer.cancel();
           }
         });
@@ -557,63 +482,72 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       case 'new_postcard_trip':
       case 'postcard_share_expired':
         final data = notification.additionalData;
-        if (data == null) return;
-        final indexID = data["indexID"];
+        if (data == null) {
+          return;
+        }
+        final indexID = data['indexID'];
         final tokens = await injector<NftCollectionDatabase>()
             .assetTokenDao
             .findAllAssetTokensByTokenIDs([indexID]);
-        if (tokens.isEmpty) return;
+        if (tokens.isEmpty) {
+          return;
+        }
         final owner = tokens.first.owner;
         final postcardDetailPayload = PostcardDetailPagePayload(
           [ArtworkIdentity(indexID, owner)],
           0,
           useIndexer: true,
         );
-        if (!mounted) return;
+        if (!mounted) {
+          return;
+        }
         Navigator.of(context).popUntil((route) =>
             route.settings.name == AppRouter.homePage ||
             route.settings.name == AppRouter.homePageNoTransition);
-        Navigator.of(context).pushNamed(AppRouter.claimedPostcardDetailsPage,
-            arguments: postcardDetailPayload);
+        unawaited(Navigator.of(context).pushNamed(
+            AppRouter.claimedPostcardDetailsPage,
+            arguments: postcardDetailPayload));
         break;
 
       default:
-        log.warning("unhandled notification type: $notificationType");
+        log.warning('unhandled notification type: $notificationType');
         break;
     }
   }
 
-  _openAnnouncement(String announcementID) async {
-    log.info("Open announcement: id = $announcementID");
+  Future<void> _openAnnouncement(String announcementID) async {
+    log.info('Open announcement: id = $announcementID');
     await injector<CustomerSupportService>().fetchAnnouncement();
     final announcement = await injector<CustomerSupportService>()
         .findAnnouncement(announcementID);
     if (announcement != null) {
-      if (!mounted) return;
-      Navigator.of(context).pushNamedAndRemoveUntil(
+      if (!mounted) {
+        return;
+      }
+      unawaited(Navigator.of(context).pushNamedAndRemoveUntil(
         AppRouter.supportThreadPage,
-        ((route) =>
+        (route) =>
             route.settings.name == AppRouter.homePage ||
-            route.settings.name == AppRouter.homePageNoTransition),
+            route.settings.name == AppRouter.homePageNoTransition,
         arguments: NewIssuePayload(
           reportIssueType: ReportIssueType.Announcement,
           announcement: announcement,
         ),
-      );
+      ));
     }
   }
 
   void _handleBackground() {
-    _cloudBackup();
+    unawaited(_cloudBackup());
     _metricClientService.useAppTimer?.cancel();
   }
 
-  void _handleForeBackground(FGBGType event) async {
+  Future<void> _handleForeBackground(FGBGType event) async {
     switch (event) {
       case FGBGType.foreground:
-        _handleForeground();
+        unawaited(_handleForeground());
         memoryValues.isForeground = true;
-        injector<ChatService>().reconnect();
+        unawaited(injector<ChatService>().reconnect());
         break;
       case FGBGType.background:
         _handleBackground();
@@ -625,14 +559,14 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   Future<void> showAnnouncementNotification(
       AnnouncementLocal announcement) async {
     showInfoNotification(
-        const Key("Announcement"), announcement.notificationTitle,
+        const Key('Announcement'), announcement.notificationTitle,
         addOnTextSpan: [
           TextSpan(
-              text: "tap_to_view".tr(),
+              text: 'tap_to_view'.tr(),
               style: Theme.of(context).textTheme.ppMori400Green14),
         ], openHandler: () async {
       final announcementID = announcement.announcementContextId;
-      _openAnnouncement(announcementID);
+      unawaited(_openAnnouncement(announcementID));
     });
   }
 
@@ -643,29 +577,32 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
             .toList();
 
     final showAnnouncementInfo =
-        _configurationService.getShowAnouncementNotificationInfo();
+        _configurationService.getShowAnnouncementNotificationInfo();
     final shouldShowAnnouncements = announcements.where((element) =>
         (element.isMemento6 &&
             !_configurationService
                 .getAlreadyClaimedAirdrop(AirdropType.Memento6.seriesId)) &&
         showAnnouncementInfo.shouldShowAnnouncementNotification(element));
-    if (shouldShowAnnouncements.isEmpty) return;
-    Future.forEach<AnnouncementLocal>(shouldShowAnnouncements,
+    if (shouldShowAnnouncements.isEmpty) {
+      return;
+    }
+    unawaited(Future.forEach<AnnouncementLocal>(shouldShowAnnouncements,
         (announcement) async {
       await showAnnouncementNotification(announcement);
       await _configurationService
-          .updateShowAnouncementNotificationInfo(announcement);
-    });
+          .updateShowAnnouncementNotificationInfo(announcement);
+    }));
   }
 
   Future<void> _handleForeground() async {
     await injector<CustomerSupportService>().fetchAnnouncement();
-    announcementNotificationIfNeed();
+    unawaited(announcementNotificationIfNeed());
     Timer? useAppTimer = _metricClientService.useAppTimer;
     useAppTimer?.cancel();
     useAppTimer = Timer(USE_APP_MIN_DURATION, () async {
       await _metricClientService.onUseAppInForeground();
     });
+    await _remoteConfig.loadConfigs();
   }
 
   @override
@@ -674,9 +611,6 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     final initialAction = _notificationService.initialAction;
     if (initialAction != null) {
       NotificationService.onActionReceivedMethod(initialAction);
-    }
-    if (_selectedIndex == HomeNavigatorTab.DISCOVER.index) {
-      _metricClientService.addEvent(MixpanelEvent.viewDiscovery);
     }
   }
 

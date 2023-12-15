@@ -5,10 +5,12 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
-import 'package:autonomy_flutter/screen/onboarding/discover_art.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -24,8 +26,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 class NameViewOnlyAddressPage extends StatefulWidget {
   final Connection connection;
 
-  const NameViewOnlyAddressPage({Key? key, required this.connection})
-      : super(key: key);
+  const NameViewOnlyAddressPage({required this.connection, super.key});
 
   @override
   State<NameViewOnlyAddressPage> createState() =>
@@ -54,12 +55,10 @@ class _NameViewOnlyAddressPageState extends State<NameViewOnlyAddressPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return WillPopScope(
-      onWillPop: () async {
-        return canPop;
-      },
+      onWillPop: () async => canPop,
       child: Scaffold(
         appBar: getBackAppBar(context,
-            title: "view_existing_address".tr(),
+            title: 'view_existing_address'.tr(),
             onBack: () => Navigator.of(context).pop()),
         body: Container(
           margin: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
@@ -73,15 +72,14 @@ class _NameViewOnlyAddressPageState extends State<NameViewOnlyAddressPage> {
                     children: [
                       addTitleSpace(),
                       Text(
-                        "aa_you_can_add".tr(),
-                        //"You can add an optional alias for this account to help you recognize it. This alias will only be visible to you in Autonomy.",
+                        'aa_you_can_add'.tr(),
                         style: theme.textTheme.ppMori400Black14,
                       ),
                       const SizedBox(height: 15),
                       AuTextField(
-                          labelSemantics: "enter_alias_link",
-                          title: "",
-                          placeholder: "enter_alias".tr(),
+                          labelSemantics: 'enter_alias_link',
+                          title: '',
+                          placeholder: 'enter_alias'.tr(),
                           controller: _nameController,
                           onChanged: (valueChanged) {
                             if (_nameController.text.trim().isEmpty !=
@@ -97,7 +95,7 @@ class _NameViewOnlyAddressPageState extends State<NameViewOnlyAddressPage> {
                 children: [
                   Expanded(
                     child: PrimaryButton(
-                      text: "continue".tr(),
+                      text: 'continue'.tr(),
                       onTap: isSavingAliasDisabled
                           ? null
                           : () {
@@ -121,7 +119,8 @@ class _NameViewOnlyAddressPageState extends State<NameViewOnlyAddressPage> {
     if (injector<ConfigurationService>().isDoneOnboarding()) {
       injector<NavigationService>().popUntilHomeOrSettings();
     } else {
-      Navigator.of(context).pushNamed(DiscoverArtPage.tag);
+      unawaited(injector<ConfigurationService>().setDoneOnboarding(true));
+      unawaited(Navigator.of(context).pushNamed(AppRouter.homePage));
     }
   }
 }

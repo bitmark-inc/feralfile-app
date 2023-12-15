@@ -3,7 +3,6 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
@@ -28,8 +27,6 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
 
   Future<List<PlayListModel>?> getPlaylist() async {
     final playlistService = injector.get<PlaylistService>();
-    final isSubscribed = await injector.get<IAPService>().isSubscribed();
-    if (!isSubscribed && !isDemo) return null;
     if (isDemo) {
       return injector<VersionService>().getDemoAccountFromGithub();
     }

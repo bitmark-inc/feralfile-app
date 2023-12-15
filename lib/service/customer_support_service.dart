@@ -15,26 +15,20 @@ import 'package:autonomy_flutter/database/entity/announcement_local.dart';
 import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
 import 'package:autonomy_flutter/gateway/announcement_api.dart';
 import 'package:autonomy_flutter/gateway/customer_support_api.dart';
-import 'package:autonomy_flutter/gateway/rendering_report_api.dart';
 import 'package:autonomy_flutter/model/customer_support.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:collection/collection.dart';
-import 'package:crypto/crypto.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
-import 'package:nft_collection/models/asset_token.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -82,13 +76,6 @@ abstract class CustomerSupportService {
 
   Future rateIssue(String issueID, int rating);
 
-  Future<String> createRenderingIssueReport(
-    AssetToken token,
-    List<String> topics,
-  );
-
-  Future reportIPFSLoadingError(AssetToken token);
-
   Future<void> removeErrorMessage(String uuid, {bool isDelete = false});
 
   void sendMessageFail(String uuid);
@@ -105,12 +92,10 @@ abstract class CustomerSupportService {
 }
 
 class CustomerSupportServiceImpl extends CustomerSupportService {
-  static const int _ipfsReportThreshold = 24 * 60 * 60 * 1000; // 1 day.
+// 1 day.
 
   final DraftCustomerSupportDao _draftCustomerSupportDao;
   final CustomerSupportApi _customerSupportApi;
-  final RenderingReportApi _renderingReportApi;
-  final AccountService _accountService;
   final ConfigurationService _configurationService;
   final AnnouncementLocalDao _announcementDao;
   final AnnouncementApi _announcementApi;
@@ -132,8 +117,6 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
   CustomerSupportServiceImpl(
       this._draftCustomerSupportDao,
       this._customerSupportApi,
-      this._renderingReportApi,
-      this._accountService,
       this._configurationService,
       this._announcementDao,
       this._announcementApi);
@@ -391,9 +374,9 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     final version = (await PackageInfo.fromPlatform()).version;
     mutedMessage += "**Version**: $version\n";
 
-    final device = DeviceInfo.instance;
-    String deviceName = await device.getMachineName() ?? "N/A";
-    mutedMessage += "**DeviceName**: $deviceName\n";
+    final deviceInfo = await DeviceInfo.instance.getUserDeviceInfo();
+    mutedMessage += "**DeviceName**: ${deviceInfo.machineName}\n";
+    mutedMessage += "**OSVersion**: ${deviceInfo.oSVersion}\n";
 
     for (var mutedMsg in (mutedText ?? [])) {
       mutedMessage += "$mutedMsg\n";
@@ -410,69 +393,6 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     };
 
     return await _customerSupportApi.createIssue(payload);
-  }
-
-  @override
-  Future<String> createRenderingIssueReport(
-    AssetToken token,
-    List<String> topics,
-  ) async {
-    /** Generate metadata
-     * Format:
-     * [Platform - Version - HashedAccountDID]
-     * [TokenIndexerID - Topices]
-     */
-    var metadata = "";
-
-    final defaultAccount = await _accountService.getDefaultAccount();
-    final accountDID = await defaultAccount.getAccountDID();
-    final accountHMACSecret =
-        await _configurationService.getAccountHMACSecret();
-
-    final hashedAccountID = Hmac(sha256, utf8.encode(accountHMACSecret))
-        .convert(utf8.encode(accountDID));
-
-    String platform = "";
-    if (Platform.isIOS) {
-      platform = "iOS";
-    } else if (Platform.isAndroid) {
-      platform = "android";
-    }
-
-    final version = (await PackageInfo.fromPlatform()).version;
-
-    metadata =
-        "\n[$platform - $version - $hashedAccountID]\n[${token.id} - ${topics.join(", ")}]";
-
-    // Extract Collection Value
-    // Etherem blockchain: => pass contract as value: k_$contractAddress
-    // Tezos / FeralFile blockchain => pass arworkID as value: a_$artworkID
-    var collection = token.contractAddress;
-    if (collection != null && collection.isNotEmpty) {
-      collection = "k_$collection";
-    }
-
-    if (collection == null ||
-        collection.isEmpty ||
-        ['tezos', 'bitmark'].contains(token.blockchain)) {
-      collection = "a_${token.assetID}";
-    }
-
-    // Request API
-    final payload = {
-      "artwork": token.assetID,
-      "creator": token.artistName ?? 'unknown',
-      "collection": collection,
-      "token_url": token.assetURL,
-      "metadata": metadata,
-    };
-
-    final result = await _renderingReportApi.report(payload);
-    final githubURL = result["url"];
-    if (githubURL == null) {
-      throw SystemException("_renderingReportApi missing url $result");
-    }
-    return githubURL;
   }
 
   Future<PostedMessageResponse> commentIssue(String issueID, String? message,
@@ -513,17 +433,6 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
   @override
   Future rateIssue(String issueID, int rating) async {
     return _customerSupportApi.rateIssue(issueID, rating);
-  }
-
-  @override
-  Future reportIPFSLoadingError(AssetToken token) async {
-    final reportBox = await Hive.openBox("au_ipfs_reports");
-    final int lastReportTime = reportBox.get(token.id) ?? 0;
-    final now = DateTime.now().millisecondsSinceEpoch;
-    if (now > lastReportTime + _ipfsReportThreshold) {
-      reportBox.put(token.id, now);
-      await createRenderingIssueReport(token, ["IPFS Loading"]);
-    }
   }
 
   @override

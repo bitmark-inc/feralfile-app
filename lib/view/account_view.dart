@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
@@ -40,12 +42,12 @@ Widget accountWithConnectionItem(
                 address: a.accountNumber,
                 blockchain: a.blockchain!,
                 account: a),
-            onTap: () => Navigator.of(context).pushNamed(
+            onTap: () => unawaited(Navigator.of(context).pushNamed(
                 GlobalReceiveDetailPage.tag,
                 arguments: GlobalReceivePayload(
                     address: a.accountNumber,
                     blockchain: a.blockchain!,
-                    account: a)),
+                    account: a))),
           ),
           addOnlyDivider(color: AppColor.auLightGrey),
         ],
@@ -63,6 +65,7 @@ Widget accountItem(BuildContext context, Account account,
     return const SizedBox();
   }
   final theme = Theme.of(context);
+  // ignore: discarded_futures
   final balance = getAddressBalance(account.key, account.cryptoType);
   final isViewAccount =
       account.persona == null || account.walletAddress == null;
@@ -95,7 +98,7 @@ Widget accountItem(BuildContext context, Account account,
               ],
               if (isViewAccount) ...[
                 const SizedBox(width: 10),
-                Container(
+                DecoratedBox(
                   decoration: BoxDecoration(
                       color: Colors.transparent,
                       border: Border.all(color: AppColor.auGrey),
@@ -103,7 +106,7 @@ Widget accountItem(BuildContext context, Account account,
                   child: Padding(
                     padding:
                         const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
-                    child: Text("view_only".tr(),
+                    child: Text('view_only'.tr(),
                         style: theme.textTheme.ppMori400Grey14),
                   ),
                 )
@@ -116,7 +119,7 @@ Widget accountItem(BuildContext context, Account account,
           FutureBuilder<Pair<String, String>>(
             future: balance,
             builder: (context, snapshot) {
-              final balances = snapshot.data ?? Pair("--", "--");
+              final balances = snapshot.data ?? Pair('--', '--');
               final style = theme.textTheme.ppMori400Grey14;
               return Row(
                 children: [
@@ -134,7 +137,7 @@ Widget accountItem(BuildContext context, Account account,
                 child: Text(
                   account.accountNumber,
                   style: theme.textTheme.ppMori400Black14,
-                  key: const Key("fullAccount_address"),
+                  key: const Key('fullAccount_address'),
                 ),
               ),
             ],
@@ -155,15 +158,15 @@ Future<Pair<String, String>> getAddressBalance(
     case CryptoType.ETH:
       final etherAmount = await injector<EthereumService>().getBalance(address);
       final cryptoBalance =
-          "${EthAmountFormatter(etherAmount.getInWei).format()} ETH";
+          '${EthAmountFormatter().format(etherAmount.getInWei)} ETH';
       return Pair(cryptoBalance, nftBalance);
     case CryptoType.XTZ:
       final tezosAmount = await injector<TezosService>().getBalance(address);
-      final cryptoBalance = "${XtzAmountFormatter(tezosAmount).format()} XTZ";
+      final cryptoBalance = '${XtzAmountFormatter().format(tezosAmount)} XTZ';
       return Pair(cryptoBalance, nftBalance);
     case CryptoType.USDC:
     case CryptoType.UNKNOWN:
-      return Pair("", "");
+      return Pair('', '');
   }
 }
 
@@ -198,16 +201,16 @@ Widget _blockchainAddressView(
 
 Widget _blockchainLogo(String? blockchain) {
   switch (blockchain) {
-    case "Bitmark":
+    case 'Bitmark':
       return SvgPicture.asset('assets/images/iconBitmark.svg');
-    case "Ethereum":
-    case "walletConnect":
-    case "walletBrowserConnect":
+    case 'Ethereum':
+    case 'walletConnect':
+    case 'walletBrowserConnect':
       return SvgPicture.asset(
         'assets/images/ether.svg',
       );
-    case "Tezos":
-    case "walletBeacon":
+    case 'Tezos':
+    case 'walletBeacon':
       return SvgPicture.asset('assets/images/tez.svg');
     default:
       return const SizedBox();
@@ -224,7 +227,7 @@ Widget linkedBox(BuildContext context, {double fontSize = 12.0}) {
           color: theme.colorScheme.surface,
         )),
     child: Text(
-      "view_only".tr(),
+      'view_only'.tr(),
       style: theme.textTheme.ppMori400Grey12.copyWith(fontSize: fontSize),
     ),
   );
@@ -232,14 +235,14 @@ Widget linkedBox(BuildContext context, {double fontSize = 12.0}) {
 
 Widget viewOnlyLabel(BuildContext context) {
   final theme = Theme.of(context);
-  return Container(
+  return DecoratedBox(
     decoration: BoxDecoration(
         color: Colors.transparent,
         border: Border.all(color: AppColor.auGrey),
         borderRadius: BorderRadius.circular(20)),
     child: Padding(
       padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
-      child: Text("view_only".tr(), style: theme.textTheme.ppMori400Grey14),
+      child: Text('view_only'.tr(), style: theme.textTheme.ppMori400Grey14),
     ),
   );
 }

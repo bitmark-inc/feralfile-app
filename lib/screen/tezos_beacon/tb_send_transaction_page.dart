@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
@@ -18,6 +20,7 @@ import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
+import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/fee_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -43,8 +46,7 @@ class TBSendTransactionPage extends StatefulWidget {
 
   final BeaconRequest request;
 
-  const TBSendTransactionPage({Key? key, required this.request})
-      : super(key: key);
+  const TBSendTransactionPage({required this.request, super.key});
 
   @override
   State<TBSendTransactionPage> createState() => _TBSendTransactionPageState();
@@ -62,20 +64,23 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
   final metricClient = injector.get<MetricClientService>();
   late CurrencyExchangeRate exchangeRate;
   late FeeOption _selectedPriority;
+  final xtzFormatter = XtzAmountFormatter();
+  final ethFormatter = EthAmountFormatter();
 
   @override
   void dispose() {
     super.dispose();
     Future.delayed(const Duration(seconds: 2), () {
-      injector<TezosBeaconService>().handleNextRequest(isRemoved: true);
+      unawaited(
+          injector<TezosBeaconService>().handleNextRequest(isRemoved: true));
     });
   }
 
-  void _send() async {
+  Future<void> _send() async {
     setState(() {
       _isSending = true;
     });
-    metricClient.addEvent(MixpanelEvent.confirmTransaction);
+    unawaited(metricClient.addEvent(MixpanelEvent.confirmTransaction));
 
     final didAuthenticate = await LocalAuthenticationService.checkLocalAuth();
     if (!didAuthenticate) {
@@ -94,39 +99,43 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
           widget.request.operations!,
           baseOperationCustomFee: feeOption.tezosBaseOperationCustomFee);
       if (wc2Topic != null) {
-        _wc2Service.respondOnApprove(
+        unawaited(_wc2Service.respondOnApprove(
           wc2Topic,
-          txHash ?? "",
-        );
+          txHash ?? '',
+        ));
       } else {
-        injector<TezosBeaconService>()
-            .operationResponse(widget.request.id, txHash);
+        unawaited(injector<TezosBeaconService>()
+            .operationResponse(widget.request.id, txHash));
       }
 
       final address = widget.request.sourceAddress;
       if (address != null) {
-        injector<PendingTokenService>()
+        unawaited(injector<PendingTokenService>()
             .checkPendingTezosTokens(address)
             .then((tokens) {
           if (tokens.isNotEmpty) {
             NftCollectionBloc.eventController
                 .add(UpdateTokensEvent(tokens: tokens));
           }
-        });
+        }));
       }
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       Navigator.of(context).pop(txHash);
     } on TezartNodeError catch (err) {
       log.info(err);
-      if (!mounted) return;
-      UIHelper.showInfoDialog(
+      if (!mounted) {
+        return;
+      }
+      unawaited(UIHelper.showInfoDialog(
         context,
-        "operation_failed".tr(),
+        'operation_failed'.tr(),
         getTezosErrorMessage(err),
         isDismissible: true,
-      );
+      ));
     } catch (err) {
-      showErrorDialogFromException(err);
+      unawaited(showErrorDialogFromException(err));
       log.warning(err);
     }
 
@@ -146,7 +155,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
             (previousValue, element) =>
                 (previousValue ?? 0) + (element.amount ?? 0)) ??
         0;
-    fetchPersona();
+    unawaited(fetchPersona());
     feeOption = DEFAULT_FEE_OPTION;
     _selectedPriority = feeOption;
   }
@@ -168,17 +177,20 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
       if (wc2Topic != null) {
         await _wc2Service.respondOnReject(
           wc2Topic,
-          reason: "Address ${widget.request.sourceAddress} not found",
+          reason: 'Address ${widget.request.sourceAddress} not found',
         );
       } else {
-        injector<TezosBeaconService>().signResponse(widget.request.id, null);
+        unawaited(injector<TezosBeaconService>()
+            .signResponse(widget.request.id, null));
       }
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       Navigator.of(context).pop();
       return;
     }
 
-    _estimateFee(currentWallet.wallet, currentWallet.index);
+    unawaited(_estimateFee(currentWallet.wallet, currentWallet.index));
 
     setState(() {
       _currentWallet = currentWallet;
@@ -214,7 +226,9 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
       final message = getTezosErrorMessage(err);
       final tezosError = getTezosError(err);
       log.info(err);
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       setState(() {
         _estimateMessage = 'estimation_failed'.tr();
       });
@@ -223,19 +237,23 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
           _estimateMessage = 'estimation_failed'.tr();
         });
       }
-      UIHelper.showInfoDialog(
+      unawaited(UIHelper.showInfoDialog(
         context,
-        "estimation_failed".tr(),
+        'estimation_failed'.tr(),
         message,
         isDismissible: true,
-      );
+      ));
     } on TezartHttpError catch (err) {
       log.info(err);
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       _handleShowErrorEstimationFailed(wallet, index);
     } catch (err) {
       final handleDialog = await showErrorDialogFromException(err);
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       if (!handleDialog) {
         _handleShowErrorEstimationFailed(wallet, index);
       }
@@ -247,9 +265,9 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
     setState(() {
       _estimateMessage = 'estimation_failed'.tr();
     });
-    UIHelper.showInfoDialog(
+    unawaited(UIHelper.showInfoDialog(
       context,
-      "estimation_failed".tr(),
+      'estimation_failed'.tr(),
       'cannot_connect_to_rpc'.tr(),
       isDismissible: true,
       closeButton: 'try_again'.tr(),
@@ -257,7 +275,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
         _estimateFee(wallet, index);
         Navigator.of(context).pop();
       },
-    );
+    ));
   }
 
   @override
@@ -267,35 +285,43 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
     final wc2Topic = widget.request.wc2Topic;
     final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
     final divider = addDivider(height: 20);
-
+    final tezosAmount = widget.request.operations!.first.amount ?? 0;
+    final tezosAmountInUsd = exchangeRate.xtzToUsd(tezosAmount);
+    final amountText = '${xtzFormatter.format(tezosAmount)} XTZ '
+        '($tezosAmountInUsd USD)';
+    final totalAmountText = total == null
+        ? '"-" XTZ ("-" USD)'
+        : '${xtzFormatter.format(total)} XTZ '
+            '(${exchangeRate.xtzToUsd(total)} USD)';
     return WillPopScope(
       onWillPop: () async {
-        metricClient.addEvent(MixpanelEvent.backConfirmTransaction);
+        unawaited(metricClient.addEvent(MixpanelEvent.backConfirmTransaction));
         if (wc2Topic != null) {
-          _wc2Service.respondOnReject(
+          unawaited(_wc2Service.respondOnReject(
             wc2Topic,
-            reason: "User reject",
-          );
+            reason: 'User reject',
+          ));
         } else {
-          injector<TezosBeaconService>()
-              .operationResponse(widget.request.id, null);
+          unawaited(injector<TezosBeaconService>()
+              .operationResponse(widget.request.id, null));
         }
         return true;
       },
       child: Scaffold(
         appBar: getBackAppBar(
           context,
-          title: "confirmation".tr(),
+          title: 'confirmation'.tr(),
           onBack: () {
-            metricClient.addEvent(MixpanelEvent.backConfirmTransaction);
+            unawaited(
+                metricClient.addEvent(MixpanelEvent.backConfirmTransaction));
             if (wc2Topic != null) {
-              _wc2Service.respondOnReject(
+              unawaited(_wc2Service.respondOnReject(
                 wc2Topic,
-                reason: "User reject",
-              );
+                reason: 'User reject',
+              ));
             } else {
-              injector<TezosBeaconService>()
-                  .operationResponse(widget.request.id, null);
+              unawaited(injector<TezosBeaconService>()
+                  .operationResponse(widget.request.id, null));
             }
             Navigator.of(context).pop();
           },
@@ -317,11 +343,11 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                           Padding(
                             padding: padding,
                             child: Text(
-                              "confirm_transaction".tr(),
+                              'confirm_transaction'.tr(),
                               style: theme.textTheme.ppMori400Black16,
                             ),
                           ),
-                          const SizedBox(height: 64.0),
+                          const SizedBox(height: 64),
                           divider,
                           Padding(
                             padding: padding,
@@ -329,26 +355,24 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                               children: [
                                 _item(
                                     context: context,
-                                    title: "asset".tr(),
-                                    content: "tezos_xtz".tr()),
+                                    title: 'asset'.tr(),
+                                    content: 'tezos_xtz'.tr()),
                                 divider,
                                 _item(
                                   context: context,
-                                  title: "connection".tr(),
-                                  content: widget.request.appName ?? "",
+                                  title: 'connection'.tr(),
+                                  content: widget.request.appName ?? '',
                                 ),
                                 divider,
                                 _item(
                                     context: context,
-                                    title: "amount".tr(),
-                                    content:
-                                        "${XtzAmountFormatter(widget.request.operations!.first.amount ?? 0).format()} XTZ"),
+                                    title: 'amount'.tr(),
+                                    content: amountText),
                                 divider,
                                 _item(
                                     context: context,
-                                    title: "total_amount".tr().capitalize(),
-                                    content:
-                                        "${total != null ? XtzAmountFormatter(total).format() : "-"} XTZ"),
+                                    title: 'total_amount'.tr().capitalize(),
+                                    content: totalAmountText),
                                 divider,
                                 const SizedBox(height: 16),
                                 Container(
@@ -361,20 +385,20 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        "from".tr(),
+                                        'from'.tr(),
                                         style: theme.textTheme.ppMori400Grey14,
                                       ),
-                                      const SizedBox(height: 8.0),
+                                      const SizedBox(height: 8),
                                       Text(
-                                        widget.request.sourceAddress ?? "",
+                                        widget.request.sourceAddress ?? '',
                                         style: theme.textTheme.ppMori400White14,
                                       ),
                                       addDivider(color: AppColor.white),
                                       Text(
-                                        "gas_fee2".tr(),
+                                        'gas_fee2'.tr(),
                                         style: theme.textTheme.ppMori400Grey14,
                                       ),
-                                      const SizedBox(height: 8.0),
+                                      const SizedBox(height: 8),
                                       if (feeOptionValue != null) ...[
                                         feeTable(context)
                                       ],
@@ -398,15 +422,15 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                                             const Spacer(),
                                             GestureDetector(
                                               onTap: () {
-                                                _estimateFee(
+                                                unawaited(_estimateFee(
                                                   _currentWallet!.wallet,
                                                   _currentWallet!.index,
-                                                );
+                                                ));
                                               },
                                               child: Row(
                                                 children: [
                                                   Text(
-                                                    "try_again"
+                                                    'try_again'
                                                         .tr()
                                                         .toLowerCase(),
                                                     style: theme.textTheme
@@ -438,7 +462,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                       children: [
                         Expanded(
                           child: PrimaryButton(
-                            text: "sendH".tr(),
+                            text: 'sendH'.tr(),
                             onTap: (_currentWallet != null &&
                                     _fee != null &&
                                     !_isSending)
@@ -452,9 +476,10 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
                 ],
               ),
             ),
-            _isSending
-                ? const Center(child: CupertinoActivityIndicator())
-                : const SizedBox(),
+            if (_isSending)
+              const Center(child: CupertinoActivityIndicator())
+            else
+              const SizedBox(),
           ],
         ),
       ),
@@ -474,10 +499,10 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
 
     if (tapLink != null) {
       final uri = Uri.parse(tapLink);
-      onValueTap = () => launchUrl(uri,
-          mode: forceSafariVC == true
+      onValueTap = () => unawaited(launchUrl(uri,
+          mode: forceSafariVC
               ? LaunchMode.externalApplication
-              : LaunchMode.platformDefault);
+              : LaunchMode.platformDefault));
     }
     return Row(
       children: [
@@ -504,12 +529,12 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
 
   Widget gasFeeStatus(ThemeData theme) {
     if (feeOptionValue == null || balance == null) {
-      return Text("gas_fee_calculating".tr(),
+      return Text('gas_fee_calculating'.tr(),
           style: theme.textTheme.ppMori400White12);
     }
     bool isValid = balance! > feeOptionValue!.getFee(feeOption).toInt() + 10;
     if (!isValid) {
-      return Text("gas_fee_insufficient".tr(),
+      return Text('gas_fee_insufficient'.tr(),
           style: theme.textTheme.ppMori400Black12.copyWith(
             color: AppColor.red,
           ));
@@ -525,9 +550,9 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
         const Spacer(),
         GestureDetector(
           onTap: () {
-            UIHelper.showDialog(
+            unawaited(UIHelper.showDialog(
               context,
-              "edit_priority".tr().capitalize(),
+              'edit_priority'.tr().capitalize(),
               _editPriorityView(context, onSave: () {
                 setState(() {
                   feeOption = _selectedPriority;
@@ -536,9 +561,9 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
               backgroundColor: AppColor.auGreyBackground,
               padding: const EdgeInsets.symmetric(vertical: 32),
               paddingTitle: ResponsiveLayout.pageHorizontalEdgeInsets,
-            );
+            ));
           },
-          child: Text("edit_priority".tr(),
+          child: Text('edit_priority'.tr(),
               style: theme.textTheme.ppMori400White14.copyWith(
                 decoration: TextDecoration.underline,
               )),
@@ -550,49 +575,48 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
   Widget _editPriorityView(BuildContext context, {required Function() onSave}) {
     final theme = Theme.of(context);
     final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
-    return StatefulBuilder(builder: (context, setState) {
-      return Column(
-        children: [
-          Padding(
-            padding: padding,
-            child: getFeeRow(FeeOption.LOW, theme, setState),
-          ),
-          addDivider(color: AppColor.white),
-          Padding(
-            padding: padding,
-            child: getFeeRow(FeeOption.MEDIUM, theme, setState),
-          ),
-          addDivider(color: AppColor.white),
-          Padding(
-            padding: padding,
-            child: getFeeRow(FeeOption.HIGH, theme, setState),
-          ),
-          addDivider(color: AppColor.white),
-          const SizedBox(height: 12),
-          Padding(
-            padding: padding,
-            child: PrimaryButton(
-              text: "save_priority".tr(),
-              onTap: () {
-                onSave();
-                Navigator.of(context).pop();
-              },
-            ),
-          ),
-          const SizedBox(height: 8),
-          Padding(
-            padding: padding,
-            child: OutlineButton(
-              text: "cancel".tr(),
-              onTap: () {
-                _selectedPriority = feeOption;
-                Navigator.of(context).pop();
-              },
-            ),
-          )
-        ],
-      );
-    });
+    return StatefulBuilder(
+        builder: (context, setState) => Column(
+              children: [
+                Padding(
+                  padding: padding,
+                  child: getFeeRow(FeeOption.LOW, theme, setState),
+                ),
+                addDivider(color: AppColor.white),
+                Padding(
+                  padding: padding,
+                  child: getFeeRow(FeeOption.MEDIUM, theme, setState),
+                ),
+                addDivider(color: AppColor.white),
+                Padding(
+                  padding: padding,
+                  child: getFeeRow(FeeOption.HIGH, theme, setState),
+                ),
+                addDivider(color: AppColor.white),
+                const SizedBox(height: 12),
+                Padding(
+                  padding: padding,
+                  child: PrimaryButton(
+                    text: 'save_priority'.tr(),
+                    onTap: () {
+                      onSave();
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Padding(
+                  padding: padding,
+                  child: OutlineButton(
+                    text: 'cancel'.tr(),
+                    onTap: () {
+                      _selectedPriority = feeOption;
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                )
+              ],
+            ));
   }
 
   Widget getFeeRow(FeeOption feeOption, ThemeData theme, StateSetter setState) {
@@ -624,8 +648,11 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
   }
 
   String _gasFee(FeeOption feeOption) {
-    if (feeOptionValue == null) return "";
+    if (feeOptionValue == null) {
+      return '';
+    }
     final fee = feeOptionValue!.getFee(feeOption).toInt();
-    return "${XtzAmountFormatter(fee).format()} XTZ  (${exchangeRate.xtzToUsd(fee.toInt())} USD)";
+    return '${xtzFormatter.format(fee)} XTZ  '
+        '(${exchangeRate.xtzToUsd(fee)} USD)';
   }
 }

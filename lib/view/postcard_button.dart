@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/util/debouce_util.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
 import 'package:flutter/material.dart';
@@ -14,9 +15,11 @@ class PostcardButton extends StatelessWidget {
   final Color? textColor;
   final Color? disabledTextColor;
   final double? fontSize;
+  final TextStyle? textStyle;
+  final Widget? icon;
 
   const PostcardButton({
-    Key? key,
+    super.key,
     this.onTap,
     this.color,
     this.disabledColor,
@@ -27,7 +30,9 @@ class PostcardButton extends StatelessWidget {
     this.textColor,
     this.disabledTextColor,
     this.fontSize,
-  }) : super(key: key);
+    this.textStyle,
+    this.icon,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -56,23 +61,28 @@ class PostcardButton extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                isProcessing
-                    ? Container(
-                        height: 14.0,
-                        width: 14.0,
-                        margin: const EdgeInsets.only(right: 8.0),
-                        child: CircularProgressIndicator(
-                          color: theme.colorScheme.primary,
-                          backgroundColor: theme.colorScheme.surface,
-                          strokeWidth: 2.0,
-                        ),
-                      )
-                    : const SizedBox(),
+                if (isProcessing)
+                  Container(
+                    height: 14,
+                    width: 14,
+                    margin: const EdgeInsets.only(right: 8),
+                    child: CircularProgressIndicator(
+                      color: theme.colorScheme.primary,
+                      backgroundColor: theme.colorScheme.surface,
+                      strokeWidth: 2,
+                    ),
+                  ),
+                if (icon != null)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: icon,
+                  ),
                 Text(
                   text ?? '',
-                  style: theme.textTheme.moMASans700Black18.copyWith(
-                      color: enabled ? textColor : disabledTextColor,
-                      fontSize: fontSize),
+                  style: (textStyle ?? theme.textTheme.moMASans700Black18)
+                      .copyWith(
+                          color: enabled ? textColor : disabledTextColor,
+                          fontSize: fontSize),
                 ),
               ],
             ),
@@ -93,15 +103,15 @@ class PostcardCustomButton extends StatelessWidget {
   final Color? disableColor;
 
   const PostcardCustomButton({
-    Key? key,
+    required this.child,
+    super.key,
     this.onTap,
     this.color,
     this.width,
-    required this.child,
     this.enabled = true,
     this.isProcessing = false,
     this.disableColor,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -129,18 +139,19 @@ class PostcardCustomButton extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                isProcessing
-                    ? Container(
-                        height: 14.0,
-                        width: 14.0,
-                        margin: const EdgeInsets.only(right: 8.0),
-                        child: CircularProgressIndicator(
-                          color: theme.colorScheme.primary,
-                          backgroundColor: theme.colorScheme.surface,
-                          strokeWidth: 2.0,
-                        ),
-                      )
-                    : const SizedBox(),
+                if (isProcessing)
+                  Container(
+                    height: 14,
+                    width: 14,
+                    margin: const EdgeInsets.only(right: 8),
+                    child: CircularProgressIndicator(
+                      color: theme.colorScheme.primary,
+                      backgroundColor: theme.colorScheme.surface,
+                      strokeWidth: 2,
+                    ),
+                  )
+                else
+                  const SizedBox(),
                 child,
               ],
             ),
@@ -162,7 +173,7 @@ class PostcardOutlineButton extends StatelessWidget {
   final Color? borderColor;
 
   const PostcardOutlineButton({
-    Key? key,
+    super.key,
     this.onTap,
     this.color,
     this.text,
@@ -171,7 +182,7 @@ class PostcardOutlineButton extends StatelessWidget {
     this.isProcessing = false,
     this.textColor,
     this.borderColor,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -195,18 +206,19 @@ class PostcardOutlineButton extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                isProcessing
-                    ? Container(
-                        height: 14.0,
-                        width: 14.0,
-                        margin: const EdgeInsets.only(right: 8.0),
-                        child: CircularProgressIndicator(
-                          color: theme.colorScheme.primary,
-                          backgroundColor: theme.colorScheme.surface,
-                          strokeWidth: 2.0,
-                        ),
-                      )
-                    : const SizedBox(),
+                if (isProcessing)
+                  Container(
+                    height: 14,
+                    width: 14,
+                    margin: const EdgeInsets.only(right: 8),
+                    child: CircularProgressIndicator(
+                      color: theme.colorScheme.primary,
+                      backgroundColor: theme.colorScheme.surface,
+                      strokeWidth: 2,
+                    ),
+                  )
+                else
+                  const SizedBox(),
                 Text(
                   text ?? '',
                   style: theme.textTheme.moMASans400White14.copyWith(
@@ -233,16 +245,16 @@ class PostcardCustomOutlineButton extends StatelessWidget {
   final Color? borderColor;
 
   const PostcardCustomOutlineButton({
-    Key? key,
+    required this.child,
+    super.key,
     this.onTap,
     this.color,
-    required this.child,
     this.width,
     this.enabled = true,
     this.isProcessing = false,
     this.textColor,
     this.borderColor,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -266,18 +278,19 @@ class PostcardCustomOutlineButton extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                isProcessing
-                    ? Container(
-                        height: 14.0,
-                        width: 14.0,
-                        margin: const EdgeInsets.only(right: 8.0),
-                        child: CircularProgressIndicator(
-                          color: theme.colorScheme.primary,
-                          backgroundColor: theme.colorScheme.surface,
-                          strokeWidth: 2.0,
-                        ),
-                      )
-                    : const SizedBox(),
+                if (isProcessing)
+                  Container(
+                    height: 14,
+                    width: 14,
+                    margin: const EdgeInsets.only(right: 8),
+                    child: CircularProgressIndicator(
+                      color: theme.colorScheme.primary,
+                      backgroundColor: theme.colorScheme.surface,
+                      strokeWidth: 2,
+                    ),
+                  )
+                else
+                  const SizedBox(),
                 child,
               ],
             ),
@@ -300,7 +313,7 @@ class PostcardAsyncButton extends StatefulWidget {
   final double? fontSize;
 
   const PostcardAsyncButton({
-    Key? key,
+    super.key,
     this.onTap,
     this.color,
     this.disabledColor,
@@ -310,7 +323,7 @@ class PostcardAsyncButton extends StatefulWidget {
     this.textColor,
     this.disabledTextColor,
     this.fontSize,
-  }) : super(key: key);
+  });
 
   @override
   State<PostcardAsyncButton> createState() => _PostcardAsyncButtonState();
@@ -320,29 +333,35 @@ class _PostcardAsyncButtonState extends State<PostcardAsyncButton> {
   bool _isProcessing = false;
 
   @override
-  Widget build(BuildContext context) {
-    return PostcardButton(
-      onTap: () {
-        withDebounce(() async {
-          setState(() {
-            _isProcessing = true;
+  Widget build(BuildContext context) => PostcardButton(
+        onTap: () {
+          withDebounce(() async {
+            setState(() {
+              _isProcessing = true;
+            });
+            try {
+              await widget.onTap?.call();
+              if (!mounted) {
+                return;
+              }
+            } catch (e) {
+              log.info('Error: $e');
+              rethrow;
+            } finally {
+              setState(() {
+                _isProcessing = false;
+              });
+            }
           });
-          await widget.onTap?.call();
-          if (!mounted) return;
-          setState(() {
-            _isProcessing = false;
-          });
-        });
-      },
-      color: widget.color,
-      width: widget.width,
-      enabled: widget.enabled && !_isProcessing,
-      text: widget.text,
-      textColor: widget.textColor,
-      disabledColor: widget.disabledColor,
-      disabledTextColor: widget.disabledTextColor,
-      fontSize: widget.fontSize,
-      isProcessing: _isProcessing,
-    );
-  }
+        },
+        color: widget.color,
+        width: widget.width,
+        enabled: widget.enabled && !_isProcessing,
+        text: widget.text,
+        textColor: widget.textColor,
+        disabledColor: widget.disabledColor,
+        disabledTextColor: widget.disabledTextColor,
+        fontSize: widget.fontSize,
+        isProcessing: _isProcessing,
+      );
 }

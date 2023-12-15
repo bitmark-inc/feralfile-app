@@ -8,66 +8,62 @@
 import 'dart:io';
 
 import 'package:autonomy_flutter/common/environment.dart';
-import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
-import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/util/eth_utils.dart';
+import 'package:autonomy_flutter/util/fee_util.dart';
 import 'package:autonomy_flutter/util/geolocation.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
-import 'fee_util.dart';
+// ignore_for_file: constant_identifier_names
+// ignore_for_file: lines_longer_than_80_chars
 
 const INDEXER_TOKENS_MAXIMUM = 50;
 const INDEXER_UNKNOWN_SOURCE = 'unknown';
 const AUTONOMY_TV_PEER_NAME = 'Autonomy TV';
 const DEFAULT_IPFS_PREFIX = 'https://ipfs.io';
-const IPFS_PREFIX = "ipfs://";
+const IPFS_PREFIX = 'ipfs://';
 const CLOUDFLARE_IPFS_PREFIX = 'https://cloudflare-ipfs.com';
 const EMPTY_ISSUE_MESSAGE = 'NO MESSAGE BODY WAS PROVIDED';
-const RATING_MESSAGE_START = "### Customer support rating\n";
-const MUTE_RATING_MESSAGE = "MUTE_RATING_MESSAGE";
-const STAR_RATING = "###STAR#RATING#";
+const RATING_MESSAGE_START = '### Customer support rating\n';
+const MUTE_RATING_MESSAGE = 'MUTE_RATING_MESSAGE';
+const STAR_RATING = '###STAR#RATING#';
 const KNOWN_BUGS_LINK = 'https://github.com/orgs/bitmark-inc/projects/16';
 const USER_TEST_CALENDAR_LINK =
     'https://calendly.com/bencebitmark/autonomy-user-test';
 const IRL_DEEPLINK_PREFIX = 'https://autonomy.io/apps/irl/';
 const AUTONOMY_CLIENT_GITHUB_LINK =
-    "https://github.com/bitmark-inc/autonomy-client";
+    'https://github.com/bitmark-inc/autonomy-client';
 const DEEP_LINKS = [
-  "autonomy://",
-  "https://autonomy.io",
-  "https://au.bitmark.com",
-  "https://autonomy-app.app.link",
-  "https://autonomy-app-alternate.app.link",
-  "https://link.autonomy.io",
+  'autonomy://',
+  'https://autonomy.io',
+  'https://au.bitmark.com',
+  'https://autonomy-app.app.link',
+  'https://autonomy-app-alternate.app.link',
+  'https://link.autonomy.io',
 ];
 const FF_ARTIST_COLLECTOR =
     'https://feralfile.com/docs/artist-collector-rights';
 const WEB3_PRIMER_URL = 'https://autonomy.io/catalog/primer/';
-const COLLECTOR_RIGHTS_DEFAULT_DOCS =
-    "/bitmark-inc/feral-file-docs/master/docs/collector-rights/standard/en.md";
-const COLLECTOR_RIGHTS_MEMENTO_DOCS =
-    "/bitmark-inc/feral-file-docs/master/docs/collector-rights/MoMA-Memento/en.md";
-const COLLECTOR_RIGHTS_MOMA_009_UNSUPERVISED_DOCS =
-    "/bitmark-inc/feral-file-docs/master/docs/collector-rights/009-unsupervised/en.md";
 
 const POSTCARD_RIGHTS_DOCS =
-    "https://raw.githubusercontent.com/bitmark-inc/autonomy-apps/main/docs/postcard_collector_rights.md";
+    'https://raw.githubusercontent.com/bitmark-inc/autonomy-apps/main/docs/postcard_collector_rights.md';
 const MOMA_MEMENTO_EXHIBITION_IDS = [
-  "00370334-6151-4c04-b6be-dc09e325d57d",
-  "3ee3e8a4-90dd-4843-8ec3-858e6bea1965"
+  '00370334-6151-4c04-b6be-dc09e325d57d',
+  '3ee3e8a4-90dd-4843-8ec3-858e6bea1965'
 ];
 
-const TEIA_ART_CONTRACT_ADDRESSES = ["KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton"];
-const OPENSEA_ASSET_PREFIX = "https://opensea.io/assets/";
-const OBJKT_ASSET_PREFIX_MAINNET = "https://objkt.com/asset/";
-const OBJKT_ASSET_PREFIX_TESTNET = "https://ghostnet.objkt.com/asset/";
-const TEIA_ART_ASSET_PREFIX = "https://teia.art/objkt/";
-const FXHASH_IDENTIFIER = "fxhash.xyz";
+const POSTCARD_IPFS_PREFIX_TEST = 'https://ipfs.test.bitmark.com/ipfs';
+const POSTCARD_IPFS_PREFIX_PROD = 'https://ipfs.bitmark.com/ipfs';
+
+const TEIA_ART_CONTRACT_ADDRESSES = ['KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton'];
+const OPENSEA_ASSET_PREFIX = 'https://opensea.io/assets/';
+const OBJKT_ASSET_PREFIX_MAINNET = 'https://objkt.com/asset/';
+const OBJKT_ASSET_PREFIX_TESTNET = 'https://ghostnet.objkt.com/asset/';
+const TEIA_ART_ASSET_PREFIX = 'https://teia.art/objkt/';
+const FXHASH_IDENTIFIER = 'fxhash.xyz';
 
 String get objktAssetPrefix {
   if (Environment.appTestnetConfig) {
@@ -78,25 +74,25 @@ String get objktAssetPrefix {
 }
 
 const MOMA_009_UNSUPERVISED_CONTRACT_ADDRESS =
-    "0x7a15b36cB834AeA88553De69077D3777460d73Ac";
+    '0x7a15b36cB834AeA88553De69077D3777460d73Ac';
 List<String> checkWeb3ContractAddress = [
-  "0x7E6c132B8cb00899d17750E0fD982EA122C6b0f2",
+  '0x7E6c132B8cb00899d17750E0fD982EA122C6b0f2',
   ...momaMementoContractAddresses,
   Environment.autonomyAirDropContractAddress,
 ];
 
 const MOMA_MEMENTO_CONTRACT_ADDRESSES_TESTNET = [
-  "KT1ESGez4dEuDjjNt4k2HPAK5Nzh7e8X8jyX",
-  "KT1MDvWtwi8sCcyJdbWPScTdFa2uJ8mnKNJe",
-  "KT1DPFXN2NeFjg1aQGNkVXYS1FAy4BymcbZz",
+  'KT1ESGez4dEuDjjNt4k2HPAK5Nzh7e8X8jyX',
+  'KT1MDvWtwi8sCcyJdbWPScTdFa2uJ8mnKNJe',
+  'KT1DPFXN2NeFjg1aQGNkVXYS1FAy4BymcbZz',
 ];
 
 const MOMA_MEMENTO_CONTRACT_ADDRESSES_MAINNET = [
-  "KT1CPeE8YGVG16xkpoE9sviUYoEzS7hWfu39",
-  "KT1U49F46ZRK2WChpVpkUvwwQme7Z595V3nt",
-  "KT19rZLpAurqKuDXtkMcJZWvWqGJz1CwWHzr",
-  "KT1KzEtNm6Bb9qip8trTsnBohoriH2g2dvc7",
-  "KT1RWFkvQPkhjxQQzg1ZvS2EKbprbkAdPRSc",
+  'KT1CPeE8YGVG16xkpoE9sviUYoEzS7hWfu39',
+  'KT1U49F46ZRK2WChpVpkUvwwQme7Z595V3nt',
+  'KT19rZLpAurqKuDXtkMcJZWvWqGJz1CwWHzr',
+  'KT1KzEtNm6Bb9qip8trTsnBohoriH2g2dvc7',
+  'KT1RWFkvQPkhjxQQzg1ZvS2EKbprbkAdPRSc',
 ];
 
 List<String> get momaMementoContractAddresses {
@@ -107,34 +103,36 @@ List<String> get momaMementoContractAddresses {
   }
 }
 
-const MOMA_MEMENTO_6_CLAIM_ID = "memento6";
+const MOMA_MEMENTO_6_CLAIM_ID = 'memento6';
 
-const MEMENTO_6_SERIES_ID_MAINNET = "2b75da9b-c605-4842-bf59-8e2e1fe04be6";
-const MEMENTO_6_SERIES_ID_TESTNET = "420f4f8e-f45f-4627-b36c-e9fa5bf6af43";
+const MEMENTO_6_SERIES_ID_MAINNET = '2b75da9b-c605-4842-bf59-8e2e1fe04be6';
+const MEMENTO_6_SERIES_ID_TESTNET = '420f4f8e-f45f-4627-b36c-e9fa5bf6af43';
 
 String get memento6SeriesId => Environment.appTestnetConfig
     ? MEMENTO_6_SERIES_ID_TESTNET
     : MEMENTO_6_SERIES_ID_MAINNET;
 
 const REMOVE_CUSTOMER_SUPPORT =
-    "/bitmark-inc/autonomy-apps/main/customer_support/annoucement_os.md";
+    '/bitmark-inc/autonomy-apps/main/customer_support/annoucement_os.md';
 const int cellPerRowPhone = 3;
 const int cellPerRowTablet = 6;
-const double cellSpacing = 3.0;
+const double cellSpacing = 3;
 
 const Duration SENT_ARTWORK_HIDE_TIME = Duration(minutes: 2);
 const Duration STAMPING_POSTCARD_LIMIT_TIME = Duration(minutes: 60);
 
 const Color POSTCARD_BACKGROUND_COLOR = Color.fromRGBO(242, 242, 242, 1);
+const Color POSTCARD_PINK_BUTTON_COLOR = Color.fromRGBO(231, 75, 168, 1);
+const Color POSTCARD_GREEN_BUTTON_COLOR = Color.fromRGBO(79, 174, 79, 1);
 
 const POSTCARD_ABOUT_THE_PROJECT =
-    "https://www.moma.org/calendar/exhibitions/5618?preview=true";
+    'https://www.moma.org/calendar/exhibitions/5618?preview=true';
 
-final moMAGeoLocation =
-    GeoLocation(position: Location(lat: 40.761, lon: -73.980), address: "MoMA");
+final moMAGeoLocation = GeoLocation(
+    position: const Location(lat: 40.761, lon: -73.980), address: 'MoMA');
 
 final internetUserGeoLocation =
-    GeoLocation(position: Location(lat: null, lon: null), address: "Web");
+    GeoLocation(position: const Location(lat: null, lon: null), address: 'Web');
 
 const int MAX_STAMP_IN_POSTCARD = 15;
 
@@ -143,13 +141,13 @@ const int STAMP_SIZE = 2160;
 const int MAX_ANNOUNCEMENT_SHOW_COUNT = 3;
 const Duration MAX_ANNOUNCEMENT_SHOW_EXPIRED_DURATION = Duration(days: 30);
 
-const String POSTCARD_LOCATION_HIVE_BOX = "postcard_location_hive_box";
+const String POSTCARD_LOCATION_HIVE_BOX = 'postcard_location_hive_box';
 
-const String MIXPANEL_HIVE_BOX = "mixpanel_hive_box";
+const String MIXPANEL_HIVE_BOX = 'mixpanel_hive_box';
 
 const String POSTCARD_SOFTWARE_FULL_LOAD_MESSAGE =
-    "postcard software artwork loaded";
-const String POSTCARD_FINISH_GETNEWSTAMP_MESSAGE = "finish getNewStamp";
+    'postcard software artwork loaded';
+const String POSTCARD_FINISH_GETNEWSTAMP_MESSAGE = 'finish getNewStamp';
 
 const double POSTCARD_ASPECT_RATIO_ANDROID = 368.0 / 268;
 const double POSTCARD_ASPECT_RATIO_IOS = 348.0 / 268;
@@ -163,8 +161,8 @@ const double STAMP_ASPECT_RATIO = 345.0 / 378;
 const POSTCARD_SHARE_LINK_VALID_DURATION = Duration(hours: 24);
 
 const USDC_CONTRACT_ADDRESS_GOERLI =
-    "0x07865c6E87B9F70255377e024ace6630C1Eaa37F";
-const USDC_CONTRACT_ADDRESS = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
+    '0x07865c6E87B9F70255377e024ace6630C1Eaa37F';
+const USDC_CONTRACT_ADDRESS = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
 const DEFAULT_FEE_OPTION = FeeOption.MEDIUM;
 
 String get usdcContractAddress => Environment.appTestnetConfig
@@ -172,18 +170,25 @@ String get usdcContractAddress => Environment.appTestnetConfig
     : USDC_CONTRACT_ADDRESS;
 
 const publicTezosNodes = [
-  "https://mainnet.api.tez.ie",
-  "https://rpc.tzbeta.net",
-  "https://mainnet.tezos.marigold.dev",
+  'https://mainnet.api.tez.ie',
+  'https://rpc.tzbeta.net',
+  'https://mainnet.tezos.marigold.dev',
 ];
 
 const TV_APP_STORE_URL =
-    "https://play.google.com/store/apps/details?id=com.bitmark.autonomy_tv";
+    'https://play.google.com/store/apps/details?id=com.bitmark.autonomy_tv';
 
 const MOMA_TERMS_CONDITIONS_URL =
-    "https://github.com/bitmark-inc/autonomy-apps/blob/main/docs/postcard_terms.md";
+    'https://github.com/bitmark-inc/autonomy-apps/blob/main/docs/postcard_terms.md';
 
-const String POSTCARD_SIGN_PREFIX = "Tezos Signed Message:";
+const AUTONOMY_DOCUMENT_PREFIX = 'https://github.com/bitmark-inc';
+
+const AUTONOMY_RAW_DOCUMENT_PREFIX =
+    'https://raw.githubusercontent.com/bitmark-inc';
+
+const MARKDOWN_EXT = '.md';
+
+const String POSTCARD_SIGN_PREFIX = 'Tezos Signed Message:';
 
 const CONNECT_FAILED_DURATION = Duration(seconds: 10);
 
@@ -191,45 +196,38 @@ const int COLLECTION_INITIAL_MIN_SIZE = 20;
 
 const int LEADERBOARD_PAGE_SIZE = 50;
 
-const String POSTCARD_ONSITE_REQUEST_ID = "moma-postcard-onsite";
+const String POSTCARD_ONSITE_REQUEST_ID = 'moma-postcard-onsite';
 
 Future<bool> isAppCenterBuild() async {
   final PackageInfo info = await PackageInfo.fromPlatform();
-  return info.packageName.contains("inhouse");
+  return info.packageName.contains('inhouse');
 }
 
-Future<bool> isPremium() async {
-  return injector<IAPService>().isSubscribed();
-}
-
-Future<Pair<bool, bool>> logoState() async {
+Future<bool> logoState() async {
   final isAppCenter = await isAppCenterBuild();
-  final isPro = await isPremium();
-  return Pair(isAppCenter, isPro);
+  return isAppCenter;
 }
 
-Future<String> getDemoAccount() async {
-  return await isAppCenterBuild() ? "demo" : "tv";
-}
+Future<String> getDemoAccount() async =>
+    await isAppCenterBuild() ? 'demo' : 'tv';
 
-Future<String> getAppVariant() async {
-  return await isAppCenterBuild() ? "inhouse" : "production";
-}
+Future<String> getAppVariant() async =>
+    await isAppCenterBuild() ? 'inhouse' : 'production';
 
 String feralFileExhibitionUrl(String slug) =>
-    "${Environment.feralFileAPIURL}/exhibitions/$slug";
+    '${Environment.feralFileAPIURL}/exhibitions/$slug';
 
 String feralFileArtworkUrl(String slug) =>
-    "${Environment.feralFileAPIURL}/artworks/$slug";
+    '${Environment.feralFileAPIURL}/artworks/$slug';
 
 String get etherScanUrl {
   switch (Environment.web3ChainId) {
     case 11155111:
-      return "https://sepolia.etherscan.io";
+      return 'https://sepolia.etherscan.io';
     case 5:
-      return "https://goerli.etherscan.io";
+      return 'https://goerli.etherscan.io';
     default:
-      return "https://etherscan.io";
+      return 'https://etherscan.io';
   }
 }
 
@@ -247,7 +245,7 @@ class GallerySortProperty {
   static const Source = 'Source';
   static const Medium = 'Medium';
   static const Artist = 'Artist';
-  static const Chain = "Chain";
+  static const Chain = 'Chain';
 
   static List<String> get getList => [Source, Medium, Artist, Chain];
 }
@@ -264,9 +262,18 @@ class ReportIssueType {
   static const Exception = 'exception';
   static const ReportNFTIssue = 'report nft issue';
   static const Announcement = 'announcement';
+  static const MerchandiseIssue = 'merchandise postcard';
 
-  static List<String> get getList =>
-      [Feature, Bug, Feedback, Other, Exception, ReportNFTIssue, Announcement];
+  static List<String> get getList => [
+        Feature,
+        Bug,
+        Feedback,
+        Other,
+        Exception,
+        ReportNFTIssue,
+        Announcement,
+        MerchandiseIssue
+      ];
 
   static List<String> get getSuggestList => [Feature, Bug, Feedback, Other];
 
@@ -283,7 +290,9 @@ class ReportIssueType {
       case ReportNFTIssue:
         return 'Report NFT issue';
       case Announcement:
-        return "Announcement";
+        return 'Announcement';
+      case MerchandiseIssue:
+        return 'Merchandise issue';
       default:
         return 'Something else?';
     }
@@ -352,11 +361,11 @@ enum CryptoType {
 
   static CryptoType fromSource(String source) {
     switch (source.toLowerCase()) {
-      case "ethereum":
+      case 'ethereum':
         return CryptoType.ETH;
-      case "tezos":
+      case 'tezos':
         return CryptoType.XTZ;
-      case "usdc":
+      case 'usdc':
         return CryptoType.USDC;
       default:
         return CryptoType.UNKNOWN;
@@ -375,8 +384,8 @@ enum CryptoType {
 }
 
 enum AnnouncementID {
-  WELCOME("welcome"),
-  SUBSCRIBE("subscription"),
+  WELCOME('welcome'),
+  SUBSCRIBE('subscription'),
   ;
 
   const AnnouncementID(this.value);
@@ -386,7 +395,9 @@ enum AnnouncementID {
 
 enum StatusCode {
   notFound(404),
-  success(200);
+  success(200),
+  forbidden(403),
+  badRequest(400);
 
   const StatusCode(this.value);
 
@@ -397,39 +408,39 @@ extension CryptoTypeHelpers on CryptoType {
   String get code {
     switch (this) {
       case CryptoType.ETH:
-        return "ETH";
+        return 'ETH';
       case CryptoType.XTZ:
-        return "XTZ";
+        return 'XTZ';
       case CryptoType.USDC:
-        return "USDC";
+        return 'USDC';
       case CryptoType.UNKNOWN:
-        return "";
+        return '';
     }
   }
 
   String get fullCode {
     switch (this) {
       case CryptoType.ETH:
-        return "Ethereum (ETH)";
+        return 'Ethereum (ETH)';
       case CryptoType.XTZ:
-        return "Tezos (XTZ)";
+        return 'Tezos (XTZ)';
       case CryptoType.USDC:
-        return "USD Coin (USDC)";
+        return 'USD Coin (USDC)';
       case CryptoType.UNKNOWN:
-        return "";
+        return '';
     }
   }
 
   String get source {
     switch (this) {
       case CryptoType.ETH:
-        return "Ethereum";
+        return 'Ethereum';
       case CryptoType.XTZ:
-        return "Tezos";
+        return 'Tezos';
       case CryptoType.USDC:
-        return "USDC";
+        return 'USDC';
       case CryptoType.UNKNOWN:
-        return "Unknown";
+        return 'Unknown';
     }
   }
 }
@@ -446,9 +457,9 @@ class Constants {
   static const paddingTablet = EdgeInsets.symmetric(horizontal: 20);
   static const paddingTabletLandScape = EdgeInsets.symmetric(horizontal: 32);
   static const branchDeepLinks = [
-    "https://autonomy-app.app.link",
-    "https://autonomy-app-alternate.app.link",
-    "https://link.autonomy.io",
+    'https://autonomy-app.app.link',
+    'https://autonomy-app-alternate.app.link',
+    'https://link.autonomy.io',
   ];
 }
 
@@ -471,10 +482,6 @@ class MixpanelEvent {
   static const showLoadingArtwork = 'show_loading_artwork';
   static const seeArtworkFullScreen = 'see_artwork_fullscreen';
   static const viewArtwork = 'view_artwork';
-  static const viewDiscovery = 'view_discovery';
-  static const viewDiscoveryArtwork = 'view_discovery_artwork';
-  static const timeViewDiscovery = 'time_view_discovery';
-  static const loadingDiscovery = 'loading_discovery';
   static const deviceBackground = 'device_background';
   static const signIn = 'Sign In';
   static const sign = 'Sign';
@@ -495,22 +502,22 @@ class MixpanelEvent {
   static const scanQR = 'scan_qr';
   static const acceptOwnershipSuccess = 'accept_ownership_success';
   static const acceptOwnershipFail = 'accept_ownership_fail';
-  static const share = "share";
+  static const share = 'share';
   static const readAnnouncement = 'read_announcement';
   static const replyAnnouncement = 'reply_announcement';
   static const receiveAnnouncement = 'receive_announcement';
-  static const viewScreen = "view_screen";
-  static const endViewScreen = "end_view_screen";
-  static const showTipcard = "show_tip_card";
-  static const closeTipcard = "close_tip_card";
-  static const pressTipcard = "press_tip_card";
-  static const tapLinkInTipCard = "tap_link_in_tip_card";
-  static const hideAddresses = "hide_addresses";
-  static const callIrlFunction = "call_irl_function";
-  static const numberNft = "number_nft";
-  static const numberUseAppInAWeek = "number_use_app_in_a_week";
-  static const postcardStamp = "postcard_stamp";
-  static const postcardClaimEmpty = "postcard_claim_empty";
+  static const viewScreen = 'view_screen';
+  static const endViewScreen = 'end_view_screen';
+  static const showTipcard = 'show_tip_card';
+  static const closeTipcard = 'close_tip_card';
+  static const pressTipcard = 'press_tip_card';
+  static const tapLinkInTipCard = 'tap_link_in_tip_card';
+  static const hideAddresses = 'hide_addresses';
+  static const callIrlFunction = 'call_irl_function';
+  static const numberNft = 'number_nft';
+  static const numberUseAppInAWeek = 'number_use_app_in_a_week';
+  static const postcardStamp = 'postcard_stamp';
+  static const postcardClaimEmpty = 'postcard_claim_empty';
 }
 
 class MixpanelEventProp {
@@ -525,11 +532,11 @@ class MixpanelProp {
   static const subscription = 'Subscription';
   static const numberNft = 'Number NFT';
 
-  static String connectedToMarket(String name) => "Connected to $name";
+  static String connectedToMarket(String name) => 'Connected to $name';
 }
 
 class MixpanelConfig {
-  static const countUseAutonomyInWeek = "countUseAutonomyInWeek";
+  static const countUseAutonomyInWeek = 'countUseAutonomyInWeek';
   static const weekStartAt = 'weekStartAt';
   static const numberNfts = 'numberNfts';
 }
@@ -542,7 +549,7 @@ class SubscriptionStatus {
 }
 
 class LinkType {
-  static const local = "Local Deep Link";
+  static const local = 'Local Deep Link';
   static const dAppConnect = 'Dapp Connect Deeplink';
   static const feralFile = 'FeralFile Deeplink';
   static const branch = 'Branch Deeplink';
@@ -550,20 +557,22 @@ class LinkType {
   static const beaconConnect = 'Beacon Connect';
   static const feralFileToken = 'FeralFile Token';
   static const walletConnect = 'Wallet Connect';
+  static const postcardPayToMint = 'Postcard Pay To Mint';
+  static const undefined = 'Undefined';
 }
 
 class SocialApp {
-  static String twitter = "twitter";
-  static String twitterPrefix = "https://twitter.com/intent/tweet";
+  static String twitter = 'twitter';
+  static String twitterPrefix = 'https://twitter.com/intent/tweet';
 }
 
 class KeyChain {
-  static String device = "device_keychain".tr();
-  static String cloud = "cloud_keychain".tr();
+  static String device = 'device_keychain'.tr();
+  static String cloud = 'cloud_keychain'.tr();
 }
 
 class IrlWebviewFunction {
-  static String closeWebview = "_closeWebview";
+  static String closeWebview = '_closeWebview';
 }
 
 const Duration USE_APP_MIN_DURATION = Duration(seconds: 30);

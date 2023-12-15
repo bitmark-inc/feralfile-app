@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:math';
 
 import 'package:autonomy_flutter/au_bloc.dart';
@@ -17,11 +18,13 @@ import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/fee_util.dart';
+import 'package:autonomy_flutter/util/rpc_error_extension.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:tezart/tezart.dart';
+import 'package:web3dart/json_rpc.dart';
 import 'package:web3dart/web3dart.dart';
 
 class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
@@ -45,9 +48,9 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
     this._navigationService,
   ) : super(SendCryptoState()) {
     on<GetBalanceEvent>((event, emit) async {
-      final newState = state.clone();
-      newState.wallet = event.wallet;
-      newState.index = event.index;
+      final newState = state.clone()
+        ..wallet = event.wallet
+        ..index = event.index;
 
       final exchangeRate = await _currencyService.getExchangeRates();
       newState.exchangeRate = exchangeRate;
@@ -63,8 +66,9 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
           if (state.feeOptionValue != null) {
             final maxAllow =
                 balance.getInWei - state.feeOptionValue!.high - _ethSafeBuffer;
-            newState.maxAllow = maxAllow;
-            newState.isValid = _isValid(newState);
+            newState
+              ..maxAllow = maxAllow
+              ..isValid = _isValid(newState);
           }
           break;
         case CryptoType.XTZ:
@@ -76,8 +80,9 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
           if (state.feeOptionValue != null) {
             final maxAllow =
                 newState.balance! - state.feeOptionValue!.high - _xtzSafeBuffer;
-            newState.maxAllow = maxAllow;
-            newState.isValid = _isValid(newState);
+            newState
+              ..maxAllow = maxAllow
+              ..isValid = _isValid(newState);
           }
           break;
         case CryptoType.USDC:
@@ -95,8 +100,9 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
 
           if (state.feeOptionValue != null) {
             final maxAllow = balance;
-            newState.maxAllow = maxAllow;
-            newState.isValid = _isValid(newState);
+            newState
+              ..maxAllow = maxAllow
+              ..isValid = _isValid(newState);
           }
           break;
         default:
@@ -107,9 +113,9 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
     });
 
     on<AddressChangedEvent>((event, emit) async {
-      final newState = state.clone();
-      newState.isScanQR = event.address.isEmpty;
-      newState.isAddressError = false;
+      final newState = state.clone()
+        ..isScanQR = event.address.isEmpty
+        ..isAddressError = false;
 
       if (event.address.isNotEmpty) {
         switch (_type) {
@@ -117,8 +123,9 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
           case CryptoType.USDC:
             try {
               final address = EthereumAddress.fromHex(event.address);
-              newState.address = address.hexEip55;
-              newState.isAddressError = false;
+              newState
+                ..address = address.hexEip55
+                ..isAddressError = false;
 
               add(EstimateFeeEvent(address.hexEip55, BigInt.zero));
             } catch (err) {
@@ -127,8 +134,9 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
             break;
           case CryptoType.XTZ:
             if (event.address.isValidTezosAddress) {
-              newState.address = event.address;
-              newState.isAddressError = false;
+              newState
+                ..address = event.address
+                ..isAddressError = false;
 
               add(EstimateFeeEvent(event.address, BigInt.one));
             } else {
@@ -166,15 +174,17 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
         final amount =
             BigInt.from(value * pow(10, _type == CryptoType.ETH ? 18 : 6));
 
-        newState.amount = amount;
-        newState.isValid = _isValid(newState);
-        newState.isAmountError = !newState.isValid &&
-            state.address != null &&
-            state.maxAllow != null;
+        newState
+          ..amount = amount
+          ..isValid = _isValid(newState)
+          ..isAmountError = !newState.isValid &&
+              state.address != null &&
+              state.maxAllow != null;
       } else {
-        newState.amount = null;
-        newState.isValid = false;
-        newState.isAmountError = false;
+        newState
+          ..amount = null
+          ..isValid = false
+          ..isAmountError = false;
       }
 
       cachedAmount = newState.amount;
@@ -182,14 +192,14 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
     });
 
     on<CurrencyTypeChangedEvent>((event, emit) async {
-      final newState = state.clone();
-
-      newState.isCrypto = event.isCrypto;
+      final newState = state.clone()..isCrypto = event.isCrypto;
       emit(newState);
     });
 
     on<EstimateFeeEvent>((event, emit) async {
-      if (isEstimating) return;
+      if (isEstimating) {
+        return;
+      }
 
       isEstimating = true;
 
@@ -204,7 +214,9 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
           final address = EthereumAddress.fromHex(event.address);
           final wallet = state.wallet;
           final index = state.index;
-          if (wallet == null || index == null) return;
+          if (wallet == null || index == null) {
+            return;
+          }
           feeOptionValue = await _ethereumService.estimateFee(
               wallet, index, address, EtherAmount.inWei(event.amount), null);
           fee = feeOptionValue.getFee(state.feeOption);
@@ -212,7 +224,9 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
         case CryptoType.XTZ:
           final wallet = state.wallet;
           final index = state.index;
-          if (wallet == null || index == null) return;
+          if (wallet == null || index == null) {
+            return;
+          }
           try {
             final tezosFee = await _tezosService.estimateFee(
                 await wallet.getTezosPublicKey(index: index),
@@ -232,17 +246,17 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
                     state.feeOption.tezosBaseOperationCustomFee +
                     baseOperationCustomFeeHigh));
           } on TezartNodeError catch (err) {
-            UIHelper.showInfoDialog(
+            unawaited(UIHelper.showInfoDialog(
               injector<NavigationService>().navigatorKey.currentContext!,
-              "estimation_failed".tr(),
+              'estimation_failed'.tr(),
               getTezosErrorMessage(err),
               isDismissible: true,
-            );
+            ));
             fee = BigInt.zero;
             feeOptionValue =
                 FeeOptionValue(BigInt.zero, BigInt.zero, BigInt.zero);
           } catch (err) {
-            showErrorDialogFromException(err);
+            unawaited(showErrorDialogFromException(err));
             fee = BigInt.zero;
             feeOptionValue =
                 FeeOptionValue(BigInt.zero, BigInt.zero, BigInt.zero);
@@ -251,7 +265,9 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
         case CryptoType.USDC:
           final wallet = state.wallet;
           final index = state.index;
-          if (wallet == null || index == null) return;
+          if (wallet == null || index == null) {
+            return;
+          }
 
           final address = await wallet.getETHEip55Address(index: index);
           final ownerAddress = EthereumAddress.fromHex(address);
@@ -264,9 +280,18 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
             feeOptionValue = await _ethereumService.estimateFee(
                 wallet, index, contractAddress, EtherAmount.zero(), data);
             fee = feeOptionValue.getFee(state.feeOption);
+          } on RPCError catch (e) {
+            _navigationService.showErrorDialog(
+                ErrorEvent(e, 'estimation_failed'.tr(), e.errorMessage,
+                    ErrorItemState.tryAgain), cancelAction: () {
+              _navigationService.hideInfoDialog();
+              return;
+            }, defaultAction: () {
+              add(event);
+            });
           } catch (e) {
             _navigationService.showErrorDialog(
-                ErrorEvent(e, "estimation_failed".tr(), e.toString(),
+                ErrorEvent(e, 'estimation_failed'.tr(), e.toString(),
                     ErrorItemState.tryAgain), cancelAction: () {
               _navigationService.hideInfoDialog();
               return;
@@ -281,8 +306,9 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
               FeeOptionValue(BigInt.zero, BigInt.zero, BigInt.zero);
       }
 
-      newState.fee = fee;
-      newState.feeOptionValue = feeOptionValue;
+      newState
+        ..fee = fee
+        ..feeOptionValue = feeOptionValue;
 
       if (state.balance != null) {
         var maxAllow = _type != CryptoType.USDC
@@ -290,11 +316,14 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
                 fee -
                 (_type == CryptoType.ETH ? _ethSafeBuffer : _xtzSafeBuffer)
             : state.balance!;
-        if (maxAllow < BigInt.zero) maxAllow = BigInt.zero;
-        newState.maxAllow = maxAllow;
-        newState.address = cachedAddress;
-        newState.amount = cachedAmount;
-        newState.isValid = _isValid(newState);
+        if (maxAllow < BigInt.zero) {
+          maxAllow = BigInt.zero;
+        }
+        newState
+          ..maxAllow = maxAllow
+          ..address = cachedAddress
+          ..amount = cachedAmount
+          ..isValid = _isValid(newState);
       }
 
       isEstimating = false;
@@ -302,8 +331,7 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
     });
 
     on<FeeOptionChangedEvent>((event, emit) async {
-      final newState = state.clone();
-      newState.feeOption = event.feeOption;
+      final newState = state.clone()..feeOption = event.feeOption;
       if (state.balance != null &&
           state.fee != null &&
           state.feeOptionValue != null) {
@@ -312,10 +340,13 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
                 state.feeOptionValue!.getFee(event.feeOption) -
                 (_type == CryptoType.ETH ? _ethSafeBuffer : _xtzSafeBuffer)
             : state.balance!;
-        if (maxAllow < BigInt.zero) maxAllow = BigInt.zero;
-        newState.maxAllow = maxAllow;
-        newState.isValid = _isValid(newState);
-        newState.isAmountError = !newState.isValid && newState.address != null;
+        if (maxAllow < BigInt.zero) {
+          maxAllow = BigInt.zero;
+        }
+        newState
+          ..maxAllow = maxAllow
+          ..isValid = _isValid(newState)
+          ..isAmountError = !newState.isValid && newState.address != null;
       }
       newState.fee = newState.feeOptionValue?.getFee(event.feeOption);
       emit(newState);
@@ -323,9 +354,15 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
   }
 
   bool _isValid(SendCryptoState state) {
-    if (state.amount == null) return false;
-    if (state.address == null) return false;
-    if (state.maxAllow == null) return false;
+    if (state.amount == null) {
+      return false;
+    }
+    if (state.address == null) {
+      return false;
+    }
+    if (state.maxAllow == null) {
+      return false;
+    }
 
     final amount = state.amount!;
 

@@ -5,14 +5,16 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
+
 import 'package:autonomy_flutter/au_bloc.dart';
-import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/pair.dart';
-import 'package:autonomy_flutter/model/postcard_bigmap.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/leaderboard/postcard_leaderboard.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_state.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
+import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
@@ -33,16 +35,6 @@ class PostcardDetailGetInfoEvent extends PostcardDetailEvent {
   PostcardDetailGetInfoEvent(this.identity, {this.useIndexer = false});
 }
 
-class PostcardDetailGetValueEvent extends PostcardDetailEvent {
-  final String contractAddress;
-  final String tokenId;
-
-  PostcardDetailGetValueEvent({
-    required this.contractAddress,
-    required this.tokenId,
-  });
-}
-
 class FetchLeaderboardEvent extends PostcardDetailEvent {}
 
 class RefreshLeaderboardEvent extends PostcardDetailEvent {}
@@ -54,6 +46,9 @@ class PostcardDetailBloc
   final ProvenanceDao _provenanceDao;
   final IndexerService _indexerService;
   final PostcardService _postcardService;
+  final ConfigurationService _configurationService;
+  final TokensService _tokenService;
+  final RemoteConfigService _remoteConfig;
 
   PostcardDetailBloc(
     this._assetTokenDao,
@@ -61,7 +56,10 @@ class PostcardDetailBloc
     this._provenanceDao,
     this._indexerService,
     this._postcardService,
-  ) : super(PostcardDetailState(provenances: [], postcardValueLoaded: false)) {
+    this._configurationService,
+    this._tokenService,
+    this._remoteConfig,
+  ) : super(PostcardDetailState(provenances: [])) {
     on<PostcardDetailGetInfoEvent>((event, emit) async {
       if (event.useIndexer) {
         final request = QueryListTokensRequest(
@@ -71,36 +69,63 @@ class PostcardDetailBloc
             .where((element) => element.id == event.identity.id)
             .toList();
         if (assetToken.isNotEmpty) {
-          final paths = getUpdatingPath(state, assetToken.first);
+          final tempsPrompt = assetToken.first.stampingPostcardConfig?.prompt ??
+              assetToken.first.processingStampPostcard?.prompt;
+          if (tempsPrompt != null &&
+              assetToken.first.postcardMetadata.prompt == null) {
+            assetToken.first.setAssetPrompt(tempsPrompt);
+          }
+          final paths = getUpdatingPath(assetToken.first);
+
           emit(state.copyWith(
             assetToken: assetToken.first,
             provenances: assetToken.first.provenance,
             imagePath: paths.first,
             metadataPath: paths.second,
+            showMerch: false,
+            enableMerch: false,
           ));
-          add(PostcardDetailGetValueEvent(
-              contractAddress: assetToken.first.contractAddress ?? "",
-              tokenId: assetToken.first.tokenId ?? ""));
         }
         return;
       } else {
-        final tokenService = injector<TokensService>();
-        await tokenService.reindexAddresses([event.identity.owner]);
+        unawaited(_tokenService.reindexAddresses([event.identity.owner]));
         final assetToken = await _assetTokenDao.findAssetTokenByIdAndOwner(
             event.identity.id, event.identity.owner);
-        final paths = getUpdatingPath(state, assetToken);
-        emit(state.copyWith(
-            assetToken: assetToken,
-            imagePath: paths.first,
-            metadataPath: paths.second));
+        if (assetToken == null) {
+          log.info('ArtworkDetailGetInfoEvent: $event assetToken is null');
+        }
 
-        final provenances =
-            await _provenanceDao.findProvenanceByTokenID(event.identity.id);
-        emit(state.copyWith(provenances: provenances));
+        final tempsPrompt = assetToken?.stampingPostcardConfig?.prompt ??
+            assetToken?.processingStampPostcard?.prompt;
+        if (tempsPrompt != null &&
+            assetToken?.postcardMetadata.prompt == null) {
+          assetToken?.setAssetPrompt(tempsPrompt);
+        }
+        final paths = getUpdatingPath(assetToken);
+        final isViewOnly = await assetToken?.isViewOnly();
+        emit(
+          state.copyWith(
+              assetToken: assetToken,
+              imagePath: paths.first,
+              metadataPath: paths.second,
+              isViewOnly: isViewOnly),
+        );
 
-        add(PostcardDetailGetValueEvent(
-            contractAddress: assetToken?.contractAddress ?? "",
-            tokenId: assetToken?.tokenId ?? ""));
+        final showProvenances =
+            _remoteConfig.getBool(ConfigGroup.viewDetail, ConfigKey.provenance);
+        if (showProvenances) {
+          final provenances =
+              await _provenanceDao.findProvenanceByTokenID(event.identity.id);
+          emit(state.copyWith(provenances: provenances));
+        }
+
+        final showMerch =
+            await _showMerchProduct(assetToken, isViewOnly ?? true);
+        if (showMerch != state.showMerch) {
+          emit(state.copyWith(
+              showMerch: showMerch,
+              enableMerch: assetToken?.enabledMerch ?? false));
+        }
 
         if (assetToken != null &&
             assetToken.asset != null &&
@@ -111,22 +136,15 @@ class PostcardDetailBloc
               final res = await http
                   .head(uri)
                   .timeout(const Duration(milliseconds: 10000));
-              assetToken.asset!.mimeType = res.headers["content-type"];
-              _assetDao.updateAsset(assetToken.asset!);
+              assetToken.asset!.mimeType = res.headers['content-type'];
+              unawaited(_assetDao.updateAsset(assetToken.asset!));
               emit(state.copyWith(assetToken: assetToken));
             } catch (error) {
-              log.info("ArtworkDetailGetInfoEvent: preview url error", error);
+              log.info('ArtworkDetailGetInfoEvent: preview url error', error);
             }
           }
         }
       }
-    });
-
-    on<PostcardDetailGetValueEvent>((event, emit) async {
-      final postcardValue = await _postcardService.getPostcardValue(
-          contractAddress: event.contractAddress, tokenId: event.tokenId);
-      emit(state.copyWith(
-          postcardValue: postcardValue, postcardValueLoaded: true));
     });
 
     on<FetchLeaderboardEvent>((event, emit) async {
@@ -150,7 +168,7 @@ class PostcardDetailBloc
         emit(state.copyWith(
             leaderboard: newLeaderboard, isFetchingLeaderboard: false));
       } catch (e) {
-        log.info("FetchLeaderboardEvent: error ${e.toString()}");
+        log.info('FetchLeaderboardEvent: error $e');
       }
     });
     on<RefreshLeaderboardEvent>((event, emit) async {
@@ -162,46 +180,64 @@ class PostcardDetailBloc
             offset: offset);
         emit(state.copyWith(leaderboard: leaderboard));
       } catch (e) {
-        log.info("RefreshLeaderboardEvent: error ${e.toString()}");
+        log.info('RefreshLeaderboardEvent: error $e');
       }
     });
   }
 
-  Future<PostcardValue?> getPostcardValue(
-      String contractAddress, String tokenId) async {
-    try {
-      final postcardService = injector<PostcardService>();
-      final postcardValue = await postcardService.getPostcardValue(
-          contractAddress: contractAddress, tokenId: tokenId);
-      return postcardValue;
-    } catch (e) {
-      return null;
-    }
-  }
-
-  Pair<String?, String?> getUpdatingPath(
-      PostcardDetailState state, AssetToken? asset) {
+  Pair<String?, String?> getUpdatingPath(AssetToken? asset) {
     String? imagePath;
     String? metadataPath;
     if (asset != null) {
-      final postcardService = injector<PostcardService>();
       final stampingPostcard =
-          postcardService.getStampingPostcardWithPath(asset.stampingPostcard!);
-      if (stampingPostcard != null) {
-        if (state.isLastOwner &&
-            stampingPostcard.counter == asset.numberOwners) {
-          final isStamped = asset.isStamped;
-          if (!isStamped) {
-            log.info("[PostcardDetail] Stamping... ");
-            imagePath = stampingPostcard.imagePath;
-            metadataPath = stampingPostcard.metadataPath;
-          } else {
-            postcardService
-                .updateStampingPostcard([stampingPostcard], isRemove: true);
+          _postcardService.getStampingPostcardWithPath(asset.stampingPostcard!);
+      final processingStampPostcard = asset.processingStampPostcard;
+      final isStamped = asset.isStamped;
+      if (!isStamped) {
+        if (stampingPostcard != null) {
+          log.info('[PostcardDetail] Stamping... ');
+          imagePath = stampingPostcard.imagePath;
+          metadataPath = stampingPostcard.metadataPath;
+        } else {
+          if (processingStampPostcard != null) {
+            log.info('[PostcardDetail] Processing stamp... ');
+            imagePath = processingStampPostcard.imagePath;
+            metadataPath = processingStampPostcard.metadataPath;
           }
+        }
+      } else {
+        if (stampingPostcard != null) {
+          unawaited(_postcardService
+              .updateStampingPostcard([stampingPostcard], isRemove: true));
+        }
+        if (processingStampPostcard != null) {
+          unawaited(_configurationService.setProcessingStampPostcard(
+              [processingStampPostcard],
+              isRemove: true));
         }
       }
     }
     return Pair(imagePath, metadataPath);
+  }
+
+  Future<bool> _showMerchProduct(AssetToken? asset, bool isViewOnly) async {
+    if (asset == null) {
+      return false;
+    }
+    final isShowConfig =
+        _remoteConfig.getBool(ConfigGroup.merchandise, ConfigKey.enable) &&
+            (_remoteConfig.getBool(
+                    ConfigGroup.merchandise, ConfigKey.allowViewOnly) ||
+                !isViewOnly);
+    if (!isShowConfig) {
+      return false;
+    }
+    try {
+      final enableMerch =
+          await _postcardService.isMerchandiseEnable(asset.tokenId ?? '');
+      return enableMerch;
+    } catch (e) {
+      return false;
+    }
   }
 }

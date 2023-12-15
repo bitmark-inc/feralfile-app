@@ -6,6 +6,8 @@
 //
 
 import 'package:autonomy_flutter/common/environment.dart';
+import 'package:autonomy_flutter/util/constants.dart';
+import 'package:nft_rendering/nft_rendering.dart';
 
 extension StringExtension on String {
   String capitalize() {
@@ -81,5 +83,70 @@ extension StringExtension on String {
     final splitted = split('-');
     return splitted.length > 1 &&
         splitted[1] == Environment.postcardContractAddress;
+  }
+
+  bool get isAutonomyDocumentLink {
+    return (startsWith(AUTONOMY_DOCUMENT_PREFIX) ||
+            startsWith(AUTONOMY_RAW_DOCUMENT_PREFIX)) &&
+        endsWith(MARKDOWN_EXT);
+  }
+
+  String get autonomyRawDocumentLink {
+    return replaceFirst(AUTONOMY_DOCUMENT_PREFIX, AUTONOMY_RAW_DOCUMENT_PREFIX)
+        .replaceFirst("/blob/", "/");
+  }
+
+  String get toMimeType {
+    final mimeType = this;
+    switch (mimeType) {
+      case "image/avif":
+      case "image/bmp":
+      case "image/jpeg":
+      case "image/jpg":
+      case "image/png":
+      case "image/tiff":
+        return RenderingType.image;
+
+      case "image/svg+xml":
+        return RenderingType.svg;
+
+      case "image/gif":
+        return RenderingType.gif;
+
+      case "audio/aac":
+      case "audio/midi":
+      case "audio/x-midi":
+      case "audio/mpeg":
+      case "audio/ogg":
+      case "audio/opus":
+      case "audio/wav":
+      case "audio/webm":
+      case "audio/3gpp":
+      case "audio/vnd.wave":
+        return RenderingType.audio;
+
+      case "video/x-msvideo":
+      case "video/3gpp":
+      case "video/mp4":
+      case "video/mpeg":
+      case "video/ogg":
+      case "video/3gpp2":
+      case "video/quicktime":
+      case "application/x-mpegURL":
+      case "video/x-flv":
+      case "video/MP2T":
+      case "video/webm":
+      case "application/octet-stream":
+        return RenderingType.video;
+
+      case "application/pdf":
+        return RenderingType.pdf;
+
+      case "model/gltf-binary":
+        return RenderingType.modelViewer;
+
+      default:
+        return mimeType;
+    }
   }
 }

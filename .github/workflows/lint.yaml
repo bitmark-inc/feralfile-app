@@ -11,6 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: ${{ github.event_name == 'pull_request' && 2 || 0 }}
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -62,21 +64,52 @@ jobs:
       - name: Submoudles update
         run: git -c submodule.auto-test.update=none submodule update --init --recursive
       - run: flutter pub get
-      - name: Analyze Dart
-        uses: invertase/github-action-dart-analyzer@v1
+      - uses: reviewdog/action-setup@v1
         with:
-          annotate: true
-          working-directory: ./
+          reviewdog_version: latest
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: Install codespell
+        run: pip install codespell
+      - name: Get changed files
+        id: changed-files
+        run: |
+            if ${{ github.event_name == 'pull_request' }}; then
+                echo "changed_files=$(git diff --name-only -r HEAD^1 HEAD --diff-filter=ACMRTUXB | xargs)" >> $GITHUB_OUTPUT
+            else
+                echo "changed_files=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} --diff-filter=ACMRTUXB | xargs)" >> $GITHUB_OUTPUT
+            fi
+      - name: Code review and auto-fix the changed files
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          for file in ${{ steps.changed-files.outputs.changed_files }}; do
+            echo "fixing: $file"
+            if [[ $file == *.dart ]]; then
+              flutter analyze --no-preamble $file | reviewdog -efm="%p%t%r • %m • %f:%l:%c • %s" -name=flutter-analyze -reporter=github-pr-review
+              dart format $file
+              dart fix --apply $file
+            else
+              echo "skipping non-Go file: $file"
+            fi
+            codespell -q 3 -w -I .codespellignore --skip "**/*.g.dart,*.svg" $file | reviewdog -efm="%f:%l: %m" -name=codespell -reporter=github-pr-review || true
+          done
+      - name: suggester / dart fixes
+        uses: reviewdog/action-suggester@v1
+        with:
+          tool_name: dart fix
+          filter_mode: added
+          cleanup: true
 
-  detect-secrets:
+  gitleaks:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - name: detect-secrets
-      uses: reviewdog/action-detect-secrets@master
+    - name: gitleaks
+      uses: reviewdog/action-gitleaks@v1
       with:
         reporter: github-pr-review
-        detect_secrets_flags: --all-files --force-use-all-plugins --exclude-files pubspec.*
 
   dotenv-linter:
     name: runner / dotenv-linter
@@ -89,7 +122,7 @@ jobs:
           reporter: github-code-suggestions
 
   misspell:
-    name: runner / misspell
+    name: Check code spelling
     runs-on: ubuntu-latest
     steps:
       - name: Check out code.
@@ -97,6 +130,8 @@ jobs:
       - name: misspell
         uses: reviewdog/action-misspell@v1
         with:
+          reporter: github-pr-review
+          level: warning
           locale: "US"
           pattern: |
             *.dart
