@@ -251,7 +251,7 @@ class Wc2ConnectPlugin(private val application: Application) : FlutterPlugin,
             result.error("-1", "Proposal not found", null)
             return
         }
-        val namespaces = (proposal.requiredNamespaces + proposal.optionalNamespaces).mapValues {
+        val namespaces = (proposal.optionalNamespaces + proposal.requiredNamespaces).mapValues {
             Sign.Model.Namespace.Session(
                 chains = it.value.chains,
                 methods = it.value.methods,
@@ -259,6 +259,7 @@ class Wc2ConnectPlugin(private val application: Application) : FlutterPlugin,
                 accounts = it.value.chains?.map { chain -> "$chain:$account" } ?: emptyList(),
             )
         }
+        Timber.d("Approve namespace: $namespaces")
         try {
             SignClient.approveSession(
                 Sign.Params.Approve(
