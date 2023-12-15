@@ -135,8 +135,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
             final ethAmountText = '${ethFormatter.format(amount.getInWei)} ETH '
                 '(${state.exchangeRate.ethToUsd(amount.getInWei)} USD)';
             final ethTotalAmountText = total == null
-                ? '"-" ETH'
-                    ' ("-" USD)'
+                ? '- ETH (- USD)'
                 : '${ethFormatter.format(total)} ETH'
                     ' (${state.exchangeRate.ethToUsd(total)} USD)';
             return Stack(
