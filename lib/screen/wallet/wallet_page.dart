@@ -93,10 +93,8 @@ class _WalletPageState extends State<WalletPage>
       ),
       OptionItem(
         title: "add_an_existing_wallet".tr(),
-        icon: SvgPicture.asset(
-          "assets/images/icon_save.svg",
-          colorFilter:
-              const ColorFilter.mode(AppColor.primaryBlack, BlendMode.srcIn),
+        icon: Image.asset(
+          "assets/images/icon_save.png",
           height: 24,
         ),
         onTap: () {

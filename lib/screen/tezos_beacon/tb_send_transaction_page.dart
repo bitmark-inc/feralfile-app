@@ -290,7 +290,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
     final amountText = '${xtzFormatter.format(tezosAmount)} XTZ '
         '($tezosAmountInUsd USD)';
     final totalAmountText = total == null
-        ? '"-" XTZ ("-" USD)'
+        ? '- XTZ (- USD)'
         : '${xtzFormatter.format(total)} XTZ '
             '(${exchangeRate.xtzToUsd(total)} USD)';
     return WillPopScope(
