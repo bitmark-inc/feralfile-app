@@ -127,8 +127,8 @@ class WC2ChannelHandler: NSObject {
         var allNamespaces = proposal.requiredNamespaces
 
         if let optionalNamespaces = proposal.optionalNamespaces {
-            allNamespaces.merge(optionalNamespaces) { _, optionalValue in
-                return optionalValue
+            allNamespaces.merge(optionalNamespaces) { requiredNamespaces, _ in
+                return requiredNamespaces
             }
         }
         
