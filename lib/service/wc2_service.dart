@@ -30,6 +30,7 @@ import 'package:autonomy_flutter/util/wc2_channel.dart';
 import 'package:autonomy_flutter/util/wc2_ext.dart';
 import 'package:autonomy_flutter/util/wc2_tezos_ext.dart';
 import 'package:collection/collection.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:web3dart/credentials.dart';
 
 class Wc2Service extends Wc2Handler {
@@ -289,6 +290,11 @@ class Wc2Service extends Wc2Handler {
         break;
       default:
         log.info('[Wc2Service] Unsupported method: ${request.method}');
+
+        unawaited(Sentry.captureMessage(
+          '[Wc2Service] Unsupported method: ${request.method}',
+          params: [request.toJson()],
+        ));
         await respondOnReject(
           request.topic,
           reason: 'Method ${request.method} is not supported',
