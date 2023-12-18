@@ -5,13 +5,13 @@ import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:libauk_dart/libauk_dart.dart';
-import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:uuid/uuid.dart';
 
-import 'auth_service_test.mocks.dart';
+import '../generate_mock/gateway/mock_iap_api.mocks.dart';
+import '../generate_mock/service/mock_account_service.mocks.dart';
+import '../generate_mock/service/mock_configuration_service.mocks.dart';
 
-@GenerateMocks([IAPApi, AccountService, ConfigurationService])
 void main() async {
   late IAPApi authApi;
   late AccountService accountService;
@@ -26,7 +26,6 @@ void main() async {
       accountService = MockAccountService();
       configService = MockConfigurationService();
       authService = AuthService(authApi, accountService, configService);
-
     }
 
     test('get auth token', () async {
