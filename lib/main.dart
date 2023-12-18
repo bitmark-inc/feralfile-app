@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/firebase_options.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/service/auth_firebase_service.dart';
 import 'package:autonomy_flutter/service/cloud_firestore_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
@@ -99,6 +100,7 @@ _setupApp() async {
 
   await DeviceInfo.instance.init();
   await injector<CloudFirestoreService>().initService();
+  await injector<AuthFiresabeService>().initService();
   final metricClient = injector.get<MetricClientService>();
   await metricClient.initService();
   await injector<RemoteConfigService>().loadConfigs();

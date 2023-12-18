@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_state.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
+import 'package:autonomy_flutter/service/auth_firebase_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -116,6 +117,8 @@ class AccountServiceImpl extends AccountService {
   final AutonomyService _autonomyService;
   final AddressService _addressService;
   final BackupService _backupService;
+  final AuthFiresabeService _authFiresabeService =
+      injector<AuthFiresabeService>();
 
   final _defaultAccountLock = Lock();
 
@@ -418,7 +421,10 @@ class AccountServiceImpl extends AccountService {
     if (Platform.isAndroid) {
       final accounts = await _backupChannel.restoreKeys();
 
-      final personas = await _cloudDB.personaDao.getPersonas();
+      List<Persona> personas = [];
+      if (_authFiresabeService.isSignedIn) {
+        personas = await _cloudDB.personaDao.getPersonas();
+      }
       if (personas.length == accounts.length &&
           personas.every((element) =>
               accounts.map((e) => e.uuid).contains(element.uuid))) {
@@ -426,25 +432,27 @@ class AccountServiceImpl extends AccountService {
         return;
       }
 
+      List<Persona> restoredPersonas = [];
+
       //Import persona to database if needed
       for (var account in accounts) {
-        final existingAccount =
-            await _cloudDB.personaDao.findById(account.uuid);
-        if (existingAccount == null) {
-          final backupVersion = await _backupService
-              .fetchBackupVersion(LibAukDart.getWallet(account.uuid));
-          final defaultAccount = backupVersion.isNotEmpty ? 1 : null;
+        final backupVersion = await _backupService
+            .fetchBackupVersion(LibAukDart.getWallet(account.uuid));
+        final defaultAccount = backupVersion.isNotEmpty ? 1 : null;
 
-          final persona = Persona.newPersona(
-            uuid: account.uuid,
-            name: account.name,
-            createdAt: DateTime.now(),
-            defaultAccount: defaultAccount,
-          );
-          await _cloudDB.personaDao.insertPersona(persona);
-          await _auditService.auditPersonaAction(
-              '[androidRestoreKeys] insert', persona);
+        final persona = Persona.newPersona(
+          uuid: account.uuid,
+          name: account.name,
+          createdAt: DateTime.now(),
+          defaultAccount: defaultAccount,
+        );
+        if (defaultAccount == 1 && !_authFiresabeService.isSignedIn) {
+          await _authFiresabeService.signInWithCustomToken("token");
         }
+        restoredPersonas.add(persona);
+        await _cloudDB.personaDao.insertPersona(persona);
+        await _auditService.auditPersonaAction(
+            '[androidRestoreKeys] insert', persona);
       }
 
       //Cleanup broken personas
