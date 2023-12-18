@@ -98,7 +98,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     with AfterLayoutMixin<ClaimedPostcardDetailPage> {
   late ScrollController _scrollController;
   late bool withSharing;
-  late bool isViewOnly;
+  late bool isNotOwner;
   late bool isSending;
   late bool alreadyShowPopup;
   late bool isProcessingStampPostcard;
@@ -118,7 +118,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   @override
   void initState() {
     _scrollController = ScrollController();
-    isViewOnly = widget.payload.isFromLeaderboard;
+    isNotOwner = widget.payload.isFromLeaderboard;
     isSending = false;
     alreadyShowPopup = false;
     isProcessingStampPostcard = false;
@@ -127,8 +127,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     context.read<PostcardDetailBloc>().add(
           PostcardDetailGetInfoEvent(
               widget.payload.identities[widget.payload.currentIndex],
-              useIndexer: widget.payload.isFromLeaderboard ||
-                  widget.payload.useIndexer),
+              useIndexer: widget.payload.useIndexer ||
+                  widget.payload.isFromLeaderboard),
         );
     context.read<PostcardDetailBloc>().add(FetchLeaderboardEvent());
     context.read<AccountsBloc>().add(FetchAllAddressesEvent());
@@ -140,6 +140,71 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     _metricClient.timerEvent(
       MixpanelEvent.stayInArtworkDetail,
     );
+  }
+
+  Future<void> _showSharingExpired(BuildContext context) async {
+    await UIHelper.showPostcardDrawerAction(context, options: [
+      OptionItem(
+        builder: (context, _) => Row(
+          children: [
+            const SizedBox(width: 15),
+            SizedBox(
+              width: 30,
+              child: SvgPicture.asset(
+                'assets/images/restart.svg',
+                width: 24,
+                height: 24,
+              ),
+            ),
+            const SizedBox(width: 18),
+            Expanded(
+              child: Text(
+                'you_need_resend'.tr(),
+                style: Theme.of(context).textTheme.moMASans700Black18,
+              ),
+            ),
+          ],
+        ),
+      ),
+      OptionItem(
+        builder: (context, _) => Row(
+          children: [
+            const SizedBox(width: 15),
+            SvgPicture.asset(
+              'assets/images/arrow_right.svg',
+              width: 24,
+              height: 24,
+            ),
+            const SizedBox(width: 18),
+            Expanded(
+              child: Text(
+                'no_one_received'.tr(),
+                style: Theme.of(context).textTheme.moMASans700AuGrey18,
+              ),
+            ),
+          ],
+        ),
+      ),
+      OptionItem(
+        builder: (context, _) => Row(
+          children: [
+            const SizedBox(width: 15),
+            SvgPicture.asset(
+              'assets/images/cross.svg',
+              width: 24,
+              height: 24,
+            ),
+            const SizedBox(width: 18),
+            Expanded(
+              child: Text(
+                'resend_new_link'.tr(),
+                style: Theme.of(context).textTheme.moMASans700AuGrey18,
+              ),
+            ),
+          ],
+        ),
+      )
+    ]);
   }
 
   Future<void> _removeShareConfig(AssetToken assetToken) async {
@@ -304,7 +369,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       if (previous.assetToken?.isCompleted != true &&
           current.assetToken?.isCompleted == true &&
           current.assetToken?.isAlreadyShowYouDidIt == false &&
-          !isViewOnly) {
+          !isNotOwner &&
+          current.isViewOnly == false) {
         unawaited(_youDidIt(context, current.assetToken!));
       }
       return true;
@@ -322,8 +388,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         return;
       }
       final assetToken = state.assetToken;
+
       if (assetToken != null) {
-        final viewOnly = isViewOnly || (await assetToken.isViewOnly());
         if (!mounted) {
           return;
         }
@@ -340,10 +406,10 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         }
         setState(() {
           currentAsset = state.assetToken;
-          isViewOnly = viewOnly;
+          isNotOwner = isNotOwner || (state.isViewOnly ?? true);
           isSending = state.assetToken?.isSending ?? false;
         });
-        if (viewOnly) {
+        if (isNotOwner) {
           return;
         }
         if (withSharing) {
@@ -382,6 +448,15 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         }
 
         if (assetToken.didSendNext) {
+          unawaited(_removeShareConfig(assetToken));
+        }
+
+        if (assetToken.isShareExpired &&
+            (assetToken.isLastOwner && !isNotOwner)) {
+          if (!mounted) {
+            return;
+          }
+          unawaited(_showSharingExpired(context));
           unawaited(_removeShareConfig(assetToken));
         }
       }
@@ -516,9 +591,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                                   },
                                 ),
                               ),
-                            const SizedBox(
-                              height: 15,
-                            ),
+                            const SizedBox(height: 15),
                             Hero(
                               tag: 'detail_${asset.id}',
                               child: Stack(
@@ -546,55 +619,34 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                                 ],
                               ),
                             ),
-                            const SizedBox(
-                              height: 20,
-                            ),
+                            const SizedBox(height: 20),
                             if (_remoteConfig.getBool(ConfigGroup.viewDetail,
                                 ConfigKey.actionButton)) ...[
                               _postcardAction(context, asset),
-                              const SizedBox(
-                                height: 20,
-                              ),
+                              const SizedBox(height: 20),
                             ],
-                            if ((asset.isCompleted ||
-                                    !_remoteConfig.getBool(
-                                        ConfigGroup.merchandise,
-                                        ConfigKey.mustCompleted)) &&
-                                _remoteConfig.getBool(ConfigGroup.merchandise,
-                                    ConfigKey.enable) &&
-                                (_remoteConfig.getBool(ConfigGroup.merchandise,
-                                        ConfigKey.allowViewOnly) ||
-                                    !isViewOnly)) ...[
-                              _postcardPhysical(context, asset),
-                              const SizedBox(
-                                height: 20,
-                              ),
+                            if (state.showMerch == true) ...[
+                              _postcardPhysical(
+                                  context, asset, state.enableMerch ?? false),
+                              const SizedBox(height: 20),
                             ],
                             _postcardInfo(context, asset),
-                            const SizedBox(
-                              height: 20,
-                            ),
+                            const SizedBox(height: 20),
                             if (_remoteConfig.getBool(ConfigGroup.viewDetail,
                                 ConfigKey.leaderBoard)) ...[
                               _postcardLeaderboard(
                                   context, state.leaderboard, asset),
-                              const SizedBox(
-                                height: 20,
-                              ),
+                              const SizedBox(height: 20),
                             ],
                             if (_remoteConfig.getBool(ConfigGroup.viewDetail,
                                 ConfigKey.aboutMoma)) ...[
                               _aboutTheProject(context),
-                              const SizedBox(
-                                height: 20,
-                              ),
+                              const SizedBox(height: 20),
                             ],
                             if (_remoteConfig.getBool(ConfigGroup.viewDetail,
                                 ConfigKey.glossary)) ...[
                               _web3Glossary(context, asset),
-                              const SizedBox(
-                                height: 20,
-                              ),
+                              const SizedBox(height: 20),
                             ],
                             _artworkInfo(context, asset, state.provenances,
                                 artistNames, owners),
@@ -627,11 +679,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
 
   Widget _postcardAction(final BuildContext context, final AssetToken asset) {
     final theme = Theme.of(context);
-    final place15StampsText = Text(
-      'place_15_stamps'.tr(),
-      style: theme.textTheme.moMASans400Black12,
-    );
-    if (asset.isCompleted || isViewOnly || !asset.isLastOwner) {
+    if (asset.isCompleted || isNotOwner || !asset.isLastOwner) {
       return const SizedBox();
     }
     if (isProcessingStampPostcard ||
@@ -644,7 +692,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       );
     }
     if (!(asset.isStamping || asset.isStamped || asset.isProcessingStamp)) {
-      return PostcardButton(
+      return PostcardAsyncButton(
         text: 'stamp_postcard'.tr(),
         onTap: () async {
           if (asset.numberOwners > 1) {
@@ -652,20 +700,20 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
               text: 'continue'.tr(),
               fontSize: 18,
               onTap: () async {
-                unawaited(injector<NavigationService>().popAndPushNamed(
+                await injector<NavigationService>().popAndPushNamed(
                     AppRouter.designStamp,
-                    arguments: DesignStampPayload(asset, false)));
+                    arguments: DesignStampPayload(asset, false, null));
               },
               color: AppColor.momaGreen,
             );
             final page = _postcardPreview(context, asset);
-            unawaited(Navigator.of(context).pushNamed(
+            await Navigator.of(context).pushNamed(
               AppRouter.postcardExplain,
               arguments: PostcardExplainPayload(asset, button, pages: [page]),
-            ));
+            );
           } else {
-            unawaited(injector<NavigationService>()
-                .selectPromptsThenStamp(context, asset));
+            await injector<NavigationService>()
+                .selectPromptsThenStamp(context, asset, null);
           }
         },
         color: MoMAColors.moMA8,
@@ -682,10 +730,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           'send_postcard_to_someone_else'.tr(),
           style: theme.textTheme.moMASans400Black12,
         ),
-      ),
-      Padding(
-        padding: const EdgeInsets.only(left: 16, right: 15, top: 10),
-        child: place15StampsText,
       ),
     ];
     if (!asset.isFinal) {
@@ -737,12 +781,19 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     return const SizedBox();
   }
 
-  Widget _postcardPhysical(BuildContext context, AssetToken assetToken) =>
+  Widget _postcardPhysical(
+          BuildContext context, AssetToken assetToken, bool isEnable) =>
       Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           PostcardButton(
-            text: 'unlock_physical_objects'.tr(),
-            color: POSTCARD_PINK_BUTTON_COLOR,
+            text: 'buy_merch'.tr(),
+            enabled: isEnable,
+            icon: SvgPicture.asset(
+              isEnable
+                  ? 'assets/images/unlock_icon.svg'
+                  : 'assets/images/lock_icon.svg',
+            ),
             onTap: () async {
               final indexId = assetToken.id;
               final jwtToken =
@@ -760,6 +811,16 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                       isPlainUI: true, localStorageItems: {'token': jwtToken}));
             },
           ),
+          if (!isEnable) ...[
+            const SizedBox(height: 10),
+            Padding(
+              padding: const EdgeInsets.only(left: 16, right: 15),
+              child: Text(
+                'must_complete_to_unlock'.tr(),
+                style: Theme.of(context).textTheme.moMASans400Black12,
+              ),
+            ),
+          ]
         ],
       );
 
@@ -889,8 +950,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                   ),
                 ),
                 const SizedBox(height: 20),
-              ] else if (_remoteConfig.getBool(
-                  ConfigGroup.viewDetail, ConfigKey.provenance)) ...[
+              ] else ...[
                 if (provenances.isNotEmpty)
                   PostcardContainer(
                       child: _provenanceView(context, provenances))
@@ -928,7 +988,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   Future _showArtworkOptionsDialog(
       BuildContext context, AssetToken asset) async {
     final theme = Theme.of(context);
-    final isViewOnly = await asset.isViewOnly();
     if (!mounted) {
       return;
     }
@@ -971,7 +1030,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             Navigator.of(context).pop();
           },
         ),
-        if (!isViewOnly) ...[
+        if (!isNotOwner) ...[
           if (_remoteConfig.getBool(
               ConfigGroup.feature, ConfigKey.downloadStamp))
             OptionItem(

@@ -79,12 +79,14 @@ class _PayToMintPostcardScreenState extends State<PayToMintPostcardScreen> {
                   enabled: state.isClaiming != true,
                   isProcessing: state.isClaiming == true,
                   onTap: () {
-                    unawaited(injector<NavigationService>()
-                        .selectPromptsThenStamp(
-                            context,
-                            state.assetToken!.copyWith(
-                                owner: widget.claimRequest.address,
-                                tokenId: widget.claimRequest.tokenId)));
+                    unawaited(
+                        injector<NavigationService>().selectPromptsThenStamp(
+                      context,
+                      state.assetToken!.copyWith(
+                          owner: widget.claimRequest.address,
+                          tokenId: widget.claimRequest.tokenId),
+                      null,
+                    ));
                   },
                   color: POSTCARD_GREEN_BUTTON_COLOR,
                 ),

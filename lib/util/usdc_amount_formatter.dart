@@ -8,14 +8,25 @@
 import 'package:easy_localization/easy_localization.dart';
 
 class USDCAmountFormatter {
-  USDCAmountFormatter(this.amount, {this.digit = 6});
+  USDCAmountFormatter({this.digit = 6});
 
-  final BigInt amount;
   final int digit;
 
-  String format() {
-    final formater =
-        NumberFormat("${'#' * 10}0.0${'#' * (digit - 1)}", "en_US");
-    return formater.format(amount.toDouble() / 1000000);
+  String format(BigInt amount) {
+    final formatter =
+        NumberFormat("${'#' * 10}0.0${'#' * (digit - 1)}", 'en_US');
+    return formatter.format(amount.toDouble() / 1000000);
   }
+}
+
+class USDAmountFormatter {
+  late NumberFormat formatter;
+
+  USDAmountFormatter({this.digit = 2}) {
+    formatter = NumberFormat("${'#' * 10}0.0${'#' * (digit - 1)}", 'en_US');
+  }
+
+  final int digit;
+
+  String format(double amount) => formatter.format(amount / 100);
 }

@@ -18,11 +18,13 @@ import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/fee_util.dart';
+import 'package:autonomy_flutter/util/rpc_error_extension.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:tezart/tezart.dart';
+import 'package:web3dart/json_rpc.dart';
 import 'package:web3dart/web3dart.dart';
 
 class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
@@ -278,6 +280,15 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
             feeOptionValue = await _ethereumService.estimateFee(
                 wallet, index, contractAddress, EtherAmount.zero(), data);
             fee = feeOptionValue.getFee(state.feeOption);
+          } on RPCError catch (e) {
+            _navigationService.showErrorDialog(
+                ErrorEvent(e, 'estimation_failed'.tr(), e.errorMessage,
+                    ErrorItemState.tryAgain), cancelAction: () {
+              _navigationService.hideInfoDialog();
+              return;
+            }, defaultAction: () {
+              add(event);
+            });
           } catch (e) {
             _navigationService.showErrorDialog(
                 ErrorEvent(e, 'estimation_failed'.tr(), e.toString(),

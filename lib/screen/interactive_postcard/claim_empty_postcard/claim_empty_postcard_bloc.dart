@@ -32,10 +32,15 @@ class ClaimEmptyPostCardBloc
 
   ClaimEmptyPostCardBloc() : super(ClaimEmptyPostCardState()) {
     on<GetTokenEvent>((event, emit) async {
+      final indexId = event.claimRequest.tokenId;
+      final tokenId = 'tez-${Environment.postcardContractAddress}-$indexId';
+      final prompt = await _postcardService.getPrompt(indexId);
+      final postcardMetadata = PostcardMetadata(
+        prompt: prompt,
+        locationInformation: [],
+      );
       if (event.claimRequest is PayToMintRequest) {
         final payToMintRequest = event.claimRequest as PayToMintRequest;
-        final indexId = payToMintRequest.tokenId;
-        final tokenId = 'tez-${Environment.postcardContractAddress}-$indexId';
         log.info('[Pay to mint] tokenId: $tokenId');
         final token = AssetToken(
           asset: Asset.init(
@@ -46,9 +51,7 @@ class ClaimEmptyPostCardBloc
               title: event.claimRequest.name,
               medium: 'software',
               previewURL: event.claimRequest.previewURL,
-              artworkMetadata: jsonEncode(PostcardMetadata(
-                locationInformation: [],
-              ).toJson())),
+              artworkMetadata: jsonEncode(postcardMetadata)),
           blockchain: 'tezos',
           fungible: true,
           contractType: 'fa2',
@@ -86,17 +89,15 @@ class ClaimEmptyPostCardBloc
               title: event.claimRequest.name,
               medium: 'software',
               previewURL: event.claimRequest.previewURL,
-              artworkMetadata: jsonEncode(PostcardMetadata(
-                locationInformation: [],
-              ).toJson())),
+              artworkMetadata: jsonEncode(postcardMetadata)),
           blockchain: 'tezos',
           fungible: true,
           contractType: 'fa2',
-          tokenId: '1',
+          tokenId: indexId,
           contractAddress: Environment.postcardContractAddress,
           edition: 0,
           editionName: '',
-          id: 'tez-',
+          id: tokenId,
           balance: 1,
           owner: 'owner',
           lastActivityTime: DateTime.now(),

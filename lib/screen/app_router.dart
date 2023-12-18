@@ -220,6 +220,16 @@ class AppRouter {
       injector<AuditService>(),
     );
     final identityBloc = IdentityBloc(injector<AppDatabase>(), injector());
+    final postcardDetailBloc = PostcardDetailBloc(
+      injector(),
+      injector(),
+      injector(),
+      injector(),
+      injector(),
+      injector(),
+      injector(),
+      injector(),
+    );
 
     switch (settings.name) {
       case viewPlayListPage:
@@ -382,15 +392,7 @@ class AppRouter {
           child: MultiBlocProvider(
             providers: [
               BlocProvider(create: (_) => identityBloc),
-              BlocProvider(
-                  create: (_) => PostcardDetailBloc(
-                        injector(),
-                        injector(),
-                        injector(),
-                        injector(),
-                        injector(),
-                        injector(),
-                      )),
+              BlocProvider(create: (_) => postcardDetailBloc),
             ],
             child: StampPreview(
                 payload: settings.arguments! as StampPreviewPayload),
@@ -587,9 +589,7 @@ class AppRouter {
                     injector(),
                   ),
                 ),
-                BlocProvider(
-                    create: (_) => PostcardDetailBloc(injector(), injector(),
-                        injector(), injector(), injector(), injector())),
+                BlocProvider(create: (_) => postcardDetailBloc),
               ],
               child: ArtworkPreviewPage(
                 payload: settings.arguments! as ArtworkDetailPayload,
@@ -683,15 +683,7 @@ class AppRouter {
                   BlocProvider.value(value: accountsBloc),
                   BlocProvider(create: (_) => identityBloc),
                   BlocProvider(create: (_) => TravelInfoBloc()),
-                  BlocProvider(
-                      create: (_) => PostcardDetailBloc(
-                            injector(),
-                            injector(),
-                            injector(),
-                            injector(),
-                            injector(),
-                            injector(),
-                          )),
+                  BlocProvider(create: (_) => postcardDetailBloc),
                 ],
                 child: ClaimedPostcardDetailPage(
                     key: payload.key, payload: payload)));
@@ -1132,16 +1124,7 @@ class AppRouter {
           child: MultiBlocProvider(
             providers: [
               BlocProvider.value(value: accountsBloc),
-              BlocProvider(
-                create: (_) => PostcardDetailBloc(
-                  injector(),
-                  injector(),
-                  injector(),
-                  injector(),
-                  injector(),
-                  injector(),
-                ),
-              ),
+              BlocProvider(create: (_) => postcardDetailBloc),
             ],
             child: PostcardLeaderboardPage(
               payload: settings.arguments! as PostcardLeaderboardPagePayload,

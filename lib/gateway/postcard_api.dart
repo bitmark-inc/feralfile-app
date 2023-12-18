@@ -31,6 +31,9 @@ abstract class PostcardApi {
   @GET('/v1/postcard/claim/{share_code}')
   Future claimShareCode(@Path('share_code') String shareCode);
 
+  @GET('/v1/postcard/{token_id}/merchandise_enabled')
+  Future<String> getMerchandiseEnable(@Path('token_id') String tokenId);
+
   @MultiPart()
   @POST('/v1/postcard/{token_id}/stamp')
   Future<dynamic> updatePostcard({

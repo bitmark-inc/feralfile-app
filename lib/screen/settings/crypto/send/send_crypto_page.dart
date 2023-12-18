@@ -50,6 +50,9 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
   final TextEditingController _amountController = TextEditingController();
   bool _initialChangeAddress = false;
   late FeeOption _selectedPriority;
+  final xtzFormatter = XtzAmountFormatter();
+  final ethFormatter = EthAmountFormatter();
+  final usdcFormatter = USDCAmountFormatter();
 
   @override
   void initState() {
@@ -507,16 +510,16 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
     switch (widget.data.type) {
       case CryptoType.ETH:
         text = state.isCrypto
-            ? '${EthAmountFormatter(max).format()} ETH'
+            ? '${ethFormatter.format(max)} ETH'
             : '${state.exchangeRate.ethToUsd(max)} USD';
         break;
       case CryptoType.XTZ:
         text = state.isCrypto
-            ? '${XtzAmountFormatter(max.toInt()).format()} XTZ'
+            ? '${xtzFormatter.format(max.toInt())} XTZ'
             : '${state.exchangeRate.xtzToUsd(max.toInt())} USD';
         break;
       case CryptoType.USDC:
-        text = '${USDCAmountFormatter(max).format()} USDC';
+        text = '${usdcFormatter.format(max)} USDC';
         break;
       default:
         break;
@@ -533,14 +536,14 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
     switch (widget.data.type) {
       case CryptoType.ETH:
         return state.isCrypto
-            ? EthAmountFormatter(max).format()
+            ? ethFormatter.format(max)
             : state.exchangeRate.ethToUsd(max);
       case CryptoType.XTZ:
         return state.isCrypto
-            ? XtzAmountFormatter(max.toInt()).format()
+            ? xtzFormatter.format(max.toInt())
             : state.exchangeRate.xtzToUsd(max.toInt());
       case CryptoType.USDC:
-        return USDCAmountFormatter(max).format();
+        return usdcFormatter.format(max);
       default:
         return '';
     }
@@ -550,18 +553,19 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
     if (state.feeOptionValue == null) {
       return widget.data.type.code;
     }
+    final ethFormatter = EthAmountFormatter(digit: 7);
     final fee = state.feeOptionValue!.getFee(feeOption ?? state.feeOption);
     switch (widget.data.type) {
       case CryptoType.ETH:
         return state.isCrypto
-            ? '''${EthAmountFormatter(fee, digit: 7).format()} ETH (${state.exchangeRate.ethToUsd(fee)} USD)'''
+            ? '''${ethFormatter.format(fee)} ETH (${state.exchangeRate.ethToUsd(fee)} USD)'''
             : '${state.exchangeRate.ethToUsd(fee)} USD';
       case CryptoType.XTZ:
         return state.isCrypto
-            ? '''${XtzAmountFormatter(fee.toInt()).format()} XTZ (${state.exchangeRate.xtzToUsd(fee.toInt())} USD)'''
+            ? '''${xtzFormatter.format(fee.toInt())} XTZ (${state.exchangeRate.xtzToUsd(fee.toInt())} USD)'''
             : '${state.exchangeRate.xtzToUsd(fee.toInt())} USD';
       case CryptoType.USDC:
-        return '''${EthAmountFormatter(fee, digit: 7).format()} ETH (${state.exchangeRate.ethToUsd(fee)} USD)''';
+        return '''${ethFormatter.format(fee)} ETH (${state.exchangeRate.ethToUsd(fee)} USD)''';
       default:
         return '';
     }
