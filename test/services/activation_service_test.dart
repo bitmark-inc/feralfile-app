@@ -5,12 +5,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:nft_collection/services/tokens_service.dart';
 
-import '../gateway/activation_mock.dart';
-import '../gateway/constants.dart';
-import '../gateway/token_service_mock_data.dart';
 import '../generate_mock/gateway/mock_activation_api.mocks.dart';
 import '../generate_mock/service/mock_navigation_service.mocks.dart';
 import '../generate_mock/service/mock_tokens_service.mocks.dart';
+import '../mock_data/activation_mock.dart';
+import '../mock_data/constants.dart';
+import '../mock_data/token_service_mock_data.dart';
 
 void main() async {
   late ActivationApi mockActivationApi;
