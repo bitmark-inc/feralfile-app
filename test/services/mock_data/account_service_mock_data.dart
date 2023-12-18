@@ -1,4 +1,3 @@
-// ignore_for_file: discarded_futures
 
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
