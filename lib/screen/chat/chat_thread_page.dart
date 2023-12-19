@@ -7,6 +7,8 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/chat_message.dart' as app;
 import 'package:autonomy_flutter/model/pair.dart';
+import 'package:autonomy_flutter/screen/chat/chat_bloc.dart';
+import 'package:autonomy_flutter/screen/chat/chat_state.dart';
 import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
@@ -14,6 +16,7 @@ import 'package:autonomy_flutter/util/chat_messsage_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
+import 'package:autonomy_flutter/util/message_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/postcard_chat.dart';
@@ -23,6 +26,7 @@ import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -52,6 +56,10 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
       injector<ConfigurationService>();
   final ChatService _postcardChatService = injector<ChatService>();
   ChatListener? _chatListener;
+  late AuChatBloc _auChatBloc;
+  Map<String, String> _aliases = {};
+  late TextEditingController _textController;
+  late bool _showSetAliasTextField;
 
   @override
   void initState() {
@@ -61,6 +69,10 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
     unawaited(_websocketInitAndFetchHistory());
     memoryValues.currentGroupChatId = _payload.token.id;
     _checkReadPrivateChatBanner();
+    _textController = TextEditingController();
+    _showSetAliasTextField = true;
+    _auChatBloc = injector<AuChatBloc>();
+    _auChatBloc.add(GetAliasesEvent(_payload.token.id));
   }
 
   void _checkReadPrivateChatBanner() {
@@ -141,7 +153,7 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
   void _handleNewMessages(List<app.Message> newMessages, {String? id}) {
     if (id != null) {
       if (id == _historyRequestId) {
-        _messages.addAll(_convertMessages(newMessages));
+        _messages.addAll(newMessages.toTypeMessages);
         if (newMessages.isNotEmpty) {
           _lastMessageTimestamp = newMessages.last.timestamp;
         } else {
@@ -150,7 +162,7 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
         _historyRequestId = null;
       }
     } else {
-      final otherPeopleMessages = _convertMessages(newMessages)
+      final otherPeopleMessages = newMessages.toTypeMessages
         ..removeWhere((element) => element.author.id == _user.id);
       _messages
         ..insertAll(0, otherPeopleMessages)
@@ -230,48 +242,118 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
     super.dispose();
   }
 
+  void onSubmitAlias(String alias) {
+    if (alias.trim().isEmpty) {
+      return;
+    }
+    final address = _payload.address;
+    if (_aliases.containsKey(address) && _aliases[address] == alias) {
+      return;
+    }
+    _auChatBloc.add(SetChatAliasEvent(
+        tokenId: _payload.token.id, alias: alias, address: address));
+  }
+
+  Widget _setAliasTextField(BuildContext context) {
+    final theme = Theme.of(context);
+    return TextField(
+      controller: _textController,
+      onSubmitted: onSubmitAlias,
+      style: theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
+      cursorColor: theme.colorScheme.primary,
+      decoration: InputDecoration(
+        constraints: const BoxConstraints(maxHeight: 56),
+        contentPadding: const EdgeInsets.all(15),
+        border: InputBorder.none,
+        hintText: 'set_a_chat_alias'.tr(),
+        hintStyle: theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
+        isDense: true,
+        fillColor: AppColor.auLightGrey,
+        filled: true,
+        focusedBorder: OutlineInputBorder(
+          borderSide: const BorderSide(color: Colors.transparent),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderSide: const BorderSide(color: Colors.transparent),
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+      cursorWidth: 1,
+      textAlignVertical: TextAlignVertical.center,
+      textAlign: TextAlign.center,
+      textCapitalization: TextCapitalization.sentences,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Scaffold(
-      backgroundColor: POSTCARD_BACKGROUND_COLOR,
-      appBar: getBackAppBar(
-        context,
-        title: 'messages'.tr(),
-        titleStyle: theme.textTheme.moMASans700Black18,
-        onBack: () => Navigator.of(context).pop(),
-        statusBarColor: POSTCARD_BACKGROUND_COLOR,
-        backgroundColor: POSTCARD_BACKGROUND_COLOR,
-      ),
-      body: Chat(
-        l10n: ChatL10nEn(
-          inputPlaceholder: 'message'.tr(),
-        ),
-        onMessageVisibilityChanged: _onMessageVisibilityChanged,
-        customDateHeaderText: getChatDateTimeRepresentation,
-        systemMessageBuilder: _systemMessageBuilder,
-        bubbleRtlAlignment: BubbleRtlAlignment.left,
-        isLastPage: false,
-        theme: _chatTheme,
-        dateHeaderThreshold: 12 * 60 * 60 * 1000,
-        groupMessagesThreshold: DateTime.now().millisecondsSinceEpoch,
-        emptyState: const SizedBox(),
-        messages: _messages,
-        onSendPressed: (_) {},
-        user: types.User(id: const Uuid().v4()),
-        customBottomWidget: Column(
-          children: [
-            if (_chatPrivateBannerTimestamp == null)
-              _chatPrivateBanner(context)
-            else
-              const SizedBox(),
-            AuInputChat(
-              onSendPressed: _handleSendPressed,
+    return BlocConsumer<AuChatBloc, AuChatState>(
+        bloc: _auChatBloc,
+        builder: (context, chatState) => Scaffold(
+              backgroundColor: POSTCARD_BACKGROUND_COLOR,
+              appBar: getBackAppBar(
+                context,
+                title: 'messages'.tr(),
+                titleStyle: theme.textTheme.moMASans700Black18,
+                onBack: () => Navigator.of(context).pop(),
+                statusBarColor: POSTCARD_BACKGROUND_COLOR,
+                backgroundColor: POSTCARD_BACKGROUND_COLOR,
+              ),
+              body: Column(
+                children: [
+                  if (_showSetAliasTextField)
+                    Container(
+                      color: Colors.transparent,
+                      child: Padding(
+                        padding: const EdgeInsets.all(15),
+                        child: Column(
+                          children: [
+                            _setAliasTextField(context),
+                          ],
+                        ),
+                      ),
+                    ),
+                  Expanded(
+                    child: Chat(
+                      l10n: ChatL10nEn(
+                        inputPlaceholder: 'message'.tr(),
+                      ),
+                      onMessageVisibilityChanged: _onMessageVisibilityChanged,
+                      customDateHeaderText: getChatDateTimeRepresentation,
+                      systemMessageBuilder: _systemMessageBuilder,
+                      bubbleRtlAlignment: BubbleRtlAlignment.left,
+                      isLastPage: false,
+                      theme: _chatTheme,
+                      dateHeaderThreshold: 12 * 60 * 60 * 1000,
+                      groupMessagesThreshold:
+                          DateTime.now().millisecondsSinceEpoch,
+                      emptyState: const SizedBox(),
+                      messages: _messages,
+                      onSendPressed: (_) {},
+                      user: types.User(id: const Uuid().v4()),
+                      customBottomWidget: Column(
+                        children: [
+                          if (_chatPrivateBannerTimestamp == null)
+                            _chatPrivateBanner(context)
+                          else
+                            const SizedBox(),
+                          AuInputChat(
+                            onSendPressed: _handleSendPressed,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ],
-        ),
-      ),
-    );
+        listener: (context, chatState) {
+          setState(() {
+            _aliases = chatState.aliases;
+          });
+        });
   }
 
   void _onMessageVisibilityChanged(types.Message message, bool visible) {
@@ -341,7 +423,11 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    MessageView(message: message, assetToken: assetToken),
+                    MessageView(
+                      message: message,
+                      assetToken: assetToken,
+                      aliases: _aliases,
+                    ),
                   ],
                 ),
               ),
@@ -374,11 +460,7 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
   }
 
   void _sendMessage(types.SystemMessage message) {
-    _postcardChatService.sendMessage(json.encode({
-      'command': 'SEND',
-      'id': message.id,
-      'payload': {'message': message.text}
-    }));
+    _auChatBloc.add(SendMessageEvent(message));
   }
 
   DefaultChatTheme get _chatTheme {
@@ -430,9 +512,6 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
   void _handleSendPressed(types.PartialText message) {
     _submit(message.text);
   }
-
-  List<types.Message> _convertMessages(List<app.Message> appMessages) =>
-      appMessages.map((e) => e.toTypesMessage()).toList();
 }
 
 class ChatThreadPagePayload {

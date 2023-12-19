@@ -49,8 +49,8 @@ class _MessagePreviewState extends State<MessagePreview> {
 
   Future<void> _websocketInit() async {
     _newMessageCount = 0;
-    final address = widget.payload.asset.owner;
-    final id = widget.payload.asset.id;
+    final address = _assetToken.owner;
+    final id = _assetToken.id;
     await _postcardChatService.connect(
         address: address, id: id, wallet: widget.payload.wallet);
     _chatListener = ChatListener(
@@ -84,7 +84,7 @@ class _MessagePreviewState extends State<MessagePreview> {
   void _refreshLastMessage(List<app.Message> messages) {
     if (messages.isNotEmpty) {
       final chatConfig = injector<ConfigurationService>().getPostcardChatConfig(
-          address: widget.payload.asset.owner, id: widget.payload.asset.id);
+          address: _assetToken.owner, id: _assetToken.id);
       final lastReadMessageTimestamp = chatConfig.lastMessageReadTimeStamp ?? 0;
       int addedNewMessage = messages
           .where((element) => element.timestamp > lastReadMessageTimestamp)
@@ -157,11 +157,11 @@ class _MessagePreviewState extends State<MessagePreview> {
                 children: [
                   Expanded(
                     child: MessageView(
-                      message: _lastMessage!.toTypesMessage(),
-                      assetToken: _assetToken,
-                      expandAll: false,
-                      showFullTime: true,
-                    ),
+                        message: _lastMessage!.toTypesMessage(),
+                        assetToken: _assetToken,
+                        expandAll: false,
+                        showFullTime: true,
+                        aliases: widget.payload.aliases),
                   )
                 ],
               ),
@@ -184,9 +184,13 @@ class MessagePreviewPayload {
   final AssetToken asset;
   final Pair<WalletStorage, int> wallet;
   final AssetToken? Function() getAssetToken;
+  final Map<String, String> aliases;
 
   const MessagePreviewPayload(
-      {required this.asset, required this.wallet, required this.getAssetToken});
+      {required this.asset,
+      required this.wallet,
+      required this.getAssetToken,
+      required this.aliases});
 }
 
 class MessageView extends StatelessWidget {
@@ -194,10 +198,12 @@ class MessageView extends StatelessWidget {
   final AssetToken assetToken;
   final bool expandAll;
   final bool showFullTime;
+  final Map<String, String> aliases;
 
   const MessageView(
       {required this.message,
       required this.assetToken,
+      required this.aliases,
       super.key,
       this.expandAll = true,
       this.showFullTime = false});
@@ -235,7 +241,7 @@ class MessageView extends StatelessWidget {
         Row(
           children: [
             Text(
-              message.author.getName(assetToken: assetToken),
+              message.author.getName(assetToken: assetToken, aliases: aliases),
               style: theme.textTheme.moMASans700Black12,
             ),
             const SizedBox(width: 15),

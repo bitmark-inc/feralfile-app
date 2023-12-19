@@ -13,7 +13,8 @@ extension ChatMessageExtension on SystemMessage {
 extension UserExtension on User {
   bool get isSystemUser => id == 'system';
 
-  String getName({required AssetToken assetToken}) {
+  String getName(
+      {required AssetToken assetToken, required Map<String, String> aliases}) {
     if (isSystemUser) {
       return 'system'.tr();
     }
@@ -26,6 +27,10 @@ extension UserExtension on User {
     if (artists.isEmpty || artist == null) {
       return 'pending_stamper'.tr();
     } else {
+      final alias = aliases[artist.id];
+      if (alias != null && alias.isNotEmpty) {
+        return alias;
+      }
       final index = artists.indexOf(artist) + 1;
       return 'stamper_'.tr(args: [index.toString()]);
     }

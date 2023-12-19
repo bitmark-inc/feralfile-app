@@ -18,6 +18,8 @@ import 'package:autonomy_flutter/model/prompt.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
+import 'package:autonomy_flutter/screen/chat/chat_bloc.dart';
+import 'package:autonomy_flutter/screen/chat/chat_state.dart';
 import 'package:autonomy_flutter/screen/chat/chat_thread_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
@@ -103,6 +105,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   late bool alreadyShowPopup;
   late bool isProcessingStampPostcard;
   late bool isAutoStampIfNeed;
+  late AuChatBloc _chatBloc;
 
   late DistanceFormatter distanceFormatter;
   Timer? timer;
@@ -123,6 +126,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     alreadyShowPopup = false;
     isProcessingStampPostcard = false;
     isAutoStampIfNeed = true;
+    _chatBloc = injector<AuChatBloc>();
     super.initState();
     context.read<PostcardDetailBloc>().add(
           PostcardDetailGetInfoEvent(
@@ -466,12 +470,13 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       context.read<IdentityBloc>().add(GetIdentityEvent(identitiesList));
     }, builder: (context, state) {
       if (state.assetToken != null) {
+        final asset = state.assetToken!;
         context
             .read<TravelInfoBloc>()
             .add(GetTravelInfoEvent(asset: state.assetToken!));
+        _chatBloc.add(GetAliasesEvent(asset.tokenId!));
 
         final identityState = context.watch<IdentityBloc>().state;
-        final asset = state.assetToken!;
         final artistNames = (asset.getArtists.isEmpty
                 ? [Artist(name: 'no_artists'.tr())]
                 : asset.getArtists)
@@ -549,33 +554,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            if (state.assetToken == null ||
-                                state.assetToken?.pending == true ||
-                                !_remoteConfig.getBool(
-                                    ConfigGroup.viewDetail, ConfigKey.chat))
-                              const SizedBox()
-                            else
-                              FutureBuilder<Pair<WalletStorage, int>?>(
-                                  // ignore: discarded_futures
-                                  future: state.assetToken!.getOwnerWallet(),
-                                  builder: (context, snapshot) {
-                                    if (snapshot.hasData) {
-                                      final wallet = snapshot.data;
-                                      if (wallet == null) {
-                                        return const SizedBox();
-                                      }
-                                      return Padding(
-                                        padding: const EdgeInsets.only(top: 15),
-                                        child: MessagePreview(
-                                            payload: MessagePreviewPayload(
-                                          asset: state.assetToken!,
-                                          wallet: wallet,
-                                          getAssetToken: getCurrentAssetToken,
-                                        )),
-                                      );
-                                    }
-                                    return const SizedBox();
-                                  }),
+                            _chatMessage(context, asset),
                             if (_prompt != null)
                               Padding(
                                 padding: const EdgeInsets.only(top: 15),
@@ -675,6 +654,43 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           widget.payload.identities[widget.payload.currentIndex],
           useIndexer: true,
         ));
+  }
+
+  Widget _chatMessage(BuildContext context, AssetToken assetToken) {
+    if (assetToken.pending == true ||
+        !_remoteConfig.getBool(ConfigGroup.viewDetail, ConfigKey.chat)) {
+      return const SizedBox();
+    } else {
+      return BlocConsumer<AuChatBloc, AuChatState>(
+        bloc: _chatBloc,
+        builder: (BuildContext context, AuChatState state) {
+          final aliases = state.aliases;
+          return FutureBuilder<Pair<WalletStorage, int>?>(
+              // ignore: discarded_futures
+              future: assetToken.getOwnerWallet(),
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  final wallet = snapshot.data;
+                  if (wallet == null) {
+                    return const SizedBox();
+                  }
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 15),
+                    child: MessagePreview(
+                        payload: MessagePreviewPayload(
+                      asset: assetToken,
+                      wallet: wallet,
+                      getAssetToken: getCurrentAssetToken,
+                      aliases: aliases,
+                    )),
+                  );
+                }
+                return const SizedBox();
+              });
+        },
+        listener: (BuildContext context, AuChatState chatState) {},
+      );
+    }
   }
 
   Widget _postcardAction(final BuildContext context, final AssetToken asset) {
