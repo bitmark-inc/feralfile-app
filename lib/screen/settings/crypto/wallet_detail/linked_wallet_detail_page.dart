@@ -58,6 +58,8 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
   late Connection _connection;
   late String _address;
 
+  final usdcFormatter = USDCAmountFormatter();
+
   @override
   void initState() {
     super.initState();
@@ -246,7 +248,7 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
                                                 state.usdcBalances[_address];
                                             final balance = usdcBalance == null
                                                 ? '-- USDC'
-                                                : '''${USDCAmountFormatter(usdcBalance).format()} USDC''';
+                                                : '''${usdcFormatter.format(usdcBalance)} USDC''';
                                             return Padding(
                                               padding: padding,
                                               child: _usdcBalance(
@@ -380,7 +382,7 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
           final usdcBalance = state.usdcBalances[_address];
           final balance = usdcBalance == null
               ? '-- USDC'
-              : '${USDCAmountFormatter(usdcBalance).format()} USDC';
+              : '${usdcFormatter.format(usdcBalance)} USDC';
           return SizedBox(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,

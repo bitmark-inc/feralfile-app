@@ -187,12 +187,14 @@ class RequestPostcardResponse {
   final String claimID;
   final String name;
   final String previewURL;
+  final String tokenId;
 
   // constructor
   RequestPostcardResponse({
     required this.claimID,
     required this.name,
     required this.previewURL,
+    required this.tokenId,
   });
 
   // fromJson method
@@ -201,6 +203,7 @@ class RequestPostcardResponse {
         claimID: json['claimID'] as String,
         name: json['name'] as String,
         previewURL: json['previewURL'] as String,
+        tokenId: json['tokenID'].toString(),
       );
 
   // toJson method
@@ -208,17 +211,17 @@ class RequestPostcardResponse {
         'claimID': claimID,
         'name': name,
         'previewURL': previewURL,
+        'tokenID': tokenId,
       };
 }
 
 class PayToMintRequest extends RequestPostcardResponse {
   final String address;
-  final String tokenId;
 
   //constructor
   PayToMintRequest({
     required this.address,
-    required this.tokenId,
+    required super.tokenId,
     required super.claimID,
     required super.name,
     required super.previewURL,

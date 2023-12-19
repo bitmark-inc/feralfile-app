@@ -18,14 +18,13 @@ import 'package:tezart/src/crypto/crypto.dart' as crypto;
 import 'package:web3dart/crypto.dart';
 
 class XtzAmountFormatter {
-  final int amount;
   final int digit;
 
-  XtzAmountFormatter(this.amount, {this.digit = 6});
+  XtzAmountFormatter({this.digit = 6});
 
-  String format() {
+  String format(int amount) {
     final formater =
-        NumberFormat("${'#' * 10}0.0${'#' * (digit - 1)}", "en_US");
+        NumberFormat("${'#' * 10}0.0${'#' * (digit - 1)}", 'en_US');
     return formater.format(amount / 1000000);
   }
 }
@@ -89,7 +88,7 @@ class TezosPack {
     const addressFixedLength = 22;
     if (bytes.length < 5) {
       throw const FormatException(
-          "Invalid Base58Check encoded string: must be at least size 5");
+          'Invalid Base58Check encoded string: must be at least size 5');
     }
 
     List<int> subBytes = bytes.sublist(0, bytes.length - 4);
@@ -97,7 +96,7 @@ class TezosPack {
     List<int> providedChecksum = bytes.sublist(bytes.length - 4, bytes.length);
     if (!const ListEquality()
         .equals(providedChecksum, checksum.sublist(0, 4))) {
-      throw const FormatException("Invalid checksum in Base58Check encoding.");
+      throw const FormatException('Invalid checksum in Base58Check encoding.');
     }
 
     subBytes = hexToBytes('01') + bytes.sublist(3, bytes.length - 4);

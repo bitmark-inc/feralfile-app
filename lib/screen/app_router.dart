@@ -71,6 +71,7 @@ import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_blo
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_explain.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_get_location.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/prompt_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_bloc.dart';
 import 'package:autonomy_flutter/screen/irl_screen/sign_message_screen.dart';
@@ -185,6 +186,8 @@ class AppRouter {
   static const inappWebviewPage = 'inapp_webview_page';
   static const postcardExplain = 'postcard_explain_screen';
   static const designStamp = 'design_stamp_screen';
+  static const promptPage = 'prompt_page';
+  static const choosePromptPage = 'choose_prompt_page';
   static const handSignaturePage = 'hand_signature_page';
   static const stampPreview = 'stamp_preview';
   static const claimEmptyPostCard = 'claim_empty_postcard';
@@ -217,6 +220,16 @@ class AppRouter {
       injector<AuditService>(),
     );
     final identityBloc = IdentityBloc(injector<AppDatabase>(), injector());
+    final postcardDetailBloc = PostcardDetailBloc(
+      injector(),
+      injector(),
+      injector(),
+      injector(),
+      injector(),
+      injector(),
+      injector(),
+      injector(),
+    );
 
     switch (settings.name) {
       case viewPlayListPage:
@@ -343,6 +356,16 @@ class AppRouter {
               payload: settings.arguments! as DesignStampPayload),
         );
 
+      case promptPage:
+        return PageTransition(
+          settings: settings,
+          type: PageTransitionType.rightToLeft,
+          curve: Curves.easeIn,
+          duration: const Duration(milliseconds: 300),
+          reverseDuration: const Duration(milliseconds: 300),
+          child: PromptPage(payload: settings.arguments! as DesignStampPayload),
+        );
+
       case AccessMethodPage.tag:
         return CupertinoPageRoute(
           settings: settings,
@@ -370,15 +393,7 @@ class AppRouter {
           child: MultiBlocProvider(
             providers: [
               BlocProvider(create: (_) => identityBloc),
-              BlocProvider(
-                  create: (_) => PostcardDetailBloc(
-                        injector(),
-                        injector(),
-                        injector(),
-                        injector(),
-                        injector(),
-                        injector(),
-                      )),
+              BlocProvider(create: (_) => postcardDetailBloc),
             ],
             child: StampPreview(
                 payload: settings.arguments! as StampPreviewPayload),
@@ -575,9 +590,7 @@ class AppRouter {
                     injector(),
                   ),
                 ),
-                BlocProvider(
-                    create: (_) => PostcardDetailBloc(injector(), injector(),
-                        injector(), injector(), injector(), injector())),
+                BlocProvider(create: (_) => postcardDetailBloc),
               ],
               child: ArtworkPreviewPage(
                 payload: settings.arguments! as ArtworkDetailPayload,
@@ -671,15 +684,7 @@ class AppRouter {
                   BlocProvider.value(value: accountsBloc),
                   BlocProvider(create: (_) => identityBloc),
                   BlocProvider(create: (_) => TravelInfoBloc()),
-                  BlocProvider(
-                      create: (_) => PostcardDetailBloc(
-                            injector(),
-                            injector(),
-                            injector(),
-                            injector(),
-                            injector(),
-                            injector(),
-                          )),
+                  BlocProvider(create: (_) => postcardDetailBloc),
                 ],
                 child: ClaimedPostcardDetailPage(
                     key: payload.key, payload: payload)));
@@ -1120,16 +1125,7 @@ class AppRouter {
           child: MultiBlocProvider(
             providers: [
               BlocProvider.value(value: accountsBloc),
-              BlocProvider(
-                create: (_) => PostcardDetailBloc(
-                  injector(),
-                  injector(),
-                  injector(),
-                  injector(),
-                  injector(),
-                  injector(),
-                ),
-              ),
+              BlocProvider(create: (_) => postcardDetailBloc),
             ],
             child: PostcardLeaderboardPage(
               payload: settings.arguments! as PostcardLeaderboardPagePayload,

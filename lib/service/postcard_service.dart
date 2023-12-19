@@ -11,15 +11,16 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:autonomy_flutter/common/environment.dart';
-import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/postcard_api.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
+import 'package:autonomy_flutter/model/prompt.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/leaderboard/postcard_leaderboard.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/request_response.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -46,11 +47,9 @@ import 'package:nft_collection/widgets/nft_collection_bloc_event.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
-import 'account_service.dart';
-
 abstract class PostcardService {
   Future<ReceivePostcardResponse> receivePostcard(
-      {required String shareCode, Location? location, required String address});
+      {required String shareCode, required String address, Location? location});
 
   Future<ClaimPostCardResponse> claimEmptyPostcard(
       ClaimPostCardRequest request);
@@ -74,7 +73,8 @@ abstract class PostcardService {
       File metadata,
       Location? location,
       int counter,
-      String contractAddress);
+      String contractAddress,
+      Prompt? prompt);
 
   List<StampingPostcard> getStampingPostcard();
 
@@ -92,6 +92,8 @@ abstract class PostcardService {
     required int stampIndex,
   });
 
+  Future<bool> isMerchandiseEnable(String tokenId);
+
   Future<void> downloadPostcard(String tokenId);
 
   String getTokenId(String id);
@@ -100,15 +102,20 @@ abstract class PostcardService {
       {required String address,
       required RequestPostcardResponse requestPostcardResponse});
 
-  Future<AssetToken> claimSharedPostcardToAddress({
-    required String address,
+  AssetToken getPendingTokenAfterClaimShare({
     required AssetToken assetToken,
-    required String shareCode,
-    required Location location,
+    required String address,
   });
 
-  Future<bool> finalizeStamp(AssetToken asset, String imagePath,
-      String metadataPath, Location location);
+  Future<bool> finalizeStamp({
+    required AssetToken asset,
+    required String imagePath,
+    required String metadataPath,
+    required Location location,
+    required String? shareCode,
+  });
+
+  Future<Prompt?> getPrompt(String tokenId);
 }
 
 class PostcardServiceImpl extends PostcardService {
@@ -142,15 +149,14 @@ class PostcardServiceImpl extends PostcardService {
   @override
   Future<ReceivePostcardResponse> receivePostcard({
     required String shareCode,
-    Location? location,
     required String address,
+    Location? location,
   }) async {
     log.info('receivePostcard shareCode: $shareCode, address: $address');
     try {
       final timestamp =
           (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
-      final accountService = injector<AccountService>();
-      final walletIndex = await accountService.getAccountByAddress(
+      final walletIndex = await _accountService.getAccountByAddress(
           chain: 'tezos', address: address);
       final publicKey =
           await walletIndex.wallet.getTezosPublicKey(index: walletIndex.index);
@@ -249,7 +255,8 @@ class PostcardServiceImpl extends PostcardService {
       File metadata,
       Location? location,
       int counter,
-      String contractAddress) async {
+      String contractAddress,
+      Prompt? prompt) async {
     try {
       final data = [
         TezosPack.packAddress(contractAddress),
@@ -270,30 +277,34 @@ class PostcardServiceImpl extends PostcardService {
          lat: $lat, lon: $lon, counter: $counter
         ''');
       final result = await _postcardApi.updatePostcard(
-          tokenId: tokenId,
-          data: image,
-          metadata: metadata,
-          signature: signature,
-          address: address,
-          publicKey: publicKey,
-          lat: lat,
-          lon: lon,
-          counter: counter) as Map<String, dynamic>;
+        tokenId: tokenId,
+        data: image,
+        metadata: metadata,
+        signature: signature,
+        address: address,
+        publicKey: publicKey,
+        lat: lat,
+        lon: lon,
+        counter: counter,
+        promptID: counter > 1 ? null : prompt?.id,
+        prompt: counter > 1 ? null : prompt?.description,
+      ) as Map<String, dynamic>;
 
       final ok = result['metadataCID'] as String;
       final isStampSuccess = ok.isNotEmpty;
       if (isStampSuccess) {
-        _metricClientService.addEvent(MixpanelEvent.postcardStamp, data: {
+        unawaited(
+            _metricClientService.addEvent(MixpanelEvent.postcardStamp, data: {
           'postcardId': tokenId,
           'index': counter,
-        });
+        }));
         if (counter == MAX_STAMP_IN_POSTCARD) {
           try {
-            _chatService.sendPostcardCompleteMessage(
+            unawaited(_chatService.sendPostcardCompleteMessage(
               address,
               getTokenId(tokenId),
               Pair(wallet, index),
-            );
+            ));
           } catch (e) {
             unawaited(Sentry.captureException(e));
             log.info('[Postcard Service] sendPostcardCompleteMessage $e');
@@ -373,6 +384,13 @@ class PostcardServiceImpl extends PostcardService {
   @override
   Future<void> cancelSharePostcard(AssetToken asset) async {
     await sharePostcard(asset);
+  }
+
+  @override
+  Future<bool> isMerchandiseEnable(String tokenId) async {
+    final response = await _postcardApi.getMerchandiseEnable(tokenId);
+    final result = jsonDecode(response)['enabled'] as bool;
+    return result;
   }
 
   @override
@@ -499,14 +517,13 @@ class PostcardServiceImpl extends PostcardService {
   Future<AssetToken> claimEmptyPostcardToAddress(
       {required String address,
       required RequestPostcardResponse requestPostcardResponse}) async {
-    final tezosService = injector.get<TezosService>();
     final timestamp =
         (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
     final account = await _accountService.getAccountByAddress(
       chain: 'tezos',
       address: address,
     );
-    final signature = await tezosService.signMessage(account.wallet,
+    final signature = await _tezosService.signMessage(account.wallet,
         account.index, Uint8List.fromList(utf8.encode(timestamp)));
     final publicKey =
         await account.wallet.getTezosPublicKey(index: account.index);
@@ -519,11 +536,14 @@ class PostcardServiceImpl extends PostcardService {
       location: [moMAGeoLocation.position.lat, moMAGeoLocation.position.lon],
     );
     final result = await claimEmptyPostcard(claimRequest);
-    _metricClientService.addEvent(MixpanelEvent.postcardClaimEmpty, data: {
+    unawaited(
+        _metricClientService.addEvent(MixpanelEvent.postcardClaimEmpty, data: {
       'postcardId': result.tokenID,
-    });
+    }));
     final tokenID = 'tez-${result.contractAddress}-${result.tokenID}';
+    final prompt = await getPrompt(result.tokenID ?? '');
     final postcardMetadata = PostcardMetadata(
+      prompt: prompt,
       locationInformation: [],
     );
     final token = AssetToken(
@@ -535,7 +555,7 @@ class PostcardServiceImpl extends PostcardService {
         title: requestPostcardResponse.name,
         previewURL: requestPostcardResponse.previewURL,
         source: 'postcard',
-        artworkMetadata: jsonEncode(postcardMetadata.toJson()),
+        artworkMetadata: jsonEncode(postcardMetadata),
         medium: 'software',
       ),
       blockchain: 'tezos',
@@ -559,8 +579,8 @@ class PostcardServiceImpl extends PostcardService {
     );
 
     await _tokensService.setCustomTokens([token]);
-    _tokensService.reindexAddresses([address]);
-    injector.get<ConfigurationService>().setListPostcardMint([tokenID]);
+    unawaited(_tokensService.reindexAddresses([address]));
+    unawaited(_configurationService.setListPostcardMint([tokenID]));
     NftCollectionBloc.eventController.add(
       GetTokensByOwnerEvent(pageKey: PageKey.init()),
     );
@@ -568,16 +588,8 @@ class PostcardServiceImpl extends PostcardService {
   }
 
   @override
-  Future<AssetToken> claimSharedPostcardToAddress(
-      {required String address,
-      required AssetToken assetToken,
-      required String shareCode,
-      required Location location}) async {
-    await receivePostcard(
-      shareCode: shareCode,
-      location: location,
-      address: address,
-    );
+  AssetToken getPendingTokenAfterClaimShare(
+      {required AssetToken assetToken, required String address}) {
     var postcardMetadata = assetToken.postcardMetadata;
     log.info(
         'claimSharedPostcardToAddress metadata ${postcardMetadata.toJson()}');
@@ -591,19 +603,16 @@ class PostcardServiceImpl extends PostcardService {
       balance: 1,
       owners: newOwners,
     );
-
-    final tokenService = injector<TokensService>();
-    await tokenService.setCustomTokens([pendingToken]);
-    tokenService.reindexAddresses([address]);
-    NftCollectionBloc.eventController.add(
-      GetTokensByOwnerEvent(pageKey: PageKey.init()),
-    );
     return pendingToken;
   }
 
   @override
-  Future<bool> finalizeStamp(AssetToken asset, String imagePath,
-      String metadataPath, Location location) async {
+  Future<bool> finalizeStamp(
+      {required AssetToken asset,
+      required String imagePath,
+      required String metadataPath,
+      required Location location,
+      required String? shareCode}) async {
     File imageFile = File(imagePath);
     File metadataFile = File(metadataPath);
 
@@ -626,10 +635,18 @@ class PostcardServiceImpl extends PostcardService {
           counter: counter,
           timestamp: DateTime.now(),
           location: location,
+          prompt: asset.postcardMetadata.prompt,
         );
     await _configurationService.setProcessingStampPostcard([
       processingStampPostcard,
     ]);
+    if (shareCode != null) {
+      await receivePostcard(
+        shareCode: shareCode,
+        location: location,
+        address: address,
+      );
+    }
     final isStampSuccess = await stampPostcard(
       tokenId,
       walletIndex.first,
@@ -639,6 +656,7 @@ class PostcardServiceImpl extends PostcardService {
       location,
       counter,
       contractAddress,
+      asset.postcardMetadata.prompt,
     );
     if (isStampSuccess != false) {
       await _configurationService.setProcessingStampPostcard(
@@ -653,6 +671,7 @@ class PostcardServiceImpl extends PostcardService {
           imagePath: imagePath,
           metadataPath: metadataPath,
           counter: counter,
+          prompt: asset.postcardMetadata.prompt,
         ),
       ]);
       final postcardMetadata = asset.postcardMetadata;
@@ -662,12 +681,24 @@ class PostcardServiceImpl extends PostcardService {
       newAsset?.artworkMetadata = jsonEncode(postcardMetadata.toJson());
       final pendingToken = asset.copyWith(asset: newAsset);
       await _tokensService.setCustomTokens([pendingToken]);
-      _tokensService.reindexAddresses([address]);
+      unawaited(_tokensService.reindexAddresses([address]));
       NftCollectionBloc.eventController.add(
         GetTokensByOwnerEvent(pageKey: PageKey.init()),
       );
     }
     return isStampSuccess != false;
+  }
+
+  @override
+  Future<Prompt?> getPrompt(String tokenId) async {
+    try {
+      final prompts = await _postcardApi.getPrompts(tokenId);
+      log.info('[POSTCARD] getPrompts: $prompts');
+      final prompt = prompts.isNotEmpty ? prompts.first : null;
+      return prompt;
+    } catch (e) {
+      return null;
+    }
   }
 }
 

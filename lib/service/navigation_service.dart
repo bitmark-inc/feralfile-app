@@ -13,10 +13,12 @@ import 'package:autonomy_flutter/model/otp.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/claim/activation/claim_activation_page.dart';
 import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
 import 'package:autonomy_flutter/service/airdrop_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
@@ -27,10 +29,6 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:nft_collection/models/asset_token.dart';
-
-// ignore: implementation_imports
 import 'package:nft_collection/models/asset_token.dart'; // ignore: implementation_imports
 import 'package:overlay_support/src/overlay_state_finder.dart';
 
@@ -40,7 +38,8 @@ class NavigationService {
   static const Key contactingKey = Key('tezos_beacon_contacting');
 
   // to prevent showing duplicate ConnectPage
-  // workaround solution for unknown reason ModalRoute(navigatorKey.currentContext) returns nil
+  // workaround solution for unknown reason
+  // ModalRoute(navigatorKey.currentContext) returns nil
   bool _isWCConnectInShow = false;
 
   BuildContext get context => navigatorKey.currentContext!;
@@ -69,6 +68,7 @@ class NavigationService {
 
     if (routeName == AppRouter.wcConnectPage && _isWCConnectInShow) {
       log.info(
+          // ignore: lines_longer_than_80_chars
           '[NavigationService] skip popAndPushNamed because WCConnectPage is in showing');
       return null;
     }
@@ -80,6 +80,15 @@ class NavigationService {
 
     return navigatorKey.currentState
         ?.popAndPushNamed(routeName, arguments: arguments);
+  }
+
+  Future<void> selectPromptsThenStamp(
+      BuildContext context, AssetToken asset, String? shareCode) async {
+    final prompt = asset.postcardMetadata.prompt;
+
+    await popAndPushNamed(
+        prompt == null ? AppRouter.promptPage : AppRouter.designStamp,
+        arguments: DesignStampPayload(asset, true, shareCode));
   }
 
   Future<dynamic>? navigateUntil(
@@ -353,6 +362,13 @@ class NavigationService {
     }
   }
 
+  Future<void> showActivationError(Object e, String id) async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await UIHelper.showActivationError(navigatorKey.currentContext!, e, id);
+    }
+  }
+
   Future<void> showAirdropClaimFailed() async {
     if (navigatorKey.currentContext != null &&
         navigatorKey.currentState?.mounted == true) {
@@ -399,6 +415,13 @@ class NavigationService {
     if (navigatorKey.currentContext != null &&
         navigatorKey.currentState?.mounted == true) {
       await UIHelper.showPostcardClaimLimited(navigatorKey.currentContext!);
+    }
+  }
+
+  Future<void> showPostcardNotInMiami() async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await UIHelper.showPostcardNotInMiami(navigatorKey.currentContext!);
     }
   }
 

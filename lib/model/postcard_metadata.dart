@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/model/prompt.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/geolocation.dart';
 import 'package:autonomy_flutter/util/position_utils.dart';
@@ -5,9 +6,10 @@ import 'package:collection/collection.dart';
 
 class PostcardMetadata {
   List<Location> locationInformation;
+  Prompt? prompt;
 
   // constructor
-  PostcardMetadata({required this.locationInformation});
+  PostcardMetadata({required this.locationInformation, this.prompt});
 
   // from json method
   factory PostcardMetadata.fromJson(Map<String, dynamic> json) {
@@ -22,18 +24,20 @@ class PostcardMetadata {
           })
           .whereNotNull()
           .toList(),
+      prompt: json['prompt'] == null
+          ? null
+          : Prompt.fromJson(json['prompt'] as Map<String, dynamic>),
     );
     return metadata;
   }
 
   // to json method
-  Map<String, dynamic> toJson() {
-    return {
-      'locationInformation': locationInformation
-          .map((e) => {'stampedLocation': e.toJson()})
-          .toList(),
-    };
-  }
+  Map<String, dynamic> toJson() => {
+        'locationInformation': locationInformation
+            .map((e) => {'stampedLocation': e.toJson()})
+            .toList(),
+        'prompt': prompt?.toJson(),
+      };
 }
 
 class Attribute {
@@ -44,20 +48,16 @@ class Attribute {
   Attribute({required this.name, required this.value});
 
   // from json factory
-  factory Attribute.fromJson(Map<String, dynamic> map) {
-    return Attribute(
-      name: map['name'] as String,
-      value: map['value'] as String,
-    );
-  }
+  factory Attribute.fromJson(Map<String, dynamic> map) => Attribute(
+        name: map['name'] as String,
+        value: map['value'] as String,
+      );
 
   // toJson
-  Map<String, dynamic> toJson() {
-    return {
-      'name': name,
-      'value': value,
-    };
-  }
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        'value': value,
+      };
 }
 
 class Format {
@@ -74,24 +74,20 @@ class Format {
       this.fileName});
 
   // from json method
-  factory Format.fromJson(Map<String, dynamic> json) {
-    return Format(
-      uri: json['uri'] as String,
-      mimeType: json['mimeType'] as String,
-      fileName: json['fileName'] as String?,
-      fileSize: json['fileSize'] as int,
-    );
-  }
+  factory Format.fromJson(Map<String, dynamic> json) => Format(
+        uri: json['uri'] as String,
+        mimeType: json['mimeType'] as String,
+        fileName: json['fileName'] as String?,
+        fileSize: json['fileSize'] as int,
+      );
 
   // toJson
-  Map<String, dynamic> toJson() {
-    return {
-      'uri': uri,
-      'mimeType': mimeType,
-      'fileSize': fileSize,
-      'fileName': fileName,
-    };
-  }
+  Map<String, dynamic> toJson() => {
+        'uri': uri,
+        'mimeType': mimeType,
+        'fileSize': fileSize,
+        'fileName': fileName,
+      };
 }
 
 class Royalties {
@@ -102,22 +98,18 @@ class Royalties {
   Royalties({required this.decimals, required this.shares});
 
   // from json method
-  factory Royalties.fromJson(Map<String, dynamic> json) {
-    return Royalties(
-      decimals: json['decimals'] as int,
-      shares: (json['shares'] as Map<String, dynamic>).map(
-        (k, e) => MapEntry(k, e as int),
-      ),
-    );
-  }
+  factory Royalties.fromJson(Map<String, dynamic> json) => Royalties(
+        decimals: json['decimals'] as int,
+        shares: (json['shares'] as Map<String, dynamic>).map(
+          (k, e) => MapEntry(k, e as int),
+        ),
+      );
 
   // toJson method
-  Map<String, dynamic> toJson() {
-    return {
-      'decimals': decimals,
-      'shares': shares,
-    };
-  }
+  Map<String, dynamic> toJson() => {
+        'decimals': decimals,
+        'shares': shares,
+      };
 }
 
 class Location {
@@ -125,7 +117,7 @@ class Location {
   final double? lon;
 
   // constructor
-  Location({required this.lat, required this.lon});
+  const Location({required this.lat, required this.lon});
 
   // from json method
   factory Location.fromJson(Map<String, dynamic> json) {
@@ -137,16 +129,16 @@ class Location {
   }
 
   // toJson method
-  Map<String, dynamic> toJson() {
-    return {
-      'lat': lat,
-      'lon': lon,
-    };
-  }
+  Map<String, dynamic> toJson() => {
+        'lat': lat,
+        'lon': lon,
+      };
 
   @override
   bool operator ==(Object other) {
-    if (identical(this, other)) return true;
+    if (identical(this, other)) {
+      return true;
+    }
 
     return other is Location && other.lat == lat && other.lon == lon;
   }
@@ -166,9 +158,7 @@ class Location {
     return internetGeolocations.position == this;
   }
 
-  bool get isNull {
-    return lat == null || lon == null;
-  }
+  bool get isNull => lat == null || lon == null;
 
   @override
   int get hashCode => lat.hashCode ^ lon.hashCode;
