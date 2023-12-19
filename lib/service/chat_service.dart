@@ -33,6 +33,7 @@ abstract class ChatService {
 
   Future<void> removeListener(ChatListener listener);
 
+  // ignore: avoid_annotating_with_dynamic
   void sendMessage(dynamic message, {String? listenerId, String? requestId});
 
   Future<void> dispose();
@@ -93,7 +94,7 @@ class ChatServiceImpl implements ChatService {
       final link = '/v1/chat/ws?index_id=$id&address=$address';
       final header = await _getHeader(link, wallet, address);
       _websocketChannel = IOWebSocketChannel.connect(
-        "${Environment.postcardChatServerUrl}$link",
+        '${Environment.postcardChatServerUrl}$link',
         headers: header,
         customClient: HttpClient(),
         pingInterval: const Duration(seconds: 50),
@@ -124,14 +125,14 @@ class ChatServiceImpl implements ChatService {
                 for (var element in _listeners) {
                   if (_doCall(requestId: response.id, listenerId: element.id)) {
                     element.onResponseMessage(response.id, ChatService.SENT);
-                    _pendingRequests.remove(MapEntry(response.id, element.id));
+                    _pendingRequests.remove(response.id);
                   }
                 }
               } else if (response.payload['error'] != null) {
                 for (var element in _listeners) {
                   if (_doCall(requestId: response.id, listenerId: element.id)) {
                     element.onResponseMessage(response.id, ChatService.ERROR);
-                    _pendingRequests.remove(MapEntry(response.id, element.id));
+                    _pendingRequests.remove(response.id);
                   }
                 }
               } else {
@@ -145,8 +146,7 @@ class ChatServiceImpl implements ChatService {
                         requestId: response.id, listenerId: element.id)) {
                       element.onResponseMessageReturnPayload(
                           newMessages, response.id);
-                      _pendingRequests
-                          .remove(MapEntry(response.id, element.id));
+                      _pendingRequests.remove(response.id);
                     }
                   }
                 } catch (e) {
@@ -209,6 +209,7 @@ class ChatServiceImpl implements ChatService {
   }
 
   @override
+  // ignore: avoid_annotating_with_dynamic
   void sendMessage(dynamic message, {String? listenerId, String? requestId}) {
     log.info('[CHAT] sendMessage: $message');
     _websocketChannel?.sink.add(message);
@@ -290,7 +291,7 @@ class ChatServiceImpl implements ChatService {
 
   @override
   Future<Map<String, String>> getAliases(String tokenId) async {
-    await Future.delayed(Duration(seconds: 1));
+    await Future.delayed(const Duration(seconds: 1));
     return {'alias': 'alias'};
   }
 
@@ -299,7 +300,7 @@ class ChatServiceImpl implements ChatService {
       {required String alias,
       required String tokenId,
       required String address}) async {
-    await Future.delayed(Duration(seconds: 1));
+    await Future.delayed(const Duration(seconds: 1));
     return true;
   }
 }

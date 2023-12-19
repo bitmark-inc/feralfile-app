@@ -59,7 +59,9 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
   late AuChatBloc _auChatBloc;
   Map<String, String> _aliases = {};
   late TextEditingController _textController;
+  late FocusNode _textFieldFocusNode;
   late bool _showSetAliasTextField;
+  late bool _withOverlay;
 
   @override
   void initState() {
@@ -70,6 +72,9 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
     memoryValues.currentGroupChatId = _payload.token.id;
     _checkReadPrivateChatBanner();
     _textController = TextEditingController();
+    _textFieldFocusNode = FocusNode();
+    _withOverlay = _textFieldFocusNode.hasFocus;
+    _textFieldFocusNode.addListener(_textFieldFocusNodeListener);
     _showSetAliasTextField = true;
     _auChatBloc = injector<AuChatBloc>();
     _auChatBloc.add(GetAliasesEvent(_payload.token.id));
@@ -84,6 +89,12 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
           firstTimeJoined: DateTime.now().millisecondsSinceEpoch);
       unawaited(_configurationService.setPostcardChatConfig(newConfig));
     }
+  }
+
+  void _textFieldFocusNodeListener() {
+    setState(() {
+      _withOverlay = _textFieldFocusNode.hasFocus;
+    });
   }
 
   Future<void> _websocketInitAndFetchHistory() async {
@@ -239,6 +250,8 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
       unawaited(_postcardChatService.removeListener(_chatListener!));
     }
     memoryValues.currentGroupChatId = null;
+    _textController.dispose();
+    _textFieldFocusNode.dispose();
     super.dispose();
   }
 
@@ -258,6 +271,7 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
     final theme = Theme.of(context);
     return TextField(
       controller: _textController,
+      focusNode: _textFieldFocusNode,
       onSubmitted: onSubmitAlias,
       style: theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
       cursorColor: theme.colorScheme.primary,
@@ -283,6 +297,12 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
       textAlignVertical: TextAlignVertical.center,
       textAlign: TextAlign.center,
       textCapitalization: TextCapitalization.sentences,
+      onTapOutside: (event) {
+        _textFieldFocusNode.unfocus();
+        // setState(() {
+        //   _showSetAliasTextField = false;
+        // });
+      },
     );
   }
 
@@ -316,34 +336,15 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
                       ),
                     ),
                   Expanded(
-                    child: Chat(
-                      l10n: ChatL10nEn(
-                        inputPlaceholder: 'message'.tr(),
-                      ),
-                      onMessageVisibilityChanged: _onMessageVisibilityChanged,
-                      customDateHeaderText: getChatDateTimeRepresentation,
-                      systemMessageBuilder: _systemMessageBuilder,
-                      bubbleRtlAlignment: BubbleRtlAlignment.left,
-                      isLastPage: false,
-                      theme: _chatTheme,
-                      dateHeaderThreshold: 12 * 60 * 60 * 1000,
-                      groupMessagesThreshold:
-                          DateTime.now().millisecondsSinceEpoch,
-                      emptyState: const SizedBox(),
-                      messages: _messages,
-                      onSendPressed: (_) {},
-                      user: types.User(id: const Uuid().v4()),
-                      customBottomWidget: Column(
-                        children: [
-                          if (_chatPrivateBannerTimestamp == null)
-                            _chatPrivateBanner(context)
-                          else
-                            const SizedBox(),
-                          AuInputChat(
-                            onSendPressed: _handleSendPressed,
-                          ),
-                        ],
-                      ),
+                    child: Stack(
+                      children: [
+                        _chatThread(context),
+                        if (_withOverlay)
+                          Positioned.fill(
+                              child: Container(
+                            color: Colors.white.withOpacity(0.9),
+                          ))
+                      ],
                     ),
                   ),
                 ],
@@ -361,6 +362,35 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
       _getHistory();
     }
   }
+
+  Widget _chatThread(BuildContext context) => Chat(
+        l10n: ChatL10nEn(
+          inputPlaceholder: 'message'.tr(),
+        ),
+        onMessageVisibilityChanged: _onMessageVisibilityChanged,
+        customDateHeaderText: getChatDateTimeRepresentation,
+        systemMessageBuilder: _systemMessageBuilder,
+        bubbleRtlAlignment: BubbleRtlAlignment.left,
+        isLastPage: false,
+        theme: _chatTheme,
+        dateHeaderThreshold: 12 * 60 * 60 * 1000,
+        groupMessagesThreshold: DateTime.now().millisecondsSinceEpoch,
+        emptyState: const SizedBox(),
+        messages: _messages,
+        onSendPressed: (_) {},
+        user: types.User(id: const Uuid().v4()),
+        customBottomWidget: Column(
+          children: [
+            if (_chatPrivateBannerTimestamp == null)
+              _chatPrivateBanner(context)
+            else
+              const SizedBox(),
+            AuInputChat(
+              onSendPressed: _handleSendPressed,
+            ),
+          ],
+        ),
+      );
 
   Widget _chatPrivateBanner(BuildContext context, {String? text}) {
     final theme = Theme.of(context);
