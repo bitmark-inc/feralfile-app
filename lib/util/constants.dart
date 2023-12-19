@@ -18,6 +18,7 @@ import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 // ignore_for_file: constant_identifier_names
+// ignore_for_file: lines_longer_than_80_chars
 
 const INDEXER_TOKENS_MAXIMUM = 50;
 const INDEXER_UNKNOWN_SOURCE = 'unknown';
@@ -53,6 +54,9 @@ const MOMA_MEMENTO_EXHIBITION_IDS = [
   '00370334-6151-4c04-b6be-dc09e325d57d',
   '3ee3e8a4-90dd-4843-8ec3-858e6bea1965'
 ];
+
+const POSTCARD_IPFS_PREFIX_TEST = 'https://ipfs.test.bitmark.com/ipfs';
+const POSTCARD_IPFS_PREFIX_PROD = 'https://ipfs.bitmark.com/ipfs';
 
 const TEIA_ART_CONTRACT_ADDRESSES = ['KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton'];
 const OPENSEA_ASSET_PREFIX = 'https://opensea.io/assets/';
@@ -124,11 +128,11 @@ const Color POSTCARD_GREEN_BUTTON_COLOR = Color.fromRGBO(79, 174, 79, 1);
 const POSTCARD_ABOUT_THE_PROJECT =
     'https://www.moma.org/calendar/exhibitions/5618?preview=true';
 
-final moMAGeoLocation =
-    GeoLocation(position: Location(lat: 40.761, lon: -73.980), address: 'MoMA');
+final moMAGeoLocation = GeoLocation(
+    position: const Location(lat: 40.761, lon: -73.980), address: 'MoMA');
 
 final internetUserGeoLocation =
-    GeoLocation(position: Location(lat: null, lon: null), address: 'Web');
+    GeoLocation(position: const Location(lat: null, lon: null), address: 'Web');
 
 const int MAX_STAMP_IN_POSTCARD = 15;
 
@@ -153,6 +157,8 @@ double get postcardAspectRatio => Platform.isAndroid
     : POSTCARD_ASPECT_RATIO_IOS;
 
 const double STAMP_ASPECT_RATIO = 345.0 / 378;
+
+const POSTCARD_SHARE_LINK_VALID_DURATION = Duration(hours: 24);
 
 const USDC_CONTRACT_ADDRESS_GOERLI =
     '0x07865c6E87B9F70255377e024ace6630C1Eaa37F';
@@ -389,7 +395,9 @@ enum AnnouncementID {
 
 enum StatusCode {
   notFound(404),
-  success(200);
+  success(200),
+  forbidden(403),
+  badRequest(400);
 
   const StatusCode(this.value);
 

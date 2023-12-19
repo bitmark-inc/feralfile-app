@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
+
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
@@ -40,7 +42,7 @@ class SendArtworkPage extends StatefulWidget {
 
   final SendArtworkPayload payload;
 
-  const SendArtworkPage({Key? key, required this.payload}) : super(key: key);
+  const SendArtworkPage({required this.payload, super.key});
 
   @override
   State<SendArtworkPage> createState() => _SendArtworkPageState();
@@ -50,6 +52,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _quantityController = TextEditingController();
   final feeWidgetKey = GlobalKey();
+  final xtzFormatter = XtzAmountFormatter();
 
   late int index;
   bool _initialChangeAddress = false;
@@ -68,7 +71,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
     context.read<SendArtworkBloc>().add(QuantityUpdateEvent(
         quantity: 1, maxQuantity: widget.payload.ownedQuantity, index: index));
     if (widget.payload.ownedQuantity == 1) {
-      _quantityController.text = "1";
+      _quantityController.text = '1';
     }
     if (widget.payload.asset.artistName != null) {
       context
@@ -83,9 +86,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
     });
   }
 
-  int get _quantity {
-    return int.tryParse(_quantityController.text) ?? 0;
-  }
+  int get _quantity => int.tryParse(_quantityController.text) ?? 0;
 
   void _onQuantityUpdated() {
     context.read<SendArtworkBloc>().add(QuantityUpdateEvent(
@@ -102,24 +103,23 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
   }
 
   Widget _quantityInputField(
-      {required int maxQuantity, required bool hasError}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        AuTextField(
-          labelSemantics: "quantity_send_artwork",
-          title: "",
-          placeholder:
-              "enter_a_number_".tr(args: ["1", maxQuantity.toString()]),
-          controller: _quantityController,
-          isError: hasError,
-          keyboardType: TextInputType.number,
-          onChanged: (value) => _onQuantityUpdated(),
-          onSubmit: (value) => _onQuantityUpdated(),
-        ),
-      ],
-    );
-  }
+          {required int maxQuantity, required bool hasError}) =>
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AuTextField(
+            labelSemantics: 'quantity_send_artwork',
+            title: '',
+            placeholder:
+                'enter_a_number_'.tr(args: ['1', maxQuantity.toString()]),
+            controller: _quantityController,
+            isError: hasError,
+            keyboardType: TextInputType.number,
+            onChanged: (value) => _onQuantityUpdated(),
+            onSubmit: (value) => _onQuantityUpdated(),
+          ),
+        ],
+      );
 
   @override
   void dispose() {
@@ -138,7 +138,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
     return Scaffold(
       appBar: getBackAppBar(
         context,
-        title: "send_artwork".tr(),
+        title: 'send_artwork'.tr(),
         onBack: () {
           Navigator.of(context).pop();
         },
@@ -147,225 +147,234 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
         children: [
           BlocConsumer<SendArtworkBloc, SendArtworkState>(
               listener: (context, state) {
-            if (state.fee != null && feeWidgetKey.currentContext != null) {
-              Scrollable.ensureVisible(feeWidgetKey.currentContext!);
-            }
-            if (state.fee != null &&
-                state.balance != null &&
-                state.fee! > state.balance! + BigInt.from(10)) {
-              UIHelper.showMessageAction(
-                context,
-                'transaction_failed'.tr(),
-                'dont_enough_money'.tr(),
-              );
-            }
-          }, builder: (context, state) {
-            return GestureDetector(
-              behavior: HitTestBehavior.deferToChild,
-              onTap: () {
-                _unfocus();
+                if (state.fee != null && feeWidgetKey.currentContext != null) {
+                  unawaited(
+                      Scrollable.ensureVisible(feeWidgetKey.currentContext!));
+                }
+                if (state.fee != null &&
+                    state.balance != null &&
+                    state.fee! > state.balance! + BigInt.from(10)) {
+                  unawaited(UIHelper.showMessageAction(
+                    context,
+                    'transaction_failed'.tr(),
+                    'dont_enough_money'.tr(),
+                  ));
+                }
               },
-              child: Container(
-                margin: const EdgeInsets.only(
-                  top: 16.0,
-                  left: 16.0,
-                  right: 16.0,
-                  bottom: 40.0,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: SingleChildScrollView(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 16),
-                            _artworkView(context),
-                            const SizedBox(height: 20),
-                            _item(
-                                context: context,
-                                title: "token".tr(),
-                                content: polishSource(asset.source ?? ""),
-                                tapLink: asset.assetURL),
-                            divider,
-                            _item(
-                              context: context,
-                              title: "contract".tr(),
-                              content: asset.blockchain.capitalize(),
-                              tapLink: asset.getBlockchainUrl(),
-                            ),
-                            divider,
-                            _item(
-                                context: context,
-                                title: "minted".tr(),
-                                content: asset.mintedAt != null
-                                    ? localTimeString(asset.mintedAt!)
-                                    : ''),
-                            divider,
-                            if (widget.payload.asset.fungible == true) ...[
-                              _item(
-                                  context: context,
-                                  title: "owned_tokens".tr(),
-                                  content: "$maxQuantity"),
-                              divider,
-                              const SizedBox(height: 16),
-                              Text(
-                                "quantity_to_send".tr(),
-                                style: theme.textTheme.ppMori400Black14,
-                              ),
-                              const SizedBox(height: 8),
-                              _quantityInputField(
-                                  maxQuantity: maxQuantity,
-                                  hasError: state.isQuantityError),
-                              if (state.isQuantityError) ...[
-                                const SizedBox(height: 8),
-                                if (_quantity < 1)
-                                  Text(
-                                    "minimum_1".tr(),
-                                    style: theme.textTheme.ppMori400Black12
-                                        .copyWith(color: AppColor.red),
-                                  ),
-                                if (_quantity > maxQuantity)
-                                  Text(
-                                    "maximum_"
-                                        .tr(args: [maxQuantity.toString()]),
-                                    style: theme.textTheme.ppMori400Black12
-                                        .copyWith(color: AppColor.red),
-                                  ),
-                              ]
-                            ],
-                            const SizedBox(height: 16.0),
-                            Text(
-                              "to".tr(),
-                              style: theme.textTheme.ppMori400Black14,
-                            ),
-                            const SizedBox(height: 8),
-                            AuTextField(
-                              labelSemantics: "to_address_send_artwork",
-                              title: "",
-                              placeholder: "paste_or_scan_address".tr(),
-                              controller: _addressController,
-                              isError: state.isAddressError,
-                              suffix: IconButton(
-                                icon: Icon(state.isScanQR
-                                    ? AuIcon.scan
-                                    : AuIcon.close),
-                                onPressed: () async {
-                                  if (_addressController.text.isNotEmpty) {
-                                    _addressController.text = "";
-                                    context
-                                        .read<SendArtworkBloc>()
-                                        .add(AddressChangedEvent("", index));
-                                    _initialChangeAddress = true;
-                                  } else {
-                                    dynamic address =
-                                        await Navigator.of(context).pushNamed(
-                                            ScanQRPage.tag,
-                                            arguments:
-                                                asset.blockchain == "ethereum"
-                                                    ? ScannerItem.ETH_ADDRESS
-                                                    : ScannerItem.XTZ_ADDRESS);
-                                    if (address != null && address is String) {
-                                      address = address.replacePrefix(
-                                          "ethereum:", "");
-                                      _addressController.text = address;
-                                      if (!mounted) return;
-                                      context.read<SendArtworkBloc>().add(
-                                          AddressChangedEvent(address, index));
-                                      _initialChangeAddress = true;
-                                    }
-                                  }
-                                },
-                              ),
-                              onSubmit: (value) {
-                                if (value != state.address) {
-                                  context.read<SendArtworkBloc>().add(
-                                        AddressChangedEvent(
-                                            _addressController.text, index),
-                                      );
-                                  _initialChangeAddress = true;
-                                }
-                              },
-                              onChanged: (value) {
-                                _initialChangeAddress = true;
-                                context.read<SendArtworkBloc>().add(
-                                      AddressChangedEvent(
-                                          _addressController.text, index),
-                                    );
-                              },
-                            ),
-                            const SizedBox(height: 8),
-                            Visibility(
-                                visible: state.isAddressError,
-                                child: Text(
-                                  'error_invalid_address'.tr(),
-                                  style: theme.textTheme.ppMori400Black12
-                                      .copyWith(color: AppColor.red),
-                                )),
-                            Visibility(
-                              visible: !state.isAddressError,
+              builder: (context, state) => GestureDetector(
+                    behavior: HitTestBehavior.deferToChild,
+                    onTap: () {
+                      _unfocus();
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.only(
+                        top: 16,
+                        left: 16,
+                        right: 16,
+                        bottom: 40,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: SingleChildScrollView(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  gasFeeStatus(state, theme),
-                                  const SizedBox(height: 8.0),
-                                  if (state.feeOptionValue != null)
-                                    feeTable(state, context),
-                                  const SizedBox(height: 24.0),
+                                  const SizedBox(height: 16),
+                                  _artworkView(context),
+                                  const SizedBox(height: 20),
+                                  _item(
+                                      context: context,
+                                      title: 'token'.tr(),
+                                      content: polishSource(asset.source ?? ''),
+                                      tapLink: asset.assetURL),
+                                  divider,
+                                  _item(
+                                    context: context,
+                                    title: 'contract'.tr(),
+                                    content: asset.blockchain.capitalize(),
+                                    tapLink: asset.getBlockchainUrl(),
+                                  ),
+                                  divider,
+                                  _item(
+                                      context: context,
+                                      title: 'minted'.tr(),
+                                      content: asset.mintedAt != null
+                                          ? localTimeString(asset.mintedAt!)
+                                          : ''),
+                                  divider,
+                                  if (widget.payload.asset.fungible) ...[
+                                    _item(
+                                        context: context,
+                                        title: 'owned_tokens'.tr(),
+                                        content: '$maxQuantity'),
+                                    divider,
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      'quantity_to_send'.tr(),
+                                      style: theme.textTheme.ppMori400Black14,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    _quantityInputField(
+                                        maxQuantity: maxQuantity,
+                                        hasError: state.isQuantityError),
+                                    if (state.isQuantityError) ...[
+                                      const SizedBox(height: 8),
+                                      if (_quantity < 1)
+                                        Text(
+                                          'minimum_1'.tr(),
+                                          style: theme
+                                              .textTheme.ppMori400Black12
+                                              .copyWith(color: AppColor.red),
+                                        ),
+                                      if (_quantity > maxQuantity)
+                                        Text(
+                                          'maximum_'.tr(
+                                              args: [maxQuantity.toString()]),
+                                          style: theme
+                                              .textTheme.ppMori400Black12
+                                              .copyWith(color: AppColor.red),
+                                        ),
+                                    ]
+                                  ],
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'to'.tr(),
+                                    style: theme.textTheme.ppMori400Black14,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  AuTextField(
+                                    labelSemantics: 'to_address_send_artwork',
+                                    title: '',
+                                    placeholder: 'paste_or_scan_address'.tr(),
+                                    controller: _addressController,
+                                    isError: state.isAddressError,
+                                    suffix: IconButton(
+                                      icon: Icon(state.isScanQR
+                                          ? AuIcon.scan
+                                          : AuIcon.close),
+                                      onPressed: () async {
+                                        if (_addressController
+                                            .text.isNotEmpty) {
+                                          _addressController.text = '';
+                                          context.read<SendArtworkBloc>().add(
+                                              AddressChangedEvent('', index));
+                                          _initialChangeAddress = true;
+                                        } else {
+                                          dynamic address = await Navigator.of(
+                                                  context)
+                                              .pushNamed(ScanQRPage.tag,
+                                                  arguments: asset.blockchain ==
+                                                          'ethereum'
+                                                      ? ScannerItem.ETH_ADDRESS
+                                                      : ScannerItem
+                                                          .XTZ_ADDRESS);
+                                          if (address != null &&
+                                              address is String) {
+                                            address = address.replacePrefix(
+                                                'ethereum:', '');
+                                            _addressController.text = address;
+                                            if (!mounted) {
+                                              return;
+                                            }
+                                            context.read<SendArtworkBloc>().add(
+                                                AddressChangedEvent(
+                                                    address, index));
+                                            _initialChangeAddress = true;
+                                          }
+                                        }
+                                      },
+                                    ),
+                                    onSubmit: (value) {
+                                      if (value != state.address) {
+                                        context.read<SendArtworkBloc>().add(
+                                              AddressChangedEvent(
+                                                  _addressController.text,
+                                                  index),
+                                            );
+                                        _initialChangeAddress = true;
+                                      }
+                                    },
+                                    onChanged: (value) {
+                                      _initialChangeAddress = true;
+                                      context.read<SendArtworkBloc>().add(
+                                            AddressChangedEvent(
+                                                _addressController.text, index),
+                                          );
+                                    },
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Visibility(
+                                      visible: state.isAddressError,
+                                      child: Text(
+                                        'error_invalid_address'.tr(),
+                                        style: theme.textTheme.ppMori400Black12
+                                            .copyWith(color: AppColor.red),
+                                      )),
+                                  Visibility(
+                                    visible: !state.isAddressError,
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        gasFeeStatus(state, theme),
+                                        const SizedBox(height: 8),
+                                        if (state.feeOptionValue != null)
+                                          feeTable(state, context),
+                                        const SizedBox(height: 24),
+                                      ],
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+                          _reviewButton(asset, state)
+                        ],
                       ),
                     ),
-                    _reviewButton(asset, state)
-                  ],
-                ),
-              ),
-            );
-          }),
+                  )),
         ],
       ),
     );
   }
 
-  Widget _reviewButton(AssetToken asset, SendArtworkState state) {
-    return Row(
-      children: [
-        Expanded(
-          child: PrimaryButton(
-            text: "review".tr(),
-            onTap: state.isValid
-                ? () async {
-                    _unfocus();
-                    final payload = await Navigator.of(context).pushNamed(
-                        AppRouter.sendArtworkReviewPage,
-                        arguments: SendArtworkReviewPayload(
-                            asset,
-                            widget.payload.wallet,
-                            widget.payload.index,
-                            state.address!,
-                            state.fee!,
-                            state.exchangeRate,
-                            widget.payload.ownedQuantity,
-                            state.quantity,
-                            state.feeOption,
-                            state.feeOptionValue!)) as Map?;
-                    if (payload != null &&
-                        payload["hash"] != null &&
-                        payload["hash"] is String) {
-                      if (!mounted) return;
-                      Navigator.of(context).pop(payload);
+  Widget _reviewButton(AssetToken asset, SendArtworkState state) => Row(
+        children: [
+          Expanded(
+            child: PrimaryButton(
+              text: 'review'.tr(),
+              onTap: state.isValid
+                  ? () async {
+                      _unfocus();
+                      final payload = await Navigator.of(context).pushNamed(
+                          AppRouter.sendArtworkReviewPage,
+                          arguments: SendArtworkReviewPayload(
+                              asset,
+                              widget.payload.wallet,
+                              widget.payload.index,
+                              state.address!,
+                              state.fee!,
+                              state.exchangeRate,
+                              widget.payload.ownedQuantity,
+                              state.quantity,
+                              state.feeOption,
+                              state.feeOptionValue!)) as Map?;
+                      if (payload != null &&
+                          payload['hash'] != null &&
+                          payload['hash'] is String) {
+                        if (!mounted) {
+                          return;
+                        }
+                        Navigator.of(context).pop(payload);
+                      }
                     }
-                  }
-                : null,
+                  : null,
+            ),
           ),
-        ),
-      ],
-    );
-  }
+        ],
+      );
 
   Widget _item({
     required BuildContext context,
@@ -380,10 +389,10 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
 
     if (tapLink != null) {
       final uri = Uri.parse(tapLink);
-      onValueTap = () => launchUrl(uri,
-          mode: forceSafariVC == true
+      onValueTap = () => unawaited(launchUrl(uri,
+          mode: forceSafariVC
               ? LaunchMode.externalApplication
-              : LaunchMode.platformDefault);
+              : LaunchMode.platformDefault));
     }
     return Row(
       children: [
@@ -410,7 +419,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
 
   Widget gasFeeStatus(SendArtworkState state, ThemeData theme) {
     if (_initialChangeAddress && state.feeOptionValue == null) {
-      return Text("gas_fee_calculating".tr(),
+      return Text('gas_fee_calculating'.tr(),
           style: theme.textTheme.ppMori400Black12);
     }
     if (state.feeOptionValue != null && state.balance != null) {
@@ -418,7 +427,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
           state.feeOptionValue!.getFee(state.feeOption) + BigInt.from(10);
       if (!isValid) {
         return Text(
-          "gas_fee_insufficient".tr(),
+          'gas_fee_insufficient'.tr(),
           textAlign: TextAlign.start,
           style: theme.textTheme.ppMori400Black12.copyWith(color: AppColor.red),
         );
@@ -432,7 +441,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
     final feeOption = state.feeOption;
     return Row(
       children: [
-        Text("gas_fee".tr(), style: theme.textTheme.ppMori400Black12),
+        Text('gas_fee'.tr(), style: theme.textTheme.ppMori400Black12),
         const SizedBox(width: 8),
         Text(feeOption.name, style: theme.textTheme.ppMori400Black12),
         const Spacer(),
@@ -442,9 +451,9 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
         ),
         GestureDetector(
           onTap: () {
-            UIHelper.showDialog(
+            unawaited(UIHelper.showDialog(
               context,
-              "edit_priority".tr().capitalize(),
+              'edit_priority'.tr().capitalize(),
               _editPriorityView(state, context, onSave: () {
                 context
                     .read<SendArtworkBloc>()
@@ -453,9 +462,9 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
               backgroundColor: AppColor.auGreyBackground,
               padding: const EdgeInsets.symmetric(vertical: 32),
               paddingTitle: ResponsiveLayout.pageHorizontalEdgeInsets,
-            );
+            ));
           },
-          child: Text("edit_priority".tr(),
+          child: Text('edit_priority'.tr(),
               style: theme.textTheme.linkStyle
                   .copyWith(fontWeight: FontWeight.w400, fontSize: 12)),
         ),
@@ -467,49 +476,48 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
       {required Function() onSave}) {
     final theme = Theme.of(context);
     final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
-    return StatefulBuilder(builder: (context, setState) {
-      return Column(
-        children: [
-          Padding(
-            padding: padding,
-            child: getFeeRow(FeeOption.LOW, state, theme, setState),
-          ),
-          addDivider(color: AppColor.white),
-          Padding(
-            padding: padding,
-            child: getFeeRow(FeeOption.MEDIUM, state, theme, setState),
-          ),
-          addDivider(color: AppColor.white),
-          Padding(
-            padding: padding,
-            child: getFeeRow(FeeOption.HIGH, state, theme, setState),
-          ),
-          addDivider(color: AppColor.white),
-          const SizedBox(height: 12),
-          Padding(
-            padding: padding,
-            child: PrimaryButton(
-              text: "save_priority".tr(),
-              onTap: () {
-                onSave();
-                Navigator.of(context).pop();
-              },
-            ),
-          ),
-          const SizedBox(height: 8),
-          Padding(
-            padding: padding,
-            child: OutlineButton(
-              text: "cancel".tr(),
-              onTap: () {
-                _selectedPriority = state.feeOption;
-                Navigator.of(context).pop();
-              },
-            ),
-          )
-        ],
-      );
-    });
+    return StatefulBuilder(
+        builder: (context, setState) => Column(
+              children: [
+                Padding(
+                  padding: padding,
+                  child: getFeeRow(FeeOption.LOW, state, theme, setState),
+                ),
+                addDivider(color: AppColor.white),
+                Padding(
+                  padding: padding,
+                  child: getFeeRow(FeeOption.MEDIUM, state, theme, setState),
+                ),
+                addDivider(color: AppColor.white),
+                Padding(
+                  padding: padding,
+                  child: getFeeRow(FeeOption.HIGH, state, theme, setState),
+                ),
+                addDivider(color: AppColor.white),
+                const SizedBox(height: 12),
+                Padding(
+                  padding: padding,
+                  child: PrimaryButton(
+                    text: 'save_priority'.tr(),
+                    onTap: () {
+                      onSave();
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Padding(
+                  padding: padding,
+                  child: OutlineButton(
+                    text: 'cancel'.tr(),
+                    onTap: () {
+                      _selectedPriority = state.feeOption;
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                )
+              ],
+            ));
   }
 
   Widget getFeeRow(FeeOption feeOption, SendArtworkState state, ThemeData theme,
@@ -546,18 +554,23 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
   }
 
   String _gasFee(SendArtworkState state, {FeeOption? feeOption}) {
-    final type = widget.payload.asset.blockchain == "ethereum"
+    final type = widget.payload.asset.blockchain == 'ethereum'
         ? CryptoType.ETH
         : CryptoType.XTZ;
-    if (state.feeOptionValue == null) return type.code;
+    if (state.feeOptionValue == null) {
+      return type.code;
+    }
+    final ethFormatter = EthAmountFormatter(digit: 7);
     final fee = state.feeOptionValue!.getFee(feeOption ?? state.feeOption);
     switch (type) {
       case CryptoType.ETH:
-        return "${EthAmountFormatter(fee, digit: 7).format()} ETH (${state.exchangeRate.ethToUsd(fee)} USD)";
+        return '${ethFormatter.format(fee)} ETH '
+            '(${state.exchangeRate.ethToUsd(fee)} USD)';
       case CryptoType.XTZ:
-        return "${XtzAmountFormatter(fee.toInt()).format()} XTZ (${state.exchangeRate.xtzToUsd(fee.toInt())} USD)";
+        return '${xtzFormatter.format(fee.toInt())} XTZ '
+            '(${state.exchangeRate.xtzToUsd(fee.toInt())} USD)';
       default:
-        return "";
+        return '';
     }
   }
 
@@ -598,14 +611,14 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                   text: TextSpan(
                     style: theme.textTheme.ppMori400White14,
                     children: [
-                      TextSpan(text: "by".tr(args: [artistName ?? ""])),
+                      TextSpan(text: 'by'.tr(args: [artistName ?? ''])),
                     ],
                   ),
                 ),
                 if (asset.maxEdition == -1) ...[
                   const SizedBox(height: 8),
                   Text(
-                    asset.editionName ?? "",
+                    asset.editionName ?? '',
                     style: theme.textTheme.ppMori400Grey14,
                   ),
                 ]

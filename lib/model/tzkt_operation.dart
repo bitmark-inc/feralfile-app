@@ -39,7 +39,7 @@ abstract class TZKTTransactionInterface {
 
   int getID();
 
-  txUSDAmountSign(String? currentAddress) {}
+  String txUSDAmountSign(String? currentAddress);
 }
 
 @JsonSerializable()
@@ -75,20 +75,20 @@ class TZKTOperation implements TZKTTransactionInterface {
     required this.block,
     required this.hash,
     required this.counter,
+    required this.gasLimit,
+    required this.gasUsed,
+    required this.bakerFee,
+    required this.quote,
     this.initiator,
     this.sender,
     this.target,
-    required this.gasLimit,
-    required this.gasUsed,
     this.storageLimit,
     this.storageUsed,
-    required this.bakerFee,
     this.storageFee,
     this.allocationFee,
     this.amount,
     this.status,
     this.hasInternals,
-    required this.quote,
     this.parameter,
   });
 
@@ -101,39 +101,51 @@ class TZKTOperation implements TZKTTransactionInterface {
   TZKTTokenTransfer? tokenTransfer;
 
   @override
-  DateTime getTimeStamp() {
-    return timestamp.toLocal();
-  }
+  DateTime getTimeStamp() => timestamp.toLocal();
 
   @override
   bool isReceiveNFT(String? currentAddress) {
     currentAddress = currentAddress ?? sender?.address;
-    if (currentAddress == null) return false;
-    if (tokenTransfer?.to?.address == currentAddress) return true;
+    if (currentAddress == null) {
+      return false;
+    }
+    if (tokenTransfer?.to?.address == currentAddress) {
+      return true;
+    }
     return false;
   }
 
   @override
   bool isSendNFT(String? currentAddress) {
     currentAddress = currentAddress ?? sender?.address;
-    if (currentAddress == null) return false;
-    if (tokenTransfer?.from?.address == currentAddress) return true;
+    if (currentAddress == null) {
+      return false;
+    }
+    if (tokenTransfer?.from?.address == currentAddress) {
+      return true;
+    }
     return false;
   }
 
   @override
   String transactionTitle(String? currentAddress) {
-    if (isBoughtNFT(currentAddress)) return "bought_nft".tr();
-    if (isSendNFT(currentAddress)) return "sent_nft".tr();
-    if (isReceiveNFT(currentAddress)) return "received_nft".tr();
-    if (type != "transaction") {
+    if (isBoughtNFT(currentAddress)) {
+      return 'bought_nft'.tr();
+    }
+    if (isSendNFT(currentAddress)) {
+      return 'sent_nft'.tr();
+    }
+    if (isReceiveNFT(currentAddress)) {
+      return 'received_nft'.tr();
+    }
+    if (type != 'transaction') {
       return type.capitalize();
     } else if (parameter != null) {
       return parameter!.entrypoint.snakeToCapital();
     } else {
       return sender?.address == currentAddress
-          ? "sent_xtz".tr()
-          : "received_xtz".tr();
+          ? 'sent_xtz'.tr()
+          : 'received_xtz'.tr();
     }
   }
 
@@ -142,36 +154,33 @@ class TZKTOperation implements TZKTTransactionInterface {
     if (isReceiveNFT(currentAddress)) {
       return tokenTransfer!.totalAmount(currentAddress);
     }
-    return "${XtzAmountFormatter(getTotalAmount(currentAddress)).format()} XTZ";
+    return '${XtzAmountFormatter().format(getTotalAmount(currentAddress))} XTZ';
   }
 
-  String totalXTZAmount(String? currentAddress) {
-    return "${XtzAmountFormatter(getTotalAmount(currentAddress)).format()} XTZ";
-  }
+  String totalXTZAmount(String? currentAddress) =>
+      '${XtzAmountFormatter().format(getTotalAmount(currentAddress))} XTZ';
 
   int getTotalAmount(String? currentAddress) {
     if (sender?.address == currentAddress) {
-      return ((amount ?? 0) +
+      return (amount ?? 0) +
           bakerFee +
           (storageFee ?? 0) +
-          (allocationFee ?? 0));
+          (allocationFee ?? 0);
     } else {
       return amount ?? 0;
     }
   }
 
   @override
-  Widget transactionImage(String? currentAddress) {
-    return SvgPicture.asset(
-      "assets/images/tez.svg",
-      width: 40,
-    );
-  }
+  Widget transactionImage(String? currentAddress) => SvgPicture.asset(
+        'assets/images/tez.svg',
+        width: 40,
+      );
 
   @override
   String transactionStatus() {
     if (status == null) {
-      return "pending".tr();
+      return 'pending'.tr();
     } else {
       return status!.capitalize();
     }
@@ -180,36 +189,46 @@ class TZKTOperation implements TZKTTransactionInterface {
   @override
   String txAmountSign(String? currentAddress) {
     String? a = transactionTitle(currentAddress);
-    if ((a == "received_nft".tr() || a == "received_xtz".tr())) return "+";
-    return "-";
+    if (a == 'received_nft'.tr() || a == 'received_xtz'.tr()) {
+      return '+';
+    }
+    return '-';
   }
 
   @override
   String transactionTitleDetail(String? currentAddress) {
-    if (isBoughtNFT(currentAddress)) return "bought_nft".tr();
-    if (isSendNFT(currentAddress)) return "sent_nft".tr();
-    if (isReceiveNFT(currentAddress)) return "received_nft".tr();
+    if (isBoughtNFT(currentAddress)) {
+      return 'bought_nft'.tr();
+    }
+    if (isSendNFT(currentAddress)) {
+      return 'sent_nft'.tr();
+    }
+    if (isReceiveNFT(currentAddress)) {
+      return 'received_nft'.tr();
+    }
     if (parameter != null) {
-      return "sc_interaction".tr();
-    } else if (type != "transaction") {
+      return 'sc_interaction'.tr();
+    } else if (type != 'transaction') {
       return type.capitalize();
     } else {
       return sender?.address == currentAddress
-          ? "sent_xtz".tr()
-          : "received_xtz".tr();
+          ? 'sent_xtz'.tr()
+          : 'received_xtz'.tr();
     }
   }
 
   @override
-  int getID() {
-    return id;
-  }
+  int getID() => id;
 
   @override
   String txUSDAmountSign(String? currentAddress) {
-    if (transactionTitle(currentAddress) == "received_xtz".tr()) return "+";
-    if (sender?.address == currentAddress) return "-";
-    return "";
+    if (transactionTitle(currentAddress) == 'received_xtz'.tr()) {
+      return '+';
+    }
+    if (sender?.address == currentAddress) {
+      return '-';
+    }
+    return '';
   }
 
   @override
@@ -260,80 +279,77 @@ class TZKTTokenTransfer implements TZKTTransactionInterface {
   TZKTTokenTransfer? tokenTransfer;
 
   @override
-  DateTime getTimeStamp() {
-    return timestamp.toLocal();
-  }
+  DateTime getTimeStamp() => timestamp.toLocal();
 
   @override
   bool isReceiveNFT(String? currentAddress) {
-    if (to?.address == currentAddress) return true;
+    if (to?.address == currentAddress) {
+      return true;
+    }
     return false;
   }
 
   @override
   bool isSendNFT(String? currentAddress) {
-    if (from?.address == currentAddress) return true;
+    if (from?.address == currentAddress) {
+      return true;
+    }
     return false;
   }
 
   @override
   String totalAmount(String? currentAddress) {
-    if (amount == null) return "0 Token";
-    if (amount == "1" || amount == "0") return "$amount Token";
+    if (amount == null) {
+      return '0 Token';
+    }
+    if (amount == '1' || amount == '0') {
+      return '$amount Token';
+    }
     try {
       final amountBigInt = BigInt.parse(amount!);
       final amountStr = amountBigInt < BigInt.from(1000000000)
           ? amount
           : amountBigInt.isValidInt
               ? NumberFormat.compact().format(int.parse(amount!))
-              : "${amount!.substring(0, amount!.length - 12)}T";
-      return "$amountStr Tokens";
+              : '${amount!.substring(0, amount!.length - 12)}T';
+      return '$amountStr Tokens';
     } catch (_) {
-      return "N/A Token";
+      return 'N/A Token';
     }
   }
 
   @override
-  Widget transactionImage(String? currentAddress) {
-    return SvgPicture.asset("assets/images/tez.svg", width: 40);
-  }
+  Widget transactionImage(String? currentAddress) =>
+      SvgPicture.asset('assets/images/tez.svg', width: 40);
 
   @override
-  String transactionStatus() {
-    return status?.tr() ?? "applied".tr();
-  }
+  String transactionStatus() => status?.tr() ?? 'applied'.tr();
 
   @override
-  String transactionTitle(String? currentAddress) {
-    return isSendNFT(currentAddress) ? "sent_nft".tr() : "received_nft".tr();
-  }
+  String transactionTitle(String? currentAddress) =>
+      isSendNFT(currentAddress) ? 'sent_nft'.tr() : 'received_nft'.tr();
 
   @override
   String txAmountSign(String? currentAddress) {
     String? a = transactionTitle(currentAddress);
-    if ((a == "received_nft".tr() || a == "received_xtz".tr())) return "+";
-    return "-";
+    if (a == 'received_nft'.tr() || a == 'received_xtz'.tr()) {
+      return '+';
+    }
+    return '-';
   }
 
   @override
-  String transactionTitleDetail(String? currentAddress) {
-    return transactionTitle(currentAddress);
-  }
+  String transactionTitleDetail(String? currentAddress) =>
+      transactionTitle(currentAddress);
 
   @override
-  int getID() {
-    return id;
-  }
+  int getID() => id;
 
   @override
-  txUSDAmountSign(String? currentAddress) {
-    return "";
-  }
+  String txUSDAmountSign(String? currentAddress) => '';
 
   @override
-  bool isBoughtNFT(String? currentAddress) {
-    return false;
-  }
+  bool isBoughtNFT(String? currentAddress) => false;
 }
 
 @JsonSerializable()

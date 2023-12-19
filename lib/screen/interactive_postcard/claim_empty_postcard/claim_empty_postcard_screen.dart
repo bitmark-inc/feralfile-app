@@ -2,11 +2,10 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/claim_empty_postcard/claim_empty_postcard_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/claim_empty_postcard/claim_empty_postcard_state.dart';
-import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_explain.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/dio_exception_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
@@ -56,9 +55,8 @@ class _ClaimEmptyPostCardScreenState extends State<ClaimEmptyPostCardScreen> {
       BlocConsumer<ClaimEmptyPostCardBloc, ClaimEmptyPostCardState>(
           listener: (context, state) {
             if (state.isClaimed == true) {
-              unawaited(Navigator.of(context).popAndPushNamed(
-                  AppRouter.designStamp,
-                  arguments: DesignStampPayload(state.assetToken!)));
+              unawaited(injector<NavigationService>()
+                  .selectPromptsThenStamp(context, state.assetToken!, null));
             }
             if (state.error != null) {
               _handleError(state.error!);

@@ -19,6 +19,7 @@ import 'package:nft_collection/models/models.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:nft_collection/services/tokens_service.dart';
 
+// ignore: always_use_package_imports
 import 'claim_empty_postcard_state.dart';
 
 class ClaimEmptyPostCardBloc
@@ -31,27 +32,26 @@ class ClaimEmptyPostCardBloc
 
   ClaimEmptyPostCardBloc() : super(ClaimEmptyPostCardState()) {
     on<GetTokenEvent>((event, emit) async {
+      final indexId = event.claimRequest.tokenId;
+      final tokenId = 'tez-${Environment.postcardContractAddress}-$indexId';
+      final prompt = await _postcardService.getPrompt(indexId);
       final postcardMetadata = PostcardMetadata(
+        prompt: prompt,
         locationInformation: [],
       );
       if (event.claimRequest is PayToMintRequest) {
         final payToMintRequest = event.claimRequest as PayToMintRequest;
-        final indexId = payToMintRequest.tokenId;
-        final tokenId = 'tez-${Environment.postcardContractAddress}-$indexId';
         log.info('[Pay to mint] tokenId: $tokenId');
         final token = AssetToken(
           asset: Asset.init(
-            indexID: tokenId,
-            artistName: 'MoMa',
-            maxEdition: 1,
-            mimeType: 'image/png',
-            title: event.claimRequest.name,
-            medium: 'software',
-            previewURL: event.claimRequest.previewURL,
-            artworkMetadata: event.createMetadata
-                ? jsonEncode(postcardMetadata.toJson())
-                : null,
-          ),
+              indexID: tokenId,
+              artistName: 'MoMa',
+              maxEdition: 1,
+              mimeType: 'image/png',
+              title: event.claimRequest.name,
+              medium: 'software',
+              previewURL: event.claimRequest.previewURL,
+              artworkMetadata: jsonEncode(postcardMetadata)),
           blockchain: 'tezos',
           fungible: true,
           contractType: 'fa2',
@@ -83,24 +83,21 @@ class ClaimEmptyPostCardBloc
       } else {
         final token = AssetToken(
           asset: Asset.init(
-            artistName: 'MoMa',
-            maxEdition: 1,
-            mimeType: 'image/png',
-            title: event.claimRequest.name,
-            medium: 'software',
-            previewURL: event.claimRequest.previewURL,
-            artworkMetadata: event.createMetadata
-                ? jsonEncode(postcardMetadata.toJson())
-                : null,
-          ),
+              artistName: 'MoMa',
+              maxEdition: 1,
+              mimeType: 'image/png',
+              title: event.claimRequest.name,
+              medium: 'software',
+              previewURL: event.claimRequest.previewURL,
+              artworkMetadata: jsonEncode(postcardMetadata)),
           blockchain: 'tezos',
           fungible: true,
           contractType: 'fa2',
-          tokenId: '1',
+          tokenId: indexId,
           contractAddress: Environment.postcardContractAddress,
           edition: 0,
           editionName: '',
-          id: 'tez-',
+          id: tokenId,
           balance: 1,
           owner: 'owner',
           lastActivityTime: DateTime.now(),

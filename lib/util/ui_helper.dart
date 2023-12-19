@@ -30,6 +30,7 @@ import 'package:autonomy_flutter/util/notification_util.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_buttons.dart';
+import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/confetti.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_flutter/view/postcard_common_widget.dart';
@@ -80,7 +81,7 @@ Future askForNotification() async {
 
     return await Navigator.of(context).pushNamed(
         AppRouter.notificationOnboardingPage,
-        arguments: {"isOnboarding": false});
+        arguments: {'isOnboarding': false});
   });
 }
 
@@ -100,7 +101,7 @@ class UIHelper {
     EdgeInsets? padding,
     EdgeInsets? paddingTitle,
   }) async {
-    log.info("[UIHelper] showInfoDialog: $title");
+    log.info('[UIHelper] showInfoDialog: $title');
     currentDialogTitle = title;
     final theme = Theme.of(context);
 
@@ -124,41 +125,39 @@ class UIHelper {
               : Constants.maxWidthModalTablet),
       isScrollControlled: true,
       barrierColor: Colors.black.withOpacity(0.5),
-      builder: (context) {
-        return Container(
-          color: Colors.transparent,
-          child: ClipPath(
-            clipper: isRoundCorner ? null : AutonomyTopRightRectangleClipper(),
-            child: Container(
-              decoration: BoxDecoration(
-                color: backgroundColor ?? theme.auGreyBackground,
-                borderRadius: isRoundCorner
-                    ? const BorderRadius.only(
-                        topRight: Radius.circular(20),
-                      )
-                    : null,
-              ),
-              padding: padding ??
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 32),
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: paddingTitle ?? const EdgeInsets.all(0),
-                      child: Text(title,
-                          style: theme.primaryTextTheme.ppMori700White24),
-                    ),
-                    const SizedBox(height: 40),
-                    content,
-                  ],
-                ),
+      builder: (context) => Container(
+        color: Colors.transparent,
+        child: ClipPath(
+          clipper: isRoundCorner ? null : AutonomyTopRightRectangleClipper(),
+          child: Container(
+            decoration: BoxDecoration(
+              color: backgroundColor ?? theme.auGreyBackground,
+              borderRadius: isRoundCorner
+                  ? const BorderRadius.only(
+                      topRight: Radius.circular(20),
+                    )
+                  : null,
+            ),
+            padding: padding ??
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 32),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: paddingTitle ?? const EdgeInsets.all(0),
+                    child: Text(title,
+                        style: theme.primaryTextTheme.ppMori700White24),
+                  ),
+                  const SizedBox(height: 40),
+                  content,
+                ],
               ),
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
@@ -172,7 +171,7 @@ class UIHelper {
     FeedbackType? feedback = FeedbackType.selection,
     EdgeInsets? padding,
   }) async {
-    log.info("[UIHelper] showPostcardInfoDialog: $title");
+    log.info('[UIHelper] showPostcardInfoDialog: $title');
     currentDialogTitle = title;
     final theme = Theme.of(context);
 
@@ -196,41 +195,39 @@ class UIHelper {
               : Constants.maxWidthModalTablet),
       isScrollControlled: true,
       barrierColor: Colors.black.withOpacity(0.5),
-      builder: (context) {
-        return Container(
-          color: Colors.transparent,
-          child: ClipPath(
-            clipper: isRoundCorner ? null : AutonomyTopRightRectangleClipper(),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: isRoundCorner
-                    ? const BorderRadius.only(
-                        topRight: Radius.circular(20),
-                      )
-                    : null,
-              ),
-              padding: padding ??
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 32),
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 15),
-                      child: Text(title,
-                          style: theme.primaryTextTheme.moMASans700Black18),
-                    ),
-                    addDivider(height: 40, color: AppColor.chatPrimaryColor),
-                    content,
-                  ],
-                ),
+      builder: (context) => Container(
+        color: Colors.transparent,
+        child: ClipPath(
+          clipper: isRoundCorner ? null : AutonomyTopRightRectangleClipper(),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: isRoundCorner
+                  ? const BorderRadius.only(
+                      topRight: Radius.circular(20),
+                    )
+                  : null,
+            ),
+            padding: padding ??
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 32),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 15),
+                    child: Text(title,
+                        style: theme.primaryTextTheme.moMASans700Black18),
+                  ),
+                  addDivider(height: 40, color: AppColor.chatPrimaryColor),
+                  content,
+                ],
               ),
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
@@ -241,8 +238,8 @@ class UIHelper {
     int autoDismissAfter = 0,
     FeedbackType? feedback = FeedbackType.selection,
   }) async {
-    log.info("[UIHelper] showPostcardDialogWithConfetti");
-    currentDialogTitle = "showPostcardDialogWithConfetti";
+    log.info('[UIHelper] showPostcardDialogWithConfetti');
+    currentDialogTitle = 'showPostcardDialogWithConfetti';
 
     const backgroundColor = AppColor.white;
     const defaultSeparator = Divider(
@@ -268,66 +265,64 @@ class UIHelper {
       context,
       SlidableRoute(
         color: AppColor.primaryBlack.withOpacity(0.4),
-        builder: (context) {
-          return Scaffold(
-            backgroundColor: Colors.transparent,
-            body: Stack(
-              children: [
-                Column(
-                  children: [
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () {
-                          hideInfoDialog(context);
-                        },
-                        child: Container(
-                          color: Colors.transparent,
-                        ),
-                      ),
-                    ),
-                    Align(
-                      alignment: Alignment.bottomCenter,
+        builder: (context) => Scaffold(
+          backgroundColor: Colors.transparent,
+          body: Stack(
+            children: [
+              Column(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        hideInfoDialog(context);
+                      },
                       child: Container(
-                        decoration: const BoxDecoration(
-                          borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(20),
-                            topRight: Radius.circular(20),
-                          ),
-                          color: backgroundColor,
+                        color: Colors.transparent,
+                      ),
+                    ),
+                  ),
+                  Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(20),
+                          topRight: Radius.circular(20),
                         ),
-                        child: Padding(
-                          padding: const EdgeInsets.only(
-                              left: 15, right: 15, bottom: 50),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              ListView.builder(
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                itemBuilder: (BuildContext context, int index) {
-                                  final item = contents[index];
+                        color: backgroundColor,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.only(
+                            left: 15, right: 15, bottom: 50),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ListView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemBuilder: (BuildContext context, int index) {
+                                final item = contents[index];
 
-                                  return Column(
-                                    children: [
-                                      item,
-                                      defaultSeparator,
-                                    ],
-                                  );
-                                },
-                                itemCount: contents.length,
-                              ),
-                            ],
-                          ),
+                                return Column(
+                                  children: [
+                                    item,
+                                    defaultSeparator,
+                                  ],
+                                );
+                              },
+                              itemCount: contents.length,
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                  ],
-                ),
-                AllConfettiWidget(controller: confettiController),
-              ],
-            ),
-          );
-        },
+                  ),
+                ],
+              ),
+              AllConfettiWidget(controller: confettiController),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -343,12 +338,12 @@ class UIHelper {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "congratulations".tr(),
+              'congratulations'.tr(),
               style: theme.primaryTextTheme.moMASans700Black18,
             ),
             const SizedBox(height: 20),
             Text(
-              "your_group_stamped_15".tr(args: [distance]),
+              'your_group_stamped_15'.tr(args: [distance]),
               style: theme.primaryTextTheme.moMASans400Black12,
             ),
           ],
@@ -411,26 +406,24 @@ class UIHelper {
               : Constants.maxWidthModalTablet),
       isScrollControlled: true,
       barrierColor: Colors.black.withOpacity(0.5),
-      builder: (context) {
-        return Container(
-          color: Colors.transparent,
-          height: height.toDouble(),
-          child: ClipPath(
-            clipper: isRoundCorner ? null : AutonomyTopRightRectangleClipper(),
-            child: Container(
-              decoration: BoxDecoration(
-                color: backgroundColor ?? theme.auGreyBackground,
-                borderRadius: isRoundCorner
-                    ? const BorderRadius.only(
-                        topRight: Radius.circular(20),
-                      )
-                    : null,
-              ),
-              child: content,
+      builder: (context) => Container(
+        color: Colors.transparent,
+        height: height.toDouble(),
+        child: ClipPath(
+          clipper: isRoundCorner ? null : AutonomyTopRightRectangleClipper(),
+          child: Container(
+            decoration: BoxDecoration(
+              color: backgroundColor ?? theme.auGreyBackground,
+              borderRadius: isRoundCorner
+                  ? const BorderRadius.only(
+                      topRight: Radius.circular(20),
+                    )
+                  : null,
             ),
+            child: content,
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
@@ -465,34 +458,32 @@ class UIHelper {
               : Constants.maxWidthModalTablet),
       isScrollControlled: true,
       barrierColor: Colors.black.withOpacity(0.5),
-      builder: (context) {
-        return Container(
-          color: Colors.transparent,
-          child: ClipPath(
-            clipper: isRoundCorner ? null : AutonomyTopRightRectangleClipper(),
-            child: Container(
-              decoration: BoxDecoration(
-                color: backgroundColor ?? theme.auGreyBackground,
-                borderRadius: isRoundCorner
-                    ? const BorderRadius.only(
-                        topRight: Radius.circular(20),
-                      )
-                    : null,
-              ),
-              padding: const EdgeInsets.fromLTRB(15, 15, 15, 32),
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    content,
-                  ],
-                ),
+      builder: (context) => Container(
+        color: Colors.transparent,
+        child: ClipPath(
+          clipper: isRoundCorner ? null : AutonomyTopRightRectangleClipper(),
+          child: Container(
+            decoration: BoxDecoration(
+              color: backgroundColor ?? theme.auGreyBackground,
+              borderRadius: isRoundCorner
+                  ? const BorderRadius.only(
+                      topRight: Radius.circular(20),
+                    )
+                  : null,
+            ),
+            padding: const EdgeInsets.fromLTRB(15, 15, 15, 32),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  content,
+                ],
               ),
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
@@ -527,27 +518,25 @@ class UIHelper {
               : Constants.maxWidthModalTablet),
       isScrollControlled: true,
       barrierColor: Colors.black.withOpacity(0.5),
-      builder: (context) {
-        return Container(
-          color: Colors.transparent,
-          padding: const EdgeInsets.only(top: 200),
-          child: ClipPath(
-            clipper: isRoundCorner ? null : AutonomyTopRightRectangleClipper(),
-            child: Container(
-              padding: const EdgeInsets.fromLTRB(0, 20, 0, 40),
-              decoration: BoxDecoration(
-                color: backgroundColor ?? theme.auGreyBackground,
-                borderRadius: isRoundCorner
-                    ? const BorderRadius.only(
-                        topRight: Radius.circular(20),
-                      )
-                    : null,
-              ),
-              child: content,
+      builder: (context) => Container(
+        color: Colors.transparent,
+        padding: const EdgeInsets.only(top: 200),
+        child: ClipPath(
+          clipper: isRoundCorner ? null : AutonomyTopRightRectangleClipper(),
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(0, 20, 0, 40),
+            decoration: BoxDecoration(
+              color: backgroundColor ?? theme.auGreyBackground,
+              borderRadius: isRoundCorner
+                  ? const BorderRadius.only(
+                      topRight: Radius.circular(20),
+                    )
+                  : null,
             ),
+            child: content,
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
@@ -564,7 +553,7 @@ class UIHelper {
     Function? onAction,
     Widget? descriptionWidget,
   }) async {
-    log.info("[UIHelper] showInfoDialog: $title, $description");
+    log.info('[UIHelper] showInfoDialog: $title, $description');
     final theme = Theme.of(context);
 
     if (autoDismissAfter > 0) {
@@ -618,7 +607,7 @@ class UIHelper {
     Function? onAction,
     Widget? descriptionWidget,
   }) async {
-    log.info("[UIHelper] showInfoDialog: $title, $description");
+    log.info('[UIHelper] showInfoDialog: $title, $description');
     final theme = Theme.of(context);
 
     if (autoDismissAfter > 0) {
@@ -667,25 +656,23 @@ class UIHelper {
       {List<OptionItem>? options}) async {
     final theme = Theme.of(context);
 
-    Widget optionRow({required String title, Function()? onTap}) {
-      return InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(title, style: theme.primaryTextTheme.headlineMedium),
-              Icon(Icons.navigate_next, color: theme.colorScheme.secondary),
-            ],
+    Widget optionRow({required String title, Function()? onTap}) => InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(title, style: theme.primaryTextTheme.headlineMedium),
+                Icon(Icons.navigate_next, color: theme.colorScheme.secondary),
+              ],
+            ),
           ),
-        ),
-      );
-    }
+        );
 
     UIHelper.showDialog(
       context,
-      "Options",
+      'Options',
       ListView.separated(
         shrinkWrap: true,
         itemBuilder: (BuildContext context, int index) =>
@@ -698,7 +685,7 @@ class UIHelper {
                       Navigator.pop(context);
                     },
                     child: Text(
-                      "cancel".tr(),
+                      'cancel'.tr(),
                       style: theme.primaryTextTheme.labelLarge,
                     ),
                   ),
@@ -720,10 +707,10 @@ class UIHelper {
       BuildContext context, String title, String description,
       {bool isDismissible = false,
       int autoDismissAfter = 0,
-      String closeButton = "",
+      String closeButton = '',
       VoidCallback? onClose,
       FeedbackType? feedback = FeedbackType.selection}) async {
-    log.info("[UIHelper] showInfoDialog: $title, $description");
+    log.info('[UIHelper] showInfoDialog: $title, $description');
     final theme = Theme.of(context);
 
     if (autoDismissAfter > 0) {
@@ -779,9 +766,9 @@ class UIHelper {
   static Future showAirdropNotStarted(
       BuildContext context, String? artworkId) async {
     final theme = Theme.of(context);
-    final error = FeralfileError(5006, "");
+    final error = FeralfileError(5006, '');
     metricClient.addEvent(MixpanelEvent.acceptOwnershipFail,
-        data: {"message": error.dialogMessage, "id": artworkId});
+        data: {'message': error.dialogMessage, 'id': artworkId});
     return UIHelper.showDialog(
       context,
       error.dialogTitle,
@@ -796,7 +783,7 @@ class UIHelper {
             height: 40,
           ),
           OutlineButton(
-            text: "close".tr(),
+            text: 'close'.tr(),
             onTap: () {
               Navigator.of(context).pop();
             },
@@ -810,9 +797,9 @@ class UIHelper {
   static Future showAirdropExpired(
       BuildContext context, String? artworkId) async {
     final theme = Theme.of(context);
-    final error = FeralfileError(3007, "");
+    final error = FeralfileError(3007, '');
     metricClient.addEvent(MixpanelEvent.acceptOwnershipFail,
-        data: {"message": error.dialogMessage, "id": artworkId});
+        data: {'message': error.dialogMessage, 'id': artworkId});
     return UIHelper.showDialog(
       context,
       error.dialogTitle,
@@ -827,7 +814,7 @@ class UIHelper {
             height: 40,
           ),
           OutlineButton(
-            text: "close".tr(),
+            text: 'close'.tr(),
             onTap: () {
               Navigator.of(context).pop();
             },
@@ -842,14 +829,14 @@ class UIHelper {
     BuildContext context, {
     required FFSeries series,
   }) async {
-    final error = FeralfileError(3009, "");
+    final error = FeralfileError(3009, '');
     metricClient.addEvent(MixpanelEvent.acceptOwnershipFail,
-        data: {"message": error.dialogMessage, "id": series.id});
+        data: {'message': error.dialogMessage, 'id': series.id});
     return showErrorDialog(
       context,
       error.getDialogTitle(),
       error.getDialogMessage(series: series),
-      "close".tr(),
+      'close'.tr(),
     );
   }
 
@@ -857,26 +844,26 @@ class UIHelper {
     BuildContext context, {
     required String id,
   }) async {
-    final error = FeralfileError(3009, "");
+    final error = FeralfileError(3009, '');
     metricClient.addEvent(MixpanelEvent.acceptOwnershipFail,
-        data: {"message": error.dialogMessage, "id": id});
+        data: {'message': error.dialogMessage, 'id': id});
     return showErrorDialog(
       context,
       error.getDialogTitle(),
       error.getDialogMessage(),
-      "close".tr(),
+      'close'.tr(),
     );
   }
 
   static Future showOtpExpired(BuildContext context, String? artworkId) async {
-    final error = FeralfileError(3013, "");
+    final error = FeralfileError(3013, '');
     metricClient.addEvent(MixpanelEvent.acceptOwnershipFail,
-        data: {"message": error.dialogMessage, "id": artworkId});
+        data: {'message': error.dialogMessage, 'id': artworkId});
     return showErrorDialog(
       context,
       error.dialogTitle,
       error.dialogMessage,
-      "close".tr(),
+      'close'.tr(),
     );
   }
 
@@ -891,15 +878,15 @@ class UIHelper {
       final ffError = e.error as FeralfileError?;
       final message = ffError != null
           ? ffError.getDialogMessage(series: series)
-          : "${e.response?.data ?? e.message}";
+          : '${e.response?.data ?? e.message}';
 
       metricClient.addEvent(MixpanelEvent.acceptOwnershipFail,
-          data: {"message": message, "id": series.id});
+          data: {'message': message, 'id': series.id});
       await showErrorDialog(
         context,
-        ffError?.getDialogTitle() ?? "error".tr(),
+        ffError?.getDialogTitle() ?? 'error'.tr(),
         message,
-        "close".tr(),
+        'close'.tr(),
       );
     } else if (e is NoRemainingToken) {
       await showNoRemainingAirdropToken(
@@ -917,15 +904,15 @@ class UIHelper {
       final ffError = e.error as FeralfileError?;
       final message = ffError != null
           ? ffError.dialogMessage
-          : "${e.response?.data ?? e.message}";
+          : '${e.response?.data ?? e.message}';
 
       metricClient.addEvent(MixpanelEvent.acceptOwnershipFail,
-          data: {"message": message, "id": id});
+          data: {'message': message, 'id': id});
       await showErrorDialog(
         context,
-        ffError?.dialogMessage ?? "error".tr(),
+        ffError?.dialogMessage ?? 'error'.tr(),
         message,
-        "close".tr(),
+        'close'.tr(),
       );
     } else if (e is NoRemainingToken) {
       await showNoRemainingActivationToken(context, id: id);
@@ -943,16 +930,16 @@ class UIHelper {
               width: size,
               height: size,
               child:
-                  Image.asset("assets/images/walletconnect-alternative.png"));
+                  Image.asset('assets/images/walletconnect-alternative.png'));
         } else {
           return CachedNetworkImage(
-            imageUrl: appIcons.firstOrNull ?? "",
+            imageUrl: appIcons.firstOrNull ?? '',
             width: size,
             height: size,
             errorWidget: (context, url, error) => SizedBox(
               width: size,
               height: size,
-              child: Image.asset("assets/images/walletconnect-alternative.png"),
+              child: Image.asset('assets/images/walletconnect-alternative.png'),
             ),
           );
         }
@@ -964,7 +951,7 @@ class UIHelper {
               width: size,
               height: size,
               child:
-                  Image.asset("assets/images/walletconnect-alternative.png"));
+                  Image.asset('assets/images/walletconnect-alternative.png'));
         } else {
           return CachedNetworkImage(
             imageUrl: appIcons.first,
@@ -973,7 +960,7 @@ class UIHelper {
             errorWidget: (context, url, error) => SizedBox(
               width: size,
               height: size,
-              child: Image.asset("assets/images/walletconnect-alternative.png"),
+              child: Image.asset('assets/images/walletconnect-alternative.png'),
             ),
           );
         }
@@ -982,7 +969,7 @@ class UIHelper {
         final appIcon = connection.beaconConnectConnection?.peer.icon;
         if (appIcon == null || appIcon.isEmpty) {
           return SvgPicture.asset(
-            "assets/images/tezos_social_icon.svg",
+            'assets/images/tezos_social_icon.svg',
             width: size,
             height: size,
           );
@@ -992,7 +979,7 @@ class UIHelper {
             width: size,
             height: size,
             errorWidget: (context, url, error) => SvgPicture.asset(
-              "assets/images/tezos_social_icon.svg",
+              'assets/images/tezos_social_icon.svg',
               width: size,
               height: size,
             ),
@@ -1010,7 +997,7 @@ class UIHelper {
 
     showDialog(
         context,
-        isHidden ? "art_hidden".tr() : "art_unhidden".tr(),
+        isHidden ? 'art_hidden'.tr() : 'art_unhidden'.tr(),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1019,26 +1006,26 @@ class UIHelper {
                     text: TextSpan(children: [
                       TextSpan(
                         style: theme.textTheme.ppMori400White14,
-                        text: "art_no_appear".tr(),
+                        text: 'art_no_appear'.tr(),
                       ),
                       TextSpan(
                         style: theme.textTheme.ppMori700White14,
-                        text: "hidden_artwork".tr(),
+                        text: 'hidden_artwork'.tr(),
                       ),
                       TextSpan(
                         style: theme.textTheme.ppMori400White14,
-                        text: "section_setting".tr(),
+                        text: 'section_setting'.tr(),
                       ),
                     ]),
                   )
                 : Text(
-                    "art_visible".tr(),
+                    'art_visible'.tr(),
                     style: theme.primaryTextTheme.ppMori400White14,
                   ),
             const SizedBox(height: 40),
             PrimaryButton(
               onTap: onOK,
-              text: "ok".tr(),
+              text: 'ok'.tr(),
             ),
             const SizedBox(height: 15),
           ],
@@ -1051,7 +1038,7 @@ class UIHelper {
 
     showDialog(
         context,
-        "identity".tr(),
+        'identity'.tr(),
         Flexible(
             child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1091,7 +1078,7 @@ class UIHelper {
               onTap: () {
                 Navigator.of(context).pop();
               },
-              text: "close".tr(),
+              text: 'close'.tr(),
             ),
             const SizedBox(height: 15),
           ],
@@ -1120,74 +1107,105 @@ class UIHelper {
     UIHelper.hideInfoDialog(context);
     showCupertinoModalPopup(
         context: context,
-        builder: (context) {
-          return Center(
-            child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 15, vertical: 128),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: AppColor.auSuperTeal,
-                  borderRadius: BorderRadius.circular(5),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(15, 15, 5, 15),
-                  child: Column(
-                    children: [
-                      Expanded(
-                        child: Scrollbar(
-                          thumbVisibility: true,
-                          trackVisibility: true,
-                          thickness: 5,
-                          radius: const Radius.circular(10),
-                          scrollbarOrientation: ScrollbarOrientation.right,
-                          child: Padding(
-                            padding: const EdgeInsets.only(right: 10),
-                            child: SingleChildScrollView(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  content,
-                                  const SizedBox(height: 10),
-                                ],
+        builder: (context) => Center(
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 15, vertical: 128),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppColor.auSuperTeal,
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(15, 15, 5, 15),
+                    child: Column(
+                      children: [
+                        Expanded(
+                          child: Scrollbar(
+                            thumbVisibility: true,
+                            trackVisibility: true,
+                            thickness: 5,
+                            radius: const Radius.circular(10),
+                            scrollbarOrientation: ScrollbarOrientation.right,
+                            child: Padding(
+                              padding: const EdgeInsets.only(right: 10),
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    content,
+                                    const SizedBox(height: 10),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                      if (actionButtonOnTap != null)
-                        Column(
-                          children: [
-                            AuSecondaryButton(
-                              text: actionButton ?? "",
-                              onPressed: actionButtonOnTap,
-                              borderColor: AppColor.primaryBlack,
-                              textColor: AppColor.primaryBlack,
-                              backgroundColor: AppColor.auSuperTeal,
-                            ),
-                            const SizedBox(
-                              height: 15,
-                            )
-                          ],
+                        if (actionButtonOnTap != null)
+                          Column(
+                            children: [
+                              AuSecondaryButton(
+                                text: actionButton ?? '',
+                                onPressed: actionButtonOnTap,
+                                borderColor: AppColor.primaryBlack,
+                                textColor: AppColor.primaryBlack,
+                                backgroundColor: AppColor.auSuperTeal,
+                              ),
+                              const SizedBox(
+                                height: 15,
+                              )
+                            ],
+                          ),
+                        AuSecondaryButton(
+                          text: exitButton ?? 'close'.tr(),
+                          onPressed: exitButtonOnTap ??
+                              () {
+                                Navigator.pop(context);
+                              },
+                          borderColor: AppColor.primaryBlack,
+                          textColor: AppColor.primaryBlack,
+                          backgroundColor: AppColor.auSuperTeal,
                         ),
-                      AuSecondaryButton(
-                        text: exitButton ?? "close".tr(),
-                        onPressed: exitButtonOnTap ??
-                            () {
-                              Navigator.pop(context);
-                            },
-                        borderColor: AppColor.primaryBlack,
-                        textColor: AppColor.primaryBlack,
-                        backgroundColor: AppColor.auSuperTeal,
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-          );
-        });
+            ));
+  }
+
+  static Future<dynamic> showCenterEmptySheet(BuildContext context,
+      {required Widget content}) async {
+    UIHelper.hideInfoDialog(context);
+    return await showCupertinoModalPopup(
+        context: context,
+        builder: (context) => Scaffold(
+              backgroundColor: Colors.transparent,
+              appBar: getDarkEmptyAppBar(),
+              body: Stack(
+                children: [
+                  GestureDetector(
+                    child: Container(
+                      color: AppColor.primaryBlack.withOpacity(0.8),
+                    ),
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 15, vertical: 128),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        content,
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ));
   }
 
   static Future<void> showDrawerAction(BuildContext context,
@@ -1203,72 +1221,71 @@ class UIHelper {
                 : Constants.maxWidthModalTablet),
         barrierColor: Colors.black.withOpacity(0.5),
         isScrollControlled: true,
-        builder: (context) {
-          return Container(
-            color: theme.auSuperTeal,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(
-                      AuIcon.close,
-                      size: 18,
+        builder: (context) => Container(
+              color: theme.auSuperTeal,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(
+                        AuIcon.close,
+                        size: 18,
+                      ),
                     ),
                   ),
-                ),
-                ListView.separated(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemBuilder: (BuildContext context, int index) {
-                    final child = Container(
-                      color: Colors.transparent,
-                      width: MediaQuery.of(context).size.width,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 16.0,
-                          horizontal: 13,
-                        ),
-                        child: Row(
-                          children: [
-                            if (options?[index].icon != null)
-                              SizedBox(width: 30, child: options![index].icon!),
-                            if (options?[index].icon != null)
-                              const SizedBox(
-                                width: 34,
+                  ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemBuilder: (BuildContext context, int index) {
+                      final child = Container(
+                        color: Colors.transparent,
+                        width: MediaQuery.of(context).size.width,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 16.0,
+                            horizontal: 13,
+                          ),
+                          child: Row(
+                            children: [
+                              if (options?[index].icon != null)
+                                SizedBox(
+                                    width: 30, child: options![index].icon!),
+                              if (options?[index].icon != null)
+                                const SizedBox(
+                                  width: 34,
+                                ),
+                              Text(
+                                options?[index].title ?? '',
+                                style: options?[index].titleStyle ??
+                                    theme.textTheme.ppMori400Black14,
                               ),
-                            Text(
-                              options?[index].title ?? '',
-                              style: options?[index].titleStyle ??
-                                  theme.textTheme.ppMori400Black14,
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                    );
-                    if (options?[index].builder != null) {
-                      return options?[index]
-                          .builder!
-                          .call(context, options[index]);
-                    }
-                    return GestureDetector(
-                      onTap: options?[index].onTap,
-                      child: child,
-                    );
-                  },
-                  itemCount: options?.length ?? 0,
-                  separatorBuilder: (context, index) => Divider(
-                    height: 1,
-                    thickness: 1.0,
-                    color: theme.colorScheme.secondary,
+                      );
+                      if (options?[index].builder != null) {
+                        return options?[index]
+                            .builder!
+                            .call(context, options[index]);
+                      }
+                      return GestureDetector(
+                        onTap: options?[index].onTap,
+                        child: child,
+                      );
+                    },
+                    itemCount: options?.length ?? 0,
+                    separatorBuilder: (context, index) => Divider(
+                      height: 1,
+                      thickness: 1.0,
+                      color: theme.colorScheme.secondary,
+                    ),
                   ),
-                ),
-              ],
-            ),
-          );
-        });
+                ],
+              ),
+            ));
   }
 
   static Future<void> showAutoDismissDialog(BuildContext context,
@@ -1291,119 +1308,114 @@ class UIHelper {
                 : Constants.maxWidthModalTablet),
         barrierColor: Colors.black.withOpacity(0.5),
         isScrollControlled: true,
-        builder: (context) {
-          return Container(
-            decoration: const BoxDecoration(
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(20),
-                topRight: Radius.circular(20),
+        builder: (context) => Container(
+              decoration: const BoxDecoration(
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(20),
+                  topRight: Radius.circular(20),
+                ),
+                color: backgroundColor,
               ),
-              color: backgroundColor,
-            ),
-            child: Padding(
-              padding: const EdgeInsets.only(left: 15, right: 15, bottom: 50),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemBuilder: (BuildContext context, int index) {
-                      final item = options[index];
-                      const defaultSeparator = Divider(
-                        height: 1,
-                        thickness: 1.0,
-                        color: Color.fromRGBO(227, 227, 227, 1),
-                      );
-                      return Column(
-                        children: [
-                          Builder(builder: (context) {
-                            if (item.builder != null) {
-                              final child = Container(
-                                color: Colors.transparent,
-                                width: MediaQuery.of(context).size.width,
-                                child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 20,
-                                    ),
-                                    child: item.builder!.call(context, item)),
-                              );
-                              return GestureDetector(
-                                onTap: options[index].onTap,
-                                child: child,
-                              );
-                            }
-                            return PostcardDrawerItem(item: item);
-                          }),
-                          item.separator ?? defaultSeparator,
-                        ],
-                      );
-                    },
-                    itemCount: options.length,
-                  ),
-                ],
+              child: Padding(
+                padding: const EdgeInsets.only(left: 15, right: 15, bottom: 50),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemBuilder: (BuildContext context, int index) {
+                        final item = options[index];
+                        const defaultSeparator = Divider(
+                          height: 1,
+                          thickness: 1.0,
+                          color: Color.fromRGBO(227, 227, 227, 1),
+                        );
+                        return Column(
+                          children: [
+                            Builder(builder: (context) {
+                              if (item.builder != null) {
+                                final child = Container(
+                                  color: Colors.transparent,
+                                  width: MediaQuery.of(context).size.width,
+                                  child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 20,
+                                      ),
+                                      child: item.builder!.call(context, item)),
+                                );
+                                return GestureDetector(
+                                  onTap: options[index].onTap,
+                                  child: child,
+                                );
+                              }
+                              return PostcardDrawerItem(item: item);
+                            }),
+                            item.separator ?? defaultSeparator,
+                          ],
+                        );
+                      },
+                      itemCount: options.length,
+                    ),
+                  ],
+                ),
               ),
-            ),
-          );
-        });
+            ));
   }
 
   static Future showAlreadyDelivered(BuildContext context) async {
-    final title = "already_delivered".tr();
-    final description = "it_seems_that".tr();
-    return showErrorDialog(context, title, description, "close".tr());
+    final title = 'already_delivered'.tr();
+    final description = 'it_seems_that'.tr();
+    return showErrorDialog(context, title, description, 'close'.tr());
   }
 
   static Future showDeclinedGeolocalization(BuildContext context) async {
-    final title = "unable_to_stamp_postcard".tr();
-    final description = "sharing_your_geolocation".tr();
-    return showErrorDialog(context, title, description, "close".tr());
+    final title = 'unable_to_stamp_postcard'.tr();
+    final description = 'sharing_your_geolocation'.tr();
+    return showErrorDialog(context, title, description, 'close'.tr());
   }
 
   static Future showWeakGPSSignal(BuildContext context) async {
-    final message = "gps_too_weak".tr();
+    final message = 'gps_too_weak'.tr();
     return await _showPostcardError(context, message: message);
   }
 
   static Future showMockedLocation(BuildContext context) async {
-    final title = "gps_spoofing_detected".tr();
-    final description = "gps_is_mocked".tr();
+    final title = 'gps_spoofing_detected'.tr();
+    final description = 'gps_is_mocked'.tr();
     return showInfoDialog(context, title, description,
-        closeButton: "close".tr());
+        closeButton: 'close'.tr());
   }
 
   static showReceivePostcardFailed(
-      BuildContext context, DioException error) async {
-    return showErrorDialog(context, "accept_postcard_failed".tr(),
-        error.response?.data['message'], "close".tr());
-  }
+          BuildContext context, DioException error) async =>
+      showErrorDialog(context, 'accept_postcard_failed'.tr(),
+          'postcard_has_been_claimed'.tr(), 'close'.tr());
 
   static showAlreadyClaimedPostcard(
-      BuildContext context, DioException error) async {
-    return showErrorDialog(context, "you_already_claimed_this_postcard".tr(),
-        "send_it_to_someone_else".tr(), "close".tr());
-  }
+          BuildContext context, DioException error) async =>
+      showErrorDialog(context, 'you_already_claimed_this_postcard'.tr(),
+          'send_it_to_someone_else'.tr(), 'close'.tr());
 
   static showSharePostcardFailed(
-      BuildContext context, DioException error) async {
-    return _showPostcardError(
-      context,
-      message: "cannot_send_postcard".tr(),
-    );
-  }
+          BuildContext context, DioException error) async =>
+      _showPostcardError(
+        context,
+        message: 'cannot_send_postcard'.tr(),
+      );
 
   static Future<void> showInvalidURI(BuildContext context) async {
     await UIHelper.showDialog(
       context,
-      "invalid_uri".tr(),
+      'invalid_uri'.tr(),
       Column(
         children: [
-          Text("invalid_uri_desc".tr(),
+          Text('invalid_uri_desc'.tr(),
               style: Theme.of(context).textTheme.ppMori400White14),
           const SizedBox(height: 40),
           OutlineButton(
             onTap: () => Navigator.pop(context),
-            text: "close".tr(),
+            text: 'close'.tr(),
           ),
         ],
       ),
@@ -1413,19 +1425,19 @@ class UIHelper {
   static Future<void> showPostcardUpdates(BuildContext context) async {
     final result = await showPostCardDialog(
         context,
-        "postcard_notifications".tr(),
+        'postcard_notifications'.tr(),
         Column(
           children: [
             Padding(
               padding: const EdgeInsets.only(left: 15),
               child: Text(
-                "postcard_updates_content".tr(),
+                'postcard_updates_content'.tr(),
                 style: Theme.of(context).textTheme.moMASans700AuGrey18,
               ),
             ),
             const SizedBox(height: 40),
             PostcardAsyncButton(
-              text: "enable".tr(),
+              text: 'enable'.tr(),
               color: AppColor.momaGreen,
               onTap: () async {
                 bool result = false;
@@ -1433,7 +1445,7 @@ class UIHelper {
                   result = await registerPushNotifications(askPermission: true);
                   injector<ConfigurationService>().setPendingSettings(false);
                 } catch (error) {
-                  log.warning("Error when setting notification: $error");
+                  log.warning('Error when setting notification: $error');
                 }
                 if (!context.mounted) return;
                 Navigator.pop(context, result);
@@ -1444,42 +1456,40 @@ class UIHelper {
         isDismissible: true);
     if (result) {
       if (!context.mounted) return;
-      await _showPostcardInfo(context, message: "postcard_noti_enabled".tr());
+      await _showPostcardInfo(context, message: 'postcard_noti_enabled'.tr());
     }
   }
 
-  static showAirdropClaimFailed(BuildContext context) async {
-    return showErrorDialog(
-        context, "airdrop_claim_failed".tr(), "", "close".tr());
-  }
+  static showAirdropClaimFailed(BuildContext context) async =>
+      showErrorDialog(context, 'airdrop_claim_failed'.tr(), '', 'close'.tr());
 
-  static showAirdropAlreadyClaim(BuildContext context) async {
-    return showErrorDialog(context, "already_claimed".tr(),
-        "already_claimed_desc".tr(), "close".tr());
-  }
+  static showAirdropAlreadyClaim(BuildContext context) async => showErrorDialog(
+      context,
+      'already_claimed'.tr(),
+      'already_claimed_desc'.tr(),
+      'close'.tr());
 
-  static showAirdropJustOnce(BuildContext context) async {
-    return showErrorDialog(
-        context, "just_once".tr(), "just_once_desc".tr(), "close".tr());
-  }
+  static showAirdropJustOnce(BuildContext context) async => showErrorDialog(
+      context, 'just_once'.tr(), 'just_once_desc'.tr(), 'close'.tr());
 
-  static showAirdropCannotShare(BuildContext context) async {
-    return showErrorDialog(context, "already_claimed".tr(),
-        "cannot_share_aridrop_desc".tr(), "close".tr());
-  }
+  static showAirdropCannotShare(BuildContext context) async => showErrorDialog(
+      context,
+      'already_claimed'.tr(),
+      'cannot_share_aridrop_desc'.tr(),
+      'close'.tr());
 
   static Future<void> showPostcardShareLinkExpired(BuildContext context) async {
     await UIHelper.showDialog(
       context,
-      "claim_has_expired".tr(),
+      'claim_has_expired'.tr(),
       Column(
         children: [
-          Text("claim_has_expired_desc".tr(),
+          Text('claim_has_expired_desc'.tr(),
               style: Theme.of(context).textTheme.ppMori400White14),
           const SizedBox(height: 40),
           OutlineButton(
             onTap: () => Navigator.pop(context),
-            text: "close".tr(),
+            text: 'close'.tr(),
           ),
         ],
       ),
@@ -1489,16 +1499,16 @@ class UIHelper {
   static Future<void> showPostcardShareLinkInvalid(BuildContext context) async {
     await UIHelper.showDialog(
       context,
-      "link_expired_or_claimed".tr(),
+      'link_expired_or_claimed'.tr(),
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("link_expired_or_claimed_desc".tr(),
+          Text('link_expired_or_claimed_desc'.tr(),
               style: Theme.of(context).textTheme.ppMori400White14),
           const SizedBox(height: 40),
           OutlineButton(
             onTap: () => Navigator.pop(context),
-            text: "close".tr(),
+            text: 'close'.tr(),
           ),
         ],
       ),
@@ -1525,24 +1535,22 @@ class UIHelper {
               : Constants.maxWidthModalTablet),
       isScrollControlled: true,
       barrierColor: Colors.black.withOpacity(0.5),
-      builder: (context) {
-        return Container(
-          color: Colors.transparent,
-          child: Container(
-            decoration: BoxDecoration(
-                color: backgroundColor ?? theme.auGreyBackground,
-                borderRadius: borderRadius ??
-                    const BorderRadius.only(
-                      topRight: Radius.circular(20),
-                    )),
-            padding: padding ??
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 32),
-            child: SingleChildScrollView(
-              child: child,
-            ),
+      builder: (context) => Container(
+        color: Colors.transparent,
+        child: Container(
+          decoration: BoxDecoration(
+              color: backgroundColor ?? theme.auGreyBackground,
+              borderRadius: borderRadius ??
+                  const BorderRadius.only(
+                    topRight: Radius.circular(20),
+                  )),
+          padding: padding ??
+              const EdgeInsets.symmetric(horizontal: 14, vertical: 32),
+          child: SingleChildScrollView(
+            child: child,
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
@@ -1555,7 +1563,7 @@ class UIHelper {
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Image.asset("assets/images/postcard_location_explain_3.png"),
+              Image.asset('assets/images/postcard_location_explain_3.png'),
               const SizedBox(width: 10),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1565,9 +1573,9 @@ class UIHelper {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SvgPicture.asset("assets/images/location.svg"),
+                        SvgPicture.asset('assets/images/location.svg'),
                         Text(
-                          "web".tr(),
+                          'web'.tr(),
                           style: theme.textTheme.moMASans400Black16
                               .copyWith(fontSize: 18),
                         ),
@@ -1575,8 +1583,8 @@ class UIHelper {
                     ),
                   ),
                   Text(
-                    "plus_distance".tr(namedArgs: {
-                      "distance": DistanceFormatter().format(distance: 0),
+                    'plus_distance'.tr(namedArgs: {
+                      'distance': DistanceFormatter().format(distance: 0),
                     }),
                     style: theme.textTheme.moMASans400Black16.copyWith(
                         fontSize: 18,
@@ -1587,7 +1595,7 @@ class UIHelper {
             ],
           ),
           const SizedBox(height: 40),
-          Text("if_your_location_is_not_enabled".tr(),
+          Text('if_your_location_is_not_enabled'.tr(),
               style: theme.textTheme.moMASans400Black16.copyWith(fontSize: 18)),
           const SizedBox(height: 40),
         ],
@@ -1602,11 +1610,11 @@ class UIHelper {
   static Future<void> showPostcardRunOut(BuildContext context) async {
     await await UIHelper.showDialog(
       context,
-      "postcards_ran_out".tr(),
+      'postcards_ran_out'.tr(),
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("postcards_ran_out_desc".tr(),
+          Text('postcards_ran_out_desc'.tr(),
               style: Theme.of(context)
                   .textTheme
                   .ppMori400White14
@@ -1614,7 +1622,7 @@ class UIHelper {
           const SizedBox(height: 40),
           PrimaryButton(
             onTap: () => Navigator.pop(context),
-            text: "close".tr(),
+            text: 'close'.tr(),
           ),
         ],
       ),
@@ -1625,11 +1633,11 @@ class UIHelper {
   static Future<void> showPostcardQRExpired(BuildContext context) async {
     await await UIHelper.showDialog(
       context,
-      "qr_code_expired".tr(),
+      'qr_code_expired'.tr(),
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("qr_code_expired_scan_again".tr(),
+          Text('qr_code_expired_scan_again'.tr(),
               style: Theme.of(context)
                   .textTheme
                   .ppMori400White14
@@ -1637,7 +1645,7 @@ class UIHelper {
           const SizedBox(height: 40),
           PrimaryButton(
             onTap: () => Navigator.pop(context),
-            text: "close".tr(),
+            text: 'close'.tr(),
           ),
         ],
       ),
@@ -1645,42 +1653,48 @@ class UIHelper {
     );
   }
 
-  static Future<void> showPostcardStampSaved(BuildContext context) async {
-    return await _showFileSaved(context, title: "stamp".tr());
-  }
+  static Future<void> showPostcardStampSaved(BuildContext context) async =>
+      await _showFileSaved(context, title: 'stamp'.tr());
 
-  static Future<void> showPostcardSaved(BuildContext context) async {
-    return await _showFileSaved(context, title: "postcard".tr());
-  }
+  static Future<void> showPostcardSaved(BuildContext context) async =>
+      await _showFileSaved(context, title: 'postcard'.tr());
 
   static Future<void> _showFileSaved(BuildContext context,
       {required String title}) async {
     final options = [
       OptionItem(
-        title: "_saved".tr(args: [title]),
-        icon: SvgPicture.asset("assets/images/download.svg"),
+        title: '_saved'.tr(args: [title]),
+        icon: SvgPicture.asset('assets/images/download.svg'),
         onTap: () {},
       ),
     ];
-    await showAutoDismissDialog(context, showDialog: () async {
-      return showPostcardDrawerAction(context, options: options);
-    }, autoDismissAfter: const Duration(seconds: 2));
+    await showAutoDismissDialog(context,
+        showDialog: () async =>
+            showPostcardDrawerAction(context, options: options),
+        autoDismissAfter: const Duration(seconds: 2));
   }
 
   static Future<void> showPostcardStampFailed(
     final BuildContext context,
   ) async {
-    await _showPostcardError(context, message: "postcard_stamp_failed".tr());
+    await _showPostcardError(context, message: 'postcard_stamp_failed'.tr());
   }
 
   static Future<void> showPostcardClaimLimited(
     final BuildContext context,
   ) async {
-    await _showPostcardError(context, message: "postcard_claim_limited".tr());
+    await _showPostcardError(context, message: 'postcard_claim_limited'.tr());
+  }
+
+  static Future<void> showPostcardNotInMiami(
+    final BuildContext context,
+  ) async {
+    await _showPostcardError(context,
+        message: 'miami_error_message'.tr(), lastInSec: 5);
   }
 
   static Future<void> _showPostcardError(BuildContext context,
-      {String message = "", Widget? icon}) async {
+      {String message = '', Widget? icon, int lastInSec = 3}) async {
     final options = [
       OptionItem(
         title: message,
@@ -1691,85 +1705,79 @@ class UIHelper {
             .copyWith(fontSize: 18, color: MoMAColors.moMA3),
       ),
     ];
-    await showAutoDismissDialog(context, showDialog: () async {
-      return showPostcardDrawerAction(context, options: options);
-    }, autoDismissAfter: const Duration(seconds: 3));
+    await showAutoDismissDialog(context,
+        showDialog: () async =>
+            showPostcardDrawerAction(context, options: options),
+        autoDismissAfter: Duration(seconds: lastInSec));
   }
 
   static Future<void> _showPostcardInfo(BuildContext context,
-      {String message = "", Widget? icon}) async {
+      {String message = '', Widget? icon}) async {
     final options = [
       OptionItem(
         title: message,
         icon: icon,
       ),
     ];
-    await showAutoDismissDialog(context, showDialog: () async {
-      return showPostcardDrawerAction(context, options: options);
-    }, autoDismissAfter: const Duration(seconds: 2));
+    await showAutoDismissDialog(context,
+        showDialog: () async =>
+            showPostcardDrawerAction(context, options: options),
+        autoDismissAfter: const Duration(seconds: 2));
   }
 
   static Future<void> showPostcardStampPhotoAccessFailed(
-      BuildContext context) async {
-    return await _showPhotoAccessFailed(context, title: "stamp".tr());
-  }
+          BuildContext context) async =>
+      await _showPhotoAccessFailed(context, title: 'stamp'.tr());
 
   static Future<void> showPostcardPhotoAccessFailed(
-      BuildContext context) async {
-    return await _showPhotoAccessFailed(context, title: "postcard".tr());
-  }
+          BuildContext context) async =>
+      await _showPhotoAccessFailed(context, title: 'postcard'.tr());
 
   static Future<void> _showPhotoAccessFailed(BuildContext context,
-      {required String title}) async {
-    return await _showPostcardError(
-      context,
-      message: "_could_not_be_saved".tr(args: [title]),
-      icon: SvgPicture.asset("assets/images/postcard_hide.svg"),
-    );
-  }
+          {required String title}) async =>
+      await _showPostcardError(
+        context,
+        message: '_could_not_be_saved'.tr(args: [title]),
+        icon: SvgPicture.asset('assets/images/postcard_hide.svg'),
+      );
 
-  static Future<void> showPostcardStampSavedFailed(BuildContext context) async {
-    return await _showFileSaveFailed(context, title: "stamp".tr());
-  }
+  static Future<void> showPostcardStampSavedFailed(
+          BuildContext context) async =>
+      await _showFileSaveFailed(context, title: 'stamp'.tr());
 
-  static Future<void> showPostcardSavedFailed(BuildContext context) async {
-    return await _showFileSaveFailed(context, title: "postcard".tr());
-  }
+  static Future<void> showPostcardSavedFailed(BuildContext context) async =>
+      await _showFileSaveFailed(context, title: 'postcard'.tr());
 
   static Future<void> _showFileSaveFailed(BuildContext context,
-      {required String title}) async {
-    return await _showPostcardError(context,
-        message: "_save_failed".tr(args: [title]),
-        icon: SvgPicture.asset("assets/images/exit.svg"));
-  }
+          {required String title}) async =>
+      await _showPostcardError(context,
+          message: '_save_failed'.tr(args: [title]),
+          icon: SvgPicture.asset('assets/images/exit.svg'));
 }
 
-Widget loadingScreen(ThemeData theme, String text) {
-  return Scaffold(
-    backgroundColor: AppColor.white,
-    body: Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Image.asset(
-            "assets/images/loading.gif",
-            width: 52,
-            height: 52,
-          ),
-          const SizedBox(height: 20),
-          Text(
-            text,
-            style: theme.textTheme.ppMori400Black14,
-          )
-        ],
+Widget loadingScreen(ThemeData theme, String text) => Scaffold(
+      backgroundColor: AppColor.white,
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(
+              'assets/images/loading.gif',
+              width: 52,
+              height: 52,
+            ),
+            const SizedBox(height: 20),
+            Text(
+              text,
+              style: theme.textTheme.ppMori400Black14,
+            )
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
 
-String getDateTimeRepresentation(DateTime dateTime) {
-  return Jiffy.parseFromDateTime(dateTime).fromNow();
-}
+String getDateTimeRepresentation(DateTime dateTime) =>
+    Jiffy.parseFromDateTime(dateTime).fromNow();
 
 class OptionItem {
   String? title;

@@ -49,6 +49,9 @@ Dio baseDio(BaseOptions options) {
       log.warning('[request retry] $message');
     },
     retryEvaluator: (error, attempt) {
+      if (error.statusCode == 404) {
+        return false;
+      }
       if (error.isPostcardClaimEmptyLimited) {
         return false;
       }

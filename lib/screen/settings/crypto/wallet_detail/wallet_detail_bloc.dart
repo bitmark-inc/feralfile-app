@@ -21,6 +21,8 @@ class WalletDetailBloc extends AuBloc<WalletDetailEvent, WalletDetailState> {
   final EthereumService _ethereumService;
   final TezosService _tezosService;
   final CurrencyService _currencyService;
+  final ethFormatter = EthAmountFormatter();
+  final xtzFormatter = XtzAmountFormatter();
 
   WalletDetailBloc(
       this._ethereumService, this._tezosService, this._currencyService)
@@ -32,17 +34,19 @@ class WalletDetailBloc extends AuBloc<WalletDetailEvent, WalletDetailState> {
       switch (event.type) {
         case CryptoType.ETH:
           final balance = await _ethereumService.getBalance(event.address);
-          newState.balance =
-              '${EthAmountFormatter(balance.getInWei).format()} ETH';
-          final balanceInUSD = '''
-              ${FiatFormatter(balance.getInWei.toDouble() / pow(10, 18) / double.parse(exchangeRate.eth)).format()} USD''';
+          newState.balance = '${ethFormatter.format(balance.getInWei)} ETH';
+          final usdBalance = balance.getInWei.toDouble() /
+              pow(10, 18) *
+              double.parse(exchangeRate.eth);
+          final balanceInUSD = '${FiatFormatter(usdBalance).format()} USD';
           newState.balanceInUSD = balanceInUSD;
           break;
         case CryptoType.XTZ:
           final balance = await _tezosService.getBalance(event.address);
-          newState.balance = '${XtzAmountFormatter(balance).format()} XTZ';
-          final balanceInUSD = '''
-              ${FiatFormatter(balance / pow(10, 6) / double.parse(exchangeRate.xtz)).format()} USD''';
+          newState.balance = '${xtzFormatter.format(balance)} XTZ';
+          final usdBalance =
+              balance / pow(10, 6) / double.parse(exchangeRate.xtz);
+          final balanceInUSD = '${FiatFormatter(usdBalance).format()} USD';
           newState.balanceInUSD = balanceInUSD;
 
           break;

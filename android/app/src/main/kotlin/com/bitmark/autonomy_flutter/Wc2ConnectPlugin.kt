@@ -126,7 +126,10 @@ class Wc2ConnectPlugin(private val application: Application) : FlutterPlugin,
             override fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal) {
                 Timber.d("[WalletDelegate] onSessionProposal $sessionProposal")
                 pendingProposals.add(sessionProposal)
-                val namespaces = sessionProposal.requiredNamespaces.mapValues { e ->
+                val requiredNamespaces = sessionProposal.requiredNamespaces.mapValues { e ->
+                    e.value.toProposalNamespace()
+                }
+                val optionalNamespaces = sessionProposal.optionalNamespaces.mapValues { e ->
                     e.value.toProposalNamespace()
                 }
                 val proposer = mapOf(
@@ -138,7 +141,8 @@ class Wc2ConnectPlugin(private val application: Application) : FlutterPlugin,
                 val params = mapOf(
                     "id" to sessionProposal.proposerPublicKey,
                     "proposer" to Gson().toJson(proposer),
-                    "requiredNamespaces" to Json.encodeToString(namespaces)
+                    "requiredNamespaces" to Json.encodeToString(requiredNamespaces),
+                    "optionalNamespaces" to Json.encodeToString(optionalNamespaces)
                 )
                 mainScope?.launch {
                     eventPublisher.emit(
@@ -247,7 +251,7 @@ class Wc2ConnectPlugin(private val application: Application) : FlutterPlugin,
             result.error("-1", "Proposal not found", null)
             return
         }
-        val namespaces = proposal.requiredNamespaces.mapValues {
+        val namespaces = (proposal.optionalNamespaces + proposal.requiredNamespaces).mapValues {
             Sign.Model.Namespace.Session(
                 chains = it.value.chains,
                 methods = it.value.methods,
@@ -255,6 +259,7 @@ class Wc2ConnectPlugin(private val application: Application) : FlutterPlugin,
                 accounts = it.value.chains?.map { chain -> "$chain:$account" } ?: emptyList(),
             )
         }
+        Timber.d("Approve namespace: $namespaces")
         try {
             SignClient.approveSession(
                 Sign.Params.Approve(
