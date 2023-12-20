@@ -49,18 +49,18 @@ class AirdropService {
       this._navigationService);
 
   Future<AirdropShareResponse> share(AirdropShareRequest request) async =>
-      _airdropApi.share(request.tokenId, request);
+      await _airdropApi.share(request.tokenId, request);
 
   Future<AirdropClaimShareResponse> claimShare(
           AirdropClaimShareRequest request) async =>
-      _airdropApi.claimShare(request.shareCode);
+      await _airdropApi.claimShare(request.shareCode);
 
   Future<AirdropRequestClaimResponse> requestClaim(
           AirdropRequestClaimRequest request) async =>
-      _airdropApi.requestClaim(request);
+      await _airdropApi.requestClaim(request);
 
   Future<TokenClaimResponse> claim(AirdropClaimRequest request) async =>
-      _airdropApi.claim(request);
+      await _airdropApi.claim(request);
 
   Future<AssetToken?> getTokenByContract(List<String> contractAddress) async {
     final allTokens = await _assetTokenDao.findAllAssetTokens();
