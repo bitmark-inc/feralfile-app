@@ -372,39 +372,37 @@ class AirdropApiMock {
     // claimShare
     when(mockAirdropApi.claimShare(AirdropApiMock.claimShareValid.req))
         .thenAnswer((_) async => AirdropApiMock.claimShareValid.res);
-    when(mockAirdropApi.claimShare(
-            AirdropApiMock.claimShareDioException4xx.req))
+    when(mockAirdropApi
+            .claimShare(AirdropApiMock.claimShareDioException4xx.req))
         .thenThrow(AirdropApiMock.claimShareDioException4xx.res);
-    when(mockAirdropApi.claimShare(
-            AirdropApiMock.claimShareDioException5xx.req))
+    when(mockAirdropApi
+            .claimShare(AirdropApiMock.claimShareDioException5xx.req))
         .thenThrow(AirdropApiMock.claimShareDioException5xx.res);
-    when(mockAirdropApi.claimShare(
-            AirdropApiMock.claimShareConnectionTimeout.req))
+    when(mockAirdropApi
+            .claimShare(AirdropApiMock.claimShareConnectionTimeout.req))
         .thenThrow(AirdropApiMock.claimShareConnectionTimeout.res);
-    when(mockAirdropApi.claimShare(
-            AirdropApiMock.claimShareReceiveTimeout.req))
+    when(mockAirdropApi.claimShare(AirdropApiMock.claimShareReceiveTimeout.req))
         .thenThrow(AirdropApiMock.claimShareReceiveTimeout.res);
-    when(mockAirdropApi.claimShare(
-            AirdropApiMock.claimShareExceptionOther.req))
+    when(mockAirdropApi.claimShare(AirdropApiMock.claimShareExceptionOther.req))
         .thenThrow(AirdropApiMock.claimShareExceptionOther.res);
 
     //requestClaim
     when(mockAirdropApi.requestClaim(AirdropApiMock.requestClaimValid.req))
         .thenAnswer((_) async => AirdropApiMock.requestClaimValid.res);
-    when(mockAirdropApi.requestClaim(
-            AirdropApiMock.requestClaimDioException4xx.req))
+    when(mockAirdropApi
+            .requestClaim(AirdropApiMock.requestClaimDioException4xx.req))
         .thenThrow(AirdropApiMock.requestClaimDioException4xx.res);
-    when(mockAirdropApi.requestClaim(
-            AirdropApiMock.requestClaimDioException5xx.req))
+    when(mockAirdropApi
+            .requestClaim(AirdropApiMock.requestClaimDioException5xx.req))
         .thenThrow(AirdropApiMock.requestClaimDioException5xx.res);
-    when(mockAirdropApi.requestClaim(
-            AirdropApiMock.requestClaimConnectionTimeout.req))
+    when(mockAirdropApi
+            .requestClaim(AirdropApiMock.requestClaimConnectionTimeout.req))
         .thenThrow(AirdropApiMock.requestClaimConnectionTimeout.res);
-    when(mockAirdropApi.requestClaim(
-            AirdropApiMock.requestClaimReceiveTimeout.req))
+    when(mockAirdropApi
+            .requestClaim(AirdropApiMock.requestClaimReceiveTimeout.req))
         .thenThrow(AirdropApiMock.requestClaimReceiveTimeout.res);
-    when(mockAirdropApi.requestClaim(
-            AirdropApiMock.requestClaimExceptionOther.req))
+    when(mockAirdropApi
+            .requestClaim(AirdropApiMock.requestClaimExceptionOther.req))
         .thenThrow(AirdropApiMock.requestClaimExceptionOther.res);
 
     //claim
