@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
+
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
@@ -17,7 +19,6 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/feed_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/migration/migration_util.dart';
 import 'package:autonomy_flutter/util/notification_util.dart';
@@ -34,7 +35,6 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
   final AppDatabase _appDatabase;
   final NftCollectionDatabase _nftCollectionDatabase;
   final ConfigurationService _configurationService;
-  final FeedService _feedService;
 
   ForgetExistBloc(
       this._authService,
@@ -44,8 +44,7 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
       this._cloudDatabase,
       this._appDatabase,
       this._nftCollectionDatabase,
-      this._configurationService,
-      this._feedService)
+      this._configurationService)
       : super(ForgetExistState(false, null)) {
     on<UpdateCheckEvent>((event, emit) async {
       emit(ForgetExistState(event.isChecked, state.isProcessing));
@@ -54,11 +53,11 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
     on<ConfirmForgetExistEvent>((event, emit) async {
       emit(ForgetExistState(state.isChecked, true));
 
-      deregisterPushNotification();
+      unawaited(deregisterPushNotification());
       await _autonomyService.clearLinkedAddresses();
       PackageInfo packageInfo = await PackageInfo.fromPlatform();
       String? deviceId = await MigrationUtil.getBackupDeviceID();
-      final requester = "${deviceId}_${packageInfo.packageName}";
+      final requester = '${deviceId}_${packageInfo.packageName}';
       await _iapApi.deleteAllProfiles(requester);
       await _iapApi.deleteUserData();
 
@@ -74,8 +73,7 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
       await _configurationService.removeAll();
 
       _authService.reset();
-      injector<MetricClientService>().mixPanelClient.reset();
-      _feedService.unviewedCount.value = 0;
+      unawaited(injector<MetricClientService>().mixPanelClient.reset());
       memoryValues = MemoryValues(
         branchDeeplinkData: ValueNotifier(null),
         deepLink: ValueNotifier(null),

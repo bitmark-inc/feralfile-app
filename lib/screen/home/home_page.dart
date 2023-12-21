@@ -19,14 +19,11 @@ import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/cloud_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
-import 'package:autonomy_flutter/service/feed_service.dart';
-import 'package:autonomy_flutter/service/followee_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/locale_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -34,11 +31,9 @@ import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/token_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -99,34 +94,17 @@ class HomePageState extends State<HomePage>
         case GetTokensBeforeByOwnerEvent:
           nftBloc.add(event);
           break;
-        case AddArtistsEvent:
-
-          /// add following
-          final addEvent = event as AddArtistsEvent;
-          log.info("AddArtistsEvent ${addEvent.artists}");
-          final artists = event.artists;
-          artists.removeWhere((element) =>
-              invalidAddress.contains(element) || element.length < 36);
-          injector<FolloweeService>().addArtistsCollection(artists);
-          break;
-        case RemoveArtistsEvent:
-
-          /// remove following
-          final removeEvent = event as RemoveArtistsEvent;
-          log.info("RemoveArtistsEvent ${removeEvent.artists}");
-          injector<FolloweeService>()
-              .deleteArtistsCollection(removeEvent.artists);
-          break;
         default:
       }
     });
-    _clientTokenService.refreshTokens(syncAddresses: true).then((value) {
+    unawaited(
+        _clientTokenService.refreshTokens(syncAddresses: true).then((value) {
       nftBloc.add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
-    });
+    }));
 
     context.read<HomeBloc>().add(CheckReviewAppEvent());
 
-    injector<IAPService>().setup();
+    unawaited(injector<IAPService>().setup());
     memoryValues.inGalleryView = true;
   }
 
@@ -138,30 +116,32 @@ class HomePageState extends State<HomePage>
 
   @override
   void afterFirstLayout(BuildContext context) {
-    _handleForeground();
-    injector<AutonomyService>().postLinkedAddresses();
-    _checkForKeySync(context);
+    unawaited(_handleForeground());
+    unawaited(injector<AutonomyService>().postLinkedAddresses());
+    unawaited(_checkForKeySync(context));
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     routeObserver.unsubscribe(this);
-    _fgbgSubscription?.cancel();
+    unawaited(_fgbgSubscription?.cancel());
     _controller.dispose();
     super.dispose();
   }
 
   @override
-  void didPopNext() async {
+  Future<void> didPopNext() async {
     super.didPopNext();
-    final connectivityResult = await (Connectivity().checkConnectivity());
-    _clientTokenService.refreshTokens();
-    refreshNotification();
+    final connectivityResult = await Connectivity().checkConnectivity();
+    unawaited(_clientTokenService.refreshTokens());
+    unawaited(refreshNotification());
     if (connectivityResult == ConnectivityResult.mobile ||
         connectivityResult == ConnectivityResult.wifi) {
       Future.delayed(const Duration(milliseconds: 1000), () async {
-        if (!mounted) return;
+        if (!mounted) {
+          return;
+        }
         nftBloc
             .add(RequestIndexEvent(await _clientTokenService.getAddresses()));
       });
@@ -175,7 +155,7 @@ class HomePageState extends State<HomePage>
     super.didPushNext();
   }
 
-  void _onTokensUpdate(List<CompactedAssetToken> tokens) async {
+  Future<void> _onTokensUpdate(List<CompactedAssetToken> tokens) async {
     //check minted postcard and navigator to artwork detail
     final config = injector.get<ConfigurationService>();
     final listTokenMints = config.getListPostcardMint();
@@ -189,18 +169,18 @@ class HomePageState extends State<HomePage>
           .map((e) => e.identity)
           .toList();
       if (config.isAutoShowPostcard()) {
-        log.info("Auto show minted postcard");
+        log.info('Auto show minted postcard');
         final payload = PostcardDetailPagePayload(tokenMints, 0);
-        Navigator.of(context).pushNamed(
+        unawaited(Navigator.of(context).pushNamed(
           AppRouter.claimedPostcardDetailsPage,
           arguments: payload,
-        );
+        ));
       }
 
-      config.setListPostcardMint(
+      unawaited(config.setListPostcardMint(
         tokenMints.map((e) => e.id).toList(),
         isRemoved: true,
-      );
+      ));
     }
 
     // Check if there is any Tezos token in the list
@@ -213,8 +193,9 @@ class HomePageState extends State<HomePage>
             hashedAddresses &&
         tokens.any((asset) =>
             asset.blockchain == Blockchain.TEZOS.name.toLowerCase())) {
-      _metricClient.addEvent("collection_has_tezos");
-      _configurationService.setSentTezosArtworkMetric(hashedAddresses);
+      unawaited(_metricClient.addEvent('collection_has_tezos'));
+      unawaited(
+          _configurationService.setSentTezosArtworkMetric(hashedAddresses));
     }
   }
 
@@ -247,7 +228,7 @@ class HomePageState extends State<HomePage>
         log.info("[NftCollectionBloc] State update $state");
         collectionProKey.currentState?.loadCollection();
         if (state.state == NftLoadingState.done) {
-          _onTokensUpdate(state.tokens.items);
+          unawaited(_onTokensUpdate(state.tokens.items));
         }
       },
     );
@@ -267,25 +248,27 @@ class HomePageState extends State<HomePage>
     final defaultAccounts = await cloudDatabase.personaDao.getDefaultPersonas();
 
     if (defaultAccounts.length >= 2) {
-      if (!mounted) return;
-      Navigator.of(context).pushNamed(AppRouter.keySyncPage);
+      if (!mounted) {
+        return;
+      }
+      unawaited(Navigator.of(context).pushNamed(AppRouter.keySyncPage));
     }
   }
 
   void scrollToTop() {
-    _controller.animateTo(0,
+    unawaited(_controller.animateTo(0,
         duration: const Duration(milliseconds: 500),
-        curve: Curves.fastOutSlowIn);
+        curve: Curves.fastOutSlowIn));
   }
 
   Future refreshNotification() async {
     await injector<CustomerSupportService>().getIssuesAndAnnouncement();
   }
 
-  void _handleForeBackground(FGBGType event) async {
+  Future<void> _handleForeBackground(FGBGType event) async {
     switch (event) {
       case FGBGType.foreground:
-        _handleForeground();
+        unawaited(_handleForeground());
         break;
       case FGBGType.background:
         _handleBackground();
@@ -295,36 +278,18 @@ class HomePageState extends State<HomePage>
 
   Future _checkTipCardShowTime() async {
     final metricClient = injector<MetricClientService>();
-    log.info("_checkTipCardShowTime");
+    log.info('_checkTipCardShowTime');
     final configurationService = injector<ConfigurationService>();
 
     final doneOnboardingTime = configurationService.getDoneOnboardingTime();
-    final subscriptionTime = configurationService.getSubscriptionTime();
 
     final now = DateTime.now();
-    if (subscriptionTime != null) {
-      if (now.isAfter(subscriptionTime.add(const Duration(hours: 24))) &&
-          !configurationService.getAlreadyShowTvAppTip()) {
-        configurationService.showTvAppTip.value = true;
-        await configurationService.setAlreadyShowTvAppTip(true);
-        metricClient.addEvent(MixpanelEvent.showTipcard,
-            data: {"title": "enjoy_your_collection".tr()});
-      }
-      if (now.isAfter(subscriptionTime.add(const Duration(hours: 24))) &&
-          !configurationService.getAlreadyShowCreatePlaylistTip() &&
-          injector<ConfigurationService>().getPlayList().isEmpty != false) {
-        configurationService.showCreatePlaylistTip.value = true;
-        configurationService.setAlreadyShowCreatePlaylistTip(true);
-        metricClient.addEvent(MixpanelEvent.showTipcard,
-            data: {"title": "create_your_first_playlist".tr()});
-      }
-    }
 
     final remindTime = configurationService.getShowBackupSettingTip();
     final shouldRemindNow = remindTime == null || now.isAfter(remindTime);
     if (shouldRemindNow) {
-      configurationService
-          .setShowBackupSettingTip(now.add(const Duration(days: 7)));
+      unawaited(configurationService
+          .setShowBackupSettingTip(now.add(const Duration(days: 7))));
       bool showTip = false;
       if (Platform.isAndroid) {
         final isAndroidEndToEndEncryptionAvailable =
@@ -335,35 +300,26 @@ class HomePageState extends State<HomePage>
         final iCloudAvailable = injector<CloudService>().isAvailableNotifier;
         showTip = !iCloudAvailable.value;
       }
-      if (showTip && configurationService.showBackupSettingTip.value == false) {
+      if (showTip && !configurationService.showBackupSettingTip.value) {
         configurationService.showBackupSettingTip.value = true;
-        metricClient.addEvent(MixpanelEvent.showTipcard,
-            data: {"title": "backup_failed".tr()});
+        unawaited(metricClient.addEvent(MixpanelEvent.showTipcard,
+            data: {'title': 'backup_failed'.tr()}));
       }
     }
     if (doneOnboardingTime != null) {
       if (now.isAfter(doneOnboardingTime.add(const Duration(hours: 24))) &&
           !configurationService.getAlreadyShowLinkOrImportTip()) {
         configurationService.showLinkOrImportTip.value = true;
-        configurationService.setAlreadyShowLinkOrImportTip(true);
-        metricClient.addEvent(MixpanelEvent.showTipcard,
-            data: {"title": "do_you_have_NFTs_in_other_wallets".tr()});
-      }
-      final premium = await isPremium();
-      if (now.isAfter(doneOnboardingTime.add(const Duration(hours: 72))) &&
-          !premium &&
-          !configurationService.getAlreadyShowProTip()) {
-        configurationService.showProTip.value = true;
-        configurationService.setAlreadyShowProTip(true);
-        metricClient.addEvent(MixpanelEvent.showTipcard,
-            data: {"title": "try_autonomy_pro_free".tr()});
+        unawaited(configurationService.setAlreadyShowLinkOrImportTip(true));
+        unawaited(metricClient.addEvent(MixpanelEvent.showTipcard,
+            data: {'title': 'do_you_have_NFTs_in_other_wallets'.tr()}));
       }
     }
   }
 
-  void _handleForeground() async {
+  Future<void> _handleForeground() async {
     final locale = Localizations.localeOf(context);
-    LocaleService.refresh(locale);
+    unawaited(LocaleService.refresh(locale));
     memoryValues.inForegroundAt = DateTime.now();
     await injector<ConfigurationService>().reload();
     await _checkTipCardShowTime();
@@ -374,62 +330,24 @@ class HomePageState extends State<HomePage>
         // if there is no backup, upload one.
         await injector<SettingsDataService>().backup();
       } else {
-        Sentry.captureException(exception);
+        unawaited(Sentry.captureException(exception));
       }
     }
 
-    _clientTokenService.refreshTokens(checkPendingToken: true);
-    refreshNotification();
-    _metricClient.addEvent("device_foreground");
-    _subscriptionNotify();
-    injector<VersionService>().checkForUpdate();
+    unawaited(_clientTokenService.refreshTokens(checkPendingToken: true));
+    unawaited(refreshNotification());
+    unawaited(_metricClient.addEvent('device_foreground'));
+    unawaited(injector<VersionService>().checkForUpdate());
     // Reload token in Isolate
-    final jwtToken =
-        (await injector<AuthService>().getAuthToken(forceRefresh: true))
-            .jwtToken;
 
-    final feedService = injector<FeedService>();
-    feedService.refreshJWTToken(jwtToken);
-
-    injector<CustomerSupportService>().getIssuesAndAnnouncement();
-    injector<CustomerSupportService>().processMessages();
-  }
-
-  Future _subscriptionNotify() async {
-    final configService = injector<ConfigurationService>();
-    final iapService = injector<IAPService>();
-
-    if (configService.isNotificationEnabled() != true ||
-        await iapService.isSubscribed() ||
-        !configService.shouldShowSubscriptionHint() ||
-        configService
-                .getLastTimeAskForSubscription()
-                ?.isAfter(DateTime.now().subtract(const Duration(days: 2))) ==
-            true) {
-      return;
-    }
-
-    log.info("[HomePage] Show subscription notification");
-    await configService.setLastTimeAskForSubscription(DateTime.now());
-    if (!mounted) {
-      return;
-    }
-    const key = Key('subscription');
-    showInfoNotification(key, 'subscription_hint'.tr(),
-        duration: const Duration(seconds: 5), openHandler: () {
-      Navigator.of(context).pushNamed(AppRouter.subscriptionPage);
-    }, addOnTextSpan: [
-      TextSpan(
-        text: 'trial_today'.tr(),
-        style: Theme.of(context).textTheme.ppMori400Green14,
-      )
-    ]);
+    unawaited(injector<CustomerSupportService>().getIssuesAndAnnouncement());
+    unawaited(injector<CustomerSupportService>().processMessages());
   }
 
   void _handleBackground() {
-    _metricClient.addEvent(MixpanelEvent.deviceBackground);
-    _metricClient.sendAndClearMetrics();
-    FileLogger.shrinkLogFileIfNeeded();
+    unawaited(_metricClient.addEvent(MixpanelEvent.deviceBackground));
+    unawaited(_metricClient.sendAndClearMetrics());
+    unawaited(FileLogger.shrinkLogFileIfNeeded());
   }
 
   @override

@@ -11,10 +11,8 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
-import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -32,21 +30,18 @@ class ReceivePostCardPage extends StatefulWidget {
   final AssetToken asset;
   final String shareCode;
 
-  const ReceivePostCardPage({
-    Key? key,
-    required this.asset,
-    required this.shareCode,
-  }) : super(key: key);
+  const ReceivePostCardPage(
+      {required this.asset, required this.shareCode, super.key});
 
   @override
-  State<StatefulWidget> createState() {
-    return _ReceivePostCardPageState();
-  }
+  State<StatefulWidget> createState() => _ReceivePostCardPageState();
 }
 
 class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
   final metricClient = injector.get<MetricClientService>();
   final tokenService = injector.get<TokensService>();
+  final accountService = injector<AccountService>();
+  final postcardService = injector<PostcardService>();
   late bool _isProcessing;
   late bool _isConfirming;
   late AssetToken assetToken;
@@ -58,14 +53,13 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
     _isProcessing = false;
     _isConfirming = !widget.asset.isStamped;
     assetToken = widget.asset;
-    _waitUntilPostcardConfirm();
+    unawaited(_waitUntilPostcardConfirm());
   }
 
   void _fetchIdentities() {
     final neededIdentities = [
       widget.asset.artistName ?? '',
-    ];
-    neededIdentities.removeWhere((element) => element == '');
+    ]..removeWhere((element) => element == '');
 
     if (neededIdentities.isNotEmpty) {
       context.read<IdentityBloc>().add(GetIdentityEvent(neededIdentities));
@@ -73,28 +67,26 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return PostcardExplain(
-      payload: PostcardExplainPayload(
-        assetToken,
-        PostcardButton(
-          text: (_isConfirming)
-              ? "confirming_on_blockchain_".tr()
-              : "continue".tr(),
-          fontSize: 18,
-          enabled: !(_isProcessing || _isConfirming),
-          isProcessing: _isProcessing,
-          onTap: () async {
-            setState(() {
-              _isProcessing = true;
-            });
-            await _receivePostcard(context, assetToken);
-          },
-          color: POSTCARD_GREEN_BUTTON_COLOR,
+  Widget build(BuildContext context) => PostcardExplain(
+        payload: PostcardExplainPayload(
+          assetToken,
+          PostcardButton(
+            text: _isConfirming
+                ? 'confirming_on_blockchain_'.tr()
+                : 'continue'.tr(),
+            fontSize: 18,
+            enabled: !(_isProcessing || _isConfirming),
+            isProcessing: _isProcessing,
+            onTap: () async {
+              setState(() {
+                _isProcessing = true;
+              });
+              await _receivePostcard(context, assetToken);
+            },
+            color: POSTCARD_GREEN_BUTTON_COLOR,
+          ),
         ),
-      ),
-    );
-  }
+      );
 
   Future<AssetToken> _waitUntilPostcardConfirm() async {
     final tokenId = widget.asset.id;
@@ -111,13 +103,9 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
     }
   }
 
-  Future<AssetToken?> _receivePostcard(
-      BuildContext context, AssetToken asset) async {
-    final geoLocation = internetUserGeoLocation;
-    final accountService = injector<AccountService>();
-    final addresses = await accountService.getAddress(asset.blockchain);
+  Future<String?> _getAddress(String blockchain) async {
+    final addresses = await accountService.getAddress(blockchain);
     String? address;
-    AssetToken? pendingToken;
     if (addresses.isEmpty) {
       final defaultPersona = await accountService.getOrCreateDefaultPersona();
       final walletAddress =
@@ -126,7 +114,9 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
     } else if (addresses.length == 1) {
       address = addresses.first;
     } else {
-      if (!mounted) return null;
+      if (!mounted) {
+        return null;
+      }
       final navigationService = injector.get<NavigationService>();
       address = await navigationService.navigateTo(
         AppRouter.selectAddressScreen,
@@ -139,36 +129,28 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
         },
       );
     }
+    return address;
+  }
+
+  Future<AssetToken?> _receivePostcard(
+      BuildContext context, AssetToken asset) async {
+    AssetToken? pendingToken;
+    final address = await _getAddress(asset.blockchain);
     if (address != null) {
-      try {
-        pendingToken =
-            await injector.get<PostcardService>().claimSharedPostcardToAddress(
-                  address: address,
-                  assetToken: asset,
-                  location: geoLocation.position,
-                  shareCode: widget.shareCode,
-                );
-        if (!mounted) return null;
-        Navigator.of(context).pushNamedAndRemoveUntil(
-          AppRouter.homePage,
-          (route) => false,
-        );
-        Navigator.of(context).pushNamed(AppRouter.designStamp,
-            arguments: DesignStampPayload(pendingToken));
-      } catch (e) {
-        if (e is DioException) {
-          if (!mounted) return null;
-          await UIHelper.showAlreadyClaimedPostcard(
-            context,
-            e,
-          );
-          if (!mounted) return null;
-          Navigator.of(context).pushNamedAndRemoveUntil(
-            AppRouter.homePage,
-            (route) => false,
-          );
-        }
+      pendingToken = postcardService.getPendingTokenAfterClaimShare(
+        address: address,
+        assetToken: asset,
+      );
+      if (!mounted) {
+        return null;
       }
+      unawaited(Navigator.of(context).pushNamedAndRemoveUntil(
+        AppRouter.homePage,
+        (route) => false,
+      ));
+      unawaited(Navigator.of(context).pushNamed(AppRouter.designStamp,
+          arguments:
+              DesignStampPayload(pendingToken, false, widget.shareCode)));
     }
     setState(() {
       _isProcessing = false;
@@ -187,15 +169,14 @@ class ReceivePostcardResponse {
   ReceivePostcardResponse(this.tokenID, this.imageCID, this.blockchain,
       this.owner, this.contractAddress);
 
-  factory ReceivePostcardResponse.fromJson(Map<String, dynamic> json) {
-    return ReceivePostcardResponse(
-      json['tokenID'],
-      json['imageCID'],
-      json['blockchain'],
-      json['owner'],
-      json['contractAddress'],
-    );
-  }
+  factory ReceivePostcardResponse.fromJson(Map<String, dynamic> json) =>
+      ReceivePostcardResponse(
+        json['tokenID'],
+        json['imageCID'],
+        json['blockchain'],
+        json['owner'],
+        json['contractAddress'],
+      );
 
   Map<String, dynamic> toJson() => {
         'tokenID': tokenID,

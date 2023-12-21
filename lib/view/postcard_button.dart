@@ -15,6 +15,8 @@ class PostcardButton extends StatelessWidget {
   final Color? textColor;
   final Color? disabledTextColor;
   final double? fontSize;
+  final TextStyle? textStyle;
+  final Widget? icon;
 
   const PostcardButton({
     super.key,
@@ -28,6 +30,8 @@ class PostcardButton extends StatelessWidget {
     this.textColor,
     this.disabledTextColor,
     this.fontSize,
+    this.textStyle,
+    this.icon,
   });
 
   @override
@@ -67,14 +71,18 @@ class PostcardButton extends StatelessWidget {
                       backgroundColor: theme.colorScheme.surface,
                       strokeWidth: 2,
                     ),
-                  )
-                else
-                  const SizedBox(),
+                  ),
+                if (icon != null)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: icon,
+                  ),
                 Text(
                   text ?? '',
-                  style: theme.textTheme.moMASans700Black18.copyWith(
-                      color: enabled ? textColor : disabledTextColor,
-                      fontSize: fontSize),
+                  style: (textStyle ?? theme.textTheme.moMASans700Black18)
+                      .copyWith(
+                          color: enabled ? textColor : disabledTextColor,
+                          fontSize: fontSize),
                 ),
               ],
             ),
@@ -333,8 +341,12 @@ class _PostcardAsyncButtonState extends State<PostcardAsyncButton> {
             });
             try {
               await widget.onTap?.call();
+              if (!mounted) {
+                return;
+              }
             } catch (e) {
               log.info('Error: $e');
+              rethrow;
             } finally {
               setState(() {
                 _isProcessing = false;

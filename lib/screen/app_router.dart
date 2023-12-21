@@ -55,11 +55,6 @@ import 'package:autonomy_flutter/screen/detail/preview/canvas_help_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/keyboard_control_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/touchpad_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview_primer.dart';
-import 'package:autonomy_flutter/screen/discover/following_bloc.dart';
-import 'package:autonomy_flutter/screen/discover/following_page.dart';
-import 'package:autonomy_flutter/screen/feed/feed_artwork_details_page.dart';
-import 'package:autonomy_flutter/screen/feed/feed_bloc.dart';
-import 'package:autonomy_flutter/screen/feed/feed_preview_page.dart';
 import 'package:autonomy_flutter/screen/gallery/gallery_bloc.dart';
 import 'package:autonomy_flutter/screen/gallery/gallery_page.dart';
 import 'package:autonomy_flutter/screen/github_doc.dart';
@@ -76,6 +71,7 @@ import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_blo
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_explain.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_get_location.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/prompt_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_bloc.dart';
 import 'package:autonomy_flutter/screen/irl_screen/sign_message_screen.dart';
@@ -83,8 +79,6 @@ import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_bloc.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_page.dart';
 import 'package:autonomy_flutter/screen/notification_onboarding_page.dart';
-import 'package:autonomy_flutter/screen/onboarding/discover_art.dart';
-import 'package:autonomy_flutter/screen/onboarding/discover_art_bloc.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/import_seeds.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/name_address_persona.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/select_addresses.dart';
@@ -153,8 +147,6 @@ class AppRouter {
   static const artworkPreviewPage = 'artwork_preview';
   static const artworkDetailsPage = 'artwork_detail';
   static const claimedPostcardDetailsPage = 'claimed_postcard_detail';
-  static const feedPreviewPage = 'feedPreviewPage';
-  static const feedArtworkDetailsPage = 'feedArtworkDetailsPage';
   static const galleryPage = 'galleryPage';
   static const settingsPage = 'settings';
   static const personaConnectionsPage = 'persona_connections';
@@ -180,7 +172,6 @@ class AppRouter {
   static const bugBountyPage = 'bugBountyPage';
   static const participateUserTestPage = 'participateUserTestPage';
   static const keySyncPage = 'key_sync_page';
-  static const tvConnectPage = 'tv_connect';
   static const githubDocPage = 'github_doc_page';
   static const sendArtworkPage = 'send_artwork_page';
   static const sendArtworkReviewPage = 'send_artwork_review_page';
@@ -197,6 +188,8 @@ class AppRouter {
   static const inappWebviewPage = 'inapp_webview_page';
   static const postcardExplain = 'postcard_explain_screen';
   static const designStamp = 'design_stamp_screen';
+  static const promptPage = 'prompt_page';
+  static const choosePromptPage = 'choose_prompt_page';
   static const handSignaturePage = 'hand_signature_page';
   static const stampPreview = 'stamp_preview';
   static const claimEmptyPostCard = 'claim_empty_postcard';
@@ -231,6 +224,16 @@ class AppRouter {
       injector<AuditService>(),
     );
     final identityBloc = IdentityBloc(injector<AppDatabase>(), injector());
+    final postcardDetailBloc = PostcardDetailBloc(
+      injector(),
+      injector(),
+      injector(),
+      injector(),
+      injector(),
+      injector(),
+      injector(),
+      injector(),
+    );
 
     switch (settings.name) {
       case viewPlayListPage:
@@ -271,6 +274,7 @@ class AppRouter {
                 injector<CloudDatabase>(),
                 injector(),
                 injector<AuditService>(),
+                injector(),
               ),
             ),
           ], child: const OnboardingPage()),
@@ -291,18 +295,6 @@ class AppRouter {
               ),
             ));
 
-      case FollowingPage.tag:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => MultiBlocProvider(providers: [
-                  BlocProvider(
-                    create: (_) => identityBloc,
-                  ),
-                  BlocProvider(
-                    create: (_) => FollowingBloc(injector()),
-                  ),
-                ], child: const FollowingPage()));
-
       case homePageNoTransition:
         return PageRouteBuilder(
             settings: settings,
@@ -313,18 +305,6 @@ class AppRouter {
                               injector(),
                             )),
                     BlocProvider(create: (_) => identityBloc),
-                    BlocProvider(
-                        create: (_) => UpgradesBloc(
-                              injector(),
-                              injector(),
-                            )),
-                    BlocProvider(
-                      create: (_) => FeedBloc(
-                        injector(),
-                        injector(),
-                        injector(),
-                      ),
-                    ),
                     BlocProvider(
                       create: (_) => personaBloc,
                     ),
@@ -343,18 +323,6 @@ class AppRouter {
                               injector(),
                             )),
                     BlocProvider(create: (_) => identityBloc),
-                    BlocProvider(
-                        create: (_) => UpgradesBloc(
-                              injector(),
-                              injector(),
-                            )),
-                    BlocProvider(
-                      create: (_) => FeedBloc(
-                        injector(),
-                        injector(),
-                        injector(),
-                      ),
-                    ),
                     BlocProvider(
                       create: (_) => personaBloc,
                     ),
@@ -391,6 +359,16 @@ class AppRouter {
               payload: settings.arguments! as DesignStampPayload),
         );
 
+      case promptPage:
+        return PageTransition(
+          settings: settings,
+          type: PageTransitionType.rightToLeft,
+          curve: Curves.easeIn,
+          duration: const Duration(milliseconds: 300),
+          reverseDuration: const Duration(milliseconds: 300),
+          child: PromptPage(payload: settings.arguments! as DesignStampPayload),
+        );
+
       case AccessMethodPage.tag:
         return CupertinoPageRoute(
           settings: settings,
@@ -418,15 +396,7 @@ class AppRouter {
           child: MultiBlocProvider(
             providers: [
               BlocProvider(create: (_) => identityBloc),
-              BlocProvider(
-                  create: (_) => PostcardDetailBloc(
-                        injector(),
-                        injector(),
-                        injector(),
-                        injector(),
-                        injector(),
-                        injector(),
-                      )),
+              BlocProvider(create: (_) => postcardDetailBloc),
             ],
             child: StampPreview(
                 payload: settings.arguments! as StampPreviewPayload),
@@ -623,34 +593,16 @@ class AppRouter {
                     injector(),
                   ),
                 ),
-                BlocProvider(
-                    create: (_) => PostcardDetailBloc(injector(), injector(),
-                        injector(), injector(), injector(), injector())),
+                BlocProvider(create: (_) => postcardDetailBloc),
               ],
               child: ArtworkPreviewPage(
                 payload: settings.arguments! as ArtworkDetailPayload,
               ),
             ));
 
-      case feedPreviewPage:
-        return PageTransition(
-            type: PageTransitionType.fade,
-            curve: Curves.easeIn,
-            duration: const Duration(milliseconds: 250),
-            settings: settings,
-            child: FeedPreviewPage());
-
       case ChooseChainPage.tag:
         return CupertinoPageRoute(
             settings: settings, builder: (context) => const ChooseChainPage());
-
-      case DiscoverArtPage.tag:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => BlocProvider(
-                  create: (_) => DiscoverArtBloc(injector(), injector()),
-                  child: const DiscoverArtPage(),
-                ));
 
       case ViewExistingAddress.tag:
         return CupertinoPageRoute(
@@ -686,20 +638,6 @@ class AppRouter {
                   child: AddressAlias(
                       payload: settings.arguments! as AddressAliasPayload),
                 ));
-      case feedArtworkDetailsPage:
-        return PageTransition(
-            type: PageTransitionType.fade,
-            curve: Curves.easeIn,
-            duration: const Duration(milliseconds: 250),
-            settings: settings,
-            child: MultiBlocProvider(
-                providers: [
-                  BlocProvider.value(value: accountsBloc),
-                  BlocProvider(create: (_) => identityBloc),
-                ],
-                child: FeedArtworkDetailsPage(
-                  payload: settings.arguments! as FeedDetailPayload,
-                )));
 
       case galleryPage:
         return CupertinoPageRoute(
@@ -749,15 +687,7 @@ class AppRouter {
                   BlocProvider.value(value: accountsBloc),
                   BlocProvider(create: (_) => identityBloc),
                   BlocProvider(create: (_) => TravelInfoBloc()),
-                  BlocProvider(
-                      create: (_) => PostcardDetailBloc(
-                            injector(),
-                            injector(),
-                            injector(),
-                            injector(),
-                            injector(),
-                            injector(),
-                          )),
+                  BlocProvider(create: (_) => postcardDetailBloc),
                 ],
                 child: ClaimedPostcardDetailPage(
                     key: payload.key, payload: payload)));
@@ -1198,16 +1128,7 @@ class AppRouter {
           child: MultiBlocProvider(
             providers: [
               BlocProvider.value(value: accountsBloc),
-              BlocProvider(
-                create: (_) => PostcardDetailBloc(
-                  injector(),
-                  injector(),
-                  injector(),
-                  injector(),
-                  injector(),
-                  injector(),
-                ),
-              ),
+              BlocProvider(create: (_) => postcardDetailBloc),
             ],
             child: PostcardLeaderboardPage(
               payload: settings.arguments! as PostcardLeaderboardPagePayload,

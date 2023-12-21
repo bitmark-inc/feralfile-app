@@ -1,9 +1,14 @@
 import 'dart:math';
 
+import 'package:autonomy_flutter/model/prompt.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/hand_signature_page.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/moma_style_color.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
+import 'package:autonomy_flutter/view/prompt_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
@@ -14,13 +19,11 @@ import 'package:nft_collection/models/asset_token.dart';
 import 'package:undo/undo.dart';
 import 'package:widgets_to_image/widgets_to_image.dart';
 
-import 'hand_signature_page.dart';
-
 class DesignStampPage extends StatefulWidget {
   static const String tag = 'design_stamp_screen';
   final DesignStampPayload payload;
 
-  const DesignStampPage({Key? key, required this.payload}) : super(key: key);
+  const DesignStampPage({required this.payload, super.key});
 
   @override
   State<DesignStampPage> createState() => _DesignStampPageState();
@@ -33,6 +36,7 @@ class _DesignStampPageState extends State<DesignStampPage> {
   bool _line = true;
   late SimpleStack _undoController;
   bool _didPaint = false;
+  late final Prompt? _prompt;
 
   @override
   void initState() {
@@ -47,6 +51,8 @@ class _DesignStampPageState extends State<DesignStampPage> {
         );
       },
     );
+
+    _prompt = widget.payload.asset.postcardMetadata.prompt;
 
     stampColors.shuffle();
     _selectedColor = stampColors[0];
@@ -64,7 +70,7 @@ class _DesignStampPageState extends State<DesignStampPage> {
     } else if (second != null && second.isNotEmpty) {
       return second;
     } else {
-      return "";
+      return '';
     }
   }
 
@@ -76,16 +82,29 @@ class _DesignStampPageState extends State<DesignStampPage> {
     const backgroundColor = AppColor.chatPrimaryColor;
     return Scaffold(
       backgroundColor: backgroundColor,
-      appBar: getCloseAppBar(
-        context,
-        title: "design_your_stamp".tr(),
-        titleStyle: theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
-        onClose: () {
-          Navigator.of(context).pop();
-        },
-        withBottomDivider: false,
-        statusBarColor: backgroundColor,
-      ),
+      appBar: widget.payload.allowPop
+          ? getBackAppBar(
+              context,
+              title: 'design_your_stamp'.tr(),
+              titleStyle:
+                  theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
+              onBack: () {
+                Navigator.of(context).pop();
+              },
+              withDivider: false,
+              statusBarColor: backgroundColor,
+            )
+          : getCloseAppBar(
+              context,
+              title: 'design_your_stamp'.tr(),
+              titleStyle:
+                  theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
+              onClose: () {
+                Navigator.of(context).pop();
+              },
+              withBottomDivider: false,
+              statusBarColor: backgroundColor,
+            ),
       body: Padding(
         padding: EdgeInsets.only(bottom: ResponsiveLayout.padding),
         child: Column(
@@ -97,8 +116,22 @@ class _DesignStampPageState extends State<DesignStampPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(height: 70),
-                      Container(
+                      if (_prompt != null)
+                        PromptView(
+                          prompt: _prompt!,
+                          onTap: () async {
+                            await UIHelper.showCenterEmptySheet(context,
+                                content: PromptView(
+                                  key: const Key('prompt_view_full'),
+                                  prompt: _prompt!,
+                                  expandable: true,
+                                ));
+                          },
+                        )
+                      else
+                        const SizedBox(height: 60),
+                      const SizedBox(height: 10),
+                      DecoratedBox(
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(10),
                           color: AppColor.white,
@@ -114,13 +147,11 @@ class _DesignStampPageState extends State<DesignStampPage> {
                                     controller: _controller,
                                     child: GestureDetector(
                                       onTapDown: (details) {
-                                        // update rectColors using details.localPosition and selectedColor
                                         final x = details.localPosition.dx;
                                         final y = details.localPosition.dy;
                                         _paint(x, y, cellSize);
                                       },
                                       onPanUpdate: (details) {
-                                        // update rectColors using details.localPosition and selectedColor
                                         final x = details.localPosition.dx;
                                         final y = details.localPosition.dy;
                                         _paint(x, y, cellSize);
@@ -174,7 +205,7 @@ class _DesignStampPageState extends State<DesignStampPage> {
                                     borderColor: AppColor.disabledColor,
                                     textColor: AppColor.disabledColor,
                                     child: SvgPicture.asset(
-                                      "assets/images/Undo.svg",
+                                      'assets/images/Undo.svg',
                                       width: 16,
                                       colorFilter: const ColorFilter.mode(
                                           AppColor.greyMedium, BlendMode.srcIn),
@@ -189,7 +220,7 @@ class _DesignStampPageState extends State<DesignStampPage> {
                                           _didPaint = true;
                                         });
                                       },
-                                      text: "randomize".tr(),
+                                      text: 'randomize'.tr(),
                                       textColor: AppColor.disabledColor,
                                       color: AppColor.white,
                                       borderColor: AppColor.disabledColor,
@@ -206,7 +237,7 @@ class _DesignStampPageState extends State<DesignStampPage> {
                                         });
                                         _modifyStackUndo();
                                       },
-                                      text: "clear_all".tr(),
+                                      text: 'clear_all'.tr(),
                                       textColor: AppColor.disabledColor,
                                       borderColor: AppColor.disabledColor,
                                       color: AppColor.white,
@@ -219,9 +250,9 @@ class _DesignStampPageState extends State<DesignStampPage> {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 70),
+                      const SizedBox(height: 30),
                       PostcardAsyncButton(
-                        text: "continue".tr(),
+                        text: 'continue'.tr(),
                         fontSize: 18,
                         color: MoMAColors.moMA8,
                         enabled: _didPaint,
@@ -233,13 +264,15 @@ class _DesignStampPageState extends State<DesignStampPage> {
                             const Duration(milliseconds: 200),
                             () async {
                               final bytes = await _controller.capture();
-                              if (!mounted) return;
+                              if (!mounted) {
+                                return;
+                              }
                               await Navigator.of(context).pushNamed(
                                   HandSignaturePage.handSignaturePage,
                                   arguments: HandSignaturePayload(
-                                    bytes!,
-                                    widget.payload.asset,
-                                  ));
+                                      bytes!,
+                                      widget.payload.asset,
+                                      widget.payload.shareCode));
 
                               setState(() {
                                 _line = true;
@@ -316,48 +349,47 @@ class _DesignStampPageState extends State<DesignStampPage> {
     _modifyStackUndo();
   }
 
-  // color picker update selectedColor using horizontal listview, each item is a circle with color, selectedColor is white border
-  Widget colorPicker() {
-    return SizedBox(
-      height: 40,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: stampColors.length,
-        itemBuilder: (context, index) {
-          final color = stampColors[index];
-          return GestureDetector(
-            onTap: () {
-              setState(() {
-                _selectedColor = color;
-              });
-            },
-            child: Container(
-              width: 40,
-              height: 40,
-              margin: const EdgeInsets.symmetric(horizontal: 5),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: _selectedColor == color
-                      ? AppColor.primaryBlack
-                      : color == MomaPallet.white
-                          ? AppColor.auGrey
-                          : Colors.transparent,
-                  width: 2,
-                ),
-              ),
+  // color picker update selectedColor using horizontal listview, each item is
+  // a circle with color, selectedColor is white border
+  Widget colorPicker() => SizedBox(
+        height: 40,
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          itemCount: stampColors.length,
+          itemBuilder: (context, index) {
+            final color = stampColors[index];
+            return GestureDetector(
+              onTap: () {
+                setState(() {
+                  _selectedColor = color;
+                });
+              },
               child: Container(
+                width: 40,
+                height: 40,
+                margin: const EdgeInsets.symmetric(horizontal: 5),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: color,
+                  border: Border.all(
+                    color: _selectedColor == color
+                        ? AppColor.primaryBlack
+                        : color == MomaPallet.white
+                            ? AppColor.auGrey
+                            : Colors.transparent,
+                    width: 2,
+                  ),
+                ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: color,
+                  ),
                 ),
               ),
-            ),
-          );
-        },
-      ),
-    );
-  }
+            );
+          },
+        ),
+      );
 }
 
 class StampPainter extends CustomPainter {
@@ -376,10 +408,11 @@ class StampPainter extends CustomPainter {
         ..color = AppColor.auLightGrey
         ..strokeWidth = 0.3;
       for (var i = 0; i <= 10; i++) {
-        canvas.drawLine(Offset(i * cellSize, 0),
-            Offset(i * cellSize, cellSize * 10), paint);
-        canvas.drawLine(
-            Offset(0, i * cellSize), Offset(size.width, i * cellSize), paint);
+        canvas
+          ..drawLine(Offset(i * cellSize, 0),
+              Offset(i * cellSize, cellSize * 10), paint)
+          ..drawLine(
+              Offset(0, i * cellSize), Offset(size.width, i * cellSize), paint);
       }
     }
 
@@ -399,13 +432,13 @@ class StampPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant StampPainter oldDelegate) {
-    return true;
-  }
+  bool shouldRepaint(covariant StampPainter oldDelegate) => true;
 }
 
 class DesignStampPayload {
   final AssetToken asset;
+  final bool allowPop;
+  final String? shareCode;
 
-  DesignStampPayload(this.asset);
+  DesignStampPayload(this.asset, this.allowPop, this.shareCode);
 }
