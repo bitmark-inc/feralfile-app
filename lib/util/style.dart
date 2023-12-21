@@ -488,11 +488,13 @@ Divider headDivider() => const Divider(
       color: AppColor.auSuperTeal,
     );
 
-Divider addOnlyDivider({Color? color}) => Divider(
-      height: 1,
-      thickness: 1,
-      color: color,
-    );
+Divider addOnlyDivider({Color? color, double border = 1.0}) {
+  return Divider(
+    height: 1.0,
+    thickness: border,
+    color: color,
+  );
+}
 
 Divider addBoldDivider() => const Divider(
       height: 1,

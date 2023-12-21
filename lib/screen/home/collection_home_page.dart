@@ -6,7 +6,6 @@
 //
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:after_layout/after_layout.dart';
@@ -19,7 +18,6 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
-import 'package:autonomy_flutter/screen/playlists/list_playlists/list_playlists.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
@@ -45,7 +43,6 @@ import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tip_card.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/gestures.dart';
@@ -60,18 +57,18 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+class CollectionHomePage extends StatefulWidget {
+  const CollectionHomePage({super.key});
 
   @override
-  State<HomePage> createState() => HomePageState();
+  State<CollectionHomePage> createState() => CollectionHomePageState();
 }
 
-class HomePageState extends State<HomePage>
+class CollectionHomePageState extends State<CollectionHomePage>
     with
         RouteAware,
         WidgetsBindingObserver,
-        AfterLayoutMixin<HomePage>,
+        AfterLayoutMixin<CollectionHomePage>,
         AutomaticKeepAliveClientMixin {
   StreamSubscription<FGBGType>? _fgbgSubscription;
   late ScrollController _controller;
@@ -303,13 +300,6 @@ class HomePageState extends State<HomePage>
     const double cellSpacing = 3;
     int cellPerRow =
         ResponsiveLayout.isMobile ? cellPerRowPhone : cellPerRowTablet;
-    final playlistIDsString = injector<ConfigurationService>()
-        .getPlayList()
-        .map((e) => e.id)
-        .toList()
-        .join();
-    final playlistKeyBytes = utf8.encode(playlistIDsString);
-    final playlistKey = sha256.convert(playlistKeyBytes).toString();
     if (_cachedImageSize == 0) {
       final estimatedCellWidth =
           MediaQuery.of(context).size.width / cellPerRow -
@@ -324,14 +314,6 @@ class HomePageState extends State<HomePage>
       ),
       SliverToBoxAdapter(
         child: _carouselTipcard(context),
-      ),
-      SliverToBoxAdapter(
-        child: Padding(
-          padding: const EdgeInsets.only(bottom: 15),
-          child: ListPlaylistsScreen(
-            key: Key(playlistKey),
-          ),
-        ),
       ),
       SliverGrid(
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(

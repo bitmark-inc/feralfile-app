@@ -8,32 +8,32 @@ abstract class PlaylistService {
   Future<List<PlayListModel>> getPlayList();
 
   Future<void> setPlayList(List<PlayListModel> playlists,
-      {bool override = false});
+      {bool override = false,
+      ConflictAction onConflict = ConflictAction.abort});
 
   Future<void> refreshPlayLists();
+
+  Future<List<PlayListModel>> defaultPlaylists();
 }
 
 class PlayListServiceImp implements PlaylistService {
   final ConfigurationService _configurationService;
   final TokenDao _tokenDao;
   final AccountService _accountService;
+  final AssetTokenDao _assetTokenDao;
 
-  PlayListServiceImp(
-      this._configurationService, this._tokenDao, this._accountService);
+  PlayListServiceImp(this._configurationService, this._tokenDao,
+      this._accountService, this._assetTokenDao);
 
   @override
   Future<List<PlayListModel>> getPlayList() async {
     final playlists = _getRawPlayList();
+
     if (playlists.isEmpty) {
       return [];
     }
 
-    final hiddenTokens = _configurationService.getTempStorageHiddenTokenIDs();
-    final recentlySent = _configurationService.getRecentlySentToken();
-    hiddenTokens.addAll(recentlySent
-        .where((element) => element.isSentAll)
-        .map((e) => e.tokenID)
-        .toList());
+    final hiddenTokens = _configurationService.getHiddenOrSentTokenIDs();
     final hiddenAddresses = await _accountService.getHiddenAddressIndexes();
     final tokens = await _tokenDao
         .findTokenIDsByOwners(hiddenAddresses.map((e) => e.address).toList());
@@ -53,9 +53,13 @@ class PlayListServiceImp implements PlaylistService {
   }
 
   @override
-  Future<void> setPlayList(List<PlayListModel> playlists,
-      {bool override = false}) async {
-    _configurationService.setPlayList(playlists, override: override);
+  Future<void> setPlayList(
+    List<PlayListModel> playlists, {
+    bool override = false,
+    ConflictAction onConflict = ConflictAction.abort,
+  }) async {
+    _configurationService.setPlayList(playlists,
+        override: override, onConflict: onConflict);
     return;
   }
 
@@ -72,5 +76,27 @@ class PlayListServiceImp implements PlaylistService {
       }
     }
     setPlayList(playlists, override: true);
+  }
+
+  @override
+  Future<List<PlayListModel>> defaultPlaylists() async {
+    List<PlayListModel> defaultPlaylists = [];
+    final activeAddress = await _accountService.getShowedAddresses();
+    List<String> allTokenIds =
+        await _tokenDao.findTokenIDsOwnersOwn(activeAddress);
+    final hiddenTokenIds = _configurationService.getHiddenOrSentTokenIDs();
+    allTokenIds.removeWhere((element) => hiddenTokenIds.contains(element));
+    if (allTokenIds.isNotEmpty) {
+      final token = await _assetTokenDao
+          .findAllAssetTokensByTokenIDs([allTokenIds.first]);
+
+      final allNftsPlaylist = PlayListModel(
+          id: DefaultPlaylistModel.allNfts.id,
+          name: DefaultPlaylistModel.allNfts.name,
+          tokenIDs: allTokenIds,
+          thumbnailURL: token.first.thumbnailURL);
+      defaultPlaylists.add(allNftsPlaylist);
+    }
+    return defaultPlaylists;
   }
 }

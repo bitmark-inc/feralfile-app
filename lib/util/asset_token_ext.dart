@@ -7,6 +7,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/pair.dart';
+import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
 import 'package:autonomy_flutter/model/prompt.dart';
 import 'package:autonomy_flutter/model/shared_postcard.dart';
@@ -777,3 +778,33 @@ extension PostcardExtension on AssetToken {
     return isEnable;
   }
 }
+
+extension CompactedAssetTokenExt on List<CompactedAssetToken> {
+  List<PlayListModel> getPlaylistByFilter(
+      String Function(CompactedAssetToken) filter) {
+    final groups = groupBy<CompactedAssetToken, String>(
+      this,
+      filter,
+    );
+    List<PlayListModel> playlists = [];
+    groups.forEach((key, value) {
+      PlayListModel playListModel = PlayListModel(
+        name: key,
+        tokenIDs: value.map((e) => e.tokenId).whereNotNull().toList(),
+        thumbnailURL: value.first.thumbnailURL,
+      );
+      playlists.add(playListModel);
+    });
+    return playlists;
+  }
+
+  List<PlayListModel> getPlaylistByArtists() {
+    return getPlaylistByFilter((e) => e.artistID ?? "Unknown");
+  }
+
+  List<PlayListModel> getPlaylistByMedium() {
+    return getPlaylistByFilter((e) => e.mimeType ?? "Unknown");
+  }
+}
+
+typedef PlaylistModelType = PlayListModel;

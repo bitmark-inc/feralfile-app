@@ -2,6 +2,7 @@ import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist_state.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
@@ -13,6 +14,7 @@ import 'package:uuid/uuid.dart';
 class AddNewPlaylistBloc
     extends AuBloc<AddNewPlaylistEvent, AddNewPlaylistState> {
   final PlaylistService _playListService;
+
   AddNewPlaylistBloc(this._playListService) : super(AddNewPlaylistState()) {
     on<InitPlaylist>((event, emit) {
       emit(
@@ -55,11 +57,11 @@ class AddNewPlaylistBloc
 
       playListModel?.tokenIDs = state.selectedIDs?.toSet().toList();
 
-      if (playListModel?.id == null) {
-        playListModel?.id = const Uuid().v4();
-        await _playListService.setPlayList([playListModel!]);
-        injector.get<SettingsDataService>().backup();
-      }
+      playListModel?.id ??= const Uuid().v4();
+      await _playListService
+          .setPlayList([playListModel!], onConflict: ConflictAction.replace);
+      injector.get<SettingsDataService>().backup();
+
       emit(state.copyWith(isAddSuccess: true));
       final metricClient = injector<MetricClientService>();
       metricClient.addEvent(MixpanelEvent.createPlaylist);

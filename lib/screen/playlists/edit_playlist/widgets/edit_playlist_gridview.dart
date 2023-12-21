@@ -46,23 +46,8 @@ class _EditPlaylistGridViewState extends State<EditPlaylistGridView> {
     final estimatedCellWidth = MediaQuery.of(context).size.width / cellPerRow -
         cellSpacing * (cellPerRow - 1);
     final cachedImageSize = (estimatedCellWidth * 3).ceil();
-
     return ReorderableGridView.count(
       controller: widget.controller,
-      footer: [
-        Visibility(
-          visible: widget.tokens.isNotEmpty,
-          child: GestureDetector(
-            onTap: widget.onAddTap,
-            child: const AddTokenWidget(),
-          ),
-        ),
-
-        /// add 3 blank cells to make space for done button
-        const SizedBox(),
-        const SizedBox(),
-        const SizedBox(),
-      ],
       onDragStart: (dragIndex) {
         Vibrate.feedback(FeedbackType.light);
       },
