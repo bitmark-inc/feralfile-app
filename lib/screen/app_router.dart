@@ -89,8 +89,10 @@ import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_ad
 import 'package:autonomy_flutter/screen/onboarding_page.dart';
 import 'package:autonomy_flutter/screen/participate_user_test_page.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist.dart';
+import 'package:autonomy_flutter/screen/playlists/add_to_playlist/add_to_playlist.dart';
 import 'package:autonomy_flutter/screen/playlists/edit_playlist/edit_playlist.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
+import 'package:autonomy_flutter/screen/predefined_collection/predefined_collection_screen.dart';
 import 'package:autonomy_flutter/screen/release_notes_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
@@ -208,6 +210,8 @@ class AppRouter {
   static const previewActivationClaimPage = 'preview_activation_claim_page';
   static const postcardLeaderboardPage = 'postcard_leaderboard_page';
   static const postcardLocationExplain = 'postcard_location_explain';
+  static const predefinedCollectionPage = 'predefined_collection_page';
+  static const addToCollectionPage = 'add_to_collection_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector(), injector());
@@ -240,7 +244,7 @@ class AppRouter {
               injector(),
             ),
             child: ViewPlaylistScreen(
-              playListModel: settings.arguments as PlayListModel?,
+              payload: settings.arguments as ViewPlaylistScreenPayload,
             ),
           ),
         );
@@ -1140,6 +1144,24 @@ class AppRouter {
           reverseDuration: const Duration(milliseconds: 300),
           child: PostcardLocationExplain(
             payload: settings.arguments! as PostcardExplainPayload,
+          ),
+        );
+
+      case predefinedCollectionPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) {
+              final payload =
+                  settings.arguments as PredefinedCollectionScreenPayload;
+              return PredefinedCollectionScreen(
+                payload: payload,
+              );
+            });
+      case addToCollectionPage:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) => AddToCollectionScreen(
+            playList: settings.arguments as PlayListModel,
           ),
         );
 

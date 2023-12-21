@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/model/play_control_model.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 
 class PlayListModel {
@@ -81,5 +82,40 @@ class PlayListModel {
               map['playControlModel'] as Map<String, dynamic>)
           : null,
     );
+  }
+
+  String getName() {
+    return name ?? tr('untitled');
+  }
+}
+
+extension PlayListModelExtension on PlayListModel {
+  bool get isDefault {
+    final defaultPlaylists = DefaultPlaylistModel.getAll();
+    return defaultPlaylists.any((element) => element.id == id);
+  }
+}
+
+enum DefaultPlaylistModel {
+  allNfts;
+
+  String get id {
+    switch (this) {
+      case DefaultPlaylistModel.allNfts:
+        return "all_nfts";
+    }
+  }
+
+  String get name {
+    switch (this) {
+      case DefaultPlaylistModel.allNfts:
+        return "all".tr();
+    }
+  }
+
+  static List<DefaultPlaylistModel> getAll() {
+    return [
+      DefaultPlaylistModel.allNfts,
+    ];
   }
 }

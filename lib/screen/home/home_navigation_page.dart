@@ -16,7 +16,7 @@ import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/home/collection_home_page.dart';
-import 'package:autonomy_flutter/screen/home/home_page.dart';
+import 'package:autonomy_flutter/screen/home/organize_home_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
@@ -166,8 +166,8 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     });
 
     _pages = <Widget>[
-      HomePage(key: _homePageKey),
       CollectionHomePage(key: _collectionHomePageKey),
+      HomePage(key: _homePageKey),
       MultiBlocProvider(
         providers: [
           BlocProvider.value(value: AccountsBloc(injector(), injector())),

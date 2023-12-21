@@ -145,6 +145,7 @@ Widget tokenGalleryThumbnailWidget(
   int cachedImageSize, {
   bool usingThumbnailID = true,
   bool useHero = true,
+  Widget? galleryThumbnailPlaceholder,
 }) {
   final thumbnailUrl =
       token.getGalleryThumbnailUrl(usingThumbnailID: usingThumbnailID);
@@ -195,9 +196,12 @@ Widget tokenGalleryThumbnailWidget(
               cacheManager: cacheManager,
               placeholder: (context, index) => FutureBuilder<bool>(
                   future: cachingState,
-                  builder: (context, snapshot) => GalleryThumbnailPlaceholder(
-                        loading: !(snapshot.data ?? true),
-                      )),
+                  builder: (context, snapshot) {
+                    return galleryThumbnailPlaceholder ??
+                        GalleryThumbnailPlaceholder(
+                          loading: !(snapshot.data ?? true),
+                        );
+                  }),
               errorWidget: (context, url, error) => CachedNetworkImage(
                 imageUrl:
                     token.getGalleryThumbnailUrl(usingThumbnailID: false) ?? '',
@@ -210,9 +214,12 @@ Widget tokenGalleryThumbnailWidget(
                 cacheManager: cacheManager,
                 placeholder: (context, index) => FutureBuilder<bool>(
                     future: cachingState,
-                    builder: (context, snapshot) => GalleryThumbnailPlaceholder(
-                          loading: !(snapshot.data ?? true),
-                        )),
+                    builder: (context, snapshot) {
+                      return galleryThumbnailPlaceholder ??
+                          GalleryThumbnailPlaceholder(
+                            loading: !(snapshot.data ?? true),
+                          );
+                    }),
                 errorWidget: (context, url, error) =>
                     const GalleryThumbnailErrorWidget(),
               ),
