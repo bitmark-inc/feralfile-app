@@ -1,13 +1,17 @@
 import 'package:autonomy_flutter/gateway/chat_api.dart';
 import 'package:autonomy_flutter/util/ChatAliasExt.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart';
+import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:nft_collection/models/asset_token.dart';
 
 extension ChatMessageExtension on SystemMessage {
   bool get isCompletedPostcardMessage => text == 'postcard_complete';
+
+  bool get isPrivateChatMessage => id == chatPrivateBannerMessage.id;
 
   bool get isSystemMessage => author.isSystemUser;
 }
@@ -53,5 +57,16 @@ extension UserExtension on User {
     int index = artists.indexOf(artist);
     final numberFormater = NumberFormat('00');
     return '${assetToken.getPreviewUrl()}/assets/stamps/${numberFormater.format(index)}.png';
+  }
+}
+
+extension TypeMessageListExt on List<types.Message> {
+  List<types.Message> insertBannerMessage() {
+    final res = toList()
+      ..insert(
+        length,
+        chatPrivateBannerMessage,
+      );
+    return res;
   }
 }

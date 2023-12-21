@@ -31,6 +31,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:flutter_chat_ui/flutter_chat_ui.dart';
+//ignore: implementation_imports
+import 'package:flutter_chat_ui/src/models/date_header.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/models/asset_token.dart';
@@ -53,7 +55,6 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
   int? _lastMessageTimestamp;
   bool _didFetchAllMessages = false;
   String? _historyRequestId;
-  int? _chatPrivateBannerTimestamp;
   final ConfigurationService _configurationService =
       injector<ConfigurationService>();
   final ChatService _postcardChatService = injector<ChatService>();
@@ -72,7 +73,6 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
     _user = types.User(id: _payload.address);
     unawaited(_websocketInitAndFetchHistory());
     memoryValues.currentGroupChatId = _payload.token.id;
-    _checkReadPrivateChatBanner();
     _textController = TextEditingController();
     _textFieldFocusNode = FocusNode();
     _withOverlay = _textFieldFocusNode.hasFocus;
@@ -80,17 +80,6 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
     _showSetAliasTextField = false;
     _auChatBloc = injector<AuChatBloc>();
     _auChatBloc.add(GetAliasesEvent(_payload.token));
-  }
-
-  void _checkReadPrivateChatBanner() {
-    final config = _configurationService.getPostcardChatConfig(
-        address: _payload.address, id: _payload.token.id);
-    _chatPrivateBannerTimestamp = config.firstTimeJoined;
-    if (_chatPrivateBannerTimestamp == null) {
-      final newConfig = config.copyWith(
-          firstTimeJoined: DateTime.now().millisecondsSinceEpoch);
-      unawaited(_configurationService.setPostcardChatConfig(newConfig));
-    }
   }
 
   void _textFieldFocusNodeListener() {
@@ -192,24 +181,6 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
 
     unawaited(_updateLastMessageReadTimeStamp(readTimestamp + 1));
 
-    if (_chatPrivateBannerTimestamp != null) {
-      _messages.removeWhere((element) => element.id == _chatPrivateBannerId);
-      int index = _messages.indexWhere((element) =>
-          element.createdAt != null &&
-          element.createdAt! < _chatPrivateBannerTimestamp!);
-      if (index == -1) {
-        index = _messages.length;
-      }
-      _messages.insert(
-          index,
-          types.SystemMessage(
-            id: _chatPrivateBannerId,
-            author: _user,
-            createdAt: _chatPrivateBannerTimestamp,
-            text: 'chat_is_private'.tr(),
-            status: types.Status.delivered,
-          ));
-    }
     if (mounted) {
       setState(() {
         _messages;
@@ -299,6 +270,9 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
       textAlign: TextAlign.center,
       textCapitalization: TextCapitalization.sentences,
       onTapOutside: (event) {
+        if (!_textFieldFocusNode.hasFocus) {
+          return;
+        }
         _textFieldFocusNode.unfocus();
         onSubmitAlias(_textController.text);
       },
@@ -374,6 +348,25 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
     });
   }
 
+  Widget _dateHeaderBuilder(BuildContext context, DateHeader date) {
+    final theme = Theme.of(context);
+    if (date.dateTime.millisecondsSinceEpoch ==
+        chatPrivateBannerMessage.createdAt) {
+      return const SizedBox();
+    } else {
+      return Container(
+        alignment: Alignment.center,
+        margin: const EdgeInsets.symmetric(vertical: 12),
+        child: Text(
+          date.text,
+          style: ResponsiveLayout.isMobile
+              ? theme.textTheme.dateDividerTextStyle
+              : theme.textTheme.dateDividerTextStyle14,
+        ),
+      );
+    }
+  }
+
   Widget _chatThread(BuildContext context) => Chat(
         l10n: ChatL10nEn(
           inputPlaceholder: 'message'.tr(),
@@ -382,12 +375,7 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
         customDateHeaderText: getChatDateTimeRepresentation,
         systemMessageBuilder: (systemMessage) => _systemMessageBuilder(
           message: systemMessage,
-          onAvatarTap: () {
-            if (_user.id != systemMessage.author.id) {
-              return;
-            }
-            _onTapToSetAlias();
-          },
+          onAvatarTap: () {},
           onAliasTap: () {
             if (_user.id != systemMessage.author.id) {
               return;
@@ -400,16 +388,14 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
         theme: _chatTheme,
         dateHeaderThreshold: 12 * 60 * 60 * 1000,
         groupMessagesThreshold: DateTime.now().millisecondsSinceEpoch,
+        dateHeaderBuilder: (DateHeader date) =>
+            _dateHeaderBuilder(context, date),
         emptyState: const SizedBox(),
-        messages: _messages,
+        messages: _messages.insertBannerMessage(),
         onSendPressed: (_) {},
         user: types.User(id: const Uuid().v4()),
         customBottomWidget: Column(
           children: [
-            if (_chatPrivateBannerTimestamp == null)
-              _chatPrivateBanner(context)
-            else
-              const SizedBox(),
             AuInputChat(
               onSendPressed: _handleSendPressed,
             ),
@@ -448,7 +434,7 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
     required void Function()? onAvatarTap,
     required void Function()? onAliasTap,
   }) {
-    if (message.id == _chatPrivateBannerId) {
+    if (message.isPrivateChatMessage) {
       return _chatPrivateBanner(context, text: message.text);
     }
     if (message.isCompletedPostcardMessage) {
@@ -511,9 +497,7 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
       text: message,
       status: types.Status.sending,
     );
-    if (_chatPrivateBannerTimestamp == null) {
-      _checkReadPrivateChatBanner();
-    }
+
     setState(() {
       _messages.insert(0, sendingMessage);
     });
@@ -528,8 +512,8 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
   DefaultChatTheme get _chatTheme {
     final theme = Theme.of(context);
     return DefaultChatTheme(
-      messageInsetsVertical: 14,
-      messageInsetsHorizontal: 14,
+      messageInsetsVertical: 0,
+      messageInsetsHorizontal: 0,
       backgroundColor: Colors.transparent,
       typingIndicatorTheme: const TypingIndicatorTheme(
         animatedCirclesColor: neutral1,
@@ -546,10 +530,6 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
       ),
       emptyChatPlaceholderTextStyle: theme.textTheme.ppMori400Black14
           .copyWith(color: AppColor.auQuickSilver),
-      dateDividerMargin: const EdgeInsets.symmetric(vertical: 12),
-      dateDividerTextStyle: ResponsiveLayout.isMobile
-          ? theme.textTheme.dateDividerTextStyle
-          : theme.textTheme.dateDividerTextStyle14,
       primaryColor: Colors.transparent,
       sentMessageBodyTextStyle: ResponsiveLayout.isMobile
           ? theme.textTheme.sentMessageBodyTextStyle
@@ -568,8 +548,6 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
           : theme.textTheme.receivedMessageCaptionTextStyle16,
     );
   }
-
-  static const _chatPrivateBannerId = 'chat_private_banner';
 
   void _handleSendPressed(types.PartialText message) {
     _submit(message.text);
@@ -710,20 +688,17 @@ class _AuInputChatState extends State<AuInputChat> {
 class PostcardChatConfig {
   final String address;
   final String tokenId;
-  final int? firstTimeJoined;
   final int? lastMessageReadTimeStamp;
 
   PostcardChatConfig({
     required this.address,
     required this.tokenId,
-    this.firstTimeJoined,
     this.lastMessageReadTimeStamp,
   });
 
   Map<String, dynamic> toJson() => {
         'address': address,
         'tokenId': tokenId,
-        'firstTimeJoined': firstTimeJoined,
         'lastMessageReadTimeStamp': lastMessageReadTimeStamp,
       };
 
@@ -731,7 +706,6 @@ class PostcardChatConfig {
       PostcardChatConfig(
         address: json['address'] as String,
         tokenId: json['tokenId'] as String,
-        firstTimeJoined: json['firstTimeJoined'] as int?,
         lastMessageReadTimeStamp: json['lastMessageReadTimeStamp'] as int?,
       );
 
@@ -745,7 +719,6 @@ class PostcardChatConfig {
       PostcardChatConfig(
         address: address ?? this.address,
         tokenId: tokenId ?? this.tokenId,
-        firstTimeJoined: firstTimeJoined ?? this.firstTimeJoined,
         lastMessageReadTimeStamp:
             lastMessageReadTimeStamp ?? this.lastMessageReadTimeStamp,
       );
