@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
+import 'package:autonomy_flutter/screen/home/collection_home_page.dart';
 import 'package:autonomy_flutter/screen/home/home_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
@@ -76,6 +77,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   late List<Widget> _pages;
   late List<BottomNavigationBarItem> _bottomItems;
   final GlobalKey<HomePageState> _homePageKey = GlobalKey();
+  final GlobalKey<CollectionHomePageState> _collectionHomePageKey = GlobalKey();
   final _configurationService = injector<ConfigurationService>();
   late Timer? _timer;
   final _clientTokenService = injector<ClientTokenService>();
@@ -165,6 +167,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
 
     _pages = <Widget>[
       HomePage(key: _homePageKey),
+      CollectionHomePage(key: _collectionHomePageKey),
       MultiBlocProvider(
         providers: [
           BlocProvider.value(value: AccountsBloc(injector(), injector())),
@@ -173,6 +176,13 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       ),
     ];
     _bottomItems = [
+      const BottomNavigationBarItem(
+        icon: Icon(
+          AuIcon.playlists,
+          size: 25,
+        ),
+        label: '',
+      ),
       const BottomNavigationBarItem(
         icon: Icon(
           AuIcon.playlists,
