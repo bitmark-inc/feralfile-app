@@ -44,6 +44,7 @@ import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/view/homepage_navigation_bar.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:dio/dio.dart';
@@ -75,7 +76,6 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   int _selectedIndex = 0;
   late PageController _pageController;
   late List<Widget> _pages;
-  late List<BottomNavigationBarItem> _bottomItems;
   final GlobalKey<HomePageState> _homePageKey = GlobalKey();
   final GlobalKey<CollectionHomePageState> _collectionHomePageKey = GlobalKey();
   final _configurationService = injector<ConfigurationService>();
@@ -175,53 +175,6 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         child: const WalletPage(),
       ),
     ];
-    _bottomItems = [
-      const BottomNavigationBarItem(
-        icon: Icon(
-          AuIcon.playlists,
-          size: 25,
-        ),
-        label: '',
-      ),
-      const BottomNavigationBarItem(
-        icon: Icon(
-          AuIcon.playlists,
-          size: 25,
-        ),
-        label: '',
-      ),
-      const BottomNavigationBarItem(
-        icon: Icon(
-          AuIcon.wallet,
-          size: 25,
-        ),
-        label: '',
-      ),
-      const BottomNavigationBarItem(
-        icon: Icon(
-          AuIcon.scan,
-          size: 25,
-        ),
-        label: '',
-      ),
-      BottomNavigationBarItem(
-        icon: ValueListenableBuilder<List<int>?>(
-          valueListenable:
-              injector<CustomerSupportService>().numberOfIssuesInfo,
-          builder: (BuildContext context, List<int>? numberOfIssuesInfo,
-                  Widget? child) =>
-              iconWithRedDot(
-            icon: const Icon(
-              AuIcon.drawer,
-              size: 25,
-            ),
-            padding: const EdgeInsets.only(right: 2, top: 2),
-            withReddot: numberOfIssuesInfo != null && numberOfIssuesInfo[1] > 0,
-          ),
-        ),
-        label: '',
-      ),
-    ];
 
     if (!_configurationService.isReadRemoveSupport()) {
       unawaited(_showRemoveCustomerSupport());
@@ -310,25 +263,80 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   }
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Scaffold(
-      bottomNavigationBar: BottomNavigationBar(
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        currentIndex: _selectedIndex,
-        unselectedItemColor: theme.disabledColor,
-        selectedItemColor: theme.primaryColor,
-        backgroundColor: theme.colorScheme.background.withOpacity(0.95),
-        type: BottomNavigationBarType.fixed,
-        onTap: _onItemTapped,
-        items: _bottomItems,
+  Widget build(BuildContext context) => Scaffold(
+        body: Stack(
+          children: [
+            PageView(
+              controller: _pageController,
+              physics: const NeverScrollableScrollPhysics(),
+              children: _pages,
+            ),
+            Positioned.fill(
+              bottom: 40,
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: _buildBottomNavigationBar(context),
+              ),
+            ),
+          ],
+        ),
+      );
+
+  Widget _buildBottomNavigationBar(BuildContext context) {
+    final bottomItems = [
+      const FFNavigationBarItem(
+        icon: Icon(
+          AuIcon.playlists,
+          size: 25,
+        ),
+        label: '',
       ),
-      body: PageView(
-        controller: _pageController,
-        physics: const NeverScrollableScrollPhysics(),
-        children: _pages,
+      const FFNavigationBarItem(
+        icon: Icon(
+          AuIcon.playlists,
+          size: 25,
+        ),
+        label: '',
       ),
+      const FFNavigationBarItem(
+        icon: Icon(
+          AuIcon.wallet,
+          size: 25,
+        ),
+        label: '',
+      ),
+      const FFNavigationBarItem(
+        icon: Icon(
+          AuIcon.scan,
+          size: 25,
+        ),
+        label: '',
+      ),
+      FFNavigationBarItem(
+        icon: ValueListenableBuilder<List<int>?>(
+          valueListenable:
+              injector<CustomerSupportService>().numberOfIssuesInfo,
+          builder: (BuildContext context, List<int>? numberOfIssuesInfo,
+                  Widget? child) =>
+              iconWithRedDot(
+            icon: const Icon(
+              AuIcon.drawer,
+              size: 25,
+            ),
+            padding: const EdgeInsets.only(right: 2, top: 2),
+            withReddot: numberOfIssuesInfo != null && numberOfIssuesInfo[1] > 0,
+          ),
+        ),
+        label: '',
+      ),
+    ];
+    return FFNavigationBar(
+      items: bottomItems,
+      selectedItemColor: AppColor.white,
+      unselectedItemColor: AppColor.disabledColor,
+      backgroundColor: AppColor.auGreyBackground,
+      onSelectTab: _onItemTapped,
+      currentIndex: _selectedIndex,
     );
   }
 
