@@ -1,11 +1,13 @@
+import 'package:autonomy_flutter/gateway/chat_api.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
+import 'package:nft_collection/models/asset_token.dart';
 
 abstract class AuChatEvent {}
 
 class GetAliasesEvent extends AuChatEvent {
-  final String tokenId;
+  final AssetToken assetToken;
 
-  GetAliasesEvent(this.tokenId);
+  GetAliasesEvent(this.assetToken);
 }
 
 class SendMessageEvent extends AuChatEvent {
@@ -15,12 +17,10 @@ class SendMessageEvent extends AuChatEvent {
 }
 
 class SetChatAliasEvent extends AuChatEvent {
-  final String tokenId;
-  final String address;
+  final AssetToken assetToken;
   final String alias;
 
-  SetChatAliasEvent(
-      {required this.tokenId, required this.alias, required this.address});
+  SetChatAliasEvent({required this.assetToken, required this.alias});
 }
 
 class SubmitMessageEvent extends AuChatEvent {
@@ -30,18 +30,18 @@ class SubmitMessageEvent extends AuChatEvent {
 }
 
 class AuChatState {
-  final Map<String, String> aliases;
+  final List<ChatAlias> aliases;
   final int? lastMessageTimestamp;
   final List<types.Message> messages;
 
   AuChatState({
-    this.aliases = const {},
+    this.aliases = const [],
     this.lastMessageTimestamp,
     List<types.Message>? messages,
   }) : messages = messages ?? [];
 
   AuChatState copyWith({
-    Map<String, String>? aliases,
+    List<ChatAlias>? aliases,
     int? lastMessageTimestamp,
     List<types.Message>? messages,
   }) =>

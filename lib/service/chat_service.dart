@@ -1,15 +1,15 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/gateway/chat_api.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/chat_message.dart' as app;
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/service/chat_auth_service.dart';
-import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/wallet_ext.dart';
 import 'package:crypto/crypto.dart';
 import 'package:eth_sig_util/util/utils.dart';
 import 'package:libauk_dart/libauk_dart.dart';
@@ -45,11 +45,15 @@ abstract class ChatService {
   Future<void> sendPostcardCompleteMessage(
       String address, String id, Pair<WalletStorage, int> wallet);
 
-  Future<Map<String, String>> getAliases(String tokenId);
+  Future<List<ChatAlias>> getAliases({
+    required String indexId,
+    required Pair<WalletStorage, int> wallet,
+  });
 
   Future<bool> setAlias({
     required String alias,
-    required String tokenId,
+    required String indexId,
+    required Pair<WalletStorage, int> wallet,
     required String address,
   });
 }
@@ -64,6 +68,9 @@ class ChatServiceImpl implements ChatService {
   Pair<WalletStorage, int>? _wallet;
   final _connectLock = Lock();
   dynamic _reconnectCallback;
+  final ChatApi _chatAPI;
+
+  ChatServiceImpl(this._chatAPI);
 
   @override
   Future<void> connect({
@@ -232,16 +239,9 @@ class ChatServiceImpl implements ChatService {
     final digest = hmacSha256.convert(utf8.encode(canonicalString));
     final sig = bytesToHex(digest.bytes);
     header['X-Api-Signature'] = sig;
-
-    final pubKey = await wallet.first.getTezosPublicKey(index: wallet.second);
-    final authSig = await injector<TezosService>().signMessage(wallet.first,
-        wallet.second, Uint8List.fromList(utf8.encode(timestamp.toString())));
-    final token = await injector<ChatAuthService>().getAuthToken({
-      'address': address,
-      'public_key': pubKey,
-      'signature': authSig,
-      'timestamp': timestamp
-    }, address: address);
+    final authBody = await wallet.chatAuthBody;
+    final token = await injector<ChatAuthService>()
+        .getAuthToken(authBody, address: address);
     header['Authorization'] = 'Bearer $token';
     return header;
   }
@@ -290,18 +290,41 @@ class ChatServiceImpl implements ChatService {
   }
 
   @override
-  Future<Map<String, String>> getAliases(String tokenId) async {
-    await Future.delayed(const Duration(seconds: 1));
-    return {'alias': 'alias'};
+  Future<List<ChatAlias>> getAliases(
+      {required String indexId,
+      required Pair<WalletStorage, int> wallet}) async {
+    final authBody = await wallet.chatAuthBody;
+    final authToken = await injector<ChatAuthService>()
+        .getAuthToken(authBody, address: authBody['address']!);
+    final authorization = 'Bearer $authToken';
+    final response = await _chatAPI.getAlias(indexId, authorization);
+    return response.aliases;
   }
 
   @override
   Future<bool> setAlias(
       {required String alias,
-      required String tokenId,
+      required String indexId,
+      required Pair<WalletStorage, int> wallet,
       required String address}) async {
-    await Future.delayed(const Duration(seconds: 1));
-    return true;
+    try {
+      final body = {
+        'alias': alias,
+        'index_id': indexId,
+      };
+
+      final authBody = await wallet.chatAuthBody;
+      final authToken = await injector<ChatAuthService>()
+          .getAuthToken(authBody, address: address);
+
+      final authorization = 'Bearer $authToken';
+
+      await _chatAPI.setAlias(body, authorization);
+      return true;
+    } catch (e) {
+      log.info('[CHAT] setAlias error: $e');
+      return false;
+    }
   }
 }
 

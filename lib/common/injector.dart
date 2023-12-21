@@ -200,7 +200,7 @@ Future<void> setup() async {
         injector(),
       ));
 
-  injector.registerLazySingleton(() => ChatApi(dio,
+  injector.registerLazySingleton(() => ChatApi(chatDio(dioOptions),
       baseUrl: Environment.postcardChatServerUrl.replaceFirst('ws', 'http')));
   injector.registerLazySingleton(() => ChatAuthService(injector()));
   injector.registerLazySingleton(
@@ -325,7 +325,9 @@ Future<void> setup() async {
     ),
   );
 
-  injector.registerLazySingleton<ChatService>(() => ChatServiceImpl());
+  injector.registerLazySingleton<ChatService>(() => ChatServiceImpl(
+        injector(),
+      ));
 
   injector.registerLazySingleton<AirdropService>(
     () => AirdropService(

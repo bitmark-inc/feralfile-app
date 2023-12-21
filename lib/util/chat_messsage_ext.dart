@@ -1,3 +1,5 @@
+import 'package:autonomy_flutter/gateway/chat_api.dart';
+import 'package:autonomy_flutter/util/ChatAliasExt.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -14,7 +16,7 @@ extension UserExtension on User {
   bool get isSystemUser => id == 'system';
 
   String getName(
-      {required AssetToken assetToken, required Map<String, String> aliases}) {
+      {required AssetToken assetToken, required List<ChatAlias> aliases}) {
     if (isSystemUser) {
       return 'system'.tr();
     }
@@ -27,7 +29,7 @@ extension UserExtension on User {
     if (artists.isEmpty || artist == null) {
       return 'pending_stamper'.tr();
     } else {
-      final alias = aliases[artist.id];
+      final alias = aliases.getAlias(artist.id ?? '');
       if (alias != null && alias.isNotEmpty) {
         return alias;
       }

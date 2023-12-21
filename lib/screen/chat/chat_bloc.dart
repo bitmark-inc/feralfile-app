@@ -3,42 +3,41 @@ import 'dart:convert';
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/screen/chat/chat_state.dart';
 import 'package:autonomy_flutter/service/chat_service.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/log.dart';
 
 class AuChatBloc extends AuBloc<AuChatEvent, AuChatState> {
   final ChatService _chatService;
 
   AuChatBloc(this._chatService) : super(AuChatState()) {
     on<GetAliasesEvent>((event, emit) async {
-      final aliases = await _chatService.getAliases(event.tokenId);
+      final assetToken = event.assetToken;
+      final wallet = await assetToken.getOwnerWallet();
+      if (wallet == null) {
+        log.info('[AuChatBloc] Wallet is null');
+        emit(state.copyWith(aliases: []));
+        return;
+      }
+      final aliases =
+          await _chatService.getAliases(indexId: assetToken.id, wallet: wallet);
       emit(state.copyWith(aliases: aliases));
     });
 
     on<SetChatAliasEvent>((event, emit) async {
+      final assetToken = event.assetToken;
+      final wallet = await assetToken.getOwnerWallet();
+      final address = assetToken.owner;
+      if (wallet == null) {
+        log.info('[AuChatBloc] Wallet is null');
+        return;
+      }
       await _chatService.setAlias(
-          tokenId: event.tokenId, address: event.address, alias: event.alias);
-      add(GetAliasesEvent(event.tokenId));
+          indexId: assetToken.id,
+          address: address,
+          alias: event.alias,
+          wallet: wallet);
+      add(GetAliasesEvent(assetToken));
     });
-
-    // on<SubmitMessageEvent> ((event, emit) {
-    //   final timestamp = DateTime.now().millisecondsSinceEpoch;
-    //   final messageId = const Uuid().v4();
-    //
-    //   final sendingMessage = types.SystemMessage(
-    //     id: messageId,
-    //     author: _user,
-    //     createdAt: timestamp,
-    //     text: message,
-    //     status: types.Status.sending,
-    //   );
-    //   if (_chatPrivateBannerTimestamp == null) {
-    //     _checkReadPrivateChatBanner();
-    //   }
-    //   setState(() {
-    //     _messages.insert(0, sendingMessage);
-    //   });
-    //
-    //   _auChatBloc.add(SendMessageEvent(sendingMessage));
-    //       }
 
     on<SendMessageEvent>((event, emit) {
       final message = event.message;

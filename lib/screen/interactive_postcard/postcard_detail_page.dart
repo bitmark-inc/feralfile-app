@@ -18,8 +18,6 @@ import 'package:autonomy_flutter/model/prompt.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
-import 'package:autonomy_flutter/screen/chat/chat_bloc.dart';
-import 'package:autonomy_flutter/screen/chat/chat_state.dart';
 import 'package:autonomy_flutter/screen/chat/chat_thread_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
@@ -105,7 +103,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   late bool alreadyShowPopup;
   late bool isProcessingStampPostcard;
   late bool isAutoStampIfNeed;
-  late AuChatBloc _chatBloc;
 
   late DistanceFormatter distanceFormatter;
   Timer? timer;
@@ -126,7 +123,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     alreadyShowPopup = false;
     isProcessingStampPostcard = false;
     isAutoStampIfNeed = true;
-    _chatBloc = injector<AuChatBloc>();
     super.initState();
     context.read<PostcardDetailBloc>().add(
           PostcardDetailGetInfoEvent(
@@ -474,7 +470,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         context
             .read<TravelInfoBloc>()
             .add(GetTravelInfoEvent(asset: state.assetToken!));
-        _chatBloc.add(GetAliasesEvent(asset.tokenId!));
 
         final identityState = context.watch<IdentityBloc>().state;
         final artistNames = (asset.getArtists.isEmpty
@@ -661,35 +656,27 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
         !_remoteConfig.getBool(ConfigGroup.viewDetail, ConfigKey.chat)) {
       return const SizedBox();
     } else {
-      return BlocConsumer<AuChatBloc, AuChatState>(
-        bloc: _chatBloc,
-        builder: (BuildContext context, AuChatState state) {
-          final aliases = state.aliases;
-          return FutureBuilder<Pair<WalletStorage, int>?>(
-              // ignore: discarded_futures
-              future: assetToken.getOwnerWallet(),
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  final wallet = snapshot.data;
-                  if (wallet == null) {
-                    return const SizedBox();
-                  }
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 15),
-                    child: MessagePreview(
-                        payload: MessagePreviewPayload(
-                      asset: assetToken,
-                      wallet: wallet,
-                      getAssetToken: getCurrentAssetToken,
-                      aliases: aliases,
-                    )),
-                  );
-                }
+      return FutureBuilder<Pair<WalletStorage, int>?>(
+          // ignore: discarded_futures
+          future: assetToken.getOwnerWallet(),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              final wallet = snapshot.data;
+              if (wallet == null) {
                 return const SizedBox();
-              });
-        },
-        listener: (BuildContext context, AuChatState chatState) {},
-      );
+              }
+              return Padding(
+                padding: const EdgeInsets.only(top: 15),
+                child: MessagePreview(
+                    payload: MessagePreviewPayload(
+                  asset: assetToken,
+                  wallet: wallet,
+                  getAssetToken: getCurrentAssetToken,
+                )),
+              );
+            }
+            return const SizedBox();
+          });
     }
   }
 

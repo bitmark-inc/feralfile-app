@@ -4,6 +4,7 @@ import 'dart:math';
 import 'dart:ui' as ui;
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/gateway/chat_api.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/chat_message.dart' as app;
 import 'package:autonomy_flutter/model/pair.dart';
@@ -11,6 +12,7 @@ import 'package:autonomy_flutter/screen/chat/chat_bloc.dart';
 import 'package:autonomy_flutter/screen/chat/chat_state.dart';
 import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/util/ChatAliasExt.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/chat_messsage_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -57,7 +59,7 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
   final ChatService _postcardChatService = injector<ChatService>();
   ChatListener? _chatListener;
   late AuChatBloc _auChatBloc;
-  Map<String, String> _aliases = {};
+  List<ChatAlias> _aliases = [];
   late TextEditingController _textController;
   late FocusNode _textFieldFocusNode;
   late bool _showSetAliasTextField;
@@ -75,9 +77,9 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
     _textFieldFocusNode = FocusNode();
     _withOverlay = _textFieldFocusNode.hasFocus;
     _textFieldFocusNode.addListener(_textFieldFocusNodeListener);
-    _showSetAliasTextField = true;
+    _showSetAliasTextField = false;
     _auChatBloc = injector<AuChatBloc>();
-    _auChatBloc.add(GetAliasesEvent(_payload.token.id));
+    _auChatBloc.add(GetAliasesEvent(_payload.token));
   }
 
   void _checkReadPrivateChatBanner() {
@@ -256,15 +258,14 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
   }
 
   void onSubmitAlias(String alias) {
+    setState(() {
+      _showSetAliasTextField = false;
+    });
     if (alias.trim().isEmpty) {
       return;
     }
-    final address = _payload.address;
-    if (_aliases.containsKey(address) && _aliases[address] == alias) {
-      return;
-    }
-    _auChatBloc.add(SetChatAliasEvent(
-        tokenId: _payload.token.id, alias: alias, address: address));
+    _auChatBloc
+        .add(SetChatAliasEvent(assetToken: widget.payload.token, alias: alias));
   }
 
   Widget _setAliasTextField(BuildContext context) {
@@ -299,9 +300,7 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
       textCapitalization: TextCapitalization.sentences,
       onTapOutside: (event) {
         _textFieldFocusNode.unfocus();
-        // setState(() {
-        //   _showSetAliasTextField = false;
-        // });
+        onSubmitAlias(_textController.text);
       },
     );
   }
@@ -353,6 +352,11 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
         listener: (context, chatState) {
           setState(() {
             _aliases = chatState.aliases;
+            final alias = chatState.aliases.getAlias(_payload.address);
+            _showSetAliasTextField = alias == null;
+            if (alias != null) {
+              _textController.text = alias;
+            }
           });
         });
   }
@@ -363,13 +367,34 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
     }
   }
 
+  void _onTapToSetAlias() {
+    setState(() {
+      _textFieldFocusNode.requestFocus();
+      _showSetAliasTextField = true;
+    });
+  }
+
   Widget _chatThread(BuildContext context) => Chat(
         l10n: ChatL10nEn(
           inputPlaceholder: 'message'.tr(),
         ),
         onMessageVisibilityChanged: _onMessageVisibilityChanged,
         customDateHeaderText: getChatDateTimeRepresentation,
-        systemMessageBuilder: _systemMessageBuilder,
+        systemMessageBuilder: (systemMessage) => _systemMessageBuilder(
+          message: systemMessage,
+          onAvatarTap: () {
+            if (_user.id != systemMessage.author.id) {
+              return;
+            }
+            _onTapToSetAlias();
+          },
+          onAliasTap: () {
+            if (_user.id != systemMessage.author.id) {
+              return;
+            }
+            _onTapToSetAlias();
+          },
+        ),
         bubbleRtlAlignment: BubbleRtlAlignment.left,
         isLastPage: false,
         theme: _chatTheme,
@@ -418,7 +443,11 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
         }));
   }
 
-  Widget _systemMessageBuilder(types.SystemMessage message) {
+  Widget _systemMessageBuilder({
+    required types.SystemMessage message,
+    required void Function()? onAvatarTap,
+    required void Function()? onAliasTap,
+  }) {
     if (message.id == _chatPrivateBannerId) {
       return _chatPrivateBanner(context, text: message.text);
     }
@@ -441,13 +470,15 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              if (message.isSystemMessage)
-                SystemUserAvatar(
-                  url: avatarUrl,
-                  key: Key(avatarUrl),
-                )
-              else
-                UserAvatar(key: Key(avatarUrl), url: avatarUrl),
+              GestureDetector(
+                onTap: onAvatarTap,
+                child: (message.isSystemMessage)
+                    ? SystemUserAvatar(
+                        url: avatarUrl,
+                        key: Key(avatarUrl),
+                      )
+                    : UserAvatar(key: Key(avatarUrl), url: avatarUrl),
+              ),
               const SizedBox(width: 20),
               Expanded(
                 child: Column(
@@ -457,6 +488,7 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
                       message: message,
                       assetToken: assetToken,
                       aliases: _aliases,
+                      onAliasTap: onAliasTap,
                     ),
                   ],
                 ),

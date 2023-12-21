@@ -2,8 +2,11 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/gateway/chat_api.dart';
 import 'package:autonomy_flutter/model/chat_message.dart' as app;
 import 'package:autonomy_flutter/model/pair.dart';
+import 'package:autonomy_flutter/screen/chat/chat_bloc.dart';
+import 'package:autonomy_flutter/screen/chat/chat_state.dart';
 import 'package:autonomy_flutter/screen/chat/chat_thread_page.dart';
 import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -17,6 +20,7 @@ import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/models/asset_token.dart';
@@ -39,11 +43,13 @@ class _MessagePreviewState extends State<MessagePreview> {
   final String _fetchId = const Uuid().v4();
   ChatListener? _chatListener;
   bool _didFetch = false;
+  final _chatBloc = injector<AuChatBloc>();
 
   @override
   void initState() {
     super.initState();
     _assetToken = widget.payload.asset;
+    _chatBloc.add(GetAliasesEvent(_assetToken));
     unawaited(_websocketInit());
   }
 
@@ -105,67 +111,76 @@ class _MessagePreviewState extends State<MessagePreview> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
-        color: AppColor.white,
-      ),
-      padding: const EdgeInsets.all(20),
-      child: TappableForwardRowWithContent(
-        padding: const EdgeInsets.all(0),
-        leftWidget: Row(
-          crossAxisAlignment: CrossAxisAlignment.baseline,
-          textBaseline: TextBaseline.alphabetic,
-          children: [
-            Text(
-              'messages'.tr(),
-              style: theme.textTheme.moMASans700Black18,
+    return BlocConsumer<AuChatBloc, AuChatState>(
+      bloc: _chatBloc,
+      listener: (context, state) {},
+      builder: (context, state) {
+        final aliases = state.aliases;
+        return Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(15),
+            color: AppColor.white,
+          ),
+          padding: const EdgeInsets.all(20),
+          child: TappableForwardRowWithContent(
+            padding: const EdgeInsets.all(0),
+            leftWidget: Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Text(
+                  'messages'.tr(),
+                  style: theme.textTheme.moMASans700Black18,
+                ),
+                const SizedBox(width: 30),
+                Text(_getNewMessageString(_newMessageCount),
+                    style: theme.textTheme.moMASans400Black14.copyWith(
+                        color: const Color.fromRGBO(236, 100, 99, 1),
+                        fontSize: 10)),
+              ],
             ),
-            const SizedBox(width: 30),
-            Text(_getNewMessageString(_newMessageCount),
-                style: theme.textTheme.moMASans400Black14.copyWith(
-                    color: const Color.fromRGBO(236, 100, 99, 1),
-                    fontSize: 10)),
-          ],
-        ),
-        onTap: () async {
-          await Navigator.of(context).pushNamed(
-            ChatThreadPage.tag,
-            arguments: ChatThreadPagePayload(
-                token: _assetToken,
-                wallet: widget.payload.wallet,
-                address: _assetToken.owner,
-                cryptoType: _assetToken.blockchain == 'ethereum'
-                    ? CryptoType.ETH
-                    : CryptoType.XTZ,
-                name: _assetToken.title ?? ''),
-          );
-          setState(() {
-            _newMessageCount = 0;
-            _assetToken = widget.payload.getAssetToken() ?? _assetToken;
-          });
-        },
-        bottomWidget: _lastMessage == null
-            ? _didFetch
-                ? Text(
-                    'no_message_start'.tr(),
-                    style: theme.textTheme.moMASans400Black12
-                        .copyWith(color: AppColor.auQuickSilver),
-                  )
-                : const SizedBox()
-            : Row(
-                children: [
-                  Expanded(
-                    child: MessageView(
-                        message: _lastMessage!.toTypesMessage(),
-                        assetToken: _assetToken,
-                        expandAll: false,
-                        showFullTime: true,
-                        aliases: widget.payload.aliases),
-                  )
-                ],
-              ),
-      ),
+            onTap: () async {
+              await Navigator.of(context).pushNamed(
+                ChatThreadPage.tag,
+                arguments: ChatThreadPagePayload(
+                    token: _assetToken,
+                    wallet: widget.payload.wallet,
+                    address: _assetToken.owner,
+                    cryptoType: _assetToken.blockchain == 'ethereum'
+                        ? CryptoType.ETH
+                        : CryptoType.XTZ,
+                    name: _assetToken.title ?? ''),
+              );
+
+              setState(() {
+                _newMessageCount = 0;
+                _assetToken = widget.payload.getAssetToken() ?? _assetToken;
+                _chatBloc.add(GetAliasesEvent(_assetToken));
+              });
+            },
+            bottomWidget: _lastMessage == null
+                ? _didFetch
+                    ? Text(
+                        'no_message_start'.tr(),
+                        style: theme.textTheme.moMASans400Black12
+                            .copyWith(color: AppColor.auQuickSilver),
+                      )
+                    : const SizedBox()
+                : Row(
+                    children: [
+                      Expanded(
+                        child: MessageView(
+                            message: _lastMessage!.toTypesMessage(),
+                            assetToken: _assetToken,
+                            expandAll: false,
+                            showFullTime: true,
+                            aliases: aliases),
+                      )
+                    ],
+                  ),
+          ),
+        );
+      },
     );
   }
 
@@ -184,13 +199,12 @@ class MessagePreviewPayload {
   final AssetToken asset;
   final Pair<WalletStorage, int> wallet;
   final AssetToken? Function() getAssetToken;
-  final Map<String, String> aliases;
 
-  const MessagePreviewPayload(
-      {required this.asset,
-      required this.wallet,
-      required this.getAssetToken,
-      required this.aliases});
+  const MessagePreviewPayload({
+    required this.asset,
+    required this.wallet,
+    required this.getAssetToken,
+  });
 }
 
 class MessageView extends StatelessWidget {
@@ -198,7 +212,8 @@ class MessageView extends StatelessWidget {
   final AssetToken assetToken;
   final bool expandAll;
   final bool showFullTime;
-  final Map<String, String> aliases;
+  final List<ChatAlias> aliases;
+  final Function()? onAliasTap;
 
   const MessageView(
       {required this.message,
@@ -206,7 +221,8 @@ class MessageView extends StatelessWidget {
       required this.aliases,
       super.key,
       this.expandAll = true,
-      this.showFullTime = false});
+      this.showFullTime = false,
+      this.onAliasTap});
 
   Widget completedPostcardMessageView(BuildContext context) {
     final assetToken = this.assetToken;
@@ -240,9 +256,13 @@ class MessageView extends StatelessWidget {
       children: [
         Row(
           children: [
-            Text(
-              message.author.getName(assetToken: assetToken, aliases: aliases),
-              style: theme.textTheme.moMASans700Black12,
+            GestureDetector(
+              onTap: onAliasTap,
+              child: Text(
+                message.author
+                    .getName(assetToken: assetToken, aliases: aliases),
+                style: theme.textTheme.moMASans700Black12,
+              ),
             ),
             const SizedBox(width: 15),
             Text(
