@@ -1,5 +1,5 @@
 import 'package:autonomy_flutter/gateway/chat_api.dart';
-import 'package:autonomy_flutter/util/ChatAliasExt.dart';
+import 'package:autonomy_flutter/util/chat_alias_ext.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:collection/collection.dart';
@@ -56,7 +56,8 @@ extension UserExtension on User {
     }
     int index = artists.indexOf(artist);
     final numberFormater = NumberFormat('00');
-    return '${assetToken.getPreviewUrl()}/assets/stamps/${numberFormater.format(index)}.png';
+    return '${assetToken.getPreviewUrl()}/assets/stamps/${numberFormater.format(
+        index)}.png';
   }
 }
 
