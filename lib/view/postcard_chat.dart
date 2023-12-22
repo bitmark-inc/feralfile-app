@@ -116,6 +116,9 @@ class _MessagePreviewState extends State<MessagePreview> {
       listener: (context, state) {},
       builder: (context, state) {
         final aliases = state.aliases;
+        if (aliases == null) {
+          return const SizedBox();
+        }
         return Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(15),
@@ -277,7 +280,7 @@ class MessageView extends StatelessWidget {
           ],
         ),
         Text(
-          message.text,
+          message.messageText(aliases: aliases, assetToken: assetToken),
           style: theme.textTheme.moMASans400Black14,
           overflow: expandAll ? null : TextOverflow.ellipsis,
           maxLines: expandAll ? null : 1,

@@ -14,6 +14,35 @@ extension ChatMessageExtension on SystemMessage {
   bool get isPrivateChatMessage => id == chatPrivateBannerMessage.id;
 
   bool get isSystemMessage => author.isSystemUser;
+
+  String messageText(
+      {required List<ChatAlias> aliases, required AssetToken? assetToken}) {
+    if (assetToken == null) {
+      return text;
+    }
+    String replacedText = text;
+    if (isSystemMessage) {
+      final listAddressesOwner = assetToken.owners.keys.toList();
+      final List<String> listAddresesArtist = assetToken.getArtists
+          .map((e) => e.id ?? '')
+          .toList()
+          .where((element) => element.isNotEmpty)
+          .toList();
+      final listAddresses =
+          (listAddressesOwner.toList()..addAll(listAddresesArtist))
+            ..toSet()
+            ..toList()
+            ..removeWhere((element) => element.isEmpty);
+
+      for (final address in listAddresses) {
+        final name =
+            User(id: address).getName(assetToken: assetToken, aliases: aliases);
+        replacedText = replacedText.replaceAll(address, name);
+      }
+      return replacedText;
+    }
+    return text;
+  }
 }
 
 extension UserExtension on User {

@@ -30,12 +30,12 @@ class SubmitMessageEvent extends AuChatEvent {
 }
 
 class AuChatState {
-  final List<ChatAlias> aliases;
+  final List<ChatAlias>? aliases;
   final int? lastMessageTimestamp;
   final List<types.Message> messages;
 
   AuChatState({
-    this.aliases = const [],
+    this.aliases,
     this.lastMessageTimestamp,
     List<types.Message>? messages,
   }) : messages = messages ?? [];

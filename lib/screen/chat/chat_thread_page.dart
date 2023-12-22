@@ -30,7 +30,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
-import 'package:flutter_chat_ui/flutter_chat_ui.dart'; //ignore: implementation_imports
+import 'package:flutter_chat_ui/flutter_chat_ui.dart';
+//ignore: implementation_imports
 import 'package:flutter_chat_ui/src/models/date_header.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:libauk_dart/libauk_dart.dart';
@@ -59,7 +60,7 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
   final ChatService _postcardChatService = injector<ChatService>();
   ChatListener? _chatListener;
   late AuChatBloc _auChatBloc;
-  List<ChatAlias> _aliases = [];
+  List<ChatAlias>? _aliases;
   late TextEditingController _textController;
   late FocusNode _textFieldFocusNode;
   late bool _showSetAliasTextField;
@@ -283,49 +284,51 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
     final theme = Theme.of(context);
     return BlocConsumer<AuChatBloc, AuChatState>(
         bloc: _auChatBloc,
-        builder: (context, chatState) => Scaffold(
-              backgroundColor: POSTCARD_BACKGROUND_COLOR,
-              appBar: getBackAppBar(
-                context,
-                title: 'messages'.tr(),
-                titleStyle: theme.textTheme.moMASans700Black18,
-                onBack: () => Navigator.of(context).pop(),
-                statusBarColor: POSTCARD_BACKGROUND_COLOR,
+        builder: (context, chatState) => _aliases != null
+            ? Scaffold(
                 backgroundColor: POSTCARD_BACKGROUND_COLOR,
-              ),
-              body: Column(
-                children: [
-                  if (_showSetAliasTextField)
-                    Container(
-                      color: Colors.transparent,
-                      child: Padding(
-                        padding: const EdgeInsets.all(15),
-                        child: Column(
-                          children: [
-                            _setAliasTextField(context),
-                          ],
+                appBar: getBackAppBar(
+                  context,
+                  title: 'messages'.tr(),
+                  titleStyle: theme.textTheme.moMASans700Black18,
+                  onBack: () => Navigator.of(context).pop(),
+                  statusBarColor: POSTCARD_BACKGROUND_COLOR,
+                  backgroundColor: POSTCARD_BACKGROUND_COLOR,
+                ),
+                body: Column(
+                  children: [
+                    if (_showSetAliasTextField)
+                      Container(
+                        color: Colors.transparent,
+                        child: Padding(
+                          padding: const EdgeInsets.all(15),
+                          child: Column(
+                            children: [
+                              _setAliasTextField(context),
+                            ],
+                          ),
                         ),
                       ),
+                    Expanded(
+                      child: Stack(
+                        children: [
+                          _chatThread(context),
+                          if (_withOverlay)
+                            Positioned.fill(
+                                child: Container(
+                              color: Colors.white.withOpacity(0.9),
+                            ))
+                        ],
+                      ),
                     ),
-                  Expanded(
-                    child: Stack(
-                      children: [
-                        _chatThread(context),
-                        if (_withOverlay)
-                          Positioned.fill(
-                              child: Container(
-                            color: Colors.white.withOpacity(0.9),
-                          ))
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
+                  ],
+                ),
+              )
+            : const SizedBox(),
         listener: (context, chatState) {
           setState(() {
             _aliases = chatState.aliases;
-            final alias = chatState.aliases.getAlias(_payload.address);
+            final alias = chatState.aliases?.getAlias(_payload.address);
             _showSetAliasTextField = alias == null;
             if (alias != null) {
               _textController.text = alias;
@@ -472,7 +475,7 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
                     MessageView(
                       message: message,
                       assetToken: assetToken,
-                      aliases: _aliases,
+                      aliases: _aliases!,
                       onAliasTap: onAliasTap,
                     ),
                   ],

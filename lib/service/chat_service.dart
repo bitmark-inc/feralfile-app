@@ -293,12 +293,17 @@ class ChatServiceImpl implements ChatService {
   Future<List<ChatAlias>> getAliases(
       {required String indexId,
       required Pair<WalletStorage, int> wallet}) async {
-    final authBody = await wallet.chatAuthBody;
-    final authToken = await injector<ChatAuthService>()
-        .getAuthToken(authBody, address: authBody['address']!);
-    final authorization = 'Bearer $authToken';
-    final response = await _chatAPI.getAlias(indexId, authorization);
-    return response.aliases;
+    try {
+      final authBody = await wallet.chatAuthBody;
+      final authToken = await injector<ChatAuthService>()
+          .getAuthToken(authBody, address: authBody['address']!);
+      final authorization = 'Bearer $authToken';
+      final response = await _chatAPI.getAlias(indexId, authorization);
+      return response.aliases;
+    } catch (e) {
+      log.info('[ChatService] getAliases error: $e');
+      return [];
+    }
   }
 
   @override
@@ -322,7 +327,7 @@ class ChatServiceImpl implements ChatService {
       await _chatAPI.setAlias(body, authorization);
       return true;
     } catch (e) {
-      log.info('[CHAT] setAlias error: $e');
+      log.info('[ChatService] setAlias error: $e');
       return false;
     }
   }
