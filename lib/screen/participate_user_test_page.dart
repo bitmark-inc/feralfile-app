@@ -5,6 +5,11 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
+import 'dart:convert';
+
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -15,10 +20,30 @@ import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
-import '../util/constants.dart';
+class ParticipateUserTestPage extends StatefulWidget {
+  const ParticipateUserTestPage({super.key});
 
-class ParticipateUserTestPage extends StatelessWidget {
-  const ParticipateUserTestPage({Key? key}) : super(key: key);
+  @override
+  State<ParticipateUserTestPage> createState() =>
+      _ParticipateUserTestPageState();
+}
+
+class _ParticipateUserTestPageState extends State<ParticipateUserTestPage> {
+  String? _calendarLink;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_getCalendarLink());
+  }
+
+  Future<void> _getCalendarLink() async {
+    final data = await injector<PubdocAPI>().getUserTestConfigs();
+    final configs = jsonDecode(data) as Map<String, dynamic>;
+    setState(() {
+      _calendarLink = configs['calendar_link'];
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,14 +67,14 @@ class ParticipateUserTestPage extends StatelessWidget {
                   children: [
                     addTitleSpace(),
                     Text(
-                      "like_to_test".tr(),
+                      'like_to_test'.tr(),
                       style: theme.textTheme.ppMori700Black24,
                     ),
                     const SizedBox(
                       height: 32,
                     ),
                     Text(
-                      "help_us_verify".tr(),
+                      'help_us_verify'.tr(),
                       style: theme.textTheme.ppMori400Black16,
                     ),
                     const SizedBox(
@@ -65,48 +90,41 @@ class ParticipateUserTestPage extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "what_to_expect".tr(),
+                            'what_to_expect'.tr(),
                             style: theme.textTheme.ppMori700Black14,
                           ),
                           const SizedBox(height: 12),
                           ...[
-                            "user_test_will_1".tr(),
-                            //'The user test will be conducted via Zoom.',
-                            "user_test_will_2".tr(),
-                            //'You should have a good Internet connection in a quiet area.',
-                            "user_test_will_3".tr(),
-                            //'You will be asked questions in English or French.',
-                            "user_test_will_4".tr(),
-                            //'You should already have NFTs on Ethereum, Tezos, or Bitmark chains.',
-                            "user_test_will_5".tr(),
-                            //'We may ask you to install a development build on your device.',
-                          ]
-                              .map(
-                                (e) => Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const SizedBox(
-                                      width: 8,
-                                    ),
-                                    Text(
-                                      ' •  ',
-                                      style: ResponsiveLayout.isMobile
-                                          ? theme.textTheme.ppMori400Black14
-                                          : theme.textTheme.ppMori400Black16,
-                                      textAlign: TextAlign.start,
-                                    ),
-                                    Expanded(
-                                      child: Text(
-                                        e,
-                                        style: ResponsiveLayout.isMobile
-                                            ? theme.textTheme.ppMori400Black14
-                                            : theme.textTheme.ppMori400Black16,
-                                      ),
-                                    ),
-                                  ],
+                            'user_test_will_1'.tr(),
+                            'user_test_will_2'.tr(),
+                            'user_test_will_3'.tr(),
+                            'user_test_will_4'.tr(),
+                            'user_test_will_5'.tr(),
+                          ].map(
+                            (e) => Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const SizedBox(
+                                  width: 8,
                                 ),
-                              )
-                              .toList(),
+                                Text(
+                                  ' •  ',
+                                  style: ResponsiveLayout.isMobile
+                                      ? theme.textTheme.ppMori400Black14
+                                      : theme.textTheme.ppMori400Black16,
+                                  textAlign: TextAlign.start,
+                                ),
+                                Expanded(
+                                  child: Text(
+                                    e,
+                                    style: ResponsiveLayout.isMobile
+                                        ? theme.textTheme.ppMori400Black14
+                                        : theme.textTheme.ppMori400Black16,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -118,11 +136,12 @@ class ParticipateUserTestPage extends StatelessWidget {
               children: [
                 Expanded(
                   child: PrimaryButton(
-                    text: "schedule_test".tr(),
-                    onTap: () {
-                      Navigator.of(context).pushNamed(
+                    text: 'schedule_test'.tr(),
+                    enabled: _calendarLink != null,
+                    onTap: () async {
+                      await Navigator.of(context).pushNamed(
                         AppRouter.inappWebviewPage,
-                        arguments: InAppWebViewPayload(USER_TEST_CALENDAR_LINK),
+                        arguments: InAppWebViewPayload(_calendarLink!),
                       );
                     },
                   ),
