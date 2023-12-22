@@ -6,37 +6,45 @@
 //
 
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class HeaderView extends StatelessWidget {
-  final double paddingTop;
-  final bool isWhite;
+  final String title;
+  final TextStyle? titleStyle;
   final Widget? action;
+  final EdgeInsets? padding;
 
-  const HeaderView(
-      {required this.paddingTop, super.key, this.isWhite = false, this.action});
+  const HeaderView({
+    required this.title,
+    this.titleStyle,
+    this.padding,
+    super.key,
+    this.action,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final defaultStyle =
+        theme.textTheme.ppMori700White24.copyWith(fontSize: 36);
     return Align(
       alignment: Alignment.centerLeft,
       child: Container(
-        padding: EdgeInsets.fromLTRB(0, paddingTop, 0, 0),
+        padding: padding ?? const EdgeInsets.fromLTRB(12, 33, 0, 42),
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: AutonomyLogo(
-                      isWhite: isWhite,
-                    ),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    title,
+                    style: titleStyle ?? defaultStyle,
                   ),
-                  action ?? const SizedBox()
-                ],
-              ),
+                ),
+                action ?? const SizedBox()
+              ],
             ),
           ],
         ),

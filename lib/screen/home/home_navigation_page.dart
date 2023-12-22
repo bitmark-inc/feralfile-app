@@ -293,7 +293,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       ),
       const FFNavigationBarItem(
         icon: Icon(
-          AuIcon.playlists,
+          AuIcon.discover,
           size: 25,
         ),
         label: '',
