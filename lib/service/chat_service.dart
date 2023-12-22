@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:autonomy_flutter/common/environment.dart';
-import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/chat_api.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/chat_message.dart' as app;
@@ -61,6 +60,7 @@ abstract class ChatService {
 class ChatServiceImpl implements ChatService {
   final List<ChatListener> _listeners = [];
   final Map<String, String> _pendingRequests = {};
+  final ChatAuthService _chatAuthService;
 
   WebSocketChannel? _websocketChannel;
   String? _address;
@@ -70,7 +70,7 @@ class ChatServiceImpl implements ChatService {
   dynamic _reconnectCallback;
   final ChatApi _chatAPI;
 
-  ChatServiceImpl(this._chatAPI);
+  ChatServiceImpl(this._chatAPI, this._chatAuthService);
 
   @override
   Future<void> connect({
@@ -240,8 +240,8 @@ class ChatServiceImpl implements ChatService {
     final sig = bytesToHex(digest.bytes);
     header['X-Api-Signature'] = sig;
     final authBody = await wallet.chatAuthBody;
-    final token = await injector<ChatAuthService>()
-        .getAuthToken(authBody, address: address);
+    final token =
+        await _chatAuthService.getAuthToken(authBody, address: address);
     header['Authorization'] = 'Bearer $token';
     return header;
   }
@@ -295,8 +295,8 @@ class ChatServiceImpl implements ChatService {
       required Pair<WalletStorage, int> wallet}) async {
     try {
       final authBody = await wallet.chatAuthBody;
-      final authToken = await injector<ChatAuthService>()
-          .getAuthToken(authBody, address: authBody['address']!);
+      final authToken = await _chatAuthService.getAuthToken(authBody,
+          address: authBody['address']!);
       final authorization = 'Bearer $authToken';
       final response = await _chatAPI.getAlias(indexId, authorization);
       return response.aliases;
@@ -319,8 +319,8 @@ class ChatServiceImpl implements ChatService {
       };
 
       final authBody = await wallet.chatAuthBody;
-      final authToken = await injector<ChatAuthService>()
-          .getAuthToken(authBody, address: address);
+      final authToken =
+          await _chatAuthService.getAuthToken(authBody, address: address);
 
       final authorization = 'Bearer $authToken';
 

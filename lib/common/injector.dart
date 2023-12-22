@@ -327,6 +327,7 @@ Future<void> setup() async {
 
   injector.registerLazySingleton<ChatService>(() => ChatServiceImpl(
         injector(),
+        injector(),
       ));
 
   injector.registerLazySingleton<AirdropService>(

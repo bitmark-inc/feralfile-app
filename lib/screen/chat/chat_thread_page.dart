@@ -284,47 +284,47 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
     final theme = Theme.of(context);
     return BlocConsumer<AuChatBloc, AuChatState>(
         bloc: _auChatBloc,
-        builder: (context, chatState) => _aliases != null
-            ? Scaffold(
+        builder: (context, chatState) => Scaffold(
+              backgroundColor: POSTCARD_BACKGROUND_COLOR,
+              appBar: getBackAppBar(
+                context,
+                title: 'messages'.tr(),
+                titleStyle: theme.textTheme.moMASans700Black18,
+                onBack: () => Navigator.of(context).pop(),
+                statusBarColor: POSTCARD_BACKGROUND_COLOR,
                 backgroundColor: POSTCARD_BACKGROUND_COLOR,
-                appBar: getBackAppBar(
-                  context,
-                  title: 'messages'.tr(),
-                  titleStyle: theme.textTheme.moMASans700Black18,
-                  onBack: () => Navigator.of(context).pop(),
-                  statusBarColor: POSTCARD_BACKGROUND_COLOR,
-                  backgroundColor: POSTCARD_BACKGROUND_COLOR,
-                ),
-                body: Column(
-                  children: [
-                    if (_showSetAliasTextField)
-                      Container(
-                        color: Colors.transparent,
-                        child: Padding(
-                          padding: const EdgeInsets.all(15),
-                          child: Column(
+              ),
+              body: _aliases != null
+                  ? Column(
+                      children: [
+                        if (_showSetAliasTextField)
+                          Container(
+                            color: Colors.transparent,
+                            child: Padding(
+                              padding: const EdgeInsets.all(15),
+                              child: Column(
+                                children: [
+                                  _setAliasTextField(context),
+                                ],
+                              ),
+                            ),
+                          ),
+                        Expanded(
+                          child: Stack(
                             children: [
-                              _setAliasTextField(context),
+                              _chatThread(context),
+                              if (_withOverlay)
+                                Positioned.fill(
+                                    child: Container(
+                                  color: Colors.white.withOpacity(0.9),
+                                ))
                             ],
                           ),
                         ),
-                      ),
-                    Expanded(
-                      child: Stack(
-                        children: [
-                          _chatThread(context),
-                          if (_withOverlay)
-                            Positioned.fill(
-                                child: Container(
-                              color: Colors.white.withOpacity(0.9),
-                            ))
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              )
-            : const SizedBox(),
+                      ],
+                    )
+                  : const SizedBox(),
+            ),
         listener: (context, chatState) {
           setState(() {
             _aliases = chatState.aliases;
