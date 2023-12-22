@@ -10,9 +10,9 @@ import 'dart:async';
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/announcement_local.dart';
+import 'package:autonomy_flutter/exhibitions/exhibitions_page.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/home/collection_home_page.dart';
@@ -20,7 +20,6 @@ import 'package:autonomy_flutter/screen/home/organize_home_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
-import 'package:autonomy_flutter/screen/wallet/wallet_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/airdrop_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
@@ -109,11 +108,6 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         unawaited(_clientTokenService.refreshTokens());
         unawaited(_playListService.refreshPlayLists());
       }
-    } else if (index == _pages.length) {
-      unawaited(Navigator.of(context).pushNamed(
-        AppRouter.scanQRPage,
-        arguments: ScannerItem.GLOBAL,
-      ));
     } else {
       unawaited(UIHelper.showCenterMenu(
         context,
@@ -194,12 +188,8 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     _pages = <Widget>[
       CollectionHomePage(key: _collectionHomePageKey),
       HomePage(key: _homePageKey),
-      MultiBlocProvider(
-        providers: [
-          BlocProvider.value(value: AccountsBloc(injector(), injector())),
-        ],
-        child: const WalletPage(),
-      ),
+      const ExhibitionsPage(),
+      const ScanQRPage()
     ];
 
     if (!_configurationService.isReadRemoveSupport()) {
