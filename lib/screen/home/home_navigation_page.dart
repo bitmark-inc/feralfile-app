@@ -115,18 +115,45 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         arguments: ScannerItem.GLOBAL,
       ));
     } else {
-      unawaited(UIHelper.showDrawerAction(
+      unawaited(UIHelper.showCenterMenu(
         context,
         options: [
           OptionItem(
-              title: 'Settings',
-              icon: const Icon(
-                AuIcon.settings,
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.of(context).pushNamed(AppRouter.settingsPage);
-              }),
+            title: 'profile'.tr(),
+            icon: const Icon(
+              AuIcon.discover,
+            ),
+            onTap: () {
+              // Navigator.of(context).pushNamed(AppRouter.profilePage);
+            },
+          ),
+          OptionItem(
+            title: 'moma_postcard'.tr(),
+            icon: const Icon(
+              AuIcon.settings,
+            ),
+            onTap: () {
+              Navigator.of(context).pushNamed(AppRouter.settingsPage);
+            },
+          ),
+          OptionItem(
+            title: 'wallet'.tr(),
+            icon: const Icon(
+              AuIcon.wallet,
+            ),
+            onTap: () {
+              Navigator.of(context).pushNamed(AppRouter.walletPage);
+            },
+          ),
+          OptionItem(
+            title: 'Settings',
+            icon: const Icon(
+              AuIcon.settings,
+            ),
+            onTap: () {
+              Navigator.of(context).pushNamed(AppRouter.settingsPage);
+            },
+          ),
           OptionItem(
               title: 'Help',
               icon: ValueListenableBuilder<List<int>?>(
@@ -144,7 +171,6 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
                 ),
               ),
               onTap: () {
-                Navigator.pop(context);
                 Navigator.of(context).pushNamed(AppRouter.supportCustomerPage);
               }),
         ],

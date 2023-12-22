@@ -244,7 +244,7 @@ class UIHelper {
     const backgroundColor = AppColor.white;
     const defaultSeparator = Divider(
       height: 1,
-      thickness: 1.0,
+      thickness: 1,
       color: Color.fromRGBO(227, 227, 227, 1),
     );
     final confettiController =
@@ -659,7 +659,7 @@ class UIHelper {
     Widget optionRow({required String title, Function()? onTap}) => InkWell(
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16.0),
+            padding: const EdgeInsets.symmetric(vertical: 16),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -695,7 +695,7 @@ class UIHelper {
                 ? const SizedBox.shrink()
                 : Divider(
                     height: 1,
-                    thickness: 1.0,
+                    thickness: 1,
                     color: theme.colorScheme.surface,
                   ),
       ),
@@ -1208,9 +1208,161 @@ class UIHelper {
             ));
   }
 
+  static Future<void> showCenterMenu(BuildContext context,
+      {required List<OptionItem> options}) async {
+    final theme = Theme.of(context);
+    await showCupertinoModalPopup(
+      context: context,
+      builder: (context) => Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              color: AppColor.auGreyBackground,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemBuilder: (BuildContext context, int index) {
+                    final option = options[index];
+                    final child = Container(
+                      color: Colors.transparent,
+                      // width: MediaQuery.of(context).size.width,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 16,
+                          horizontal: 13,
+                        ),
+                        child: Row(
+                          children: [
+                            if (option.icon != null)
+                              SizedBox(
+                                  width: 30,
+                                  child: IconTheme(
+                                      data: IconThemeData(
+                                        color: AppColor.white,
+                                      ),
+                                      child: option.icon!)),
+                            if (option.icon != null)
+                              const SizedBox(
+                                width: 39,
+                              ),
+                            Text(
+                              option.title ?? '',
+                              style: option.titleStyle ??
+                                  theme.textTheme.ppMori400White14.copyWith(
+                                      decoration: TextDecoration.none),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                    if (option.builder != null) {
+                      return option.builder!.call(context, option);
+                    }
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.pop(context);
+                        option.onTap?.call();
+                      },
+                      child: child,
+                    );
+                  },
+                  itemCount: options.length,
+                  separatorBuilder: (context, index) => const Divider(
+                    height: 1,
+                    color: AppColor.primaryBlack,
+                  ),
+                )
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    // await Navigator.of(context).push(
+    //   TransparentRoute(
+    //     builder: (context) => GestureDetector(
+    //       onTap: () {
+    //         Navigator.pop(context);
+    //       },
+    //       child: Center(
+    //         child: IntrinsicHeight(
+    //           child: Container(
+    //             padding: const EdgeInsets.symmetric(horizontal: 20),
+    //             decoration: BoxDecoration(
+    //               borderRadius: BorderRadius.circular(20),
+    //               color: Colors.amber,
+    //             ),
+    //             child: Column(
+    //               mainAxisAlignment: MainAxisAlignment.center,
+    //               children: [
+    //                 ListView.separated(
+    //                   shrinkWrap: true,
+    //                   physics: const NeverScrollableScrollPhysics(),
+    //                   itemBuilder: (BuildContext context, int index) {
+    //                     final child = Container(
+    //                       color: Colors.amber,
+    //                       width: MediaQuery.of(context).size.width,
+    //                       child: Padding(
+    //                         padding: const EdgeInsets.symmetric(
+    //                           vertical: 16.0,
+    //                           horizontal: 13,
+    //                         ),
+    //                         child: Row(
+    //                           children: [
+    //                             if (options[index].icon != null)
+    //                               SizedBox(
+    //                                   width: 30, child: options[index].icon!),
+    //                             if (options[index].icon != null)
+    //                               const SizedBox(
+    //                                 width: 34,
+    //                               ),
+    //                             Text(
+    //                               options[index].title ?? '',
+    //                               style: options[index].titleStyle ??
+    //                                   theme.textTheme.ppMori400Black14,
+    //                             ),
+    //                           ],
+    //                         ),
+    //                       ),
+    //                     );
+    //                     if (options[index].builder != null) {
+    //                       return options[index]
+    //                           .builder!
+    //                           .call(context, options[index]);
+    //                     }
+    //                     return GestureDetector(
+    //                       onTap: options[index].onTap,
+    //                       child: child,
+    //                     );
+    //                   },
+    //                   itemCount: options.length ?? 0,
+    //                   separatorBuilder: (context, index) => Divider(
+    //                     height: 1,
+    //                     thickness: 1.0,
+    //                     color: theme.colorScheme.secondary,
+    //                   ),
+    //                 )
+    //               ],
+    //             ),
+    //           ),
+    //         ),
+    //       ),
+    //     ),
+    //   ),
+    // );
+  }
+
   static Future<void> showDrawerAction(BuildContext context,
       {List<OptionItem>? options}) async {
     final theme = Theme.of(context);
+
     await showModalBottomSheet<dynamic>(
         context: context,
         backgroundColor: Colors.transparent,
@@ -1245,7 +1397,7 @@ class UIHelper {
                         width: MediaQuery.of(context).size.width,
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
-                            vertical: 16.0,
+                            vertical: 16,
                             horizontal: 13,
                           ),
                           child: Row(
@@ -1279,7 +1431,7 @@ class UIHelper {
                     itemCount: options?.length ?? 0,
                     separatorBuilder: (context, index) => Divider(
                       height: 1,
-                      thickness: 1.0,
+                      thickness: 1,
                       color: theme.colorScheme.secondary,
                     ),
                   ),
@@ -1328,7 +1480,7 @@ class UIHelper {
                         final item = options[index];
                         const defaultSeparator = Divider(
                           height: 1,
-                          thickness: 1.0,
+                          thickness: 1,
                           color: Color.fromRGBO(227, 227, 227, 1),
                         );
                         return Column(
