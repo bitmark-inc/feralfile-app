@@ -10,7 +10,6 @@ import 'dart:io';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/blockchain.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -23,7 +22,6 @@ import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/cloud_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/locale_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -34,6 +32,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/token_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -85,7 +84,6 @@ class HomePageState extends State<HomePage>
     WidgetsBinding.instance.addObserver(this);
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
     _controller = ScrollController();
-    _configurationService.setAutoShowPostcard(true);
     NftCollectionBloc.eventController.stream.listen((event) async {
       switch (event.runtimeType) {
         case ReloadEvent:
@@ -118,7 +116,6 @@ class HomePageState extends State<HomePage>
   void afterFirstLayout(BuildContext context) {
     unawaited(_handleForeground());
     unawaited(injector<AutonomyService>().postLinkedAddresses());
-    unawaited(_checkForKeySync(context));
   }
 
   @override
@@ -135,7 +132,6 @@ class HomePageState extends State<HomePage>
     super.didPopNext();
     final connectivityResult = await Connectivity().checkConnectivity();
     unawaited(_clientTokenService.refreshTokens());
-    unawaited(refreshNotification());
     if (connectivityResult == ConnectivityResult.mobile ||
         connectivityResult == ConnectivityResult.wifi) {
       Future.delayed(const Duration(milliseconds: 1000), () async {
@@ -213,19 +209,16 @@ class HomePageState extends State<HomePage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    final theme = Theme.of(context);
     final contentWidget =
         BlocConsumer<NftCollectionBloc, NftCollectionBlocState>(
       bloc: nftBloc,
-      builder: (context, state) {
-        return CollectionPro(
-          key: collectionProKey,
-          tokens: _updateTokens(state.tokens.items),
-          scrollController: _controller,
-        );
-      },
+      builder: (context, state) => CollectionPro(
+        key: collectionProKey,
+        tokens: _updateTokens(state.tokens.items),
+        scrollController: _controller,
+      ),
       listener: (context, state) async {
-        log.info("[NftCollectionBloc] State update $state");
+        log.info('[NftCollectionBloc] State update $state');
         collectionProKey.currentState?.loadCollection();
         if (state.state == NftLoadingState.done) {
           unawaited(_onTokensUpdate(state.tokens.items));
@@ -236,23 +229,11 @@ class HomePageState extends State<HomePage>
     return PrimaryScrollController(
       controller: _controller,
       child: Scaffold(
-        appBar: getLightEmptyAppBar(),
-        backgroundColor: theme.colorScheme.background,
+        appBar: getDarkEmptyAppBar(),
+        backgroundColor: AppColor.primaryBlack,
         body: contentWidget,
       ),
     );
-  }
-
-  Future<void> _checkForKeySync(BuildContext context) async {
-    final cloudDatabase = injector<CloudDatabase>();
-    final defaultAccounts = await cloudDatabase.personaDao.getDefaultPersonas();
-
-    if (defaultAccounts.length >= 2) {
-      if (!mounted) {
-        return;
-      }
-      unawaited(Navigator.of(context).pushNamed(AppRouter.keySyncPage));
-    }
   }
 
   void scrollToTop() {
@@ -261,17 +242,12 @@ class HomePageState extends State<HomePage>
         curve: Curves.fastOutSlowIn));
   }
 
-  Future refreshNotification() async {
-    await injector<CustomerSupportService>().getIssuesAndAnnouncement();
-  }
-
   Future<void> _handleForeBackground(FGBGType event) async {
     switch (event) {
       case FGBGType.foreground:
         unawaited(_handleForeground());
         break;
       case FGBGType.background:
-        _handleBackground();
         break;
     }
   }
@@ -335,19 +311,9 @@ class HomePageState extends State<HomePage>
     }
 
     unawaited(_clientTokenService.refreshTokens(checkPendingToken: true));
-    unawaited(refreshNotification());
     unawaited(_metricClient.addEvent('device_foreground'));
     unawaited(injector<VersionService>().checkForUpdate());
     // Reload token in Isolate
-
-    unawaited(injector<CustomerSupportService>().getIssuesAndAnnouncement());
-    unawaited(injector<CustomerSupportService>().processMessages());
-  }
-
-  void _handleBackground() {
-    unawaited(_metricClient.addEvent(MixpanelEvent.deviceBackground));
-    unawaited(_metricClient.sendAndClearMetrics());
-    unawaited(FileLogger.shrinkLogFileIfNeeded());
   }
 
   @override

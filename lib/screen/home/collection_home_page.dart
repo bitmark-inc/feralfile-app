@@ -225,7 +225,6 @@ class CollectionHomePageState extends State<CollectionHomePage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    final theme = Theme.of(context);
     final contentWidget =
         BlocConsumer<NftCollectionBloc, NftCollectionBlocState>(
       bloc: nftBloc,
@@ -248,34 +247,35 @@ class CollectionHomePageState extends State<CollectionHomePage>
     return PrimaryScrollController(
       controller: _controller,
       child: Scaffold(
-        appBar: getLightEmptyAppBar(),
-        backgroundColor: theme.colorScheme.background,
+        appBar: getDarkEmptyAppBar(),
+        backgroundColor: AppColor.primaryBlack,
         body: contentWidget,
       ),
     );
   }
 
-  Widget _loadingView(BuildContext context) {
+  Widget _header(BuildContext context) {
     final paddingTop = MediaQuery.of(context).viewPadding.top;
-
-    return Center(
-        child: Column(
-      children: [
-        HeaderView(
-          paddingTop: paddingTop,
-        ),
-        loadingIndicator(),
-      ],
-    ));
+    return Padding(
+      padding: EdgeInsets.only(top: paddingTop),
+      child: HeaderView(title: 'collection'.tr()),
+    );
   }
+
+  Widget _loadingView(BuildContext context) => Center(
+          child: Column(
+        children: [
+          _header(context),
+          loadingIndicator(),
+        ],
+      ));
 
   Widget _emptyGallery(BuildContext context) {
     final theme = Theme.of(context);
-    final paddingTop = MediaQuery.of(context).viewPadding.top;
     return ListView(
       padding: ResponsiveLayout.getPadding.copyWith(left: 0, right: 0),
       children: [
-        HeaderView(paddingTop: paddingTop),
+        _header(context),
         _carouselTipcard(context),
         Padding(
           padding: const EdgeInsets.only(left: 15),
@@ -307,10 +307,9 @@ class CollectionHomePageState extends State<CollectionHomePage>
       _cachedImageSize = (estimatedCellWidth * 3).ceil();
     }
     List<Widget> sources;
-    final paddingTop = MediaQuery.of(context).viewPadding.top;
     sources = [
       SliverToBoxAdapter(
-        child: HeaderView(paddingTop: paddingTop),
+        child: _header(context),
       ),
       SliverToBoxAdapter(
         child: _carouselTipcard(context),

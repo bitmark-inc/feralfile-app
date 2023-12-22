@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/shared_postcard.dart';
@@ -9,40 +7,29 @@ import 'package:autonomy_flutter/screen/collection_pro/collection_pro_bloc.dart'
 import 'package:autonomy_flutter/screen/collection_pro/collection_pro_state.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/predefined_collection/predefined_collection_screen.dart';
-import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/medium_category_ext.dart';
 import 'package:autonomy_flutter/util/predefined_collection_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
-import 'package:autonomy_flutter/view/carousel.dart';
 import 'package:autonomy_flutter/view/galery_thumbnail_item.dart';
 import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/search_bar.dart';
-import 'package:autonomy_flutter/view/tip_card.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:multi_value_listenable_builder/multi_value_listenable_builder.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/predefined_collection_model.dart';
-import 'package:open_settings/open_settings.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class CollectionPro extends StatefulWidget {
   final List<CompactedAssetToken> tokens;
   final ScrollController scrollController;
 
   const CollectionPro(
-      {super.key, required this.tokens, required this.scrollController});
+      {required this.tokens, required this.scrollController, super.key});
 
   @override
   State<CollectionPro> createState() => CollectionProState();
@@ -52,7 +39,6 @@ class CollectionProState extends State<CollectionPro>
     with RouteAware, WidgetsBindingObserver {
   final _bloc = injector.get<CollectionProBloc>();
   final _identityBloc = injector.get<IdentityBloc>();
-  final _configurationService = injector.get<ConfigurationService>();
   late ScrollController _scrollController;
   late ValueNotifier<String> searchStr;
   late bool isShowSearchBar;
@@ -68,7 +54,7 @@ class CollectionProState extends State<CollectionPro>
     isShowSearchBar = false;
     isShowFullHeader = true;
     _scrollController = widget.scrollController;
-    _scrollController.addListener(_scrollListenerShowfullHeader);
+    _scrollController.addListener(_scrollListenerShowFullHeader);
     loadCollection();
     super.initState();
   }
@@ -80,8 +66,8 @@ class CollectionProState extends State<CollectionPro>
   }
 
   @override
-  dispose() {
-    _scrollController.removeListener(_scrollListenerShowfullHeader);
+  void dispose() {
+    _scrollController.removeListener(_scrollListenerShowFullHeader);
     super.dispose();
   }
 
@@ -91,7 +77,7 @@ class CollectionProState extends State<CollectionPro>
     super.didPopNext();
   }
 
-  _scrollListenerShowfullHeader() {
+  void _scrollListenerShowFullHeader() {
     if (_scrollController.offset > 50 && isShowSearchBar) {
       if (isShowFullHeader) {
         setState(() {
@@ -107,240 +93,61 @@ class CollectionProState extends State<CollectionPro>
     }
   }
 
-  loadCollection() {
+  void loadCollection() {
     _bloc.add(LoadCollectionEvent(filterStr: searchStr.value));
   }
 
-  fetchIdentities(CollectionLoadedState state) {
+  void fetchIdentities(CollectionLoadedState state) {
     final listPredefinedCollectionByArtist =
         state.listPredefinedCollectionByArtist;
     final neededIdentities = [
-      ...?listPredefinedCollectionByArtist?.map((e) => e.id).toList(),
-    ].whereNotNull().toList().unique();
-    neededIdentities.removeWhere((element) => element == '');
+      ...?listPredefinedCollectionByArtist?.map((e) => e.id),
+    ].whereNotNull().toList().unique()
+      ..removeWhere((element) => element == '');
 
     if (neededIdentities.isNotEmpty) {
       _identityBloc.add(GetIdentityEvent(neededIdentities));
     }
   }
 
-  Widget _carouselTipcard(BuildContext context) {
-    return MultiValueListenableBuilder(
-      valueListenables: [
-        _configurationService.showTvAppTip,
-        _configurationService.showCreatePlaylistTip,
-        _configurationService.showLinkOrImportTip,
-        _configurationService.showBackupSettingTip,
-      ],
-      builder: (BuildContext context, List<dynamic> values, Widget? child) {
-        return CarouselWithIndicator(
-          items: _listTipcards(context, values),
-        );
-      },
-    );
-  }
-
-  List<Tipcard> _listTipcards(BuildContext context, List<dynamic> values) {
-    final theme = Theme.of(context);
-    final isShowTvAppTip = values[0] as bool;
-    final isShowCreatePlaylistTip = values[1] as bool;
-    final isShowLinkOrImportTip = values[2] as bool;
-    final isShowBackupSettingTip = values[3] as bool;
-    return [
-      if (isShowLinkOrImportTip)
-        Tipcard(
-            titleText: "do_you_have_NFTs_in_other_wallets".tr(),
-            onPressed: () {},
-            buttonText: "add_wallet".tr(),
-            content: Text("you_can_link_or_import".tr(),
-                style: theme.textTheme.ppMori400Black14),
-            listener: _configurationService.showLinkOrImportTip),
-      if (isShowCreatePlaylistTip)
-        Tipcard(
-            titleText: "create_your_first_playlist".tr(),
-            onPressed: () {
-              Navigator.of(context).pushNamed(AppRouter.createPlayListPage);
-            },
-            buttonText: "create_new_playlist".tr(),
-            content: Text("as_a_pro_sub_playlist".tr(),
-                style: theme.textTheme.ppMori400Black14),
-            listener: _configurationService.showCreatePlaylistTip),
-      if (isShowTvAppTip)
-        Tipcard(
-            titleText: "enjoy_your_collection".tr(),
-            onPressed: () {
-              Navigator.of(context).pushNamed(
-                AppRouter.scanQRPage,
-                arguments: ScannerItem.GLOBAL,
-              );
-            },
-            buttonText: "sync_up_with_autonomy_tv".tr(),
-            content: RichText(
-              text: TextSpan(
-                text: "as_a_pro_sub_TV_app".tr(),
-                style: theme.textTheme.ppMori400Black14,
-                children: [
-                  TextSpan(
-                    text: "google_TV_app".tr(),
-                    style: theme.textTheme.ppMori400Black14.copyWith(
-                        color: theme.colorScheme.primary,
-                        decoration: TextDecoration.underline),
-                    recognizer: TapGestureRecognizer()
-                      ..onTap = () {
-                        final metricClient = injector<MetricClientService>();
-                        metricClient.addEvent(MixpanelEvent.tapLinkInTipCard,
-                            data: {
-                              "link": TV_APP_STORE_URL,
-                              "title": "enjoy_your_collection".tr()
-                            });
-                        launchUrl(Uri.parse(TV_APP_STORE_URL),
-                            mode: LaunchMode.externalApplication);
-                      },
-                  ),
-                  TextSpan(
-                    text: "currently_available_on".tr(),
-                  )
-                ],
-              ),
-            ),
-            listener: _configurationService.showTvAppTip),
-      if (isShowBackupSettingTip)
-        Tipcard(
-            titleText: "backup_failed".tr(),
-            onPressed: Platform.isAndroid
-                ? () {
-                    OpenSettings.openAddAccountSetting();
-                  }
-                : () async {
-                    openAppSettings();
-                  },
-            buttonText: Platform.isAndroid
-                ? "open_device_setting".tr()
-                : "open_icloud_setting".tr(),
-            content: Text(
-                Platform.isAndroid
-                    ? "backup_tip_card_content_android".tr()
-                    : "backup_tip_card_content_ios".tr(),
-                style: theme.textTheme.ppMori400Black14),
-            listener: _configurationService.showBackupSettingTip),
-    ];
-  }
-
   @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: BlocConsumer(
-        bloc: _bloc,
-        listener: (context, state) {
-          if (state is CollectionLoadedState) {
-            fetchIdentities(state);
-          }
-        },
-        builder: (context, collectionProState) {
-          if (collectionProState is CollectionLoadedState) {
-            final listPredefinedCollectionByMedium =
-                collectionProState.listPredefinedCollectionByMedium;
+  Widget build(BuildContext context) => SafeArea(
+        child: BlocConsumer(
+          bloc: _bloc,
+          listener: (context, state) {
+            if (state is CollectionLoadedState) {
+              fetchIdentities(state);
+            }
+          },
+          builder: (context, collectionProState) {
+            if (collectionProState is CollectionLoadedState) {
+              final listPredefinedCollectionByMedium =
+                  collectionProState.listPredefinedCollectionByMedium;
 
-            final works = collectionProState.works;
-            final paddingTop = MediaQuery.of(context).viewPadding.top;
-            return BlocBuilder<IdentityBloc, IdentityState>(
-                builder: (context, identityState) {
-                  final identityMap = identityState.identityMap
-                    ..removeWhere((key, value) => value.isEmpty);
-                  final listPredefinedCollectionByArtist =
-                      collectionProState.listPredefinedCollectionByArtist
-                          ?.map(
-                            (e) {
-                              final name = identityMap[e.id] ?? e.name ?? e.id;
-                              e.name = name;
-                              return e;
-                            },
-                          )
-                          .toList()
-                          .filterByName(searchStr.value);
-                  return Scaffold(
-                    body: Stack(
+              final works = collectionProState.works;
+              return BlocBuilder<IdentityBloc, IdentityState>(
+                  builder: (context, identityState) {
+                    final identityMap = identityState.identityMap
+                      ..removeWhere((key, value) => value.isEmpty);
+                    final listPredefinedCollectionByArtist =
+                        collectionProState.listPredefinedCollectionByArtist
+                            ?.map(
+                              (e) {
+                                final name =
+                                    identityMap[e.id] ?? e.name ?? e.id;
+                                e.name = name;
+                                return e;
+                              },
+                            )
+                            .toList()
+                            .filterByName(searchStr.value);
+                    return Stack(
                       children: [
                         CustomScrollView(
                           shrinkWrap: true,
                           slivers: [
-                            SliverAppBar(
-                              pinned: isShowSearchBar,
-                              centerTitle: true,
-                              backgroundColor: Colors.white,
-                              expandedHeight: isShowFullHeader ? 126 : 75,
-                              collapsedHeight: isShowFullHeader ? 126 : 75,
-                              shadowColor: Colors.transparent,
-                              flexibleSpace: Column(
-                                children: [
-                                  if (isShowFullHeader) ...[
-                                    headDivider(),
-                                    const SizedBox(height: 22),
-                                  ],
-                                  SizedBox(
-                                    height: 50,
-                                    child: !isShowSearchBar
-                                        ? HeaderView(
-                                            paddingTop: paddingTop,
-                                            action: GestureDetector(
-                                              child: SvgPicture.asset(
-                                                "assets/images/search.svg",
-                                                width: 24,
-                                                height: 24,
-                                                colorFilter:
-                                                    const ColorFilter.mode(
-                                                        AppColor.primaryBlack,
-                                                        BlendMode.srcIn),
-                                              ),
-                                              onTap: () {
-                                                setState(() {
-                                                  isShowSearchBar = true;
-                                                });
-                                              },
-                                            ),
-                                          )
-                                        : Align(
-                                            alignment: Alignment.bottomLeft,
-                                            child: Padding(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal: 15),
-                                              child: ActionBar(
-                                                searchBar: AuSearchBar(
-                                                  onChanged: (text) {},
-                                                  onSearch: (text) {
-                                                    setState(() {
-                                                      searchStr.value = text;
-                                                    });
-                                                  },
-                                                  onClear: (text) {
-                                                    setState(() {
-                                                      searchStr.value = text;
-                                                    });
-                                                  },
-                                                ),
-                                                onCancel: () {
-                                                  setState(() {
-                                                    searchStr.value = '';
-                                                    isShowSearchBar = false;
-                                                  });
-                                                },
-                                              ),
-                                            ),
-                                          ),
-                                  ),
-                                  const SizedBox(height: 23),
-                                  addOnlyDivider(
-                                      color: AppColor.auQuickSilver,
-                                      border: 0.25)
-                                ],
-                              ),
-                            ),
                             SliverToBoxAdapter(
-                              child: Padding(
-                                padding: const EdgeInsets.only(top: 60),
-                                child: _carouselTipcard(context),
-                              ),
+                              child: _header(context),
                             ),
                             const SliverToBoxAdapter(
                               child: SizedBox(height: 60),
@@ -384,27 +191,78 @@ class CollectionProState extends State<CollectionPro>
                           ],
                         ),
                       ],
-                    ),
-                  );
+                    );
+                  },
+                  bloc: _identityBloc);
+            }
+            return const Center(child: CircularProgressIndicator());
+          },
+        ),
+      );
+
+  Widget _header(BuildContext context) {
+    final paddingTop = MediaQuery.of(context).viewPadding.top;
+    return Padding(
+      padding: EdgeInsets.only(top: paddingTop)
+          .add(const EdgeInsets.fromLTRB(12, 33, 12, 42)),
+      child: !isShowSearchBar
+          ? HeaderView(
+              padding: EdgeInsets.zero,
+              title: 'organize'.tr(),
+              action: GestureDetector(
+                child: SvgPicture.asset(
+                  'assets/images/search.svg',
+                  width: 24,
+                  height: 24,
+                  colorFilter:
+                      const ColorFilter.mode(AppColor.white, BlendMode.srcIn),
+                ),
+                onTap: () {
+                  setState(() {
+                    isShowSearchBar = true;
+                  });
                 },
-                bloc: _identityBloc);
-          }
-          return const Center(child: CircularProgressIndicator());
-        },
-      ),
+              ),
+            )
+          : Align(
+              alignment: Alignment.bottomLeft,
+              child: ActionBar(
+                searchBar: AuSearchBar(
+                  onChanged: (text) {},
+                  onSearch: (text) {
+                    setState(() {
+                      searchStr.value = text;
+                    });
+                  },
+                  onClear: (text) {
+                    setState(() {
+                      searchStr.value = text;
+                    });
+                  },
+                ),
+                onCancel: () {
+                  setState(() {
+                    searchStr.value = '';
+                    isShowSearchBar = false;
+                  });
+                },
+              ),
+            ),
     );
   }
 }
 
 class SectionHeader extends StatelessWidget {
   final String title;
+  final TextStyle? titleStyle;
   final String? subTitle;
   final Widget? icon;
   final Function()? onTap;
 
   const SectionHeader({
-    super.key,
     required this.title,
+    super.key,
+    this.titleStyle,
     this.subTitle,
     this.icon,
     this.onTap,
@@ -413,11 +271,13 @@ class SectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final titleDefaultStyle =
+        theme.textTheme.ppMori700White24.copyWith(fontSize: 36);
     return Row(
       children: [
         Text(
           title,
-          style: theme.textTheme.ppMori400Black14,
+          style: titleStyle ?? titleDefaultStyle,
         ),
         const Spacer(),
         if (subTitle != null)
@@ -427,7 +287,7 @@ class SectionHeader extends StatelessWidget {
           ),
         if (icon != null) ...[
           const SizedBox(width: 15),
-          GestureDetector(onTap: onTap, child: icon!)
+          GestureDetector(onTap: onTap, child: icon)
         ],
       ],
     );
@@ -440,10 +300,10 @@ class PredefinedCollectionSection extends StatefulWidget {
   final String searchStr;
 
   const PredefinedCollectionSection(
-      {super.key,
-      required this.listPredefinedCollection,
+      {required this.listPredefinedCollection,
       required this.predefinedCollectionType,
-      required this.searchStr});
+      required this.searchStr,
+      super.key});
 
   @override
   State<PredefinedCollectionSection> createState() =>
@@ -457,11 +317,7 @@ class _PredefinedCollectionSectionState
         widget.predefinedCollectionType == PredefinedCollectionType.medium
             ? 'medium'.tr()
             : 'artists'.tr();
-    final subTitle =
-        widget.predefinedCollectionType == PredefinedCollectionType.medium
-            ? ""
-            : "$total";
-    return SectionHeader(title: title, subTitle: subTitle);
+    return SectionHeader(title: title, subTitle: '');
   }
 
   Widget _icon(PredefinedCollectionModel predefinedCollection) {
@@ -505,9 +361,10 @@ class _PredefinedCollectionSectionState
     if (predefinedCollection.name == predefinedCollection.id) {
       title = title.maskOnly(5);
     }
+    final titleStyle = theme.textTheme.ppMori400White14;
     return GestureDetector(
-      onTap: () {
-        Navigator.pushNamed(
+      onTap: () async {
+        await Navigator.pushNamed(
           context,
           AppRouter.predefinedCollectionPage,
           arguments: PredefinedCollectionScreenPayload(
@@ -528,7 +385,7 @@ class _PredefinedCollectionSectionState
             Expanded(
               child: Text(
                 title,
-                style: theme.textTheme.ppMori400Black14,
+                style: titleStyle,
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -550,18 +407,22 @@ class _PredefinedCollectionSectionState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _header(context, listPredefinedCollection.length),
-          addDivider(color: AppColor.primaryBlack),
+          const SizedBox(
+            height: 30,
+          ),
           CustomScrollView(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             slivers: [
               SliverList.separated(
-                separatorBuilder: (BuildContext context, int index) {
-                  return addDivider();
-                },
+                separatorBuilder: (BuildContext context, int index) =>
+                    addOnlyDivider(color: AppColor.auGreyBackground),
                 itemBuilder: (BuildContext context, int index) {
                   final predefinedCollection = listPredefinedCollection[index];
-                  return _item(context, predefinedCollection);
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 15),
+                    child: _item(context, predefinedCollection),
+                  );
                 },
                 itemCount: listPredefinedCollection.length,
               )
@@ -576,7 +437,7 @@ class _PredefinedCollectionSectionState
 class WorksSection extends StatefulWidget {
   final List<CompactedAssetToken> works;
 
-  const WorksSection({super.key, required this.works});
+  const WorksSection({required this.works, super.key});
 
   @override
   State<WorksSection> createState() => _WorksSectionState();
@@ -590,11 +451,11 @@ class _WorksSectionState extends State<WorksSection> {
 
   Widget _artworkItem(BuildContext context, CompactedAssetToken token) {
     final theme = Theme.of(context);
-    final title = token.title ?? "";
-    final artistName = token.artistTitle ?? token.artistID ?? "";
+    final title = token.title ?? '';
+    final artistName = token.artistTitle ?? token.artistID ?? '';
     return GestureDetector(
-      onTap: () {
-        Navigator.pushNamed(
+      onTap: () async {
+        await Navigator.pushNamed(
           context,
           AppRouter.artworkDetailsPage,
           arguments: ArtworkDetailPayload(
@@ -611,8 +472,8 @@ class _WorksSectionState extends State<WorksSection> {
             aspectRatio: 1,
             child: GaleryThumbnailItem(
               assetToken: token,
-              onTap: () {
-                Navigator.pushNamed(
+              onTap: () async {
+                await Navigator.pushNamed(
                   context,
                   AppRouter.artworkDetailsPage,
                   arguments: ArtworkDetailPayload(
@@ -632,7 +493,7 @@ class _WorksSectionState extends State<WorksSection> {
               children: [
                 Text(
                   title,
-                  style: theme.textTheme.ppMori400Black14,
+                  style: theme.textTheme.ppMori400White14,
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -660,9 +521,8 @@ class _WorksSectionState extends State<WorksSection> {
       padding: const EdgeInsets.only(left: padding, right: padding),
       child: Column(
         children: [
-          SectionHeader(
-              title: "works".tr(), subTitle: "${compactedAssetTokens.length}"),
-          addDivider(color: AppColor.primaryBlack),
+          SectionHeader(title: 'works'.tr(), subTitle: ''),
+          const SizedBox(height: 30),
           CustomScrollView(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -674,9 +534,8 @@ class _WorksSectionState extends State<WorksSection> {
                         height: 164, child: _artworkItem(context, token));
                   },
                   itemCount: compactedAssetTokens.length,
-                  separatorBuilder: (BuildContext context, int index) {
-                    return addDivider(color: AppColor.auLightGrey);
-                  }),
+                  separatorBuilder: (BuildContext context, int index) =>
+                      addDivider(color: AppColor.auLightGrey)),
             ],
           ),
         ],
@@ -696,11 +555,9 @@ enum CollectionProSection {
   medium,
   artist;
 
-  static List<CollectionProSection> get allSections {
-    return [
-      CollectionProSection.collection,
-      CollectionProSection.medium,
-      CollectionProSection.artist,
-    ];
-  }
+  static List<CollectionProSection> get allSections => [
+        CollectionProSection.collection,
+        CollectionProSection.medium,
+        CollectionProSection.artist,
+      ];
 }

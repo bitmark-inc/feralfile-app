@@ -28,8 +28,8 @@ class _SearchBarState extends State<AuSearchBar> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
     return Container(
-      height: 37,
       decoration: BoxDecoration(
         color: AppColor.auLightGrey,
         borderRadius: BorderRadius.circular(5),
@@ -38,7 +38,7 @@ class _SearchBarState extends State<AuSearchBar> {
       child: Row(
         children: [
           SvgPicture.asset(
-            "assets/images/search.svg",
+            'assets/images/search.svg',
             width: 14,
             height: 14,
             colorFilter: const ColorFilter.mode(
@@ -55,8 +55,8 @@ class _SearchBarState extends State<AuSearchBar> {
                 cursorWidth: 0.5,
                 cursorHeight: 17,
                 decoration: InputDecoration(
-                  contentPadding: const EdgeInsets.only(bottom: 10),
-                  hintText: "search".tr(),
+                  // contentPadding: const EdgeInsets.only(bottom: 10),
+                  hintText: 'search'.tr(),
                   hintStyle: theme.textTheme.ppMori400Grey14
                       .copyWith(color: AppColor.secondarySpanishGrey),
                   border: InputBorder.none,
@@ -84,8 +84,8 @@ class _SearchBarState extends State<AuSearchBar> {
             GestureDetector(
               onTap: () {
                 _controller.clear();
-                widget.onClear?.call("");
-                widget.onChanged?.call("");
+                widget.onClear?.call('');
+                widget.onChanged?.call('');
               },
               child: const Icon(
                 AuIcon.close,
@@ -103,7 +103,7 @@ class ActionBar extends StatefulWidget {
   final AuSearchBar searchBar;
   final Function()? onCancel;
 
-  const ActionBar({super.key, required this.searchBar, this.onCancel});
+  const ActionBar({required this.searchBar, super.key, this.onCancel});
 
   @override
   State<ActionBar> createState() => _ActionBarState();
@@ -130,7 +130,7 @@ class _ActionBarState extends State<ActionBar> {
             widget.onCancel?.call();
           },
           child: Text(
-            "Cancel",
+            'Cancel',
             style: theme.textTheme.ppMori400Grey14,
           ),
         )
