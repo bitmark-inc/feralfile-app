@@ -10,11 +10,12 @@ import 'dart:async';
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/announcement_local.dart';
-import 'package:autonomy_flutter/exhibitions/exhibitions_page.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
+import 'package:autonomy_flutter/screen/exhibitions/exhibitions_bloc.dart';
+import 'package:autonomy_flutter/screen/exhibitions/exhibitions_page.dart';
 import 'package:autonomy_flutter/screen/home/collection_home_page.dart';
 import 'package:autonomy_flutter/screen/home/organize_home_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_bloc.dart';
@@ -188,7 +189,9 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     _pages = <Widget>[
       CollectionHomePage(key: _collectionHomePageKey),
       HomePage(key: _homePageKey),
-      const ExhibitionsPage(),
+      BlocProvider(
+          create: (BuildContext context) => ExhibitionBloc(injector()),
+          child: const ExhibitionsPage()),
       const ScanQRPage()
     ];
 

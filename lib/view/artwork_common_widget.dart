@@ -5,7 +5,8 @@ import 'dart:math';
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/model/ff_exhibition.dart';
+import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -196,12 +197,11 @@ Widget tokenGalleryThumbnailWidget(
               cacheManager: cacheManager,
               placeholder: (context, index) => FutureBuilder<bool>(
                   future: cachingState,
-                  builder: (context, snapshot) {
-                    return galleryThumbnailPlaceholder ??
-                        GalleryThumbnailPlaceholder(
-                          loading: !(snapshot.data ?? true),
-                        );
-                  }),
+                  builder: (context, snapshot) =>
+                      galleryThumbnailPlaceholder ??
+                      GalleryThumbnailPlaceholder(
+                        loading: !(snapshot.data ?? true),
+                      )),
               errorWidget: (context, url, error) => CachedNetworkImage(
                 imageUrl:
                     token.getGalleryThumbnailUrl(usingThumbnailID: false) ?? '',
@@ -214,12 +214,11 @@ Widget tokenGalleryThumbnailWidget(
                 cacheManager: cacheManager,
                 placeholder: (context, index) => FutureBuilder<bool>(
                     future: cachingState,
-                    builder: (context, snapshot) {
-                      return galleryThumbnailPlaceholder ??
-                          GalleryThumbnailPlaceholder(
-                            loading: !(snapshot.data ?? true),
-                          );
-                    }),
+                    builder: (context, snapshot) =>
+                        galleryThumbnailPlaceholder ??
+                        GalleryThumbnailPlaceholder(
+                          loading: !(snapshot.data ?? true),
+                        )),
                 errorWidget: (context, url, error) =>
                     const GalleryThumbnailErrorWidget(),
               ),

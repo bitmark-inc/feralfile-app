@@ -1,6 +1,8 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/model/otp.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
@@ -47,18 +49,16 @@ class SelectAccountPage extends StatefulWidget {
   final bool withViewOnly;
 
   const SelectAccountPage({
-    Key? key,
-    this.blockchain,
     required this.artwork,
+    super.key,
+    this.blockchain,
     this.otp,
     this.fromWebview = false,
     this.withViewOnly = false,
-  }) : super(key: key);
+  });
 
   @override
-  State<StatefulWidget> createState() {
-    return _SelectAccountPageState();
-  }
+  State<StatefulWidget> createState() => _SelectAccountPageState();
 }
 
 class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
@@ -67,7 +67,7 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
 
   @override
   void initState() {
-    _isTezos = widget.blockchain?.toLowerCase() == "tezos";
+    _isTezos = widget.blockchain?.toLowerCase() == 'tezos';
     _callAccountEvent();
     super.initState();
   }
@@ -106,7 +106,7 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
         onBack: () {
           Navigator.of(context).pop();
         },
-        title: "gift_edition".tr(),
+        title: 'gift_edition'.tr(),
       ),
       body: Container(
         padding: const EdgeInsets.only(bottom: 32),
@@ -117,7 +117,7 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
             Padding(
               padding: ResponsiveLayout.pageHorizontalEdgeInsets,
               child: Text(
-                "where_do_want_to_receive_gift".tr(),
+                'where_do_want_to_receive_gift'.tr(),
                 style: theme.textTheme.ppMori700Black24,
               ),
             ),
@@ -125,9 +125,9 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
             Padding(
               padding: ResponsiveLayout.pageHorizontalEdgeInsets,
               child: Text(
-                "claim_airdrop_select_account_desc".tr(args: [
-                  widget.blockchain ?? "Tezos",
-                  widget.blockchain ?? "Tezos",
+                'claim_airdrop_select_account_desc'.tr(args: [
+                  widget.blockchain ?? 'Tezos',
+                  widget.blockchain ?? 'Tezos',
                 ]),
                 style: theme.textTheme.ppMori400Black14,
               ),
@@ -139,7 +139,7 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
             Padding(
               padding: ResponsiveLayout.pageHorizontalEdgeInsets,
               child: PrimaryAsyncButton(
-                text: "h_confirm".tr(),
+                text: 'h_confirm'.tr(),
                 enabled: _selectedAddress != null,
                 onTap: () async {
                   if (widget.fromWebview == true) {
@@ -163,22 +163,21 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
     );
   }
 
-  Widget _buildAddressList() {
-    return BlocBuilder<AccountsBloc, AccountsState>(builder: (context, state) {
-      final accounts = state.accounts ?? [];
-      void select(Account value) {
-        setState(() {
-          _selectedAddress = value.accountNumber;
-        });
-      }
+  Widget _buildAddressList() =>
+      BlocBuilder<AccountsBloc, AccountsState>(builder: (context, state) {
+        final accounts = state.accounts ?? [];
+        void select(Account value) {
+          setState(() {
+            _selectedAddress = value.accountNumber;
+          });
+        }
 
-      return ListAccountConnect(
-        accounts: accounts,
-        onSelectEth: !_isTezos ? select : null,
-        onSelectTez: _isTezos ? select : null,
-      );
-    });
-  }
+        return ListAccountConnect(
+          accounts: accounts,
+          onSelectEth: !_isTezos ? select : null,
+          onSelectTez: _isTezos ? select : null,
+        );
+      });
 
   Future _claimToken(
     BuildContext context,
@@ -195,15 +194,15 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
         otp: otp,
       );
       final metricClient = injector.get<MetricClientService>();
-      metricClient.addEvent(
+      unawaited(metricClient.addEvent(
         MixpanelEvent.acceptOwnershipSuccess,
         data: {
-          "id": widget.artwork?.id,
+          'id': widget.artwork?.id,
         },
-      );
+      ));
       memoryValues.branchDeeplinkData.value = null;
     } catch (e) {
-      log.info("[SelectAccountPage] Claim token failed. $e");
+      log.info('[SelectAccountPage] Claim token failed. $e');
       if (mounted) {
         await UIHelper.showClaimTokenError(
           context,
@@ -214,8 +213,10 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
       memoryValues.branchDeeplinkData.value = null;
     }
 
-    if (!mounted) return;
-    Navigator.of(context).pushNamedAndRemoveUntil(
+    if (!mounted) {
+      return;
+    }
+    await Navigator.of(context).pushNamedAndRemoveUntil(
       AppRouter.homePage,
       (route) => false,
     );
@@ -224,11 +225,13 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
     if (token == null) {
       return;
     }
-    Navigator.of(context).pushNamed(
-      AppRouter.artworkDetailsPage,
-      arguments: ArtworkDetailPayload(
-          [ArtworkIdentity(token.id, token.owner)], 0,
-          twitterCaption: caption ?? ""),
-    );
+    if (mounted) {
+      await Navigator.of(context).pushNamed(
+        AppRouter.artworkDetailsPage,
+        arguments: ArtworkDetailPayload(
+            [ArtworkIdentity(token.id, token.owner)], 0,
+            twitterCaption: caption ?? ''),
+      );
+    }
   }
 }

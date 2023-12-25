@@ -10,7 +10,7 @@ import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
-import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
