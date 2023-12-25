@@ -178,8 +178,7 @@ class EthereumServiceImpl extends EthereumService {
     final tx = await _web3Client.sendRawTransaction(signedTransaction);
 
     final deductValue = sender == to ? BigInt.zero : value;
-    final deductFee = gasLimit *
-        (fee.maxFeePerGas.getInWei + fee.maxPriorityFeePerGas.getInWei);
+    final deductFee = gasLimit * fee.maxFeePerGas.getInWei;
     final ethPendingAmount = EthereumPendingTxAmount(
         txHash: tx, deductAmount: deductValue + deductFee);
     unawaited(
