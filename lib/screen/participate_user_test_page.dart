@@ -4,12 +4,6 @@
 //  Use of this source code is governed by the BSD-2-Clause Plus Patent License
 //  that can be found in the LICENSE file.
 //
-
-import 'dart:async';
-import 'dart:convert';
-
-import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -20,30 +14,10 @@ import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
-class ParticipateUserTestPage extends StatefulWidget {
-  const ParticipateUserTestPage({super.key});
+class ParticipateUserTestPage extends StatelessWidget {
+  const ParticipateUserTestPage({required this.payload, super.key});
 
-  @override
-  State<ParticipateUserTestPage> createState() =>
-      _ParticipateUserTestPageState();
-}
-
-class _ParticipateUserTestPageState extends State<ParticipateUserTestPage> {
-  String? _calendarLink;
-
-  @override
-  void initState() {
-    super.initState();
-    unawaited(_getCalendarLink());
-  }
-
-  Future<void> _getCalendarLink() async {
-    final data = await injector<PubdocAPI>().getUserTestConfigs();
-    final configs = jsonDecode(data) as Map<String, dynamic>;
-    setState(() {
-      _calendarLink = configs['calendar_link'];
-    });
-  }
+  final UserTestPayload payload;
 
   @override
   Widget build(BuildContext context) {
@@ -137,11 +111,10 @@ class _ParticipateUserTestPageState extends State<ParticipateUserTestPage> {
                 Expanded(
                   child: PrimaryButton(
                     text: 'schedule_test'.tr(),
-                    enabled: _calendarLink != null,
                     onTap: () async {
                       await Navigator.of(context).pushNamed(
                         AppRouter.inappWebviewPage,
-                        arguments: InAppWebViewPayload(_calendarLink!),
+                        arguments: InAppWebViewPayload(payload.calendarLink),
                       );
                     },
                   ),
@@ -153,4 +126,10 @@ class _ParticipateUserTestPageState extends State<ParticipateUserTestPage> {
       ),
     );
   }
+}
+
+class UserTestPayload {
+  final String calendarLink;
+
+  UserTestPayload(this.calendarLink);
 }
