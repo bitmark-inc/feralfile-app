@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dar
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/exhibitions/exhibitions_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibitions/exhibitions_page.dart';
+import 'package:autonomy_flutter/screen/exhibitions/exhibitions_state.dart';
 import 'package:autonomy_flutter/screen/home/collection_home_page.dart';
 import 'package:autonomy_flutter/screen/home/organize_home_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_bloc.dart';
@@ -94,7 +95,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     routeObserver.subscribe(this, ModalRoute.of(context)!);
   }
 
-  void _onItemTapped(int index) {
+  Future<void> _onItemTapped(int index) async {
     if (index < _pages.length) {
       if (_selectedIndex == index) {
         if (index == 0) {
@@ -110,7 +111,11 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         unawaited(_playListService.refreshPlayLists());
       }
     } else {
-      unawaited(UIHelper.showCenterMenu(
+      final currentIndex = _selectedIndex;
+      setState(() {
+        _selectedIndex = index;
+      });
+      await UIHelper.showCenterMenu(
         context,
         options: [
           OptionItem(
@@ -169,7 +174,12 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
                 Navigator.of(context).pushNamed(AppRouter.supportCustomerPage);
               }),
         ],
-      ));
+      );
+      if (mounted) {
+        setState(() {
+          _selectedIndex = currentIndex;
+        });
+      }
     }
   }
 
@@ -189,9 +199,10 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     _pages = <Widget>[
       CollectionHomePage(key: _collectionHomePageKey),
       HomePage(key: _homePageKey),
-      BlocProvider(
-          create: (BuildContext context) => ExhibitionBloc(injector()),
-          child: const ExhibitionsPage()),
+      MultiBlocProvider(providers: [
+        BlocProvider.value(
+            value: ExhibitionBloc(injector())..add(GetAllExhibitionsEvent())),
+      ], child: const ExhibitionsPage()),
       const ScanQRPage()
     ];
 
@@ -346,6 +357,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
             withReddot: numberOfIssuesInfo != null && numberOfIssuesInfo[1] > 0,
           ),
         ),
+        selectedColor: AppColor.disabledColor,
         label: '',
       ),
     ];
