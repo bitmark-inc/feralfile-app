@@ -255,14 +255,6 @@ class _ScanQRPageState extends State<ScanQRPage>
     );
   }
 
-  AppBar _qrCodeAppBar(BuildContext context) => getCloseAppBar(
-        context,
-        onClose: () => Navigator.of(context).pop(),
-        withBottomDivider: false,
-        icon: closeIcon(color: AppColor.white),
-        isWhite: false,
-      );
-
   Widget _qrView(BuildContext context) {
     final theme = Theme.of(context);
     final size1 = MediaQuery.of(context).size.height / 2;

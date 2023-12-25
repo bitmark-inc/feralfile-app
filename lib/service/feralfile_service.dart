@@ -197,9 +197,9 @@ class FeralFileServiceImpl extends FeralFileService {
       String sortOrder = 'DESC',
       int limit = 8,
       int offset = 0}) async {
-    final exhibitons = await _feralFileApi.getAllExhibitions(
+    final exhibitions = await _feralFileApi.getAllExhibitions(
         sortBy: sortBy, sortOrder: sortOrder, limit: limit, offset: offset);
-    return exhibitons.result;
+    return exhibitions.result;
   }
 
   @override
