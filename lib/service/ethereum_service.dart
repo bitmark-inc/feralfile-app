@@ -130,6 +130,14 @@ class EthereumServiceImpl extends EthereumService {
     final ethAddress = EthereumAddress.fromHex(address);
     final amount = await _web3Client.getBalance(ethAddress);
     final pendingTx = await _hiveService.getEthPendingTxAmounts(address);
+    await Future.forEach<EthereumPendingTxAmount>(pendingTx, (element) async {
+      final receipt = await _getReceipt(element.txHash);
+      if (receipt != null) {
+        pendingTx.remove(element);
+        unawaited(
+            _hiveService.deleteEthPendingTxAmount(element.txHash, address));
+      }
+    });
     final pendingAmount = pendingTx.fold<BigInt>(BigInt.zero,
         (previousValue, element) => previousValue + element.getDeductAmount);
     log.info('[EthereumService] getBalance - amount :$amount - '
@@ -181,33 +189,22 @@ class EthereumServiceImpl extends EthereumService {
     final deductFee = gasLimit * fee.maxFeePerGas.getInWei;
     final ethPendingAmount = EthereumPendingTxAmount(
         txHash: tx, deductAmount: deductValue + deductFee);
-    unawaited(
-        _hiveService.saveEthPendingTxAmount(ethPendingAmount, sender.hexEip55));
-    unawaited(_removePendingTx(tx, sender.hexEip55));
+    await _hiveService.saveEthPendingTxAmount(
+        ethPendingAmount, sender.hexEip55);
     return tx;
   }
 
   Future<TransactionReceipt?> _getReceipt(String txHash) async {
-    int retry = 0;
-    do {
-      try {
-        final receipt = await _web3Client.getTransactionReceipt(txHash);
-        if (receipt != null) {
-          return receipt;
-        }
-      } catch (e) {
-        retry++;
-        await Future.delayed(const Duration(seconds: 2));
+    try {
+      final receipt = await _web3Client.getTransactionReceipt(txHash);
+      if (receipt != null) {
+        log.info('[EthereumService] _getReceipt - receipt: ${receipt.status}');
+        return receipt;
       }
-    } while (retry < 5);
-    return null;
-  }
-
-  Future<void> _removePendingTx(String txHash, String address) async {
-    final receipt = await _getReceipt(txHash);
-    if (receipt != null) {
-      await _hiveService.deleteEthPendingTxAmount(txHash, address);
+    } catch (_) {
+      log.info('[EthereumService] _getReceipt -error');
     }
+    return null;
   }
 
   @override

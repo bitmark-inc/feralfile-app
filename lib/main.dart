@@ -92,7 +92,9 @@ void main() async {
 }
 
 void _registerHiveAdapter() {
-  Hive.registerAdapter(EthereumPendingTxAmountAdapter());
+  Hive
+    ..registerAdapter(EthereumPendingTxAmountAdapter())
+    ..registerAdapter(EthereumPendingTxListAdapter());
 }
 
 _setupApp() async {

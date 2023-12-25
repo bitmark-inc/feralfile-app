@@ -43,3 +43,24 @@ class EthereumPendingTxAmountAdapter
       ..write(obj.createdAt);
   }
 }
+
+class EthereumPendingTxListAdapter
+    extends TypeAdapter<List<EthereumPendingTxAmount>> {
+  @override
+  final int typeId = 2; // You can choose any unique positive integer
+
+  @override
+  List<EthereumPendingTxAmount> read(BinaryReader reader) {
+    final length = reader.readUint32();
+    return List.generate(
+        length, (index) => EthereumPendingTxAmountAdapter().read(reader));
+  }
+
+  @override
+  void write(BinaryWriter writer, List<EthereumPendingTxAmount> obj) {
+    writer.writeUint32(obj.length);
+    for (final item in obj) {
+      EthereumPendingTxAmountAdapter().write(writer, item);
+    }
+  }
+}
