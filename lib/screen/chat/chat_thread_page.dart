@@ -56,7 +56,7 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
   bool _didFetchAllMessages = false;
   String? _historyRequestId;
   final ConfigurationService _configurationService =
-      injector<ConfigurationService>();
+  injector<ConfigurationService>();
   final ChatService _postcardChatService = injector<ChatService>();
   ChatListener? _chatListener;
   late AuChatBloc _auChatBloc;
@@ -90,7 +90,9 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
 
   Future<void> _websocketInitAndFetchHistory() async {
     await _websocketInit();
-    _lastMessageTimestamp = DateTime.now().millisecondsSinceEpoch;
+    _lastMessageTimestamp = DateTime
+        .now()
+        .millisecondsSinceEpoch;
     _getHistory();
   }
 
@@ -159,7 +161,9 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
         if (newMessages.isNotEmpty) {
           _lastMessageTimestamp = newMessages.last.timestamp;
         } else {
-          _lastMessageTimestamp = DateTime.now().millisecondsSinceEpoch;
+          _lastMessageTimestamp = DateTime
+              .now()
+              .millisecondsSinceEpoch;
         }
         _historyRequestId = null;
       }
@@ -171,12 +175,14 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
         ..sort((a, b) => (b.createdAt ?? 0).compareTo(a.createdAt ?? 0));
     }
     final currentMessageTimestamp =
-        _messages.isNotEmpty ? _messages.first.createdAt ?? 0 : 0;
+    _messages.isNotEmpty ? _messages.first.createdAt ?? 0 : 0;
     final newMessageTimestamp =
-        newMessages.isNotEmpty ? newMessages.first.timestamp : 0;
+    newMessages.isNotEmpty ? newMessages.first.timestamp : 0;
     int readTimestamp = max(currentMessageTimestamp, newMessageTimestamp);
     readTimestamp = readTimestamp == 0
-        ? DateTime.now().millisecondsSinceEpoch
+        ? DateTime
+        .now()
+        .millisecondsSinceEpoch
         : readTimestamp;
 
     unawaited(_updateLastMessageReadTimeStamp(readTimestamp + 1));
@@ -205,7 +211,9 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
           case ChatService.SENT:
             _messages[index] = _messages[index].copyWith(
                 status: types.Status.sent,
-                createdAt: DateTime.now().millisecondsSinceEpoch);
+                createdAt: DateTime
+                    .now()
+                    .millisecondsSinceEpoch);
             break;
           case ChatService.ERROR:
             _messages.removeAt(index);
@@ -232,7 +240,9 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
     setState(() {
       _showSetAliasTextField = false;
     });
-    if (alias.trim().isEmpty) {
+    if (alias
+        .trim()
+        .isEmpty) {
       return;
     }
     _auChatBloc
@@ -251,7 +261,8 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
         constraints: const BoxConstraints(maxHeight: 56),
         contentPadding: const EdgeInsets.all(15),
         border: InputBorder.none,
-        hintText: 'set_a_chat_alias'.tr(),
+        hintText:
+        !_textFieldFocusNode.hasFocus ? 'set_a_chat_alias'.tr() : null,
         hintStyle: theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
         isDense: true,
         fillColor: AppColor.auLightGrey,
@@ -284,7 +295,8 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
     final theme = Theme.of(context);
     return BlocConsumer<AuChatBloc, AuChatState>(
         bloc: _auChatBloc,
-        builder: (context, chatState) => Scaffold(
+        builder: (context, chatState) =>
+            Scaffold(
               backgroundColor: POSTCARD_BACKGROUND_COLOR,
               appBar: getBackAppBar(
                 context,
@@ -296,33 +308,33 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
               ),
               body: _aliases != null
                   ? Column(
-                      children: [
-                        if (_showSetAliasTextField)
-                          Container(
-                            color: Colors.transparent,
-                            child: Padding(
-                              padding: const EdgeInsets.all(15),
-                              child: Column(
-                                children: [
-                                  _setAliasTextField(context),
-                                ],
-                              ),
-                            ),
-                          ),
-                        Expanded(
-                          child: Stack(
-                            children: [
-                              _chatThread(context),
-                              if (_withOverlay)
-                                Positioned.fill(
-                                    child: Container(
-                                  color: Colors.white.withOpacity(0.9),
-                                ))
-                            ],
-                          ),
+                children: [
+                  if (_showSetAliasTextField)
+                    Container(
+                      color: Colors.transparent,
+                      child: Padding(
+                        padding: const EdgeInsets.all(15),
+                        child: Column(
+                          children: [
+                            _setAliasTextField(context),
+                          ],
                         ),
+                      ),
+                    ),
+                  Expanded(
+                    child: Stack(
+                      children: [
+                        _chatThread(context),
+                        if (_withOverlay)
+                          Positioned.fill(
+                              child: Container(
+                                color: Colors.white.withOpacity(0.9),
+                              ))
                       ],
-                    )
+                    ),
+                  ),
+                ],
+              )
                   : const SizedBox(),
             ),
         listener: (context, chatState) {
@@ -369,27 +381,31 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
     }
   }
 
-  Widget _chatThread(BuildContext context) => Chat(
+  Widget _chatThread(BuildContext context) =>
+      Chat(
         l10n: ChatL10nEn(
           inputPlaceholder: 'message'.tr(),
         ),
         onMessageVisibilityChanged: _onMessageVisibilityChanged,
         customDateHeaderText: getChatDateTimeRepresentation,
-        systemMessageBuilder: (systemMessage) => _systemMessageBuilder(
-          message: systemMessage,
-          onAvatarTap: () {},
-          onAliasTap: () {
-            if (_user.id != systemMessage.author.id) {
-              return;
-            }
-            _onTapToSetAlias();
-          },
-        ),
+        systemMessageBuilder: (systemMessage) =>
+            _systemMessageBuilder(
+              message: systemMessage,
+              onAvatarTap: () {},
+              onAliasTap: () {
+                if (_user.id != systemMessage.author.id) {
+                  return;
+                }
+                _onTapToSetAlias();
+              },
+            ),
         bubbleRtlAlignment: BubbleRtlAlignment.left,
         isLastPage: false,
         theme: _chatTheme,
         dateHeaderThreshold: 12 * 60 * 60 * 1000,
-        groupMessagesThreshold: DateTime.now().millisecondsSinceEpoch,
+        groupMessagesThreshold: DateTime
+            .now()
+            .millisecondsSinceEpoch,
         dateHeaderBuilder: (DateHeader date) =>
             _dateHeaderBuilder(context, date),
         emptyState: const SizedBox(),
@@ -420,8 +436,8 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
     );
   }
 
-  Widget _postcardCompleteBuilder(
-      BuildContext context, types.SystemMessage message) {
+  Widget _postcardCompleteBuilder(BuildContext context,
+      types.SystemMessage message) {
     final totalDistance = widget.payload.token.totalDistance;
     final distanceFormater = DistanceFormatter();
     return _chatPrivateBanner(context,
@@ -462,9 +478,9 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
                 onTap: onAvatarTap,
                 child: (message.isSystemMessage)
                     ? SystemUserAvatar(
-                        url: avatarUrl,
-                        key: Key(avatarUrl),
-                      )
+                  url: avatarUrl,
+                  key: Key(avatarUrl),
+                )
                     : UserAvatar(key: Key(avatarUrl), url: avatarUrl),
               ),
               const SizedBox(width: 20),
@@ -489,7 +505,9 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
   }
 
   void _submit(String message) {
-    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final timestamp = DateTime
+        .now()
+        .millisecondsSinceEpoch;
     final messageId = const Uuid().v4();
 
     final sendingMessage = types.SystemMessage(
@@ -578,14 +596,15 @@ class UserAvatar extends StatelessWidget {
   const UserAvatar({required this.url, super.key});
 
   @override
-  Widget build(BuildContext context) => SizedBox(
-      width: 41,
-      height: 41,
-      child: CachedNetworkImage(
-        imageUrl: url,
-        errorWidget: (context, url, error) =>
-            SvgPicture.asset('assets/images/default_avatar.svg'),
-      ));
+  Widget build(BuildContext context) =>
+      SizedBox(
+          width: 41,
+          height: 41,
+          child: CachedNetworkImage(
+            imageUrl: url,
+            errorWidget: (context, url, error) =>
+                SvgPicture.asset('assets/images/default_avatar.svg'),
+          ));
 }
 
 class SystemUserAvatar extends UserAvatar {
@@ -609,7 +628,8 @@ class _AuInputChatState extends State<AuInputChat> {
   final TextEditingController _textController = TextEditingController();
   bool _isTyping = false;
 
-  Widget _sendIcon(BuildContext context) => SvgPicture.asset(
+  Widget _sendIcon(BuildContext context) =>
+      SvgPicture.asset(
         'assets/images/sendMessage.svg',
         width: 22,
         height: 22,
@@ -698,7 +718,8 @@ class PostcardChatConfig {
     this.lastMessageReadTimeStamp,
   });
 
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() =>
+      {
         'address': address,
         'tokenId': tokenId,
         'lastMessageReadTimeStamp': lastMessageReadTimeStamp,
@@ -722,6 +743,6 @@ class PostcardChatConfig {
         address: address ?? this.address,
         tokenId: tokenId ?? this.tokenId,
         lastMessageReadTimeStamp:
-            lastMessageReadTimeStamp ?? this.lastMessageReadTimeStamp,
+        lastMessageReadTimeStamp ?? this.lastMessageReadTimeStamp,
       );
 }

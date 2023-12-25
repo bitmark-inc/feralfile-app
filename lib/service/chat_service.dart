@@ -239,7 +239,7 @@ class ChatServiceImpl implements ChatService {
     final digest = hmacSha256.convert(utf8.encode(canonicalString));
     final sig = bytesToHex(digest.bytes);
     header['X-Api-Signature'] = sig;
-    final authBody = await wallet.chatAuthBody;
+    final authBody = await wallet.chatAuthBody();
     final token =
         await _chatAuthService.getAuthToken(authBody, address: address);
     header['Authorization'] = 'Bearer $token';
@@ -294,7 +294,7 @@ class ChatServiceImpl implements ChatService {
       {required String indexId,
       required Pair<WalletStorage, int> wallet}) async {
     try {
-      final authBody = await wallet.chatAuthBody;
+      final authBody = await wallet.chatAuthBody();
       final authToken = await _chatAuthService.getAuthToken(authBody,
           address: authBody['address']!);
       final authorization = 'Bearer $authToken';
@@ -318,7 +318,7 @@ class ChatServiceImpl implements ChatService {
         'index_id': indexId,
       };
 
-      final authBody = await wallet.chatAuthBody;
+      final authBody = await wallet.chatAuthBody();
       final authToken =
           await _chatAuthService.getAuthToken(authBody, address: address);
 

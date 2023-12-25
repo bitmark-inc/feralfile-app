@@ -8,7 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 
 extension WalletExt on Pair<WalletStorage, int> {
-  Future<Map<String, dynamic>> get chatAuthBody async {
+  Future<Map<String, dynamic>> chatAuthBody() async {
     final address = await first.getTezosAddress(index: second);
     final pubKey = await first.getTezosPublicKey(index: second);
     final timestamp = DateTime.now().millisecondsSinceEpoch;
