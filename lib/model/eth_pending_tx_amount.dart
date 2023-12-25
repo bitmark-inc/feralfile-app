@@ -13,7 +13,7 @@ class EthereumPendingTxAmount {
   final BigInt? addAmount;
   final DateTime createdAt;
 
-  static const _expiredDuration = Duration(minutes: 5);
+  static const _expiredDuration = Duration(minutes: 15);
 
   BigInt get getDeductAmount =>
       (deductAmount ?? BigInt.zero) - (addAmount ?? BigInt.zero);
