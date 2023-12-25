@@ -130,14 +130,14 @@ class EthereumServiceImpl extends EthereumService {
     final ethAddress = EthereumAddress.fromHex(address);
     final amount = await _web3Client.getBalance(ethAddress);
     final pendingTx = await _hiveService.getEthPendingTxAmounts(address);
-    await Future.forEach<EthereumPendingTxAmount>(pendingTx, (element) async {
+    for (final element in pendingTx) {
       final receipt = await _getReceipt(element.txHash);
       if (receipt != null) {
         pendingTx.remove(element);
         unawaited(
             _hiveService.deleteEthPendingTxAmount(element.txHash, address));
       }
-    });
+    }
     final pendingAmount = pendingTx.fold<BigInt>(BigInt.zero,
         (previousValue, element) => previousValue + element.getDeductAmount);
     log.info('[EthereumService] getBalance - amount :$amount - '
