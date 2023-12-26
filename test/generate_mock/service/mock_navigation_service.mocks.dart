@@ -5,7 +5,7 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i4;
 
-import 'package:autonomy_flutter/model/ff_account.dart' as _i6;
+import 'package:autonomy_flutter/model/ff_series.dart' as _i6;
 import 'package:autonomy_flutter/model/otp.dart' as _i7;
 import 'package:autonomy_flutter/screen/claim/activation/claim_activation_page.dart'
     as _i8;
@@ -117,6 +117,7 @@ class MockNavigationService extends _i2.Mock implements _i3.NavigationService {
   _i4.Future<void> selectPromptsThenStamp(
     _i1.BuildContext? context,
     _i5.AssetToken? asset,
+    String? shareCode,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -124,6 +125,7 @@ class MockNavigationService extends _i2.Mock implements _i3.NavigationService {
           [
             context,
             asset,
+            shareCode,
           ],
         ),
         returnValue: _i4.Future<void>.value(),
