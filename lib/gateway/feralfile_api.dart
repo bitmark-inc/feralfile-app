@@ -7,6 +7,7 @@
 
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
+import 'package:autonomy_flutter/model/ff_exhibition_artworks_response.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
@@ -52,4 +53,8 @@ abstract class FeralFileApi {
 
   @GET('/api/exhibitions/featured')
   Future<ExhibitionResponse> getFeaturedExhibition();
+
+  @GET('/api/artworks')
+  Future<ExhibitionArtworksResponse> getExhibitionArtworks(
+      @Query('exhibitionID') String exhibitionId);
 }
