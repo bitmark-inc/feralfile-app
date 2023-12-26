@@ -132,10 +132,7 @@ class _ScanQRPageState extends State<ScanQRPage>
           : getLightEmptyAppBar(),
       body: Stack(
         children: <Widget>[
-          if (!cameraPermission)
-            _noPermissionView(context)
-          else
-            _content(context),
+          _content(context),
           if (_isLoading) ...[
             Center(
               child: CupertinoActivityIndicator(
@@ -166,25 +163,29 @@ class _ScanQRPageState extends State<ScanQRPage>
             children: [
               Stack(
                 children: [
-                  _qrView(context),
-                  Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      0,
-                      MediaQuery.of(context).size.height / 2 +
-                          qrSize / 2 -
-                          cutPaddingTop,
-                      0,
-                      15,
-                    ),
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          _instructionView(context),
-                        ],
+                  if (!cameraPermission)
+                    _noPermissionView(context)
+                  else ...[
+                    _qrView(context),
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(
+                        0,
+                        MediaQuery.of(context).size.height / 2 +
+                            qrSize / 2 -
+                            cutPaddingTop,
+                        0,
+                        15,
                       ),
-                    ),
-                  ),
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            _instructionView(context),
+                          ],
+                        ),
+                      ),
+                    )
+                  ],
                 ],
               ),
               MultiBlocProvider(
@@ -328,7 +329,7 @@ class _ScanQRPageState extends State<ScanQRPage>
                 cutOutBottomOffset +
                 32,
             0,
-            30,
+            120,
           ),
           child: Center(
             child: Column(

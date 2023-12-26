@@ -526,12 +526,16 @@ class MockConfigurationService extends _i1.Mock
   _i6.Future<void> setPlayList(
     List<_i10.PlayListModel>? value, {
     bool? override = false,
+    _i5.ConflictAction? onConflict = _i5.ConflictAction.abort,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
           #setPlayList,
           [value],
-          {#override: override},
+          {
+            #override: override,
+            #onConflict: onConflict,
+          },
         ),
         returnValue: _i6.Future<void>.value(),
         returnValueForMissingStub: _i6.Future<void>.value(),
@@ -1004,4 +1008,12 @@ class MockConfigurationService extends _i1.Mock
         ),
         returnValue: false,
       ) as bool);
+  @override
+  List<String> getHiddenOrSentTokenIDs() => (super.noSuchMethod(
+        Invocation.method(
+          #getHiddenOrSentTokenIDs,
+          [],
+        ),
+        returnValue: <String>[],
+      ) as List<String>);
 }

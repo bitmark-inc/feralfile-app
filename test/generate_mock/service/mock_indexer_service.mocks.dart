@@ -23,9 +23,8 @@ import 'package:nft_collection/services/indexer_service.dart' as _i3;
 // ignore_for_file: camel_case_types
 // ignore_for_file: subtype_of_sealed_class
 
-class _FakeBlockchainIdentity_0 extends _i1.SmartFake
-    implements _i2.BlockchainIdentity {
-  _FakeBlockchainIdentity_0(
+class _FakeIdentity_0 extends _i1.SmartFake implements _i2.Identity {
+  _FakeIdentity_0(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -53,20 +52,18 @@ class MockIndexerService extends _i1.Mock implements _i3.IndexerService {
         returnValue: _i4.Future<List<_i5.AssetToken>>.value(<_i5.AssetToken>[]),
       ) as _i4.Future<List<_i5.AssetToken>>);
   @override
-  _i4.Future<_i2.BlockchainIdentity> getIdentity(
-          _i7.QueryIdentityRequest? request) =>
+  _i4.Future<_i2.Identity> getIdentity(_i7.QueryIdentityRequest? request) =>
       (super.noSuchMethod(
         Invocation.method(
           #getIdentity,
           [request],
         ),
-        returnValue:
-            _i4.Future<_i2.BlockchainIdentity>.value(_FakeBlockchainIdentity_0(
+        returnValue: _i4.Future<_i2.Identity>.value(_FakeIdentity_0(
           this,
           Invocation.method(
             #getIdentity,
             [request],
           ),
         )),
-      ) as _i4.Future<_i2.BlockchainIdentity>);
+      ) as _i4.Future<_i2.Identity>);
 }

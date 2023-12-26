@@ -11,4 +11,10 @@ extension ExhibitionExt on Exhibition {
 
   //TODO: implement this
   bool get isOnGoing => true;
+
+  String get tokenId => id;
+}
+
+extension ListExhibitionDetailExt on List<ExhibitionDetail> {
+  List<Exhibition> get exhibitions => map((e) => e.exhibition).toList();
 }
