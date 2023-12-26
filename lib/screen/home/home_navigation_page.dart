@@ -130,7 +130,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
           OptionItem(
             title: 'moma_postcard'.tr(),
             icon: const Icon(
-              AuIcon.settings,
+              AuIcon.medium3d,
             ),
             onTap: () {
               Navigator.of(context).pushNamed(AppRouter.settingsPage);
@@ -323,14 +323,14 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       ),
       const FFNavigationBarItem(
         icon: Icon(
-          AuIcon.discover,
+          AuIcon.set,
           size: 25,
         ),
         label: '',
       ),
       const FFNavigationBarItem(
         icon: Icon(
-          AuIcon.wallet,
+          AuIcon.controller,
           size: 25,
         ),
         label: '',
