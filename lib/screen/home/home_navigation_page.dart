@@ -323,14 +323,14 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       ),
       const FFNavigationBarItem(
         icon: Icon(
-          AuIcon.discover,
+          AuIcon.set,
           size: 25,
         ),
         label: '',
       ),
       const FFNavigationBarItem(
         icon: Icon(
-          AuIcon.wallet,
+          AuIcon.controller,
           size: 25,
         ),
         label: '',

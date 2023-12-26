@@ -242,6 +242,10 @@ flutter:
       fonts:
         - asset: assets/fonts/AuIcon.ttf
 
+    - family: FFIcon
+      fonts:
+        - asset: assets/fonts/FFIcon.ttf
+
     - family: MoMASans
       fonts:
         - asset: assets/fonts/MoMASans/MoMA-Sans-Bold.otf

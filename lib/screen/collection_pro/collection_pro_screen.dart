@@ -1,12 +1,22 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/shared_postcard.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/collection_pro/collection_pro_bloc.dart';
 import 'package:autonomy_flutter/screen/collection_pro/collection_pro_state.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
+import 'package:autonomy_flutter/screen/playlists/list_playlists/list_playlists.dart';
+import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
 import 'package:autonomy_flutter/screen/predefined_collection/predefined_collection_screen.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/playlist_service.dart';
+import 'package:autonomy_flutter/service/versions_service.dart';
+import 'package:autonomy_flutter/util/collection_ext.dart';
 import 'package:autonomy_flutter/util/medium_category_ext.dart';
 import 'package:autonomy_flutter/util/predefined_collection_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -17,6 +27,7 @@ import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/search_bar.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:collection/collection.dart';
+import 'package:crypto/crypto.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -43,6 +54,7 @@ class CollectionProState extends State<CollectionPro>
   late ValueNotifier<String> searchStr;
   late bool isShowSearchBar;
   late bool isShowFullHeader;
+  final GlobalKey<CollectionSectionState> _collectionSectionKey = GlobalKey();
 
   @override
   void initState() {
@@ -94,6 +106,7 @@ class CollectionProState extends State<CollectionPro>
   }
 
   void loadCollection() {
+    unawaited(refreshCollectionSection());
     _bloc.add(LoadCollectionEvent(filterStr: searchStr.value));
   }
 
@@ -107,6 +120,13 @@ class CollectionProState extends State<CollectionPro>
 
     if (neededIdentities.isNotEmpty) {
       _identityBloc.add(GetIdentityEvent(neededIdentities));
+    }
+  }
+
+  Future<void> refreshCollectionSection() async {
+    final collectionSectionState = _collectionSectionKey.currentState;
+    if (collectionSectionState != null) {
+      await collectionSectionState.refreshPlaylist();
     }
   }
 
@@ -148,6 +168,17 @@ class CollectionProState extends State<CollectionPro>
                           slivers: [
                             SliverToBoxAdapter(
                               child: _header(context),
+                            ),
+                            SliverToBoxAdapter(
+                              child: ValueListenableBuilder(
+                                valueListenable: searchStr,
+                                builder: (BuildContext context, String value,
+                                        Widget? child) =>
+                                    CollectionSection(
+                                  key: _collectionSectionKey,
+                                  filterString: value,
+                                ),
+                              ),
                             ),
                             const SliverToBoxAdapter(
                               child: SizedBox(height: 60),
@@ -542,6 +573,119 @@ class _WorksSectionState extends State<WorksSection> {
       ),
     );
   }
+}
+
+class CollectionSection extends StatefulWidget {
+  final String filterString;
+
+  const CollectionSection({super.key, this.filterString = ''});
+
+  @override
+  State<CollectionSection> createState() => CollectionSectionState();
+}
+
+class CollectionSectionState extends State<CollectionSection>
+    with RouteAware, WidgetsBindingObserver {
+  final _configurationService = injector.get<ConfigurationService>();
+  final _playlistService = injector.get<PlaylistService>();
+  final _versionService = injector.get<VersionService>();
+  late ValueNotifier<List<PlayListModel>?> _playlists;
+  late bool isDemo;
+
+  Future<List<PlayListModel>?> getPlaylist({bool withDefault = false}) async {
+    final isSubscribed = _configurationService.isPremium();
+    if (!isSubscribed && !isDemo) {
+      return null;
+    }
+    if (isDemo) {
+      return _versionService.getDemoAccountFromGithub();
+    }
+    List<PlayListModel> playlists = await _playlistService.getPlayList();
+    if (withDefault) {
+      final defaultPlaylists = await _playlistService.defaultPlaylists();
+      playlists = defaultPlaylists..addAll(playlists);
+    }
+    return playlists;
+  }
+
+  Future<void> _initPlayList() async {
+    _playlists.value = await getPlaylist() ?? [];
+  }
+
+  @override
+  void initState() {
+    _playlists = ValueNotifier(null);
+    isDemo = _configurationService.isDemoArtworksMode();
+    super.initState();
+    unawaited(_initPlayList());
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didPopNext() {
+    unawaited(_initPlayList());
+    super.didPopNext();
+  }
+
+  Future<void> _gotoCreatePlaylist(BuildContext context) async {
+    await Navigator.of(context)
+        .pushNamed(AppRouter.createPlayListPage)
+        .then((value) {
+      if (value != null && value is PlayListModel) {
+        Navigator.pushNamed(
+          context,
+          AppRouter.viewPlayListPage,
+          arguments: ViewPlaylistScreenPayload(playListModel: value),
+        );
+      }
+    });
+  }
+
+  Future<void> refreshPlaylist() async {
+    await _initPlayList();
+  }
+
+  @override
+  Widget build(BuildContext context) =>
+      ValueListenableBuilder<List<PlayListModel>?>(
+        valueListenable: _playlists,
+        builder: (context, value, child) {
+          if (value == null) {
+            return const SizedBox.shrink();
+          }
+
+          final playlists = value.filter(widget.filterString);
+          final playlistIDsString = playlists.map((e) => e.id).toList().join();
+          final playlistKeyBytes = utf8.encode(playlistIDsString);
+          final playlistKey = sha256.convert(playlistKeyBytes).toString();
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ListPlaylistsScreen(
+                key: Key(playlistKey),
+                playlists: _playlists,
+                filter: widget.filterString,
+                onReorder: (oldIndex, newIndex) {},
+                onAdd: () async {
+                  await _gotoCreatePlaylist(context);
+                },
+              )
+            ],
+          );
+        },
+      );
 }
 
 class SectionInfo {
