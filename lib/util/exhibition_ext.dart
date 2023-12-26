@@ -14,3 +14,7 @@ extension ExhibitionExt on Exhibition {
 
   String get tokenId => id;
 }
+
+extension ListExhibitionDetailExt on List<ExhibitionDetail> {
+  List<Exhibition> get exhibitions => map((e) => e.exhibition).toList();
+}

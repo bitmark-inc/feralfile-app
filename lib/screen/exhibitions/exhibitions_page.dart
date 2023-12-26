@@ -47,8 +47,10 @@ class _ExhibitionsPageState extends State<ExhibitionsPage> {
         ),
       );
 
-  Widget _exhibitionItem(BuildContext context, Exhibition exhibition) {
+  Widget _exhibitionItem(
+      BuildContext context, ExhibitionDetail exhibitionDetail) {
     final theme = Theme.of(context);
+    final exhibition = exhibitionDetail.exhibition;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14),
       child: Column(
@@ -70,10 +72,12 @@ class _ExhibitionsPageState extends State<ExhibitionsPage> {
                   ),
                 ),
                 onTap: () async {
-                  await Navigator.of(context).pushNamed(
-                      AppRouter.exhibitionDetailPage,
-                      arguments: ExhibitionDetailPayload(
-                          exhibitions: _exhibitionBloc.state.exhibitions!));
+                  await Navigator.of(context)
+                      .pushNamed(AppRouter.exhibitionDetailPage,
+                          arguments: ExhibitionDetailPayload(
+                            exhibitions:
+                                _exhibitionBloc.state.exhibitions!.exhibitions,
+                          ));
                 },
               ),
               const SizedBox(height: 20),
@@ -108,7 +112,11 @@ class _ExhibitionsPageState extends State<ExhibitionsPage> {
                                 ? 'group_exhibition'.tr()
                                 : 'solo_exhibition'.tr(),
                             style: theme.textTheme.ppMori400Grey14),
-                        Text('180 Works',
+                        Text(
+                            '_works'.tr(args: [
+                              exhibitionDetail.artworks?.length.toString() ??
+                                  '-'
+                            ]),
                             style: theme.textTheme.ppMori400Grey14),
                       ],
                     ),

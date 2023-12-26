@@ -115,3 +115,10 @@ class ListExhibitionResponse {
         list.map((e) => Exhibition.fromJson(e)).toList());
   }
 }
+
+class ExhibitionDetail {
+  final Exhibition exhibition;
+  final List<Artwork>? artworks;
+
+  ExhibitionDetail({required this.exhibition, this.artworks});
+}

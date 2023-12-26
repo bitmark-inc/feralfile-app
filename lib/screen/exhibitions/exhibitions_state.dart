@@ -11,10 +11,10 @@ class ExhibitionsState {
     this.exhibitions,
   });
 
-  final List<Exhibition>? exhibitions;
+  final List<ExhibitionDetail>? exhibitions;
 
   ExhibitionsState copyWith({
-    List<Exhibition>? exhibitions,
+    List<ExhibitionDetail>? exhibitions,
   }) =>
       ExhibitionsState(
         exhibitions: exhibitions ?? this.exhibitions,
