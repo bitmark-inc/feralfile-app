@@ -26,6 +26,7 @@ import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/gateway/postcard_api.dart';
 import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
 import 'package:autonomy_flutter/gateway/tzkt_api.dart';
+import 'package:autonomy_flutter/screen/chat/chat_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/claim_empty_postcard/claim_empty_postcard_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/edit_playlist/edit_playlist_bloc.dart';
@@ -199,7 +200,7 @@ Future<void> setup() async {
         injector(),
       ));
 
-  injector.registerLazySingleton(() => ChatApi(dio,
+  injector.registerLazySingleton(() => ChatApi(chatDio(dioOptions),
       baseUrl: Environment.postcardChatServerUrl.replaceFirst('ws', 'http')));
   injector.registerLazySingleton(() => ChatAuthService(injector()));
   injector.registerLazySingleton(
@@ -324,7 +325,10 @@ Future<void> setup() async {
     ),
   );
 
-  injector.registerLazySingleton<ChatService>(() => ChatServiceImpl());
+  injector.registerLazySingleton<ChatService>(() => ChatServiceImpl(
+        injector(),
+        injector(),
+      ));
 
   injector.registerLazySingleton<AirdropService>(
     () => AirdropService(
@@ -390,4 +394,5 @@ Future<void> setup() async {
   injector.registerFactory<EditPlaylistBloc>(() => EditPlaylistBloc());
   injector
       .registerFactory<ClaimEmptyPostCardBloc>(() => ClaimEmptyPostCardBloc());
+  injector.registerFactory<AuChatBloc>(() => AuChatBloc(injector()));
 }
