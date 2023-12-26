@@ -169,6 +169,17 @@ class CollectionProState extends State<CollectionPro>
                             SliverToBoxAdapter(
                               child: _header(context),
                             ),
+                            SliverToBoxAdapter(
+                              child: ValueListenableBuilder(
+                                valueListenable: searchStr,
+                                builder: (BuildContext context, String value,
+                                        Widget? child) =>
+                                    CollectionSection(
+                                  key: _collectionSectionKey,
+                                  filterString: value,
+                                ),
+                              ),
+                            ),
                             const SliverToBoxAdapter(
                               child: SizedBox(height: 60),
                             ),
@@ -581,7 +592,7 @@ class CollectionSectionState extends State<CollectionSection>
   late ValueNotifier<List<PlayListModel>?> _playlists;
   late bool isDemo;
 
-  Future<List<PlayListModel>?> getPlaylist() async {
+  Future<List<PlayListModel>?> getPlaylist({bool withDefault = false}) async {
     final isSubscribed = _configurationService.isPremium();
     if (!isSubscribed && !isDemo) {
       return null;
@@ -590,9 +601,10 @@ class CollectionSectionState extends State<CollectionSection>
       return _versionService.getDemoAccountFromGithub();
     }
     List<PlayListModel> playlists = await _playlistService.getPlayList();
-
-    final defaultPlaylists = await _playlistService.defaultPlaylists();
-    playlists = defaultPlaylists..addAll(playlists);
+    if (withDefault) {
+      final defaultPlaylists = await _playlistService.defaultPlaylists();
+      playlists = defaultPlaylists..addAll(playlists);
+    }
     return playlists;
   }
 
@@ -625,24 +637,6 @@ class CollectionSectionState extends State<CollectionSection>
   void didPopNext() {
     unawaited(_initPlayList());
     super.didPopNext();
-  }
-
-  Widget _header(BuildContext context, int total) {
-    final isShowAddIcon = widget.filterString.isEmpty;
-    return SectionHeader(
-      title: 'collections'.tr(),
-      subTitle: '$total',
-      icon: isShowAddIcon
-          ? SvgPicture.asset(
-              'assets/images/Add.svg',
-              width: 22,
-              height: 22,
-            )
-          : null,
-      onTap: () async {
-        await _gotoCreatePlaylist(context);
-      },
-    );
   }
 
   Future<void> _gotoCreatePlaylist(BuildContext context) async {
@@ -679,20 +673,14 @@ class CollectionSectionState extends State<CollectionSection>
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 15),
-                child: Column(
-                  children: [
-                    _header(context, playlists.length),
-                    addDivider(color: AppColor.primaryBlack),
-                  ],
-                ),
-              ),
               ListPlaylistsScreen(
                 key: Key(playlistKey),
                 playlists: _playlists,
                 filter: widget.filterString,
                 onReorder: (oldIndex, newIndex) {},
+                onAdd: () async {
+                  await _gotoCreatePlaylist(context);
+                },
               )
             ],
           );

@@ -4,6 +4,7 @@ import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/collection_ext.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -13,14 +14,15 @@ import 'package:flutter/material.dart';
 class ListPlaylistsScreen extends StatefulWidget {
   final ValueNotifier<List<PlayListModel>?> playlists;
   final Function(int oldIndex, int newIndex) onReorder;
+  final Function() onAdd;
   final String filter;
 
   const ListPlaylistsScreen(
-      {Key? key,
-      required this.playlists,
+      {required this.playlists,
       required this.onReorder,
-      this.filter = ""})
-      : super(key: key);
+      required this.onAdd,
+      super.key,
+      this.filter = ''});
 
   @override
   State<ListPlaylistsScreen> createState() => _ListPlaylistsScreenState();
@@ -49,44 +51,50 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
   }
 
   @override
-  Widget build(BuildContext context) {
-    return ValueListenableBuilder<List<PlayListModel>?>(
-      valueListenable: widget.playlists,
-      builder: (context, value, child) {
-        if (value == null) {
-          return const SizedBox.shrink();
-        }
-        List<PlayListModel> playlists = value.filter(widget.filter);
-        if (playlists.isEmpty) return const SizedBox();
-        const height = 165.0;
-        return SizedBox(
-          height: height,
-          width: 400,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15),
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: playlists.length,
-              itemBuilder: (context, index) {
-                final item = playlists[index];
-                return PlaylistItem(
-                  playlist: item,
-                  onSelected: () => Navigator.pushNamed(
-                    context,
-                    AppRouter.viewPlayListPage,
-                    arguments: ViewPlaylistScreenPayload(playListModel: item),
-                  ),
-                );
-              },
-              separatorBuilder: (context, index) {
-                return const SizedBox(width: 10);
-              },
+  Widget build(BuildContext context) =>
+      ValueListenableBuilder<List<PlayListModel>?>(
+        valueListenable: widget.playlists,
+        builder: (context, value, child) {
+          if (value == null) {
+            return const SizedBox.shrink();
+          }
+          List<PlayListModel> playlists = value.filter(widget.filter);
+          if (playlists.isEmpty) {
+            return const SizedBox();
+          }
+          const height = 165.0;
+          return SizedBox(
+            height: height,
+            width: 400,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15),
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: playlists.length + 1,
+                itemBuilder: (context, index) {
+                  if (index == playlists.length) {
+                    return AddPlayListItem(
+                      onTap: () {
+                        widget.onAdd();
+                      },
+                    );
+                  }
+                  final item = playlists[index];
+                  return PlaylistItem(
+                    playlist: item,
+                    onSelected: () async => Navigator.pushNamed(
+                      context,
+                      AppRouter.viewPlayListPage,
+                      arguments: ViewPlaylistScreenPayload(playListModel: item),
+                    ),
+                  );
+                },
+                separatorBuilder: (context, index) => const SizedBox(width: 10),
+              ),
             ),
-          ),
-        );
-      },
-    );
-  }
+          );
+        },
+      );
 }
 
 class PlaylistItem extends StatefulWidget {
@@ -95,11 +103,11 @@ class PlaylistItem extends StatefulWidget {
   final bool onHold;
 
   const PlaylistItem({
-    Key? key,
-    this.onSelected,
     required this.playlist,
+    super.key,
+    this.onSelected,
     this.onHold = false,
-  }) : super(key: key);
+  });
 
   @override
   State<PlaylistItem> createState() => _PlaylistItemState();
@@ -109,9 +117,9 @@ class _PlaylistItemState extends State<PlaylistItem> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final numberFormater = NumberFormat("#,###");
+    final numberFormater = NumberFormat('#,###');
     final thumbnailURL = widget.playlist.thumbnailURL;
-    final name = widget.playlist.name;
+    final name = widget.playlist.getName();
     const width = 140.0;
     const height = 165.0;
     return GestureDetector(
@@ -119,10 +127,10 @@ class _PlaylistItemState extends State<PlaylistItem> {
       child: Padding(
         padding: EdgeInsets.zero,
         child: Container(
-          width: height,
-          height: width,
+          width: width,
+          height: height,
           decoration: BoxDecoration(
-            color: Colors.black,
+            color: AppColor.white,
             border: Border.all(
               color: widget.onHold ? theme.auSuperTeal : Colors.transparent,
               width: widget.onHold ? 2 : 0,
@@ -137,8 +145,8 @@ class _PlaylistItemState extends State<PlaylistItem> {
                 children: [
                   Expanded(
                     child: Text(
-                      (name?.isNotEmpty ?? false) ? name! : 'Untitled',
-                      style: theme.textTheme.ppMori400White14,
+                      name,
+                      style: theme.textTheme.ppMori400Black14,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -164,19 +172,66 @@ class _PlaylistItemState extends State<PlaylistItem> {
                       : CachedNetworkImage(
                           imageUrl: thumbnailURL,
                           fit: BoxFit.cover,
-                          errorWidget: (context, url, error) {
-                            return Container(
-                              width: double.infinity,
-                              height: double.infinity,
-                              color: theme.disableColor,
-                            );
-                          },
+                          errorWidget: (context, url, error) => Container(
+                            width: double.infinity,
+                            height: double.infinity,
+                            color: theme.disableColor,
+                          ),
                           fadeInDuration: Duration.zero,
                         ),
                 ),
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class AddPlayListItem extends StatelessWidget {
+  final Function()? onTap;
+
+  const AddPlayListItem({super.key, this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 140,
+        height: 165,
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(5),
+            border: Border.all(
+              color: theme.auLightGrey,
+            ),
+            color: AppColor.white),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'new_playlist'.tr(),
+                    style: theme.textTheme.ppMori400Black14,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 5),
+            const Expanded(
+              child: Center(
+                child: Icon(
+                  AuIcon.add,
+                  color: AppColor.primaryBlack,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
