@@ -130,7 +130,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
           OptionItem(
             title: 'moma_postcard'.tr(),
             icon: const Icon(
-              AuIcon.medium3d,
+              AuIcon.settings,
             ),
             onTap: () {
               Navigator.of(context).pushNamed(AppRouter.settingsPage);
