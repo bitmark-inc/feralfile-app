@@ -26,8 +26,6 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage> {
   void initState() {
     super.initState();
     _exBloc = context.read<ExhibitionDetailBloc>();
-    _exBloc.add(
-        SaveExhibitionEvent(widget.payload.exhibitions[widget.payload.index]));
   }
 
   @override
@@ -39,15 +37,14 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage> {
       backgroundColor: AppColor.primaryBlack,
       body: BlocConsumer<ExhibitionDetailBloc, ExhibitionDetailState>(
           builder: (context, state) => ExhibitionPreview(
-                exhibition:
-                    state.exhibition ?? widget.payload.exhibitions.first,
+                exhibition: widget.payload.exhibitions.first.exhibition,
               ),
           listener: (context, state) {}),
     );
 }
 
 class ExhibitionDetailPayload {
-  final List<Exhibition> exhibitions;
+  final List<ExhibitionDetail> exhibitions;
   final int index;
 
   const ExhibitionDetailPayload({

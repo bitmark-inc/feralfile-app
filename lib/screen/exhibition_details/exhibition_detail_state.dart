@@ -4,12 +4,6 @@ import 'package:nft_collection/models/asset_token.dart';
 
 class ExhibitionDetailEvent {}
 
-class SaveExhibitionEvent extends ExhibitionDetailEvent {
-  SaveExhibitionEvent(this.exhibition);
-
-  final Exhibition exhibition;
-}
-
 class GetArtworksEvent extends ExhibitionDetailEvent {}
 
 class ExhibitionDetailState {
