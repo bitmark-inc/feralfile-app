@@ -15,6 +15,10 @@ TZKTOperation _$TZKTOperationFromJson(Map<String, dynamic> json) =>
       block: json['block'] as String,
       hash: json['hash'] as String,
       counter: json['counter'] as int,
+      gasLimit: json['gasLimit'] as int,
+      gasUsed: json['gasUsed'] as int,
+      bakerFee: json['bakerFee'] as int,
+      quote: TZKTQuote.fromJson(json['quote'] as Map<String, dynamic>),
       initiator: json['initiator'] == null
           ? null
           : TZKTActor.fromJson(json['initiator'] as Map<String, dynamic>),
@@ -24,17 +28,13 @@ TZKTOperation _$TZKTOperationFromJson(Map<String, dynamic> json) =>
       target: json['target'] == null
           ? null
           : TZKTActor.fromJson(json['target'] as Map<String, dynamic>),
-      gasLimit: json['gasLimit'] as int,
-      gasUsed: json['gasUsed'] as int,
       storageLimit: json['storageLimit'] as int?,
       storageUsed: json['storageUsed'] as int?,
-      bakerFee: json['bakerFee'] as int,
       storageFee: json['storageFee'] as int?,
       allocationFee: json['allocationFee'] as int?,
       amount: json['amount'] as int?,
       status: json['status'] as String?,
       hasInternals: json['hasInternals'] as bool?,
-      quote: TZKTQuote.fromJson(json['quote'] as Map<String, dynamic>),
       parameter: json['parameter'] == null
           ? null
           : TZKTParameter.fromJson(json['parameter'] as Map<String, dynamic>),

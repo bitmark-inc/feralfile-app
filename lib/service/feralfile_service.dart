@@ -52,6 +52,8 @@ abstract class FeralFileService {
   });
 
   Future<Exhibition> getFeaturedExhibition();
+
+  Future<List<Artwork>> getExhibitionArtworks(String exhibitionId);
 }
 
 class FeralFileServiceImpl extends FeralFileService {
@@ -206,5 +208,11 @@ class FeralFileServiceImpl extends FeralFileService {
   Future<Exhibition> getFeaturedExhibition() async {
     final featuredExhibition = await _feralFileApi.getFeaturedExhibition();
     return featuredExhibition.result;
+  }
+
+  @override
+  Future<List<Artwork>> getExhibitionArtworks(String exhibitionId) async {
+    final artworks = await _feralFileApi.getExhibitionArtworks(exhibitionId);
+    return artworks.result;
   }
 }

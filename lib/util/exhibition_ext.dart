@@ -11,4 +11,6 @@ extension ExhibitionExt on Exhibition {
 
   //TODO: implement this
   bool get isOnGoing => true;
+
+  String get tokenId => id;
 }

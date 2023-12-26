@@ -55,6 +55,8 @@ import 'package:autonomy_flutter/screen/detail/preview/canvas_help_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/keyboard_control_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/touchpad_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview_primer.dart';
+import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_bloc.dart';
+import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
 import 'package:autonomy_flutter/screen/gallery/gallery_bloc.dart';
 import 'package:autonomy_flutter/screen/gallery/gallery_page.dart';
 import 'package:autonomy_flutter/screen/github_doc.dart';
@@ -212,6 +214,7 @@ class AppRouter {
   static const postcardLocationExplain = 'postcard_location_explain';
   static const predefinedCollectionPage = 'predefined_collection_page';
   static const addToCollectionPage = 'add_to_collection_page';
+  static const exhibitionDetailPage = 'exhibition_detail_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector(), injector());
@@ -811,6 +814,20 @@ class AppRouter {
                     ),
                   ],
                   child: const HiddenArtworksPage(),
+                ));
+      case exhibitionDetailPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => MultiBlocProvider(
+                  providers: [
+                    BlocProvider(
+                      create: (_) => ExhibitionDetailBloc(
+                           injector()),
+                    ),
+                  ],
+                  child: ExhibitionDetailPage(
+                    payload: settings.arguments! as ExhibitionDetailPayload,
+                  ),
                 ));
 
       case githubDocPage:
