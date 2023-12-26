@@ -118,7 +118,7 @@ class ListExhibitionResponse {
 
 class ExhibitionDetail {
   final Exhibition exhibition;
-  final List<Artwork>? artworks;
+  List<Artwork>? artworks;
 
   ExhibitionDetail({required this.exhibition, this.artworks});
 }

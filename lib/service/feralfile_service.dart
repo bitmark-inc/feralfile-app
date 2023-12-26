@@ -44,11 +44,12 @@ abstract class FeralFileService {
 
   Future<Exhibition> getExhibition(String id);
 
-  Future<List<Exhibition>> getAllExhibitions({
+  Future<List<ExhibitionDetail>> getAllExhibitions({
     String sortBy = 'openAt',
     String sortOrder = 'DESC',
     int limit = 8,
     int offset = 0,
+    bool withArtworks = false,
   });
 
   Future<Exhibition> getFeaturedExhibition();
@@ -194,14 +195,25 @@ class FeralFileServiceImpl extends FeralFileService {
   }
 
   @override
-  Future<List<Exhibition>> getAllExhibitions(
-      {String sortBy = 'openAt',
-      String sortOrder = 'DESC',
-      int limit = 8,
-      int offset = 0}) async {
+  Future<List<ExhibitionDetail>> getAllExhibitions({
+    String sortBy = 'openAt',
+    String sortOrder = 'DESC',
+    int limit = 8,
+    int offset = 0,
+    bool withArtworks = false,
+  }) async {
     final exhibitions = await _feralFileApi.getAllExhibitions(
         sortBy: sortBy, sortOrder: sortOrder, limit: limit, offset: offset);
-    return exhibitions.result;
+    final listExhibition = exhibitions.result;
+    final listExhibitionDetail =
+        listExhibition.map((e) => ExhibitionDetail(exhibition: e)).toList();
+    if (withArtworks) {
+      await Future.wait(listExhibitionDetail.map((e) async {
+        final artworks = await getExhibitionArtworks(e.exhibition.id);
+        e.artworks = artworks;
+      }));
+    }
+    return listExhibitionDetail;
   }
 
   @override
