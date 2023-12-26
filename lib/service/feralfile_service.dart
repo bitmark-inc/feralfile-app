@@ -208,10 +208,14 @@ class FeralFileServiceImpl extends FeralFileService {
     final listExhibitionDetail =
         listExhibition.map((e) => ExhibitionDetail(exhibition: e)).toList();
     if (withArtworks) {
-      await Future.wait(listExhibitionDetail.map((e) async {
-        final artworks = await getExhibitionArtworks(e.exhibition.id);
-        e.artworks = artworks;
-      }));
+      try {
+        await Future.wait(listExhibitionDetail.map((e) async {
+          final artworks = await getExhibitionArtworks(e.exhibition.id);
+          e.artworks = artworks;
+        }));
+      } catch (e) {
+        log.info('[FeralFileService] Get artworks failed $e');
+      }
     }
     return listExhibitionDetail;
   }

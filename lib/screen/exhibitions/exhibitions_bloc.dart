@@ -8,7 +8,7 @@ class ExhibitionBloc extends AuBloc<ExhibitionsEvent, ExhibitionsState> {
   ExhibitionBloc(this._feralFileService) : super(ExhibitionsState()) {
     on<GetAllExhibitionsEvent>((event, emit) async {
       final featuredExhibition =
-          (await _feralFileService.getAllExhibitions(withArtworks: true)).last;
+          (await _feralFileService.getAllExhibitions(withArtworks: true)).first;
       emit(state.copyWith(exhibitions: [featuredExhibition]));
     });
   }
