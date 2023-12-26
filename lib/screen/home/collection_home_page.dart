@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/blockchain.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/collection_pro/collection_pro_screen.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
@@ -78,10 +79,12 @@ class CollectionHomePageState extends State<CollectionHomePage>
   final _configurationService = injector<ConfigurationService>();
 
   final nftBloc = injector<ClientTokenService>().nftBloc;
+  late GlobalKey<CollectionProState> collectionProKey;
 
   @override
   void initState() {
     super.initState();
+    collectionProKey = GlobalKey<CollectionProState>();
     _metricClient = injector.get<MetricClientService>();
     WidgetsBinding.instance.addObserver(this);
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
@@ -220,6 +223,10 @@ class CollectionHomePageState extends State<CollectionHomePage>
       nftBloc.add(GetTokensByOwnerEvent(pageKey: nextKey));
     }
     return tokens;
+  }
+
+  Future<void> refreshPlaylists() async {
+    await collectionProKey.currentState?.refreshCollectionSection();
   }
 
   @override
