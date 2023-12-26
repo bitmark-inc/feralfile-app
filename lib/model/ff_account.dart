@@ -5,15 +5,14 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/common/environment.dart';
-import 'package:collection/collection.dart';
+import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'ff_account.g.dart';
 
 @JsonSerializable()
 class FFAccount {
-  @JsonKey(name: "ID", defaultValue: '')
+  @JsonKey(name: 'ID', defaultValue: '')
   String id;
   String alias;
   String location;
@@ -33,17 +32,11 @@ class FFAccount {
   Map<String, dynamic> toJson() => _$FFAccountToJson(this);
 
   @override
-  String toString() {
-    return toJson().toString();
-  }
+  String toString() => toJson().toString();
 
-  String? get ethereumAddress {
-    return vaultAddresses?['ethereum'];
-  }
+  String? get ethereumAddress => vaultAddresses?['ethereum'];
 
-  String? get tezosAddress {
-    return vaultAddresses?['tezos'];
-  }
+  String? get tezosAddress => vaultAddresses?['tezos'];
 }
 
 @JsonSerializable()
@@ -58,191 +51,6 @@ class WyreWallet {
       _$WyreWalletFromJson(json);
 
   Map<String, dynamic> toJson() => _$WyreWalletToJson(this);
-}
-
-@JsonSerializable()
-class Exhibition {
-  final String id;
-  final String title;
-  final String slug;
-  final DateTime exhibitionStartAt;
-  final DateTime? exhibitionEndAt;
-  final String? coverURI;
-  final String? thumbnailCoverURI;
-  final String mintBlockchain;
-  final List<FFArtist>? artists;
-  final List<FFSeries>? series;
-  final List<FFContract>? contracts;
-  final FFArtist? partner;
-
-  Exhibition(
-    this.id,
-    this.title,
-    this.slug,
-    this.exhibitionStartAt,
-    this.exhibitionEndAt,
-    this.coverURI,
-    this.thumbnailCoverURI,
-    this.artists,
-    this.series,
-    this.contracts,
-    this.mintBlockchain,
-    this.partner,
-  );
-
-  factory Exhibition.fromJson(Map<String, dynamic> json) =>
-      _$ExhibitionFromJson(json);
-
-  Map<String, dynamic> toJson() => _$ExhibitionToJson(this);
-
-  FFArtist? getArtist(FFSeries? series) {
-    final artistId = series?.artistID;
-    return artists?.firstWhereOrNull((artist) => artist.id == artistId);
-  }
-
-  String getThumbnailURL() {
-    return "${Environment.feralFileAssetURL}/$thumbnailCoverURI";
-  }
-}
-
-@JsonSerializable()
-class ExhibitionResponse {
-  final Exhibition result;
-
-  ExhibitionResponse(this.result);
-
-  factory ExhibitionResponse.fromJson(Map<String, dynamic> json) =>
-      _$ExhibitionResponseFromJson(json);
-
-  Map<String, dynamic> toJson() => _$ExhibitionResponseToJson(this);
-}
-
-@JsonSerializable()
-class FFArtist {
-  @JsonKey(name: "ID")
-  final String id;
-  final String alias;
-  final String slug;
-  final bool? verified;
-  final bool? isArtist;
-  final String? fullName;
-  final String? avatarURI;
-  final String? accountNumber;
-  final String? type;
-
-  FFArtist(
-    this.id,
-    this.alias,
-    this.slug,
-    this.verified,
-    this.isArtist,
-    this.fullName,
-    this.avatarURI,
-    this.accountNumber,
-    this.type,
-  );
-
-  factory FFArtist.fromJson(Map<String, dynamic> json) =>
-      _$FFArtistFromJson(json);
-
-  Map<String, dynamic> toJson() => _$FFArtistToJson(this);
-}
-
-@JsonSerializable()
-class FFSeries {
-  final String id;
-  final String artistID;
-  final String? assetID;
-  final String title;
-  final String slug;
-  final String medium;
-  final String? description;
-  final String? thumbnailURI;
-  final String exhibitionID;
-  final Map<String, dynamic>? metadata;
-  final int? displayIndex;
-  final int? featuringIndex;
-  final FFSeriesSettings? settings;
-  final FFArtist? artist;
-  final Exhibition? exhibition;
-  final AirdropInfo? airdropInfo;
-  final DateTime? createdAt;
-  final DateTime? updatedAt;
-
-  FFSeries(
-    this.id,
-    this.artistID,
-    this.assetID,
-    this.title,
-    this.slug,
-    this.medium,
-    this.description,
-    this.thumbnailURI,
-    this.exhibitionID,
-    this.metadata,
-    this.settings,
-    this.artist,
-    this.exhibition,
-    this.airdropInfo,
-    this.createdAt,
-    this.displayIndex,
-    this.featuringIndex,
-    this.updatedAt,
-  );
-
-  int get maxEdition {
-    return settings?.maxArtwork ?? -1;
-  }
-
-  FFContract? get contract {
-    return exhibition?.contracts?.firstWhereOrNull((e) {
-      return e.address == airdropInfo?.contractAddress;
-    });
-  }
-
-  String getThumbnailURL() {
-    return "${Environment.feralFileAssetURL}/$thumbnailURI";
-  }
-
-  bool get isAirdropSeries {
-    return settings?.isAirdrop == true;
-  }
-
-  factory FFSeries.fromJson(Map<String, dynamic> json) =>
-      _$FFSeriesFromJson(json);
-
-  Map<String, dynamic> toJson() => _$FFSeriesToJson(this);
-}
-
-@JsonSerializable()
-class FFSeriesResponse {
-  final FFSeries result;
-
-  FFSeriesResponse(
-    this.result,
-  );
-
-  factory FFSeriesResponse.fromJson(Map<String, dynamic> json) =>
-      _$FFSeriesResponseFromJson(json);
-
-  Map<String, dynamic> toJson() => _$FFSeriesResponseToJson(this);
-}
-
-@JsonSerializable()
-class FFSeriesSettings {
-  final int maxArtwork;
-  final String? saleModel;
-
-  FFSeriesSettings(this.saleModel, this.maxArtwork);
-
-  factory FFSeriesSettings.fromJson(Map<String, dynamic> json) =>
-      _$FFSeriesSettingsFromJson(json);
-
-  Map<String, dynamic> toJson() => _$FFSeriesSettingsToJson(this);
-
-  bool get isAirdrop {
-    return ["airdrop", "shopping_airdrop"].contains(saleModel?.toLowerCase());
-  }
 }
 
 @JsonSerializable()
@@ -294,9 +102,7 @@ class AirdropInfo {
 
   Map<String, dynamic> toJson() => _$AirdropInfoToJson(this);
 
-  bool get isAirdropStarted {
-    return startedAt?.isBefore(DateTime.now()) == true;
-  }
+  bool get isAirdropStarted => startedAt?.isBefore(DateTime.now()) == true;
 }
 
 @JsonSerializable()
@@ -311,9 +117,7 @@ class TokenClaimResponse {
   Map<String, dynamic> toJson() => _$TokenClaimResponseToJson(this);
 
   @override
-  String toString() {
-    return 'TokenClaimResponse{result: $result}';
-  }
+  String toString() => 'TokenClaimResponse{result: $result}';
 }
 
 @JsonSerializable()
@@ -342,9 +146,11 @@ class TokenClaimResult {
   Map<String, dynamic> toJson() => _$TokenClaimResultToJson(this);
 
   @override
-  String toString() {
-    return 'TokenClaimResult{id: $id, claimerID: $claimerID, exhibitionID: $exhibitionID, artworkID: $artworkID, txID: $txID}';
-  }
+  String toString() => 'TokenClaimResult{id: $id, '
+      'claimerID: $claimerID, '
+      'exhibitionID: $exhibitionID, '
+      'artworkID: $artworkID, '
+      'txID: $txID}';
 }
 
 @JsonSerializable()
@@ -363,9 +169,7 @@ class FeralfileError {
   Map<String, dynamic> toJson() => _$FeralfileErrorToJson(this);
 
   @override
-  String toString() {
-    return 'FeralfileError{code: $code, message: $message}';
-  }
+  String toString() => 'FeralfileError{code: $code, message: $message}';
 }
 
 @JsonSerializable()

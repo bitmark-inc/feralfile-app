@@ -5,7 +5,7 @@ import 'dart:ui';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
-import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
@@ -798,13 +798,11 @@ extension CompactedAssetTokenExt on List<CompactedAssetToken> {
     return playlists;
   }
 
-  List<PlayListModel> getPlaylistByArtists() {
-    return getPlaylistByFilter((e) => e.artistID ?? "Unknown");
-  }
+  List<PlayListModel> getPlaylistByArtists() =>
+      getPlaylistByFilter((e) => e.artistID ?? 'Unknown');
 
-  List<PlayListModel> getPlaylistByMedium() {
-    return getPlaylistByFilter((e) => e.mimeType ?? "Unknown");
-  }
+  List<PlayListModel> getPlaylistByMedium() =>
+      getPlaylistByFilter((e) => e.mimeType ?? 'Unknown');
 }
 
 typedef PlaylistModelType = PlayListModel;

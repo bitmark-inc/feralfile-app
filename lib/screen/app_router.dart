@@ -10,7 +10,7 @@ import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
-import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
@@ -244,7 +244,7 @@ class AppRouter {
               injector(),
             ),
             child: ViewPlaylistScreen(
-              payload: settings.arguments as ViewPlaylistScreenPayload,
+              payload: settings.arguments! as ViewPlaylistScreenPayload,
             ),
           ),
         );
@@ -473,7 +473,7 @@ class AppRouter {
       case settingsPage:
         return CupertinoPageRoute(
             settings: settings,
-            fullscreenDialog: true,
+            // fullscreenDialog: true,
             builder: (context) => MultiBlocProvider(providers: [
                   BlocProvider.value(value: accountsBloc),
                   BlocProvider(create: (_) => personaBloc),
@@ -770,12 +770,9 @@ class AppRouter {
             ));
 
       case supportCustomerPage:
-        return PageTransition(
+        return CupertinoPageRoute(
             settings: settings,
-            type: PageTransitionType.topToBottom,
-            curve: Curves.easeIn,
-            duration: const Duration(milliseconds: 250),
-            child: const SupportCustomerPage());
+            builder: (context) => const SupportCustomerPage());
 
       case supportListPage:
         return CupertinoPageRoute(
@@ -1152,7 +1149,7 @@ class AppRouter {
             settings: settings,
             builder: (context) {
               final payload =
-                  settings.arguments as PredefinedCollectionScreenPayload;
+                  settings.arguments! as PredefinedCollectionScreenPayload;
               return PredefinedCollectionScreen(
                 payload: payload,
               );
@@ -1161,7 +1158,7 @@ class AppRouter {
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) => AddToCollectionScreen(
-            playList: settings.arguments as PlayListModel,
+            playList: settings.arguments! as PlayListModel,
           ),
         );
 

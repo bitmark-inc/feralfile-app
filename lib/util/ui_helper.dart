@@ -6,6 +6,8 @@
 //  that can be found in the LICENSE file.
 //
 
+// ignore_for_file: constant_identifier_names
+
 import 'dart:async';
 import 'dart:convert';
 
@@ -13,6 +15,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
@@ -56,12 +59,13 @@ enum ActionState { notRequested, loading, error, done }
 const SHOW_DIALOG_DURATION = Duration(seconds: 2);
 const SHORT_SHOW_DIALOG_DURATION = Duration(seconds: 1);
 
-void doneOnboarding(BuildContext context) async {
-  injector<IAPService>().restore();
+Future<void> doneOnboarding(BuildContext context) async {
+  unawaited(injector<IAPService>().restore());
   await injector<ConfigurationService>().setPendingSettings(true);
   await injector<ConfigurationService>().setDoneOnboarding(true);
-  injector<MetricClientService>().mixPanelClient.initIfDefaultAccount();
-  injector<NavigationService>()
+  unawaited(
+      injector<MetricClientService>().mixPanelClient.initIfDefaultAccount());
+  await injector<NavigationService>()
       .navigateUntil(AppRouter.homePage, (route) => false);
 
   // await askForNotification();
@@ -77,7 +81,9 @@ Future askForNotification() async {
 
   await Future<dynamic>.delayed(const Duration(seconds: 1), () async {
     final context = injector<NavigationService>().navigatorKey.currentContext;
-    if (context == null) return null;
+    if (context == null) {
+      return null;
+    }
 
     return await Navigator.of(context).pushNamed(
         AppRouter.notificationOnboardingPage,
@@ -94,7 +100,7 @@ class UIHelper {
     String title,
     Widget content, {
     bool isDismissible = false,
-    isRoundCorner = true,
+    bool isRoundCorner = true,
     Color? backgroundColor,
     int autoDismissAfter = 0,
     FeedbackType? feedback = FeedbackType.selection,
@@ -166,7 +172,7 @@ class UIHelper {
     String title,
     Widget content, {
     bool isDismissible = false,
-    isRoundCorner = true,
+    bool isRoundCorner = true,
     int autoDismissAfter = 0,
     FeedbackType? feedback = FeedbackType.selection,
     EdgeInsets? padding,
@@ -244,7 +250,7 @@ class UIHelper {
     const backgroundColor = AppColor.white;
     const defaultSeparator = Divider(
       height: 1,
-      thickness: 1.0,
+      thickness: 1,
       color: Color.fromRGBO(227, 227, 227, 1),
     );
     final confettiController =
@@ -283,7 +289,7 @@ class UIHelper {
                   ),
                   Align(
                     alignment: Alignment.bottomCenter,
-                    child: Container(
+                    child: DecoratedBox(
                       decoration: const BoxDecoration(
                         borderRadius: BorderRadius.only(
                           topLeft: Radius.circular(20),
@@ -377,7 +383,7 @@ class UIHelper {
     BuildContext context,
     Widget content, {
     bool isDismissible = false,
-    isRoundCorner = true,
+    bool isRoundCorner = true,
     Color? backgroundColor,
     int autoDismissAfter = 0,
     FeedbackType? feedback = FeedbackType.selection,
@@ -411,7 +417,7 @@ class UIHelper {
         height: height.toDouble(),
         child: ClipPath(
           clipper: isRoundCorner ? null : AutonomyTopRightRectangleClipper(),
-          child: Container(
+          child: DecoratedBox(
             decoration: BoxDecoration(
               color: backgroundColor ?? theme.auGreyBackground,
               borderRadius: isRoundCorner
@@ -431,7 +437,7 @@ class UIHelper {
     BuildContext context,
     Widget content, {
     bool isDismissible = true,
-    isRoundCorner = true,
+    bool isRoundCorner = true,
     Color? backgroundColor,
     int autoDismissAfter = 0,
     FeedbackType? feedback = FeedbackType.selection,
@@ -491,7 +497,7 @@ class UIHelper {
     BuildContext context,
     Widget content, {
     bool isDismissible = false,
-    isRoundCorner = true,
+    bool isRoundCorner = true,
     Color? backgroundColor,
     int autoDismissAfter = 0,
     FeedbackType? feedback = FeedbackType.selection,
@@ -659,7 +665,7 @@ class UIHelper {
     Widget optionRow({required String title, Function()? onTap}) => InkWell(
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16.0),
+            padding: const EdgeInsets.symmetric(vertical: 16),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -670,7 +676,7 @@ class UIHelper {
           ),
         );
 
-    UIHelper.showDialog(
+    await UIHelper.showDialog(
       context,
       'Options',
       ListView.separated(
@@ -695,7 +701,7 @@ class UIHelper {
                 ? const SizedBox.shrink()
                 : Divider(
                     height: 1,
-                    thickness: 1.0,
+                    thickness: 1,
                     color: theme.colorScheme.surface,
                   ),
       ),
@@ -756,7 +762,7 @@ class UIHelper {
     );
   }
 
-  static hideInfoDialog(BuildContext context) {
+  static void hideInfoDialog(BuildContext context) {
     currentDialogTitle = '';
     try {
       Navigator.popUntil(context, (route) => route.settings.name != null);
@@ -767,8 +773,8 @@ class UIHelper {
       BuildContext context, String? artworkId) async {
     final theme = Theme.of(context);
     final error = FeralfileError(5006, '');
-    metricClient.addEvent(MixpanelEvent.acceptOwnershipFail,
-        data: {'message': error.dialogMessage, 'id': artworkId});
+    unawaited(metricClient.addEvent(MixpanelEvent.acceptOwnershipFail,
+        data: {'message': error.dialogMessage, 'id': artworkId}));
     return UIHelper.showDialog(
       context,
       error.dialogTitle,
@@ -798,8 +804,8 @@ class UIHelper {
       BuildContext context, String? artworkId) async {
     final theme = Theme.of(context);
     final error = FeralfileError(3007, '');
-    metricClient.addEvent(MixpanelEvent.acceptOwnershipFail,
-        data: {'message': error.dialogMessage, 'id': artworkId});
+    unawaited(metricClient.addEvent(MixpanelEvent.acceptOwnershipFail,
+        data: {'message': error.dialogMessage, 'id': artworkId}));
     return UIHelper.showDialog(
       context,
       error.dialogTitle,
@@ -830,8 +836,8 @@ class UIHelper {
     required FFSeries series,
   }) async {
     final error = FeralfileError(3009, '');
-    metricClient.addEvent(MixpanelEvent.acceptOwnershipFail,
-        data: {'message': error.dialogMessage, 'id': series.id});
+    unawaited(metricClient.addEvent(MixpanelEvent.acceptOwnershipFail,
+        data: {'message': error.dialogMessage, 'id': series.id}));
     return showErrorDialog(
       context,
       error.getDialogTitle(),
@@ -845,8 +851,8 @@ class UIHelper {
     required String id,
   }) async {
     final error = FeralfileError(3009, '');
-    metricClient.addEvent(MixpanelEvent.acceptOwnershipFail,
-        data: {'message': error.dialogMessage, 'id': id});
+    unawaited(metricClient.addEvent(MixpanelEvent.acceptOwnershipFail,
+        data: {'message': error.dialogMessage, 'id': id}));
     return showErrorDialog(
       context,
       error.getDialogTitle(),
@@ -857,8 +863,8 @@ class UIHelper {
 
   static Future showOtpExpired(BuildContext context, String? artworkId) async {
     final error = FeralfileError(3013, '');
-    metricClient.addEvent(MixpanelEvent.acceptOwnershipFail,
-        data: {'message': error.dialogMessage, 'id': artworkId});
+    unawaited(metricClient.addEvent(MixpanelEvent.acceptOwnershipFail,
+        data: {'message': error.dialogMessage, 'id': artworkId}));
     return showErrorDialog(
       context,
       error.dialogTitle,
@@ -880,8 +886,8 @@ class UIHelper {
           ? ffError.getDialogMessage(series: series)
           : '${e.response?.data ?? e.message}';
 
-      metricClient.addEvent(MixpanelEvent.acceptOwnershipFail,
-          data: {'message': message, 'id': series.id});
+      unawaited(metricClient.addEvent(MixpanelEvent.acceptOwnershipFail,
+          data: {'message': message, 'id': series.id}));
       await showErrorDialog(
         context,
         ffError?.getDialogTitle() ?? 'error'.tr(),
@@ -906,8 +912,8 @@ class UIHelper {
           ? ffError.dialogMessage
           : '${e.response?.data ?? e.message}';
 
-      metricClient.addEvent(MixpanelEvent.acceptOwnershipFail,
-          data: {'message': message, 'id': id});
+      unawaited(metricClient.addEvent(MixpanelEvent.acceptOwnershipFail,
+          data: {'message': message, 'id': id}));
       await showErrorDialog(
         context,
         ffError?.dialogMessage ?? 'error'.tr(),
@@ -991,37 +997,39 @@ class UIHelper {
     }
   }
 
-  static showHideArtworkResultDialog(BuildContext context, bool isHidden,
-      {required Function() onOK}) {
+  static Future<void> showHideArtworkResultDialog(
+      BuildContext context, bool isHidden,
+      {required Function() onOK}) async {
     final theme = Theme.of(context);
 
-    showDialog(
+    await showDialog(
         context,
         isHidden ? 'art_hidden'.tr() : 'art_unhidden'.tr(),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            isHidden
-                ? RichText(
-                    text: TextSpan(children: [
-                      TextSpan(
-                        style: theme.textTheme.ppMori400White14,
-                        text: 'art_no_appear'.tr(),
-                      ),
-                      TextSpan(
-                        style: theme.textTheme.ppMori700White14,
-                        text: 'hidden_artwork'.tr(),
-                      ),
-                      TextSpan(
-                        style: theme.textTheme.ppMori400White14,
-                        text: 'section_setting'.tr(),
-                      ),
-                    ]),
-                  )
-                : Text(
-                    'art_visible'.tr(),
-                    style: theme.primaryTextTheme.ppMori400White14,
+            if (isHidden)
+              RichText(
+                text: TextSpan(children: [
+                  TextSpan(
+                    style: theme.textTheme.ppMori400White14,
+                    text: 'art_no_appear'.tr(),
                   ),
+                  TextSpan(
+                    style: theme.textTheme.ppMori700White14,
+                    text: 'hidden_artwork'.tr(),
+                  ),
+                  TextSpan(
+                    style: theme.textTheme.ppMori400White14,
+                    text: 'section_setting'.tr(),
+                  ),
+                ]),
+              )
+            else
+              Text(
+                'art_visible'.tr(),
+                style: theme.primaryTextTheme.ppMori400White14,
+              ),
             const SizedBox(height: 40),
             PrimaryButton(
               onTap: onOK,
@@ -1032,11 +1040,11 @@ class UIHelper {
         ));
   }
 
-  static showIdentityDetailDialog(BuildContext context,
-      {required String name, required String address}) {
+  static Future<void> showIdentityDetailDialog(BuildContext context,
+      {required String name, required String address}) async {
     final theme = Theme.of(context);
 
-    showDialog(
+    await showDialog(
         context,
         'identity'.tr(),
         Flexible(
@@ -1085,9 +1093,10 @@ class UIHelper {
         )));
   }
 
-  static showLoadingScreen(BuildContext context, {String text = ''}) {
+  static Future<void> showLoadingScreen(BuildContext context,
+      {String text = ''}) async {
     final theme = Theme.of(context);
-    Navigator.push(
+    await Navigator.push(
       context,
       CupertinoPageRoute(
         builder: (context) => loadingScreen(
@@ -1098,20 +1107,20 @@ class UIHelper {
     );
   }
 
-  static showCenterSheet(BuildContext context,
+  static Future<void> showCenterSheet(BuildContext context,
       {required Widget content,
       String? actionButton,
       Function()? actionButtonOnTap,
       String? exitButton,
-      Function()? exitButtonOnTap}) {
+      Function()? exitButtonOnTap}) async {
     UIHelper.hideInfoDialog(context);
-    showCupertinoModalPopup(
+    await showCupertinoModalPopup(
         context: context,
         builder: (context) => Center(
               child: Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 15, vertical: 128),
-                child: Container(
+                child: DecoratedBox(
                   decoration: BoxDecoration(
                     color: AppColor.auSuperTeal,
                     borderRadius: BorderRadius.circular(5),
@@ -1208,9 +1217,89 @@ class UIHelper {
             ));
   }
 
+  static Future<void> showCenterMenu(BuildContext context,
+      {required List<OptionItem> options}) async {
+    final theme = Theme.of(context);
+    await showCupertinoModalPopup(
+      context: context,
+      builder: (context) => Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              color: AppColor.auGreyBackground,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemBuilder: (BuildContext context, int index) {
+                    final option = options[index];
+                    final child = Container(
+                      color: Colors.transparent,
+                      // width: MediaQuery.of(context).size.width,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 16,
+                          horizontal: 13,
+                        ),
+                        child: Row(
+                          children: [
+                            if (option.icon != null)
+                              SizedBox(
+                                  width: 30,
+                                  child: IconTheme(
+                                      data: const IconThemeData(
+                                        color: AppColor.white,
+                                      ),
+                                      child: option.icon!)),
+                            if (option.icon != null)
+                              const SizedBox(
+                                width: 39,
+                              ),
+                            Text(
+                              option.title ?? '',
+                              style: option.titleStyle ??
+                                  theme.textTheme.ppMori400White14.copyWith(
+                                      decoration: TextDecoration.none),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                    if (option.builder != null) {
+                      return option.builder!.call(context, option);
+                    }
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.pop(context);
+                        option.onTap?.call();
+                      },
+                      child: child,
+                    );
+                  },
+                  itemCount: options.length,
+                  separatorBuilder: (context, index) => const Divider(
+                    height: 1,
+                    color: AppColor.primaryBlack,
+                  ),
+                )
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   static Future<void> showDrawerAction(BuildContext context,
       {List<OptionItem>? options}) async {
     final theme = Theme.of(context);
+
     await showModalBottomSheet<dynamic>(
         context: context,
         backgroundColor: Colors.transparent,
@@ -1245,14 +1334,14 @@ class UIHelper {
                         width: MediaQuery.of(context).size.width,
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
-                            vertical: 16.0,
+                            vertical: 16,
                             horizontal: 13,
                           ),
                           child: Row(
                             children: [
                               if (options?[index].icon != null)
                                 SizedBox(
-                                    width: 30, child: options![index].icon!),
+                                    width: 30, child: options![index].icon),
                               if (options?[index].icon != null)
                                 const SizedBox(
                                   width: 34,
@@ -1279,7 +1368,7 @@ class UIHelper {
                     itemCount: options?.length ?? 0,
                     separatorBuilder: (context, index) => Divider(
                       height: 1,
-                      thickness: 1.0,
+                      thickness: 1,
                       color: theme.colorScheme.secondary,
                     ),
                   ),
@@ -1308,7 +1397,7 @@ class UIHelper {
                 : Constants.maxWidthModalTablet),
         barrierColor: Colors.black.withOpacity(0.5),
         isScrollControlled: true,
-        builder: (context) => Container(
+        builder: (context) => DecoratedBox(
               decoration: const BoxDecoration(
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(20),
@@ -1328,7 +1417,7 @@ class UIHelper {
                         final item = options[index];
                         const defaultSeparator = Divider(
                           height: 1,
-                          thickness: 1.0,
+                          thickness: 1,
                           color: Color.fromRGBO(227, 227, 227, 1),
                         );
                         return Column(
@@ -1387,17 +1476,17 @@ class UIHelper {
         closeButton: 'close'.tr());
   }
 
-  static showReceivePostcardFailed(
+  static Future<void> showReceivePostcardFailed(
           BuildContext context, DioException error) async =>
       showErrorDialog(context, 'accept_postcard_failed'.tr(),
           'postcard_has_been_claimed'.tr(), 'close'.tr());
 
-  static showAlreadyClaimedPostcard(
+  static Future<void> showAlreadyClaimedPostcard(
           BuildContext context, DioException error) async =>
       showErrorDialog(context, 'you_already_claimed_this_postcard'.tr(),
           'send_it_to_someone_else'.tr(), 'close'.tr());
 
-  static showSharePostcardFailed(
+  static Future<void> showSharePostcardFailed(
           BuildContext context, DioException error) async =>
       _showPostcardError(
         context,
@@ -1443,11 +1532,14 @@ class UIHelper {
                 bool result = false;
                 try {
                   result = await registerPushNotifications(askPermission: true);
-                  injector<ConfigurationService>().setPendingSettings(false);
+                  await injector<ConfigurationService>()
+                      .setPendingSettings(false);
                 } catch (error) {
                   log.warning('Error when setting notification: $error');
                 }
-                if (!context.mounted) return;
+                if (!context.mounted) {
+                  return;
+                }
                 Navigator.pop(context, result);
               },
             ),
@@ -1455,28 +1547,27 @@ class UIHelper {
         ),
         isDismissible: true);
     if (result) {
-      if (!context.mounted) return;
+      if (!context.mounted) {
+        return;
+      }
       await _showPostcardInfo(context, message: 'postcard_noti_enabled'.tr());
     }
   }
 
-  static showAirdropClaimFailed(BuildContext context) async =>
+  static Future<void> showAirdropClaimFailed(BuildContext context) async =>
       showErrorDialog(context, 'airdrop_claim_failed'.tr(), '', 'close'.tr());
 
-  static showAirdropAlreadyClaim(BuildContext context) async => showErrorDialog(
-      context,
-      'already_claimed'.tr(),
-      'already_claimed_desc'.tr(),
-      'close'.tr());
+  static Future<void> showAirdropAlreadyClaim(BuildContext context) async =>
+      showErrorDialog(context, 'already_claimed'.tr(),
+          'already_claimed_desc'.tr(), 'close'.tr());
 
-  static showAirdropJustOnce(BuildContext context) async => showErrorDialog(
-      context, 'just_once'.tr(), 'just_once_desc'.tr(), 'close'.tr());
+  static Future<void> showAirdropJustOnce(BuildContext context) async =>
+      showErrorDialog(
+          context, 'just_once'.tr(), 'just_once_desc'.tr(), 'close'.tr());
 
-  static showAirdropCannotShare(BuildContext context) async => showErrorDialog(
-      context,
-      'already_claimed'.tr(),
-      'cannot_share_aridrop_desc'.tr(),
-      'close'.tr());
+  static Future<void> showAirdropCannotShare(BuildContext context) async =>
+      showErrorDialog(context, 'already_claimed'.tr(),
+          'cannot_share_aridrop_desc'.tr(), 'close'.tr());
 
   static Future<void> showPostcardShareLinkExpired(BuildContext context) async {
     await UIHelper.showDialog(
@@ -1516,7 +1607,7 @@ class UIHelper {
     );
   }
 
-  static showCustomDialog(
+  static Future<void> showCustomDialog(
       {required BuildContext context,
       required Widget child,
       bool isDismissible = false,
@@ -1554,7 +1645,7 @@ class UIHelper {
     );
   }
 
-  static showLocationExplain(BuildContext context) async {
+  static Future<void> showLocationExplain(BuildContext context) async {
     final theme = Theme.of(context);
     return showCustomDialog(
       context: context,

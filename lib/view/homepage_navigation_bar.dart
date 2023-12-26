@@ -4,10 +4,14 @@ import 'package:flutter/material.dart';
 class FFNavigationBarItem {
   final Widget icon;
   final String label;
+  final Color? selectedColor;
+  final Color? unselectedColor;
 
   const FFNavigationBarItem({
     required this.icon,
     required this.label,
+    this.selectedColor,
+    this.unselectedColor,
   });
 }
 
@@ -58,8 +62,10 @@ class _FFNavigationBarState extends State<FFNavigationBar> {
                               data: IconThemeData(
                                 color: widget.currentIndex ==
                                         widget.items.indexOf(e)
-                                    ? widget.selectedItemColor
-                                    : widget.unselectedItemColor,
+                                    ? e.selectedColor ??
+                                        widget.selectedItemColor
+                                    : e.unselectedColor ??
+                                        widget.unselectedItemColor,
                               ),
                               child: e.icon,
                             ),
