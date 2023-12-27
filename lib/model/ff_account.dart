@@ -242,6 +242,7 @@ class Artwork {
   final DateTime updatedAt;
   final bool? isArchived;
   final FFSeries? series;
+  final ArtworkSwap? swap;
 
   Artwork(
       this.id,
@@ -258,10 +259,98 @@ class Artwork {
       this.createdAt,
       this.updatedAt,
       this.isArchived,
-      this.series);
+      this.series,
+      this.swap);
 
   factory Artwork.fromJson(Map<String, dynamic> json) =>
       _$ArtworkFromJson(json);
 
   Map<String, dynamic> toJson() => _$ArtworkToJson(this);
+}
+
+class ArtworkSwap {
+  String id;
+  String artworkID;
+  String seriesID;
+  String paymentID;
+  double fee;
+  String currency;
+  int artworkIndex;
+  String ownerAccount;
+  String status;
+  String contractName;
+  String contractAddress;
+  String recipientAddress;
+  String ipfsCid;
+  String token;
+  String blockchainType;
+  DateTime createdAt;
+  DateTime updatedAt;
+  DateTime expiredAt;
+
+  // Constructor
+  ArtworkSwap({
+    required this.id,
+    required this.artworkID,
+    required this.seriesID,
+    required this.paymentID,
+    required this.fee,
+    required this.currency,
+    required this.artworkIndex,
+    required this.ownerAccount,
+    required this.status,
+    required this.contractName,
+    required this.contractAddress,
+    required this.recipientAddress,
+    required this.ipfsCid,
+    required this.token,
+    required this.blockchainType,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.expiredAt,
+  });
+
+  // Factory method to create an ArtworkSwap instance from JSON
+  factory ArtworkSwap.fromJson(Map<String, dynamic> json) => ArtworkSwap(
+        id: json['id'],
+        artworkID: json['artworkID'],
+        seriesID: json['seriesID'],
+        paymentID: json['paymentID'],
+        fee: json['fee'].toDouble(),
+        currency: json['currency'],
+        artworkIndex: json['artworkIndex'],
+        ownerAccount: json['ownerAccount'],
+        status: json['status'],
+        contractName: json['contractName'],
+        contractAddress: json['contractAddress'],
+        recipientAddress: json['recipientAddress'],
+        ipfsCid: json['ipfsCid'],
+        token: json['token'],
+        blockchainType: json['blockchainType'],
+        createdAt: DateTime.parse(json['createdAt']),
+        updatedAt: DateTime.parse(json['updatedAt']),
+        expiredAt: DateTime.parse(json['expiredAt']),
+      );
+
+  // Method to convert ArtworkSwap instance to JSON
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'artworkID': artworkID,
+        'seriesID': seriesID,
+        'paymentID': paymentID,
+        'fee': fee,
+        'currency': currency,
+        'artworkIndex': artworkIndex,
+        'ownerAccount': ownerAccount,
+        'status': status,
+        'contractName': contractName,
+        'contractAddress': contractAddress,
+        'recipientAddress': recipientAddress,
+        'ipfsCid': ipfsCid,
+        'token': token,
+        'blockchainType': blockchainType,
+        'createdAt': createdAt.toIso8601String(),
+        'updatedAt': updatedAt.toIso8601String(),
+        'expiredAt': expiredAt.toIso8601String(),
+      };
 }
