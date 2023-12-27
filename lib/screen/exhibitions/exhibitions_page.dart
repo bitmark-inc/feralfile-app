@@ -75,8 +75,9 @@ class _ExhibitionsPageState extends State<ExhibitionsPage> {
                   await Navigator.of(context)
                       .pushNamed(AppRouter.exhibitionDetailPage,
                           arguments: ExhibitionDetailPayload(
-                            exhibitions:
-                                _exhibitionBloc.state.exhibitions!,
+                            exhibitions: _exhibitionBloc.state.exhibitions!
+                                .map((e) => e.exhibition)
+                                .toList(),
                           ));
                 },
               ),
