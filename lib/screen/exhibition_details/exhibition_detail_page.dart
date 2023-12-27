@@ -63,40 +63,34 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage> {
                   .toList();
               return Stack(
                 children: [
-                  Column(
-                    children: [
-                      Expanded(
-                        child: PageView.builder(
-                            controller: _controller,
-                            onPageChanged: (index) {
-                              setState(() {
-                                _currentIndex = index;
-                              });
-                            },
-                            scrollDirection: Axis.vertical,
-                            itemCount: tokenIds.length + 1,
-                            itemBuilder: (context, index) {
-                              switch (index) {
-                                case 0:
-                                  return _getPreviewPage(
-                                      exhibitionDetail.exhibition);
-                                default:
-                                  final series = exhibitionDetail
-                                      .exhibition.series!
-                                      .firstWhere((element) =>
-                                          element.id ==
-                                          viewingArtworks[index - 1].seriesID);
-                                  return FeralFileArtworkPreview(
-                                      payload: FeralFileArtworkPreviewPayload(
-                                    tokenId: tokenIds[index - 1],
-                                    artwork: viewingArtworks[index - 1],
-                                    series: series,
-                                  ));
-                              }
-                            }),
-                      ),
-                    ],
-                  ),
+                  PageView.builder(
+                      controller: _controller,
+                      onPageChanged: (index) {
+                        setState(() {
+                          _currentIndex = index;
+                        });
+                      },
+                      scrollDirection: Axis.vertical,
+                      itemCount: tokenIds.length + 1,
+                      itemBuilder: (context, index) {
+                        switch (index) {
+                          case 0:
+                            return _getPreviewPage(
+                                exhibitionDetail.exhibition);
+                          default:
+                            final series = exhibitionDetail
+                                .exhibition.series!
+                                .firstWhere((element) =>
+                                    element.id ==
+                                    viewingArtworks[index - 1].seriesID);
+                            return FeralFileArtworkPreview(
+                                payload: FeralFileArtworkPreviewPayload(
+                              tokenId: tokenIds[index - 1],
+                              artwork: viewingArtworks[index - 1],
+                              series: series,
+                            ));
+                        }
+                      }),
                   if (_currentIndex == 0)
                     Align(
                         alignment: Alignment.bottomCenter,
@@ -108,6 +102,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage> {
       );
 
   Widget _getPreviewPage(Exhibition exhibition) => Column(
+    mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           ExhibitionPreview(
             exhibition: exhibition,
@@ -155,7 +150,7 @@ class ExhibitionPreview extends StatelessWidget {
         .copyWith(decoration: TextDecoration.underline);
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14),
+      padding: const EdgeInsets.only(left: 14, right: 14, bottom: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
