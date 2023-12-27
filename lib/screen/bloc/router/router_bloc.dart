@@ -63,41 +63,46 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
       if (state.onboardingStep != OnboardingStep.undefined) {
         return;
       }
+      final defaultPersonaFromKeychain =
+          await _accountService.getDefaultPersonaFromKeychain();
+      if (defaultPersonaFromKeychain != null) {
+        await _cloudFirestoreService.authFiresabeService
+            .signInWithPersona(defaultPersonaFromKeychain);
+        await migrationUtil.migrateIfNeeded();
 
-      await migrationUtil.migrateIfNeeded();
+        // Check and restore full accounts from cloud if existing
+        await migrationUtil.migrationFromKeychain();
+        await _accountService.androidRestoreKeys();
 
-      // Check and restore full accounts from cloud if existing
-      await migrationUtil.migrationFromKeychain();
-      await _accountService.androidRestoreKeys();
-
-      if (_configurationService.isDoneOnboarding()) {
-        emit(RouterState(onboardingStep: OnboardingStep.dashboard));
-        return;
-      }
-
-      //Soft delay 1s waiting for database synchronizing
-      await Future.delayed(const Duration(seconds: 1));
-
-      if (await hasAccounts()) {
-        unawaited(_configurationService.setOldUser());
-        final backupVersion = await _backupService
-            .fetchBackupVersion(await _accountService.getDefaultAccount());
-        if (backupVersion.isNotEmpty) {
-          log.info('[DefineViewRoutingEvent] have backup version');
-          //restore backup database
-          emit(RouterState(
-              onboardingStep: OnboardingStep.restore,
-              backupVersion: backupVersion));
-          add(RestoreCloudDatabaseRoutingEvent(backupVersion));
-          return;
-        } else {
-          await _cloudFirestoreService.setAlreadyBackupFromSqlite();
-          await _configurationService.setDoneOnboarding(true);
-          unawaited(injector<MetricClientService>()
-              .mixPanelClient
-              .initIfDefaultAccount());
+        if (_configurationService.isDoneOnboarding()) {
           emit(RouterState(onboardingStep: OnboardingStep.dashboard));
           return;
+        }
+
+        //Soft delay 1s waiting for database synchronizing
+        await Future.delayed(const Duration(seconds: 1));
+
+        if (await hasAccounts()) {
+          unawaited(_configurationService.setOldUser());
+          final backupVersion = await _backupService
+              .fetchBackupVersion(await _accountService.getDefaultAccount());
+          if (backupVersion.isNotEmpty) {
+            log.info('[DefineViewRoutingEvent] have backup version');
+            //restore backup database
+            emit(RouterState(
+                onboardingStep: OnboardingStep.restore,
+                backupVersion: backupVersion));
+            add(RestoreCloudDatabaseRoutingEvent(backupVersion));
+            return;
+          } else {
+            await _cloudFirestoreService.setAlreadyBackupFromSqlite();
+            await _configurationService.setDoneOnboarding(true);
+            unawaited(injector<MetricClientService>()
+                .mixPanelClient
+                .initIfDefaultAccount());
+            emit(RouterState(onboardingStep: OnboardingStep.dashboard));
+            return;
+          }
         }
       } else {
         emit(RouterState(onboardingStep: OnboardingStep.startScreen));

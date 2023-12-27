@@ -44,6 +44,8 @@ import 'package:synchronized/synchronized.dart';
 import 'package:uuid/uuid.dart';
 
 abstract class AccountService {
+  Future<Persona?> getDefaultPersonaFromKeychain();
+
   Future<WalletStorage> getDefaultAccount();
 
   Future<Persona> getOrCreateDefaultPersona();
@@ -132,14 +134,31 @@ class AccountServiceImpl extends AccountService {
     this._backupService,
   );
 
+  MigrationUtil get _migrationUtil => MigrationUtil(
+        _configurationService,
+        _cloudDB,
+        injector(),
+        _auditService,
+        injector(),
+        this,
+      );
+
   @override
   Future<Persona> createPersona(
-      {String name = '', bool isDefault = false}) async {
+      {String name = '', bool isDefault = false, String? words}) async {
     final uuid = const Uuid().v4();
     final walletStorage = LibAukDart.getWallet(uuid);
-    await walletStorage.createKey(name);
+    if (words != null) {
+      await walletStorage.importKey(
+          words, '', DateTime.now().microsecondsSinceEpoch);
+    } else {
+      await walletStorage.createKey(name);
+    }
     final persona = Persona.newPersona(
         uuid: uuid, defaultAccount: isDefault ? 1 : null, name: name);
+    if (!_authFiresabeService.isSignedIn) {
+      await _authFiresabeService.signInWithPersona(persona);
+    }
     await _cloudDB.personaDao.insertPersona(persona);
     await androidBackupKeys();
     await _auditService.auditPersonaAction('create', persona);
@@ -154,11 +173,13 @@ class AccountServiceImpl extends AccountService {
   @override
   Future<Persona> importPersona(String words,
       {WalletType walletType = WalletType.Autonomy}) async {
-    final personas = await _cloudDB.personaDao.getPersonas();
-    for (final persona in personas) {
-      final mnemonic = await persona.wallet().exportMnemonicWords();
-      if (mnemonic == words) {
-        return persona;
+    if (_authFiresabeService.isSignedIn) {
+      final personas = await _cloudDB.personaDao.getPersonas();
+      for (final persona in personas) {
+        final mnemonic = await persona.wallet().exportMnemonicWords();
+        if (mnemonic == words) {
+          return persona;
+        }
       }
     }
 
@@ -168,6 +189,9 @@ class AccountServiceImpl extends AccountService {
         words, '', DateTime.now().microsecondsSinceEpoch);
 
     final persona = Persona.newPersona(uuid: uuid);
+    if (!_authFiresabeService.isSignedIn) {
+      await _authFiresabeService.signInWithPersona(persona);
+    }
     await _cloudDB.personaDao.insertPersona(persona);
     await androidBackupKeys();
     await _auditService.auditPersonaAction('import', persona);
@@ -178,6 +202,37 @@ class AccountServiceImpl extends AccountService {
     }));
     log.info('[AccountService] imported persona ${persona.uuid}');
     return persona;
+  }
+
+  Future<Persona?> _getDefaultPersonaFromKeychainAndroid() async {
+    if (!Platform.isAndroid) {
+      return null;
+    }
+
+    final accounts = await _backupChannel.restoreKeys();
+    for (var account in accounts) {
+      final backupVersion = await _backupService
+          .fetchBackupVersion(LibAukDart.getWallet(account.uuid));
+      if (backupVersion.isNotEmpty) {
+        return Persona.newPersona(
+          uuid: account.uuid,
+          name: account.name,
+          createdAt: DateTime.now(),
+          defaultAccount: 1,
+        );
+      }
+    }
+    return null;
+  }
+
+  @override
+  Future<Persona?> getDefaultPersonaFromKeychain() async {
+    if (Platform.isAndroid) {
+      return _getDefaultPersonaFromKeychainAndroid();
+    } else if (Platform.isIOS) {
+      return _migrationUtil.getDefaultPersonaFromKeychainIOS();
+    }
+    return null;
   }
 
   @override
@@ -447,7 +502,7 @@ class AccountServiceImpl extends AccountService {
           defaultAccount: defaultAccount,
         );
         if (defaultAccount == 1 && !_authFiresabeService.isSignedIn) {
-          await _authFiresabeService.signInWithCustomToken("token");
+          await _authFiresabeService.signInWithPersona(persona);
         }
         restoredPersonas.add(persona);
         await _cloudDB.personaDao.insertPersona(persona);

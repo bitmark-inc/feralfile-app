@@ -1,4 +1,14 @@
+import 'dart:convert';
+
+import 'package:autonomy_flutter/common/environment.dart';
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/entity/persona.dart';
+import 'package:autonomy_flutter/gateway/iap_api.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:http/http.dart' as http;
+import 'package:libauk_dart/libauk_dart.dart';
 
 class AuthFiresabeService {
   static User? _user;
@@ -8,12 +18,40 @@ class AuthFiresabeService {
     addAuthChangeListener();
   }
 
+  IAPApi get _iapApi => injector.get<IAPApi>();
+
   bool get isSignedIn => _user != null && _user!.uid.isNotEmpty;
 
-  Future<String> getJWTToken() {
-    final token =
-        'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJmaXJlYmFzZS1hZG1pbnNkay1xdG42OUBteS1maXJzdC1wcm9qZWN0LXNhbmcuaWFtLmdzZXJ2aWNlYWNjb3VudC5jb20iLCJhdWQiOiJodHRwczovL2lkZW50aXR5dG9vbGtpdC5nb29nbGVhcGlzLmNvbS9nb29nbGUuaWRlbnRpdHkuaWRlbnRpdHl0b29sa2l0LnYxLklkZW50aXR5VG9vbGtpdCIsImV4cCI6MTcwMjg3MTc0MywiaWF0IjoxNzAyODY4MTQzLCJzdWIiOiJmaXJlYmFzZS1hZG1pbnNkay1xdG42OUBteS1maXJzdC1wcm9qZWN0LXNhbmcuaWFtLmdzZXJ2aWNlYWNjb3VudC5jb20iLCJ1aWQiOiJzYW5nIn0.GBLRBUIf65vxmNzPrWBS2e_f9TdYXzO4L-YI5oLHEhwKu9nfiVVParqoun_lR57_s79ITs8-c5ZMXpVCeWpHGH6XI4GcBEz03hMSuPU-MJeGVwj14FVc_3d1lYYjBaquk_EJr_1AZZyMI9ruoHm_h02GV4X-0KfImE7kdyKpXUahCXcyvEHK-2GZ1atlfuhromRJQTTYSOVFKIkFY1rFrKftA0LWa1NC46bz_HtwrHZ3IUGbWmjhRB3q0eF92dvBv94PEQfAjNLRnHVVkHzgDZci8a01zJw_f2rwlnwu44tTqxswQfsuGdNUBK6GEyWJeSbsnuyNToiQAKNwGysftQ';
-    return Future.value(token);
+  Future<String> getJWTToken(Persona persona) async {
+    final authService = injector.get<AuthService>();
+    final accountService = injector.get<AccountService>();
+    final endpoint = Environment.autonomyAuthURL;
+    final account = await persona.wallet();
+    final authToken = await getAuthToken(account);
+
+    final response = await http
+        .get(Uri.parse('$endpoint/apis/v1/me/jwts/firebase'), headers: {
+      'Authorization': 'Bearer $authToken',
+      "Content-Type": "application/json"
+    });
+    final bodyBytes = response.bodyBytes;
+    final bodyJson = json.decode(utf8.decode(bodyBytes));
+    return bodyJson['jwt'];
+  }
+
+  Future<String> getAuthToken(WalletStorage account) async {
+    final message = DateTime.now().millisecondsSinceEpoch.toString();
+    final accountDID = await account.getAccountDID();
+    final signature = await account.getAccountDIDSignature(message);
+
+    Map<String, dynamic> payload = {
+      'requester': accountDID,
+      'timestamp': message,
+      'signature': signature,
+    };
+
+    final jwt = await _iapApi.auth(payload);
+    return jwt.jwtToken;
   }
 
   static void addAuthChangeListener() {
@@ -28,10 +66,18 @@ class AuthFiresabeService {
 
   User? get user => _user;
 
-  Future<User?> signInWithCustomToken(String token) async {
+  Future<User?> _signInWithCustomToken(String token) async {
     final auth = FirebaseAuth.instance;
     final userCredential = await auth.signInWithEmailAndPassword(
         email: 'sang@bitmark.com', password: 'sangbitmark');
+    _user = userCredential.user;
+    return user;
+  }
+
+  Future<User?> signInWithPersona(Persona persona) async {
+    final auth = FirebaseAuth.instance;
+    final jwt = await getJWTToken(persona);
+    final userCredential = await auth.signInWithCustomToken(jwt);
     _user = userCredential.user;
     return user;
   }
