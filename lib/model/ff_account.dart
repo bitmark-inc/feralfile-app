@@ -269,24 +269,24 @@ class Artwork {
 }
 
 class ArtworkSwap {
-  String id;
-  String artworkID;
-  String seriesID;
-  String paymentID;
-  double fee;
-  String currency;
-  int artworkIndex;
-  String ownerAccount;
-  String status;
-  String contractName;
-  String contractAddress;
-  String recipientAddress;
-  String ipfsCid;
-  String token;
-  String blockchainType;
-  DateTime createdAt;
-  DateTime updatedAt;
-  DateTime expiredAt;
+  final String id;
+  final String artworkID;
+  final String seriesID;
+  final String paymentID;
+  final double fee;
+  final String currency;
+  final int artworkIndex;
+  final String ownerAccount;
+  final String status;
+  final String contractName;
+  final String contractAddress;
+  final String recipientAddress;
+  final String ipfsCid;
+  final String token;
+  final String blockchainType;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime expiredAt;
 
   // Constructor
   ArtworkSwap({
