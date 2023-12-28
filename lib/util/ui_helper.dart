@@ -1273,7 +1273,6 @@ class UIHelper {
                     }
                     return GestureDetector(
                       onTap: () {
-                        Navigator.pop(context);
                         option.onTap?.call();
                       },
                       child: child,

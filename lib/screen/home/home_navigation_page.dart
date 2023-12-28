@@ -131,7 +131,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
               AuIcon.wallet,
             ),
             onTap: () {
-              Navigator.of(context).pushNamed(AppRouter.walletPage);
+              Navigator.of(context).pushReplacementNamed(AppRouter.walletPage);
             },
           ),
           OptionItem(
@@ -140,7 +140,8 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
               AuIcon.settings,
             ),
             onTap: () {
-              Navigator.of(context).pushNamed(AppRouter.settingsPage);
+              Navigator.of(context)
+                  .pushReplacementNamed(AppRouter.settingsPage);
             },
           ),
           OptionItem(
@@ -160,7 +161,8 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
                 ),
               ),
               onTap: () {
-                Navigator.of(context).pushNamed(AppRouter.supportCustomerPage);
+                Navigator.of(context)
+                    .pushReplacementNamed(AppRouter.supportCustomerPage);
               }),
         ],
       );

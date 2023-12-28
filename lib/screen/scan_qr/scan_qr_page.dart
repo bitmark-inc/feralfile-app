@@ -664,15 +664,21 @@ class _ScanQRPageState extends State<ScanQRPage>
 
   @override
   void didPopNext() {
+    super.didPopNext();
     if (Platform.isIOS) {
       unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.leanBack));
     }
+    unawaited(controller.resumeCamera());
   }
 
   @override
   void didPushNext() {
+    super.didPushNext();
     unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
         overlays: SystemUiOverlay.values));
+    unawaited(Future.delayed(const Duration(milliseconds: 300)).then((_) {
+      controller.pauseCamera();
+    }));
   }
 
   @override
