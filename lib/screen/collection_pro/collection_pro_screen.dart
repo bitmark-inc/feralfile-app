@@ -153,7 +153,10 @@ class CollectionProState extends State<CollectionPro>
                         .listPredefinedCollectionByArtist
                         ?.map(
                           (e) {
-                            final name = identityMap[e.id] ?? e.name ?? e.id;
+                            String name = identityMap[e.id] ?? e.name ?? e.id;
+                            if (name == e.id) {
+                              name = name.maskOnly(5);
+                            }
                             e.name = name;
                             return e;
                           },
