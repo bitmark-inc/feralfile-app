@@ -1236,39 +1236,36 @@ class UIHelper {
               children: [
                 ListView.separated(
                   shrinkWrap: true,
+                  padding: const EdgeInsets.all(0),
                   physics: const NeverScrollableScrollPhysics(),
                   itemBuilder: (BuildContext context, int index) {
                     final option = options[index];
-                    final child = Container(
-                      color: Colors.transparent,
-                      // width: MediaQuery.of(context).size.width,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 16,
-                          horizontal: 13,
-                        ),
-                        child: Row(
-                          children: [
-                            if (option.icon != null)
-                              SizedBox(
-                                  width: 30,
-                                  child: IconTheme(
-                                      data: const IconThemeData(
-                                        color: AppColor.white,
-                                      ),
-                                      child: option.icon!)),
-                            if (option.icon != null)
-                              const SizedBox(
-                                width: 39,
-                              ),
-                            Text(
-                              option.title ?? '',
-                              style: option.titleStyle ??
-                                  theme.textTheme.ppMori400White14.copyWith(
-                                      decoration: TextDecoration.none),
+                    final child = Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 16,
+                        horizontal: 13,
+                      ),
+                      child: Row(
+                        children: [
+                          if (option.icon != null)
+                            SizedBox(
+                                width: 30,
+                                child: IconTheme(
+                                    data: const IconThemeData(
+                                      color: AppColor.white,
+                                    ),
+                                    child: option.icon!)),
+                          if (option.icon != null)
+                            const SizedBox(
+                              width: 39,
                             ),
-                          ],
-                        ),
+                          Text(
+                            option.title ?? '',
+                            style: option.titleStyle ??
+                                theme.textTheme.ppMori400White14
+                                    .copyWith(decoration: TextDecoration.none),
+                          ),
+                        ],
                       ),
                     );
                     if (option.builder != null) {

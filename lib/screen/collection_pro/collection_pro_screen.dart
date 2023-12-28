@@ -149,18 +149,23 @@ class CollectionProState extends State<CollectionPro>
                   builder: (context, identityState) {
                     final identityMap = identityState.identityMap
                       ..removeWhere((key, value) => value.isEmpty);
-                    final listPredefinedCollectionByArtist =
-                        collectionProState.listPredefinedCollectionByArtist
-                            ?.map(
-                              (e) {
-                                final name =
-                                    identityMap[e.id] ?? e.name ?? e.id;
-                                e.name = name;
-                                return e;
-                              },
-                            )
-                            .toList()
-                            .filterByName(searchStr.value);
+                    final listPredefinedCollectionByArtist = collectionProState
+                        .listPredefinedCollectionByArtist
+                        ?.map(
+                          (e) {
+                            String name = identityMap[e.id] ?? e.name ?? e.id;
+                            if (name == e.id) {
+                              name = name.maskOnly(5);
+                            }
+                            e.name = name;
+                            return e;
+                          },
+                        )
+                        .toList()
+                        .filterByName(searchStr.value)
+                      ?..sort((a, b) => a.name!
+                          .toLowerCase()
+                          .compareTo(b.name!.toLowerCase()));
                     return Stack(
                       children: [
                         CustomScrollView(

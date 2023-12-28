@@ -59,7 +59,7 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
             return const SizedBox.shrink();
           }
           List<PlayListModel> playlists = value.filter(widget.filter);
-          if (playlists.isEmpty) {
+          if (playlists.isEmpty && widget.filter.isNotEmpty) {
             return const SizedBox();
           }
           const height = 165.0;
@@ -73,6 +73,9 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
                 itemCount: playlists.length + 1,
                 itemBuilder: (context, index) {
                   if (index == playlists.length) {
+                    if (widget.filter.isNotEmpty) {
+                      return const SizedBox();
+                    }
                     return AddPlayListItem(
                       onTap: () {
                         widget.onAdd();

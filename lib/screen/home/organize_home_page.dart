@@ -6,7 +6,6 @@
 //
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
@@ -20,7 +19,6 @@ import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_pag
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
-import 'package:autonomy_flutter/service/cloud_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/locale_service.dart';
@@ -35,7 +33,6 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
@@ -252,53 +249,11 @@ class HomePageState extends State<HomePage>
     }
   }
 
-  Future _checkTipCardShowTime() async {
-    final metricClient = injector<MetricClientService>();
-    log.info('_checkTipCardShowTime');
-    final configurationService = injector<ConfigurationService>();
-
-    final doneOnboardingTime = configurationService.getDoneOnboardingTime();
-
-    final now = DateTime.now();
-
-    final remindTime = configurationService.getShowBackupSettingTip();
-    final shouldRemindNow = remindTime == null || now.isAfter(remindTime);
-    if (shouldRemindNow) {
-      unawaited(configurationService
-          .setShowBackupSettingTip(now.add(const Duration(days: 7))));
-      bool showTip = false;
-      if (Platform.isAndroid) {
-        final isAndroidEndToEndEncryptionAvailable =
-            await injector<AccountService>()
-                .isAndroidEndToEndEncryptionAvailable();
-        showTip = isAndroidEndToEndEncryptionAvailable != true;
-      } else {
-        final iCloudAvailable = injector<CloudService>().isAvailableNotifier;
-        showTip = !iCloudAvailable.value;
-      }
-      if (showTip && !configurationService.showBackupSettingTip.value) {
-        configurationService.showBackupSettingTip.value = true;
-        unawaited(metricClient.addEvent(MixpanelEvent.showTipcard,
-            data: {'title': 'backup_failed'.tr()}));
-      }
-    }
-    if (doneOnboardingTime != null) {
-      if (now.isAfter(doneOnboardingTime.add(const Duration(hours: 24))) &&
-          !configurationService.getAlreadyShowLinkOrImportTip()) {
-        configurationService.showLinkOrImportTip.value = true;
-        unawaited(configurationService.setAlreadyShowLinkOrImportTip(true));
-        unawaited(metricClient.addEvent(MixpanelEvent.showTipcard,
-            data: {'title': 'do_you_have_NFTs_in_other_wallets'.tr()}));
-      }
-    }
-  }
-
   Future<void> _handleForeground() async {
     final locale = Localizations.localeOf(context);
     unawaited(LocaleService.refresh(locale));
     memoryValues.inForegroundAt = DateTime.now();
     await injector<ConfigurationService>().reload();
-    await _checkTipCardShowTime();
     try {
       await injector<SettingsDataService>().restoreSettingsData();
     } catch (exception) {

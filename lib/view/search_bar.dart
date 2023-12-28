@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -19,10 +21,19 @@ class _SearchBarState extends State<AuSearchBar> {
   final _controller = TextEditingController();
   final _focusNode = FocusNode();
   bool _isSearching = false;
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _controller.dispose();
+    _focusNode.dispose();
+    super.dispose();
   }
 
   @override
@@ -72,6 +83,10 @@ class _SearchBarState extends State<AuSearchBar> {
                       _isSearching = false;
                     });
                   }
+                  _timer?.cancel();
+                  _timer = Timer(const Duration(milliseconds: 300), () {
+                    widget.onSearch?.call(value);
+                  });
                 },
                 onSubmitted: (value) {
                   widget.onSearch?.call(value);
