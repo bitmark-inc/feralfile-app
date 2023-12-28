@@ -49,6 +49,7 @@ import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
+import 'package:autonomy_flutter/service/hive_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
@@ -302,7 +303,8 @@ Future<void> setup() async {
       () => IndexerService(indexerClient));
 
   injector.registerLazySingleton<EthereumService>(
-      () => EthereumServiceImpl(injector(), injector()));
+      () => EthereumServiceImpl(injector(), injector(), injector()));
+  injector.registerLazySingleton<HiveService>(() => HiveServiceImpl());
   injector
       .registerLazySingleton<TezosService>(() => TezosServiceImpl(injector()));
   injector.registerLazySingleton<AppDatabase>(() => mainnetDB);

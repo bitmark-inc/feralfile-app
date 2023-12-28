@@ -5,17 +5,21 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/gateway/etherchain_api.dart';
+import 'package:autonomy_flutter/model/eth_pending_tx_amount.dart';
+import 'package:autonomy_flutter/service/hive_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/ether_amount_ext.dart';
+import 'package:autonomy_flutter/util/fee_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:flutter/services.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
-
-import '../util/constants.dart';
-import '../util/fee_util.dart';
 
 const double gWeiFactor = 1000000000;
 
@@ -35,7 +39,7 @@ abstract class EthereumService {
 
   Future<String> sendTransaction(WalletStorage wallet, int index,
       EthereumAddress to, BigInt value, String? data,
-      {FeeOption? feeOption});
+      {required FeeOption feeOption});
 
   Future<String?> getERC721TransferTransactionData(
       EthereumAddress contractAddress,
@@ -71,14 +75,15 @@ abstract class EthereumService {
 class EthereumServiceImpl extends EthereumService {
   final Web3Client _web3Client;
   final EtherchainApi _etherchainApi;
+  final HiveService _hiveService;
 
-  EthereumServiceImpl(this._web3Client, this._etherchainApi);
+  EthereumServiceImpl(this._web3Client, this._etherchainApi, this._hiveService);
 
   @override
   Future<FeeOptionValue> estimateFee(WalletStorage wallet, int index,
       EthereumAddress to, EtherAmount amount, String? data,
       {FeeOption feeOption = DEFAULT_FEE_OPTION}) async {
-    log.info("[EthereumService] estimateFee - to: $to - amount $amount");
+    log.info('[EthereumService] estimateFee - to: $to - amount $amount');
 
     final gasPrice = await getFeeOptionValue();
     final sender =
@@ -109,7 +114,7 @@ class EthereumServiceImpl extends EthereumService {
   Future<String> getETHAddress(WalletStorage wallet, int index) async {
     final address = await wallet.getETHAddress(index: index);
     if (address.isEmpty) {
-      return "";
+      return '';
     } else {
       log.info(address);
       return EthereumAddress.fromHex(address).hexEip55;
@@ -118,65 +123,90 @@ class EthereumServiceImpl extends EthereumService {
 
   @override
   Future<EtherAmount> getBalance(String address) async {
-    if (address == "") return EtherAmount.zero();
+    if (address == '') {
+      return EtherAmount.zero();
+    }
 
     final ethAddress = EthereumAddress.fromHex(address);
-    return await _web3Client.getBalance(ethAddress);
+    final amount = await _web3Client.getBalance(ethAddress);
+    final tx = await _hiveService.getEthPendingTxAmounts(address);
+    final List<EthereumPendingTxAmount> pendingTx = [];
+    for (final element in tx) {
+      final receipt = await _getReceipt(element.txHash);
+      if (receipt != null) {
+        unawaited(
+            _hiveService.deleteEthPendingTxAmount(element.txHash, address));
+      } else {
+        pendingTx.add(element);
+      }
+    }
+    final pendingAmount = pendingTx.fold<BigInt>(BigInt.zero,
+        (previousValue, element) => previousValue + element.getDeductAmount);
+    log.info('[EthereumService] getBalance - amount :$amount - '
+        'pending :$pendingAmount');
+
+    return amount - EtherAmount.inWei(pendingAmount);
   }
 
   @override
   Future<String> signPersonalMessage(
-      WalletStorage wallet, int index, Uint8List message) async {
-    return await wallet.ethSignPersonalMessage(message, index: index);
-  }
+          WalletStorage wallet, int index, Uint8List message) async =>
+      await wallet.ethSignPersonalMessage(message, index: index);
 
   @override
   Future<String> signMessage(
-      WalletStorage wallet, int index, Uint8List message) async {
-    return await wallet.ethSignMessage(message, index: index);
-  }
+          WalletStorage wallet, int index, Uint8List message) async =>
+      await wallet.ethSignMessage(message, index: index);
 
   @override
   Future<String> sendTransaction(WalletStorage wallet, int index,
       EthereumAddress to, BigInt value, String? data,
-      {FeeOption? feeOption}) async {
-    log.info("[EthereumService] sendTransaction - to: $to - amount $value");
+      {required FeeOption feeOption}) async {
+    log.info('[EthereumService] sendTransaction - to: $to - amount $value');
 
     final sender =
         EthereumAddress.fromHex(await wallet.getETHEip55Address(index: index));
     final nonce = await _web3Client.getTransactionCount(sender,
         atBlock: const BlockNum.pending());
     var gasLimit =
-        (await _estimateGasLimit(sender, to, EtherAmount.inWei(value), data));
+        await _estimateGasLimit(sender, to, EtherAmount.inWei(value), data);
     final chainId = Environment.web3ChainId;
     Uint8List signedTransaction;
-    if (feeOption != null) {
-      final fee = await getEthereumFee(feeOption);
+    final fee = await getEthereumFee(feeOption);
 
-      signedTransaction = await wallet.ethSignTransaction1559(
-          nonce: nonce,
-          gasLimit: gasLimit,
-          maxFeePerGas: fee.maxFeePerGas.getInWei,
-          maxPriorityFeePerGas: fee.maxPriorityFeePerGas.getInWei,
-          to: to.hexEip55,
-          value: value,
-          data: data ?? "",
-          chainId: chainId,
-          index: index);
-    } else {
-      final gasPrice = await _getGasPrice();
-      signedTransaction = await wallet.ethSignTransaction(
-          nonce: nonce,
-          gasPrice: gasPrice.getInWei,
-          gasLimit: gasLimit,
-          to: to.hexEip55,
-          value: value,
-          data: data ?? "",
-          chainId: chainId,
-          index: index);
+    signedTransaction = await wallet.ethSignTransaction1559(
+        nonce: nonce,
+        gasLimit: gasLimit,
+        maxFeePerGas: fee.maxFeePerGas.getInWei,
+        maxPriorityFeePerGas: fee.maxPriorityFeePerGas.getInWei,
+        to: to.hexEip55,
+        value: value,
+        data: data ?? '',
+        chainId: chainId,
+        index: index);
+
+    final tx = await _web3Client.sendRawTransaction(signedTransaction);
+
+    final deductValue = sender == to ? BigInt.zero : value;
+    final deductFee = gasLimit * fee.maxFeePerGas.getInWei;
+    final ethPendingAmount = EthereumPendingTxAmount(
+        txHash: tx, deductAmount: deductValue + deductFee);
+    await _hiveService.saveEthPendingTxAmount(
+        ethPendingAmount, sender.hexEip55);
+    return tx;
+  }
+
+  Future<TransactionReceipt?> _getReceipt(String txHash) async {
+    try {
+      final receipt = await _web3Client.getTransactionReceipt(txHash);
+      if (receipt != null) {
+        log.info('[EthereumService] _getReceipt - receipt: ${receipt.status}');
+        return receipt;
+      }
+    } catch (_) {
+      log.info('[EthereumService] _getReceipt -error');
     }
-
-    return _web3Client.sendRawTransaction(signedTransaction);
+    return null;
   }
 
   @override
@@ -188,8 +218,8 @@ class EthereumServiceImpl extends EthereumService {
       {FeeOption? feeOption}) async {
     final contractJson = await rootBundle.loadString('assets/erc721-abi.json');
     final contract = DeployedContract(
-        ContractAbi.fromJson(contractJson, "ERC721"), contractAddress);
-    ContractFunction transferFrom() => contract.function("safeTransferFrom");
+        ContractAbi.fromJson(contractJson, 'ERC721'), contractAddress);
+    ContractFunction transferFrom() => contract.function('safeTransferFrom');
 
     final nonce = await _web3Client.getTransactionCount(from,
         atBlock: const BlockNum.pending());
@@ -230,9 +260,9 @@ class EthereumServiceImpl extends EthereumService {
       {FeeOption? feeOption}) async {
     final contractJson = await rootBundle.loadString('assets/erc1155-abi.json');
     final contract = DeployedContract(
-        ContractAbi.fromJson(contractJson, "ERC1155"), contractAddress);
+        ContractAbi.fromJson(contractJson, 'ERC1155'), contractAddress);
     ContractFunction transferFrom() =>
-        contract.function("safeBatchTransferFrom");
+        contract.function('safeBatchTransferFrom');
 
     final nonce = await _web3Client.getTransactionCount(from,
         atBlock: const BlockNum.pending());
@@ -281,8 +311,8 @@ class EthereumServiceImpl extends EthereumService {
       EthereumAddress contractAddress, EthereumAddress owner) async {
     final contractJson = await rootBundle.loadString('assets/erc20-abi.json');
     final contract = DeployedContract(
-        ContractAbi.fromJson(contractJson, "ERC20"), contractAddress);
-    ContractFunction balanceFunction() => contract.function("balanceOf");
+        ContractAbi.fromJson(contractJson, 'ERC20'), contractAddress);
+    ContractFunction balanceFunction() => contract.function('balanceOf');
 
     var response = await _web3Client.call(
       contract: contract,
@@ -302,8 +332,8 @@ class EthereumServiceImpl extends EthereumService {
       {FeeOption? feeOption}) async {
     final contractJson = await rootBundle.loadString('assets/erc20-abi.json');
     final contract = DeployedContract(
-        ContractAbi.fromJson(contractJson, "ERC20"), contractAddress);
-    ContractFunction transferFrom() => contract.function("transfer");
+        ContractAbi.fromJson(contractJson, 'ERC20'), contractAddress);
+    ContractFunction transferFrom() => contract.function('transfer');
 
     final nonce = await _web3Client.getTransactionCount(from,
         atBlock: const BlockNum.pending());
@@ -341,14 +371,14 @@ class EthereumServiceImpl extends EthereumService {
     final metadata = await _web3Client.callRaw(contract: contract, data: data);
 
     final List<FunctionParameter> outputs = [
-      const FunctionParameter("string", StringType())
+      const FunctionParameter('string', StringType())
     ];
 
     final tuple = TupleType(outputs.map((p) => p.type).toList());
     final buffer = hexToBytes(metadata).buffer;
 
     final parsedData = tuple.decode(buffer, 0);
-    return parsedData.data.isNotEmpty ? parsedData.data.first : "";
+    return parsedData.data.isNotEmpty ? parsedData.data.first : '';
   }
 
   Future<BigInt> _estimateGasLimit(EthereumAddress sender, EthereumAddress to,
@@ -380,7 +410,7 @@ class EthereumServiceImpl extends EthereumService {
     try {
       gasPrice = (await _etherchainApi.getGasPrice()).data.fast;
     } catch (e) {
-      log.info("[EthereumService] getGasPrice failed - fallback RPC $e");
+      log.info('[EthereumService] getGasPrice failed - fallback RPC $e');
       gasPrice = null;
     }
 
@@ -394,7 +424,7 @@ class EthereumServiceImpl extends EthereumService {
   Future<EthereumFee> getEthereumFee(FeeOption feeOption) async {
     final baseFee = await _getBaseFee();
     final priorityFee = feeOption.getEthereumPriorityFee;
-    final buffer = BigInt.from(baseFee / BigInt.from(10));
+    final buffer = BigInt.from(baseFee / BigInt.from(8));
     return EthereumFee(
         maxPriorityFeePerGas:
             EtherAmount.fromBigInt(EtherUnit.wei, priorityFee),
