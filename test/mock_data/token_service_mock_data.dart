@@ -3,7 +3,7 @@
 import 'package:mockito/mockito.dart';
 import 'package:nft_collection/models/asset_token.dart';
 
-import '../services/activation_service_test.mocks.dart';
+import '../generate_mock/service/mock_tokens_service.mocks.dart';
 import 'constants.dart';
 
 class TokenServiceMockData {
