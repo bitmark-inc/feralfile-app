@@ -233,9 +233,14 @@ class _FeralFileApi implements FeralFileApi {
 
   @override
   Future<ExhibitionArtworksResponse> getExhibitionArtworks(
-      String exhibitionId) async {
+    String exhibitionId, {
+    bool includeActiveSwap = true,
+  }) async {
     const _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{r'exhibitionID': exhibitionId};
+    final queryParameters = <String, dynamic>{
+      r'exhibitionID': exhibitionId,
+      r'includeActiveSwap': includeActiveSwap,
+    };
     final _headers = <String, dynamic>{};
     final Map<String, dynamic>? _data = null;
     final _result = await _dio.fetch<Map<String, dynamic>>(

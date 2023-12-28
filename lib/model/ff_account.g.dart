@@ -191,6 +191,9 @@ Artwork _$ArtworkFromJson(Map<String, dynamic> json) => Artwork(
       json['series'] == null
           ? null
           : FFSeries.fromJson(json['series'] as Map<String, dynamic>),
+      json['swap'] == null
+          ? null
+          : ArtworkSwap.fromJson(json['swap'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$ArtworkToJson(Artwork instance) => <String, dynamic>{
@@ -209,4 +212,5 @@ Map<String, dynamic> _$ArtworkToJson(Artwork instance) => <String, dynamic>{
       'updatedAt': instance.updatedAt.toIso8601String(),
       'isArchived': instance.isArchived,
       'series': instance.series,
+      'swap': instance.swap,
     };
