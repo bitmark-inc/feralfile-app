@@ -24,6 +24,8 @@ import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/services/indexer_service.dart';
 import 'package:nft_collection/services/tokens_service.dart';
 
+import '../model/ff_exhibition_artworks_response.dart';
+
 abstract class FeralFileService {
   Future<FFSeries> getAirdropSeriesFromExhibitionId(String id);
 
@@ -228,7 +230,135 @@ class FeralFileServiceImpl extends FeralFileService {
 
   @override
   Future<List<Artwork>> getExhibitionArtworks(String exhibitionId) async {
-    final artworks = await _feralFileApi.getExhibitionArtworks(exhibitionId);
-    return artworks.result;
+    //final artworks = await _feralFileApi.getExhibitionArtworks(exhibitionId);
+    final a = {
+      "result": [
+        {
+          "id": "1895471415479101141617488280575446737837854080",
+          "seriesID": "688c1976-748d-4b54-8aac-61b5561924e6",
+          "index": 0,
+          "name": "#1",
+          "category": "CE",
+          "ownerAccountID": "0x457ee5f723C7606c12a7264b52e285906F91eEA6",
+          "virgin": false,
+          "blockchainStatus": "settled",
+          "isExternal": true,
+          "thumbnailURI":
+              "previews/688c1976-748d-4b54-8aac-61b5561924e6/1697235166/_unique-thumbnails/0-large.jpg",
+          "previewURI":
+              "previews/688c1976-748d-4b54-8aac-61b5561924e6/1697235166/index.html?edition_number=0&artwork_number=1&blockchain=ethereum&contract=0xacd3392e9Ec2C4D876D09DC38cb52F842Ea58096&token_id=1895471415479101141617488280575446737837854080&token_id_hash=0x8aa618bba26a20bd9dc653b8091970ff780b6eca462f4df844d30536124b7dbd",
+          "metadata": {
+            "ipfs_cid":
+                "QmNVdQSp1AvZonLwHzTbbZDPLgbpty15RMQrbPEWd4ooTU/1895471415479101141617488280575446737837854080"
+          },
+          "mintedAt": "2023-11-16T07:10:59Z",
+          "createdAt": "2023-11-16T07:11:18.636127Z",
+          "updatedAt": "2023-12-26T08:56:36Z",
+          "isArchived": false,
+          "artworkAttributes": [
+            {
+              "id": "3e9d3b43-670a-4160-869e-74ec477df9fc",
+              "artworkID": "1895471415479101141617488280575446737837854080",
+              "index": 0,
+              "seriesID": "688c1976-748d-4b54-8aac-61b5561924e6",
+              "traitType": "Artist",
+              "value": "Aleksandra Jovanić",
+              "percentage": 16.666666666666668
+            },
+            {
+              "id": "1ad257b3-a1e7-430b-abf7-07604e355dc8",
+              "artworkID": "1895471415479101141617488280575446737837854080",
+              "index": 0,
+              "seriesID": "688c1976-748d-4b54-8aac-61b5561924e6",
+              "traitType": "Artwork of",
+              "value": "30",
+              "percentage": 100
+            },
+            {
+              "id": "dcf5d30b-05a9-4e72-b823-1fbc9e89ea28",
+              "artworkID": "1895471415479101141617488280575446737837854080",
+              "index": 0,
+              "seriesID": "688c1976-748d-4b54-8aac-61b5561924e6",
+              "traitType": "Exhibition",
+              "value": "Feral File - +GRAPH",
+              "percentage": 100
+            },
+            {
+              "id": "a4f45e47-8094-4d26-8f5f-2104ef27a608",
+              "artworkID": "1895471415479101141617488280575446737837854080",
+              "index": 0,
+              "seriesID": "688c1976-748d-4b54-8aac-61b5561924e6",
+              "traitType": "Series",
+              "value": "The Space in Between",
+              "percentage": 16.666666666666668
+            }
+          ]
+        },
+        {
+          "id": "1895471415479101141617488280575446737833854080",
+          "seriesID": "fe2f3149-d59c-44dc-ba15-f9bc21798388",
+          "index": 0,
+          "name": "#1",
+          "category": "CE",
+          "ownerAccountID": "0x457ee5f723C7606c12a7264b52e285906F91eEA6",
+          "virgin": false,
+          "blockchainStatus": "settled",
+          "isExternal": true,
+          "thumbnailURI":
+              "previews/fe2f3149-d59c-44dc-ba15-f9bc21798388/1699526305/_unique-thumbnails/0-large.jpg",
+          "previewURI":
+              "previews/fe2f3149-d59c-44dc-ba15-f9bc21798388/1699526305/index.html?edition_number=0&artwork_number=1&blockchain=ethereum&contract=0xacd3392e9Ec2C4D876D09DC38cb52F842Ea58096&token_id=1895471415479101141617488280575446737833854080&token_id_hash=0xf82eb1d0dec2c15401723de9b0ab21bd4e24b27a6202004f2789a6e90b0eb2ab",
+          "metadata": {
+            "ipfs_cid":
+                "QmNVdQSp1AvZonLwHzTbbZDPLgbpty15RMQrbPEWd4ooTU/1895471415479101141617488280575446737833854080"
+          },
+          "mintedAt": "2023-11-16T07:10:59Z",
+          "createdAt": "2023-11-16T07:11:18.636127Z",
+          "updatedAt": "2023-12-26T08:56:31Z",
+          "isArchived": false,
+          "artworkAttributes": [
+            {
+              "id": "aaaa667f-76c0-4f83-9ec5-f766ad7b65ea",
+              "artworkID": "1895471415479101141617488280575446737833854080",
+              "index": 0,
+              "seriesID": "fe2f3149-d59c-44dc-ba15-f9bc21798388",
+              "traitType": "Artist",
+              "value": "Iskra Velitchkova",
+              "percentage": 16.666666666666668
+            },
+            {
+              "id": "547d4478-38f3-4b6d-83a7-caab2f11b56d",
+              "artworkID": "1895471415479101141617488280575446737833854080",
+              "index": 0,
+              "seriesID": "fe2f3149-d59c-44dc-ba15-f9bc21798388",
+              "traitType": "Artwork of",
+              "value": "30",
+              "percentage": 100
+            },
+            {
+              "id": "0678c1b2-dc23-477d-8816-ee6e496a221e",
+              "artworkID": "1895471415479101141617488280575446737833854080",
+              "index": 0,
+              "seriesID": "fe2f3149-d59c-44dc-ba15-f9bc21798388",
+              "traitType": "Exhibition",
+              "value": "Feral File - +GRAPH",
+              "percentage": 100
+            },
+            {
+              "id": "282c28c6-97b3-4b1a-bda0-f6273377cb00",
+              "artworkID": "1895471415479101141617488280575446737833854080",
+              "index": 0,
+              "seriesID": "fe2f3149-d59c-44dc-ba15-f9bc21798388",
+              "traitType": "Series",
+              "value": "ANATOMY of a rabbit but bird",
+              "percentage": 16.666666666666668
+            }
+          ]
+        },
+      ],
+      "paging": {"offset": 0, "limit": 300, "total": 40}
+    } as Map<String, dynamic>;
+    final result = ExhibitionArtworksResponse.fromJson(a);
+    return result.result;
   }
 }

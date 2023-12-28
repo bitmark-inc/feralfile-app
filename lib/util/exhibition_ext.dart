@@ -31,6 +31,9 @@ extension ExhibitionDetailExt on ExhibitionDetail {
   Artwork representArtwork(String seriesId) =>
       artworks!.firstWhere((e) => e.seriesID == seriesId);
 
+  List<Artwork> get representArtworks =>
+      seriesIds.map((e) => representArtwork(e)).toList();
+
   String getArtworkTokenId(Artwork artwork) {
     if (artwork.swap != null) {
       final chain = artwork.swap!.blockchainType == 'ethereum' ? 'eth' : 'tez';
