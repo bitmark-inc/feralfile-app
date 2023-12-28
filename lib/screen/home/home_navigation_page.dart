@@ -119,22 +119,11 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         context,
         options: [
           OptionItem(
-            title: 'profile'.tr(),
-            icon: const Icon(
-              AuIcon.discover,
-            ),
-            onTap: () {
-              // Navigator.of(context).pushNamed(AppRouter.profilePage);
-            },
-          ),
-          OptionItem(
             title: 'moma_postcard'.tr(),
             icon: const Icon(
               AuIcon.settings,
             ),
-            onTap: () {
-              Navigator.of(context).pushNamed(AppRouter.settingsPage);
-            },
+            onTap: () {},
           ),
           OptionItem(
             title: 'wallet'.tr(),
