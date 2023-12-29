@@ -821,8 +821,12 @@ class AppRouter {
             builder: (context) => MultiBlocProvider(
                   providers: [
                     BlocProvider(
-                      create: (_) => ExhibitionDetailBloc(
-                           injector()),
+                      create: (_) => ExhibitionDetailBloc(injector()),
+                    ),
+                    BlocProvider(
+                      create: (_) => CanvasDeviceBloc(
+                        injector(),
+                      ),
                     ),
                   ],
                   child: ExhibitionDetailPage(
