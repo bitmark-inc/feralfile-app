@@ -55,8 +55,9 @@ abstract class FeralFileApi {
   Future<ExhibitionResponse> getFeaturedExhibition();
 
   @GET('/api/artworks')
-  Future<ExhibitionArtworksResponse> getExhibitionArtworks(
-    @Query('exhibitionID') String exhibitionId, {
+  Future<ArtworksResponse> getListArtworks({
+    @Query('exhibitionID') String? exhibitionId,
+    @Query('seriesID') String? seriesId,
     @Query('includeActiveSwap') bool includeActiveSwap = true,
   });
 }

@@ -52,3 +52,8 @@ extension ExhibitionDetailExt on ExhibitionDetail {
     }
   }
 }
+
+// Artwork Ext
+extension ArtworkExt on Artwork {
+  String get thumbnailURL => '${Environment.feralFileAssetURL}/$thumbnailURI';
+}

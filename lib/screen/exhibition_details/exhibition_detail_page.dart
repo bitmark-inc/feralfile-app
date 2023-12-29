@@ -48,79 +48,73 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage> {
   @override
   Widget build(BuildContext context) =>
       BlocConsumer<ExhibitionDetailBloc, ExhibitionDetailState>(
-        builder: (context, state) {
-          final exhibitionDetail = state.exhibitionDetail;
-
-          if (exhibitionDetail == null) {
-            return Scaffold(
-              appBar: _getAppBar(context, exhibitionDetail),
-              backgroundColor: AppColor.primaryBlack,
-              body: const Center(
-                child:
-                    CircularProgressIndicator(), // or any loading/error widget
-              ),
-            );
-          }
-
-          final viewingArtworks = exhibitionDetail.representArtworks;
-          final tokenIds = viewingArtworks
-              .map((e) => exhibitionDetail.getArtworkTokenId(e))
-              .toList();
-          final itemCount = tokenIds.length + 2;
-
-          return Scaffold(
-            appBar: _getAppBar(context, exhibitionDetail),
-            backgroundColor: AppColor.primaryBlack,
-            body: Stack(
-              children: [
-                PageView.builder(
-                  controller: _controller,
-                  onPageChanged: (index) {
-                    setState(() {
-                      _currentIndex = index;
-                    });
-                  },
-                  scrollDirection: Axis.vertical,
-                  itemCount: itemCount,
-                  itemBuilder: (context, index) {
-                    if (index == itemCount - 1) {
-                      return ExhibitionDetailLastPage(
-                        startOver: () => setState(() {
-                          _currentIndex = 0;
-                          _controller.jumpToPage(0);
-                        }),
-                        nextPayload: widget.payload,
-                      );
-                    }
-                    switch (index) {
-                      case 0:
-                        return _getPreviewPage(exhibitionDetail.exhibition);
-                      default:
-                        final series = exhibitionDetail.exhibition.series!
-                            .firstWhere((element) =>
-                                element.id ==
-                                viewingArtworks[index - 1].seriesID);
-                        return FeralFileArtworkPreview(
-                          payload: FeralFileArtworkPreviewPayload(
-                            tokenId: tokenIds[index - 1],
-                            artwork: viewingArtworks[index - 1],
-                            series: series,
-                          ),
-                        );
-                    }
-                  },
-                ),
-                if (_currentIndex == 0)
-                  Align(
-                    alignment: Alignment.bottomCenter,
-                    child: _nextButton(),
-                  ),
-              ],
-            ),
-          );
-        },
+        builder: (context, state) => Scaffold(
+          appBar: _getAppBar(context, state.exhibitionDetail),
+          backgroundColor: AppColor.primaryBlack,
+          body: _body(context, state),
+        ),
         listener: (context, state) {},
       );
+
+  Widget _body(BuildContext context, ExhibitionDetailState state) {
+    final exhibitionDetail = state.exhibitionDetail;
+    if (exhibitionDetail == null) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
+    final viewingArtworks = exhibitionDetail.representArtworks;
+    final tokenIds = viewingArtworks
+        .map((e) => exhibitionDetail.getArtworkTokenId(e))
+        .toList();
+    final itemCount = tokenIds.length + 2;
+    return Stack(
+      children: [
+        PageView.builder(
+          controller: _controller,
+          onPageChanged: (index) {
+            setState(() {
+              _currentIndex = index;
+            });
+          },
+          scrollDirection: Axis.vertical,
+          itemCount: itemCount,
+          itemBuilder: (context, index) {
+            if (index == itemCount - 1) {
+              return ExhibitionDetailLastPage(
+                startOver: () => setState(() {
+                  _currentIndex = 0;
+                  _controller.jumpToPage(0);
+                }),
+                nextPayload: widget.payload,
+              );
+            }
+            switch (index) {
+              case 0:
+                return _getPreviewPage(exhibitionDetail.exhibition);
+              default:
+                final series = exhibitionDetail.exhibition.series!.firstWhere(
+                    (element) =>
+                        element.id == viewingArtworks[index - 1].seriesID);
+                return FeralFileArtworkPreview(
+                  payload: FeralFileArtworkPreviewPayload(
+                    tokenId: tokenIds[index - 1],
+                    artwork: viewingArtworks[index - 1],
+                    series: series,
+                  ),
+                );
+            }
+          },
+        ),
+        if (_currentIndex == 0)
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: _nextButton(),
+          ),
+      ],
+    );
+  }
 
   Widget _getPreviewPage(Exhibition exhibition) => Column(
         mainAxisAlignment: MainAxisAlignment.spaceAround,

@@ -24,8 +24,6 @@ import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/services/indexer_service.dart';
 import 'package:nft_collection/services/tokens_service.dart';
 
-import '../model/ff_exhibition_artworks_response.dart';
-
 abstract class FeralFileService {
   Future<FFSeries> getAirdropSeriesFromExhibitionId(String id);
 
@@ -57,6 +55,8 @@ abstract class FeralFileService {
   Future<Exhibition> getFeaturedExhibition();
 
   Future<List<Artwork>> getExhibitionArtworks(String exhibitionId);
+
+  Future<List<Artwork>> getSeriesArtworks(String seriesId);
 }
 
 class FeralFileServiceImpl extends FeralFileService {
@@ -230,7 +230,14 @@ class FeralFileServiceImpl extends FeralFileService {
 
   @override
   Future<List<Artwork>> getExhibitionArtworks(String exhibitionId) async {
-    final artworks = await _feralFileApi.getExhibitionArtworks(exhibitionId);
+    final artworks =
+        await _feralFileApi.getListArtworks(exhibitionId: exhibitionId);
+    return artworks.result;
+  }
+
+  @override
+  Future<List<Artwork>> getSeriesArtworks(String seriesId) async {
+    final artworks = await _feralFileApi.getListArtworks(seriesId: seriesId);
     return artworks.result;
   }
 }
