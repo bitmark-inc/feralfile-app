@@ -1,14 +1,11 @@
-import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
-import 'package:autonomy_flutter/model/ff_series.dart';
-import 'package:autonomy_flutter/model/ff_user.dart';
-import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
-import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_state.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/cast_button.dart';
+import 'package:autonomy_flutter/view/exhibition_detail_last_page.dart';
+import 'package:autonomy_flutter/view/ff_artwork_preview.dart';
 import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:collection/collection.dart';
@@ -61,6 +58,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage> {
               final tokenIds = viewingArtworks
                   .map((e) => exhibitionDetail.getArtworkTokenId(e))
                   .toList();
+              final itemCount = tokenIds.length + 2;
               return Stack(
                 children: [
                   PageView.builder(
@@ -71,15 +69,22 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage> {
                         });
                       },
                       scrollDirection: Axis.vertical,
-                      itemCount: tokenIds.length + 1,
+                      itemCount: itemCount,
                       itemBuilder: (context, index) {
+                        if (index == itemCount - 1) {
+                          return ExhibitionDetailLastPage(
+                            startOver: () => setState(() {
+                              _currentIndex = 0;
+                              _controller.jumpToPage(0);
+                            }),
+                            nextPayload: widget.payload,
+                          );
+                        }
                         switch (index) {
                           case 0:
-                            return _getPreviewPage(
-                                exhibitionDetail.exhibition);
+                            return _getPreviewPage(exhibitionDetail.exhibition);
                           default:
-                            final series = exhibitionDetail
-                                .exhibition.series!
+                            final series = exhibitionDetail.exhibition.series!
                                 .firstWhere((element) =>
                                     element.id ==
                                     viewingArtworks[index - 1].seriesID);
@@ -102,7 +107,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage> {
       );
 
   Widget _getPreviewPage(Exhibition exhibition) => Column(
-    mainAxisAlignment: MainAxisAlignment.spaceAround,
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           ExhibitionPreview(
             exhibition: exhibition,
@@ -134,6 +139,24 @@ class ExhibitionDetailPayload {
     required this.exhibitions,
     this.index = 0,
   });
+
+  // copyWith function
+  ExhibitionDetailPayload copyWith({
+    List<Exhibition>? exhibitions,
+    int? index,
+  }) =>
+      ExhibitionDetailPayload(
+        exhibitions: exhibitions ?? this.exhibitions,
+        index: index ?? this.index,
+      );
+
+  // next function: increase index by 1, if index is out of range, return null
+  ExhibitionDetailPayload? next() {
+    if (index + 1 >= exhibitions.length) {
+      return null;
+    }
+    return copyWith(index: index + 1);
+  }
 }
 
 class ExhibitionPreview extends StatelessWidget {
@@ -195,89 +218,6 @@ class ExhibitionPreview extends StatelessWidget {
                       .toList())),
         ],
       ),
-    );
-  }
-}
-
-class FeralFileArtworkPreview extends StatelessWidget {
-  const FeralFileArtworkPreview({required this.payload, super.key});
-
-  final FeralFileArtworkPreviewPayload payload;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Column(
-      children: [
-        Expanded(
-          child: ArtworkPreviewWidget(
-            identity: ArtworkIdentity(payload.tokenId, ''),
-            useIndexer: true,
-          ),
-        ),
-        const SizedBox(height: 20),
-        Padding(
-          padding: const EdgeInsets.only(left: 14, right: 14, bottom: 20),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              SeriesTitleView(
-                  series: payload.series, artist: payload.series.artist),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 3),
-                child: Text(
-                  '${payload.artwork.index + 1}/${payload.series.settings?.maxArtwork ?? '--'}',
-                  style:
-                      theme.textTheme.ppMori400White12.copyWith(fontSize: 10),
-                ),
-              )
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class FeralFileArtworkPreviewPayload {
-  final String tokenId;
-  final FFSeries series;
-  final Artwork artwork;
-
-  const FeralFileArtworkPreviewPayload({
-    required this.tokenId,
-    required this.series,
-    required this.artwork,
-  });
-}
-
-class SeriesTitleView extends StatelessWidget {
-  const SeriesTitleView(
-      {required this.series, super.key, this.crossAxisAlignment, this.artist});
-
-  final FFSeries series;
-  final FFArtist? artist;
-  final CrossAxisAlignment? crossAxisAlignment;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: crossAxisAlignment ?? CrossAxisAlignment.start,
-      children: [
-        Text(
-          artist?.alias ?? '',
-          style: theme.textTheme.ppMori400White14,
-        ),
-        const SizedBox(height: 3),
-        Text(
-          series.title,
-          style: theme.textTheme.ppMori700White14.copyWith(
-            fontStyle: FontStyle.italic,
-          ),
-        ),
-      ],
     );
   }
 }
