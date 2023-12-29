@@ -111,10 +111,10 @@ packages:
     dependency: "direct main"
     description:
       name: awesome_notifications
-      sha256: "327162c36a1476978f89638741da618cac42356aabc39a5035b6c206d8fca978"
+      sha256: "3eeb9e0cdfc72c7b4b83e9924da38ea86edd65a2af02bd5429aa41dce634ee90"
       url: "https://pub.dev"
     source: hosted
-    version: "0.7.7"
+    version: "0.8.3"
   background_fetch:
     dependency: "direct main"
     description:

@@ -157,7 +157,7 @@ dependencies:
   html: ^0.15.1
   video_player: ^2.4.8
   youtube_player_iframe: ^4.0.4
-  awesome_notifications: ^0.7.7
+  awesome_notifications: ^0.8.3
   shimmer: ^3.0.0
   graphql_flutter: ^5.1.2
   card_swiper: ^3.0.1
