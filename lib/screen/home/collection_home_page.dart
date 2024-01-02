@@ -6,7 +6,6 @@
 //
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
@@ -19,11 +18,9 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
-import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
-import 'package:autonomy_flutter/service/cloud_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
@@ -38,25 +35,18 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/token_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
-import 'package:autonomy_flutter/view/carousel.dart';
 import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_flutter/view/tip_card.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
-import 'package:multi_value_listenable_builder/multi_value_listenable_builder.dart';
 import 'package:nft_collection/models/models.dart';
 import 'package:nft_collection/nft_collection.dart';
-import 'package:open_settings/open_settings.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class CollectionHomePage extends StatefulWidget {
   const CollectionHomePage({super.key});
@@ -283,7 +273,6 @@ class CollectionHomePageState extends State<CollectionHomePage>
       padding: ResponsiveLayout.getPadding.copyWith(left: 0, right: 0),
       children: [
         _header(context),
-        _carouselTipcard(context),
         Padding(
           padding: const EdgeInsets.only(left: 15),
           child: Text(
@@ -317,9 +306,6 @@ class CollectionHomePageState extends State<CollectionHomePage>
     sources = [
       SliverToBoxAdapter(
         child: _header(context),
-      ),
-      SliverToBoxAdapter(
-        child: _carouselTipcard(context),
       ),
       SliverGrid(
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -388,106 +374,6 @@ class CollectionHomePageState extends State<CollectionHomePage>
     );
   }
 
-  Widget _carouselTipcard(BuildContext context) => MultiValueListenableBuilder(
-        valueListenables: [
-          _configurationService.showTvAppTip,
-          _configurationService.showCreatePlaylistTip,
-          _configurationService.showLinkOrImportTip,
-          _configurationService.showBackupSettingTip,
-        ],
-        builder: (BuildContext context, List<dynamic> values, Widget? child) =>
-            CarouselWithIndicator(
-          items: _listTipcards(context, values),
-        ),
-      );
-
-  List<Tipcard> _listTipcards(BuildContext context, List<dynamic> values) {
-    final theme = Theme.of(context);
-    final isShowTvAppTip = values[0] as bool;
-    final isShowCreatePlaylistTip = values[1] as bool;
-    final isShowLinkOrImportTip = values[2] as bool;
-    final isShowBackupSettingTip = values[3] as bool;
-    return [
-      if (isShowLinkOrImportTip)
-        Tipcard(
-            titleText: 'do_you_have_NFTs_in_other_wallets'.tr(),
-            onPressed: () {},
-            buttonText: 'add_wallet'.tr(),
-            content: Text('you_can_link_or_import'.tr(),
-                style: theme.textTheme.ppMori400Black14),
-            listener: _configurationService.showLinkOrImportTip),
-      if (isShowCreatePlaylistTip)
-        Tipcard(
-            titleText: 'create_your_first_playlist'.tr(),
-            onPressed: () {
-              unawaited(Navigator.of(context)
-                  .pushNamed(AppRouter.createPlayListPage));
-            },
-            buttonText: 'create_new_playlist'.tr(),
-            content: Text('as_a_pro_sub_playlist'.tr(),
-                style: theme.textTheme.ppMori400Black14),
-            listener: _configurationService.showCreatePlaylistTip),
-      if (isShowTvAppTip)
-        Tipcard(
-            titleText: 'enjoy_your_collection'.tr(),
-            onPressed: () {
-              unawaited(Navigator.of(context).pushNamed(
-                AppRouter.scanQRPage,
-                arguments: ScannerItem.GLOBAL,
-              ));
-            },
-            buttonText: 'sync_up_with_autonomy_tv'.tr(),
-            content: RichText(
-              text: TextSpan(
-                text: 'as_a_pro_sub_TV_app'.tr(),
-                style: theme.textTheme.ppMori400Black14,
-                children: [
-                  TextSpan(
-                    text: 'google_TV_app'.tr(),
-                    style: theme.textTheme.ppMori400Black14.copyWith(
-                        color: theme.colorScheme.primary,
-                        decoration: TextDecoration.underline),
-                    recognizer: TapGestureRecognizer()
-                      ..onTap = () {
-                        final metricClient = injector<MetricClientService>();
-                        unawaited(metricClient
-                            .addEvent(MixpanelEvent.tapLinkInTipCard, data: {
-                          'link': TV_APP_STORE_URL,
-                          'title': 'enjoy_your_collection'.tr()
-                        }));
-                        unawaited(launchUrl(Uri.parse(TV_APP_STORE_URL),
-                            mode: LaunchMode.externalApplication));
-                      },
-                  ),
-                  TextSpan(
-                    text: 'currently_available_on'.tr(),
-                  )
-                ],
-              ),
-            ),
-            listener: _configurationService.showTvAppTip),
-      if (isShowBackupSettingTip)
-        Tipcard(
-            titleText: 'backup_failed'.tr(),
-            onPressed: Platform.isAndroid
-                ? () {
-                    unawaited(OpenSettings.openAddAccountSetting());
-                  }
-                : () async {
-                    unawaited(openAppSettings());
-                  },
-            buttonText: Platform.isAndroid
-                ? 'open_device_setting'.tr()
-                : 'open_icloud_setting'.tr(),
-            content: Text(
-                Platform.isAndroid
-                    ? 'backup_tip_card_content_android'.tr()
-                    : 'backup_tip_card_content_ios'.tr(),
-                style: theme.textTheme.ppMori400Black14),
-            listener: _configurationService.showBackupSettingTip),
-    ];
-  }
-
   Future<void> _checkForKeySync(BuildContext context) async {
     final cloudDatabase = injector<CloudDatabase>();
     final defaultAccounts = await cloudDatabase.personaDao.getDefaultPersonas();
@@ -521,53 +407,11 @@ class CollectionHomePageState extends State<CollectionHomePage>
     }
   }
 
-  Future _checkTipCardShowTime() async {
-    final metricClient = injector<MetricClientService>();
-    log.info('_checkTipCardShowTime');
-    final configurationService = injector<ConfigurationService>();
-
-    final doneOnboardingTime = configurationService.getDoneOnboardingTime();
-
-    final now = DateTime.now();
-
-    final remindTime = configurationService.getShowBackupSettingTip();
-    final shouldRemindNow = remindTime == null || now.isAfter(remindTime);
-    if (shouldRemindNow) {
-      unawaited(configurationService
-          .setShowBackupSettingTip(now.add(const Duration(days: 7))));
-      bool showTip = false;
-      if (Platform.isAndroid) {
-        final isAndroidEndToEndEncryptionAvailable =
-            await injector<AccountService>()
-                .isAndroidEndToEndEncryptionAvailable();
-        showTip = isAndroidEndToEndEncryptionAvailable != true;
-      } else {
-        final iCloudAvailable = injector<CloudService>().isAvailableNotifier;
-        showTip = !iCloudAvailable.value;
-      }
-      if (showTip && !configurationService.showBackupSettingTip.value) {
-        configurationService.showBackupSettingTip.value = true;
-        unawaited(metricClient.addEvent(MixpanelEvent.showTipcard,
-            data: {'title': 'backup_failed'.tr()}));
-      }
-    }
-    if (doneOnboardingTime != null) {
-      if (now.isAfter(doneOnboardingTime.add(const Duration(hours: 24))) &&
-          !configurationService.getAlreadyShowLinkOrImportTip()) {
-        configurationService.showLinkOrImportTip.value = true;
-        unawaited(configurationService.setAlreadyShowLinkOrImportTip(true));
-        unawaited(metricClient.addEvent(MixpanelEvent.showTipcard,
-            data: {'title': 'do_you_have_NFTs_in_other_wallets'.tr()}));
-      }
-    }
-  }
-
   Future<void> _handleForeground() async {
     final locale = Localizations.localeOf(context);
     unawaited(LocaleService.refresh(locale));
     memoryValues.inForegroundAt = DateTime.now();
     await injector<ConfigurationService>().reload();
-    await _checkTipCardShowTime();
     try {
       await injector<SettingsDataService>().restoreSettingsData();
     } catch (exception) {
