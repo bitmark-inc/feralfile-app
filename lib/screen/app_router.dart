@@ -57,6 +57,8 @@ import 'package:autonomy_flutter/screen/detail/preview/touchpad_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview_primer.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
+import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_bloc.dart';
+import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_page.dart';
 import 'package:autonomy_flutter/screen/gallery/gallery_bloc.dart';
 import 'package:autonomy_flutter/screen/gallery/gallery_page.dart';
 import 'package:autonomy_flutter/screen/github_doc.dart';
@@ -216,6 +218,7 @@ class AppRouter {
   static const predefinedCollectionPage = 'predefined_collection_page';
   static const addToCollectionPage = 'add_to_collection_page';
   static const exhibitionDetailPage = 'exhibition_detail_page';
+  static const feralFileSeriesPage = 'feral_file_series_page';
   static const momaPostcardPage = 'moma_postcard_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
@@ -829,9 +832,28 @@ class AppRouter {
                     BlocProvider(
                       create: (_) => ExhibitionDetailBloc(injector()),
                     ),
+                    BlocProvider(
+                      create: (_) => CanvasDeviceBloc(
+                        injector(),
+                      ),
+                    ),
                   ],
                   child: ExhibitionDetailPage(
                     payload: settings.arguments! as ExhibitionDetailPayload,
+                  ),
+                ));
+
+      case feralFileSeriesPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => MultiBlocProvider(
+                  providers: [
+                    BlocProvider(
+                      create: (_) => FeralFileSeriesBloc(injector()),
+                    ),
+                  ],
+                  child: FeralFileSeriesPage(
+                    payload: settings.arguments! as FeralFileSeriesPagePayload,
                   ),
                 ));
 
