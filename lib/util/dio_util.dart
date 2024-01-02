@@ -36,6 +36,12 @@ Dio airdropDio(BaseOptions options) {
   return dio;
 }
 
+Dio chatDio(BaseOptions options) {
+  final dio = baseDio(options);
+  dio.interceptors.add(HmacAuthInterceptor(Environment.chatServerHmacKey));
+  return dio;
+}
+
 Dio baseDio(BaseOptions options) {
   final BaseOptions dioOptions = options.copyWith(
     followRedirects: true,

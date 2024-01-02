@@ -82,6 +82,7 @@ import 'package:autonomy_flutter/screen/irl_screen/sign_message_screen.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_bloc.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_page.dart';
+import 'package:autonomy_flutter/screen/moma_postcard_page/moma_postcard_page.dart';
 import 'package:autonomy_flutter/screen/notification_onboarding_page.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/import_seeds.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/name_address_persona.dart';
@@ -218,6 +219,7 @@ class AppRouter {
   static const addToCollectionPage = 'add_to_collection_page';
   static const exhibitionDetailPage = 'exhibition_detail_page';
   static const feralFileSeriesPage = 'feral_file_series_page';
+  static const momaPostcardPage = 'moma_postcard_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector(), injector());
@@ -804,7 +806,8 @@ class AppRouter {
       case participateUserTestPage:
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) => const ParticipateUserTestPage());
+            builder: (context) => ParticipateUserTestPage(
+                payload: settings.arguments! as UserTestPayload));
 
       case hiddenArtworksPage:
         return CupertinoPageRoute(
@@ -818,6 +821,10 @@ class AppRouter {
                   ],
                   child: const HiddenArtworksPage(),
                 ));
+      case momaPostcardPage:
+        return CupertinoPageRoute(
+            settings: settings, builder: (context) => const MoMAPostcardPage());
+
       case exhibitionDetailPage:
         return CupertinoPageRoute(
             settings: settings,

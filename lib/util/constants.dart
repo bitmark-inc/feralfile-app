@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/util/geolocation.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_chat_types/flutter_chat_types.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 // ignore_for_file: constant_identifier_names
@@ -31,8 +32,6 @@ const RATING_MESSAGE_START = '### Customer support rating\n';
 const MUTE_RATING_MESSAGE = 'MUTE_RATING_MESSAGE';
 const STAR_RATING = '###STAR#RATING#';
 const KNOWN_BUGS_LINK = 'https://github.com/orgs/bitmark-inc/projects/16';
-const USER_TEST_CALENDAR_LINK =
-    'https://calendly.com/bencebitmark/autonomy-user-test';
 const IRL_DEEPLINK_PREFIX = 'https://autonomy.io/apps/irl/';
 const AUTONOMY_CLIENT_GITHUB_LINK =
     'https://github.com/bitmark-inc/autonomy-client';
@@ -576,3 +575,12 @@ class IrlWebviewFunction {
 }
 
 const Duration USE_APP_MIN_DURATION = Duration(seconds: 30);
+
+const chatPrivateBannerId = 'chat_private_banner_id';
+final chatPrivateBannerMessage = SystemMessage(
+  id: chatPrivateBannerId,
+  author: const User(id: chatPrivateBannerId),
+  createdAt: 0,
+  text: 'chat_is_private'.tr(),
+  status: Status.delivered,
+);

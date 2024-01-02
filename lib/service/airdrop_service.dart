@@ -48,23 +48,19 @@ class AirdropService {
       this._indexerService,
       this._navigationService);
 
-  Future<AirdropShareResponse> share(AirdropShareRequest request) async {
-    return _airdropApi.share(request.tokenId, request);
-  }
+  Future<AirdropShareResponse> share(AirdropShareRequest request) async =>
+      await _airdropApi.share(request.tokenId, request);
 
   Future<AirdropClaimShareResponse> claimShare(
-      AirdropClaimShareRequest request) async {
-    return _airdropApi.claimShare(request.shareCode);
-  }
+          AirdropClaimShareRequest request) async =>
+      await _airdropApi.claimShare(request.shareCode);
 
   Future<AirdropRequestClaimResponse> requestClaim(
-      AirdropRequestClaimRequest request) async {
-    return _airdropApi.requestClaim(request);
-  }
+          AirdropRequestClaimRequest request) async =>
+      await _airdropApi.requestClaim(request);
 
-  Future<TokenClaimResponse> claim(AirdropClaimRequest request) async {
-    return _airdropApi.claim(request);
-  }
+  Future<TokenClaimResponse> claim(AirdropClaimRequest request) async =>
+      await _airdropApi.claim(request);
 
   Future<AssetToken?> getTokenByContract(List<String> contractAddress) async {
     final allTokens = await _assetTokenDao.findAllAssetTokens();
@@ -83,7 +79,7 @@ class AirdropService {
       final requestClaimResponse = await requestClaim(request);
       return requestClaimResponse;
     } catch (e) {
-      log.info("[Airdrop service] claimGift: $e");
+      log.info('[Airdrop service] claimGift: $e');
       _navigationService.showAirdropJustOnce();
       rethrow;
     }
@@ -133,16 +129,16 @@ class AirdropService {
       return ClaimResponse(
           token: assetTokens.first, airdropInfo: series.airdropInfo!);
     } catch (e) {
-      log.info("[Airdrop service] claimGift: $e");
+      log.info('[Airdrop service] claimGift: $e');
       if (e is DioException) {
         switch (e.response?.data['message']) {
-          case "cannot self claim":
+          case 'cannot self claim':
             _navigationService.showAirdropJustOnce();
             break;
-          case "invalid claim":
+          case 'invalid claim':
             _navigationService.showAirdropAlreadyClaimed();
             break;
-          case "the token is not available for share":
+          case 'the token is not available for share':
             _navigationService.showAirdropAlreadyClaimed();
             break;
           default:
@@ -184,8 +180,8 @@ class AirdropService {
       final timestamp =
           (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
       final isViewOnly = await assetToken.isViewOnly();
-      String signature = "";
-      String ownerPublicKey = "";
+      String signature = '';
+      String ownerPublicKey = '';
       if (!isViewOnly) {
         final ownerWallet = await _accountService.getAccountByAddress(
             chain: assetToken.blockchain, address: ownerAddress);
@@ -194,7 +190,7 @@ class AirdropService {
         signature = await _tezosService.signMessage(
             ownerWallet.wallet,
             ownerWallet.index,
-            Uint8List.fromList(utf8.encode("${assetToken.id}|$timestamp")));
+            Uint8List.fromList(utf8.encode('${assetToken.id}|$timestamp')));
       }
       final shareRequest = AirdropShareRequest(
           tokenId: assetToken.id,
@@ -205,7 +201,7 @@ class AirdropService {
       final shareResponse = await share(shareRequest);
       return shareResponse.deepLink;
     } catch (e) {
-      log.info("[Airdrop service] shareGift: error $e");
+      log.info('[Airdrop service] shareGift: error $e');
       return null;
     }
   }
@@ -227,13 +223,12 @@ class AirdropRequestClaimRequest {
       };
 
   // fromJson
-  factory AirdropRequestClaimRequest.fromJson(Map<String, dynamic> json) {
-    return AirdropRequestClaimRequest(
-      ownerAddress: json['ownerAddress'],
-      id: json['id'],
-      indexID: json['indexID'],
-    );
-  }
+  factory AirdropRequestClaimRequest.fromJson(Map<String, dynamic> json) =>
+      AirdropRequestClaimRequest(
+        ownerAddress: json['ownerAddress'],
+        id: json['id'],
+        indexID: json['indexID'],
+      );
 }
 
 class AirdropRequestClaimResponse {
@@ -249,12 +244,11 @@ class AirdropRequestClaimResponse {
       };
 
   // fromJson
-  factory AirdropRequestClaimResponse.fromJson(Map<String, dynamic> json) {
-    return AirdropRequestClaimResponse(
-      claimID: json['claimID'],
-      seriesID: json['seriesID'],
-    );
-  }
+  factory AirdropRequestClaimResponse.fromJson(Map<String, dynamic> json) =>
+      AirdropRequestClaimResponse(
+        claimID: json['claimID'],
+        seriesID: json['seriesID'],
+      );
 }
 
 class AirdropClaimRequest {
@@ -284,28 +278,15 @@ class AirdropClaimRequest {
       };
 
   // fromJson
-  factory AirdropClaimRequest.fromJson(Map<String, dynamic> json) {
-    return AirdropClaimRequest(
-      claimId: json['claimID'],
-      shareCode: json['shareCode'],
-      receivingAddress: json['receivingAddress'],
-      did: json['did'],
-      didSignature: json['didSignature'],
-      timestamp: json['timesStamp'],
-    );
-  }
-}
-
-class AirdropClaimResponse {
-  AirdropClaimResponse();
-
-  //toJson
-  Map<String, dynamic> toJson() => {};
-
-  // fromJson
-  factory AirdropClaimResponse.fromJson(Map<String, dynamic> json) {
-    return AirdropClaimResponse();
-  }
+  factory AirdropClaimRequest.fromJson(Map<String, dynamic> json) =>
+      AirdropClaimRequest(
+        claimId: json['claimID'],
+        shareCode: json['shareCode'],
+        receivingAddress: json['receivingAddress'],
+        did: json['did'],
+        didSignature: json['didSignature'],
+        timestamp: json['timesStamp'],
+      );
 }
 
 class AirdropClaimShareRequest {
@@ -319,11 +300,10 @@ class AirdropClaimShareRequest {
       };
 
   // fromJson
-  factory AirdropClaimShareRequest.fromJson(Map<String, dynamic> json) {
-    return AirdropClaimShareRequest(
-      shareCode: json['shareCode'],
-    );
-  }
+  factory AirdropClaimShareRequest.fromJson(Map<String, dynamic> json) =>
+      AirdropClaimShareRequest(
+        shareCode: json['shareCode'],
+      );
 }
 
 class AirdropClaimShareResponse {
@@ -339,12 +319,11 @@ class AirdropClaimShareResponse {
       };
 
   // fromJson
-  factory AirdropClaimShareResponse.fromJson(Map<String, dynamic> json) {
-    return AirdropClaimShareResponse(
-      shareCode: json['shareCode'],
-      seriesID: json['seriesID'],
-    );
-  }
+  factory AirdropClaimShareResponse.fromJson(Map<String, dynamic> json) =>
+      AirdropClaimShareResponse(
+        shareCode: json['shareCode'],
+        seriesID: json['seriesID'],
+      );
 }
 
 class AirdropShareRequest {
@@ -371,15 +350,14 @@ class AirdropShareRequest {
       };
 
   // fromJson
-  factory AirdropShareRequest.fromJson(Map<String, dynamic> json) {
-    return AirdropShareRequest(
-      tokenId: json['tokenId'],
-      ownerAddress: json['ownerAddress'],
-      ownerPublicKey: json['ownerPublicKey'],
-      timestamp: json['timestamp'],
-      signature: json['signature'],
-    );
-  }
+  factory AirdropShareRequest.fromJson(Map<String, dynamic> json) =>
+      AirdropShareRequest(
+        tokenId: json['tokenId'],
+        ownerAddress: json['ownerAddress'],
+        ownerPublicKey: json['ownerPublicKey'],
+        timestamp: json['timestamp'],
+        signature: json['signature'],
+      );
 }
 
 class AirdropShareResponse {
@@ -393,11 +371,10 @@ class AirdropShareResponse {
       };
 
   // fromJson
-  factory AirdropShareResponse.fromJson(Map<String, dynamic> json) {
-    return AirdropShareResponse(
-      deepLink: json['deeplink'],
-    );
-  }
+  factory AirdropShareResponse.fromJson(Map<String, dynamic> json) =>
+      AirdropShareResponse(
+        deepLink: json['deeplink'],
+      );
 }
 
 class AirdropTokenIdentity {
@@ -413,24 +390,23 @@ class AirdropTokenIdentity {
       };
 
   // fromJson
-  factory AirdropTokenIdentity.fromJson(Map<String, dynamic> json) {
-    return AirdropTokenIdentity(
-      id: json['id'],
-      owner: json['owner'],
-    );
-  }
+  factory AirdropTokenIdentity.fromJson(Map<String, dynamic> json) =>
+      AirdropTokenIdentity(
+        id: json['id'],
+        owner: json['owner'],
+      );
 }
 
 enum AirdropType {
-  Memento6,
-  Unknown;
+  memento6,
+  unknown;
 
   String get seriesId {
     switch (this) {
-      case AirdropType.Memento6:
+      case AirdropType.memento6:
         return memento6SeriesId;
       default:
-        return "unknown";
+        return 'unknown';
     }
   }
 }

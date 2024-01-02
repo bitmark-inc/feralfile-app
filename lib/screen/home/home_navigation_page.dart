@@ -126,7 +126,10 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
               colorFilter: const ColorFilter.mode(
                   AppColor.white, BlendMode.srcIn), // white
             ),
-            onTap: () {},
+            onTap: () {
+              Navigator.of(context)
+                  .pushReplacementNamed(AppRouter.momaPostcardPage);
+            },
           ),
           OptionItem(
             title: 'wallet'.tr(),
@@ -645,7 +648,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     final shouldShowAnnouncements = announcements.where((element) =>
         (element.isMemento6 &&
             !_configurationService
-                .getAlreadyClaimedAirdrop(AirdropType.Memento6.seriesId)) &&
+                .getAlreadyClaimedAirdrop(AirdropType.memento6.seriesId)) &&
         showAnnouncementInfo.shouldShowAnnouncementNotification(element));
     if (shouldShowAnnouncements.isEmpty) {
       return;
