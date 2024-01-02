@@ -131,110 +131,116 @@ class CollectionProState extends State<CollectionPro>
   }
 
   @override
-  Widget build(BuildContext context) => SafeArea(
-        child: BlocConsumer(
-          bloc: _bloc,
-          listener: (context, state) {
-            if (state is CollectionLoadedState) {
-              fetchIdentities(state);
-            }
-          },
-          builder: (context, collectionProState) {
-            if (collectionProState is CollectionLoadedState) {
-              final listPredefinedCollectionByMedium =
-                  collectionProState.listPredefinedCollectionByMedium;
+  Widget build(BuildContext context) {
+    final paddingTop = MediaQuery.of(context).padding.top;
+    return SafeArea(
+      top: false,
+      child: BlocConsumer(
+        bloc: _bloc,
+        listener: (context, state) {
+          if (state is CollectionLoadedState) {
+            fetchIdentities(state);
+          }
+        },
+        builder: (context, collectionProState) {
+          if (collectionProState is CollectionLoadedState) {
+            final listPredefinedCollectionByMedium =
+                collectionProState.listPredefinedCollectionByMedium;
 
-              final works = collectionProState.works;
-              return BlocBuilder<IdentityBloc, IdentityState>(
-                  builder: (context, identityState) {
-                    final identityMap = identityState.identityMap
-                      ..removeWhere((key, value) => value.isEmpty);
-                    final listPredefinedCollectionByArtist = collectionProState
-                        .listPredefinedCollectionByArtist
-                        ?.map(
-                          (e) {
-                            String name = identityMap[e.id] ?? e.name ?? e.id;
-                            if (name == e.id) {
-                              name = name.maskOnly(5);
-                            }
-                            e.name = name;
-                            return e;
-                          },
-                        )
-                        .toList()
-                        .filterByName(searchStr.value)
-                      ?..sort((a, b) => a.name!
-                          .toLowerCase()
-                          .compareTo(b.name!.toLowerCase()));
-                    return Stack(
-                      children: [
-                        CustomScrollView(
-                          shrinkWrap: true,
-                          slivers: [
-                            SliverToBoxAdapter(
-                              child: _header(context),
+            final works = collectionProState.works;
+            return BlocBuilder<IdentityBloc, IdentityState>(
+                builder: (context, identityState) {
+                  final identityMap = identityState.identityMap
+                    ..removeWhere((key, value) => value.isEmpty);
+                  final listPredefinedCollectionByArtist = collectionProState
+                      .listPredefinedCollectionByArtist
+                      ?.map(
+                        (e) {
+                          String name = identityMap[e.id] ?? e.name ?? e.id;
+                          if (name == e.id) {
+                            name = name.maskOnly(5);
+                          }
+                          e.name = name;
+                          return e;
+                        },
+                      )
+                      .toList()
+                      .filterByName(searchStr.value)
+                    ?..sort((a, b) =>
+                        a.name!.toLowerCase().compareTo(b.name!.toLowerCase()));
+                  return Stack(
+                    children: [
+                      CustomScrollView(
+                        shrinkWrap: true,
+                        slivers: [
+                          SliverToBoxAdapter(
+                            child: SizedBox(height: paddingTop),
+                          ),
+                          SliverToBoxAdapter(
+                            child: _header(context),
+                          ),
+                          SliverToBoxAdapter(
+                            child: ValueListenableBuilder(
+                              valueListenable: searchStr,
+                              builder: (BuildContext context, String value,
+                                      Widget? child) =>
+                                  CollectionSection(
+                                key: _collectionSectionKey,
+                                filterString: value,
+                              ),
                             ),
+                          ),
+                          const SliverToBoxAdapter(
+                            child: SizedBox(height: 60),
+                          ),
+                          if (searchStr.value.isEmpty) ...[
                             SliverToBoxAdapter(
-                              child: ValueListenableBuilder(
-                                valueListenable: searchStr,
-                                builder: (BuildContext context, String value,
-                                        Widget? child) =>
-                                    CollectionSection(
-                                  key: _collectionSectionKey,
-                                  filterString: value,
-                                ),
+                              child: PredefinedCollectionSection(
+                                listPredefinedCollection:
+                                    listPredefinedCollectionByMedium ?? [],
+                                predefinedCollectionType:
+                                    PredefinedCollectionType.medium,
+                                searchStr: searchStr.value,
                               ),
                             ),
                             const SliverToBoxAdapter(
                               child: SizedBox(height: 60),
                             ),
-                            if (searchStr.value.isEmpty) ...[
-                              SliverToBoxAdapter(
-                                child: PredefinedCollectionSection(
-                                  listPredefinedCollection:
-                                      listPredefinedCollectionByMedium ?? [],
-                                  predefinedCollectionType:
-                                      PredefinedCollectionType.medium,
-                                  searchStr: searchStr.value,
-                                ),
-                              ),
-                              const SliverToBoxAdapter(
-                                child: SizedBox(height: 60),
-                              ),
-                            ],
-                            if (searchStr.value.isNotEmpty) ...[
-                              SliverToBoxAdapter(
-                                child: WorksSection(
-                                  works: works,
-                                ),
-                              ),
-                              const SliverToBoxAdapter(
-                                child: SizedBox(height: 60),
-                              ),
-                            ],
+                          ],
+                          if (searchStr.value.isNotEmpty) ...[
                             SliverToBoxAdapter(
-                              child: PredefinedCollectionSection(
-                                listPredefinedCollection:
-                                    listPredefinedCollectionByArtist ?? [],
-                                predefinedCollectionType:
-                                    PredefinedCollectionType.artist,
-                                searchStr: searchStr.value,
+                              child: WorksSection(
+                                works: works,
                               ),
                             ),
                             const SliverToBoxAdapter(
-                              child: SizedBox(height: 40),
+                              child: SizedBox(height: 60),
                             ),
                           ],
-                        ),
-                      ],
-                    );
-                  },
-                  bloc: _identityBloc);
-            }
-            return const Center(child: CircularProgressIndicator());
-          },
-        ),
-      );
+                          SliverToBoxAdapter(
+                            child: PredefinedCollectionSection(
+                              listPredefinedCollection:
+                                  listPredefinedCollectionByArtist ?? [],
+                              predefinedCollectionType:
+                                  PredefinedCollectionType.artist,
+                              searchStr: searchStr.value,
+                            ),
+                          ),
+                          const SliverToBoxAdapter(
+                            child: SizedBox(height: 40),
+                          ),
+                        ],
+                      ),
+                    ],
+                  );
+                },
+                bloc: _identityBloc);
+          }
+          return const Center(child: CircularProgressIndicator());
+        },
+      ),
+    );
+  }
 
   Widget _header(BuildContext context) {
     final paddingTop = MediaQuery.of(context).viewPadding.top;

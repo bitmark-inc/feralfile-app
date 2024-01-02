@@ -254,7 +254,9 @@ class CollectionHomePageState extends State<CollectionHomePage>
     return PrimaryScrollController(
       controller: _controller,
       child: Scaffold(
-        appBar: getDarkEmptyAppBar(),
+        appBar: getLightEmptyAppBar(Colors.transparent),
+        extendBody: true,
+        extendBodyBehindAppBar: true,
         backgroundColor: AppColor.primaryBlack,
         body: contentWidget,
       ),
@@ -315,6 +317,11 @@ class CollectionHomePageState extends State<CollectionHomePage>
     }
     List<Widget> sources;
     sources = [
+      SliverToBoxAdapter(
+        child: SizedBox(
+          height: MediaQuery.of(context).padding.top,
+        ),
+      ),
       SliverToBoxAdapter(
         child: _header(context),
       ),
