@@ -27,6 +27,7 @@ import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:card_swiper/card_swiper.dart';
+import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -385,9 +386,14 @@ class _OnboardingPageState extends State<OnboardingPage>
               text: 'artwork_'.tr(),
               style: theme.textTheme.ppMori400Grey12,
               children: stream_artworks
-                  .map((e) => TextSpan(
-                        text: e,
-                      ))
+                  .mapIndexed((index, e) => [
+                        TextSpan(
+                          text: e,
+                        ),
+                        if (index != stream_artworks.length - 1)
+                          const TextSpan(text: '; ')
+                      ])
+                  .flattened
                   .toList()),
         ),
       ),
