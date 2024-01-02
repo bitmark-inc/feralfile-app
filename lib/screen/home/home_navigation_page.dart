@@ -126,7 +126,10 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
               colorFilter: const ColorFilter.mode(
                   AppColor.white, BlendMode.srcIn), // white
             ),
-            onTap: () {},
+            onTap: () {
+              Navigator.of(context)
+                  .pushReplacementNamed(AppRouter.momaPostcardPage);
+            },
           ),
           OptionItem(
             title: 'wallet'.tr(),
