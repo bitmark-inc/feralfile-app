@@ -254,7 +254,7 @@ SystemUiOverlayStyle systemUiOverlayLightStyle(Color? statusBarColor) =>
     SystemUiOverlayStyle(
       statusBarColor: statusBarColor ?? AppColor.white,
       statusBarIconBrightness: Brightness.light,
-      statusBarBrightness: Brightness.light,
+      statusBarBrightness: Brightness.dark,
     );
 
 AppBar getDoneAppBar(
