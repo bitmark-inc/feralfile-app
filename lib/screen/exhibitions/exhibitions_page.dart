@@ -33,7 +33,7 @@ class _ExhibitionsPageState extends State<ExhibitionsPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: getLightEmptyAppBar(Colors.transparent),
+        appBar: getDarkEmptyAppBar(Colors.transparent),
         extendBody: true,
         extendBodyBehindAppBar: true,
         backgroundColor: AppColor.primaryBlack,

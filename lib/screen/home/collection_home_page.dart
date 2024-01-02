@@ -254,7 +254,7 @@ class CollectionHomePageState extends State<CollectionHomePage>
     return PrimaryScrollController(
       controller: _controller,
       child: Scaffold(
-        appBar: getLightEmptyAppBar(Colors.transparent),
+        appBar: getDarkEmptyAppBar(Colors.transparent),
         extendBody: true,
         extendBodyBehindAppBar: true,
         backgroundColor: AppColor.primaryBlack,

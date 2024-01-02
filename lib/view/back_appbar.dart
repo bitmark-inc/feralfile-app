@@ -228,8 +228,8 @@ AppBar getCloseAppBar(
   );
 }
 
-AppBar getDarkEmptyAppBar() => AppBar(
-      systemOverlayStyle: systemUiOverlayDarkStyle,
+AppBar getDarkEmptyAppBar([Color? statusBarColor]) => AppBar(
+      systemOverlayStyle: _systemUiOverlayDarkStyle(statusBarColor),
       backgroundColor: Colors.transparent,
       toolbarHeight: 0,
       shadowColor: Colors.transparent,
@@ -244,17 +244,21 @@ AppBar getLightEmptyAppBar([Color? statusBarColor]) => AppBar(
       elevation: 0,
     );
 
-SystemUiOverlayStyle get systemUiOverlayDarkStyle => const SystemUiOverlayStyle(
-      statusBarColor: AppColor.primaryBlack,
+SystemUiOverlayStyle _systemUiOverlayDarkStyle(Color? statusBarColor) =>
+    SystemUiOverlayStyle(
+      statusBarColor: statusBarColor ?? AppColor.primaryBlack,
       statusBarIconBrightness: Brightness.light,
       statusBarBrightness: Brightness.dark,
     );
 
+SystemUiOverlayStyle get systemUiOverlayDarkStyle =>
+    _systemUiOverlayDarkStyle(AppColor.primaryBlack);
+
 SystemUiOverlayStyle systemUiOverlayLightStyle(Color? statusBarColor) =>
     SystemUiOverlayStyle(
       statusBarColor: statusBarColor ?? AppColor.white,
-      statusBarIconBrightness: Brightness.light,
-      statusBarBrightness: Brightness.dark,
+      statusBarIconBrightness: Brightness.dark,
+      statusBarBrightness: Brightness.light,
     );
 
 AppBar getDoneAppBar(

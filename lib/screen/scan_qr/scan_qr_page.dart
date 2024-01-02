@@ -130,7 +130,7 @@ class _ScanQRPageState extends State<ScanQRPage>
         extendBodyBehindAppBar: true,
         backgroundColor: cameraPermission ? null : theme.colorScheme.primary,
         appBar: _tabController.index == 0
-            ? getLightEmptyAppBar(Colors.transparent)
+            ? getDarkEmptyAppBar(Colors.transparent)
             : getLightEmptyAppBar(),
         body: Stack(
           children: <Widget>[
