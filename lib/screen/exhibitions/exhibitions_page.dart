@@ -33,10 +33,17 @@ class _ExhibitionsPageState extends State<ExhibitionsPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: getDarkEmptyAppBar(),
+        appBar: getDarkEmptyAppBar(Colors.transparent),
+        extendBody: true,
+        extendBodyBehindAppBar: true,
         backgroundColor: AppColor.primaryBlack,
         body: CustomScrollView(
           slivers: [
+            SliverToBoxAdapter(
+              child: SizedBox(
+                height: MediaQuery.of(context).padding.top,
+              ),
+            ),
             SliverToBoxAdapter(
               child: HeaderView(
                 title: 'exhibitions'.tr(),

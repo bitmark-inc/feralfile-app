@@ -285,21 +285,24 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        body: Stack(
-          children: [
-            PageView(
-              controller: _pageController,
-              physics: const NeverScrollableScrollPhysics(),
-              children: _pages,
-            ),
-            Positioned.fill(
-              bottom: 40,
-              child: Align(
-                alignment: Alignment.bottomCenter,
-                child: _buildBottomNavigationBar(context),
+        body: SafeArea(
+          top: false,
+          child: Stack(
+            children: [
+              PageView(
+                controller: _pageController,
+                physics: const NeverScrollableScrollPhysics(),
+                children: _pages,
               ),
-            ),
-          ],
+              Positioned.fill(
+                bottom: 40,
+                child: Align(
+                  alignment: Alignment.bottomCenter,
+                  child: _buildBottomNavigationBar(context),
+                ),
+              ),
+            ],
+          ),
         ),
       );
 
