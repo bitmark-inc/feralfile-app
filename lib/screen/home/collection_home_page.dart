@@ -264,8 +264,11 @@ class CollectionHomePageState extends State<CollectionHomePage>
   Widget _loadingView(BuildContext context) => Center(
           child: Column(
         children: [
+          SizedBox(
+            height: MediaQuery.of(context).padding.top,
+          ),
           _header(context),
-          loadingIndicator(),
+          loadingIndicator(valueColor: AppColor.white),
         ],
       ));
 
