@@ -71,9 +71,12 @@ class _ScanQRPageState extends State<ScanQRPage>
   late Lock _lock;
   Timer? _timer;
 
+  late bool shouldPop;
+
   @override
   void initState() {
     super.initState();
+    shouldPop = !(widget.scannerItem == ScannerItem.GLOBAL);
     //There is a conflict with lib qr_code_scanner on Android.
     if (Platform.isIOS) {
       unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.leanBack));
@@ -247,7 +250,9 @@ class _ScanQRPageState extends State<ScanQRPage>
                     )
                   : GestureDetector(
                       onTap: () {
-                        Navigator.pop(context);
+                        if (shouldPop) {
+                          Navigator.pop(context);
+                        }
                       },
                       child: closeIcon(color: AppColor.white),
                     )),
@@ -472,7 +477,9 @@ class _ScanQRPageState extends State<ScanQRPage>
         if (!mounted) {
           return;
         }
-        Navigator.pop(context);
+        if (shouldPop) {
+          Navigator.pop(context);
+        }
 
         injector<DeeplinkService>().handleDeeplink(
           code,
@@ -507,7 +514,9 @@ class _ScanQRPageState extends State<ScanQRPage>
           if (!mounted) {
             return;
           }
-          Navigator.pop(context, code);
+          if (shouldPop) {
+            Navigator.pop(context, code);
+          }
           break;
         case ScannerItem.GLOBAL:
           if (code.startsWith('wc:')) {
@@ -574,11 +583,15 @@ class _ScanQRPageState extends State<ScanQRPage>
       if (!mounted) {
         return false;
       }
-      Navigator.pop(context, device);
+      if (shouldPop) {
+        Navigator.pop(context, device);
+      }
       return result;
     } catch (e) {
       if (mounted) {
-        Navigator.pop(context);
+        if (shouldPop) {
+          Navigator.pop(context);
+        }
         if (e.toString().contains('DEADLINE_EXCEEDED') || true) {
           await UIHelper.showInfoDialog(
               _navigationService.navigatorKey.currentContext!,
@@ -635,7 +648,9 @@ class _ScanQRPageState extends State<ScanQRPage>
     if (!mounted) {
       return;
     }
-    Navigator.pop(context);
+    if (shouldPop) {
+      Navigator.pop(context);
+    }
     await Future.delayed(const Duration(seconds: 1));
 
     _addScanQREvent(
@@ -651,7 +666,9 @@ class _ScanQRPageState extends State<ScanQRPage>
     if (!mounted) {
       return;
     }
-    Navigator.pop(context);
+    if (shouldPop) {
+      Navigator.pop(context);
+    }
     await Future.delayed(const Duration(seconds: 1));
 
     _addScanQREvent(
@@ -665,6 +682,9 @@ class _ScanQRPageState extends State<ScanQRPage>
   @override
   void didPopNext() {
     super.didPopNext();
+    setState(() {
+      _isLoading = false;
+    });
     if (Platform.isIOS) {
       unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.leanBack));
     }
