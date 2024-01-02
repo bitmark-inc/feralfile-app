@@ -27,8 +27,9 @@ class PrimaryButton extends StatelessWidget {
       width: width,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor:
-              enabled ? color ?? theme.auSuperTeal : theme.auLightGrey,
+          backgroundColor: enabled
+              ? color ?? AppColor.feralFileHighlight
+              : theme.auLightGrey,
           shadowColor: Colors.transparent,
           disabledForegroundColor: theme.auLightGrey,
           disabledBackgroundColor: theme.auLightGrey,

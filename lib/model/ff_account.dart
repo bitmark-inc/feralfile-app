@@ -237,6 +237,9 @@ class Artwork {
   final bool? burned;
   final String blockchainStatus;
   final bool isExternal;
+  final String thumbnailURI;
+  final String previewURI;
+  final Map<String, dynamic> metadata;
   final DateTime mintedAt;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -255,6 +258,9 @@ class Artwork {
       this.burned,
       this.blockchainStatus,
       this.isExternal,
+      this.thumbnailURI,
+      this.previewURI,
+      this.metadata,
       this.mintedAt,
       this.createdAt,
       this.updatedAt,

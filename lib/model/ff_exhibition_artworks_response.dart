@@ -1,14 +1,14 @@
 import 'package:autonomy_flutter/model/ff_account.dart';
 
-class ExhibitionArtworksResponse {
+class ArtworksResponse {
   final List<Artwork> result;
 
-  ExhibitionArtworksResponse({
+  ArtworksResponse({
     required this.result,
   });
 
-  factory ExhibitionArtworksResponse.fromJson(Map<String, dynamic> json) =>
-      ExhibitionArtworksResponse(
+  factory ArtworksResponse.fromJson(Map<String, dynamic> json) =>
+      ArtworksResponse(
         result: (json['result'] as List<dynamic>)
             .map((e) => Artwork.fromJson(e as Map<String, dynamic>))
             .toList(),
