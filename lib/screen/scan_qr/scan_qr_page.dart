@@ -71,12 +71,12 @@ class _ScanQRPageState extends State<ScanQRPage>
   late Lock _lock;
   Timer? _timer;
 
-  late bool shouldPop;
+  late bool _shouldPop;
 
   @override
   void initState() {
     super.initState();
-    shouldPop = !(widget.scannerItem == ScannerItem.GLOBAL);
+    _shouldPop = !(widget.scannerItem == ScannerItem.GLOBAL);
     //There is a conflict with lib qr_code_scanner on Android.
     if (Platform.isIOS) {
       unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.leanBack));
@@ -250,7 +250,7 @@ class _ScanQRPageState extends State<ScanQRPage>
                     )
                   : GestureDetector(
                       onTap: () {
-                        if (shouldPop) {
+                        if (_shouldPop) {
                           Navigator.pop(context);
                         }
                       },
@@ -477,7 +477,7 @@ class _ScanQRPageState extends State<ScanQRPage>
         if (!mounted) {
           return;
         }
-        if (shouldPop) {
+        if (_shouldPop) {
           Navigator.pop(context);
         }
 
@@ -514,7 +514,7 @@ class _ScanQRPageState extends State<ScanQRPage>
           if (!mounted) {
             return;
           }
-          if (shouldPop) {
+          if (_shouldPop) {
             Navigator.pop(context, code);
           }
           break;
@@ -583,13 +583,13 @@ class _ScanQRPageState extends State<ScanQRPage>
       if (!mounted) {
         return false;
       }
-      if (shouldPop) {
+      if (_shouldPop) {
         Navigator.pop(context, device);
       }
       return result;
     } catch (e) {
       if (mounted) {
-        if (shouldPop) {
+        if (_shouldPop) {
           Navigator.pop(context);
         }
         if (e.toString().contains('DEADLINE_EXCEEDED') || true) {
@@ -648,7 +648,7 @@ class _ScanQRPageState extends State<ScanQRPage>
     if (!mounted) {
       return;
     }
-    if (shouldPop) {
+    if (_shouldPop) {
       Navigator.pop(context);
     }
     await Future.delayed(const Duration(seconds: 1));
@@ -666,7 +666,7 @@ class _ScanQRPageState extends State<ScanQRPage>
     if (!mounted) {
       return;
     }
-    if (shouldPop) {
+    if (_shouldPop) {
       Navigator.pop(context);
     }
     await Future.delayed(const Duration(seconds: 1));
