@@ -50,7 +50,7 @@ class _ViewExistingAddressState extends State<ViewExistingAddress> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     addTitleSpace(),
-                    Text("enter_address_alias".tr(),
+                    Text("enter_a_wallet_address".tr(),
                         style: theme.textTheme.ppMori400Black14),
                     const SizedBox(height: 10),
                     AuTextField(
