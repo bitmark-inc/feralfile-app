@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 class FFNavigationBarItem {
   final Widget icon;
+  final Widget? unselectedIcon;
   final String label;
   final Color? selectedColor;
   final Color? unselectedColor;
@@ -10,6 +11,7 @@ class FFNavigationBarItem {
   const FFNavigationBarItem({
     required this.icon,
     required this.label,
+    this.unselectedIcon,
     this.selectedColor,
     this.unselectedColor,
   });
@@ -48,30 +50,32 @@ class _FFNavigationBarState extends State<FFNavigationBar> {
           child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: widget.items
-                  .map((e) => [
-                        GestureDetector(
-                          onTap: () {
-                            final index = widget.items.indexOf(e);
-
-                            widget.onSelectTab(index);
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 15, vertical: 10),
-                            child: IconTheme(
-                              data: IconThemeData(
-                                color: widget.currentIndex ==
-                                        widget.items.indexOf(e)
-                                    ? e.selectedColor ??
-                                        widget.selectedItemColor
-                                    : e.unselectedColor ??
-                                        widget.unselectedItemColor,
-                              ),
-                              child: e.icon,
+                  .map((e) {
+                    final index = widget.items.indexOf(e);
+                    final isSelected = index == widget.currentIndex;
+                    return [
+                      GestureDetector(
+                        onTap: () {
+                          widget.onSelectTab(index);
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 15, vertical: 10),
+                          child: IconTheme(
+                            data: IconThemeData(
+                              color: isSelected
+                                  ? e.selectedColor ?? widget.selectedItemColor
+                                  : e.unselectedColor ??
+                                      widget.unselectedItemColor,
                             ),
+                            child: isSelected
+                                ? e.icon
+                                : e.unselectedIcon ?? e.icon,
                           ),
                         ),
-                      ])
+                      ),
+                    ];
+                  })
                   .flattened
                   .toList()),
         ),
