@@ -54,6 +54,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nft_collection/database/dao/asset_token_dao.dart';
 import 'package:nft_collection/database/nft_collection_database.dart';
 import 'package:nft_collection/nft_collection.dart';
@@ -120,8 +121,10 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         options: [
           OptionItem(
             title: 'moma_postcard'.tr(),
-            icon: const Icon(
-              AuIcon.settings,
+            icon: SvgPicture.asset(
+              'assets/images/icon_3d.svg',
+              colorFilter: const ColorFilter.mode(
+                  AppColor.white, BlendMode.srcIn), // white
             ),
             onTap: () {
               Navigator.of(context)
@@ -288,25 +291,34 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        body: Stack(
-          children: [
-            PageView(
-              controller: _pageController,
-              physics: const NeverScrollableScrollPhysics(),
-              children: _pages,
-            ),
-            Positioned.fill(
-              bottom: 40,
-              child: Align(
-                alignment: Alignment.bottomCenter,
-                child: _buildBottomNavigationBar(context),
+        body: SafeArea(
+          top: false,
+          child: Stack(
+            children: [
+              PageView(
+                controller: _pageController,
+                physics: const NeverScrollableScrollPhysics(),
+                children: _pages,
               ),
-            ),
-          ],
+              Positioned.fill(
+                bottom: 40,
+                child: Align(
+                  alignment: Alignment.bottomCenter,
+                  child: _buildBottomNavigationBar(context),
+                ),
+              ),
+            ],
+          ),
         ),
       );
 
   Widget _buildBottomNavigationBar(BuildContext context) {
+    final selectedColor = AppColor.white;
+    final unselectedColor = AppColor.disabledColor;
+    final selectedColorFilter =
+        ColorFilter.mode(selectedColor, BlendMode.srcIn);
+    final unselectedColorFilter =
+        ColorFilter.mode(unselectedColor, BlendMode.srcIn);
     final bottomItems = [
       const FFNavigationBarItem(
         icon: Icon(
@@ -315,17 +327,29 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         ),
         label: '',
       ),
-      const FFNavigationBarItem(
-        icon: Icon(
-          AuIcon.set,
-          size: 25,
+      FFNavigationBarItem(
+        icon: SvgPicture.asset(
+          'assets/images/set_icon.svg',
+          height: 25,
+          colorFilter: selectedColorFilter,
+        ),
+        unselectedIcon: SvgPicture.asset(
+          'assets/images/set_icon.svg',
+          height: 25,
+          colorFilter: unselectedColorFilter,
         ),
         label: '',
       ),
-      const FFNavigationBarItem(
-        icon: Icon(
-          AuIcon.controller,
-          size: 25,
+      FFNavigationBarItem(
+        icon: SvgPicture.asset(
+          'assets/images/controller_icon.svg',
+          height: 25,
+          colorFilter: selectedColorFilter,
+        ),
+        unselectedIcon: SvgPicture.asset(
+          'assets/images/controller_icon.svg',
+          height: 25,
+          colorFilter: unselectedColorFilter,
         ),
         label: '',
       ),
@@ -351,14 +375,14 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
             withReddot: numberOfIssuesInfo != null && numberOfIssuesInfo[1] > 0,
           ),
         ),
-        selectedColor: AppColor.disabledColor,
+        selectedColor: unselectedColor,
         label: '',
       ),
     ];
     return FFNavigationBar(
       items: bottomItems,
-      selectedItemColor: AppColor.white,
-      unselectedItemColor: AppColor.disabledColor,
+      selectedItemColor: selectedColor,
+      unselectedItemColor: unselectedColor,
       backgroundColor: AppColor.auGreyBackground,
       onSelectTab: _onItemTapped,
       currentIndex: _selectedIndex,

@@ -1,5 +1,3 @@
-// create a stateLess widget, have start over button, next Exhibition view. param: function start over and ExhibitionDetailPayload
-
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';

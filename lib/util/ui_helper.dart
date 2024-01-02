@@ -1275,7 +1275,15 @@ class UIHelper {
                       onTap: () {
                         option.onTap?.call();
                       },
-                      child: child,
+                      child: Stack(
+                        children: [
+                          child,
+                          Positioned.fill(
+                              child: Container(
+                            color: Colors.transparent,
+                          )),
+                        ],
+                      ),
                     );
                   },
                   itemCount: options.length,

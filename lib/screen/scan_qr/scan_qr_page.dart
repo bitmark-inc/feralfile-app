@@ -127,25 +127,28 @@ class _ScanQRPageState extends State<ScanQRPage>
       cutPaddingTop = 0;
     }
     final theme = Theme.of(context);
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      backgroundColor: cameraPermission ? null : theme.colorScheme.primary,
-      appBar: _tabController.index == 0
-          ? getDarkEmptyAppBar()
-          : getLightEmptyAppBar(),
-      body: Stack(
-        children: <Widget>[
-          _content(context),
-          if (_isLoading) ...[
-            Center(
-              child: CupertinoActivityIndicator(
-                color: theme.colorScheme.primary,
-                radius: 16,
+    return SafeArea(
+      top: false,
+      child: Scaffold(
+        extendBodyBehindAppBar: true,
+        backgroundColor: cameraPermission ? null : theme.colorScheme.primary,
+        appBar: _tabController.index == 0
+            ? getDarkEmptyAppBar(Colors.transparent)
+            : getLightEmptyAppBar(),
+        body: Stack(
+          children: <Widget>[
+            _content(context),
+            if (_isLoading) ...[
+              Center(
+                child: CupertinoActivityIndicator(
+                  color: theme.colorScheme.primary,
+                  radius: 16,
+                ),
               ),
-            ),
+            ],
+            _header(context),
           ],
-          _header(context),
-        ],
+        ),
       ),
     );
   }

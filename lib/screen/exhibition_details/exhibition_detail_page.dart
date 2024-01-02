@@ -87,7 +87,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage> {
                   _currentIndex = 0;
                   _controller.jumpToPage(0);
                 }),
-                nextPayload: widget.payload,
+                nextPayload: widget.payload.next(),
               );
             }
             switch (index) {

@@ -226,7 +226,9 @@ class HomePageState extends State<HomePage>
     return PrimaryScrollController(
       controller: _controller,
       child: Scaffold(
-        appBar: getDarkEmptyAppBar(),
+        appBar: getDarkEmptyAppBar(Colors.transparent),
+        extendBody: true,
+        extendBodyBehindAppBar: true,
         backgroundColor: AppColor.primaryBlack,
         body: contentWidget,
       ),

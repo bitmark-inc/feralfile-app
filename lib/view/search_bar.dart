@@ -26,6 +26,7 @@ class _SearchBarState extends State<AuSearchBar> {
   @override
   void initState() {
     super.initState();
+    _focusNode.requestFocus();
   }
 
   @override
@@ -104,7 +105,7 @@ class _SearchBarState extends State<AuSearchBar> {
               },
               child: const Icon(
                 AuIcon.close,
-                size: 12,
+                size: 14,
                 color: AppColor.primaryBlack,
               ),
             ),
