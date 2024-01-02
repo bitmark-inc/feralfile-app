@@ -37,6 +37,9 @@ abstract class PubdocAPI {
 
   @GET('/configs/postcard/postcard_configs.json')
   Future<String> getConfigs();
+
+  @GET('/configs/user_test.json')
+  Future<String> getUserTestConfigs();
 }
 
 extension PubdocAPIHelpers on PubdocAPI {

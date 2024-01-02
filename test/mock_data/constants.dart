@@ -67,6 +67,11 @@ const deepLink = 'deepLink';
 const publicKey = 'publicKey';
 const imageCID = 'imageCID';
 const owner = 'owner';
+const ethChain = 'ethereum';
+const tezChain = 'tezos';
+
+const ethIndexerID = 'eth-contractAddress-tokenID';
+const tezosIndexerID = 'tez-contractAddress-tokenID';
 
 const location = Location(lat: 0, lon: 0);
 const listLocation = [0.0, 0.0];

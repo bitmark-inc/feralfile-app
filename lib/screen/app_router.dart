@@ -804,7 +804,8 @@ class AppRouter {
       case participateUserTestPage:
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) => const ParticipateUserTestPage());
+            builder: (context) => ParticipateUserTestPage(
+                payload: settings.arguments! as UserTestPayload));
 
       case hiddenArtworksPage:
         return CupertinoPageRoute(
