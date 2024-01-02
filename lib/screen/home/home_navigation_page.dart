@@ -123,7 +123,10 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
             icon: const Icon(
               AuIcon.settings,
             ),
-            onTap: () {},
+            onTap: () {
+              Navigator.of(context)
+                  .pushReplacementNamed(AppRouter.momaPostcardPage);
+            },
           ),
           OptionItem(
             title: 'wallet'.tr(),
