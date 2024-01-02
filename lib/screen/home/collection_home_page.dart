@@ -264,8 +264,11 @@ class CollectionHomePageState extends State<CollectionHomePage>
   Widget _loadingView(BuildContext context) => Center(
           child: Column(
         children: [
+          SizedBox(
+            height: MediaQuery.of(context).padding.top,
+          ),
           _header(context),
-          loadingIndicator(),
+          loadingIndicator(valueColor: AppColor.white),
         ],
       ));
 
@@ -274,13 +277,16 @@ class CollectionHomePageState extends State<CollectionHomePage>
     return ListView(
       padding: ResponsiveLayout.getPadding.copyWith(left: 0, right: 0),
       children: [
+        SizedBox(
+          height: MediaQuery.of(context).padding.top,
+        ),
         _header(context),
         Padding(
           padding: const EdgeInsets.only(left: 15),
           child: Text(
             'collection_empty_now'.tr(),
             //"Your collection is empty for now.",
-            style: theme.textTheme.ppMori400Black14,
+            style: theme.textTheme.ppMori400White14,
           ),
         ),
       ],
