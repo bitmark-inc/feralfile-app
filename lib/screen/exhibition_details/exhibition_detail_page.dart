@@ -9,9 +9,11 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/canvas_device_view.dart';
 import 'package:autonomy_flutter/view/cast_button.dart';
+import 'package:autonomy_flutter/view/event_view.dart';
 import 'package:autonomy_flutter/view/exhibition_detail_last_page.dart';
 import 'package:autonomy_flutter/view/exhibition_detail_preview.dart';
 import 'package:autonomy_flutter/view/ff_artwork_preview.dart';
+import 'package:autonomy_flutter/view/note_view.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -68,7 +70,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage> {
     final tokenIds = viewingArtworks
         .map((e) => exhibitionDetail.getArtworkTokenId(e))
         .toList();
-    final itemCount = tokenIds.length + 2;
+    final itemCount = tokenIds.length + 3;
     return Stack(
       children: [
         PageView.builder(
@@ -90,24 +92,28 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage> {
                 nextPayload: widget.payload.next(),
               );
             }
+
             switch (index) {
               case 0:
                 return _getPreviewPage(exhibitionDetail.exhibition);
+              case 1:
+                return _notePage(exhibitionDetail.exhibition);
               default:
+                final seriesIndex = index - 2;
                 final series = exhibitionDetail.exhibition.series!.firstWhere(
                     (element) =>
-                        element.id == viewingArtworks[index - 1].seriesID);
+                        element.id == viewingArtworks[seriesIndex].seriesID);
                 return FeralFileArtworkPreview(
                   payload: FeralFileArtworkPreviewPayload(
-                    tokenId: tokenIds[index - 1],
-                    artwork: viewingArtworks[index - 1],
+                    tokenId: tokenIds[seriesIndex],
+                    artwork: viewingArtworks[seriesIndex],
                     series: series,
                   ),
                 );
             }
           },
         ),
-        if (_currentIndex == 0)
+        if (_currentIndex == 0 || _currentIndex == 1)
           Align(
             alignment: Alignment.bottomCenter,
             child: _nextButton(),
@@ -121,7 +127,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage> {
         children: [
           ExhibitionPreview(
             exhibition: exhibition,
-          )
+          ),
         ],
       );
 
@@ -139,6 +145,31 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage> {
           ),
         ),
       );
+
+  Widget _notePage(Exhibition exhibition) {
+    const horizontalPadding = 14.0;
+    const snipWidth = 50.0;
+    final width =
+        MediaQuery.sizeOf(context).width - horizontalPadding * 2 - snipWidth;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            ExhibitionNoteView(
+              exhibition: exhibition,
+              width: width,
+            ),
+            ...exhibition.resources!.map((e) => ExhibitionEventView(
+                  exhibitionEvent: e,
+                  width: width,
+                ))
+          ],
+        ),
+      ),
+    );
+  }
 
   AppBar _getAppBar(
           BuildContext buildContext, ExhibitionDetail? exhibitionDetail) =>

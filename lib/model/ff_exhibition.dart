@@ -10,6 +10,10 @@ class Exhibition {
   final String slug;
   final DateTime exhibitionStartAt;
 
+  final String noteTitle;
+  final String noteBrief;
+  final String note;
+
   // final DateTime? exhibitionEndAt;
   final String? coverURI;
   final String? thumbnailCoverURI;
@@ -20,12 +24,16 @@ class Exhibition {
   final List<FFContract>? contracts;
   final FFArtist? partner;
   final String type;
+  final List<ExhibitionEvent>? resources;
 
   Exhibition({
     required this.id,
     required this.title,
     required this.slug,
     required this.exhibitionStartAt,
+    required this.noteTitle,
+    required this.noteBrief,
+    required this.note,
     required this.mintBlockchain,
     required this.type, // this.exhibitionEndAt,
     this.coverURI,
@@ -35,6 +43,7 @@ class Exhibition {
     this.contracts,
     this.partner,
     this.curator,
+    this.resources,
   });
 
   factory Exhibition.fromJson(Map<String, dynamic> json) => Exhibition(
@@ -42,6 +51,9 @@ class Exhibition {
         title: json['title'] as String,
         slug: json['slug'] as String,
         exhibitionStartAt: DateTime.parse(json['exhibitionStartAt'] as String),
+        noteTitle: json['noteTitle'] as String,
+        noteBrief: json['noteBrief'] as String,
+        note: json['note'] as String,
         coverURI: json['coverURI'] as String?,
         thumbnailCoverURI: json['thumbnailCoverURI'] as String?,
         artists: (json['artists'] as List<dynamic>?)
@@ -61,6 +73,9 @@ class Exhibition {
         curator: json['curator'] == null
             ? null
             : FFCurator.fromJson(json['curator'] as Map<String, dynamic>),
+        resources: (json['resources'] as List<dynamic>?)
+            ?.map((e) => ExhibitionEvent.fromJson(e as Map<String, dynamic>))
+            .toList(),
       );
 
   Map<String, dynamic> toJson() => {
@@ -68,6 +83,9 @@ class Exhibition {
         'title': title,
         'slug': slug,
         'exhibitionStartAt': exhibitionStartAt.toIso8601String(),
+        'noteTitle': noteTitle,
+        'noteBrief': noteBrief,
+        'note': note,
         'coverURI': coverURI,
         'thumbnailCoverURI': thumbnailCoverURI,
         'artists': artists?.map((e) => e.toJson()).toList(),
@@ -78,6 +96,7 @@ class Exhibition {
         'type': type,
         'curator': curator?.toJson(),
         // 'exhibitionEndAt': exhibitionEndAt?.toIso8601String(),
+        'resources': resources?.map((e) => e.toJson()).toList(),
       };
 
   FFArtist? getArtist(FFSeries? series) {
@@ -121,4 +140,54 @@ class ExhibitionDetail {
   List<Artwork>? artworks;
 
   ExhibitionDetail({required this.exhibition, this.artworks});
+}
+
+class ExhibitionEvent {
+  final String id;
+  final String exhibitionID;
+  final String type;
+  final String title;
+  final DateTime dateTime;
+  final String description;
+  final Map<String, String> links;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  ExhibitionEvent({
+    required this.id,
+    required this.exhibitionID,
+    required this.type,
+    required this.title,
+    required this.dateTime,
+    required this.description,
+    required this.links,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  factory ExhibitionEvent.fromJson(Map<String, dynamic> json) =>
+      ExhibitionEvent(
+        id: json['id'],
+        exhibitionID: json['exhibitionID'],
+        type: json['type'],
+        title: json['title'],
+        dateTime: DateTime.parse(json['dateTime']),
+        description: json['description'],
+        links: Map<String, String>.from(json['links']),
+        createdAt: DateTime.parse(json['createdAt']),
+        updatedAt: DateTime.parse(json['updatedAt']),
+      );
+
+  // toJson
+  Map<String, dynamic> toJson() => {
+      'id': id,
+      'exhibitionID': exhibitionID,
+      'type': type,
+      'title': title,
+      'dateTime': dateTime.toIso8601String(),
+      'description': description,
+      'links': links,
+      'createdAt': createdAt.toIso8601String(),
+      'updatedAt': updatedAt.toIso8601String(),
+    };
 }
