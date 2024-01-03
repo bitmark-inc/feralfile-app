@@ -155,8 +155,8 @@ class AuFileService extends FileService {
         info.task.completeError(Exception('Download failed ${info.url}'));
         _taskId2Info.remove(id);
       } else if (status == DownloadTaskStatus.canceled) {
-        log.info('[AuFileService] Download cancelled: ${info.url}');
-        info.task.completeError(Exception('Download cancelled ${info.url}'));
+        log.info('[AuFileService] Download canceled: ${info.url}');
+        info.task.completeError(Exception('Download canceled ${info.url}'));
         _taskId2Info.remove(id);
       }
     }
