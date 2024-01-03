@@ -168,68 +168,64 @@ class CollectionProState extends State<CollectionPro>
                       .filterByName(searchStr.value)
                     ?..sort((a, b) =>
                         a.name!.toLowerCase().compareTo(b.name!.toLowerCase()));
-                  return Stack(
-                    children: [
-                      CustomScrollView(
-                        shrinkWrap: true,
-                        slivers: [
-                          SliverToBoxAdapter(
-                            child: SizedBox(height: paddingTop),
+                  return CustomScrollView(
+                    shrinkWrap: true,
+                    slivers: [
+                      SliverToBoxAdapter(
+                        child: SizedBox(height: paddingTop),
+                      ),
+                      SliverToBoxAdapter(
+                        child: _header(context),
+                      ),
+                      SliverToBoxAdapter(
+                        child: ValueListenableBuilder(
+                          valueListenable: searchStr,
+                          builder: (BuildContext context, String value,
+                                  Widget? child) =>
+                              CollectionSection(
+                            key: _collectionSectionKey,
+                            filterString: value,
                           ),
-                          SliverToBoxAdapter(
-                            child: _header(context),
+                        ),
+                      ),
+                      const SliverToBoxAdapter(
+                        child: SizedBox(height: 60),
+                      ),
+                      if (searchStr.value.isEmpty) ...[
+                        SliverToBoxAdapter(
+                          child: PredefinedCollectionSection(
+                            listPredefinedCollection:
+                                listPredefinedCollectionByMedium ?? [],
+                            predefinedCollectionType:
+                                PredefinedCollectionType.medium,
+                            searchStr: searchStr.value,
                           ),
-                          SliverToBoxAdapter(
-                            child: ValueListenableBuilder(
-                              valueListenable: searchStr,
-                              builder: (BuildContext context, String value,
-                                      Widget? child) =>
-                                  CollectionSection(
-                                key: _collectionSectionKey,
-                                filterString: value,
-                              ),
-                            ),
+                        ),
+                        const SliverToBoxAdapter(
+                          child: SizedBox(height: 60),
+                        ),
+                      ],
+                      if (searchStr.value.isNotEmpty) ...[
+                        SliverToBoxAdapter(
+                          child: WorksSection(
+                            works: works,
                           ),
-                          const SliverToBoxAdapter(
-                            child: SizedBox(height: 60),
-                          ),
-                          if (searchStr.value.isEmpty) ...[
-                            SliverToBoxAdapter(
-                              child: PredefinedCollectionSection(
-                                listPredefinedCollection:
-                                    listPredefinedCollectionByMedium ?? [],
-                                predefinedCollectionType:
-                                    PredefinedCollectionType.medium,
-                                searchStr: searchStr.value,
-                              ),
-                            ),
-                            const SliverToBoxAdapter(
-                              child: SizedBox(height: 60),
-                            ),
-                          ],
-                          if (searchStr.value.isNotEmpty) ...[
-                            SliverToBoxAdapter(
-                              child: WorksSection(
-                                works: works,
-                              ),
-                            ),
-                            const SliverToBoxAdapter(
-                              child: SizedBox(height: 60),
-                            ),
-                          ],
-                          SliverToBoxAdapter(
-                            child: PredefinedCollectionSection(
-                              listPredefinedCollection:
-                                  listPredefinedCollectionByArtist ?? [],
-                              predefinedCollectionType:
-                                  PredefinedCollectionType.artist,
-                              searchStr: searchStr.value,
-                            ),
-                          ),
-                          const SliverToBoxAdapter(
-                            child: SizedBox(height: 40),
-                          ),
-                        ],
+                        ),
+                        const SliverToBoxAdapter(
+                          child: SizedBox(height: 60),
+                        ),
+                      ],
+                      SliverToBoxAdapter(
+                        child: PredefinedCollectionSection(
+                          listPredefinedCollection:
+                              listPredefinedCollectionByArtist ?? [],
+                          predefinedCollectionType:
+                              PredefinedCollectionType.artist,
+                          searchStr: searchStr.value,
+                        ),
+                      ),
+                      const SliverToBoxAdapter(
+                        child: SizedBox(height: 40),
                       ),
                     ],
                   );
