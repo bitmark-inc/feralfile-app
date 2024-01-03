@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
@@ -17,18 +19,26 @@ class ExhibitionsPage extends StatefulWidget {
   const ExhibitionsPage({super.key});
 
   @override
-  State<ExhibitionsPage> createState() => _ExhibitionsPageState();
+  State<ExhibitionsPage> createState() => ExhibitionsPageState();
 }
 
-class _ExhibitionsPageState extends State<ExhibitionsPage> {
+class ExhibitionsPageState extends State<ExhibitionsPage> {
   late ExhibitionBloc _exhibitionBloc;
+  late ScrollController _controller;
 
   // initState
   @override
   void initState() {
     super.initState();
+    _controller = ScrollController();
     _exhibitionBloc = context.read<ExhibitionBloc>();
     _exhibitionBloc.add(GetAllExhibitionsEvent());
+  }
+
+  void scrollToTop() {
+    unawaited(_controller.animateTo(0,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.fastOutSlowIn));
   }
 
   @override
@@ -38,6 +48,7 @@ class _ExhibitionsPageState extends State<ExhibitionsPage> {
         extendBodyBehindAppBar: true,
         backgroundColor: AppColor.primaryBlack,
         body: CustomScrollView(
+          controller: _controller,
           slivers: [
             SliverToBoxAdapter(
               child: SizedBox(

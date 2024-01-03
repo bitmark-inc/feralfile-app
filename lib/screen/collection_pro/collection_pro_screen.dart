@@ -66,7 +66,6 @@ class CollectionProState extends State<CollectionPro>
     isShowSearchBar = false;
     isShowFullHeader = true;
     _scrollController = widget.scrollController;
-    _scrollController.addListener(_scrollListenerShowFullHeader);
     loadCollection();
     super.initState();
   }
@@ -79,7 +78,6 @@ class CollectionProState extends State<CollectionPro>
 
   @override
   void dispose() {
-    _scrollController.removeListener(_scrollListenerShowFullHeader);
     super.dispose();
   }
 
@@ -87,22 +85,6 @@ class CollectionProState extends State<CollectionPro>
   void didPopNext() {
     loadCollection();
     super.didPopNext();
-  }
-
-  void _scrollListenerShowFullHeader() {
-    if (_scrollController.offset > 50 && isShowSearchBar) {
-      if (isShowFullHeader) {
-        setState(() {
-          isShowFullHeader = false;
-        });
-      }
-    } else {
-      if (!isShowFullHeader) {
-        setState(() {
-          isShowFullHeader = true;
-        });
-      }
-    }
   }
 
   void loadCollection() {
@@ -169,6 +151,7 @@ class CollectionProState extends State<CollectionPro>
                     ?..sort((a, b) =>
                         a.name!.toLowerCase().compareTo(b.name!.toLowerCase()));
                   return CustomScrollView(
+                    controller: _scrollController,
                     shrinkWrap: true,
                     slivers: [
                       SliverToBoxAdapter(
