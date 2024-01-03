@@ -54,13 +54,14 @@ class ScanQRPage extends StatefulWidget {
   const ScanQRPage({super.key, this.scannerItem = ScannerItem.GLOBAL});
 
   @override
-  State<ScanQRPage> createState() => _ScanQRPageState();
+  State<ScanQRPage> createState() => ScanQRPageState();
 }
 
-class _ScanQRPageState extends State<ScanQRPage>
+class ScanQRPageState extends State<ScanQRPage>
     with RouteAware, TickerProviderStateMixin {
   late TabController _tabController;
   late bool _shouldPop;
+  final GlobalKey<QRScanViewState> _qrScanViewKey = GlobalKey();
 
   @override
   void initState() {
@@ -73,6 +74,16 @@ class _ScanQRPageState extends State<ScanQRPage>
     _tabController = TabController(length: 2, vsync: this);
   }
 
+  Future<void> pauseCamera() async {
+    await _qrScanViewKey.currentState?.pauseCamera();
+  }
+
+  Future<void> resumeCamera() async {
+    if (_tabController.index == 0) {
+      await _qrScanViewKey.currentState?.resumeCamera();
+    }
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -80,26 +91,21 @@ class _ScanQRPageState extends State<ScanQRPage>
   }
 
   @override
-  Widget build(BuildContext context) {
-    final size1 = MediaQuery.of(context).size.height / 2;
-    return SafeArea(
-      top: false,
-      child: Scaffold(
-        extendBodyBehindAppBar: true,
-        // backgroundColor: null,
-        //cameraPermission ? null : theme.colorScheme.primary,
-        appBar: _tabController.index == 0
-            ? getDarkEmptyAppBar(Colors.transparent)
-            : getLightEmptyAppBar(),
-        body: Stack(
-          children: <Widget>[
-            _content(context),
-            _header(context),
-          ],
+  Widget build(BuildContext context) => SafeArea(
+        top: false,
+        child: Scaffold(
+          extendBodyBehindAppBar: true,
+          appBar: _tabController.index == 0
+              ? getDarkEmptyAppBar(Colors.transparent)
+              : getLightEmptyAppBar(),
+          body: Stack(
+            children: <Widget>[
+              _content(context),
+              _header(context),
+            ],
+          ),
         ),
-      ),
-    );
-  }
+      );
 
   Widget _content(BuildContext context) {
     final size1 = MediaQuery.of(context).size.height / 2;
@@ -116,6 +122,7 @@ class _ScanQRPageState extends State<ScanQRPage>
             controller: _tabController,
             children: [
               QRScanView(
+                key: _qrScanViewKey,
                 scannerItem: widget.scannerItem,
               ),
               MultiBlocProvider(
@@ -141,6 +148,7 @@ class _ScanQRPageState extends State<ScanQRPage>
                       setState(() {
                         _tabController.animateTo(0,
                             duration: const Duration(milliseconds: 300));
+                        unawaited(resumeCamera());
                       });
                     },
                   )),
@@ -164,6 +172,7 @@ class _ScanQRPageState extends State<ScanQRPage>
                   ? GestureDetector(
                       onTap: () {
                         setState(() {
+                          unawaited(pauseCamera());
                           _tabController.animateTo(1,
                               duration: const Duration(milliseconds: 300));
                         });
@@ -201,6 +210,7 @@ class _ScanQRPageState extends State<ScanQRPage>
     super.didPushNext();
     unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
         overlays: SystemUiOverlay.values));
+    unawaited(pauseCamera());
   }
 
   @override
@@ -227,10 +237,11 @@ class QRScanView extends StatefulWidget {
   const QRScanView({required this.scannerItem, super.key});
 
   @override
-  State<QRScanView> createState() => _QRScanViewState();
+  State<QRScanView> createState() => QRScanViewState();
 }
 
-class _QRScanViewState extends State<QRScanView> with RouteAware {
+class QRScanViewState extends State<QRScanView>
+    with RouteAware, AutomaticKeepAliveClientMixin<QRScanView> {
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
   late QRViewController controller;
   bool isScanDataError = false;
@@ -248,10 +259,6 @@ class _QRScanViewState extends State<QRScanView> with RouteAware {
   void initState() {
     super.initState();
     _shouldPop = !(widget.scannerItem == ScannerItem.GLOBAL);
-    //There is a conflict with lib qr_code_scanner on Android.
-    if (Platform.isIOS) {
-      unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.leanBack));
-    }
     unawaited(_checkPermission());
     _lock = Lock();
   }
@@ -262,28 +269,30 @@ class _QRScanViewState extends State<QRScanView> with RouteAware {
     setState(() {
       _isLoading = false;
     });
-    if (Platform.isIOS) {
-      unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.leanBack));
-    }
-    unawaited(controller.resumeCamera());
+    unawaited(resumeCamera());
   }
 
   @override
   void didPushNext() {
     super.didPushNext();
-    unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
-        overlays: SystemUiOverlay.values));
     unawaited(Future.delayed(const Duration(milliseconds: 300)).then((_) {
-      controller.pauseCamera();
+      pauseCamera();
     }));
   }
 
   @override
   void dispose() {
-    routeObserver.unsubscribe(this);
     _timer?.cancel();
     controller.dispose();
     super.dispose();
+  }
+
+  Future<void> resumeCamera() async {
+    await controller.resumeCamera();
+  }
+
+  Future<void> pauseCamera() async {
+    await controller.pauseCamera();
   }
 
   Future _checkPermission() async {
@@ -304,7 +313,7 @@ class _QRScanViewState extends State<QRScanView> with RouteAware {
         if (Platform.isAndroid) {
           _timer?.cancel();
           _timer = Timer(const Duration(seconds: 1), () {
-            controller.resumeCamera();
+            resumeCamera();
           });
         }
       }
@@ -313,6 +322,7 @@ class _QRScanViewState extends State<QRScanView> with RouteAware {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final size1 = MediaQuery.of(context).size.height / 2;
     final qrSize = size1 < 240.0 ? size1 : 240.0;
 
@@ -570,7 +580,7 @@ class _QRScanViewState extends State<QRScanView> with RouteAware {
         setState(() {
           _isLoading = true;
         });
-        unawaited(controller.pauseCamera());
+        unawaited(pauseCamera());
         if (!mounted) {
           return;
         }
@@ -607,7 +617,7 @@ class _QRScanViewState extends State<QRScanView> with RouteAware {
           setState(() {
             _isLoading = true;
           });
-          await controller.pauseCamera();
+          await pauseCamera();
           if (!mounted) {
             return;
           }
@@ -669,7 +679,7 @@ class _QRScanViewState extends State<QRScanView> with RouteAware {
     setState(() {
       _isLoading = true;
     });
-    await controller.pauseCamera();
+    await pauseCamera();
     try {
       final device = CanvasDevice.fromJson(jsonDecode(code));
       final canvasClient = injector<CanvasClientService>();
@@ -741,7 +751,7 @@ class _QRScanViewState extends State<QRScanView> with RouteAware {
     setState(() {
       _isLoading = true;
     });
-    await controller.pauseCamera();
+    await pauseCamera();
     if (!mounted) {
       return;
     }
@@ -759,7 +769,7 @@ class _QRScanViewState extends State<QRScanView> with RouteAware {
     setState(() {
       _isLoading = true;
     });
-    await controller.pauseCamera();
+    await pauseCamera();
     if (!mounted) {
       return;
     }
@@ -775,4 +785,7 @@ class _QRScanViewState extends State<QRScanView> with RouteAware {
       injector<NavigationService>().showContactingDialog()
     ]);
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }

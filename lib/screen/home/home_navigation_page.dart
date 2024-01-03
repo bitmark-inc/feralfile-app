@@ -81,6 +81,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   final GlobalKey<OrganizeHomePageState> _organizeHomePageKey = GlobalKey();
   final GlobalKey<CollectionHomePageState> _collectionHomePageKey = GlobalKey();
   final GlobalKey<ExhibitionsPageState> _exhibitionsPageKey = GlobalKey();
+  final GlobalKey<ScanQRPageState> _scanQRPageKey = GlobalKey();
   final _configurationService = injector<ConfigurationService>();
   late Timer? _timer;
   final _clientTokenService = injector<ClientTokenService>();
@@ -108,6 +109,12 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         }
         if (index == 2) {
           _exhibitionsPageKey.currentState?.scrollToTop();
+        }
+      } else {
+        if (index == 3) {
+          await _scanQRPageKey.currentState?.resumeCamera();
+        } else {
+          await _scanQRPageKey.currentState?.pauseCamera();
         }
       }
       setState(() {
@@ -183,6 +190,9 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         setState(() {
           _selectedIndex = currentIndex;
         });
+        if (_selectedIndex == 3) {
+          await _scanQRPageKey.currentState?.resumeCamera();
+        }
       }
     }
   }
@@ -207,7 +217,9 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         BlocProvider.value(
             value: ExhibitionBloc(injector())..add(GetAllExhibitionsEvent())),
       ], child: const ExhibitionsPage()),
-      const ScanQRPage()
+      ScanQRPage(
+        key: _scanQRPageKey,
+      )
     ];
 
     if (!_configurationService.isReadRemoveSupport()) {
