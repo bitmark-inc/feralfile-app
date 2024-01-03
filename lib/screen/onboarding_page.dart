@@ -34,7 +34,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class OnboardingPage extends StatefulWidget {
-  const OnboardingPage({Key? key}) : super(key: key);
+  const OnboardingPage({super.key});
 
   @override
   State<OnboardingPage> createState() => _OnboardingPageState();
@@ -47,6 +47,7 @@ class _OnboardingPageState extends State<OnboardingPage>
   bool fromIrlLink = false;
 
   final metricClient = injector.get<MetricClientService>();
+  final deepLinkService = injector.get<DeeplinkService>();
 
   late SwiperController _swiperController;
   late int _currentIndex;
@@ -56,7 +57,7 @@ class _OnboardingPageState extends State<OnboardingPage>
     super.initState();
     _swiperController = SwiperController();
     _currentIndex = 0;
-    handleBranchLink();
+    unawaited(handleBranchLink());
     handleDeepLink();
     handleIrlLink();
   }
@@ -64,7 +65,7 @@ class _OnboardingPageState extends State<OnboardingPage>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    log.info("DefineViewRoutingEvent");
+    log.info('DefineViewRoutingEvent');
     context.read<RouterBloc>().add(DefineViewRoutingEvent());
   }
 
@@ -135,7 +136,7 @@ class _OnboardingPageState extends State<OnboardingPage>
     });
   }
 
-  void handleBranchLink() async {
+  Future<void> handleBranchLink() async {
     setState(() {
       fromBranchLink = true;
     });
@@ -164,14 +165,15 @@ class _OnboardingPageState extends State<OnboardingPage>
     memoryValues.branchDeeplinkData.addListener(() async {
       try {
         final data = memoryValues.branchDeeplinkData.value;
-        if (data == currentData) return;
+        if (data == currentData) {
+          return;
+        }
         if (data != null) {
           setState(() {
             fromBranchLink = true;
           });
 
           await injector<AccountService>().restoreIfNeeded();
-          final deepLinkService = injector.get<DeeplinkService>();
           deepLinkService.handleBranchDeeplinkData(data);
           updateDeepLinkState();
         }
@@ -197,8 +199,8 @@ class _OnboardingPageState extends State<OnboardingPage>
           listener: (context, state) async {
             switch (state.onboardingStep) {
               case OnboardingStep.dashboard:
-                Navigator.of(context)
-                    .pushReplacementNamed(AppRouter.homePageNoTransition);
+                unawaited(Navigator.of(context)
+                    .pushReplacementNamed(AppRouter.homePageNoTransition));
                 try {
                   await injector<SettingsDataService>().restoreSettingsData();
                 } catch (_) {
@@ -220,13 +222,13 @@ class _OnboardingPageState extends State<OnboardingPage>
           },
           builder: (context, state) {
             if (state.isLoading) {
-              return loadingScreen(theme, "restoring_autonomy".tr());
+              return loadingScreen(theme, 'restoring_autonomy'.tr());
             }
             if (state.onboardingStep == OnboardingStep.startScreen) {
               return Container(
-                  padding: EdgeInsets.only(bottom: 40),
+                  padding: const EdgeInsets.only(bottom: 40),
                   color: AppColor.primaryBlack,
-                  child: _swipper(context));
+                  child: _swiper(context));
             }
 
             return Padding(
@@ -238,13 +240,13 @@ class _OnboardingPageState extends State<OnboardingPage>
                   _logo(maxWidthLogo: 50),
                   SizedBox(height: paddingTop),
                   addBoldDivider(),
-                  Text("collect".tr(), style: theme.textTheme.ppMori700Black36),
+                  Text('collect'.tr(), style: theme.textTheme.ppMori700Black36),
                   const SizedBox(height: 20),
                   addBoldDivider(),
-                  Text("view".tr(), style: theme.textTheme.ppMori700Black36),
+                  Text('view'.tr(), style: theme.textTheme.ppMori700Black36),
                   const SizedBox(height: 20),
                   addBoldDivider(),
-                  Text("discover".tr(),
+                  Text('discover'.tr(),
                       style: theme.textTheme.ppMori700Black36),
                   const Spacer(),
                   if ((fromBranchLink ||
@@ -253,40 +255,42 @@ class _OnboardingPageState extends State<OnboardingPage>
                           (state.onboardingStep == OnboardingStep.undefined)) &&
                       (state.onboardingStep != OnboardingStep.restore)) ...[
                     PrimaryButton(
-                      text: "h_loading...".tr(),
+                      text: 'h_loading...'.tr(),
                       isProcessing: true,
                     )
                   ] else if (state.onboardingStep ==
                       OnboardingStep.startScreen) ...[
-                    Text("create_wallet_description".tr(),
+                    Text('create_wallet_description'.tr(),
                         style: theme.textTheme.ppMori400Grey14),
                     const SizedBox(height: 20),
                     PrimaryButton(
-                      text: "create_a_new_wallet".tr(),
-                      onTap: () {
-                        Navigator.of(context).pushNamed(ChooseChainPage.tag);
+                      text: 'create_a_new_wallet'.tr(),
+                      onTap: () async {
+                        await Navigator.of(context)
+                            .pushNamed(ChooseChainPage.tag);
                       },
                     ),
                     const SizedBox(height: 20),
                     Center(
-                      child: Text("or".tr().toUpperCase(),
+                      child: Text('or'.tr().toUpperCase(),
                           style: theme.textTheme.ppMori400Grey14),
                     ),
                     const SizedBox(height: 20),
-                    Text("view_existing_address_des".tr(),
+                    Text('view_existing_address_des'.tr(),
                         style: theme.textTheme.ppMori400Grey14),
                     const SizedBox(height: 20),
                     PrimaryButton(
-                      text: "view_existing_address".tr(),
-                      onTap: () {
-                        Navigator.of(context).pushNamed(ViewExistingAddress.tag,
+                      text: 'view_existing_address'.tr(),
+                      onTap: () async {
+                        await Navigator.of(context).pushNamed(
+                            ViewExistingAddress.tag,
                             arguments: ViewExistingAddressPayload(true));
                       },
                     ),
                   ] else if (state.onboardingStep ==
                       OnboardingStep.restore) ...[
                     PrimaryButton(
-                      text: "restoring".tr(),
+                      text: 'restoring'.tr(),
                       isProcessing: true,
                       enabled: false,
                     ),
@@ -298,18 +302,15 @@ class _OnboardingPageState extends State<OnboardingPage>
         ));
   }
 
-  Widget _logo({double? maxWidthLogo}) {
-    return FutureBuilder<bool>(
-        future: isAppCenterBuild(),
-        builder: (context, snapshot) {
-          return SizedBox(
+  Widget _logo({double? maxWidthLogo}) => FutureBuilder<bool>(
+      // ignore: discarded_futures
+      future: isAppCenterBuild(),
+      builder: (context, snapshot) => SizedBox(
             width: maxWidthLogo,
             child: Image.asset(snapshot.data == true
-                ? "assets/images/inhouse_logo.png"
-                : "assets/images/moma_logo.png"),
-          );
-        });
-  }
+                ? 'assets/images/inhouse_logo.png'
+                : 'assets/images/moma_logo.png'),
+          ));
 
   Widget _onboardingItem(BuildContext context,
       {required String title,
@@ -317,37 +318,35 @@ class _OnboardingPageState extends State<OnboardingPage>
       required String image,
       Widget? subDesc}) {
     final theme = Theme.of(context);
-    return Container(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 100),
-          Text(
-            title,
-            style: theme.textTheme.ppMori700White24
-                .copyWith(fontSize: 36, height: 1.0),
-          ),
-          const SizedBox(height: 40),
-          Image.asset(image),
-          const SizedBox(height: 40),
-          Text(
-            desc,
-            style: theme.textTheme.ppMori400White14
-                .copyWith(fontSize: 24, height: 1.0),
-          ),
-          const SizedBox(height: 10),
-          subDesc ?? const SizedBox(),
-        ],
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 100),
+        Text(
+          title,
+          style: theme.textTheme.ppMori700White24
+              .copyWith(fontSize: 36, height: 1),
+        ),
+        const SizedBox(height: 40),
+        Image.asset(image),
+        const SizedBox(height: 40),
+        Text(
+          desc,
+          style: theme.textTheme.ppMori400White14
+              .copyWith(fontSize: 24, height: 1),
+        ),
+        const SizedBox(height: 10),
+        subDesc ?? const SizedBox(),
+      ],
     );
   }
 
-  Widget _swipper(BuildContext context) {
+  Widget _swiper(BuildContext context) {
     final theme = Theme.of(context);
-    final explore_artworks = [
+    final exploreArtworks = [
       'Licia He, Fictional Lullaby',
     ];
-    final stream_artworks = [
+    final streamArtworks = [
       'Refik Anadol, Unsupervised',
       'Nancy Baker Cahill, Slipstream 001',
       'Refik Anadol, Unsupervised'
@@ -365,7 +364,7 @@ class _OnboardingPageState extends State<OnboardingPage>
           text: TextSpan(
               text: 'artwork_'.tr(),
               style: theme.textTheme.ppMori400Grey12,
-              children: explore_artworks
+              children: exploreArtworks
                   .map((e) => TextSpan(
                         text: e,
                       ))
@@ -385,12 +384,12 @@ class _OnboardingPageState extends State<OnboardingPage>
           text: TextSpan(
               text: 'artwork_'.tr(),
               style: theme.textTheme.ppMori400Grey12,
-              children: stream_artworks
+              children: streamArtworks
                   .mapIndexed((index, e) => [
                         TextSpan(
                           text: e,
                         ),
-                        if (index != stream_artworks.length - 1)
+                        if (index != streamArtworks.length - 1)
                           const TextSpan(text: '; ')
                       ])
                   .flattened
@@ -417,7 +416,7 @@ class _OnboardingPageState extends State<OnboardingPage>
               _currentIndex = index;
             });
           },
-          pagination: SwiperPagination(
+          pagination: const SwiperPagination(
             builder: DotSwiperPaginationBuilder(
               color: Colors.grey,
               activeColor: AppColor.feralFileHighlight,
