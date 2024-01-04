@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_state.dart';
 import 'package:autonomy_flutter/screen/exhibition_note/exhibition_note_page.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -186,20 +187,32 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage> {
     );
   }
 
-  AppBar _getAppBar(
-          BuildContext buildContext, ExhibitionDetail? exhibitionDetail) =>
-      getFFAppBar(
-        buildContext,
-        onBack: () => Navigator.pop(buildContext),
-        action: exhibitionDetail == null
-            ? null
-            : CastButton(
-                text: _currentIndex == 0 ? 'stream_to_device'.tr() : null,
-                onCastTap: () async {
-                  await _onCastTap(buildContext, exhibitionDetail);
-                },
-              ),
-      );
+  AppBar _getAppBar(BuildContext context, ExhibitionDetail? exhibitionDetail) =>
+      getFFAppBar(context,
+          onBack: () => Navigator.pop(context),
+          action: _getCastButton(context, exhibitionDetail));
+
+  Widget? _getCastButton(
+      BuildContext context, ExhibitionDetail? exhibitionDetail) {
+    if (exhibitionDetail == null) {
+      return null;
+    }
+    return FutureBuilder(
+        // ignore: discarded_futures
+        future: isSubscribedOrInhouse(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData && snapshot.data == true) {
+            return CastButton(
+              text: _currentIndex == 0 ? 'stream_to_device'.tr() : null,
+              onCastTap: () async {
+                await _onCastTap(context, exhibitionDetail);
+              },
+            );
+          } else {
+            return Container();
+          }
+        });
+  }
 
   Future<void> _onCastTap(
       BuildContext context, ExhibitionDetail exhibitionDetail) async {
