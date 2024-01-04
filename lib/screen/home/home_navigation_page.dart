@@ -78,8 +78,10 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   int _selectedIndex = 0;
   late PageController _pageController;
   late List<Widget> _pages;
-  final GlobalKey<HomePageState> _homePageKey = GlobalKey();
+  final GlobalKey<OrganizeHomePageState> _organizeHomePageKey = GlobalKey();
   final GlobalKey<CollectionHomePageState> _collectionHomePageKey = GlobalKey();
+  final GlobalKey<ExhibitionsPageState> _exhibitionsPageKey = GlobalKey();
+  final GlobalKey<ScanQRPageState> _scanQRPageKey = GlobalKey();
   final _configurationService = injector<ConfigurationService>();
   late Timer? _timer;
   final _clientTokenService = injector<ClientTokenService>();
@@ -100,7 +102,19 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     if (index < _pages.length) {
       if (_selectedIndex == index) {
         if (index == 0) {
-          _homePageKey.currentState?.scrollToTop();
+          _collectionHomePageKey.currentState?.scrollToTop();
+        }
+        if (index == 1) {
+          _organizeHomePageKey.currentState?.scrollToTop();
+        }
+        if (index == 2) {
+          _exhibitionsPageKey.currentState?.scrollToTop();
+        }
+      } else {
+        if (index == 3) {
+          await _scanQRPageKey.currentState?.resumeCamera();
+        } else {
+          await _scanQRPageKey.currentState?.pauseCamera();
         }
       }
       setState(() {
@@ -176,6 +190,9 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         setState(() {
           _selectedIndex = currentIndex;
         });
+        if (_selectedIndex == 3) {
+          await _scanQRPageKey.currentState?.resumeCamera();
+        }
       }
     }
   }
@@ -195,12 +212,14 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
 
     _pages = <Widget>[
       CollectionHomePage(key: _collectionHomePageKey),
-      HomePage(key: _homePageKey),
+      OrganizeHomePage(key: _organizeHomePageKey),
       MultiBlocProvider(providers: [
         BlocProvider.value(
             value: ExhibitionBloc(injector())..add(GetAllExhibitionsEvent())),
       ], child: const ExhibitionsPage()),
-      const ScanQRPage()
+      ScanQRPage(
+        key: _scanQRPageKey,
+      )
     ];
 
     if (!_configurationService.isReadRemoveSupport()) {
@@ -313,11 +332,11 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       );
 
   Widget _buildBottomNavigationBar(BuildContext context) {
-    final selectedColor = AppColor.white;
-    final unselectedColor = AppColor.disabledColor;
-    final selectedColorFilter =
+    const selectedColor = AppColor.white;
+    const unselectedColor = AppColor.disabledColor;
+    const selectedColorFilter =
         ColorFilter.mode(selectedColor, BlendMode.srcIn);
-    final unselectedColorFilter =
+    const unselectedColorFilter =
         ColorFilter.mode(unselectedColor, BlendMode.srcIn);
     final bottomItems = [
       const FFNavigationBarItem(

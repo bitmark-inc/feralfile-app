@@ -147,5 +147,5 @@ extension StringExtension on String {
     }
   }
 
-  String get hexToDecimal => int.parse(this, radix: 16).toString();
+  String get hexToDecimal => BigInt.parse(this, radix: 16).toString();
 }

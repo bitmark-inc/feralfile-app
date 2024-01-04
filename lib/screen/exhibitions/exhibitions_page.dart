@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
@@ -17,18 +19,26 @@ class ExhibitionsPage extends StatefulWidget {
   const ExhibitionsPage({super.key});
 
   @override
-  State<ExhibitionsPage> createState() => _ExhibitionsPageState();
+  State<ExhibitionsPage> createState() => ExhibitionsPageState();
 }
 
-class _ExhibitionsPageState extends State<ExhibitionsPage> {
+class ExhibitionsPageState extends State<ExhibitionsPage> {
   late ExhibitionBloc _exhibitionBloc;
+  late ScrollController _controller;
 
   // initState
   @override
   void initState() {
     super.initState();
+    _controller = ScrollController();
     _exhibitionBloc = context.read<ExhibitionBloc>();
     _exhibitionBloc.add(GetAllExhibitionsEvent());
+  }
+
+  void scrollToTop() {
+    unawaited(_controller.animateTo(0,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.fastOutSlowIn));
   }
 
   @override
@@ -38,6 +48,7 @@ class _ExhibitionsPageState extends State<ExhibitionsPage> {
         extendBodyBehindAppBar: true,
         backgroundColor: AppColor.primaryBlack,
         body: CustomScrollView(
+          controller: _controller,
           slivers: [
             SliverToBoxAdapter(
               child: SizedBox(
@@ -55,7 +66,7 @@ class _ExhibitionsPageState extends State<ExhibitionsPage> {
       );
 
   Widget _exhibitionItem(
-      BuildContext context, ExhibitionDetail exhibitionDetail) {
+      BuildContext context, ExhibitionDetail exhibitionDetail, int index) {
     final theme = Theme.of(context);
     final exhibition = exhibitionDetail.exhibition;
     return Container(
@@ -79,13 +90,14 @@ class _ExhibitionsPageState extends State<ExhibitionsPage> {
                   ),
                 ),
                 onTap: () async {
-                  await Navigator.of(context)
-                      .pushNamed(AppRouter.exhibitionDetailPage,
-                          arguments: ExhibitionDetailPayload(
-                            exhibitions: _exhibitionBloc.state.exhibitions!
-                                .map((e) => e.exhibition)
-                                .toList(),
-                          ));
+                  await Navigator.of(context).pushNamed(
+                      AppRouter.exhibitionDetailPage,
+                      arguments: ExhibitionDetailPayload(
+                        exhibitions: _exhibitionBloc.state.exhibitions!
+                            .map((e) => e.exhibition)
+                            .toList(),
+                        index: index,
+                      ));
                 },
               ),
               const SizedBox(height: 20),
@@ -150,8 +162,10 @@ class _ExhibitionsPageState extends State<ExhibitionsPage> {
           return Column(
             children: [
               ...exhibitions
-                  .map((e) =>
-                      [_exhibitionItem(context, e), const SizedBox(height: 40)])
+                  .map((e) => [
+                        _exhibitionItem(context, e, exhibitions.indexOf(e)),
+                        const SizedBox(height: 40)
+                      ])
                   .flattened
             ],
           );

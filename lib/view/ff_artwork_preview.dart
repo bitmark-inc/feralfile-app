@@ -38,8 +38,11 @@ class FeralFileArtworkPreview extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                SeriesTitleView(
-                    series: payload.series, artist: payload.series.artist),
+                Flexible(
+                  flex: 5,
+                  child: SeriesTitleView(
+                      series: payload.series, artist: payload.series.artist),
+                ),
                 Padding(
                   padding: const EdgeInsets.only(bottom: 3),
                   child: Text(

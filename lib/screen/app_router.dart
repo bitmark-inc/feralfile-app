@@ -57,6 +57,7 @@ import 'package:autonomy_flutter/screen/detail/preview/touchpad_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview_primer.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
+import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artwork_preview_page.dart';
 import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_bloc.dart';
 import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_page.dart';
 import 'package:autonomy_flutter/screen/gallery/gallery_bloc.dart';
@@ -218,6 +219,7 @@ class AppRouter {
   static const predefinedCollectionPage = 'predefined_collection_page';
   static const addToCollectionPage = 'add_to_collection_page';
   static const exhibitionDetailPage = 'exhibition_detail_page';
+  static const ffArtworkPreviewPage = 'ff_artwork_preview_page';
   static const feralFileSeriesPage = 'feral_file_series_page';
   static const momaPostcardPage = 'moma_postcard_page';
 
@@ -843,6 +845,12 @@ class AppRouter {
                     payload: settings.arguments! as ExhibitionDetailPayload,
                   ),
                 ));
+      case ffArtworkPreviewPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => FeralFileArtworkPreviewPage(
+                payload:
+                    settings.arguments! as FeralFileArtworkPreviewPagePayload));
 
       case feralFileSeriesPage:
         return CupertinoPageRoute(

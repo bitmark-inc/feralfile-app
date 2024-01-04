@@ -278,8 +278,8 @@ class ArtworkSwap {
   final String id;
   final String artworkID;
   final String seriesID;
-  final String paymentID;
-  final double fee;
+  final String? paymentID;
+  final double? fee;
   final String currency;
   final int artworkIndex;
   final String ownerAccount;
@@ -287,8 +287,8 @@ class ArtworkSwap {
   final String contractName;
   final String contractAddress;
   final String recipientAddress;
-  final String ipfsCid;
-  final String token;
+  final String? ipfsCid;
+  final String? token;
   final String blockchainType;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -299,8 +299,6 @@ class ArtworkSwap {
     required this.id,
     required this.artworkID,
     required this.seriesID,
-    required this.paymentID,
-    required this.fee,
     required this.currency,
     required this.artworkIndex,
     required this.ownerAccount,
@@ -308,12 +306,14 @@ class ArtworkSwap {
     required this.contractName,
     required this.contractAddress,
     required this.recipientAddress,
-    required this.ipfsCid,
-    required this.token,
     required this.blockchainType,
     required this.createdAt,
     required this.updatedAt,
     required this.expiredAt,
+    this.ipfsCid,
+    this.token,
+    this.paymentID,
+    this.fee,
   });
 
   // Factory method to create an ArtworkSwap instance from JSON
@@ -322,7 +322,7 @@ class ArtworkSwap {
         artworkID: json['artworkID'],
         seriesID: json['seriesID'],
         paymentID: json['paymentID'],
-        fee: json['fee'].toDouble(),
+        fee: json['fee']?.toDouble(),
         currency: json['currency'],
         artworkIndex: json['artworkIndex'],
         ownerAccount: json['ownerAccount'],

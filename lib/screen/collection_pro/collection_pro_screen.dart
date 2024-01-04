@@ -66,7 +66,6 @@ class CollectionProState extends State<CollectionPro>
     isShowSearchBar = false;
     isShowFullHeader = true;
     _scrollController = widget.scrollController;
-    _scrollController.addListener(_scrollListenerShowFullHeader);
     loadCollection();
     super.initState();
   }
@@ -79,7 +78,6 @@ class CollectionProState extends State<CollectionPro>
 
   @override
   void dispose() {
-    _scrollController.removeListener(_scrollListenerShowFullHeader);
     super.dispose();
   }
 
@@ -87,22 +85,6 @@ class CollectionProState extends State<CollectionPro>
   void didPopNext() {
     loadCollection();
     super.didPopNext();
-  }
-
-  void _scrollListenerShowFullHeader() {
-    if (_scrollController.offset > 50 && isShowSearchBar) {
-      if (isShowFullHeader) {
-        setState(() {
-          isShowFullHeader = false;
-        });
-      }
-    } else {
-      if (!isShowFullHeader) {
-        setState(() {
-          isShowFullHeader = true;
-        });
-      }
-    }
   }
 
   void loadCollection() {
@@ -168,68 +150,65 @@ class CollectionProState extends State<CollectionPro>
                       .filterByName(searchStr.value)
                     ?..sort((a, b) =>
                         a.name!.toLowerCase().compareTo(b.name!.toLowerCase()));
-                  return Stack(
-                    children: [
-                      CustomScrollView(
-                        shrinkWrap: true,
-                        slivers: [
-                          SliverToBoxAdapter(
-                            child: SizedBox(height: paddingTop),
+                  return CustomScrollView(
+                    controller: _scrollController,
+                    shrinkWrap: true,
+                    slivers: [
+                      SliverToBoxAdapter(
+                        child: SizedBox(height: paddingTop),
+                      ),
+                      SliverToBoxAdapter(
+                        child: _header(context),
+                      ),
+                      SliverToBoxAdapter(
+                        child: ValueListenableBuilder(
+                          valueListenable: searchStr,
+                          builder: (BuildContext context, String value,
+                                  Widget? child) =>
+                              CollectionSection(
+                            key: _collectionSectionKey,
+                            filterString: value,
                           ),
-                          SliverToBoxAdapter(
-                            child: _header(context),
+                        ),
+                      ),
+                      const SliverToBoxAdapter(
+                        child: SizedBox(height: 60),
+                      ),
+                      if (searchStr.value.isEmpty) ...[
+                        SliverToBoxAdapter(
+                          child: PredefinedCollectionSection(
+                            listPredefinedCollection:
+                                listPredefinedCollectionByMedium ?? [],
+                            predefinedCollectionType:
+                                PredefinedCollectionType.medium,
+                            searchStr: searchStr.value,
                           ),
-                          SliverToBoxAdapter(
-                            child: ValueListenableBuilder(
-                              valueListenable: searchStr,
-                              builder: (BuildContext context, String value,
-                                      Widget? child) =>
-                                  CollectionSection(
-                                key: _collectionSectionKey,
-                                filterString: value,
-                              ),
-                            ),
+                        ),
+                        const SliverToBoxAdapter(
+                          child: SizedBox(height: 60),
+                        ),
+                      ],
+                      if (searchStr.value.isNotEmpty) ...[
+                        SliverToBoxAdapter(
+                          child: WorksSection(
+                            works: works,
                           ),
-                          const SliverToBoxAdapter(
-                            child: SizedBox(height: 60),
-                          ),
-                          if (searchStr.value.isEmpty) ...[
-                            SliverToBoxAdapter(
-                              child: PredefinedCollectionSection(
-                                listPredefinedCollection:
-                                    listPredefinedCollectionByMedium ?? [],
-                                predefinedCollectionType:
-                                    PredefinedCollectionType.medium,
-                                searchStr: searchStr.value,
-                              ),
-                            ),
-                            const SliverToBoxAdapter(
-                              child: SizedBox(height: 60),
-                            ),
-                          ],
-                          if (searchStr.value.isNotEmpty) ...[
-                            SliverToBoxAdapter(
-                              child: WorksSection(
-                                works: works,
-                              ),
-                            ),
-                            const SliverToBoxAdapter(
-                              child: SizedBox(height: 60),
-                            ),
-                          ],
-                          SliverToBoxAdapter(
-                            child: PredefinedCollectionSection(
-                              listPredefinedCollection:
-                                  listPredefinedCollectionByArtist ?? [],
-                              predefinedCollectionType:
-                                  PredefinedCollectionType.artist,
-                              searchStr: searchStr.value,
-                            ),
-                          ),
-                          const SliverToBoxAdapter(
-                            child: SizedBox(height: 40),
-                          ),
-                        ],
+                        ),
+                        const SliverToBoxAdapter(
+                          child: SizedBox(height: 60),
+                        ),
+                      ],
+                      SliverToBoxAdapter(
+                        child: PredefinedCollectionSection(
+                          listPredefinedCollection:
+                              listPredefinedCollectionByArtist ?? [],
+                          predefinedCollectionType:
+                              PredefinedCollectionType.artist,
+                          searchStr: searchStr.value,
+                        ),
+                      ),
+                      const SliverToBoxAdapter(
+                        child: SizedBox(height: 40),
                       ),
                     ],
                   );

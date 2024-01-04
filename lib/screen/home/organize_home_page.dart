@@ -40,18 +40,18 @@ import 'package:nft_collection/models/models.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+class OrganizeHomePage extends StatefulWidget {
+  const OrganizeHomePage({super.key});
 
   @override
-  State<HomePage> createState() => HomePageState();
+  State<OrganizeHomePage> createState() => OrganizeHomePageState();
 }
 
-class HomePageState extends State<HomePage>
+class OrganizeHomePageState extends State<OrganizeHomePage>
     with
         RouteAware,
         WidgetsBindingObserver,
-        AfterLayoutMixin<HomePage>,
+        AfterLayoutMixin<OrganizeHomePage>,
         AutomaticKeepAliveClientMixin {
   StreamSubscription<FGBGType>? _fgbgSubscription;
   late ScrollController _controller;
