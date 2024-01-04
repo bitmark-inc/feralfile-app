@@ -161,10 +161,11 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage> {
               exhibition: exhibition,
               width: width,
             ),
-            ...exhibition.resources!.map((e) => ExhibitionEventView(
-                  exhibitionEvent: e,
-                  width: width,
-                ))
+            ...exhibition.resources?.map((e) => ExhibitionEventView(
+                      exhibitionEvent: e,
+                      width: width,
+                    )) ??
+                []
           ],
         ),
       ),
