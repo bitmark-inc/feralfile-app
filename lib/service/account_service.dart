@@ -48,6 +48,8 @@ abstract class AccountService {
 
   Future<WalletStorage> getDefaultAccount();
 
+  Future<Persona?> getDefaultPersona();
+
   Future<Persona> getOrCreateDefaultPersona();
 
   Future<WalletStorage?> getCurrentDefaultAccount();
@@ -210,6 +212,9 @@ class AccountServiceImpl extends AccountService {
     }
 
     final accounts = await _backupChannel.restoreKeys();
+    if (accounts.isEmpty) {
+      return null;
+    }
     for (var account in accounts) {
       final backupVersion = await _backupService
           .fetchBackupVersion(LibAukDart.getWallet(account.uuid));
@@ -222,7 +227,13 @@ class AccountServiceImpl extends AccountService {
         );
       }
     }
-    return null;
+
+    return Persona.newPersona(
+      uuid: accounts.first.uuid,
+      name: accounts.first.name,
+      createdAt: DateTime.now(),
+      defaultAccount: 1,
+    );
   }
 
   @override
@@ -305,32 +316,40 @@ class AccountServiceImpl extends AccountService {
   }
 
   @override
-  Future<Persona> getOrCreateDefaultPersona() async {
-    var personas = await _cloudDB.personaDao.getDefaultPersonas();
-
-    if (personas.isEmpty) {
-      // await MigrationUtil(_configurationService, _cloudDB, this, injector(),
-      //         _auditService, _backupService)
-      //     .migrationFromKeychain();
-      await androidRestoreKeys();
-
-      await Future.delayed(const Duration(seconds: 1));
-      personas = await _cloudDB.personaDao.getDefaultPersonas();
-    }
-
-    final Persona defaultPersona;
-    if (personas.isEmpty) {
-      personas = await _cloudDB.personaDao.getPersonas();
-      if (personas.isNotEmpty) {
-        defaultPersona = personas.first..defaultAccount = 1;
-        await _cloudDB.personaDao.updatePersona(defaultPersona);
-      } else {
-        log.info('[AccountService] create default account');
-        defaultPersona = await createPersona(isDefault: true);
-      }
+  Future<Persona?> getDefaultPersona() async {
+    if (!_authFiresabeService.isSignedIn) {
+      final defaultPersona = await getDefaultPersonaFromKeychain();
+      return defaultPersona;
     } else {
-      defaultPersona = personas.first;
+      var personas = await _cloudDB.personaDao.getDefaultPersonas();
+
+      if (personas.isEmpty) {
+        await MigrationUtil(_configurationService, _cloudDB, injector(),
+                _auditService, _backupService, this)
+            .migrationFromKeychain();
+        await androidRestoreKeys();
+
+        await Future.delayed(const Duration(seconds: 1));
+        personas = await _cloudDB.personaDao.getDefaultPersonas();
+      }
+      Persona? defaultPersona;
+      if (personas.isEmpty) {
+        personas = await _cloudDB.personaDao.getPersonas();
+        if (personas.isNotEmpty) {
+          defaultPersona = personas.first..defaultAccount = 1;
+          await _cloudDB.personaDao.updatePersona(defaultPersona);
+        }
+      } else {
+        defaultPersona = personas.first;
+      }
+      return defaultPersona;
     }
+  }
+
+  @override
+  Future<Persona> getOrCreateDefaultPersona() async {
+    Persona? defaultPersona =
+        await getDefaultPersona() ?? await createPersona();
     return defaultPersona;
   }
 

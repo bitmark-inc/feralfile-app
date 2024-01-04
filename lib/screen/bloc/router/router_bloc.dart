@@ -63,11 +63,10 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
       if (state.onboardingStep != OnboardingStep.undefined) {
         return;
       }
-      final defaultPersonaFromKeychain =
-          await _accountService.getDefaultPersonaFromKeychain();
-      if (defaultPersonaFromKeychain != null) {
+      final defaultPersona = await _accountService.getDefaultPersona();
+      if (defaultPersona != null) {
         await _cloudFirestoreService.authFiresabeService
-            .signInWithPersona(defaultPersonaFromKeychain);
+            .signInWithPersona(defaultPersona);
         await migrationUtil.migrateIfNeeded();
 
         // Check and restore full accounts from cloud if existing

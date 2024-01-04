@@ -102,6 +102,8 @@ class _ViewExistingAddressState extends State<ViewExistingAddress> {
                   case CryptoType.ETH:
                   case CryptoType.XTZ:
                     try {
+                      await injector<AccountService>()
+                          .getOrCreateDefaultPersona();
                       final connection = await injector<AccountService>()
                           .linkManuallyAddress(
                               _controller.text.trim(), cryptoType);

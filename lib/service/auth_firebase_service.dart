@@ -66,14 +66,6 @@ class AuthFiresabeService {
 
   User? get user => _user;
 
-  Future<User?> _signInWithCustomToken(String token) async {
-    final auth = FirebaseAuth.instance;
-    final userCredential = await auth.signInWithEmailAndPassword(
-        email: 'sang@bitmark.com', password: 'sangbitmark');
-    _user = userCredential.user;
-    return user;
-  }
-
   Future<User?> signInWithPersona(Persona persona) async {
     final auth = FirebaseAuth.instance;
     final jwt = await getJWTToken(persona);
