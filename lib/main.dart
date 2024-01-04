@@ -11,6 +11,7 @@ import 'dart:ui';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/eth_pending_tx_amount.dart';
 import 'package:autonomy_flutter/firebase_options.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/auth_firebase_service.dart';
@@ -61,6 +62,8 @@ void main() async {
 
     await FlutterDownloader.initialize();
     await Hive.initFlutter();
+    _registerHiveAdapter();
+
     await FlutterDownloader.registerCallback(downloadCallback);
     await AuFileService().setup();
 
@@ -93,6 +96,12 @@ void main() async {
       await showErrorDialogFromException(error, stackTrace: stackTrace);
     }
   }));
+}
+
+void _registerHiveAdapter() {
+  Hive
+    ..registerAdapter(EthereumPendingTxAmountAdapter())
+    ..registerAdapter(EthereumPendingTxListAdapter());
 }
 
 Future<void> _setupApp() async {

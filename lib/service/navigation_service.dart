@@ -166,7 +166,7 @@ class NavigationService {
     Otp? otp,
   }) async {
     log.info('NavigationService.openClaimTokenPage');
-    final isAllowViewOnlyClaim = AirdropType.Memento6.seriesId == series.id;
+    final isAllowViewOnlyClaim = AirdropType.memento6.seriesId == series.id;
     if (navigatorKey.currentState?.mounted == true &&
         navigatorKey.currentContext != null) {
       await navigatorKey.currentState?.pushNamed(

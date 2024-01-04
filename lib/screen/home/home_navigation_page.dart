@@ -578,7 +578,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     final shouldShowAnnouncements = announcements.where((element) =>
         (element.isMemento6 &&
             !_configurationService
-                .getAlreadyClaimedAirdrop(AirdropType.Memento6.seriesId)) &&
+                .getAlreadyClaimedAirdrop(AirdropType.memento6.seriesId)) &&
         showAnnouncementInfo.shouldShowAnnouncementNotification(element));
     if (shouldShowAnnouncements.isEmpty) {
       return;

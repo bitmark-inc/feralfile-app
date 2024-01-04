@@ -42,9 +42,13 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
 
   @override
   Future<void> loadConfigs() async {
-    final data = await _pubdocAPI.getConfigs();
-    _configs = jsonDecode(data) as Map<String, dynamic>;
-    log.info('RemoteConfigService: loadConfigs: $_configs');
+    try {
+      final data = await _pubdocAPI.getConfigs();
+      _configs = jsonDecode(data) as Map<String, dynamic>;
+      log.info('RemoteConfigService: loadConfigs: $_configs');
+    } catch (e) {
+      log.warning('RemoteConfigService: loadConfigs: $e');
+    }
   }
 
   @override

@@ -31,6 +31,7 @@ import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/gateway/postcard_api.dart';
 import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
 import 'package:autonomy_flutter/gateway/tzkt_api.dart';
+import 'package:autonomy_flutter/screen/chat/chat_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/claim_empty_postcard/claim_empty_postcard_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/edit_playlist/edit_playlist_bloc.dart';
@@ -55,6 +56,7 @@ import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
+import 'package:autonomy_flutter/service/hive_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
@@ -223,7 +225,7 @@ Future<void> setup() async {
         injector(),
       ));
 
-  injector.registerLazySingleton(() => ChatApi(dio,
+  injector.registerLazySingleton(() => ChatApi(chatDio(dioOptions),
       baseUrl: Environment.postcardChatServerUrl.replaceFirst('ws', 'http')));
   injector.registerLazySingleton(() => ChatAuthService(injector()));
   injector.registerLazySingleton(
@@ -326,7 +328,8 @@ Future<void> setup() async {
       () => IndexerService(indexerClient));
 
   injector.registerLazySingleton<EthereumService>(
-      () => EthereumServiceImpl(injector(), injector()));
+      () => EthereumServiceImpl(injector(), injector(), injector()));
+  injector.registerLazySingleton<HiveService>(() => HiveServiceImpl());
   injector
       .registerLazySingleton<TezosService>(() => TezosServiceImpl(injector()));
   injector.registerLazySingleton<AppDatabase>(() => mainnetDB);
@@ -349,7 +352,10 @@ Future<void> setup() async {
     ),
   );
 
-  injector.registerLazySingleton<ChatService>(() => ChatServiceImpl());
+  injector.registerLazySingleton<ChatService>(() => ChatServiceImpl(
+        injector(),
+        injector(),
+      ));
 
   injector.registerLazySingleton<AirdropService>(
     () => AirdropService(
@@ -415,4 +421,5 @@ Future<void> setup() async {
   injector.registerFactory<EditPlaylistBloc>(() => EditPlaylistBloc());
   injector
       .registerFactory<ClaimEmptyPostCardBloc>(() => ClaimEmptyPostCardBloc());
+  injector.registerFactory<AuChatBloc>(() => AuChatBloc(injector()));
 }

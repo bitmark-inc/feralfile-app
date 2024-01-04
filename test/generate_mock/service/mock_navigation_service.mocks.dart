@@ -117,6 +117,7 @@ class MockNavigationService extends _i2.Mock implements _i3.NavigationService {
   _i4.Future<void> selectPromptsThenStamp(
     _i1.BuildContext? context,
     _i5.AssetToken? asset,
+    String? shareCode,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -124,6 +125,7 @@ class MockNavigationService extends _i2.Mock implements _i3.NavigationService {
           [
             context,
             asset,
+            shareCode,
           ],
         ),
         returnValue: _i4.Future<void>.value(),
