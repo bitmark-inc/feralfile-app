@@ -10,7 +10,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 import 'package:libauk_dart/libauk_dart.dart';
 
-class AuthFiresabeService {
+class AuthFirebaseService {
   static User? _user;
 
   // init service

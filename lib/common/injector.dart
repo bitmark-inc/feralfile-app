@@ -163,7 +163,7 @@ Future<void> setup() async {
   injector.registerLazySingleton(() => cloudDB);
 
   injector
-      .registerLazySingleton<AuthFiresabeService>(() => AuthFiresabeService());
+      .registerLazySingleton<AuthFirebaseService>(() => AuthFirebaseService());
   injector.registerLazySingleton<CloudFirestoreService>(
       () => CloudFirestoreService(FirebaseFirestore.instance, injector()));
 

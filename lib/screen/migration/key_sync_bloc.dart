@@ -8,13 +8,16 @@
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_state.dart';
+import 'package:autonomy_flutter/service/auth_firebase_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 
 class KeySyncBloc extends AuBloc<KeySyncEvent, KeySyncState> {
   final BackupService _backupService;
   final CloudDatabase _cloudDatabase;
+  final AuthFirebaseService _authFirebaseService;
 
-  KeySyncBloc(this._backupService, this._cloudDatabase)
+  KeySyncBloc(
+      this._backupService, this._cloudDatabase, this._authFirebaseService)
       : super(KeySyncState(true, null, true)) {
     on<ToggleKeySyncEvent>((event, emit) async {
       emit(state.copyWith(isLocalSelected: state.isLocalSelectedTmp));
@@ -28,19 +31,23 @@ class KeySyncBloc extends AuBloc<KeySyncEvent, KeySyncState> {
       emit(state.copyWith(
           isProcessing: true, isLocalSelectedTmp: state.isLocalSelected));
 
-      final accounts = await _cloudDatabase.personaDao.getDefaultPersonas();
-      if (accounts.length < 2) return;
+      final defaultPersonaes =
+          await _cloudDatabase.personaDao.getDefaultPersonas();
+      if (defaultPersonaes.length < 2) {
+        return;
+      }
+      final localDefaultPersona = defaultPersonaes[0];
+      final cloudDefaultPersona = defaultPersonaes[1];
 
-      final cloudWallet = accounts[1].wallet();
+      final cloudWallet = cloudDefaultPersona.wallet();
+      final localWallet = localDefaultPersona.wallet();
 
       if (state.isLocalSelected) {
-        final cloudDefaultPersona = accounts[1];
         await _backupService.deleteAllProfiles(cloudWallet);
         cloudDefaultPersona.defaultAccount = null;
         await _cloudDatabase.personaDao.updatePersona(cloudDefaultPersona);
       } else {
-        final localDefaultPersona = accounts[0];
-        await _backupService.deleteAllProfiles(localDefaultPersona.wallet());
+        await _backupService.deleteAllProfiles(localWallet);
         localDefaultPersona.defaultAccount = null;
         await _cloudDatabase.personaDao.updatePersona(localDefaultPersona);
       }

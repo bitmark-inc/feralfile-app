@@ -121,8 +121,8 @@ class AccountServiceImpl extends AccountService {
   final AutonomyService _autonomyService;
   final AddressService _addressService;
   final BackupService _backupService;
-  final AuthFiresabeService _authFiresabeService =
-      injector<AuthFiresabeService>();
+  final AuthFirebaseService _authFiresabeService =
+      injector<AuthFirebaseService>();
 
   final _defaultAccountLock = Lock();
 

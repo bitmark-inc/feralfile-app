@@ -4,6 +4,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/sqlite_cloud_database.dart';
 import 'package:autonomy_flutter/service/auth_firebase_service.dart';
+import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/cloud_firestore.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration/migration_util.dart';
@@ -12,7 +13,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 class CloudFirestoreService {
   FirebaseFirestore fireBaseFirestore;
-  AuthFiresabeService authFiresabeService;
+  AuthFirebaseService authFiresabeService;
 
   String? deviceId;
 
@@ -86,6 +87,7 @@ class CloudFirestoreService {
     final document = _userDocument();
     final cloudFirestoreDatabase = injector<CloudDatabase>();
     await cloudFirestoreDatabase.removeAll();
+    await injector<SettingsDataService>().removeAll();
     await document.delete();
   }
 }

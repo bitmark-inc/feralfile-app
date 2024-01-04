@@ -38,7 +38,7 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
   final NftCollectionDatabase _nftCollectionDatabase;
   final ConfigurationService _configurationService;
   final CloudFirestoreService _cloudFirestoreService;
-  final AuthFiresabeService _authFirebaseService;
+  final AuthFirebaseService _authFirebaseService;
 
   ForgetExistBloc(
       this._authService,

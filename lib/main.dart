@@ -45,7 +45,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 void main() async {
-  runZonedGuarded(() async {
+  unawaited(runZonedGuarded(() async {
     await dotenv.load();
 
     WidgetsFlutterBinding.ensureInitialized();
@@ -57,15 +57,15 @@ void main() async {
 
     FlutterNativeSplash.preserve(
         widgetsBinding: WidgetsFlutterBinding.ensureInitialized());
-    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+    await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
     await FlutterDownloader.initialize();
     await Hive.initFlutter();
-    FlutterDownloader.registerCallback(downloadCallback);
+    await FlutterDownloader.registerCallback(downloadCallback);
     await AuFileService().setup();
 
-    OneSignal.shared.setLogLevel(OSLogLevel.error, OSLogLevel.none);
-    OneSignal.shared.setAppId(Environment.onesignalAppID);
+    await OneSignal.shared.setLogLevel(OSLogLevel.error, OSLogLevel.none);
+    await OneSignal.shared.setAppId(Environment.onesignalAppID);
 
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
       statusBarColor: AppColor.white,
@@ -80,7 +80,7 @@ void main() async {
     await _setupApp();
   }, (Object error, StackTrace stackTrace) async {
     /// Check error is Database issue
-    if (error.toString().contains("DatabaseException")) {
+    if (error.toString().contains('DatabaseException')) {
       log.info('[DatabaseException] Remove local database and resume app');
 
       await _deleteLocalDatabase();
@@ -90,23 +90,23 @@ void main() async {
         await _setupApp();
       });
     } else {
-      showErrorDialogFromException(error, stackTrace: stackTrace);
+      await showErrorDialogFromException(error, stackTrace: stackTrace);
     }
-  });
+  }));
 }
 
-_setupApp() async {
+Future<void> _setupApp() async {
   await setup();
 
   await DeviceInfo.instance.init();
   await injector<CloudFirestoreService>().initService();
-  await injector<AuthFiresabeService>().initService();
+  await injector<AuthFirebaseService>().initService();
   final metricClient = injector.get<MetricClientService>();
   await metricClient.initService();
   await injector<RemoteConfigService>().loadConfigs();
 
   final countOpenApp = injector<ConfigurationService>().countOpenApp() ?? 0;
-  injector<ConfigurationService>().setCountOpenApp(countOpenApp + 1);
+  unawaited(injector<ConfigurationService>().setCountOpenApp(countOpenApp + 1));
   final packageInfo = await PackageInfo.fromPlatform();
   await injector<ConfigurationService>().setVersionInfo(packageInfo.version);
   final notificationService = injector<NotificationService>();
@@ -116,10 +116,11 @@ _setupApp() async {
 
   await SentryFlutter.init(
     (options) {
-      options.dsn = Environment.sentryDSN;
-      options.enableAutoSessionTracking = true;
-      options.tracesSampleRate = 0.25;
-      options.attachStacktrace = true;
+      options
+        ..dsn = Environment.sentryDSN
+        ..enableAutoSessionTracking = true
+        ..tracesSampleRate = 0.25
+        ..attachStacktrace = true;
     },
     appRunner: () => runApp(EasyLocalization(
         supportedLocales: const [Locale('en', 'US')],
@@ -131,63 +132,62 @@ _setupApp() async {
   Sentry.configureScope((scope) async {
     final deviceID = await getDeviceID();
     if (deviceID != null) {
-      scope.setUser(SentryUser(id: deviceID));
+      unawaited(scope.setUser(SentryUser(id: deviceID)));
     }
   });
   FlutterNativeSplash.remove();
 
   //safe delay to wait for onboarding finished
   Future.delayed(const Duration(seconds: 2), () async {
-    injector<DeeplinkService>().setup();
+    await injector<DeeplinkService>().setup();
   });
 }
 
 Future<void> _deleteLocalDatabase() async {
   String appDatabaseMainnet =
-      await sqfliteDatabaseFactory.getDatabasePath("app_database_mainnet.db");
+      await sqfliteDatabaseFactory.getDatabasePath('app_database_mainnet.db');
   String appDatabaseTestnet =
-      await sqfliteDatabaseFactory.getDatabasePath("app_database_testnet.db");
+      await sqfliteDatabaseFactory.getDatabasePath('app_database_testnet.db');
   await sqfliteDatabaseFactory.deleteDatabase(appDatabaseMainnet);
   await sqfliteDatabaseFactory.deleteDatabase(appDatabaseTestnet);
 }
 
 class AutonomyApp extends StatelessWidget {
-  const AutonomyApp({Key? key}) : super(key: key);
+  const AutonomyApp({super.key});
+
   static double maxWidth = 0;
 
   @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        maxWidth = constraints.maxWidth;
-        return MaterialApp(
-          title: 'Autonomy',
-          theme: ResponsiveLayout.isMobile
-              ? AppTheme.lightTheme()
-              : AppTheme.tabletLightTheme(),
-          darkTheme: AppTheme.lightTheme(),
-          localizationsDelegates: context.localizationDelegates,
-          supportedLocales: context.supportedLocales,
-          locale: context.locale,
-          debugShowCheckedModeBanner: false,
-          navigatorKey: injector<NavigationService>().navigatorKey,
-          navigatorObservers: [
-            routeObserver,
-            SentryNavigatorObserver(),
-            HeroController()
-          ],
-          initialRoute: AppRouter.onboardingPage,
-          onGenerateRoute: AppRouter.onGenerateRoute,
-        );
-      },
-    );
-  }
+  Widget build(BuildContext context) => LayoutBuilder(
+        builder: (context, constraints) {
+          maxWidth = constraints.maxWidth;
+          return MaterialApp(
+            title: 'Autonomy',
+            theme: ResponsiveLayout.isMobile
+                ? AppTheme.lightTheme()
+                : AppTheme.tabletLightTheme(),
+            darkTheme: AppTheme.lightTheme(),
+            localizationsDelegates: context.localizationDelegates,
+            supportedLocales: context.supportedLocales,
+            locale: context.locale,
+            debugShowCheckedModeBanner: false,
+            navigatorKey: injector<NavigationService>().navigatorKey,
+            navigatorObservers: [
+              routeObserver,
+              SentryNavigatorObserver(),
+              HeroController()
+            ],
+            initialRoute: AppRouter.onboardingPage,
+            onGenerateRoute: AppRouter.onGenerateRoute,
+          );
+        },
+      );
 }
 
 final RouteObserver<ModalRoute<void>> routeObserver =
     CustomRouteObserver<ModalRoute<void>>();
 
-var memoryValues = MemoryValues(
+MemoryValues memoryValues = MemoryValues(
     branchDeeplinkData: ValueNotifier(null),
     deepLink: ValueNotifier(null),
     irlLink: ValueNotifier(null));
@@ -204,29 +204,24 @@ class MemoryValues {
   bool isForeground = true;
 
   MemoryValues({
+    required this.branchDeeplinkData,
+    required this.deepLink,
+    required this.irlLink,
     this.scopedPersona,
     this.viewingSupportThreadIssueID,
     this.inForegroundAt,
     this.inGalleryView = true,
-    required this.branchDeeplinkData,
-    required this.deepLink,
-    required this.irlLink,
   });
 
   MemoryValues copyWith({
     String? scopedPersona,
-  }) {
-    return MemoryValues(
-      scopedPersona: scopedPersona ?? this.scopedPersona,
-      branchDeeplinkData: branchDeeplinkData,
-      deepLink: deepLink,
-      irlLink: irlLink,
-    );
-  }
-}
-
-enum HomePageTab {
-  HOME,
+  }) =>
+      MemoryValues(
+        scopedPersona: scopedPersona ?? this.scopedPersona,
+        branchDeeplinkData: branchDeeplinkData,
+        deepLink: deepLink,
+        irlLink: irlLink,
+      );
 }
 
 enum HomeNavigatorTab {
@@ -240,5 +235,3 @@ void downloadCallback(String id, int status, int progress) {
       IsolateNameServer.lookupPortByName('downloader_send_port');
   send?.send([id, status, progress]);
 }
-
-void imageError(Object exception, StackTrace? stackTrace) {}
