@@ -68,7 +68,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage> {
 
     final viewingArtworks = exhibitionDetail.representArtworks;
     final tokenIds = viewingArtworks
-        .map((e) => exhibitionDetail.getArtworkTokenId(e))
+        .map((e) => exhibitionDetail.getArtworkTokenId(e)!)
         .toList();
     final itemCount = tokenIds.length + 3;
     return Stack(
@@ -195,7 +195,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage> {
     }
     exhibitionDetail.artworks!.sort((a, b) => a.index.compareTo(b.index));
     final tokenIds = exhibitionDetail.artworks
-        ?.map((e) => exhibitionDetail.getArtworkTokenId(e))
+        ?.map((e) => exhibitionDetail.getArtworkTokenId(e)!)
         .toList();
     final sceneId = exhibitionDetail.exhibition.id;
     final playlistModel = PlayListModel(

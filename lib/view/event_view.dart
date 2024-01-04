@@ -1,7 +1,9 @@
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
+import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ExhibitionEventView extends StatelessWidget {
   final ExhibitionEvent exhibitionEvent;
@@ -18,6 +20,10 @@ class ExhibitionEventView extends StatelessWidget {
     final theme = Theme.of(context);
     final dateFormat = DateFormat('MMM d, y');
     final timeFormat = DateFormat('h:mm a');
+    final eventMediaUrl = getFFUrl(exhibitionEvent.mediaUri?.url);
+    final eventUrl = exhibitionEvent.links?.isNotEmpty == true
+        ? exhibitionEvent.links!.values.first
+        : null;
 
     return Padding(
       padding: const EdgeInsets.only(right: 14),
@@ -37,31 +43,47 @@ class ExhibitionEventView extends StatelessWidget {
               style: theme.textTheme.ppMori400White12,
             ),
             const SizedBox(height: 30),
+            if (eventMediaUrl != null) ...[
+              Image.network(
+                eventMediaUrl,
+                fit: BoxFit.fitWidth,
+              ),
+              const SizedBox(height: 20),
+            ],
             Text(exhibitionEvent.title,
                 style: theme.textTheme.ppMori400White14),
             const SizedBox(height: 20),
-            Text(
-              'Date: ${dateFormat.format(exhibitionEvent.dateTime)}',
-              style: theme.textTheme.ppMori400White14,
-            ),
-            Text(
-              'Time: ${timeFormat.format(exhibitionEvent.dateTime)}',
-              style: theme.textTheme.ppMori400White14,
-            ),
-            Text(
-              exhibitionEvent.description,
-              style: theme.textTheme.ppMori400White14,
-            ),
-            const SizedBox(height: 20),
-            GestureDetector(
-              onTap: () {},
-              child: Text(
-                'watch_more'.tr(),
-                style: theme.textTheme.ppMori400White14.copyWith(
-                  decoration: TextDecoration.underline,
+            if (exhibitionEvent.dateTime != null) ...[
+              Text(
+                'Date: ${dateFormat.format(exhibitionEvent.dateTime!)}',
+                style: theme.textTheme.ppMori400White14,
+              ),
+              Text(
+                'Time: ${timeFormat.format(exhibitionEvent.dateTime!)}',
+                style: theme.textTheme.ppMori400White14,
+              ),
+            ],
+            if (exhibitionEvent.description != null) ...[
+              Text(
+                exhibitionEvent.description!,
+                style: theme.textTheme.ppMori400White14,
+              ),
+              const SizedBox(height: 20),
+            ],
+            if (eventUrl != null)
+              GestureDetector(
+                onTap: () async {
+                  // open eventUrl in external browser
+                  await launchUrl(Uri.parse(eventUrl),
+                      mode: LaunchMode.externalApplication);
+                },
+                child: Text(
+                  'watch_more'.tr(),
+                  style: theme.textTheme.ppMori400White14.copyWith(
+                    decoration: TextDecoration.underline,
+                  ),
                 ),
               ),
-            ),
           ],
         ),
       ),

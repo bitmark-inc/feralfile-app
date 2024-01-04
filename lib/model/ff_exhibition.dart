@@ -147,22 +147,24 @@ class ExhibitionEvent {
   final String exhibitionID;
   final String type;
   final String title;
-  final DateTime dateTime;
-  final String description;
-  final Map<String, String> links;
+  final DateTime? dateTime;
+  final String? description;
+  final Map<String, String>? links;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final MediaUri? mediaUri;
 
   ExhibitionEvent({
     required this.id,
     required this.exhibitionID,
     required this.type,
     required this.title,
-    required this.dateTime,
-    required this.description,
-    required this.links,
     required this.createdAt,
     required this.updatedAt,
+    this.dateTime,
+    this.description,
+    this.links,
+    this.mediaUri,
   });
 
   factory ExhibitionEvent.fromJson(Map<String, dynamic> json) =>
@@ -171,23 +173,51 @@ class ExhibitionEvent {
         exhibitionID: json['exhibitionID'],
         type: json['type'],
         title: json['title'],
-        dateTime: DateTime.parse(json['dateTime']),
+        dateTime: DateTime.tryParse(json['dateTime'] ?? ''),
         description: json['description'],
-        links: Map<String, String>.from(json['links']),
+        links: Map<String, String>.from(json['links'] ?? {}),
         createdAt: DateTime.parse(json['createdAt']),
         updatedAt: DateTime.parse(json['updatedAt']),
+        mediaUri: json['mediaUri'] == null
+            ? null
+            : MediaUri.fromJson(json['mediaUri'] as Map<String, dynamic>),
       );
 
   // toJson
   Map<String, dynamic> toJson() => {
-      'id': id,
-      'exhibitionID': exhibitionID,
-      'type': type,
-      'title': title,
-      'dateTime': dateTime.toIso8601String(),
-      'description': description,
-      'links': links,
-      'createdAt': createdAt.toIso8601String(),
-      'updatedAt': updatedAt.toIso8601String(),
-    };
+        'id': id,
+        'exhibitionID': exhibitionID,
+        'type': type,
+        'title': title,
+        'dateTime': dateTime?.toIso8601String(),
+        'description': description,
+        'links': links,
+        'createdAt': createdAt.toIso8601String(),
+        'updatedAt': updatedAt.toIso8601String(),
+        'mediaUri': mediaUri?.toJson(),
+      };
+}
+
+class MediaUri {
+  final String url;
+  final String type;
+  final String title;
+
+  MediaUri({
+    required this.url,
+    required this.type,
+    required this.title,
+  });
+
+  factory MediaUri.fromJson(Map<String, dynamic> json) => MediaUri(
+        url: json['url'],
+        type: json['type'],
+        title: json['title'],
+      );
+
+  Map<String, dynamic> toJson() => {
+        'url': url,
+        'type': type,
+        'title': title,
+      };
 }
