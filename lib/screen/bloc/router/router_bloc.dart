@@ -96,9 +96,6 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
           } else {
             await _cloudFirestoreService.setAlreadyBackupFromSqlite();
             await _configurationService.setDoneOnboarding(true);
-            unawaited(injector<MetricClientService>()
-                .mixPanelClient
-                .initIfDefaultAccount());
             emit(RouterState(onboardingStep: OnboardingStep.dashboard));
             return;
           }
@@ -136,9 +133,9 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
           return;
         }
         await _configurationService.setDoneOnboarding(true);
-        unawaited(injector<MetricClientService>()
-            .mixPanelClient
-            .initIfDefaultAccount());
+        // unawaited(injector<MetricClientService>()
+        //     .mixPanelClient
+        //     .initIfDefaultAccount());
         emit(RouterState(onboardingStep: OnboardingStep.dashboard));
       }
       await migrationUtil.migrateIfNeeded();

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/activation_api.dart';
@@ -39,14 +41,12 @@ class ClaimActivationPage extends StatefulWidget {
   final ClaimActivationPagePayload payload;
 
   const ClaimActivationPage({
-    Key? key,
     required this.payload,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
-  State<ClaimActivationPage> createState() {
-    return _ClaimActivationPageState();
-  }
+  State<ClaimActivationPage> createState() => _ClaimActivationPageState();
 }
 
 class _ClaimActivationPageState extends State<ClaimActivationPage> {
@@ -61,8 +61,8 @@ class _ClaimActivationPageState extends State<ClaimActivationPage> {
   Widget build(BuildContext context) {
     final assetToken = widget.payload.assetToken;
     final artistName = widget.payload.assetToken.artistName!;
-    String gifter = "Gitfer";
-    String giftIntro = "you_can_receive_free_gift".tr();
+    String gifter = 'Gitfer';
+    String giftIntro = 'you_can_receive_free_gift'.tr();
     if (gifter.trim().isNotEmpty) {
       giftIntro += " ${'from'.tr().toLowerCase()} ";
     }
@@ -161,8 +161,8 @@ class _ClaimActivationPageState extends State<ClaimActivationPage> {
                                     minFontSize: 14,
                                     maxLines: 2,
                                   ),
-                                  onTap: () {
-                                    Navigator.push(
+                                  onTap: () async {
+                                    await Navigator.push(
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) =>
@@ -174,14 +174,14 @@ class _ClaimActivationPageState extends State<ClaimActivationPage> {
                                   },
                                 ),
                                 Text(
-                                  "by".tr(args: [artistName]),
+                                  'by'.tr(args: [artistName]),
                                   style: theme.textTheme.ppMori400White14,
                                 ),
                               ],
                             ),
                           ),
                           SvgPicture.asset(
-                            "assets/images/penrose_moma.svg",
+                            'assets/images/penrose_moma.svg',
                             colorFilter: ColorFilter.mode(
                                 theme.colorScheme.secondary, BlendMode.srcIn),
                             width: 27,
@@ -207,7 +207,7 @@ class _ClaimActivationPageState extends State<ClaimActivationPage> {
                             style: theme.primaryTextTheme.ppMori700White14,
                           ),
                           TextSpan(
-                            text: ".",
+                            text: '.',
                             style: theme.primaryTextTheme.ppMori400White14,
                           ),
                         ],
@@ -217,16 +217,16 @@ class _ClaimActivationPageState extends State<ClaimActivationPage> {
                       height: 30,
                     ),
                     PrimaryButton(
-                      text: "accept_ownership".tr(),
+                      text: 'accept_ownership'.tr(),
                       enabled: !_processing,
                       isProcessing: _processing,
                       onTap: () async {
-                        _metricClient.addEvent(
+                        unawaited(_metricClient.addEvent(
                           MixpanelEvent.acceptOwnership,
                           data: {
-                            "id": widget.payload.assetToken.id,
+                            'id': widget.payload.assetToken.id,
                           },
-                        );
+                        ));
                         setState(() {
                           _processing = true;
                         });
@@ -240,11 +240,11 @@ class _ClaimActivationPageState extends State<ClaimActivationPage> {
                               await _accountService.getOrCreateDefaultPersona();
                           final walletAddress =
                               await defaultPersona.insertNextAddress(
-                                  blockchain.toLowerCase() == "tezos"
+                                  blockchain.toLowerCase() == 'tezos'
                                       ? WalletType.Tezos
                                       : WalletType.Ethereum);
                           await _configService.setDoneOnboarding(true);
-                          _metricClient.mixPanelClient.initIfDefaultAccount();
+                          //_metricClient.mixPanelClient.initIfDefaultAccount();
                           await _configService.setPendingSettings(true);
                           address = walletAddress.first.address;
                         } else if (addresses.length == 1) {
@@ -264,7 +264,7 @@ class _ClaimActivationPageState extends State<ClaimActivationPage> {
                         }
 
                         if (address != null && mounted) {
-                          _claimActivation(
+                          await _claimActivation(
                             context: context,
                             activationID: widget.payload.activationID,
                             receiveAddress: address,
@@ -282,7 +282,7 @@ class _ClaimActivationPageState extends State<ClaimActivationPage> {
                       height: 30,
                     ),
                     Text(
-                      "accept_ownership_desc".tr(),
+                      'accept_ownership_desc'.tr(),
                       style: theme.primaryTextTheme.ppMori400White14,
                     ),
                     const SizedBox(
@@ -296,16 +296,16 @@ class _ClaimActivationPageState extends State<ClaimActivationPage> {
               height: 10,
             ),
             OutlineButton(
-              text: "decline".tr(),
+              text: 'decline'.tr(),
               enabled: !_processing,
               color: theme.colorScheme.primary,
               onTap: () {
-                _metricClient.addEvent(
+                unawaited(_metricClient.addEvent(
                   MixpanelEvent.declineOwnership,
                   data: {
-                    "id": widget.payload.assetToken.id,
+                    'id': widget.payload.assetToken.id,
                   },
-                );
+                ));
                 memoryValues.branchDeeplinkData.value = null;
                 Navigator.of(context).pop(false);
               },
@@ -331,12 +331,12 @@ class _ClaimActivationPageState extends State<ClaimActivationPage> {
         ),
         assetToken: assetToken,
       );
-      _metricClient.addEvent(
+      unawaited(_metricClient.addEvent(
         MixpanelEvent.acceptOwnershipSuccess,
         data: {
-          "id": widget.payload.assetToken.id,
+          'id': widget.payload.assetToken.id,
         },
-      );
+      ));
     } catch (e) {
       setState(() {
         _processing = false;
@@ -347,15 +347,18 @@ class _ClaimActivationPageState extends State<ClaimActivationPage> {
       _processing = false;
     });
     if (mounted) {
-      Navigator.of(context).pushNamedAndRemoveUntil(
+      await Navigator.of(context).pushNamedAndRemoveUntil(
         AppRouter.homePage,
         (route) => false,
       );
       NftCollectionBloc.eventController
           .add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
       final token = widget.payload.assetToken;
-      const caption = "";
-      Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
+      const caption = '';
+      if (!mounted) {
+        return;
+      }
+      await Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
           arguments: ArtworkDetailPayload(
               [ArtworkIdentity(token.id, receiveAddress)], 0,
               twitterCaption: caption));

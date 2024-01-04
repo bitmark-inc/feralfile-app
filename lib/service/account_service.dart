@@ -121,7 +121,7 @@ class AccountServiceImpl extends AccountService {
   final AutonomyService _autonomyService;
   final AddressService _addressService;
   final BackupService _backupService;
-  final AuthFirebaseService _authFiresabeService =
+  final AuthFirebaseService _authFirebaseService =
       injector<AuthFirebaseService>();
 
   final _defaultAccountLock = Lock();
@@ -158,8 +158,8 @@ class AccountServiceImpl extends AccountService {
     }
     final persona = Persona.newPersona(
         uuid: uuid, defaultAccount: isDefault ? 1 : null, name: name);
-    if (!_authFiresabeService.isSignedIn) {
-      await _authFiresabeService.signInWithPersona(persona);
+    if (!_authFirebaseService.isSignedIn) {
+      await _authFirebaseService.signInWithPersona(persona);
     }
     await _cloudDB.personaDao.insertPersona(persona);
     await androidBackupKeys();
@@ -175,7 +175,7 @@ class AccountServiceImpl extends AccountService {
   @override
   Future<Persona> importPersona(String words,
       {WalletType walletType = WalletType.Autonomy}) async {
-    if (_authFiresabeService.isSignedIn) {
+    if (_authFirebaseService.isSignedIn) {
       final personas = await _cloudDB.personaDao.getPersonas();
       for (final persona in personas) {
         final mnemonic = await persona.wallet().exportMnemonicWords();
@@ -191,8 +191,8 @@ class AccountServiceImpl extends AccountService {
         words, '', DateTime.now().microsecondsSinceEpoch);
 
     final persona = Persona.newPersona(uuid: uuid);
-    if (!_authFiresabeService.isSignedIn) {
-      await _authFiresabeService.signInWithPersona(persona);
+    if (!_authFirebaseService.isSignedIn) {
+      await _authFirebaseService.signInWithPersona(persona);
     }
     await _cloudDB.personaDao.insertPersona(persona);
     await androidBackupKeys();
@@ -317,7 +317,7 @@ class AccountServiceImpl extends AccountService {
 
   @override
   Future<Persona?> getDefaultPersona() async {
-    if (!_authFiresabeService.isSignedIn) {
+    if (!_authFirebaseService.isSignedIn) {
       final defaultPersona = await getDefaultPersonaFromKeychain();
       return defaultPersona;
     } else {
@@ -496,7 +496,7 @@ class AccountServiceImpl extends AccountService {
       final accounts = await _backupChannel.restoreKeys();
 
       List<Persona> personas = [];
-      if (_authFiresabeService.isSignedIn) {
+      if (_authFirebaseService.isSignedIn) {
         personas = await _cloudDB.personaDao.getPersonas();
       }
       if (personas.length == accounts.length &&
@@ -520,8 +520,8 @@ class AccountServiceImpl extends AccountService {
           createdAt: DateTime.now(),
           defaultAccount: defaultAccount,
         );
-        if (defaultAccount == 1 && !_authFiresabeService.isSignedIn) {
-          await _authFiresabeService.signInWithPersona(persona);
+        if (defaultAccount == 1 && !_authFirebaseService.isSignedIn) {
+          await _authFirebaseService.signInWithPersona(persona);
         }
         restoredPersonas.add(persona);
         await _cloudDB.personaDao.insertPersona(persona);
@@ -810,9 +810,9 @@ class AccountServiceImpl extends AccountService {
         }
         await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
         unawaited(_configurationService.setDoneOnboarding(true));
-        await injector<MetricClientService>()
-            .mixPanelClient
-            .initIfDefaultAccount();
+        // await injector<MetricClientService>()
+        //     .mixPanelClient
+        //     .initIfDefaultAccount();
         unawaited(injector<NavigationService>()
             .navigateTo(AppRouter.homePageNoTransition));
       }
@@ -821,9 +821,9 @@ class AccountServiceImpl extends AccountService {
       final persona = await createPersona();
       await persona.insertNextAddress(WalletType.Tezos);
       await persona.insertNextAddress(WalletType.Ethereum);
-      unawaited(injector<MetricClientService>()
-          .mixPanelClient
-          .initIfDefaultAccount());
+      // unawaited(injector<MetricClientService>()
+      //     .mixPanelClient
+      //     .initIfDefaultAccount());
       unawaited(injector<NavigationService>()
           .navigateTo(AppRouter.homePageNoTransition));
     }
