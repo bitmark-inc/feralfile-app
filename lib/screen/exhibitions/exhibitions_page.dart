@@ -66,7 +66,7 @@ class ExhibitionsPageState extends State<ExhibitionsPage> {
       );
 
   Widget _exhibitionItem(
-      BuildContext context, ExhibitionDetail exhibitionDetail) {
+      BuildContext context, ExhibitionDetail exhibitionDetail, int index) {
     final theme = Theme.of(context);
     final exhibition = exhibitionDetail.exhibition;
     return Container(
@@ -90,13 +90,14 @@ class ExhibitionsPageState extends State<ExhibitionsPage> {
                   ),
                 ),
                 onTap: () async {
-                  await Navigator.of(context)
-                      .pushNamed(AppRouter.exhibitionDetailPage,
-                          arguments: ExhibitionDetailPayload(
-                            exhibitions: _exhibitionBloc.state.exhibitions!
-                                .map((e) => e.exhibition)
-                                .toList(),
-                          ));
+                  await Navigator.of(context).pushNamed(
+                      AppRouter.exhibitionDetailPage,
+                      arguments: ExhibitionDetailPayload(
+                        exhibitions: _exhibitionBloc.state.exhibitions!
+                            .map((e) => e.exhibition)
+                            .toList(),
+                        index: index,
+                      ));
                 },
               ),
               const SizedBox(height: 20),
@@ -161,8 +162,10 @@ class ExhibitionsPageState extends State<ExhibitionsPage> {
           return Column(
             children: [
               ...exhibitions
-                  .map((e) =>
-                      [_exhibitionItem(context, e), const SizedBox(height: 40)])
+                  .map((e) => [
+                        _exhibitionItem(context, e, exhibitions.indexOf(e)),
+                        const SizedBox(height: 40)
+                      ])
                   .flattened
             ],
           );

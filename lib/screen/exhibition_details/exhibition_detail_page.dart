@@ -203,7 +203,7 @@ class ExhibitionDetailPayload {
 
   const ExhibitionDetailPayload({
     required this.exhibitions,
-    this.index = 0,
+    required this.index,
   });
 
   // copyWith function
