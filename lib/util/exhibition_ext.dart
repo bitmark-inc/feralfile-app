@@ -50,7 +50,7 @@ extension ExhibitionDetailExt on ExhibitionDetail {
         return null;
       }
       final id = artwork.id;
-      return '$chain-$contract-$id';
+      return '$chain-$contractAddress-$id';
     }
   }
 }
