@@ -4,6 +4,7 @@ import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_state.dart';
+import 'package:autonomy_flutter/screen/exhibition_note/exhibition_note_page.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -157,9 +158,22 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage> {
         scrollDirection: Axis.horizontal,
         child: Row(
           children: [
-            ExhibitionNoteView(
-              exhibition: exhibition,
-              width: width,
+            Padding(
+              padding: const EdgeInsets.only(right: 14),
+              child: ExhibitionNoteView(
+                exhibition: exhibition,
+                width: width,
+                onReadMore: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ExhibitionNotePage(
+                        exhibition: exhibition,
+                      ),
+                    ),
+                  );
+                },
+              ),
             ),
             ...exhibition.resources?.map((e) => ExhibitionEventView(
                       exhibitionEvent: e,
