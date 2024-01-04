@@ -90,14 +90,14 @@ class ExhibitionsPageState extends State<ExhibitionsPage> {
                   ),
                 ),
                 onTap: () async {
-                  await Navigator.of(context).pushNamed(
-                      AppRouter.exhibitionDetailPage,
-                      arguments: ExhibitionDetailPayload(
-                        exhibitions: _exhibitionBloc.state.exhibitions!
-                            .map((e) => e.exhibition)
-                            .toList(),
-                        index: index,
-                      ));
+                  await Navigator.of(context)
+                      .pushNamed(AppRouter.exhibitionDetailPage,
+                          arguments: ExhibitionDetailPayload(
+                            exhibitions: _exhibitionBloc.state.exhibitions!
+                                .map((e) => e.exhibition)
+                                .toList(),
+                            index: index,
+                          ));
                 },
               ),
               const SizedBox(height: 20),
