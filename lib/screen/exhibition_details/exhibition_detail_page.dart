@@ -148,9 +148,9 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage> {
 
   Widget _notePage(Exhibition exhibition) {
     const horizontalPadding = 14.0;
-    const snipWidth = 50.0;
+    const peekWidth = 50.0;
     final width =
-        MediaQuery.sizeOf(context).width - horizontalPadding * 2 - snipWidth;
+        MediaQuery.sizeOf(context).width - horizontalPadding * 2 - peekWidth;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14),
       child: SingleChildScrollView(
