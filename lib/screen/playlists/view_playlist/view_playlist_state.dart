@@ -35,10 +35,8 @@ class ViewPlaylistState {
   ViewPlaylistState copyWith({
     PlayListModel? playListModel,
     bool? isRename,
-  }) {
-    return ViewPlaylistState(
+  }) => ViewPlaylistState(
       playListModel: playListModel ?? this.playListModel,
       isRename: isRename ?? this.isRename,
     );
-  }
 }

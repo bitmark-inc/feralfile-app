@@ -120,7 +120,7 @@ class _PlaylistItemState extends State<PlaylistItem> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final numberFormater = NumberFormat('#,###');
+    final numberFormatter = NumberFormat('#,###');
     final thumbnailURL = widget.playlist.thumbnailURL;
     final name = widget.playlist.getName();
     const width = 140.0;
@@ -157,7 +157,7 @@ class _PlaylistItemState extends State<PlaylistItem> {
                     width: 6,
                   ),
                   Text(
-                    numberFormater
+                    numberFormatter
                         .format(widget.playlist.tokenIDs?.length ?? 0),
                     style: theme.textTheme.ppMori400Grey14,
                   ),

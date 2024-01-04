@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
@@ -60,11 +62,11 @@ class AddNewPlaylistBloc
       playListModel?.id ??= const Uuid().v4();
       await _playListService
           .setPlayList([playListModel!], onConflict: ConflictAction.replace);
-      injector.get<SettingsDataService>().backup();
+      unawaited(injector.get<SettingsDataService>().backup());
 
       emit(state.copyWith(isAddSuccess: true));
       final metricClient = injector<MetricClientService>();
-      metricClient.addEvent(MixpanelEvent.createPlaylist);
+      unawaited(metricClient.addEvent(MixpanelEvent.createPlaylist));
     });
   }
 }
