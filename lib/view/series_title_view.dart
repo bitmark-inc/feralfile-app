@@ -27,6 +27,7 @@ class SeriesTitleView extends StatelessWidget {
           style: theme.textTheme.ppMori700White14.copyWith(
             fontStyle: FontStyle.italic,
           ),
+          maxLines: 2,
         ),
       ],
     );

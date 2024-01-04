@@ -26,7 +26,9 @@ class FeralFileSeriesBloc
             );
       final tokenIds = exhibitionDetail == null
           ? null
-          : artworks.map((e) => exhibitionDetail.getArtworkTokenId(e)).toList();
+          : artworks
+              .map((e) => exhibitionDetail.getArtworkTokenId(e) ?? '')
+              .toList();
       emit(state.copyWith(
         exhibitionDetail: exhibitionDetail,
         series: series,

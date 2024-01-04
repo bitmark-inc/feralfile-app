@@ -387,6 +387,7 @@ AppBar getFFAppBar(
           statusBarIconBrightness: Brightness.light,
           statusBarBrightness: Brightness.dark),
       centerTitle: true,
+      toolbarHeight: 66,
       leadingWidth: 44,
       leading: onBack != null
           ? Semantics(

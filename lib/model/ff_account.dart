@@ -287,8 +287,8 @@ class ArtworkSwap {
   final String contractName;
   final String contractAddress;
   final String recipientAddress;
-  final String ipfsCid;
-  final String token;
+  final String? ipfsCid;
+  final String? token;
   final String blockchainType;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -306,12 +306,12 @@ class ArtworkSwap {
     required this.contractName,
     required this.contractAddress,
     required this.recipientAddress,
-    required this.ipfsCid,
-    required this.token,
     required this.blockchainType,
     required this.createdAt,
     required this.updatedAt,
     required this.expiredAt,
+    this.ipfsCid,
+    this.token,
     this.paymentID,
     this.fee,
   });
