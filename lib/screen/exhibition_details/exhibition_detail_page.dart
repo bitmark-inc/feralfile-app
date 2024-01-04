@@ -203,7 +203,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage> {
       id: sceneId,
       thumbnailURL: exhibitionDetail.exhibition.coverUrl,
       tokenIDs: tokenIds,
-      playControlModel: PlayControlModel(),
+      playControlModel: PlayControlModel(timer: 30),
     );
     await UIHelper.showFlexibleDialog(
       context,
