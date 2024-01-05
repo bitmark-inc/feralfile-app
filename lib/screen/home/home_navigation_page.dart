@@ -101,17 +101,17 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   Future<void> _onItemTapped(int index) async {
     if (index < _pages.length) {
       if (_selectedIndex == index) {
-        if (index == 0) {
+        if (index == HomeNavigatorTab.collection.index) {
           _collectionHomePageKey.currentState?.scrollToTop();
         }
-        if (index == 1) {
+        if (index == HomeNavigatorTab.organization.index) {
           _organizeHomePageKey.currentState?.scrollToTop();
         }
-        if (index == 2) {
+        if (index == HomeNavigatorTab.exhibition.index) {
           _exhibitionsPageKey.currentState?.scrollToTop();
         }
       } else {
-        if (index == 3) {
+        if (index == HomeNavigatorTab.scanQr.index) {
           await _scanQRPageKey.currentState?.resumeCamera();
         } else {
           await _scanQRPageKey.currentState?.pauseCamera();
@@ -121,7 +121,8 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         _selectedIndex = index;
       });
       _pageController.jumpToPage(_selectedIndex);
-      if (index == 0) {
+      if (index == HomeNavigatorTab.collection.index ||
+          index == HomeNavigatorTab.organization.index) {
         unawaited(_clientTokenService.refreshTokens());
         unawaited(_playListService.refreshPlayLists());
       }
@@ -190,7 +191,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         setState(() {
           _selectedIndex = currentIndex;
         });
-        if (_selectedIndex == 3) {
+        if (_selectedIndex == HomeNavigatorTab.scanQr.index) {
           await _scanQRPageKey.currentState?.resumeCamera();
         }
       }
@@ -201,7 +202,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   void initState() {
     unawaited(injector<CustomerSupportService>().getIssuesAndAnnouncement());
     super.initState();
-    _selectedIndex = HomeNavigatorTab.COLLECTION.index;
+    _selectedIndex = HomeNavigatorTab.collection.index;
     _pageController = PageController(initialPage: _selectedIndex);
 
     unawaited(_clientTokenService.refreshTokens());
@@ -492,7 +493,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         Navigator.of(context).popUntil((route) =>
             route.settings.name == AppRouter.homePage ||
             route.settings.name == AppRouter.homePageNoTransition);
-        _pageController.jumpToPage(HomeNavigatorTab.COLLECTION.index);
+        _pageController.jumpToPage(HomeNavigatorTab.collection.index);
         break;
 
       case 'customer_support_new_message':
@@ -524,7 +525,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         Navigator.of(context).popUntil((route) =>
             route.settings.name == AppRouter.homePage ||
             route.settings.name == AppRouter.homePageNoTransition);
-        _pageController.jumpToPage(HomeNavigatorTab.COLLECTION.index);
+        _pageController.jumpToPage(HomeNavigatorTab.collection.index);
         break;
       case 'new_message':
         if (!_remoteConfig.getBool(ConfigGroup.viewDetail, ConfigKey.chat)) {
