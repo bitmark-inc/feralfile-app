@@ -12,7 +12,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Autonomy</string>
+	<string>Feral File</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -65,15 +65,15 @@
 	<key>NSCameraUsageDescription</key>
 	<string>QR code scanning requires camera access.</string>
 	<key>NSFaceIDUsageDescription</key>
-	<string>Allow Autonomy to use Face ID to authenticate.</string>
+	<string>Allow Feral File to use Face ID to authenticate.</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Uses the local network to discover Cast-enabled devices on your WiFi network.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Allow Autonomy to use your location</string>
+	<string>Allow Feral File to use your location</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>Allow Autonomy to use your location</string>
+	<string>Allow Feral File to use your location</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Allow Autonomy to use your location</string>
+	<string>Allow Feral File to use your location</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Viewing artwork with microphone enable.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
