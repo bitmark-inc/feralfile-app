@@ -339,23 +339,30 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         ColorFilter.mode(selectedColor, BlendMode.srcIn);
     const unselectedColorFilter =
         ColorFilter.mode(unselectedColor, BlendMode.srcIn);
+    const iconSize = 25.0;
     final bottomItems = [
-      const FFNavigationBarItem(
-        icon: Icon(
-          AuIcon.playlists,
-          size: 25,
+      FFNavigationBarItem(
+        icon: SvgPicture.asset(
+          'assets/images/icon_collection.svg',
+          height: iconSize,
+          colorFilter: selectedColorFilter,
+        ),
+        unselectedIcon: SvgPicture.asset(
+          'assets/images/icon_collection.svg',
+          height: iconSize,
+          colorFilter: unselectedColorFilter,
         ),
         label: '',
       ),
       FFNavigationBarItem(
         icon: SvgPicture.asset(
           'assets/images/set_icon.svg',
-          height: 25,
+          height: iconSize,
           colorFilter: selectedColorFilter,
         ),
         unselectedIcon: SvgPicture.asset(
           'assets/images/set_icon.svg',
-          height: 25,
+          height: iconSize,
           colorFilter: unselectedColorFilter,
         ),
         label: '',
@@ -363,20 +370,26 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       FFNavigationBarItem(
         icon: SvgPicture.asset(
           'assets/images/controller_icon.svg',
-          height: 25,
+          height: iconSize,
           colorFilter: selectedColorFilter,
         ),
         unselectedIcon: SvgPicture.asset(
           'assets/images/controller_icon.svg',
-          height: 25,
+          height: iconSize,
           colorFilter: unselectedColorFilter,
         ),
         label: '',
       ),
-      const FFNavigationBarItem(
-        icon: Icon(
-          AuIcon.scan,
-          size: 25,
+      FFNavigationBarItem(
+        icon: SvgPicture.asset(
+          'assets/images/icon_scan.svg',
+          height: iconSize,
+          colorFilter: selectedColorFilter,
+        ),
+        unselectedIcon: SvgPicture.asset(
+          'assets/images/icon_scan.svg',
+          height: iconSize,
+          colorFilter: unselectedColorFilter,
         ),
         label: '',
       ),
@@ -387,9 +400,10 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
           builder: (BuildContext context, List<int>? numberOfIssuesInfo,
                   Widget? child) =>
               iconWithRedDot(
-            icon: const Icon(
-              AuIcon.drawer,
-              size: 25,
+            icon: SvgPicture.asset(
+              'assets/images/icon_drawer.svg',
+              height: iconSize,
+              colorFilter: unselectedColorFilter,
             ),
             padding: const EdgeInsets.only(right: 2, top: 2),
             withReddot: numberOfIssuesInfo != null && numberOfIssuesInfo[1] > 0,
