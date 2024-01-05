@@ -127,7 +127,7 @@ jobs:
       - run: flutter build apk --flavor inhouse
       - run: mv build/app/outputs/flutter-apk/app-inhouse-release.apk build/app/outputs/flutter-apk/app-inhouse-release-${{ env.NAME_SUFFIX }}.apk
       - name: Distribute apk to App Center
-        uses: akiojin/appcenter-distribute-github-action@v1
+        uses: akiojin/appcenter-distribute-github-action@v1.4.10
         with:
           token: ${{ secrets.APPCENTER_API_TOKEN }}
           path: build/app/outputs/flutter-apk/app-inhouse-release-${{ env.NAME_SUFFIX }}.apk
