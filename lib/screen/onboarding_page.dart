@@ -303,13 +303,13 @@ class _OnboardingPageState extends State<OnboardingPage>
 
   Widget _swiper(BuildContext context) {
     final theme = Theme.of(context);
-    final exploreArtworks = [
-      'Licia He, Fictional Lullaby',
+    final List<Map<String, String>> exploreArtworks = [
+      {'Licia He': 'Fictional Lullaby'},
     ];
-    final streamArtworks = [
-      'Refik Anadol, Unsupervised',
-      'Nancy Baker Cahill, Slipstream 001',
-      'Refik Anadol, Unsupervised'
+    final List<Map<String, String>> streamArtworks = [
+      {'Refik Anadol': 'Unsupervised'},
+      {'Nancy Baker Cahill': 'Slipstream 001'},
+      {'Refik Anadol': 'Unsupervised'}
     ];
     final pages = [
       Center(
@@ -325,9 +325,21 @@ class _OnboardingPageState extends State<OnboardingPage>
               text: 'artwork_'.tr(),
               style: theme.textTheme.ppMori400Grey12,
               children: exploreArtworks
-                  .map((e) => TextSpan(
-                        text: e,
-                      ))
+                  .mapIndexed((index, e) => [
+                        TextSpan(
+                          text: e.keys.first,
+                        ),
+                        const TextSpan(text: ', '),
+                        TextSpan(
+                          text: e.values.first,
+                          style: const TextStyle(
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                        if (index != exploreArtworks.length - 1)
+                          const TextSpan(text: '; ')
+                      ])
+                  .flattened
                   .toList()),
         ),
       ),
@@ -347,7 +359,14 @@ class _OnboardingPageState extends State<OnboardingPage>
               children: streamArtworks
                   .mapIndexed((index, e) => [
                         TextSpan(
-                          text: e,
+                          text: e.keys.first,
+                        ),
+                        const TextSpan(text: ', '),
+                        TextSpan(
+                          text: e.values.first,
+                          style: const TextStyle(
+                            fontStyle: FontStyle.italic,
+                          ),
                         ),
                         if (index != streamArtworks.length - 1)
                           const TextSpan(text: '; ')
