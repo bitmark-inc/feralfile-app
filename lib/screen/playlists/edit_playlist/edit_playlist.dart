@@ -371,7 +371,7 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                               },
                               width: 170,
                               text: tr('remove').capitalize(),
-                              color: theme.auSuperTeal,
+                              color: AppColor.feralFileHighlight,
                             ),
                           ],
                         ),

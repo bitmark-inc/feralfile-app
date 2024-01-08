@@ -166,7 +166,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
       isScrollControlled: true,
       builder: (context) => StatefulBuilder(
           builder: (context, setState) => Container(
-                color: theme.auSuperTeal,
+                color: AppColor.feralFileHighlight,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [

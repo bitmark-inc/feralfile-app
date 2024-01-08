@@ -96,7 +96,7 @@ class _PreviewPrimerPageState extends State<PreviewPrimerPage>
         content: Container(
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 10),
           decoration: BoxDecoration(
-            color: theme.auSuperTeal.withOpacity(0.9),
+            color: AppColor.feralFileHighlight.withOpacity(0.9),
             borderRadius: BorderRadius.circular(64),
           ),
           child: Text(

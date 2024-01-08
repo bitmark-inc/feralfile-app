@@ -67,6 +67,9 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen>
       nftBloc.add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
     }));
     bloc.add(InitPlaylist(playListModel: widget.playListModel));
+    WidgetsBinding.instance.addPostFrameCallback((context) {
+      _focusCollectionName();
+    });
   }
 
   @override
@@ -74,6 +77,10 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen>
     unawaited(
         injector<ConfigurationService>().setAlreadyShowCreatePlaylistTip(true));
     injector<ConfigurationService>().showCreatePlaylistTip.value = false;
+  }
+
+  void _focusCollectionName() {
+    FocusScope.of(context).requestFocus(_focusNode);
   }
 
   void _scrollListenerToLoadMore() {

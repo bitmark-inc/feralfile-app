@@ -39,7 +39,7 @@ class KeySyncPage extends StatelessWidget {
         return Scaffold(
           appBar: getBackAppBar(
             context,
-            title: "conflict_detected".tr(),
+            title: 'conflict_detected'.tr(),
             onBack: () {
               if (state.isProcessing != true) {
                 Navigator.of(context).pop();
@@ -57,34 +57,33 @@ class KeySyncPage extends StatelessWidget {
                       children: [
                         addTitleSpace(),
                         Text(
-                          "conflict_keychains".tr(),
+                          'conflict_keychains'.tr(),
                           //"We have detected a conflict of keychains.",
                           style: theme.textTheme.ppMori700Black14,
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          "this_might_occur".tr(),
-                          //"This might occur if you have signed in to a different cloud on this device. You are required to define a default keychain for identification before continuing with other actions inside the app:",
+                          'this_might_occur'.tr(),
                           style: theme.textTheme.ppMori400Black14,
                         ),
                         const SizedBox(height: 20),
                         Text(
-                          "select_your_default_keychain".tr(),
+                          'select_your_default_keychain'.tr(),
                           style: theme.textTheme.ppMori400Black14,
                         ),
                         const SizedBox(height: 12),
                         Container(
-                            padding: const EdgeInsets.all(20.0),
+                            padding: const EdgeInsets.all(20),
                             decoration: BoxDecoration(
                                 border: Border.all(
                                     color: theme.colorScheme.primary),
-                                borderRadius: const BorderRadius.all(
-                                    Radius.circular(5.0))),
+                                borderRadius:
+                                    const BorderRadius.all(Radius.circular(5))),
                             child: GestureDetector(
                               onTap: () {
                                 UIHelper.showDialog(
                                     context,
-                                    "select_wallet_type".tr(),
+                                    'select_wallet_type'.tr(),
                                     SelectKeychainView(
                                       onSelect: (bool isLocal) {
                                         bloc.add(ToggleKeySyncEvent());
@@ -123,12 +122,12 @@ class KeySyncPage extends StatelessWidget {
                                 ),
                               ),
                             )),
-                        const SizedBox(height: 40.0),
+                        const SizedBox(height: 40),
                         Container(
                           padding: const EdgeInsets.all(15),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(5),
-                            color: AppColor.auSuperTeal,
+                            color: AppColor.feralFileHighlight,
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -141,8 +140,7 @@ class KeySyncPage extends StatelessWidget {
                               ),
                               const SizedBox(height: 12),
                               Text(
-                                "data_contain".tr(),
-                                //"All the data contained in the other keychain will be imported into the defined default one and converted into a full account. If you were using it as the main wallet, you will be able to continue to do so after the conversion. No keys are lost.",
+                                'data_contain'.tr(),
                                 style: ResponsiveLayout.isMobile
                                     ? theme.textTheme.ppMori400Black14
                                     : theme.textTheme.ppMori400Black16,
@@ -158,7 +156,7 @@ class KeySyncPage extends StatelessWidget {
                                       MaterialTapTargetSize.shrinkWrap,
                                 ),
                                 child: Text(
-                                  "learn_security".tr(),
+                                  'learn_security'.tr(),
                                   style: (ResponsiveLayout.isMobile
                                           ? theme.textTheme.ppMori400Black14
                                           : theme.textTheme.ppMori400Black16)
@@ -177,7 +175,7 @@ class KeySyncPage extends StatelessWidget {
                   children: [
                     Expanded(
                       child: PrimaryButton(
-                        text: "proceed".tr(),
+                        text: 'proceed'.tr(),
                         isProcessing: state.isProcessing == true,
                         onTap: state.isProcessing == true
                             ? null
@@ -203,11 +201,12 @@ class SelectKeychainView extends StatefulWidget {
   final Function(bool isLocal) onSelect;
   final Function(bool isLocal) onChange;
   final bool defaultOption;
+
   const SelectKeychainView(
-      {super.key,
-      required this.onSelect,
+      {required this.onSelect,
       required this.onChange,
-      required this.defaultOption});
+      required this.defaultOption,
+      super.key});
 
   @override
   State<SelectKeychainView> createState() => SelectKeychainViewState();
@@ -215,6 +214,7 @@ class SelectKeychainView extends StatefulWidget {
 
 class SelectKeychainViewState extends State<SelectKeychainView> {
   late bool _selectedOption;
+
   @override
   void initState() {
     _selectedOption = widget.defaultOption;
@@ -222,41 +222,39 @@ class SelectKeychainViewState extends State<SelectKeychainView> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        _option(
-          context,
-          true,
-        ),
-        addDivider(height: 40, color: AppColor.white),
-        _option(
-          context,
-          false,
-        ),
-        const SizedBox(height: 40),
-        Padding(
-          padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-          child: Column(
-            children: [
-              PrimaryButton(
-                text: "select".tr(),
-                onTap: () {
-                  widget.onSelect(_selectedOption);
-                  Navigator.of(context).pop();
-                },
-              ),
-              const SizedBox(height: 10),
-              OutlineButton(
-                onTap: () => Navigator.of(context).pop(),
-                text: "cancel".tr(),
-              ),
-            ],
+  Widget build(BuildContext context) => Column(
+        children: [
+          _option(
+            context,
+            true,
           ),
-        )
-      ],
-    );
-  }
+          addDivider(height: 40, color: AppColor.white),
+          _option(
+            context,
+            false,
+          ),
+          const SizedBox(height: 40),
+          Padding(
+            padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+            child: Column(
+              children: [
+                PrimaryButton(
+                  text: 'select'.tr(),
+                  onTap: () {
+                    widget.onSelect(_selectedOption);
+                    Navigator.of(context).pop();
+                  },
+                ),
+                const SizedBox(height: 10),
+                OutlineButton(
+                  onTap: () => Navigator.of(context).pop(),
+                  text: 'cancel'.tr(),
+                ),
+              ],
+            ),
+          )
+        ],
+      );
 
   Widget _option(
     BuildContext context,
@@ -272,7 +270,7 @@ class SelectKeychainViewState extends State<SelectKeychainView> {
             _selectedOption = option;
           });
         },
-        child: Container(
+        child: DecoratedBox(
           decoration: const BoxDecoration(color: Colors.transparent),
           child: Row(
             children: [

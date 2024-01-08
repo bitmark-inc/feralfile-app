@@ -497,7 +497,7 @@ class PreviewUnSupportedTokenWidget extends StatelessWidget {
                   child: Text(
                     'hide_from_collection'.tr(),
                     style: theme.textTheme.ppMori400Black12
-                        .copyWith(color: AppColor.auSuperTeal),
+                        .copyWith(color: AppColor.feralFileHighlight),
                   ),
                 )
               ],
@@ -568,7 +568,7 @@ class _BrokenTokenWidgetState extends State<BrokenTokenWidget>
                   child: Text(
                     'reload'.tr(),
                     style: theme.textTheme.ppMori400Black12
-                        .copyWith(color: AppColor.auSuperTeal),
+                        .copyWith(color: AppColor.feralFileHighlight),
                   ),
                 )
               ],
@@ -1500,7 +1500,7 @@ class MetaDataItem extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               maxLines: 3,
               style: onValueTap != null
-                  ? linkStyle ?? theme.textTheme.ppMori400Green14
+                  ? linkStyle ?? theme.textTheme.ppMori400FFYellow14
                   : valueStyle ?? theme.textTheme.ppMori400White14,
             ),
           ),
@@ -1575,14 +1575,14 @@ class ProvenanceItem extends StatelessWidget {
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     border: Border.all(
-                      color: theme.auSuperTeal,
+                      color: AppColor.feralFileHighlight,
                     ),
                     borderRadius: BorderRadius.circular(64),
                   ),
                   child: Text(
                     'view'.tr(),
                     overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.ppMori400Green14,
+                    style: theme.textTheme.ppMori400FFYellow14,
                   ),
                 ),
               ),
@@ -1658,8 +1658,8 @@ Widget artworkDetailsProvenanceSectionNotEmpty(
                       // subTitle: el.blockchain.toUpperCase(),
                       tapLink: el.txURL,
                       onNameTap: () => identity != null
-                          ? UIHelper.showIdentityDetailDialog(context,
-                              name: identity, address: el.owner)
+                          ? unawaited(UIHelper.showIdentityDetailDialog(context,
+                              name: identity, address: el.owner))
                           : null,
                       forceSafariVC: true,
                     ),
@@ -1962,7 +1962,7 @@ class ArtworkDetailsHeader extends StatelessWidget {
             child: Text(
               subTitle,
               style: theme.textTheme.ppMori700White14.copyWith(
-                  color: AppColor.auSuperTeal,
+                  color: AppColor.feralFileHighlight,
                   fontWeight: isReverse ? FontWeight.w400 : null),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -1975,7 +1975,7 @@ class ArtworkDetailsHeader extends StatelessWidget {
           child: Text(
             title,
             style: theme.textTheme.ppMori400White14.copyWith(
-                color: AppColor.auSuperTeal,
+                color: AppColor.feralFileHighlight,
                 fontWeight: isReverse ? FontWeight.w700 : null),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,

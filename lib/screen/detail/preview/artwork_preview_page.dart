@@ -47,7 +47,7 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 class ArtworkPreviewPage extends StatefulWidget {
   final ArtworkDetailPayload payload;
 
-  const ArtworkPreviewPage({Key? key, required this.payload}) : super(key: key);
+  const ArtworkPreviewPage({required this.payload, super.key});
 
   @override
   State<ArtworkPreviewPage> createState() => _ArtworkPreviewPageState();
@@ -95,18 +95,20 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     super.initState();
   }
 
-  setTimer({int? time}) {
+  void setTimer({int? time}) {
     _timer?.cancel();
     if (playControl != null) {
       final defaultDuration =
           playControl!.timer == 0 ? time ?? 10 : playControl!.timer;
       _timer = Timer.periodic(Duration(seconds: defaultDuration), (timer) {
-        if (!(_timer?.isActive ?? false)) return;
+        if (!(_timer?.isActive ?? false)) {
+          return;
+        }
         if (controller.page?.toInt() == tokens.length - 1) {
           controller.jumpTo(0);
         } else {
-          controller.nextPage(
-              duration: const Duration(microseconds: 1), curve: Curves.linear);
+          unawaited(controller.nextPage(
+              duration: const Duration(microseconds: 1), curve: Curves.linear));
         }
       });
     }
@@ -115,35 +117,35 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   @override
   void dispose() {
     _focusNode.dispose();
-    disableLandscapeMode();
-    WakelockPlus.disable();
+    unawaited(disableLandscapeMode());
+    unawaited(WakelockPlus.disable());
     _timer?.cancel();
     routeObserver.unsubscribe(this);
     WidgetsBinding.instance.removeObserver(this);
     _detector?.stopListening();
     if (Platform.isAndroid) {
-      SystemChrome.setEnabledSystemUIMode(
+      unawaited(SystemChrome.setEnabledSystemUIMode(
         SystemUiMode.manual,
         overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom],
-      );
+      ));
     }
     controller.dispose();
-    Sentry.getSpan()?.finish(status: const SpanStatus.ok());
+    unawaited(Sentry.getSpan()?.finish(status: const SpanStatus.ok()));
     super.dispose();
   }
 
   @override
   void didChangeDependencies() {
     routeObserver.subscribe(this, ModalRoute.of(context)!);
-    enableLandscapeMode();
-    WakelockPlus.enable();
+    unawaited(enableLandscapeMode());
+    unawaited(WakelockPlus.enable());
     super.didChangeDependencies();
   }
 
   @override
   void didPopNext() {
-    enableLandscapeMode();
-    WakelockPlus.enable();
+    unawaited(enableLandscapeMode());
+    unawaited(WakelockPlus.enable());
     setTimer();
     _renderingWidget?.didPopNext();
     super.didPopNext();
@@ -155,10 +157,10 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     _detector = ShakeDetector.autoStart(
       onPhoneShake: () {
         _bloc.add(ChangeFullScreen());
-        SystemChrome.setEnabledSystemUIMode(
+        unawaited(SystemChrome.setEnabledSystemUIMode(
           SystemUiMode.manual,
           overlays: SystemUiOverlay.values,
-        );
+        ));
       },
     );
 
@@ -168,13 +170,15 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   }
 
   Future _moveToInfo(AssetToken? assetToken) async {
-    if (assetToken == null) return;
-    metricClient.addEvent(
+    if (assetToken == null) {
+      return;
+    }
+    unawaited(metricClient.addEvent(
       MixpanelEvent.clickArtworkInfo,
       data: {
-        "id": assetToken.id,
+        'id': assetToken.id,
       },
-    );
+    ));
     keyboardManagerKey.currentState?.hideKeyboard();
 
     final currentIndex = tokens.indexWhere((element) =>
@@ -184,37 +188,38 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
       return;
     }
 
-    disableLandscapeMode();
+    unawaited(disableLandscapeMode());
 
-    WakelockPlus.disable();
+    unawaited(WakelockPlus.disable());
     _timer?.cancel();
 
-    Navigator.of(context).pushNamed(
+    unawaited(Navigator.of(context).pushNamed(
       AppRouter.artworkDetailsPage,
       arguments: widget.payload.copyWith(
         currentIndex: currentIndex,
         ids: tokens,
       ),
-    );
+    ));
   }
 
   void onClickFullScreen(AssetToken? assetToken) {
     final theme = Theme.of(context);
-    metricClient.addEvent(
+    unawaited(metricClient.addEvent(
       MixpanelEvent.seeArtworkFullScreen,
       data: {
-        "id": assetToken?.id,
+        'id': assetToken?.id,
       },
-    );
+    ));
     _bloc.add(ChangeFullScreen(isFullscreen: true));
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    unawaited(
+        SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky));
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Container(
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 10),
           decoration: BoxDecoration(
-            color: theme.auSuperTeal.withOpacity(0.9),
+            color: AppColor.feralFileHighlight.withOpacity(0.9),
             borderRadius: BorderRadius.circular(64),
           ),
           child: Text(
@@ -236,7 +241,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
       BlocProvider.value(
         value: _canvasDeviceBloc,
         child: CanvasDeviceView(
-          sceneId: assetToken?.id ?? "",
+          sceneId: assetToken?.id ?? '',
           onClose: () {
             Navigator.of(context).pop();
           },
@@ -244,7 +249,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
       ),
       isDismissible: true,
     );
-    _fetchDevice(assetToken?.id ?? "");
+    unawaited(_fetchDevice(assetToken?.id ?? ''));
   }
 
   @override
@@ -258,15 +263,15 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
           assetToken = state.assetToken;
           isFullScreen = state.isFullScreen;
         }
-        final hasKeyboard = assetToken?.medium == "software" ||
-            assetToken?.medium == "other" ||
+        final hasKeyboard = assetToken?.medium == 'software' ||
+            assetToken?.medium == 'other' ||
             assetToken?.medium == null;
         final hideArtist = assetToken?.isPostcard ?? false;
         final identityState = context.watch<IdentityBloc>().state;
         final artistName =
             assetToken?.artistName?.toIdentityOrMask(identityState.identityMap);
-        _fetchDevice(assetToken?.id ?? "");
-        var subTitle = "";
+        unawaited(_fetchDevice(assetToken?.id ?? ''));
+        var subTitle = '';
         if (artistName != null && artistName.isNotEmpty) {
           subTitle = artistName;
         }
@@ -279,7 +284,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                   leadingWidth: 0,
                   centerTitle: false,
                   title: GestureDetector(
-                      onTap: () => _moveToInfo(assetToken),
+                      onTap: () async => _moveToInfo(assetToken),
                       child: ArtworkDetailsHeader(
                         title: assetToken?.title ?? '',
                         subTitle: subTitle,
@@ -322,35 +327,34 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                     },
                     controller: controller,
                     itemCount: tokens.length,
-                    itemBuilder: (context, index) {
-                      return BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
-                        bloc: _canvasDeviceBloc,
-                        builder: (context, state) {
-                          final isCasting = state.isCasting;
-                          if (isCasting) {
-                            return const Center(
-                              child: CurrentlyCastingArtwork(),
-                            );
-                          }
-                          if (tokens[index].id.isPostcardId) {
-                            return PostcardPreviewWidget(
-                              identity: tokens[index],
-                              useIndexer: widget.payload.useIndexer,
-                            );
-                          }
-                          return ArtworkPreviewWidget(
+                    itemBuilder: (context, index) =>
+                        BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
+                      bloc: _canvasDeviceBloc,
+                      builder: (context, state) {
+                        final isCasting = state.isCasting;
+                        if (isCasting) {
+                          return const Center(
+                            child: CurrentlyCastingArtwork(),
+                          );
+                        }
+                        if (tokens[index].id.isPostcardId) {
+                          return PostcardPreviewWidget(
                             identity: tokens[index],
-                            onLoaded: (
-                                {InAppWebViewController? webViewController,
-                                int? time}) {
-                              setTimer(time: time);
-                            },
-                            focusNode: _focusNode,
                             useIndexer: widget.payload.useIndexer,
                           );
-                        },
-                      );
-                    },
+                        }
+                        return ArtworkPreviewWidget(
+                          identity: tokens[index],
+                          onLoaded: (
+                              {InAppWebViewController? webViewController,
+                              int? time}) {
+                            setTimer(time: time);
+                          },
+                          focusNode: _focusNode,
+                          useIndexer: widget.payload.useIndexer,
+                        );
+                      },
+                    ),
                   ),
                 ),
                 Visibility(
@@ -376,10 +380,10 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                                   width: 20,
                                 ),
                                 Visibility(
-                                  visible: (assetToken?.medium == 'software' ||
+                                  visible: assetToken?.medium == 'software' ||
                                       assetToken?.medium == 'other' ||
                                       (assetToken?.medium?.isEmpty ?? true) ||
-                                      isCasting),
+                                      isCasting,
                                   child: KeyboardManagerWidget(
                                     key: keyboardManagerKey,
                                     focusNode: _focusNode,
@@ -399,7 +403,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                                   width: 20,
                                 ),
                                 CastButton(
-                                  onCastTap: () => _onCastTap(assetToken),
+                                  onCastTap: () async => _onCastTap(assetToken),
                                   isCasting: isCasting,
                                 ),
                                 const SizedBox(
@@ -410,7 +414,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                                       ? null
                                       : () => onClickFullScreen(assetToken),
                                   child: Semantics(
-                                    label: "fullscreen_icon",
+                                    label: 'fullscreen_icon',
                                     child: SvgPicture.asset(
                                       'assets/images/fullscreen_icon.svg',
                                       colorFilter: ColorFilter.mode(
@@ -454,8 +458,7 @@ class KeyboardManagerWidget extends StatefulWidget {
   final FocusNode? focusNode;
   final Function()? onTap;
 
-  const KeyboardManagerWidget({Key? key, this.focusNode, this.onTap})
-      : super(key: key);
+  const KeyboardManagerWidget({super.key, this.focusNode, this.onTap});
 
   @override
   State<KeyboardManagerWidget> createState() => KeyboardManagerWidgetState();
@@ -480,14 +483,14 @@ class KeyboardManagerWidgetState extends State<KeyboardManagerWidget> {
     super.initState();
   }
 
-  void showKeyboard() async {
+  void showKeyboard() {
     setState(() {
       widget.focusNode?.requestFocus();
       _isShowKeyboard = true;
     });
   }
 
-  void hideKeyboard() async {
+  void hideKeyboard() {
     setState(() {
       widget.focusNode?.unfocus();
       _isShowKeyboard = false;
@@ -500,13 +503,11 @@ class KeyboardManagerWidgetState extends State<KeyboardManagerWidget> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        _isShowKeyboard ? hideKeyboard : showKeyboard;
-        widget.onTap?.call();
-      },
-      child: SvgPicture.asset('assets/images/keyboard_icon.svg'),
-    );
-  }
+  Widget build(BuildContext context) => GestureDetector(
+        onTap: () {
+          _isShowKeyboard ? hideKeyboard : showKeyboard;
+          widget.onTap?.call();
+        },
+        child: SvgPicture.asset('assets/images/keyboard_icon.svg'),
+      );
 }
