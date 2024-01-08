@@ -11,6 +11,10 @@
 		<string>applinks:autonomy-app.app.link</string>
 		<string>applinks:autonomy-app-alternate.app.link</string>
 		<string>applinks:link.autonomy.io</string>
+		<string>applinks:feralfile.io</string>
+		<string>applinks:feralfile-app.app.link</string>
+		<string>applinks:feralfile-app-alternate.app.link</string>
+		<string>applinks:link.feralfile.io</string>
 	</array>
 	<key>com.apple.developer.icloud-container-identifiers</key>
 	<array>

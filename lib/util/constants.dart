@@ -42,6 +42,11 @@ const DEEP_LINKS = [
   'https://autonomy-app.app.link',
   'https://autonomy-app-alternate.app.link',
   'https://link.autonomy.io',
+  'feralfile://',
+  'https://feralfile.io',
+  'https://feralfile-app.app.link',
+  'https://feralfile-app-alternate.app.link',
+  'https://link.feralfile.io',
 ];
 const FF_ARTIST_COLLECTOR =
     'https://feralfile.com/docs/artist-collector-rights';
