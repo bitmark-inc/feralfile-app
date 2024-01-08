@@ -71,6 +71,7 @@ class _MoMAPostcardPageState extends State<MoMAPostcardPage> {
       ),
     );
     return SafeArea(
+      top: false,
       child: Scaffold(
         appBar: getBackAppBar(
           context,

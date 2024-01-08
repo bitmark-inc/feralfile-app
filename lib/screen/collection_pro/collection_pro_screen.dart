@@ -208,7 +208,7 @@ class CollectionProState extends State<CollectionPro>
                         ),
                       ),
                       const SliverToBoxAdapter(
-                        child: SizedBox(height: 40),
+                        child: SizedBox(height: 100),
                       ),
                     ],
                   );

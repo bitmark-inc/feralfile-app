@@ -166,7 +166,8 @@ class ExhibitionsPageState extends State<ExhibitionsPage> {
                         _exhibitionItem(context, e, exhibitions.indexOf(e)),
                         const SizedBox(height: 40)
                       ])
-                  .flattened
+                  .flattened,
+              const SizedBox(height: 100),
             ],
           );
         },

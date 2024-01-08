@@ -232,8 +232,11 @@ enum HomePageTab {
 }
 
 enum HomeNavigatorTab {
-  COLLECTION,
-  WALLET,
+  collection,
+  organization,
+  exhibition,
+  scanQr,
+  menu,
 }
 
 @pragma('vm:entry-point')

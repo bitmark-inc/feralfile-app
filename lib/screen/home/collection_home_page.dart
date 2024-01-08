@@ -377,7 +377,7 @@ class CollectionHomePageState extends State<CollectionHomePage>
           childCount: tokens.length,
         ),
       ),
-      const SliverToBoxAdapter(child: SizedBox(height: 30)),
+      const SliverToBoxAdapter(child: SizedBox(height: 100)),
     ];
 
     return CustomScrollView(
