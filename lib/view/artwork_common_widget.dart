@@ -401,7 +401,6 @@ Widget placeholder(BuildContext context) {
           children: [
             GifView.asset(
               'assets/images/loading_white.gif',
-              width: 52,
               height: 52,
               frameRate: 12,
             ),
@@ -667,7 +666,6 @@ class _PreviewPlaceholderState extends State<PreviewPlaceholder>
           children: [
             GifView.asset(
               'assets/images/loading_white.gif',
-              width: 52,
               height: 52,
               frameRate: 12,
             ),

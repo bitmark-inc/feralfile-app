@@ -98,7 +98,6 @@ class _AddAddressToWalletState extends State<AddAddressToWallet> {
                         children: [
                           Image.asset(
                             "assets/images/loading_white_tran.gif",
-                            width: 52,
                             height: 52,
                           ),
                           const SizedBox(height: 20),
