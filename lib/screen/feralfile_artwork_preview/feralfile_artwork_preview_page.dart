@@ -23,7 +23,7 @@ class _FeralFileArtworkPreviewPageState
           context,
           onBack: () => Navigator.pop(context),
         ),
-    backgroundColor: AppColor.primaryBlack,
+        backgroundColor: AppColor.primaryBlack,
         body: Column(
           children: [
             Expanded(

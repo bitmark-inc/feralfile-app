@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
+import 'package:autonomy_flutter/screen/predefined_collection/predefined_collection_bloc.dart';
 import 'package:autonomy_flutter/screen/predefined_collection/predefined_collection_state.dart';
 import 'package:autonomy_flutter/util/medium_category_ext.dart';
 import 'package:autonomy_theme/style/colors.dart';
@@ -10,8 +13,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nft_collection/models/predefined_collection_model.dart';
 import 'package:nft_collection/nft_collection.dart';
-
-import 'predefined_collection_bloc.dart';
 
 enum PredefinedCollectionType { artist, medium }
 
@@ -29,7 +30,7 @@ class PredefinedCollectionScreenPayload {
 class PredefinedCollectionScreen extends StatefulWidget {
   final PredefinedCollectionScreenPayload payload;
 
-  const PredefinedCollectionScreen({super.key, required this.payload});
+  const PredefinedCollectionScreen({required this.payload, super.key});
 
   @override
   State<PredefinedCollectionScreen> createState() =>
@@ -50,49 +51,47 @@ class _PredefinedCollectionScreenState
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: BlocConsumer<PredefinedCollectionBloc, PredefinedCollectionState>(
-        bloc: _bloc,
-        builder: (context, state) {
-          if (state is PredefinedCollectionInitState) {
+  Widget build(BuildContext context) => Scaffold(
+        body: BlocConsumer<PredefinedCollectionBloc, PredefinedCollectionState>(
+          bloc: _bloc,
+          builder: (context, state) {
+            if (state is PredefinedCollectionInitState) {
+              return const Center(child: CircularProgressIndicator());
+            }
             return const Center(child: CircularProgressIndicator());
-          }
-          return const Center(child: CircularProgressIndicator());
-        },
-        listener: (context, state) {
-          if (state is PredefinedCollectionLoadedState &&
-              state.nftLoadingState == NftLoadingState.done) {
-            final id = widget.payload.predefinedCollection.id;
-            final name = widget.payload.predefinedCollection.name;
-            final tokenIDs = state.assetTokens?.map((e) => e.id).toList();
-            final playlist = PlayListModel(
-              id: id,
-              name: name,
-              tokenIDs: tokenIDs,
-            );
-            final predefinedCollectionType = widget.payload.type;
-            final icon =
-                predefinedCollectionType == PredefinedCollectionType.medium
-                    ? SvgPicture.asset(MediumCategoryExt.icon(id),
-                        width: 22,
-                        height: 22,
-                        colorFilter: const ColorFilter.mode(
-                            AppColor.primaryBlack, BlendMode.srcIn))
-                    : null;
-            final collectionType =
-                predefinedCollectionType == PredefinedCollectionType.medium
-                    ? CollectionType.medium
-                    : CollectionType.artist;
-            Navigator.of(context).pushReplacementNamed(
-                AppRouter.viewPlayListPage,
-                arguments: ViewPlaylistScreenPayload(
-                    playListModel: playlist,
-                    titleIcon: icon,
-                    collectionType: collectionType));
-          }
-        },
-      ),
-    );
-  }
+          },
+          listener: (context, state) {
+            if (state is PredefinedCollectionLoadedState &&
+                state.nftLoadingState == NftLoadingState.done) {
+              final id = widget.payload.predefinedCollection.id;
+              final name = widget.payload.predefinedCollection.name;
+              final tokenIDs = state.assetTokens?.map((e) => e.id).toList();
+              final playlist = PlayListModel(
+                id: id,
+                name: name,
+                tokenIDs: tokenIDs,
+              );
+              final predefinedCollectionType = widget.payload.type;
+              final icon =
+                  predefinedCollectionType == PredefinedCollectionType.medium
+                      ? SvgPicture.asset(MediumCategoryExt.icon(id),
+                          width: 22,
+                          height: 22,
+                          colorFilter: const ColorFilter.mode(
+                              AppColor.primaryBlack, BlendMode.srcIn))
+                      : null;
+              final collectionType =
+                  predefinedCollectionType == PredefinedCollectionType.medium
+                      ? CollectionType.medium
+                      : CollectionType.artist;
+              unawaited(Navigator.of(context).pushReplacementNamed(
+                  AppRouter.viewPlayListPage,
+                  arguments: ViewPlaylistScreenPayload(
+                      playListModel: playlist,
+                      titleIcon: icon,
+                      collectionType: collectionType)));
+            }
+          },
+        ),
+      );
 }

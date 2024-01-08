@@ -77,21 +77,21 @@ class CollectionProBloc
   }
 
   Future<List<PredefinedCollectionModel>> _getAllPredefinedCollectionByMedium(
-      {String filterStr = ""}) async {
+      {String filterStr = ''}) async {
     final List<PredefinedCollectionModel> listPredefinedCollectionByMedium = [];
     final listMedium = MediumCategoryExt.getAllCategories();
-    for (final mediumCatelog in listMedium) {
+    for (final mediumCatalog in listMedium) {
       final predefinedCollections =
           await _predefinedCollectionDao.getPredefinedCollectionsByMedium(
         title: filterStr,
-        mimeTypes: MediumCategory.mineTypes(mediumCatelog),
-        mediums: MediumCategoryExt.mediums(mediumCatelog),
+        mimeTypes: MediumCategory.mineTypes(mediumCatalog),
+        mediums: MediumCategoryExt.mediums(mediumCatalog),
       );
       if (predefinedCollections.isNotEmpty &&
           predefinedCollections.first.total > 0) {
-        final predefinedCollection = predefinedCollections.first;
-        predefinedCollection.name = MediumCategoryExt.getName(mediumCatelog);
-        predefinedCollection.id = mediumCatelog;
+        final predefinedCollection = predefinedCollections.first
+          ..name = MediumCategoryExt.getName(mediumCatalog)
+          ..id = mediumCatalog;
         listPredefinedCollectionByMedium.add(predefinedCollection);
       }
     }
@@ -104,17 +104,16 @@ class CollectionProBloc
 
     if (predefinedCollections.isNotEmpty &&
         predefinedCollections.first.total > 0) {
-      final predefinedCollection = predefinedCollections.first;
-      predefinedCollection.name =
-          MediumCategoryExt.getName(MediumCategory.other);
-      predefinedCollection.id = MediumCategory.other;
+      final predefinedCollection = predefinedCollections.first
+        ..name = MediumCategoryExt.getName(MediumCategory.other)
+        ..id = MediumCategory.other;
       listPredefinedCollectionByMedium.add(predefinedCollection);
     }
     return listPredefinedCollectionByMedium;
   }
 
   Future<List<CompactedAssetToken>> _getAllTokenFilterByTitleOrArtist(
-      {String filterStr = ""}) async {
+      {String filterStr = ''}) async {
     List<CompactedAssetToken> works = [];
     final hiddenTokenIDs = _configurationService.getHiddenOrSentTokenIDs();
     if (filterStr.isNotEmpty) {
