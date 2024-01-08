@@ -1,10 +1,10 @@
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
-
 class ExhibitionEventView extends StatelessWidget {
   final ExhibitionEvent exhibitionEvent;
   final double width;
@@ -73,9 +73,9 @@ class ExhibitionEventView extends StatelessWidget {
             if (eventUrl != null)
               GestureDetector(
                 onTap: () async {
-                  // open eventUrl in external browser
-                  await launchUrl(Uri.parse(eventUrl),
-                      mode: LaunchMode.externalApplication);
+                  await Navigator.of(context).pushNamed(
+                      AppRouter.inappWebviewPage,
+                      arguments: InAppWebViewPayload(eventUrl));
                 },
                 child: Text(
                   'watch_more'.tr(),
