@@ -33,44 +33,39 @@ extension MediumCategoryExt on MediumCategory {
     }
   }
 
-  static List<String> getAllCategories() {
-    return [
-      MediumCategory.image,
-      MediumCategory.video,
-      MediumCategory.model,
-      MediumCategory.webView,
-    ];
-  }
+  static List<String> getAllCategories() => [
+        MediumCategory.image,
+        MediumCategory.video,
+        MediumCategory.model,
+        MediumCategory.webView,
+      ];
 
-  static List<String> getAllMimeType() {
-    return getAllCategories()
-        .map((e) => MediumCategory.mineTypes(e))
-        .flattened
-        .toList();
-  }
+  static List<String> getAllMimeType() => getAllCategories()
+      .map((e) => MediumCategory.mineTypes(e))
+      .flattened
+      .toList();
 
-  static List<String> getAllMediums() {
-    return getAllCategories().map((e) => mediums(e)).flattened.toList();
-  }
+  static List<String> getAllMediums() =>
+      getAllCategories().map((e) => mediums(e)).flattened.toList();
 
   static List<String> mediums(String category) {
     switch (category) {
       case MediumCategory.image:
         return [
-          "image",
-          "gif",
+          'image',
+          'gif',
         ];
       case MediumCategory.video:
         return [
-          "video",
+          'video',
         ];
       case MediumCategory.model:
         return [
-          "model",
+          'model',
         ];
       case MediumCategory.webView:
         return [
-          "software",
+          'software',
         ];
     }
     return [];

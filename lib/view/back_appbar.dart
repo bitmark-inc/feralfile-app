@@ -403,7 +403,11 @@ AppBar getFFAppBar(
       automaticallyImplyLeading: false,
       title: title,
       actions: [
-        if (action != null) action else const SizedBox(width: 36),
+        if (action != null)
+          Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6), child: action)
+        else
+          const SizedBox(width: 36),
       ],
       backgroundColor: Colors.transparent,
       shadowColor: Colors.transparent,

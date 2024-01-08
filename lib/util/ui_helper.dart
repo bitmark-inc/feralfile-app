@@ -1122,7 +1122,7 @@ class UIHelper {
                     const EdgeInsets.symmetric(horizontal: 15, vertical: 128),
                 child: DecoratedBox(
                   decoration: BoxDecoration(
-                    color: AppColor.auSuperTeal,
+                    color: AppColor.feralFileHighlight,
                     borderRadius: BorderRadius.circular(5),
                   ),
                   child: Padding(
@@ -1159,7 +1159,7 @@ class UIHelper {
                                 onPressed: actionButtonOnTap,
                                 borderColor: AppColor.primaryBlack,
                                 textColor: AppColor.primaryBlack,
-                                backgroundColor: AppColor.auSuperTeal,
+                                backgroundColor: AppColor.feralFileHighlight,
                               ),
                               const SizedBox(
                                 height: 15,
@@ -1174,7 +1174,7 @@ class UIHelper {
                               },
                           borderColor: AppColor.primaryBlack,
                           textColor: AppColor.primaryBlack,
-                          backgroundColor: AppColor.auSuperTeal,
+                          backgroundColor: AppColor.feralFileHighlight,
                         ),
                       ],
                     ),
@@ -1315,7 +1315,7 @@ class UIHelper {
         barrierColor: Colors.black.withOpacity(0.5),
         isScrollControlled: true,
         builder: (context) => Container(
-              color: theme.auSuperTeal,
+              color: AppColor.feralFileHighlight,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [

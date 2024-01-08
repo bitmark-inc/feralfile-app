@@ -71,6 +71,7 @@ class _MoMAPostcardPageState extends State<MoMAPostcardPage> {
       ),
     );
     return SafeArea(
+      top: false,
       child: Scaffold(
         appBar: getBackAppBar(
           context,
@@ -93,7 +94,6 @@ class _MoMAPostcardPageState extends State<MoMAPostcardPage> {
   Widget _loadingView(BuildContext context) => Center(
           child: Column(
         children: [
-          // _header(context),
           loadingIndicator(),
         ],
       ));

@@ -61,11 +61,10 @@ class EditPlaylistState {
     PlayListModel? playListModel,
     List<String>? selectedItem,
     bool isAddSuccess = false,
-  }) {
-    return EditPlaylistState(
-      playListModel: playListModel ?? this.playListModel,
-      selectedItem: selectedItem ?? this.selectedItem,
-      isAddSuccess: isAddSuccess,
-    );
-  }
+  }) =>
+      EditPlaylistState(
+        playListModel: playListModel ?? this.playListModel,
+        selectedItem: selectedItem ?? this.selectedItem,
+        isAddSuccess: isAddSuccess,
+      );
 }

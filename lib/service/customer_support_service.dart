@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -19,6 +20,7 @@ import 'package:autonomy_flutter/model/customer_support.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/device.dart';
@@ -32,8 +34,6 @@ import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-
-import 'metric_client_service.dart';
 
 class CustomerSupportUpdate {
   DraftCustomerSupport draft;
@@ -133,7 +133,9 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
         (element) => element.reportIssueType == ReportIssueType.ReportNFTIssue);
 
     for (var draft in drafts) {
-      if (draft.type != CSMessageType.CreateIssue.rawValue) continue;
+      if (draft.type != CSMessageType.CreateIssue.rawValue) {
+        continue;
+      }
 
       final draftData = draft.draftData;
 
@@ -174,9 +176,8 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
   }
 
   @override
-  Future<IssueDetails> getDetails(String issueID) async {
-    return await _customerSupportApi.getDetails(issueID);
-  }
+  Future<IssueDetails> getDetails(String issueID) async =>
+      await _customerSupportApi.getDetails(issueID);
 
   @override
   Future draftMessage(DraftCustomerSupport draft) async {
@@ -225,29 +226,35 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
   @override
   Future processMessages() async {
     log.info('[CS-Service][trigger] processMessages');
-    if (_isProcessingDraftMessages) return;
+    if (_isProcessingDraftMessages) {
+      return;
+    }
     final fetchLimit = errorMessages.length + 1;
     log.info('[CS-Service][start] processMessages');
     final draftMsgsRaw = await _draftCustomerSupportDao.fetchDrafts(fetchLimit);
-    if (draftMsgsRaw.isEmpty) return;
+    if (draftMsgsRaw.isEmpty) {
+      return;
+    }
     final draftMsg = draftMsgsRaw
         .firstWhereOrNull((element) => !errorMessages.contains(element.uuid));
-    if (draftMsg == null) return;
+    if (draftMsg == null) {
+      return;
+    }
     log.info('[CS-Service][start] processMessages hasDraft');
     _isProcessingDraftMessages = true;
 
     retryTime++;
 
     // Edge Case when database has not updated the new issueID for new comments
-    if (draftMsg.type != 'CreateIssue' && draftMsg.issueID.contains("TEMP")) {
+    if (draftMsg.type != 'CreateIssue' && draftMsg.issueID.contains('TEMP')) {
       final newIssueID = tempIssueIDMap[draftMsg.issueID];
       if (newIssueID != null) {
         await _draftCustomerSupportDao.updateIssueID(
             draftMsg.issueID, newIssueID);
       } else {
         if (!draftMsgsRaw.any((element) =>
-            ((element.issueID == draftMsg.issueID) &&
-                (element.uuid != draftMsg.uuid)))) {
+            (element.issueID == draftMsg.issueID) &&
+            (element.uuid != draftMsg.uuid))) {
           await _draftCustomerSupportDao.deleteDraft(draftMsg);
         } else {
           sendMessageFail(draftMsg.uuid);
@@ -297,7 +304,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
             data.text,
             sendAttachments,
             title: data.title,
-            mutedText: draftMsg.mutedMessages.split("[SEPARATOR]"),
+            mutedText: draftMsg.mutedMessages.split('[SEPARATOR]'),
             announcementID: data.announcementId,
           );
           tempIssueIDMap[draftMsg.issueID] = result.issueID;
@@ -339,9 +346,8 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
   }
 
   @override
-  Future<List<DraftCustomerSupport>> getDrafts(String issueID) async {
-    return _draftCustomerSupportDao.getDrafts(issueID);
-  }
+  Future<List<DraftCustomerSupport>> getDrafts(String issueID) async =>
+      _draftCustomerSupportDao.getDrafts(issueID);
 
   Future<PostedMessageResponse> createIssue(
     String reportIssueType,
@@ -359,27 +365,27 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     // add tags
     var tags = [reportIssueType];
     if (Platform.isIOS) {
-      tags.add("iOS");
+      tags.add('iOS');
     } else if (Platform.isAndroid) {
-      tags.add("android");
+      tags.add('android');
     }
 
     // Muted Message
-    var mutedMessage = "";
+    var mutedMessage = '';
     final deviceID = await getDeviceID();
     if (deviceID != null) {
-      mutedMessage += "**DeviceID**: $deviceID\n";
+      mutedMessage += '**DeviceID**: $deviceID\n';
     }
 
     final version = (await PackageInfo.fromPlatform()).version;
-    mutedMessage += "**Version**: $version\n";
+    mutedMessage += '**Version**: $version\n';
 
     final deviceInfo = await DeviceInfo.instance.getUserDeviceInfo();
-    mutedMessage += "**DeviceName**: ${deviceInfo.machineName}\n";
-    mutedMessage += "**OSVersion**: ${deviceInfo.oSVersion}\n";
+    mutedMessage += '**DeviceName**: ${deviceInfo.machineName}\n';
+    mutedMessage += '**OSVersion**: ${deviceInfo.oSVersion}\n';
 
-    for (var mutedMsg in (mutedText ?? [])) {
-      mutedMessage += "$mutedMsg\n";
+    for (var mutedMsg in mutedText ?? []) {
+      mutedMessage += '$mutedMsg\n';
     }
 
     final submitMessage = "[MUTED]\n$mutedMessage[/MUTED]\n\n${message ?? ''}";
@@ -389,7 +395,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
       'title': issueTitle,
       'message': submitMessage,
       'tags': tags,
-      'announcement_context_id': announcementID ?? "",
+      'announcement_context_id': announcementID ?? '',
     };
 
     return await _customerSupportApi.createIssue(payload);
@@ -426,14 +432,12 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
   }
 
   @override
-  Future reopen(String issueID) async {
-    return _customerSupportApi.reOpenIssue(issueID);
-  }
+  Future reopen(String issueID) async =>
+      _customerSupportApi.reOpenIssue(issueID);
 
   @override
-  Future rateIssue(String issueID, int rating) async {
-    return _customerSupportApi.rateIssue(issueID, rating);
-  }
+  Future rateIssue(String issueID, int rating) async =>
+      _customerSupportApi.rateIssue(issueID, rating);
 
   @override
   Future<List<ChatThread>> getIssuesAndAnnouncement() async {
@@ -450,8 +454,9 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
             return false;
           }));
     }
-    result.addAll(issues);
-    result.addAll(announcements);
+    result
+      ..addAll(issues)
+      ..addAll(announcements);
     numberOfIssuesInfo.value = [
       result.length,
       result
@@ -494,14 +499,14 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
       if (await _announcementDao
               .getAnnouncement(announcement.announcementContextId) ==
           null) {
-        metricClient.addEvent(
+        unawaited(metricClient.addEvent(
           MixpanelEvent.receiveAnnouncement,
           data: {
-            "id": announcement.announcementContextId,
-            "type": announcement.type,
-            "title": announcement.title,
+            'id': announcement.announcementContextId,
+            'type': announcement.type,
+            'title': announcement.title,
           },
-        );
+        ));
       }
       await _announcementDao
           .insertAnnouncement(AnnouncementLocal.fromAnnouncement(announcement));
@@ -515,22 +520,22 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
 
   @override
   Future<void> createAnnouncement(AnnouncementID type) async {
-    final body = {"announcement_context_id": type.value};
+    final body = {'announcement_context_id': type.value};
     await _announcementApi.callAnnouncement(body);
     await fetchAnnouncement();
     final announcement = await _announcementDao.getAnnouncement(type.value);
     if (announcement != null) {
       await getIssuesAndAnnouncement();
       showInfoNotification(
-          const Key("Announcement"), "au_has_announcement".tr(),
+          const Key('Announcement'), 'au_has_announcement'.tr(),
           addOnTextSpan: [
             TextSpan(
-                text: "tap_to_view".tr(),
+                text: 'tap_to_view'.tr(),
                 style: Theme.of(injector<NavigationService>()
                         .navigatorKey
                         .currentContext!)
                     .textTheme
-                    .ppMori400Green14),
+                    .ppMori400FFYellow14),
           ], openHandler: () {
         injector<NavigationService>().navigateTo(
           AppRouter.supportThreadPage,
@@ -557,7 +562,6 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
   }
 
   @override
-  Future<AnnouncementLocal?> findAnnouncement(String announcementID) async {
-    return await _announcementDao.getAnnouncement(announcementID);
-  }
+  Future<AnnouncementLocal?> findAnnouncement(String announcementID) async =>
+      await _announcementDao.getAnnouncement(announcementID);
 }

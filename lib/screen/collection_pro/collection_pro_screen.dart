@@ -53,7 +53,6 @@ class CollectionProState extends State<CollectionPro>
   late ScrollController _scrollController;
   late ValueNotifier<String> searchStr;
   late bool isShowSearchBar;
-  late bool isShowFullHeader;
   final GlobalKey<CollectionSectionState> _collectionSectionKey = GlobalKey();
 
   @override
@@ -64,7 +63,6 @@ class CollectionProState extends State<CollectionPro>
       loadCollection();
     });
     isShowSearchBar = false;
-    isShowFullHeader = true;
     _scrollController = widget.scrollController;
     loadCollection();
     super.initState();
@@ -208,7 +206,7 @@ class CollectionProState extends State<CollectionPro>
                         ),
                       ),
                       const SliverToBoxAdapter(
-                        child: SizedBox(height: 40),
+                        child: SizedBox(height: 100),
                       ),
                     ],
                   );
@@ -583,10 +581,6 @@ class CollectionSectionState extends State<CollectionSection>
   late bool isDemo;
 
   Future<List<PlayListModel>?> getPlaylist({bool withDefault = false}) async {
-    final isSubscribed = _configurationService.isPremium();
-    if (!isSubscribed && !isDemo) {
-      return null;
-    }
     if (isDemo) {
       return _versionService.getDemoAccountFromGithub();
     }

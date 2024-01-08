@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
@@ -32,8 +34,8 @@ class ViewPlaylistBloc extends AuBloc<ViewPlaylistEvent, ViewPlaylistState> {
           playlists.indexWhere((element) => element.id == playListModel?.id);
       if (index != -1 && playListModel != null) {
         playlists[index] = playListModel;
-        _playlistService.setPlayList(playlists, override: true);
-        injector.get<SettingsDataService>().backup();
+        await _playlistService.setPlayList(playlists, override: true);
+        unawaited(injector.get<SettingsDataService>().backup());
       }
       emit(state.copyWith(isRename: false));
     });
@@ -47,8 +49,8 @@ class ViewPlaylistBloc extends AuBloc<ViewPlaylistEvent, ViewPlaylistState> {
           playlists.indexWhere((element) => element.id == playListModel?.id);
       if (index != -1 && playListModel != null) {
         playlists[index] = playListModel;
-        _playlistService.setPlayList(playlists, override: true);
-        injector.get<SettingsDataService>().backup();
+        await _playlistService.setPlayList(playlists, override: true);
+        unawaited(injector.get<SettingsDataService>().backup());
       }
       emit(state.copyWith(playListModel: playListModel));
     });

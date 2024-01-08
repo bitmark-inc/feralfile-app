@@ -179,9 +179,9 @@ MarkdownStyleSheet markDownAnnouncementStyle(BuildContext context) {
   final theme = Theme.of(context);
   final bodyText2 = theme.textTheme.ppMori400White12;
   return MarkdownStyleSheet(
-    a: TextStyle(
+    a: const TextStyle(
       fontFamily: AppTheme.ppMori,
-      color: theme.auSuperTeal,
+      color: AppColor.feralFileHighlight,
       fontWeight: FontWeight.w400,
       fontSize: 14,
     ),
@@ -364,7 +364,7 @@ MarkdownStyleSheet markDownChangeLogStyle(BuildContext context) {
     blockquotePadding: const EdgeInsets.only(left: 20),
     blockquoteDecoration: const BoxDecoration(
       border: Border(
-        left: BorderSide(width: 2, color: AppColor.auSuperTeal),
+        left: BorderSide(width: 2, color: AppColor.feralFileHighlight),
       ),
     ),
     codeblockPadding: const EdgeInsets.all(8),
@@ -373,7 +373,7 @@ MarkdownStyleSheet markDownChangeLogStyle(BuildContext context) {
       borderRadius: BorderRadius.circular(2),
     ),
     horizontalRuleDecoration: CustomBoxDecoration(
-      color: AppColor.auSuperTeal,
+      color: AppColor.feralFileHighlight,
     ),
   );
 }
@@ -485,16 +485,14 @@ Divider addDivider({double height = 32, Color? color}) => Divider(
 Divider headDivider() => const Divider(
       height: 30,
       thickness: 3,
-      color: AppColor.auSuperTeal,
+      color: AppColor.feralFileHighlight,
     );
 
-Divider addOnlyDivider({Color? color, double border = 1.0}) {
-  return Divider(
-    height: 1.0,
-    thickness: border,
-    color: color,
-  );
-}
+Divider addOnlyDivider({Color? color, double border = 1.0}) => Divider(
+      height: 1,
+      thickness: border,
+      color: color,
+    );
 
 Divider addBoldDivider() => const Divider(
       height: 1,
@@ -608,7 +606,7 @@ class MomaPallet {
 
 Map<String, String>? auHtmlStyle(dom.Element element) {
   if (element.localName == 'a') {
-    const linkColor = AppColor.auSuperTeal;
+    const linkColor = AppColor.feralFileHighlight;
     // convert linkColor to hex string
     String hexColor =
         "#${(linkColor.value & 0xFFFFFF).toRadixString(16).padLeft(6, '0')}";

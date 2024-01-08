@@ -18,9 +18,7 @@ import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -190,11 +188,9 @@ class _OnboardingPageState extends State<OnboardingPage>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    final height = MediaQuery.of(context).size.height;
-    final paddingTop = (height - 640).clamp(0.0, 104).toDouble();
-
     return Scaffold(
         appBar: getDarkEmptyAppBar(),
+        backgroundColor: AppColor.primaryBlack,
         body: BlocConsumer<RouterBloc, RouterState>(
           listener: (context, state) async {
             switch (state.onboardingStep) {
@@ -231,86 +227,50 @@ class _OnboardingPageState extends State<OnboardingPage>
                   child: _swiper(context));
             }
 
+            final button = ((fromBranchLink ||
+                        fromDeeplink ||
+                        fromIrlLink ||
+                        (state.onboardingStep == OnboardingStep.undefined)) &&
+                    (state.onboardingStep != OnboardingStep.restore))
+                ? PrimaryButton(
+                    text: 'h_loading...'.tr(),
+                    isProcessing: true,
+                  )
+                : (state.onboardingStep == OnboardingStep.restore)
+                    ? PrimaryButton(
+                        text: 'restoring'.tr(),
+                        isProcessing: true,
+                        enabled: false,
+                      )
+                    : null;
+
             return Padding(
-              padding: ResponsiveLayout.pageEdgeInsets.copyWith(bottom: 40),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              padding: ResponsiveLayout.pageHorizontalEdgeInsets
+                  .copyWith(bottom: 40),
+              child: Stack(
                 children: [
-                  const SizedBox(height: 40),
-                  _logo(maxWidthLogo: 50),
-                  SizedBox(height: paddingTop),
-                  addBoldDivider(),
-                  Text('collect'.tr(), style: theme.textTheme.ppMori700Black36),
-                  const SizedBox(height: 20),
-                  addBoldDivider(),
-                  Text('view'.tr(), style: theme.textTheme.ppMori700Black36),
-                  const SizedBox(height: 20),
-                  addBoldDivider(),
-                  Text('discover'.tr(),
-                      style: theme.textTheme.ppMori700Black36),
-                  const Spacer(),
-                  if ((fromBranchLink ||
-                          fromDeeplink ||
-                          fromIrlLink ||
-                          (state.onboardingStep == OnboardingStep.undefined)) &&
-                      (state.onboardingStep != OnboardingStep.restore)) ...[
-                    PrimaryButton(
-                      text: 'h_loading...'.tr(),
-                      isProcessing: true,
-                    )
-                  ] else if (state.onboardingStep ==
-                      OnboardingStep.startScreen) ...[
-                    Text('create_wallet_description'.tr(),
-                        style: theme.textTheme.ppMori400Grey14),
-                    const SizedBox(height: 20),
-                    PrimaryButton(
-                      text: 'create_a_new_wallet'.tr(),
-                      onTap: () async {
-                        await Navigator.of(context)
-                            .pushNamed(ChooseChainPage.tag);
-                      },
+                  Padding(
+                    padding: const EdgeInsets.only(top: 15),
+                    child: Center(
+                      child: SvgPicture.asset(
+                        'assets/images/feral_file_onboarding.svg',
+                      ),
                     ),
-                    const SizedBox(height: 20),
-                    Center(
-                      child: Text('or'.tr().toUpperCase(),
-                          style: theme.textTheme.ppMori400Grey14),
+                  ),
+                  Positioned.fill(
+                    child: Column(
+                      children: [
+                        const Spacer(),
+                        button ?? const SizedBox(),
+                      ],
                     ),
-                    const SizedBox(height: 20),
-                    Text('view_existing_address_des'.tr(),
-                        style: theme.textTheme.ppMori400Grey14),
-                    const SizedBox(height: 20),
-                    PrimaryButton(
-                      text: 'view_existing_address'.tr(),
-                      onTap: () async {
-                        await Navigator.of(context).pushNamed(
-                            ViewExistingAddress.tag,
-                            arguments: ViewExistingAddressPayload(true));
-                      },
-                    ),
-                  ] else if (state.onboardingStep ==
-                      OnboardingStep.restore) ...[
-                    PrimaryButton(
-                      text: 'restoring'.tr(),
-                      isProcessing: true,
-                      enabled: false,
-                    ),
-                  ]
+                  ),
                 ],
               ),
             );
           },
         ));
   }
-
-  Widget _logo({double? maxWidthLogo}) => FutureBuilder<bool>(
-      // ignore: discarded_futures
-      future: isAppCenterBuild(),
-      builder: (context, snapshot) => SizedBox(
-            width: maxWidthLogo,
-            child: Image.asset(snapshot.data == true
-                ? 'assets/images/inhouse_logo.png'
-                : 'assets/images/moma_logo.png'),
-          ));
 
   Widget _onboardingItem(BuildContext context,
       {required String title,
@@ -343,13 +303,13 @@ class _OnboardingPageState extends State<OnboardingPage>
 
   Widget _swiper(BuildContext context) {
     final theme = Theme.of(context);
-    final exploreArtworks = [
-      'Licia He, Fictional Lullaby',
+    final List<Map<String, String>> exploreArtworks = [
+      {'Licia He': 'Fictional Lullaby'},
     ];
-    final streamArtworks = [
-      'Refik Anadol, Unsupervised',
-      'Nancy Baker Cahill, Slipstream 001',
-      'Refik Anadol, Unsupervised'
+    final List<Map<String, String>> streamArtworks = [
+      {'Refik Anadol': 'Unsupervised'},
+      {'Nancy Baker Cahill': 'Slipstream 001'},
+      {'Refik Anadol': 'Unsupervised'}
     ];
     final pages = [
       Center(
@@ -365,9 +325,21 @@ class _OnboardingPageState extends State<OnboardingPage>
               text: 'artwork_'.tr(),
               style: theme.textTheme.ppMori400Grey12,
               children: exploreArtworks
-                  .map((e) => TextSpan(
-                        text: e,
-                      ))
+                  .mapIndexed((index, e) => [
+                        TextSpan(
+                          text: e.keys.first,
+                        ),
+                        const TextSpan(text: ', '),
+                        TextSpan(
+                          text: e.values.first,
+                          style: const TextStyle(
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                        if (index != exploreArtworks.length - 1)
+                          const TextSpan(text: '; ')
+                      ])
+                  .flattened
                   .toList()),
         ),
       ),
@@ -387,7 +359,14 @@ class _OnboardingPageState extends State<OnboardingPage>
               children: streamArtworks
                   .mapIndexed((index, e) => [
                         TextSpan(
-                          text: e,
+                          text: e.keys.first,
+                        ),
+                        const TextSpan(text: ', '),
+                        TextSpan(
+                          text: e.values.first,
+                          style: const TextStyle(
+                            fontStyle: FontStyle.italic,
+                          ),
                         ),
                         if (index != streamArtworks.length - 1)
                           const TextSpan(text: '; ')

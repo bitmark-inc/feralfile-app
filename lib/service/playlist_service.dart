@@ -1,8 +1,7 @@
 import 'package:autonomy_flutter/model/play_list_model.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:nft_collection/database/dao/dao.dart';
-
-import 'account_service.dart';
 
 abstract class PlaylistService {
   Future<List<PlayListModel>> getPlayList();
@@ -48,9 +47,7 @@ class PlayListServiceImp implements PlaylistService {
     return playlists;
   }
 
-  List<PlayListModel> _getRawPlayList() {
-    return _configurationService.getPlayList();
-  }
+  List<PlayListModel> _getRawPlayList() => _configurationService.getPlayList();
 
   @override
   Future<void> setPlayList(
@@ -58,7 +55,7 @@ class PlayListServiceImp implements PlaylistService {
     bool override = false,
     ConflictAction onConflict = ConflictAction.abort,
   }) async {
-    _configurationService.setPlayList(playlists,
+    await _configurationService.setPlayList(playlists,
         override: override, onConflict: onConflict);
     return;
   }
@@ -70,12 +67,12 @@ class PlayListServiceImp implements PlaylistService {
     final playlists = _getRawPlayList();
     for (int i = 0; i < playlists.length; i++) {
       playlists[i].tokenIDs?.removeWhere((tokenID) => !ids.contains(tokenID));
-      if ((playlists[i].tokenIDs?.isEmpty ?? true) == true) {
+      if (playlists[i].tokenIDs?.isEmpty ?? true) {
         playlists.removeAt(i);
         i--;
       }
     }
-    setPlayList(playlists, override: true);
+    await setPlayList(playlists, override: true);
   }
 
   @override

@@ -22,8 +22,7 @@ import 'package:url_launcher/url_launcher_string.dart';
 class ReleaseNotesPage extends StatefulWidget {
   final String releaseNotes;
 
-  const ReleaseNotesPage({required this.releaseNotes, Key? key})
-      : super(key: key);
+  const ReleaseNotesPage({required this.releaseNotes, super.key});
 
   @override
   State<ReleaseNotesPage> createState() => _ReleaseNotesPageState();
@@ -43,7 +42,7 @@ class _ReleaseNotesPageState extends State<ReleaseNotesPage> {
     return Scaffold(
       appBar: getBackAppBar(
         context,
-        title: "release_notes".tr(),
+        title: 'release_notes'.tr(),
         onBack: () => Navigator.of(context).pop(),
       ),
       body: Container(
@@ -58,32 +57,32 @@ class _ReleaseNotesPageState extends State<ReleaseNotesPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 60.0),
+                    const SizedBox(height: 60),
                     Text(
-                      "believe_transparency".tr(),
+                      'believe_transparency'.tr(),
                       style: theme.textTheme.ppMori700Black16,
                     ),
                     Row(
                       children: [
                         Text(
-                          "autonomy_is_".tr(),
+                          'autonomy_is_'.tr(),
                           style: theme.textTheme.ppMori400Black16,
                         ),
                         GestureDetector(
                           child: Text(
-                            "open_source".tr(),
+                            'open_source'.tr(),
                             style: theme.textTheme.ppMori400Black16
                                 .copyWith(decoration: TextDecoration.underline),
                           ),
-                          onTap: () => launchUrl(
+                          onTap: () async => launchUrl(
                               Uri.parse(AUTONOMY_CLIENT_GITHUB_LINK),
                               mode: LaunchMode.externalApplication),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 30.0),
-                    Divider(
-                      color: theme.auSuperTeal,
+                    const SizedBox(height: 30),
+                    const Divider(
+                      color: AppColor.feralFileHighlight,
                       thickness: 1,
                     ),
                     Markdown(
@@ -100,13 +99,15 @@ class _ReleaseNotesPageState extends State<ReleaseNotesPage> {
                         TagBlockSyntax(),
                       ],
                       onTapLink: (text, href, title) async {
-                        if (href == null) return;
+                        if (href == null) {
+                          return;
+                        }
                         if (DEEP_LINKS
                             .any((prefix) => href.startsWith(prefix))) {
                           injector<DeeplinkService>()
                               .handleDeeplink(href, delay: Duration.zero);
                         } else if (await canLaunchUrlString(href)) {
-                          launchUrlString(href,
+                          await launchUrlString(href,
                               mode: LaunchMode.externalApplication);
                         }
                       },

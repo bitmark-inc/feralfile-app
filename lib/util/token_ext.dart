@@ -24,8 +24,7 @@ extension AssetTokenExtension on List<CompactedAssetToken> {
         )).toList();
   }
 
-  List<CompactedAssetToken> filterByTitleContain(String title) {
-    return where((element) =>
-        element.title!.toLowerCase().contains(title.toLowerCase())).toList();
-  }
+  List<CompactedAssetToken> filterByTitleContain(String title) =>
+      where((element) =>
+          element.title!.toLowerCase().contains(title.toLowerCase())).toList();
 }

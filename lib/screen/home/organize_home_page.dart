@@ -21,24 +21,18 @@ import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
-import 'package:autonomy_flutter/service/locale_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/service/settings_data_service.dart';
-import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/token_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'package:nft_collection/models/models.dart';
 import 'package:nft_collection/nft_collection.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 
 class OrganizeHomePage extends StatefulWidget {
   const OrganizeHomePage({super.key});
@@ -79,7 +73,6 @@ class OrganizeHomePageState extends State<OrganizeHomePage>
     super.initState();
     _metricClient = injector.get<MetricClientService>();
     WidgetsBinding.instance.addObserver(this);
-    _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
     _controller = ScrollController();
     NftCollectionBloc.eventController.stream.listen((event) async {
       switch (event.runtimeType) {
@@ -111,7 +104,6 @@ class OrganizeHomePageState extends State<OrganizeHomePage>
 
   @override
   void afterFirstLayout(BuildContext context) {
-    unawaited(_handleForeground());
     unawaited(injector<AutonomyService>().postLinkedAddresses());
   }
 
@@ -122,30 +114,6 @@ class OrganizeHomePageState extends State<OrganizeHomePage>
     unawaited(_fgbgSubscription?.cancel());
     _controller.dispose();
     super.dispose();
-  }
-
-  @override
-  Future<void> didPopNext() async {
-    super.didPopNext();
-    final connectivityResult = await Connectivity().checkConnectivity();
-    unawaited(_clientTokenService.refreshTokens());
-    if (connectivityResult == ConnectivityResult.mobile ||
-        connectivityResult == ConnectivityResult.wifi) {
-      Future.delayed(const Duration(milliseconds: 1000), () async {
-        if (!mounted) {
-          return;
-        }
-        nftBloc
-            .add(RequestIndexEvent(await _clientTokenService.getAddresses()));
-      });
-    }
-    memoryValues.inGalleryView = true;
-  }
-
-  @override
-  void didPushNext() {
-    memoryValues.inGalleryView = false;
-    super.didPushNext();
   }
 
   Future<void> _onTokensUpdate(List<CompactedAssetToken> tokens) async {
@@ -239,38 +207,6 @@ class OrganizeHomePageState extends State<OrganizeHomePage>
     unawaited(_controller.animateTo(0,
         duration: const Duration(milliseconds: 500),
         curve: Curves.fastOutSlowIn));
-  }
-
-  Future<void> _handleForeBackground(FGBGType event) async {
-    switch (event) {
-      case FGBGType.foreground:
-        unawaited(_handleForeground());
-        break;
-      case FGBGType.background:
-        break;
-    }
-  }
-
-  Future<void> _handleForeground() async {
-    final locale = Localizations.localeOf(context);
-    unawaited(LocaleService.refresh(locale));
-    memoryValues.inForegroundAt = DateTime.now();
-    await injector<ConfigurationService>().reload();
-    try {
-      await injector<SettingsDataService>().restoreSettingsData();
-    } catch (exception) {
-      if (exception is DioException && exception.response?.statusCode == 404) {
-        // if there is no backup, upload one.
-        await injector<SettingsDataService>().backup();
-      } else {
-        unawaited(Sentry.captureException(exception));
-      }
-    }
-
-    unawaited(_clientTokenService.refreshTokens(checkPendingToken: true));
-    unawaited(_metricClient.addEvent('device_foreground'));
-    unawaited(injector<VersionService>().checkForUpdate());
-    // Reload token in Isolate
   }
 
   @override

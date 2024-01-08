@@ -58,7 +58,7 @@ class ParticipateUserTestPage extends StatelessWidget {
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(10),
-                        color: AppColor.auSuperTeal,
+                        color: AppColor.feralFileHighlight,
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,

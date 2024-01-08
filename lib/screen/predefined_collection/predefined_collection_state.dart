@@ -14,19 +14,18 @@ class PredefinedCollectionLoadedState extends PredefinedCollectionState {
   final NftLoadingState nftLoadingState;
 
   PredefinedCollectionLoadedState({
-    this.assetTokens,
     required this.nftLoadingState,
+    this.assetTokens,
   });
 
   PredefinedCollectionLoadedState copyWith({
     List<CompactedAssetToken>? assetTokens,
     NftLoadingState? nftLoadingState,
-  }) {
-    return PredefinedCollectionLoadedState(
-      assetTokens: assetTokens ?? this.assetTokens,
-      nftLoadingState: nftLoadingState ?? this.nftLoadingState,
-    );
-  }
+  }) =>
+      PredefinedCollectionLoadedState(
+        assetTokens: assetTokens ?? this.assetTokens,
+        nftLoadingState: nftLoadingState ?? this.nftLoadingState,
+      );
 }
 
 class LoadPredefinedCollectionEvent extends PredefinedCollectionEvent {
@@ -35,8 +34,8 @@ class LoadPredefinedCollectionEvent extends PredefinedCollectionEvent {
   final String filterStr;
 
   LoadPredefinedCollectionEvent({
-    this.id,
     required this.type,
     required this.filterStr,
+    this.id,
   });
 }

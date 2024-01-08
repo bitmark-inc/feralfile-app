@@ -85,7 +85,7 @@ class _CanvasDeviceViewState extends State<CanvasDeviceView> {
                     ),
                     TextSpan(
                       text: 'compatible_platforms'.tr(),
-                      style: theme.textTheme.ppMori400Green14,
+                      style: theme.textTheme.ppMori400FFYellow14,
                       recognizer: TapGestureRecognizer()
                         ..onTap = () async => Navigator.of(context)
                             .pushNamed(AppRouter.canvasHelpPage),
@@ -159,13 +159,13 @@ class _CanvasDeviceViewState extends State<CanvasDeviceView> {
                 children: [
                   Text(
                     'add_new_frame'.tr(),
-                    style: theme.textTheme.ppMori400Green14,
+                    style: theme.textTheme.ppMori400FFYellow14,
                   ),
                   const Spacer(),
                   SvgPicture.asset(
                     'assets/images/joinFile.svg',
                     colorFilter: const ColorFilter.mode(
-                        AppColor.auSuperTeal, BlendMode.srcIn),
+                        AppColor.feralFileHighlight, BlendMode.srcIn),
                   ),
                 ],
               ),
@@ -252,15 +252,15 @@ class _CanvasDeviceViewState extends State<CanvasDeviceView> {
             Container(
               decoration: BoxDecoration(
                 color: Colors.transparent,
-                border: Border.all(color: AppColor.auSuperTeal),
+                border: Border.all(color: AppColor.feralFileHighlight),
                 borderRadius: BorderRadius.circular(15),
               ),
               padding: const EdgeInsets.symmetric(
                 horizontal: 10,
                 vertical: 5,
               ),
-              child:
-                  Text('playing'.tr(), style: theme.textTheme.ppMori400Green12),
+              child: Text('playing'.tr(),
+                  style: theme.textTheme.ppMori400FFYellow14),
             ),
             const SizedBox(width: 20),
             GestureDetector(
@@ -303,8 +303,8 @@ class _CanvasDeviceViewState extends State<CanvasDeviceView> {
           },
           child: SvgPicture.asset(
             'assets/images/help_icon.svg',
-            colorFilter:
-                const ColorFilter.mode(AppColor.auSuperTeal, BlendMode.srcIn),
+            colorFilter: const ColorFilter.mode(
+                AppColor.feralFileHighlight, BlendMode.srcIn),
           ),
         );
     }

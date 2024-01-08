@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/import_seeds.dart';
@@ -21,8 +23,7 @@ class ViewExistingAddress extends StatefulWidget {
   static const String tag = 'view_existing_address';
   final ViewExistingAddressPayload payload;
 
-  const ViewExistingAddress({Key? key, required this.payload})
-      : super(key: key);
+  const ViewExistingAddress({required this.payload, super.key});
 
   @override
   State<ViewExistingAddress> createState() => _ViewExistingAddressState();
@@ -38,7 +39,7 @@ class _ViewExistingAddressState extends State<ViewExistingAddress> {
     final theme = Theme.of(context);
     return Scaffold(
       appBar: getBackAppBar(context,
-          title: "view_existing_address".tr(),
+          title: 'view_existing_address'.tr(),
           onBack: () => Navigator.of(context).pop()),
       body: Padding(
         padding: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
@@ -50,12 +51,12 @@ class _ViewExistingAddressState extends State<ViewExistingAddress> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     addTitleSpace(),
-                    Text("enter_a_wallet_address".tr(),
+                    Text('enter_a_wallet_address'.tr(),
                         style: theme.textTheme.ppMori400Black14),
                     const SizedBox(height: 10),
                     AuTextField(
-                      title: "",
-                      placeholder: "enter_address".tr(),
+                      title: '',
+                      placeholder: 'enter_address'.tr(),
                       controller: _controller,
                       isError: _isError,
                       suffix: IconButton(
@@ -72,7 +73,7 @@ class _ViewExistingAddressState extends State<ViewExistingAddress> {
                               .pushNamed(ScanQRPage.tag,
                                   arguments: ScannerItem.ETH_ADDRESS);
                           if (address != null && address is String) {
-                            address = address.replacePrefix("ethereum:", "");
+                            address = address.replacePrefix('ethereum:', '');
                             _controller.text = address;
                             setState(() {});
                           }
@@ -90,7 +91,7 @@ class _ViewExistingAddressState extends State<ViewExistingAddress> {
             ),
             PrimaryButton(
               enabled: _controller.text.trim().isNotEmpty,
-              text: "continue".tr(),
+              text: 'continue'.tr(),
               isProcessing: _isProcessing,
               onTap: () async {
                 setState(() {
@@ -105,19 +106,21 @@ class _ViewExistingAddressState extends State<ViewExistingAddress> {
                       final connection = await injector<AccountService>()
                           .linkManuallyAddress(
                               _controller.text.trim(), cryptoType);
-                      if (!mounted) return;
-                      Navigator.of(context).pushNamed(
+                      if (!mounted) {
+                        return;
+                      }
+                      unawaited(Navigator.of(context).pushNamed(
                           AppRouter.nameLinkedAccountPage,
-                          arguments: connection);
+                          arguments: connection));
                     } on LinkAddressException catch (e) {
                       setState(() {
                         _isError = true;
                       });
-                      UIHelper.showInfoDialog(context, e.message, "",
+                      unawaited(UIHelper.showInfoDialog(context, e.message, '',
                           isDismissible: true,
-                          closeButton: "close".tr(), onClose: () {
+                          closeButton: 'close'.tr(), onClose: () {
                         injector<NavigationService>().popUntilHome();
-                      });
+                      }));
                     } catch (_) {}
                     break;
                   default:
@@ -132,10 +135,10 @@ class _ViewExistingAddressState extends State<ViewExistingAddress> {
             ),
             const SizedBox(height: 20),
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pushNamed(ImportSeedsPage.tag);
+              onPressed: () async {
+                await Navigator.of(context).pushNamed(ImportSeedsPage.tag);
               },
-              child: Text("or_import_address".tr(),
+              child: Text('or_import_address'.tr(),
                   style: theme.textTheme.ppMori400Black14
                       .copyWith(decoration: TextDecoration.underline)),
             )
