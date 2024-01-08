@@ -34,5 +34,5 @@ class CollectionLoadedState {
 class LoadCollectionEvent extends CollectionProEvent {
   String filterStr;
 
-  LoadCollectionEvent({this.filterStr = ""});
+  LoadCollectionEvent({this.filterStr = ''});
 }

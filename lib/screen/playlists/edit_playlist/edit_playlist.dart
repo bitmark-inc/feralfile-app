@@ -300,85 +300,85 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                   listener: (context, nftState) {},
                 ),
                 BlocBuilder<NftCollectionBloc, NftCollectionBlocState>(
-                    bloc: nftBloc,
-                    builder: (context, nftState) => Positioned(
-                          bottom: 30,
-                          child: SizedBox(
-                            width: MediaQuery.of(context).size.width,
-                            child: Center(
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  PrimaryButton(
-                                    onTap: () async {
-                                      selectedItem.isEmpty
-                                          ? null
-                                          : await UIHelper.showMessageActionNew(
-                                              context,
-                                              tr('remove_from_list'),
-                                              '',
-                                              descriptionWidget: RichText(
-                                                text: TextSpan(children: [
-                                                  TextSpan(
-                                                    style: theme.textTheme
-                                                        .ppMori400White16,
-                                                    text:
-                                                        'you_are_about_to_remove'
-                                                            .tr(),
-                                                  ),
-                                                  TextSpan(
-                                                    style: theme.textTheme
-                                                        .ppMori700White16,
-                                                    text: tr(
-                                                        selectedItem.length != 1
-                                                            ? 'artworks'
-                                                            : 'artwork',
-                                                        args: [
-                                                          selectedItem.length
-                                                              .toString()
-                                                        ]),
-                                                  ),
-                                                  TextSpan(
-                                                    style: theme.textTheme
-                                                        .ppMori400White16,
-                                                    text: 'from_the_playlist'
-                                                        .tr(),
-                                                  ),
-                                                  TextSpan(
-                                                    style: theme.textTheme
-                                                        .ppMori700White16,
-                                                    text: playList?.name ??
-                                                        tr('untitled'),
-                                                  ),
-                                                  TextSpan(
-                                                    style: theme.textTheme
-                                                        .ppMori400White16,
-                                                    text:
-                                                        'they_will_remain'.tr(),
-                                                  ),
-                                                ]),
+                  bloc: nftBloc,
+                  builder: (context, nftState) => Positioned(
+                    bottom: 30,
+                    child: SizedBox(
+                      width: MediaQuery.of(context).size.width,
+                      child: Center(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            PrimaryButton(
+                              onTap: () async {
+                                selectedItem.isEmpty
+                                    ? null
+                                    : await UIHelper.showMessageActionNew(
+                                        context,
+                                        tr('remove_from_list'),
+                                        '',
+                                        descriptionWidget: RichText(
+                                          text: TextSpan(
+                                            children: [
+                                              TextSpan(
+                                                style: theme
+                                                    .textTheme.ppMori400White16,
+                                                text: 'you_are_about_to_remove'
+                                                    .tr(),
                                               ),
-                                              actionButton: 'remove'.tr(),
-                                              onAction: () {
-                                                Navigator.pop(context);
-                                                bloc.add(
-                                                  RemoveTokens(
-                                                    tokenIDs: selectedItem,
-                                                  ),
-                                                );
-                                              },
-                                            );
-                                    },
-                                    width: 170,
-                                    text: tr('remove').capitalize(),
-                                    color: theme.auSuperTeal,
-                                  ),
-                                ],
-                              ),
+                                              TextSpan(
+                                                style: theme
+                                                    .textTheme.ppMori700White16,
+                                                text: tr(
+                                                  selectedItem.length != 1
+                                                      ? 'artworks'
+                                                      : 'artwork',
+                                                  args: [
+                                                    selectedItem.length
+                                                        .toString()
+                                                  ],
+                                                ),
+                                              ),
+                                              TextSpan(
+                                                style: theme
+                                                    .textTheme.ppMori400White16,
+                                                text: 'from_the_playlist'.tr(),
+                                              ),
+                                              TextSpan(
+                                                style: theme
+                                                    .textTheme.ppMori700White16,
+                                                text: playList?.name ??
+                                                    tr('untitled'),
+                                              ),
+                                              TextSpan(
+                                                style: theme
+                                                    .textTheme.ppMori400White16,
+                                                text: 'they_will_remain'.tr(),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        actionButton: 'remove'.tr(),
+                                        onAction: () {
+                                          Navigator.pop(context);
+                                          bloc.add(
+                                            RemoveTokens(
+                                              tokenIDs: selectedItem,
+                                            ),
+                                          );
+                                        },
+                                      );
+                              },
+                              width: 170,
+                              text: tr('remove').capitalize(),
+                              color: theme.auSuperTeal,
                             ),
-                          ),
-                        )),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),

@@ -9,15 +9,13 @@ class GaleryThumbnailItem extends StatefulWidget {
   final Function? onTap;
 
   const GaleryThumbnailItem(
-      {super.key,
-      required this.assetToken,
+      {required this.assetToken,
+      super.key,
       this.onTap,
       this.usingThumbnailID = false});
 
   @override
-  State<StatefulWidget> createState() {
-    return _GaleryThumbnailItemState();
-  }
+  State<StatefulWidget> createState() => _GaleryThumbnailItemState();
 }
 
 class _GaleryThumbnailItemState extends State<GaleryThumbnailItem> {
