@@ -5,7 +5,7 @@
 	<key>StringsTable</key>
 	<string>Root</string>
 	<key>Title</key>
-	<string>Autonomy Info and Debug</string>
+	<string>Feral File Info and Debug</string>
 	<key>PreferenceSpecifiers</key>
 	<array>
 		<dict>
