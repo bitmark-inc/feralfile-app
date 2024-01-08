@@ -101,7 +101,9 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
       final defaultDuration =
           playControl!.timer == 0 ? time ?? 10 : playControl!.timer;
       _timer = Timer.periodic(Duration(seconds: defaultDuration), (timer) {
-        if (!(_timer?.isActive ?? false)) return;
+        if (!(_timer?.isActive ?? false)) {
+          return;
+        }
         if (controller.page?.toInt() == tokens.length - 1) {
           controller.jumpTo(0);
         } else {
@@ -168,13 +170,15 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   }
 
   Future _moveToInfo(AssetToken? assetToken) async {
-    if (assetToken == null) return;
-    metricClient.addEvent(
+    if (assetToken == null) {
+      return;
+    }
+    unawaited(metricClient.addEvent(
       MixpanelEvent.clickArtworkInfo,
       data: {
-        "id": assetToken.id,
+        'id': assetToken.id,
       },
-    );
+    ));
     keyboardManagerKey.currentState?.hideKeyboard();
 
     final currentIndex = tokens.indexWhere((element) =>
@@ -203,7 +207,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     metricClient.addEvent(
       MixpanelEvent.seeArtworkFullScreen,
       data: {
-        "id": assetToken?.id,
+        'id': assetToken?.id,
       },
     );
     _bloc.add(ChangeFullScreen(isFullscreen: true));
@@ -214,7 +218,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
         content: Container(
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 10),
           decoration: BoxDecoration(
-            color: theme.auSuperTeal.withOpacity(0.9),
+            color: AppColor.feralFileHighlight.withOpacity(0.9),
             borderRadius: BorderRadius.circular(64),
           ),
           child: Text(
@@ -236,7 +240,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
       BlocProvider.value(
         value: _canvasDeviceBloc,
         child: CanvasDeviceView(
-          sceneId: assetToken?.id ?? "",
+          sceneId: assetToken?.id ?? '',
           onClose: () {
             Navigator.of(context).pop();
           },
@@ -244,7 +248,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
       ),
       isDismissible: true,
     );
-    _fetchDevice(assetToken?.id ?? "");
+    _fetchDevice(assetToken?.id ?? '');
   }
 
   @override
@@ -258,15 +262,15 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
           assetToken = state.assetToken;
           isFullScreen = state.isFullScreen;
         }
-        final hasKeyboard = assetToken?.medium == "software" ||
-            assetToken?.medium == "other" ||
+        final hasKeyboard = assetToken?.medium == 'software' ||
+            assetToken?.medium == 'other' ||
             assetToken?.medium == null;
         final hideArtist = assetToken?.isPostcard ?? false;
         final identityState = context.watch<IdentityBloc>().state;
         final artistName =
             assetToken?.artistName?.toIdentityOrMask(identityState.identityMap);
-        _fetchDevice(assetToken?.id ?? "");
-        var subTitle = "";
+        _fetchDevice(assetToken?.id ?? '');
+        var subTitle = '';
         if (artistName != null && artistName.isNotEmpty) {
           subTitle = artistName;
         }
@@ -322,35 +326,34 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                     },
                     controller: controller,
                     itemCount: tokens.length,
-                    itemBuilder: (context, index) {
-                      return BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
-                        bloc: _canvasDeviceBloc,
-                        builder: (context, state) {
-                          final isCasting = state.isCasting;
-                          if (isCasting) {
-                            return const Center(
-                              child: CurrentlyCastingArtwork(),
-                            );
-                          }
-                          if (tokens[index].id.isPostcardId) {
-                            return PostcardPreviewWidget(
-                              identity: tokens[index],
-                              useIndexer: widget.payload.useIndexer,
-                            );
-                          }
-                          return ArtworkPreviewWidget(
+                    itemBuilder: (context, index) =>
+                        BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
+                      bloc: _canvasDeviceBloc,
+                      builder: (context, state) {
+                        final isCasting = state.isCasting;
+                        if (isCasting) {
+                          return const Center(
+                            child: CurrentlyCastingArtwork(),
+                          );
+                        }
+                        if (tokens[index].id.isPostcardId) {
+                          return PostcardPreviewWidget(
                             identity: tokens[index],
-                            onLoaded: (
-                                {InAppWebViewController? webViewController,
-                                int? time}) {
-                              setTimer(time: time);
-                            },
-                            focusNode: _focusNode,
                             useIndexer: widget.payload.useIndexer,
                           );
-                        },
-                      );
-                    },
+                        }
+                        return ArtworkPreviewWidget(
+                          identity: tokens[index],
+                          onLoaded: (
+                              {InAppWebViewController? webViewController,
+                              int? time}) {
+                            setTimer(time: time);
+                          },
+                          focusNode: _focusNode,
+                          useIndexer: widget.payload.useIndexer,
+                        );
+                      },
+                    ),
                   ),
                 ),
                 Visibility(
@@ -376,10 +379,10 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                                   width: 20,
                                 ),
                                 Visibility(
-                                  visible: (assetToken?.medium == 'software' ||
+                                  visible: assetToken?.medium == 'software' ||
                                       assetToken?.medium == 'other' ||
                                       (assetToken?.medium?.isEmpty ?? true) ||
-                                      isCasting),
+                                      isCasting,
                                   child: KeyboardManagerWidget(
                                     key: keyboardManagerKey,
                                     focusNode: _focusNode,
@@ -410,7 +413,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                                       ? null
                                       : () => onClickFullScreen(assetToken),
                                   child: Semantics(
-                                    label: "fullscreen_icon",
+                                    label: 'fullscreen_icon',
                                     child: SvgPicture.asset(
                                       'assets/images/fullscreen_icon.svg',
                                       colorFilter: ColorFilter.mode(
@@ -500,13 +503,11 @@ class KeyboardManagerWidgetState extends State<KeyboardManagerWidget> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        _isShowKeyboard ? hideKeyboard : showKeyboard;
-        widget.onTap?.call();
-      },
-      child: SvgPicture.asset('assets/images/keyboard_icon.svg'),
-    );
-  }
+  Widget build(BuildContext context) => GestureDetector(
+        onTap: () {
+          _isShowKeyboard ? hideKeyboard : showKeyboard;
+          widget.onTap?.call();
+        },
+        child: SvgPicture.asset('assets/images/keyboard_icon.svg'),
+      );
 }

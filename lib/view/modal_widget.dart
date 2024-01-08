@@ -12,33 +12,30 @@ import 'package:flutter/material.dart';
 class ModalSheet extends StatelessWidget {
   final Widget child;
 
-  const ModalSheet({super.key, required this.child});
+  const ModalSheet({required this.child, super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      color: theme.auSuperTeal,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Align(
-            alignment: Alignment.centerRight,
-            child: IconButton(
-              onPressed: () => Navigator.pop(context),
-              icon: const Icon(
-                AuIcon.close,
-                size: 18,
+  Widget build(BuildContext context) => Container(
+        color: AppColor.feralFileHighlight,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Align(
+              alignment: Alignment.centerRight,
+              child: IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(
+                  AuIcon.close,
+                  size: 18,
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 32),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: child,
-          ),
-        ],
-      ),
-    );
-  }
+            const SizedBox(height: 32),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: child,
+            ),
+          ],
+        ),
+      );
 }

@@ -463,7 +463,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
             addOnTextSpan: [
               TextSpan(
                   text: 'tap_to_view'.tr(),
-                  style: Theme.of(context).textTheme.ppMori400Green14),
+                  style: Theme.of(context).textTheme.ppMori400FFYellow14),
             ], openHandler: () async {
           final announcementID = '${data["id"]}';
           unawaited(_openAnnouncement(announcementID));
@@ -664,7 +664,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         addOnTextSpan: [
           TextSpan(
               text: 'tap_to_view'.tr(),
-              style: Theme.of(context).textTheme.ppMori400Green14),
+              style: Theme.of(context).textTheme.ppMori400FFYellow14),
         ], openHandler: () async {
       final announcementID = announcement.announcementContextId;
       unawaited(_openAnnouncement(announcementID));

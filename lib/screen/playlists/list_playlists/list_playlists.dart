@@ -135,7 +135,9 @@ class _PlaylistItemState extends State<PlaylistItem> {
           decoration: BoxDecoration(
             color: AppColor.white,
             border: Border.all(
-              color: widget.onHold ? theme.auSuperTeal : Colors.transparent,
+              color: widget.onHold
+                  ? AppColor.feralFileHighlight
+                  : Colors.transparent,
               width: widget.onHold ? 2 : 0,
             ),
             borderRadius: BorderRadius.circular(5),
