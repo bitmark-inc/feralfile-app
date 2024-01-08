@@ -14,7 +14,6 @@ class Exhibition {
   final String noteBrief;
   final String note;
 
-  // final DateTime? exhibitionEndAt;
   final String? coverURI;
   final String? thumbnailCoverURI;
   final String mintBlockchain;
@@ -35,7 +34,7 @@ class Exhibition {
     required this.noteBrief,
     required this.note,
     required this.mintBlockchain,
-    required this.type, // this.exhibitionEndAt,
+    required this.type,
     this.coverURI,
     this.thumbnailCoverURI,
     this.artists,
@@ -95,7 +94,6 @@ class Exhibition {
         'partner': partner?.toJson(),
         'type': type,
         'curator': curator?.toJson(),
-        // 'exhibitionEndAt': exhibitionEndAt?.toIso8601String(),
         'resources': resources?.map((e) => e.toJson()).toList(),
       };
 

@@ -67,24 +67,25 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
   late bool editable;
 
   List<SortOrder> _getAvailableOrders() {
-    if (widget.payload.collectionType == CollectionType.artist) {
-      return [
-        SortOrder.title,
-        SortOrder.newest,
-      ];
+    switch (widget.payload.collectionType) {
+      case CollectionType.artist:
+        return [
+          SortOrder.title,
+          SortOrder.newest,
+        ];
+      case CollectionType.medium:
+        return [
+          SortOrder.title,
+          SortOrder.artist,
+          SortOrder.newest,
+        ];
+      default:
+        return [
+          SortOrder.manual,
+          SortOrder.title,
+          SortOrder.artist,
+        ];
     }
-    if (widget.payload.collectionType == CollectionType.medium) {
-      return [
-        SortOrder.title,
-        SortOrder.artist,
-        SortOrder.newest,
-      ];
-    }
-    return [
-      SortOrder.manual,
-      SortOrder.title,
-      SortOrder.artist,
-    ];
   }
 
   @override

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
@@ -10,6 +12,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/token_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/radio_check_box.dart';
@@ -25,13 +28,10 @@ import 'package:nft_collection/models/address_index.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/nft_collection.dart';
 
-import '../../../util/token_ext.dart';
-
 class AddToCollectionScreen extends StatefulWidget {
   final PlayListModel playList;
 
-  const AddToCollectionScreen({Key? key, required this.playList})
-      : super(key: key);
+  const AddToCollectionScreen({required this.playList, super.key});
 
   @override
   State<AddToCollectionScreen> createState() => _AddToCollectionScreenState();
@@ -53,28 +53,30 @@ class _AddToCollectionScreenState extends State<AddToCollectionScreen>
     _showSearchBar = false;
     super.initState();
 
-    _controller.addListener(_scrollListenerToLoadMore);
-    _controller.addListener(_scrollListenerToShowSearchBar);
-    refreshTokens().then((value) {
+    _controller
+      ..addListener(_scrollListenerToLoadMore)
+      ..addListener(_scrollListenerToShowSearchBar);
+    unawaited(refreshTokens().then((value) {
       nftBloc.add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
-    });
+    }));
     bloc.add(InitPlaylist(playListModel: widget.playList));
   }
 
   @override
   void afterFirstLayout(BuildContext context) {
-    injector<ConfigurationService>().setAlreadyShowCreatePlaylistTip(true);
+    unawaited(
+        injector<ConfigurationService>().setAlreadyShowCreatePlaylistTip(true));
     injector<ConfigurationService>().showCreatePlaylistTip.value = false;
   }
 
-  _scrollListenerToLoadMore() {
+  void _scrollListenerToLoadMore() {
     if (_controller.position.pixels + 100 >=
         _controller.position.maxScrollExtent) {
       _loadMore();
     }
   }
 
-  _scrollListenerToShowSearchBar() {
+  void _scrollListenerToShowSearchBar() {
     if (_controller.position.pixels <= 10 &&
         _controller.position.userScrollDirection == ScrollDirection.forward) {
       setState(() {
@@ -83,17 +85,19 @@ class _AddToCollectionScreenState extends State<AddToCollectionScreen>
     }
   }
 
-  _scrollToTop() {
-    _controller.animateTo(
+  Future<void> _scrollToTop() async {
+    await _controller.animateTo(
       0,
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeOut,
     );
   }
 
-  _loadMore() {
+  void _loadMore() {
     final nextKey = nftBloc.state.nextKey;
-    if (nextKey == null || nextKey.isLoaded) return;
+    if (nextKey == null || nextKey.isLoaded) {
+      return;
+    }
     nftBloc.add(GetTokensByOwnerEvent(pageKey: nextKey));
   }
 
@@ -176,11 +180,11 @@ class _AddToCollectionScreenState extends State<AddToCollectionScreen>
                 (element) => state.selectedIDs?.contains(element.id) ?? false)
             .length;
         return Scaffold(
-          backgroundColor: theme.colorScheme.background, //theme.primaryColor,
+          backgroundColor: theme.colorScheme.background,
           appBar: getDoneAppBar(
             context,
-            title: "adding_to".tr(namedArgs: {
-              "title": widget.playList.getName(),
+            title: 'adding_to'.tr(namedArgs: {
+              'title': widget.playList.getName(),
             }),
             onDone: (selectedCount > 0)
                 ? () {
@@ -193,8 +197,8 @@ class _AddToCollectionScreenState extends State<AddToCollectionScreen>
                 : null,
             onCancel: () {
               Navigator.pop(context);
-              final metricClient = injector<MetricClientService>();
-              metricClient.addEvent(MixpanelEvent.undoCreatePlaylist);
+              unawaited(injector<MetricClientService>()
+                  .addEvent(MixpanelEvent.undoCreatePlaylist));
             },
             bottom: PreferredSize(
               preferredSize: const Size.fromHeight(0.25),
@@ -206,61 +210,59 @@ class _AddToCollectionScreenState extends State<AddToCollectionScreen>
             value: SystemUiOverlayStyle.light,
             child: BlocBuilder<NftCollectionBloc, NftCollectionBlocState>(
                 bloc: nftBloc,
-                builder: (context, nftState) {
-                  return SafeArea(
-                    top: false,
-                    bottom: false,
-                    child: Column(
-                      children: [
-                        if (_showSearchBar)
-                          Column(
-                            children: [
-                              Padding(
-                                padding:
-                                    const EdgeInsets.fromLTRB(15, 20, 15, 18),
-                                child: ActionBar(
-                                  searchBar: AuSearchBar(
-                                    onChanged: (text) {
+                builder: (context, nftState) => SafeArea(
+                      top: false,
+                      bottom: false,
+                      child: Column(
+                        children: [
+                          if (_showSearchBar)
+                            Column(
+                              children: [
+                                Padding(
+                                  padding:
+                                      const EdgeInsets.fromLTRB(15, 20, 15, 18),
+                                  child: ActionBar(
+                                    searchBar: AuSearchBar(
+                                      onChanged: (text) {
+                                        setState(() {
+                                          _searchText = text;
+                                        });
+                                      },
+                                    ),
+                                    onCancel: () async {
                                       setState(() {
-                                        _searchText = text;
+                                        _searchText = '';
+                                        _showSearchBar = false;
                                       });
+                                      await _scrollToTop();
                                     },
                                   ),
-                                  onCancel: () {
-                                    setState(() {
-                                      _searchText = '';
-                                      _showSearchBar = false;
-                                    });
-                                    _scrollToTop();
-                                  },
                                 ),
-                              ),
-                              addOnlyDivider(),
-                            ],
-                          ),
-                        Expanded(
-                          child: NftCollectionGrid(
-                            state: nftState.state,
-                            tokens: nftState.tokens.items,
-                            loadingIndicatorBuilder: loadingView,
-                            customGalleryViewBuilder: (context, tokens) =>
-                                _assetsWidget(
-                              context,
-                              reoderPlaylist(
-                                  tokens: setupPlayList(tokens: tokens),
-                                  selectedTokenIds: _initSelectedTokenIds),
-                              onChanged: (tokenID, value) => bloc.add(
-                                UpdateItemPlaylist(
-                                    tokenID: tokenID, value: value),
-                              ),
-                              selectedTokens: state.selectedIDs,
+                                addOnlyDivider(),
+                              ],
                             ),
-                          ),
-                        )
-                      ],
-                    ),
-                  );
-                }),
+                          Expanded(
+                            child: NftCollectionGrid(
+                              state: nftState.state,
+                              tokens: nftState.tokens.items,
+                              loadingIndicatorBuilder: loadingView,
+                              customGalleryViewBuilder: (context, tokens) =>
+                                  _assetsWidget(
+                                context,
+                                reoderPlaylist(
+                                    tokens: setupPlayList(tokens: tokens),
+                                    selectedTokenIds: _initSelectedTokenIds),
+                                onChanged: (tokenID, value) => bloc.add(
+                                  UpdateItemPlaylist(
+                                      tokenID: tokenID, value: value),
+                                ),
+                                selectedTokens: state.selectedIDs,
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                    )),
           ),
         );
       },
@@ -287,17 +289,15 @@ class _AddToCollectionScreenState extends State<AddToCollectionScreen>
         crossAxisSpacing: cellSpacing,
         mainAxisSpacing: cellSpacing,
       ),
-      itemBuilder: (context, index) {
-        return ThubnailPlaylistItem(
-          token: tokens[index],
-          cachedImageSize: cachedImageSize,
-          isSelected: selectedTokens?.contains(tokens[index].id) ?? false,
-          onChanged: (value) {
-            onChanged?.call(tokens[index].id, value ?? false);
-          },
-          usingThumbnailID: index > 50,
-        );
-      },
+      itemBuilder: (context, index) => ThubnailPlaylistItem(
+        token: tokens[index],
+        cachedImageSize: cachedImageSize,
+        isSelected: selectedTokens?.contains(tokens[index].id) ?? false,
+        onChanged: (value) {
+          onChanged?.call(tokens[index].id, value ?? false);
+        },
+        usingThumbnailID: index > 50,
+      ),
       itemCount: tokens.length,
     );
   }
@@ -313,15 +313,15 @@ class ThubnailPlaylistItem extends StatefulWidget {
   final bool showTriggerOrder;
 
   const ThubnailPlaylistItem({
-    Key? key,
     required this.token,
     required this.cachedImageSize,
+    super.key,
     this.showSelect = true,
     this.isSelected = false,
     this.onChanged,
     this.showTriggerOrder = false,
     this.usingThumbnailID = true,
-  }) : super(key: key);
+  });
 
   @override
   State<ThubnailPlaylistItem> createState() => _ThubnailPlaylistItemState();
@@ -344,7 +344,7 @@ class _ThubnailPlaylistItemState extends State<ThubnailPlaylistItem> {
     super.didUpdateWidget(oldWidget);
   }
 
-  onChanged(value) {
+  void onChanged(bool? value) {
     setState(() {
       isSelected = !isSelected;
       widget.onChanged?.call(isSelected);

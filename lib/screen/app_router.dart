@@ -483,7 +483,6 @@ class AppRouter {
       case settingsPage:
         return CupertinoPageRoute(
             settings: settings,
-            // fullscreenDialog: true,
             builder: (context) => MultiBlocProvider(providers: [
                   BlocProvider.value(value: accountsBloc),
                   BlocProvider(create: (_) => personaBloc),

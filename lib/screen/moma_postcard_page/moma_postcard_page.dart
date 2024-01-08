@@ -94,7 +94,6 @@ class _MoMAPostcardPageState extends State<MoMAPostcardPage> {
   Widget _loadingView(BuildContext context) => Center(
           child: Column(
         children: [
-          // _header(context),
           loadingIndicator(),
         ],
       ));

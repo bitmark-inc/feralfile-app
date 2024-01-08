@@ -11,7 +11,6 @@ class AuIcon {
   AuIcon._();
 
   static const String _fontFamily = 'AuIcon';
-  static const String _ffFontFamily = 'FFIcon';
 
   static const IconData wallet = IconData(0xe918, fontFamily: _fontFamily);
   static const IconData send = IconData(0xe90f, fontFamily: _fontFamily);
@@ -43,7 +42,4 @@ class AuIcon {
       IconData(0xe917, fontFamily: _fontFamily);
   static const IconData rotateRounded =
       IconData(0xf688, fontFamily: 'MaterialIcons');
-  static const IconData medium3d = IconData(0x940, fontFamily: _ffFontFamily);
-  static const IconData set = IconData(0x941, fontFamily: _ffFontFamily);
-  static const IconData controller = IconData(0x943, fontFamily: _ffFontFamily);
 }

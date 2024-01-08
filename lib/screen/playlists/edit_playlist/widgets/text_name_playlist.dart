@@ -9,11 +9,11 @@ class TextNamePlaylist extends StatefulWidget {
   final FocusNode? focusNode;
 
   const TextNamePlaylist({
-    Key? key,
     required this.playList,
+    super.key,
     this.onEditPlaylistName,
     this.focusNode,
-  }) : super(key: key);
+  });
 
   final PlayListModel? playList;
 
