@@ -214,21 +214,28 @@ class DeeplinkServiceImpl extends DeeplinkService {
       'https://autonomy.io/apps/wc/wc?uri=',
       'autonomy://wc?uri=',
       'autonomy-wc://wc?uri=',
+      'https://app.feralfile.com/apps/wc?uri=',
+      'https://app.feralfile.com/apps/wc/wc?uri=',
+      'feralfile://wc?uri=',
+      'feralfile-wc://wc?uri=',
     ];
 
     final tzPrefixes = [
       'https://au.bitmark.com/apps/tezos?uri=',
       'https://autonomy.io/apps/tezos?uri=',
+      'https://feralfile.com/apps/tezos?uri=',
     ];
 
     final wcDeeplinkPrefixes = [
       'wc:',
       'autonomy-wc:',
+      'feralfile-wc:',
     ];
 
     final tbDeeplinkPrefixes = [
       'tezos://',
       'autonomy-tezos://',
+      'feralfile-tezos://',
     ];
 
     final postcardPayToMintPrefixes = [

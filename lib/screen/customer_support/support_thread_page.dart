@@ -213,10 +213,10 @@ class _SupportThreadPageState extends State<SupportThreadPage>
     _forceAccountsViewRedraw = Object();
     super.initState();
 
-    _loadDrafts();
+    unawaited(_loadDrafts());
 
     if (_issueID != null && !_issueID!.startsWith('TEMP')) {
-      _loadIssueDetails();
+      unawaited(_loadIssueDetails());
     }
   }
 
@@ -283,7 +283,7 @@ class _SupportThreadPageState extends State<SupportThreadPage>
   void _askForAttachCrashLog(BuildContext context,
       {required void Function(bool attachCrashLog) onConfirm}) {
     final theme = Theme.of(context);
-    UIHelper.showDialog(
+    unawaited(UIHelper.showDialog(
       context,
       'attach_crash_log'.tr(),
       Column(
@@ -307,7 +307,7 @@ class _SupportThreadPageState extends State<SupportThreadPage>
         ],
       ),
       isDismissible: true,
-    );
+    ));
   }
 
   @override
@@ -538,7 +538,7 @@ class _SupportThreadPageState extends State<SupportThreadPage>
       initialRating: rating.toDouble(),
       minRating: 1,
       itemSize: 24,
-      itemPadding: const EdgeInsets.symmetric(horizontal: 10.0),
+      itemPadding: const EdgeInsets.symmetric(horizontal: 10),
       itemBuilder: (context, _) => const Icon(
         Icons.star,
         color: AppColor.white,
@@ -602,8 +602,8 @@ class _SupportThreadPageState extends State<SupportThreadPage>
                     GestureDetector(
                       onTap: () async {
                         await _customerSupportService.removeErrorMessage(uuid);
-                        _loadDrafts();
-                        _customerSupportService.processMessages();
+                        unawaited(_loadDrafts());
+                        unawaited(_customerSupportService.processMessages());
                         Future.delayed(const Duration(seconds: 5), () {
                           _loadDrafts();
                         });
@@ -758,7 +758,7 @@ class _SupportThreadPageState extends State<SupportThreadPage>
     }
   }
 
-  void _loadIssueDetails() async {
+  Future<void> _loadIssueDetails() async {
     if (_issueID == null) {
       return;
     }
@@ -814,7 +814,7 @@ class _SupportThreadPageState extends State<SupportThreadPage>
     }
   }
 
-  void _loadCustomerSupportUpdates() async {
+  Future<void> _loadCustomerSupportUpdates() async {
     final update = _customerSupportService.customerSupportUpdate.value;
     if (update == null) {
       return;
@@ -1227,7 +1227,7 @@ class _MyRatingBarState extends State<MyRatingBar> {
             RatingBar.builder(
               minRating: 1,
               itemSize: 24,
-              itemPadding: const EdgeInsets.symmetric(horizontal: 10.0),
+              itemPadding: const EdgeInsets.symmetric(horizontal: 10),
               itemBuilder: (context, _) => const Icon(
                 Icons.star,
                 color: AppColor.white,
