@@ -47,7 +47,7 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 class ArtworkPreviewPage extends StatefulWidget {
   final ArtworkDetailPayload payload;
 
-  const ArtworkPreviewPage({Key? key, required this.payload}) : super(key: key);
+  const ArtworkPreviewPage({required this.payload, super.key});
 
   @override
   State<ArtworkPreviewPage> createState() => _ArtworkPreviewPageState();
@@ -95,7 +95,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     super.initState();
   }
 
-  setTimer({int? time}) {
+  void setTimer({int? time}) {
     _timer?.cancel();
     if (playControl != null) {
       final defaultDuration =
@@ -107,8 +107,8 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
         if (controller.page?.toInt() == tokens.length - 1) {
           controller.jumpTo(0);
         } else {
-          controller.nextPage(
-              duration: const Duration(microseconds: 1), curve: Curves.linear);
+          unawaited(controller.nextPage(
+              duration: const Duration(microseconds: 1), curve: Curves.linear));
         }
       });
     }
@@ -117,35 +117,35 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   @override
   void dispose() {
     _focusNode.dispose();
-    disableLandscapeMode();
-    WakelockPlus.disable();
+    unawaited(disableLandscapeMode());
+    unawaited(WakelockPlus.disable());
     _timer?.cancel();
     routeObserver.unsubscribe(this);
     WidgetsBinding.instance.removeObserver(this);
     _detector?.stopListening();
     if (Platform.isAndroid) {
-      SystemChrome.setEnabledSystemUIMode(
+      unawaited(SystemChrome.setEnabledSystemUIMode(
         SystemUiMode.manual,
         overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom],
-      );
+      ));
     }
     controller.dispose();
-    Sentry.getSpan()?.finish(status: const SpanStatus.ok());
+    unawaited(Sentry.getSpan()?.finish(status: const SpanStatus.ok()));
     super.dispose();
   }
 
   @override
   void didChangeDependencies() {
     routeObserver.subscribe(this, ModalRoute.of(context)!);
-    enableLandscapeMode();
-    WakelockPlus.enable();
+    unawaited(enableLandscapeMode());
+    unawaited(WakelockPlus.enable());
     super.didChangeDependencies();
   }
 
   @override
   void didPopNext() {
-    enableLandscapeMode();
-    WakelockPlus.enable();
+    unawaited(enableLandscapeMode());
+    unawaited(WakelockPlus.enable());
     setTimer();
     _renderingWidget?.didPopNext();
     super.didPopNext();
@@ -157,10 +157,10 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     _detector = ShakeDetector.autoStart(
       onPhoneShake: () {
         _bloc.add(ChangeFullScreen());
-        SystemChrome.setEnabledSystemUIMode(
+        unawaited(SystemChrome.setEnabledSystemUIMode(
           SystemUiMode.manual,
           overlays: SystemUiOverlay.values,
-        );
+        ));
       },
     );
 
@@ -188,30 +188,31 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
       return;
     }
 
-    disableLandscapeMode();
+    unawaited(disableLandscapeMode());
 
-    WakelockPlus.disable();
+    unawaited(WakelockPlus.disable());
     _timer?.cancel();
 
-    Navigator.of(context).pushNamed(
+    unawaited(Navigator.of(context).pushNamed(
       AppRouter.artworkDetailsPage,
       arguments: widget.payload.copyWith(
         currentIndex: currentIndex,
         ids: tokens,
       ),
-    );
+    ));
   }
 
   void onClickFullScreen(AssetToken? assetToken) {
     final theme = Theme.of(context);
-    metricClient.addEvent(
+    unawaited(metricClient.addEvent(
       MixpanelEvent.seeArtworkFullScreen,
       data: {
         'id': assetToken?.id,
       },
-    );
+    ));
     _bloc.add(ChangeFullScreen(isFullscreen: true));
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    unawaited(
+        SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky));
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -248,7 +249,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
       ),
       isDismissible: true,
     );
-    _fetchDevice(assetToken?.id ?? '');
+    unawaited(_fetchDevice(assetToken?.id ?? ''));
   }
 
   @override
@@ -269,7 +270,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
         final identityState = context.watch<IdentityBloc>().state;
         final artistName =
             assetToken?.artistName?.toIdentityOrMask(identityState.identityMap);
-        _fetchDevice(assetToken?.id ?? '');
+        unawaited(_fetchDevice(assetToken?.id ?? ''));
         var subTitle = '';
         if (artistName != null && artistName.isNotEmpty) {
           subTitle = artistName;
@@ -283,7 +284,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                   leadingWidth: 0,
                   centerTitle: false,
                   title: GestureDetector(
-                      onTap: () => _moveToInfo(assetToken),
+                      onTap: () async => _moveToInfo(assetToken),
                       child: ArtworkDetailsHeader(
                         title: assetToken?.title ?? '',
                         subTitle: subTitle,
@@ -402,7 +403,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                                   width: 20,
                                 ),
                                 CastButton(
-                                  onCastTap: () => _onCastTap(assetToken),
+                                  onCastTap: () async => _onCastTap(assetToken),
                                   isCasting: isCasting,
                                 ),
                                 const SizedBox(
@@ -457,8 +458,7 @@ class KeyboardManagerWidget extends StatefulWidget {
   final FocusNode? focusNode;
   final Function()? onTap;
 
-  const KeyboardManagerWidget({Key? key, this.focusNode, this.onTap})
-      : super(key: key);
+  const KeyboardManagerWidget({super.key, this.focusNode, this.onTap});
 
   @override
   State<KeyboardManagerWidget> createState() => KeyboardManagerWidgetState();
@@ -483,14 +483,14 @@ class KeyboardManagerWidgetState extends State<KeyboardManagerWidget> {
     super.initState();
   }
 
-  void showKeyboard() async {
+  void showKeyboard() {
     setState(() {
       widget.focusNode?.requestFocus();
       _isShowKeyboard = true;
     });
   }
 
-  void hideKeyboard() async {
+  void hideKeyboard() {
     setState(() {
       widget.focusNode?.unfocus();
       _isShowKeyboard = false;
