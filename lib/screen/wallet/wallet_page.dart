@@ -78,7 +78,7 @@ class _WalletPageState extends State<WalletPage>
   void _showAddWalletOption() {
     final transparentTextTheme = Theme.of(context)
         .textTheme
-        .ppMori400Green14
+        .ppMori400FFYellow14
         .copyWith(color: Colors.transparent);
     final options = [
       OptionItem(
