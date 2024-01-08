@@ -62,7 +62,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
   FeeOptionValue? feeOptionValue;
   int? balance;
   final metricClient = injector.get<MetricClientService>();
-  late CurrencyExchangeRate exchangeRate;
+  CurrencyExchangeRate? _exchangeRate;
   late FeeOption _selectedPriority;
   final xtzFormatter = XtzAmountFormatter();
   final ethFormatter = EthAmountFormatter();
@@ -150,6 +150,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
   void initState() {
     _wc2Service = injector<Wc2Service>();
     super.initState();
+    unawaited(_getExchangeRate());
     _totalAmount = widget.request.operations?.fold(
             0,
             (previousValue, element) =>
@@ -158,6 +159,13 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
     unawaited(fetchPersona());
     feeOption = DEFAULT_FEE_OPTION;
     _selectedPriority = feeOption;
+  }
+
+  Future<void> _getExchangeRate() async {
+    final exchangeRate = await injector<CurrencyService>().getExchangeRates();
+    setState(() {
+      _exchangeRate = exchangeRate;
+    });
   }
 
   Future fetchPersona() async {
@@ -202,7 +210,6 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
       _estimateMessage = null;
     });
     try {
-      exchangeRate = await injector<CurrencyService>().getExchangeRates();
       final fee = await injector<TezosService>().estimateOperationFee(
           await wallet.getTezosPublicKey(index: index),
           widget.request.operations!,
@@ -286,13 +293,13 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
     final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
     final divider = addDivider(height: 20);
     final tezosAmount = widget.request.operations!.first.amount ?? 0;
-    final tezosAmountInUsd = exchangeRate.xtzToUsd(tezosAmount);
+    final tezosAmountInUsd = _exchangeRate?.xtzToUsd(tezosAmount);
     final amountText = '${xtzFormatter.format(tezosAmount)} XTZ '
         '($tezosAmountInUsd USD)';
     final totalAmountText = total == null
         ? '- XTZ (- USD)'
         : '${xtzFormatter.format(total)} XTZ '
-            '(${exchangeRate.xtzToUsd(total)} USD)';
+            '(${_exchangeRate?.xtzToUsd(total)} USD)';
     return WillPopScope(
       onWillPop: () async {
         unawaited(metricClient.addEvent(MixpanelEvent.backConfirmTransaction));
@@ -653,6 +660,6 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
     }
     final fee = feeOptionValue!.getFee(feeOption).toInt();
     return '${xtzFormatter.format(fee)} XTZ  '
-        '(${exchangeRate.xtzToUsd(fee)} USD)';
+        '(${_exchangeRate?.xtzToUsd(fee)} USD)';
   }
 }

@@ -10,13 +10,11 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 
 enum NotificationType {
-  Postcard;
+  postcard;
 
-  Map<String, dynamic> toJson() {
-    return {
-      'name': name,
-    };
-  }
+  Map<String, dynamic> toJson() => {
+        'name': name,
+      };
 
   static NotificationType fromJson(Map<String, dynamic> map) {
     final value = NotificationType.values
@@ -35,22 +33,19 @@ class NotificationPayload {
       required this.notificationType,
       required this.metadata});
 
-  factory NotificationPayload.fromJson(Map<String, dynamic> map) {
-    return NotificationPayload(
-      notificationId: int.tryParse(map['notificationId'] ?? "") ?? 0,
-      notificationType:
-          NotificationType.fromJson(jsonDecode(map['notificationType'])),
-      metadata: map['metadata'],
-    );
-  }
+  factory NotificationPayload.fromJson(Map<String, dynamic> map) =>
+      NotificationPayload(
+        notificationId: int.tryParse(map['notificationId'] ?? '') ?? 0,
+        notificationType:
+            NotificationType.fromJson(jsonDecode(map['notificationType'])),
+        metadata: map['metadata'],
+      );
 
-  Map<String, String> toJson() {
-    return {
-      'notificationId': notificationId.toString(),
-      'notificationType': jsonEncode(notificationType.toJson()),
-      'metadata': metadata,
-    };
-  }
+  Map<String, String> toJson() => {
+        'notificationId': notificationId.toString(),
+        'notificationType': jsonEncode(notificationType.toJson()),
+        'metadata': metadata,
+      };
 }
 
 class NotificationService {
@@ -64,33 +59,41 @@ class NotificationService {
   NotificationService();
 
   Future<void> initNotification() async {
-    await AwesomeNotifications().initialize(
-        null, //'resource://drawable/res_app_icon',//
-        [
-          NotificationChannel(
-            channelKey: postcardChannelKey,
-            channelName: postcardChannelName,
-            channelDescription: postcardChannelDescription,
-            playSound: true,
-            onlyAlertOnce: false,
-            groupAlertBehavior: GroupAlertBehavior.Children,
-            importance: NotificationImportance.High,
-            defaultPrivacy: NotificationPrivacy.Private,
-          )
-        ],
-        debug: true);
+    try {
+      await AwesomeNotifications().initialize(
+          null, //'resource://drawable/res_app_icon',//
+          [
+            NotificationChannel(
+              channelKey: postcardChannelKey,
+              channelName: postcardChannelName,
+              channelDescription: postcardChannelDescription,
+              playSound: true,
+              onlyAlertOnce: false,
+              groupAlertBehavior: GroupAlertBehavior.Children,
+              importance: NotificationImportance.High,
+              defaultPrivacy: NotificationPrivacy.Private,
+            )
+          ],
+          debug: true);
 
-    _initialAction =
-        await AwesomeNotifications().getInitialNotificationAction();
+      _initialAction =
+          await AwesomeNotifications().getInitialNotificationAction();
+    } catch (e) {
+      log.warning('NotificationService: initNotification: $e');
+    }
   }
 
   Future<void> startListeningNotificationEvents() async {
-    await AwesomeNotifications().setListeners(
-      onActionReceivedMethod: onActionReceivedMethod,
-      onNotificationCreatedMethod: onNotificationCreatedMethod,
-      onNotificationDisplayedMethod: onNotificationDisplayedMethod,
-      onDismissActionReceivedMethod: onDismissActionReceivedMethod,
-    );
+    try {
+      await AwesomeNotifications().setListeners(
+        onActionReceivedMethod: onActionReceivedMethod,
+        onNotificationCreatedMethod: onNotificationCreatedMethod,
+        onNotificationDisplayedMethod: onNotificationDisplayedMethod,
+        onDismissActionReceivedMethod: onDismissActionReceivedMethod,
+      );
+    } catch (e) {
+      log.warning('NotificationService: startListeningNotificationEvents: $e');
+    }
   }
 
   @pragma('vm:entry-point')
@@ -105,17 +108,18 @@ class NotificationService {
         final payload = receivedAction.payload;
         final notificationPayload = NotificationPayload.fromJson(payload ?? {});
         switch (notificationPayload.notificationType) {
-          case NotificationType.Postcard:
+          case NotificationType.postcard:
             final postcardIdentity = PostcardIdentity.fromJson(
                 jsonDecode(notificationPayload.metadata));
             navigationService.popUntilHome();
-            navigationService.navigateTo(AppRouter.claimedPostcardDetailsPage,
+            await navigationService.navigateTo(
+                AppRouter.claimedPostcardDetailsPage,
                 arguments: PostcardDetailPagePayload([
                   ArtworkIdentity(postcardIdentity.id, postcardIdentity.owner)
                 ], 0));
         }
       } catch (e) {
-        log.info("[NotificationService] onActionReceivedMethod error: $e]");
+        log.info('[NotificationService] onActionReceivedMethod error: $e]');
       }
     }
   }
@@ -123,30 +127,30 @@ class NotificationService {
   @pragma('vm:entry-point')
   static Future<void> onNotificationCreatedMethod(
       ReceivedNotification receivedNotification) async {
-    log.info(
-        "[NotificationService] onNotificationCreatedMethod: $receivedNotification");
+    log.info('[NotificationService] onNotificationCreatedMethod:'
+        ' $receivedNotification');
   }
 
   @pragma('vm:entry-point')
   static Future<void> onNotificationDisplayedMethod(
       ReceivedNotification receivedNotification) async {
-    log.info(
-        "[NotificationService] onNotificationDisplayedMethod: $receivedNotification");
+    log.info('[NotificationService] onNotificationDisplayedMethod:'
+        ' $receivedNotification');
   }
 
   @pragma('vm:entry-point')
   static Future<void> onDismissActionReceivedMethod(
       ReceivedNotification receivedNotification) async {
-    log.info(
-        "[NotificationService] onDismissActionReceivedMethod: $receivedNotification");
+    log.info('[NotificationService] onDismissActionReceivedMethod:'
+        ' $receivedNotification');
   }
 
   Future<void> showNotification(
-      {int id = 0,
-      required String title,
+      {required String title,
+      required String channelKey,
+      int id = 0,
       String? body,
-      Map<String, String>? payload,
-      required String channelKey}) async {
+      Map<String, String>? payload}) async {
     bool isAllowed = await AwesomeNotifications().isNotificationAllowed();
     if (!isAllowed) {
       return;
