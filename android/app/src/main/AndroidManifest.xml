@@ -163,6 +163,16 @@
                 <data
                     android:host="autonomy-app-alternate.app.link"
                     android:scheme="https" />
+
+                <data
+                    android:host="link.feralfile.io"
+                    android:scheme="https" />
+                <data
+                    android:host="feralfile-app.app.link"
+                    android:scheme="https" />
+                <data
+                    android:host="feralfile-app-alternate.app.link"
+                    android:scheme="https" />
             </intent-filter>
 
             <intent-filter android:autoVerify="true">
@@ -176,6 +186,13 @@
                     android:scheme="https" />
                 <data
                     android:host="autonomy-app-alternate.test.app.link"
+                    android:scheme="https" />
+
+                <data
+                    android:host="feralfile-app.test.app.link"
+                    android:scheme="https" />
+                <data
+                    android:host="feralfile-app-alternate.test.app.link"
                     android:scheme="https" />
             </intent-filter>
         </activity>
