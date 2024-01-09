@@ -20,6 +20,7 @@ import 'package:autonomy_flutter/util/token_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -65,7 +66,7 @@ class _MoMAPostcardPageState extends State<MoMAPostcardPage> {
         state: state.state,
         tokens: _updateTokens(state.tokens.items),
         loadingIndicatorBuilder: _loadingView,
-        emptyGalleryViewBuilder: _emptyHiddenArtwork,
+        emptyGalleryViewBuilder: _emptyPostcard,
         customGalleryViewBuilder: (context, tokens) =>
             _assetsWidget(context, tokens),
       ),
@@ -98,12 +99,16 @@ class _MoMAPostcardPageState extends State<MoMAPostcardPage> {
         ],
       ));
 
-  Widget _emptyHiddenArtwork(BuildContext context) => Padding(
+  Widget _emptyPostcard(BuildContext context) => Padding(
         padding: ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             addTitleSpace(),
+            Text(
+              'no_moma_postcard'.tr(),
+              style: Theme.of(context).textTheme.ppMori400Black14,
+            ),
           ],
         ),
       );
