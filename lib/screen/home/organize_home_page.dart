@@ -53,11 +53,6 @@ class OrganizeHomePageState extends State<OrganizeHomePage>
 
   final collectionProKey = GlobalKey<CollectionProState>();
 
-  Future<List<AddressIndex>> getAddressIndexes() async {
-    final accountService = injector<AccountService>();
-    return await accountService.getAllAddressIndexes();
-  }
-
   final _clientTokenService = injector<ClientTokenService>();
   final _configurationService = injector<ConfigurationService>();
 

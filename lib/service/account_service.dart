@@ -86,8 +86,6 @@ abstract class AccountService {
 
   Future<List<String>> getAllAddresses({bool logHiddenAddress = false});
 
-  Future<List<AddressIndex>> getAllAddressIndexes();
-
   Future<List<String>> getAddress(String blockchain,
       {bool withViewOnly = false});
 
@@ -506,27 +504,6 @@ class AccountServiceImpl extends AccountService {
           .addAll(_configurationService.getLinkedAccountsHiddenInGallery());
       log.info(
           "[Account Service] hidden addresses: ${hiddenAddresses.join(", ")}");
-    }
-
-    return addresses;
-  }
-
-  @override
-  Future<List<AddressIndex>> getAllAddressIndexes() async {
-    if (_configurationService.isDemoArtworksMode()) {
-      final demoAccount = await getDemoAccount();
-      return [AddressIndex(address: demoAccount, createdAt: DateTime.now())];
-    }
-
-    List<AddressIndex> addresses = [];
-    final walletAddress = await _cloudDB.addressDao.getAllAddresses();
-    addresses.addAll(walletAddress.map((e) => e.addressIndex).toList());
-
-    final linkedAccounts =
-        await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
-
-    for (final linkedAccount in linkedAccounts) {
-      addresses.addAll(linkedAccount.addressIndexes);
     }
 
     return addresses;

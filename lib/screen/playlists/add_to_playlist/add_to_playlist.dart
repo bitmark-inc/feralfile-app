@@ -24,7 +24,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:nft_collection/models/address_index.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/nft_collection.dart';
 
@@ -99,11 +98,6 @@ class _AddToCollectionScreenState extends State<AddToCollectionScreen>
       return;
     }
     nftBloc.add(GetTokensByOwnerEvent(pageKey: nextKey));
-  }
-
-  Future<List<AddressIndex>> getAddressIndexes() async {
-    final accountService = injector<AccountService>();
-    return await accountService.getAllAddressIndexes();
   }
 
   Future<List<String>> getManualTokenIds() async {
