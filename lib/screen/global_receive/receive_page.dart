@@ -75,6 +75,7 @@ class _GlobalReceivePageState extends State<GlobalReceivePage> {
                             context, categorizedAccounts[index]),
                       ),
                   itemCount: categorizedAccounts.length),
+              const SizedBox(height: 100),
             ],
           ),
         );
