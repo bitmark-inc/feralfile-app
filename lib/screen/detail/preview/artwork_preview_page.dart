@@ -374,7 +374,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                             ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.end,
-                              crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
                                 const SizedBox(
                                   width: 20,

@@ -193,12 +193,15 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage> {
         onBack: () => Navigator.pop(buildContext),
         action: exhibitionDetail == null
             ? null
-            : CastButton(
-                text: _currentIndex == 0 ? 'stream_to_device'.tr() : null,
-                onCastTap: () async {
-                  await _onCastTap(buildContext, exhibitionDetail);
-                },
-              ),
+            : Padding(
+              padding: const EdgeInsets.only(right: 14, bottom: 10, top: 10),
+              child: CastButton(
+                  text: _currentIndex == 0 ? 'stream_to_device'.tr() : null,
+                  onCastTap: () async {
+                    await _onCastTap(buildContext, exhibitionDetail);
+                  },
+                ),
+            ),
       );
 
   Future<void> _onCastTap(
