@@ -54,6 +54,9 @@ class CollectionProState extends State<CollectionPro>
   late ValueNotifier<String> searchStr;
   late bool isShowSearchBar;
   final GlobalKey<CollectionSectionState> _collectionSectionKey = GlobalKey();
+  List<PredefinedCollectionModel> _listPredefinedCollectionByArtist = [];
+  List<PredefinedCollectionModel> _listPredefinedCollectionByMedium = [];
+  List<CompactedAssetToken> _works = [];
 
   @override
   void initState() {
@@ -120,21 +123,25 @@ class CollectionProState extends State<CollectionPro>
         listener: (context, state) {
           if (state is CollectionLoadedState) {
             fetchIdentities(state);
+            setState(() {
+              _listPredefinedCollectionByMedium =
+                  state.listPredefinedCollectionByMedium ?? [];
+              _listPredefinedCollectionByArtist =
+                  state.listPredefinedCollectionByArtist ?? [];
+              _works = state.works;
+            });
           }
         },
         builder: (context, collectionProState) {
           if (collectionProState is CollectionLoadedState) {
-            final listPredefinedCollectionByMedium =
-                collectionProState.listPredefinedCollectionByMedium;
-
-            final works = collectionProState.works;
-            return BlocBuilder<IdentityBloc, IdentityState>(
-                builder: (context, identityState) {
+            return BlocConsumer<IdentityBloc, IdentityState>(
+                listener: (context, identityState) {
                   final identityMap = identityState.identityMap
                     ..removeWhere((key, value) => value.isEmpty);
-                  final listPredefinedCollectionByArtist = collectionProState
-                      .listPredefinedCollectionByArtist
-                      ?.map(
+                  final listPredefinedCollectionByArtist = (collectionProState
+                              .listPredefinedCollectionByArtist ??
+                          [])
+                      .map(
                         (e) {
                           String name = identityMap[e.id] ?? e.name ?? e.id;
                           if (name == e.id) {
@@ -146,71 +153,72 @@ class CollectionProState extends State<CollectionPro>
                       )
                       .toList()
                       .filterByName(searchStr.value)
-                    ?..sort((a, b) =>
+                    ..sort((a, b) =>
                         a.name!.toLowerCase().compareTo(b.name!.toLowerCase()));
-                  return CustomScrollView(
-                    controller: _scrollController,
-                    shrinkWrap: true,
-                    slivers: [
-                      SliverToBoxAdapter(
-                        child: SizedBox(height: paddingTop),
-                      ),
-                      SliverToBoxAdapter(
-                        child: _header(context),
-                      ),
-                      SliverToBoxAdapter(
-                        child: ValueListenableBuilder(
-                          valueListenable: searchStr,
-                          builder: (BuildContext context, String value,
-                                  Widget? child) =>
-                              CollectionSection(
-                            key: _collectionSectionKey,
-                            filterString: value,
-                          ),
-                        ),
-                      ),
-                      const SliverToBoxAdapter(
-                        child: SizedBox(height: 60),
-                      ),
-                      if (searchStr.value.isEmpty) ...[
-                        SliverToBoxAdapter(
-                          child: PredefinedCollectionSection(
-                            listPredefinedCollection:
-                                listPredefinedCollectionByMedium ?? [],
-                            predefinedCollectionType:
-                                PredefinedCollectionType.medium,
-                            searchStr: searchStr.value,
-                          ),
-                        ),
-                        const SliverToBoxAdapter(
-                          child: SizedBox(height: 60),
-                        ),
-                      ],
-                      if (searchStr.value.isNotEmpty) ...[
-                        SliverToBoxAdapter(
-                          child: WorksSection(
-                            works: works,
-                          ),
-                        ),
-                        const SliverToBoxAdapter(
-                          child: SizedBox(height: 60),
-                        ),
-                      ],
-                      SliverToBoxAdapter(
-                        child: PredefinedCollectionSection(
-                          listPredefinedCollection:
-                              listPredefinedCollectionByArtist ?? [],
-                          predefinedCollectionType:
-                              PredefinedCollectionType.artist,
-                          searchStr: searchStr.value,
-                        ),
-                      ),
-                      const SliverToBoxAdapter(
-                        child: SizedBox(height: 100),
-                      ),
-                    ],
-                  );
+                  setState(() {
+                    _listPredefinedCollectionByArtist =
+                        listPredefinedCollectionByArtist;
+                  });
                 },
+                builder: (context, identityState) => CustomScrollView(
+                      controller: _scrollController,
+                      shrinkWrap: true,
+                      slivers: [
+                        SliverToBoxAdapter(
+                          child: SizedBox(height: paddingTop),
+                        ),
+                        SliverToBoxAdapter(
+                          child: _pageHeader(context),
+                        ),
+                        SliverToBoxAdapter(
+                          child: ValueListenableBuilder(
+                            valueListenable: searchStr,
+                            builder: (BuildContext context, String value,
+                                    Widget? child) =>
+                                CollectionSection(
+                              key: _collectionSectionKey,
+                              filterString: value,
+                            ),
+                          ),
+                        ),
+                        const SliverToBoxAdapter(
+                          child: SizedBox(height: 60),
+                        ),
+                        if (searchStr.value.isEmpty) ...[
+                          SliverList(
+                            delegate: SliverChildBuilderDelegate(
+                              _predefinedCollectionByMediumBuilder,
+                              childCount:
+                                  _listPredefinedCollectionByMedium.length + 1,
+                            ),
+                          ),
+                          const SliverToBoxAdapter(
+                            child: SizedBox(height: 60),
+                          ),
+                        ],
+                        if (searchStr.value.isNotEmpty) ...[
+                          SliverList(
+                            delegate: SliverChildBuilderDelegate(
+                              _worksBuilder,
+                              childCount: _works.length + 1,
+                            ),
+                          ),
+                          const SliverToBoxAdapter(
+                            child: SizedBox(height: 60),
+                          ),
+                        ],
+                        SliverList(
+                          delegate: SliverChildBuilderDelegate(
+                            _predefinedCollectionByArtistBuilder,
+                            childCount:
+                                _listPredefinedCollectionByArtist.length + 1,
+                          ),
+                        ),
+                        const SliverToBoxAdapter(
+                          child: SizedBox(height: 100),
+                        ),
+                      ],
+                    ),
                 bloc: _identityBloc);
           }
           return const Center(child: CircularProgressIndicator());
@@ -219,7 +227,195 @@ class CollectionProState extends State<CollectionPro>
     );
   }
 
-  Widget _header(BuildContext context) {
+  Widget _predefinedCollectionByArtistBuilder(BuildContext context, int index) {
+    const type = PredefinedCollectionType.artist;
+    return _predefinedCollectionBuilder(context, index, type);
+  }
+
+  Widget _predefinedCollectionByMediumBuilder(BuildContext context, int index) {
+    const type = PredefinedCollectionType.medium;
+    return _predefinedCollectionBuilder(context, index, type);
+  }
+
+  Widget _worksBuilder(BuildContext context, int index) {
+    const padding = EdgeInsets.symmetric(horizontal: 15);
+    final sep = addDivider(color: AppColor.auLightGrey);
+    if (index == 0) {
+      return Padding(
+        padding: padding,
+        child: Column(
+          children: [
+            HeaderView(title: 'works'.tr(), padding: EdgeInsets.zero),
+            const SizedBox(
+              height: 30,
+            ),
+          ],
+        ),
+      );
+    } else {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 15),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 15),
+              child: SizedBox(
+                height: 164,
+                child: _artworkItem(context, _works[index - 1]),
+              ),
+            ),
+            sep,
+          ],
+        ),
+      );
+    }
+  }
+
+  PredefinedCollectionModel _getPredefinedCollection(
+      int index, PredefinedCollectionType type) {
+    switch (type) {
+      case PredefinedCollectionType.medium:
+        return _listPredefinedCollectionByMedium[index];
+      case PredefinedCollectionType.artist:
+        return _listPredefinedCollectionByArtist[index];
+    }
+  }
+
+  Widget _predefinedCollectionBuilder(
+    BuildContext context,
+    int index,
+    PredefinedCollectionType type,
+  ) {
+    final sep = addOnlyDivider(color: AppColor.auGreyBackground);
+    const padding = EdgeInsets.symmetric(horizontal: 15);
+    if (index == 0) {
+      return Padding(
+        padding: padding,
+        child: Column(
+          children: [
+            _predefinedCollectionHeader(
+              context,
+              type,
+            ),
+            const SizedBox(
+              height: 30,
+            ),
+          ],
+        ),
+      );
+    } else {
+      final predefinedCollection = _getPredefinedCollection(index - 1, type);
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 15),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 15),
+              child: _predefinedCollectionitem(
+                  context, predefinedCollection, type, searchStr.value),
+            ),
+            sep,
+          ],
+        ),
+      );
+    }
+  }
+
+  Widget _predefinedCollectionitem(
+      BuildContext context,
+      PredefinedCollectionModel predefinedCollection,
+      PredefinedCollectionType type,
+      String searchStr) {
+    final theme = Theme.of(context);
+    var title = predefinedCollection.name ?? predefinedCollection.id;
+    if (predefinedCollection.name == predefinedCollection.id) {
+      title = title.maskOnly(5);
+    }
+    final titleStyle = theme.textTheme.ppMori400White14;
+    return GestureDetector(
+      onTap: () async {
+        await Navigator.pushNamed(
+          context,
+          AppRouter.predefinedCollectionPage,
+          arguments: PredefinedCollectionScreenPayload(
+            type: type,
+            predefinedCollection: predefinedCollection,
+            filterStr: searchStr,
+          ),
+        );
+      },
+      child: Container(
+        color: Colors.transparent,
+        child: Row(
+          children: [
+            _predefinedCollectionIcon(
+              predefinedCollection,
+              type,
+            ),
+            const SizedBox(width: 33),
+            Expanded(
+              child: Text(
+                title,
+                style: titleStyle,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            Text('${predefinedCollection.total}',
+                style: theme.textTheme.ppMori400Grey14),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _predefinedCollectionIcon(
+      PredefinedCollectionModel predefinedCollection,
+      PredefinedCollectionType type) {
+    switch (type) {
+      case PredefinedCollectionType.medium:
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            color: AppColor.auLightGrey,
+          ),
+          child: SvgPicture.asset(
+            MediumCategoryExt.icon(predefinedCollection.id),
+            width: 22,
+            colorFilter:
+                const ColorFilter.mode(AppColor.primaryBlack, BlendMode.srcIn),
+          ),
+        );
+      case PredefinedCollectionType.artist:
+        final compactedAssetTokens = predefinedCollection.compactedAssetToken;
+        return SizedBox(
+          width: 42,
+          height: 42,
+          child: tokenGalleryThumbnailWidget(context, compactedAssetTokens, 100,
+              usingThumbnailID: false,
+              galleryThumbnailPlaceholder: Container(
+                width: 42,
+                height: 42,
+                color: AppColor.auLightGrey,
+              )),
+        );
+    }
+  }
+
+  Widget _predefinedCollectionHeader(
+      BuildContext context, PredefinedCollectionType type) {
+    final title = type == PredefinedCollectionType.medium
+        ? 'medium'.tr()
+        : 'artists'.tr();
+    return HeaderView(
+      title: title,
+      padding: EdgeInsets.zero,
+    );
+  }
+
+  Widget _pageHeader(BuildContext context) {
     final paddingTop = MediaQuery.of(context).viewPadding.top;
     return Padding(
       padding: EdgeInsets.only(top: paddingTop)
@@ -268,204 +464,6 @@ class CollectionProState extends State<CollectionPro>
               ),
             ),
     );
-  }
-}
-
-class SectionHeader extends StatelessWidget {
-  final String title;
-  final TextStyle? titleStyle;
-  final String? subTitle;
-  final Widget? icon;
-  final Function()? onTap;
-
-  const SectionHeader({
-    required this.title,
-    super.key,
-    this.titleStyle,
-    this.subTitle,
-    this.icon,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final titleDefaultStyle =
-        theme.textTheme.ppMori700White24.copyWith(fontSize: 36);
-    return Row(
-      children: [
-        Text(
-          title,
-          style: titleStyle ?? titleDefaultStyle,
-        ),
-        const Spacer(),
-        if (subTitle != null)
-          Text(
-            subTitle!,
-            style: theme.textTheme.ppMori400Black14,
-          ),
-        if (icon != null) ...[
-          const SizedBox(width: 15),
-          GestureDetector(onTap: onTap, child: icon)
-        ],
-      ],
-    );
-  }
-}
-
-class PredefinedCollectionSection extends StatefulWidget {
-  final List<PredefinedCollectionModel> listPredefinedCollection;
-  final PredefinedCollectionType predefinedCollectionType;
-  final String searchStr;
-
-  const PredefinedCollectionSection(
-      {required this.listPredefinedCollection,
-      required this.predefinedCollectionType,
-      required this.searchStr,
-      super.key});
-
-  @override
-  State<PredefinedCollectionSection> createState() =>
-      _PredefinedCollectionSectionState();
-}
-
-class _PredefinedCollectionSectionState
-    extends State<PredefinedCollectionSection> {
-  Widget _header(BuildContext context, int total) {
-    final title =
-        widget.predefinedCollectionType == PredefinedCollectionType.medium
-            ? 'medium'.tr()
-            : 'artists'.tr();
-    return SectionHeader(title: title, subTitle: '');
-  }
-
-  Widget _icon(PredefinedCollectionModel predefinedCollection) {
-    switch (widget.predefinedCollectionType) {
-      case PredefinedCollectionType.medium:
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            color: AppColor.auLightGrey,
-          ),
-          child: SvgPicture.asset(
-            MediumCategoryExt.icon(predefinedCollection.id),
-            width: 22,
-            colorFilter:
-                const ColorFilter.mode(AppColor.primaryBlack, BlendMode.srcIn),
-          ),
-        );
-      case PredefinedCollectionType.artist:
-        final compactedAssetTokens = predefinedCollection.compactedAssetToken;
-        return SizedBox(
-          width: 42,
-          height: 42,
-          child: tokenGalleryThumbnailWidget(context, compactedAssetTokens, 100,
-              usingThumbnailID: false,
-              galleryThumbnailPlaceholder: Container(
-                width: 42,
-                height: 42,
-                color: AppColor.auLightGrey,
-              )),
-        );
-    }
-  }
-
-  Widget _item(
-      BuildContext context, PredefinedCollectionModel predefinedCollection) {
-    final theme = Theme.of(context);
-    var title = predefinedCollection.name ?? predefinedCollection.id;
-    if (predefinedCollection.name == predefinedCollection.id) {
-      title = title.maskOnly(5);
-    }
-    final titleStyle = theme.textTheme.ppMori400White14;
-    return GestureDetector(
-      onTap: () async {
-        await Navigator.pushNamed(
-          context,
-          AppRouter.predefinedCollectionPage,
-          arguments: PredefinedCollectionScreenPayload(
-            type: widget.predefinedCollectionType,
-            predefinedCollection: predefinedCollection,
-            filterStr: widget.searchStr,
-          ),
-        );
-      },
-      child: Container(
-        color: Colors.transparent,
-        child: Row(
-          children: [
-            _icon(
-              predefinedCollection,
-            ),
-            const SizedBox(width: 33),
-            Expanded(
-              child: Text(
-                title,
-                style: titleStyle,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            Text('${predefinedCollection.total}',
-                style: theme.textTheme.ppMori400Grey14),
-          ],
-        ),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final listPredefinedCollection = widget.listPredefinedCollection;
-    const padding = 15.0;
-    return Padding(
-      padding: const EdgeInsets.only(left: padding, right: padding),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _header(context, listPredefinedCollection.length),
-          const SizedBox(
-            height: 30,
-          ),
-          CustomScrollView(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            slivers: [
-              SliverList.separated(
-                separatorBuilder: (BuildContext context, int index) =>
-                    addOnlyDivider(color: AppColor.auGreyBackground),
-                itemBuilder: (BuildContext context, int index) {
-                  final predefinedCollection = listPredefinedCollection[index];
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 15),
-                    child: _item(context, predefinedCollection),
-                  );
-                },
-                itemCount: listPredefinedCollection.length,
-              )
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class WorksSection extends StatefulWidget {
-  final List<CompactedAssetToken> works;
-
-  const WorksSection({required this.works, super.key});
-
-  @override
-  State<WorksSection> createState() => _WorksSectionState();
-}
-
-class _WorksSectionState extends State<WorksSection> {
-  @override
-  void initState() {
-    super.initState();
   }
 
   Widget _artworkItem(BuildContext context, CompactedAssetToken token) {
@@ -526,37 +524,6 @@ class _WorksSectionState extends State<WorksSection> {
               ],
             ),
           )
-        ],
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    const padding = 15.0;
-    final compactedAssetTokens = widget.works;
-
-    return Padding(
-      padding: const EdgeInsets.only(left: padding, right: padding),
-      child: Column(
-        children: [
-          SectionHeader(title: 'works'.tr(), subTitle: ''),
-          const SizedBox(height: 30),
-          CustomScrollView(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            slivers: [
-              SliverList.separated(
-                  itemBuilder: (BuildContext context, int index) {
-                    final token = compactedAssetTokens[index];
-                    return SizedBox(
-                        height: 164, child: _artworkItem(context, token));
-                  },
-                  itemCount: compactedAssetTokens.length,
-                  separatorBuilder: (BuildContext context, int index) =>
-                      addDivider(color: AppColor.auLightGrey)),
-            ],
-          ),
         ],
       ),
     );
