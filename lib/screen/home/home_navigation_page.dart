@@ -147,7 +147,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
             },
           ),
           OptionItem(
-            title: 'wallet'.tr(),
+            title: 'addresses'.tr(),
             icon: const Icon(
               AuIcon.wallet,
             ),

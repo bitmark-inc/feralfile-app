@@ -304,17 +304,17 @@ class ReportIssueType {
   static String introMessage(String item) {
     switch (item) {
       case Feature:
-        return 'Thanks for taking the time to help us improve Autonomy. We’re always looking for great ideas. What feature would you like to request?';
+        return 'Thanks for taking the time to help us improve Feral File. We’re always looking for great ideas. What feature would you like to request?';
       case Bug:
-        return 'We’re sorry to hear you’ve experienced a problem using Autonomy. Thanks for taking the time to help us improve. Please describe the bug for us.';
+        return 'We’re sorry to hear you’ve experienced a problem using Feral File. Thanks for taking the time to help us improve. Please describe the bug for us.';
       case Feedback:
         return 'Thanks for taking the time to share your feedback with us. What’s on your mind?';
       case Exception:
-        return 'Thanks for taking the time to help improve Autonomy. We’ve received your automatic crash report and are looking into it. How else can we help?';
+        return 'Thanks for taking the time to help improve Feral File. We’ve received your automatic crash report and are looking into it. How else can we help?';
       case ReportNFTIssue:
-        return 'Thanks for taking the time to help improve Autonomy. We’ve received your NFT issue and are looking into it. How else can we help?';
+        return 'Thanks for taking the time to help improve Feral File. We’ve received your NFT issue and are looking into it. How else can we help?';
       default:
-        return 'Thanks for reaching out to the Autonomy team! What’s on your mind?';
+        return 'Thanks for reaching out to the Feral File team! What’s on your mind?';
     }
   }
 }
@@ -339,7 +339,7 @@ extension PremiumFeatureExtension on PremiumFeature {
   String get moreAutonomyDescription {
     switch (rawValue) {
       case 'AutonomyTV':
-        return 'You must upgrade to an Autonomy subscription to connect to Autonomy on TV.';
+        return 'You must upgrade to an Feral File subscription to connect to Feral File on TV.';
       default:
         return '';
     }
