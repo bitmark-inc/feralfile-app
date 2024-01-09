@@ -1,10 +1,12 @@
 import 'dart:async';
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
 import 'package:autonomy_flutter/screen/exhibitions/exhibitions_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibitions/exhibitions_state.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/header.dart';
@@ -25,6 +27,7 @@ class ExhibitionsPage extends StatefulWidget {
 class ExhibitionsPageState extends State<ExhibitionsPage> {
   late ExhibitionBloc _exhibitionBloc;
   late ScrollController _controller;
+  final _navigationService = injector<NavigationService>();
 
   // initState
   @override
@@ -121,8 +124,12 @@ class ExhibitionsPageState extends State<ExhibitionsPage> {
                                 TextSpan(text: 'curated_by'.tr()),
                                 TextSpan(
                                     recognizer: TapGestureRecognizer()
-                                      ..onTap = () {},
-                                    text: exhibition.curator?.alias ?? '',
+                                      ..onTap = () async {
+                                        await _navigationService
+                                            .openFeralFileCuratorPage(
+                                                exhibition.curator!.alias);
+                                      },
+                                    text: exhibition.curator!.alias,
                                     style: const TextStyle(
                                       decoration: TextDecoration.underline,
                                     )),

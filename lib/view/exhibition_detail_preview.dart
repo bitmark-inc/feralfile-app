@@ -1,4 +1,6 @@
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -8,7 +10,9 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 class ExhibitionPreview extends StatelessWidget {
-  const ExhibitionPreview({required this.exhibition, super.key});
+  ExhibitionPreview({required this.exhibition, super.key});
+
+  final _navigationService = injector<NavigationService>();
 
   final Exhibition exhibition;
 
@@ -36,13 +40,17 @@ class ExhibitionPreview extends StatelessWidget {
             title: exhibition.title,
             padding: const EdgeInsets.symmetric(vertical: 20),
           ),
-          Text('curator'.tr(), style: subTextStyle),
-          const SizedBox(height: 3),
-          GestureDetector(
-            child:
-                Text(exhibition.curator?.alias ?? '', style: artistTextStyle),
-            onTap: () {},
-          ),
+          if (exhibition.curator != null) ...[
+            Text('curator'.tr(), style: subTextStyle),
+            const SizedBox(height: 3),
+            GestureDetector(
+              child: Text(exhibition.curator!.alias, style: artistTextStyle),
+              onTap: () async {
+                await _navigationService
+                    .openFeralFileCuratorPage(exhibition.curator!.alias);
+              },
+            ),
+          ],
           const SizedBox(height: 10),
           Text('group_exhibition'.tr(), style: subTextStyle),
           const SizedBox(height: 3),
@@ -54,7 +62,11 @@ class ExhibitionPreview extends StatelessWidget {
                     return [
                       TextSpan(
                           style: artistTextStyle,
-                          recognizer: TapGestureRecognizer()..onTap = () {},
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () async {
+                              await _navigationService
+                                  .openFeralFileArtistPage(e.alias);
+                            },
                           text: e.alias),
                       if (!isLast)
                         const TextSpan(
