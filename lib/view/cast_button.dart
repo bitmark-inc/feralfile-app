@@ -59,17 +59,15 @@ class CastButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => GestureDetector(
-      onTap: onCastTap,
-      child: Semantics(
-        label: 'cast_icon',
-        child: SvgPicture.asset(
-          'assets/images/cast_icon.svg',
-          colorFilter: ColorFilter.mode(
-              isCasting
-                  ? AppColor.feralFileHighlight
-                  : AppColor.white,
-              BlendMode.srcIn),
+        onTap: onCastTap,
+        child: Semantics(
+          label: 'cast_icon',
+          child: SvgPicture.asset(
+            'assets/images/cast_icon.svg',
+            colorFilter: ColorFilter.mode(
+                isCasting ? AppColor.feralFileHighlight : AppColor.white,
+                BlendMode.srcIn),
+          ),
         ),
-      ),
-    );
+      );
 }
