@@ -197,7 +197,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage> {
             ? null
             : Padding(
                 padding: const EdgeInsets.only(right: 14, bottom: 10, top: 10),
-                child: CastButton(
+                child: FFCastButton(
                   text: _currentIndex == 0 ? 'stream_to_device'.tr() : null,
                   onCastTap: () async {
                     await _onCastTap(buildContext, exhibitionDetail);
