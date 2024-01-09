@@ -142,8 +142,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
                   AppColor.white, BlendMode.srcIn), // white
             ),
             onTap: () {
-              Navigator.of(context)
-                  .pushReplacementNamed(AppRouter.momaPostcardPage);
+              Navigator.of(context).popAndPushNamed(AppRouter.momaPostcardPage);
             },
           ),
           OptionItem(
@@ -152,7 +151,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
               AuIcon.wallet,
             ),
             onTap: () {
-              Navigator.of(context).pushReplacementNamed(AppRouter.walletPage);
+              Navigator.of(context).popAndPushNamed(AppRouter.walletPage);
             },
           ),
           OptionItem(
@@ -161,8 +160,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
               AuIcon.settings,
             ),
             onTap: () {
-              Navigator.of(context)
-                  .pushReplacementNamed(AppRouter.settingsPage);
+              Navigator.of(context).popAndPushNamed(AppRouter.settingsPage);
             },
           ),
           OptionItem(
@@ -183,7 +181,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
               ),
               onTap: () {
                 Navigator.of(context)
-                    .pushReplacementNamed(AppRouter.supportCustomerPage);
+                    .popAndPushNamed(AppRouter.supportCustomerPage);
               }),
         ],
       );
