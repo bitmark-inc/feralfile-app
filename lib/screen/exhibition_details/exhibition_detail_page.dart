@@ -67,7 +67,9 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage> {
       );
     }
 
-    final viewingArtworks = exhibitionDetail.representArtworks;
+    final viewingArtworks = exhibitionDetail.representArtworks
+      ..sort((a, b) => a.seriesID.compareTo(b.seriesID));
+
     final tokenIds = viewingArtworks
         .map((e) => exhibitionDetail.getArtworkTokenId(e)!)
         .toList();
@@ -194,14 +196,14 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage> {
         action: exhibitionDetail == null
             ? null
             : Padding(
-              padding: const EdgeInsets.only(right: 14, bottom: 10, top: 10),
-              child: CastButton(
+                padding: const EdgeInsets.only(right: 14, bottom: 10, top: 10),
+                child: CastButton(
                   text: _currentIndex == 0 ? 'stream_to_device'.tr() : null,
                   onCastTap: () async {
                     await _onCastTap(buildContext, exhibitionDetail);
                   },
                 ),
-            ),
+              ),
       );
 
   Future<void> _onCastTap(
@@ -210,7 +212,12 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage> {
         exhibitionDetail.artworks!.isEmpty) {
       return;
     }
-    exhibitionDetail.artworks!.sort((a, b) => a.index.compareTo(b.index));
+    exhibitionDetail.artworks!.sort((a, b) {
+      if (a.index != b.index) {
+        a.index.compareTo(b.index);
+      }
+      return a.seriesID.compareTo(b.seriesID);
+    });
     final tokenIds = exhibitionDetail.artworks
         ?.map((e) => exhibitionDetail.getArtworkTokenId(e)!)
         .toList();
