@@ -58,11 +58,6 @@ class OrganizeHomePageState extends State<OrganizeHomePage>
     return await accountService.getAllAddressIndexes();
   }
 
-  Future<List<String>> getAddresses() async {
-    final accountService = injector<AccountService>();
-    return await accountService.getAllAddresses();
-  }
-
   final _clientTokenService = injector<ClientTokenService>();
   final _configurationService = injector<ConfigurationService>();
 
