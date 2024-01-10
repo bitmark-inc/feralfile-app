@@ -219,9 +219,11 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       ], child: const ExhibitionsPage()),
       ScanQRPage(
         key: _scanQRPageKey,
+        onHandleFinished: () async {
+          await _onItemTapped(HomeNavigatorTab.collection.index);
+        },
       )
     ];
-
     if (!_configurationService.isReadRemoveSupport()) {
       unawaited(_showRemoveCustomerSupport());
     }
@@ -258,6 +260,9 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   Future<void> didPopNext() async {
     super.didPopNext();
     unawaited(injector<CustomerSupportService>().getIssuesAndAnnouncement());
+    if (_selectedIndex == HomeNavigatorTab.scanQr.index) {
+      await _scanQRPageKey.currentState?.resumeCamera();
+    }
   }
 
   Future<void> _showRemoveCustomerSupport() async {
