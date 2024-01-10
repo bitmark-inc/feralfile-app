@@ -32,24 +32,14 @@ jobs:
   build:
     runs-on: [ self-hosted, macm2, build-ci-local-bmvn, android ]
     steps:
-      - name: Extract Short Version
-        id: extract-version
+      - name: Extract Build number for Testnet
+        id: extract-version-testnet
         env:
             APPCENTER_API_TOKEN: ${{ secrets.APPCENTER_API_TOKEN }}
         run: |
-            # Set URL for Testnet build or Mainnet build
-            ${{ inputs.testnet == true }} && echo APPCENTER_URL=/Autonomy-Android-Test/recent_releases || echo APPCENTER_URL=/Autonomy-Android-1/recent_releases
-            # echo "APPCENTER_URL=${{ env.APPCENTER_URL }}"
-            echo "$APPCENTER_URL"
-            echo "https://api.appcenter.ms/v0.1/apps/support-zzd0-28$APPCENTER_URL"
-            # export APPCENTER_URL_TEMP=$APPCENTER_URL
-            # echo "APPCENTER_URL_TEMP: $APPCENTER_URL_TEMP"
-            # echo "APPCENTER_URL_BUILD=$APPCENTER_URL" >> "$GITHUB_ENV"
-            # echo ${{ env.APPCENTER_URL }}
-
             # Make the API request and extract the short_version using jq
             API_RESPONSE=$(curl -X GET \
-            "https://api.appcenter.ms/v0.1/apps/support-zzd0-28$APPCENTER_URL" \
+            "https://api.appcenter.ms/v0.1/apps/support-zzd0-28/Autonomy-Android-Test/recent_releases" \
             -H 'accept: application/json' \
             -H "X-API-Token: $APPCENTER_API_TOKEN")
 
@@ -59,6 +49,25 @@ jobs:
             ((BUILD_NUMBER++))
             echo "$BUILD_NUMBER"
             echo "FLUTTER_VERSION_CODE=$BUILD_NUMBER" >> "$GITHUB_ENV"
+        if: ${{ inputs.testnet == true }}
+      - name: Extract Build number for Mainnet
+        id: extract-version-mainnet
+        env:
+            APPCENTER_API_TOKEN: ${{ secrets.APPCENTER_API_TOKEN }}
+        run: |
+            # Make the API request and extract the short_version using jq
+            API_RESPONSE=$(curl -X GET \
+            "https://api.appcenter.ms/v0.1/apps/support-zzd0-28/Autonomy-Android-1/recent_releases" \
+            -H 'accept: application/json' \
+            -H "X-API-Token: $APPCENTER_API_TOKEN")
+
+            echo "$API_RESPONSE"
+            BUILD_NUMBER=$(echo "$API_RESPONSE" | jq -r '.[0].version')
+            # Increase the build number by 1
+            ((BUILD_NUMBER++))
+            echo "$BUILD_NUMBER"
+            echo "FLUTTER_VERSION_CODE=$BUILD_NUMBER" >> "$GITHUB_ENV"
+        if: ${{ inputs.testnet == false }}
       - uses: actions/checkout@v2
       - uses: actions/setup-java@v2
         with:
