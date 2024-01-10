@@ -36,7 +36,6 @@ class WalletPage extends StatefulWidget {
 
 class _WalletPageState extends State<WalletPage>
     with RouteAware, WidgetsBindingObserver {
-
   @override
   void initState() {
     super.initState();
