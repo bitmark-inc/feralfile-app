@@ -218,9 +218,11 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       ], child: const ExhibitionsPage()),
       ScanQRPage(
         key: _scanQRPageKey,
+        onHandleFinished: () async {
+          await _onItemTapped(HomeNavigatorTab.collection.index);
+        },
       )
     ];
-
     if (!_configurationService.isReadRemoveSupport()) {
       unawaited(_showRemoveCustomerSupport());
     }

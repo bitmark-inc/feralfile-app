@@ -50,8 +50,12 @@ class ScanQRPage extends StatefulWidget {
   static const String tag = AppRouter.scanQRPage;
 
   final ScannerItem scannerItem;
+  final Function? onHandleFinished;
 
-  const ScanQRPage({super.key, this.scannerItem = ScannerItem.GLOBAL});
+  const ScanQRPage(
+      {super.key,
+      this.scannerItem = ScannerItem.GLOBAL,
+      this.onHandleFinished});
 
   @override
   State<ScanQRPage> createState() => ScanQRPageState();
@@ -128,6 +132,7 @@ class ScanQRPageState extends State<ScanQRPage>
               QRScanView(
                 key: _qrScanViewKey,
                 scannerItem: widget.scannerItem,
+                onHandleFinished: widget.onHandleFinished,
               ),
               MultiBlocProvider(
                   providers: [
@@ -237,8 +242,10 @@ enum ScannerItem {
 
 class QRScanView extends StatefulWidget {
   final ScannerItem scannerItem;
+  final Function? onHandleFinished;
 
-  const QRScanView({required this.scannerItem, super.key});
+  const QRScanView(
+      {required this.scannerItem, super.key, this.onHandleFinished});
 
   @override
   State<QRScanView> createState() => QRScanViewState();
@@ -607,6 +614,7 @@ class QRScanViewState extends State<QRScanView>
               });
               unawaited(resumeCamera());
             }
+            widget.onHandleFinished?.call();
           },
         );
         return;
@@ -676,6 +684,9 @@ class QRScanViewState extends State<QRScanView>
             _isLoading = false;
           });
           await resumeCamera();
+        }
+        if (!isScanDataError) {
+          widget.onHandleFinished?.call();
         }
       }
     });
