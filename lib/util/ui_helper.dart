@@ -8,8 +8,6 @@
 //  that can be found in the LICENSE file.
 //
 
-// ignore_for_file: constant_identifier_names
-
 import 'dart:async';
 import 'dart:convert';
 
@@ -69,6 +67,7 @@ Future<void> doneOnboarding(BuildContext context) async {
       injector<MetricClientService>().mixPanelClient.initIfDefaultAccount());
   await injector<NavigationService>()
       .navigateUntil(AppRouter.homePage, (route) => false);
+}
 
 void nameContinue(BuildContext context) {
   if (injector<ConfigurationService>().isDoneOnboarding()) {
