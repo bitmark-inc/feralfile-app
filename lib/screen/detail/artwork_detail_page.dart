@@ -183,7 +183,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       context
           .read<ArtworkDetailBloc>()
           .add(ArtworkDetailGetAirdropDeeplink(assetToken: asset));
-      UIHelper.showAirdropCannotShare(context);
+      unawaited(UIHelper.showAirdropCannotShare(context));
       return;
     }
     try {
@@ -194,7 +194,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     } catch (e) {
       if (e is DioException) {
         if (mounted) {
-          UIHelper.showSharePostcardFailed(context, e);
+          unawaited(UIHelper.showSharePostcardFailed(context, e));
         }
       }
     }
@@ -465,11 +465,12 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
             }
             NftCollectionBloc.eventController.add(ReloadEvent());
             Navigator.of(context).pop();
-            UIHelper.showHideArtworkResultDialog(context, !isHidden, onOK: () {
+            unawaited(UIHelper.showHideArtworkResultDialog(context, !isHidden,
+                onOK: () {
               Navigator.of(context).popUntil((route) =>
                   route.settings.name == AppRouter.homePage ||
                   route.settings.name == AppRouter.homePageNoTransition);
-            });
+            }));
           },
         ),
         if (ownerWallet != null) ...[
