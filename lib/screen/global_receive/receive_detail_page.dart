@@ -5,13 +5,14 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
+
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/util/account_ext.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/crypto_view.dart';
-import 'package:autonomy_flutter/view/important_note_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -23,12 +24,11 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 
 class GlobalReceiveDetailPage extends StatefulWidget {
-  static const tag = "global_receive_detail";
+  static const tag = 'global_receive_detail';
 
   final GlobalReceivePayload payload;
 
-  const GlobalReceiveDetailPage({Key? key, required this.payload})
-      : super(key: key);
+  const GlobalReceiveDetailPage({required this.payload, super.key});
 
   @override
   State<GlobalReceiveDetailPage> createState() =>
@@ -54,7 +54,7 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
     return Scaffold(
       appBar: getBackAppBar(
         context,
-        title: "receive_on_".tr(args: [_blockchain!]),
+        title: 'receive_on_'.tr(args: [_blockchain!]),
         onBack: () => Navigator.of(context).pop(),
       ),
       body: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
@@ -71,14 +71,10 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
                     onTap: copy,
                     child: QrImageView(
                       data: widget.payload.address,
-                      size: 180.0,
+                      size: 180,
                     )),
               ),
               const SizedBox(height: 30),
-              _blockchain != "USDC"
-                  ? ImportantNoteView(note: _blockchainWarningText(_blockchain))
-                  : const SizedBox(),
-              const SizedBox(height: 16),
               Container(
                 decoration: const BoxDecoration(
                   color: AppColor.auLightGrey,
@@ -103,14 +99,14 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               Text(
-                                "your_blockchain_address".tr(
+                                'your_blockchain_address'.tr(
                                     namedArgs: {'blockChain': _blockchain!}),
                                 textAlign: TextAlign.left,
                                 style: ResponsiveLayout.isMobile
                                     ? theme.textTheme.ppMori400Black12
                                     : theme.textTheme.ppMori400Black14,
                               ),
-                              const SizedBox(height: 4.0),
+                              const SizedBox(height: 4),
                               Text(
                                 _account.accountNumber,
                                 textAlign: TextAlign.start,
@@ -127,40 +123,24 @@ class _GlobalReceiveDetailPageState extends State<GlobalReceiveDetailPage> {
         )),
         Container(
           padding: EdgeInsets.symmetric(
-              horizontal: 16.0, vertical: safeAreaBottom > 0 ? 40 : 16),
+              horizontal: 16, vertical: safeAreaBottom > 0 ? 40 : 16),
           child: OutlineButton(
               color: Colors.transparent,
               textColor: AppColor.primaryBlack,
               borderColor: AppColor.primaryBlack,
-              text: "share".tr(),
-              onTap: () => Share.share(widget.payload.address,
-                  subject: "my_account_number".tr())),
+              text: 'share'.tr(),
+              onTap: () => unawaited(Share.share(widget.payload.address,
+                  subject: 'my_account_number'.tr()))),
         ),
       ]),
     );
   }
 
-  copy() {
+  void copy() {
     showInfoNotification(
-        const Key("address"), "address_copied_to_clipboard".tr());
+        const Key('address'), 'address_copied_to_clipboard'.tr());
     Vibrate.feedback(FeedbackType.light);
-    Clipboard.setData(ClipboardData(text: widget.payload.address));
-  }
-}
-
-String _blockchainWarningText(String? blockchain) {
-  switch (blockchain) {
-    case "Bitmark":
-      return "bitmark_send_only"
-          .tr(); // "Send only Bitmark NFTs to this address. Do not send cryptocurrencies. Sending cryptocurrencies or non-Bitmark NFTs may result in their permanent loss.";
-    case "Ethereum":
-      return "eth_send_only"
-          .tr(); // "Send only Ether (ETH) cryptocurrency and Ethereum NFTs to this address. Do not send anything from an alternate chain such as USD Tether or Binance Smart Chain. Sending non-Ethereum cryptocurrencies or tokens may result in their permanent loss.";
-    case "Tezos":
-      return "xtz_send_only"
-          .tr(); // "Send only Tezos (XTZ) cryptocurrency and Tezos NFTs (FA2 standard) to this address. Sending other cryptocurrencies or tokens may result in their permanent loss.";
-    default:
-      return "";
+    unawaited(Clipboard.setData(ClipboardData(text: widget.payload.address)));
   }
 }
 
