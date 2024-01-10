@@ -2,6 +2,9 @@ name: MacMiniM2 Deploy appcenter Android app
 on:
   workflow_dispatch:
     inputs:
+      version:
+        description: Build version (eg 0.30.0)
+        required: true
       message:
         description: Change logs
         required: false
@@ -12,6 +15,10 @@ on:
         description: Using testnet (Default staging)
   workflow_call:
     inputs:
+      version:
+        description: Build version (eg 0.30.0)
+        type: string
+        required: true
       message:
         description: Change logs
         type: string
@@ -44,7 +51,7 @@ jobs:
 
             SHORT_VERSION=$(echo "$API_RESPONSE" | jq -r '.[0].short_version')
             echo "$SHORT_VERSION"
-            echo "FLUTTER_VERSION_NAME=$SHORT_VERSION" >> "$GITHUB_ENV"
+            # echo "FLUTTER_VERSION_NAME=$SHORT_VERSION" >> "$GITHUB_ENV"
             echo "FLUTTER_VERSION_CODE=$BUILD_NUMBER" >> "$GITHUB_ENV"
       - uses: actions/checkout@v2
       - uses: actions/setup-java@v2
@@ -57,12 +64,12 @@ jobs:
           channel: stable
       - name: Set env
         run: |
-          # echo "FLUTTER_VERSION_NAME=$SHORT_VERSION" >> $GITHUB_ENV
-          # echo "FLUTTER_VERSION_CODE=$BUILD_NUMBER" >> $GITHUB_ENV
+          echo "FLUTTER_VERSION_NAME=${{ inputs.version }}" >> $GITHUB_ENV
+          # echo "FLUTTER_VERSION_CODE=${{ inputs.build-number }}" >> $GITHUB_ENV
           echo "BRANCH_KEY=${{ secrets.BRANCH_KEY }}" >> $GITHUB_ENV
           echo "BRANCH_KEY_TEST=${{ secrets.BRANCH_KEY_TEST }}" >> $GITHUB_ENV
           ${{ inputs.testnet == true }} && echo APPCENTER_APP_ID=support-zzd0-28/Autonomy-Android-Test >> $GITHUB_ENV || echo APPCENTER_APP_ID=support-zzd0-28/Autonomy-Android-1 >> $GITHUB_ENV
-          ${{ inputs.testnet == true }} && echo NAME_SUFFIX=test-$BUILD_NUMBER >> $GITHUB_ENV || echo NAME_SUFFIX=main-$BUILD_NUMBER >> $GITHUB_ENV
+          ${{ inputs.testnet == true }} && echo NAME_SUFFIX=test-${{BUILD_NUMBER}} >> $GITHUB_ENV || echo NAME_SUFFIX=main-${{BUILD_NUMBER}} >> $GITHUB_ENV
 
       - uses: webfactory/ssh-agent@v0.5.4
         with:
