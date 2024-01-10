@@ -15,21 +15,20 @@ import 'package:flutter/material.dart';
 class ChooseChainPage extends StatefulWidget {
   static const String tag = 'choose_chain_page';
 
-  const ChooseChainPage({Key? key}) : super(key: key);
+  const ChooseChainPage({super.key});
 
   @override
   State<ChooseChainPage> createState() => _ChooseChainPageState();
 }
 
 class _ChooseChainPageState extends State<ChooseChainPage> {
-  bool _ethSelected = false;
-  bool _tezosSelected = false;
+  bool _ethSelected = true;
+  bool _tezosSelected = true;
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
+  Widget build(BuildContext context) => Scaffold(
       appBar: getBackAppBar(context,
-          title: "choose_a_chain".tr().capitalize(),
+          title: 'choose_a_chain'.tr().capitalize(),
           onBack: () => Navigator.of(context).pop()),
       body: Padding(
         padding: const EdgeInsets.only(bottom: 32),
@@ -50,14 +49,14 @@ class _ChooseChainPageState extends State<ChooseChainPage> {
             ),
             Padding(
               padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-              child: PrimaryButton(
-                text: "continue".tr(),
+              child: PrimaryAsyncButton(
+                text: 'continue'.tr(),
                 enabled: _ethSelected || _tezosSelected,
-                onTap: () {
+                onTap: () async {
                   final walletType = WalletType.getWallet(
                       eth: _ethSelected, tezos: _tezosSelected);
                   if (walletType != null) {
-                    Navigator.of(context).pushNamed(AddressAlias.tag,
+                    await Navigator.of(context).pushNamed(AddressAlias.tag,
                         arguments: AddressAliasPayload(walletType));
                   }
                 },
@@ -67,7 +66,6 @@ class _ChooseChainPageState extends State<ChooseChainPage> {
         ),
       ),
     );
-  }
 
   Widget _addressOption(BuildContext context,
       {required CryptoType cryptoType, required bool isSelected}) {
@@ -92,7 +90,7 @@ class _ChooseChainPageState extends State<ChooseChainPage> {
                 }
               });
             },
-            child: Container(
+            child: DecoratedBox(
               decoration: const BoxDecoration(color: Colors.transparent),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
