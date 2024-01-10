@@ -41,12 +41,12 @@ jobs:
             ${{ inputs.testnet == true }} && echo APPCENTER_URL=api.appcenter.ms/v0.1/apps/support-zzd0-28/Autonomy-Android-Test/recent_releases || echo APPCENTER_URL=api.appcenter.ms/v0.1/apps/support-zzd0-28/Autonomy-Android-1/recent_releases
             # echo "APPCENTER_URL=${{ env.APPCENTER_URL }}"
             echo "$APPCENTER_URL"
-            # echo "APPCENTER_URL_BUILD=$APPCENTER_URL" >> "$GITHUB_ENV"
+            echo "APPCENTER_URL_BUILD=$APPCENTER_URL" >> "$GITHUB_ENV"
             # echo ${{ env.APPCENTER_URL }}
 
             # Make the API request and extract the short_version using jq
             API_RESPONSE=$(curl -X 'GET' \
-            "https://${{APPCENTER_URL}}" \
+            "https://${{env.APPCENTER_URL_BUILD}}" \
             -H 'accept: application/json' \
             -H "X-API-Token: $APPCENTER_API_TOKEN")
 
