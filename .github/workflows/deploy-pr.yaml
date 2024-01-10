@@ -65,6 +65,6 @@ jobs:
     with:
       version: ${{ needs.fetch-deployment.outputs.short_version }}
       message: ${{ needs.fetch-deployment.outputs.message }}
-      build-number: ${{ needs.fetch-deployment.outputs.build_number }}
+      # build-number: ${{ needs.fetch-deployment.outputs.build_number }}
       testnet: true
     secrets: inherit
