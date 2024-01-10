@@ -1,4 +1,5 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first, unawaited_futures, discarded_futures
+// ignore_for_file: public_member_api_docs, sort_constructors_first
+// ignore_for_file: unawaited_futures, discarded_futures
 //
 //  SPDX-License-Identifier: BSD-2-Clause-Patent
 //  Copyright © 2022 Bitmark. All rights reserved.
@@ -1399,19 +1400,19 @@ class UIHelper {
         closeButton: 'close'.tr());
   }
 
-  static Future<Future> showReceivePostcardFailed(
+  static Future<void> showReceivePostcardFailed(
           BuildContext context, DioException error) async =>
-      showErrorDialog(context, 'accept_postcard_failed'.tr(),
+      await showErrorDialog(context, 'accept_postcard_failed'.tr(),
           'postcard_has_been_claimed'.tr(), 'close'.tr());
 
-  static Future<Future> showAlreadyClaimedPostcard(
+  static Future<void> showAlreadyClaimedPostcard(
           BuildContext context, DioException error) async =>
-      showErrorDialog(context, 'you_already_claimed_this_postcard'.tr(),
+      await showErrorDialog(context, 'you_already_claimed_this_postcard'.tr(),
           'send_it_to_someone_else'.tr(), 'close'.tr());
 
-  static showSharePostcardFailed(
+  static Future<void> showSharePostcardFailed(
           BuildContext context, DioException error) async =>
-      _showPostcardError(
+      await _showPostcardError(
         context,
         message: 'cannot_send_postcard'.tr(),
       );
@@ -1476,19 +1477,20 @@ class UIHelper {
     }
   }
 
-  static Future<Future> showAirdropClaimFailed(BuildContext context) async =>
-      showErrorDialog(context, 'airdrop_claim_failed'.tr(), '', 'close'.tr());
+  static Future<void> showAirdropClaimFailed(BuildContext context) async =>
+      await showErrorDialog(
+          context, 'airdrop_claim_failed'.tr(), '', 'close'.tr());
 
-  static Future<Future> showAirdropAlreadyClaim(BuildContext context) async =>
-      showErrorDialog(context, 'already_claimed'.tr(),
+  static Future<void> showAirdropAlreadyClaim(BuildContext context) async =>
+      await showErrorDialog(context, 'already_claimed'.tr(),
           'already_claimed_desc'.tr(), 'close'.tr());
 
-  static Future<Future> showAirdropJustOnce(BuildContext context) async =>
-      showErrorDialog(
+  static Future<void> showAirdropJustOnce(BuildContext context) async =>
+      await showErrorDialog(
           context, 'just_once'.tr(), 'just_once_desc'.tr(), 'close'.tr());
 
-  static Future<Future> showAirdropCannotShare(BuildContext context) async =>
-      showErrorDialog(context, 'already_claimed'.tr(),
+  static Future<void> showAirdropCannotShare(BuildContext context) async =>
+      await showErrorDialog(context, 'already_claimed'.tr(),
           'cannot_share_aridrop_desc'.tr(), 'close'.tr());
 
   static Future<void> showPostcardShareLinkExpired(BuildContext context) async {
