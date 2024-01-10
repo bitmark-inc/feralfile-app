@@ -36,6 +36,7 @@ jobs:
         id: extract-version
         env:
             APPCENTER_API_TOKEN: ${{ secrets.APPCENTER_API_TOKEN }}
+            BUILD_NUMBER: 866
         run: |
             # Make the API request and extract the short_version using jq
             API_RESPONSE=$(curl -X 'GET' \
@@ -69,7 +70,7 @@ jobs:
           echo "BRANCH_KEY=${{ secrets.BRANCH_KEY }}" >> $GITHUB_ENV
           echo "BRANCH_KEY_TEST=${{ secrets.BRANCH_KEY_TEST }}" >> $GITHUB_ENV
           ${{ inputs.testnet == true }} && echo APPCENTER_APP_ID=support-zzd0-28/Autonomy-Android-Test >> $GITHUB_ENV || echo APPCENTER_APP_ID=support-zzd0-28/Autonomy-Android-1 >> $GITHUB_ENV
-          ${{ inputs.testnet == true }} && echo NAME_SUFFIX=test-${{FLUTTER_VERSION_CODE}} >> $GITHUB_ENV || echo NAME_SUFFIX=main-${{FLUTTER_VERSION_CODE}} >> $GITHUB_ENV
+          ${{ inputs.testnet == true }} && echo NAME_SUFFIX=test-${{BUILD_NUMBER}} >> $GITHUB_ENV || echo NAME_SUFFIX=main-${{BUILD_NUMBER}} >> $GITHUB_ENV
 
       - uses: webfactory/ssh-agent@v0.5.4
         with:
