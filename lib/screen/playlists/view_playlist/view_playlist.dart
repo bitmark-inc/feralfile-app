@@ -191,10 +191,10 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                               onPressed: () => Navigator.pop(context),
                               padding: EdgeInsets.zero,
                               constraints: const BoxConstraints(
-                                  maxHeight: 18, maxWidth: 18),
+                                  maxHeight: 22, maxWidth: 22),
                               icon: const Icon(
                                 AuIcon.close,
-                                size: 17,
+                                size: 22,
                               ),
                             ),
                           ),
