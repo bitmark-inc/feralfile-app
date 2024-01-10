@@ -47,7 +47,7 @@ jobs:
             # echo ${{ env.APPCENTER_URL }}
 
             # Make the API request and extract the short_version using jq
-            API_RESPONSE=$(curl -X GET "https://api.appcenter.ms/v0.1/apps/support-zzd0-28/$APPCENTER_URL_TEMP" -H 'accept: application/json' -H "X-API-Token: $APPCENTER_API_TOKEN")
+            API_RESPONSE=$(curl -X GET "https://api.appcenter.ms/v0.1/apps/support-zzd0-28/$APPCENTER_URL" -H 'accept: application/json' -H "X-API-Token: $APPCENTER_API_TOKEN")
 
             # echo "$API_RESPONSE"
             BUILD_NUMBER=$(echo "$API_RESPONSE" | jq -r '.[0].version')
