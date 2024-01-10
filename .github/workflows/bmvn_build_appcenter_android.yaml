@@ -38,8 +38,9 @@ jobs:
             APPCENTER_API_TOKEN: ${{ secrets.APPCENTER_API_TOKEN }}
         run: |
             # Set URL for Testnet build or Mainnet build
-            ${{ inputs.testnet == true }} && echo APPCENTER_URL=https://api.appcenter.ms/v0.1/apps/support-zzd0-28/Autonomy-Android-Test/recent_releases >> $GITHUB_ENV || echo APPCENTER_URL=https://api.appcenter.ms/v0.1/apps/support-zzd0-28/Autonomy-Android-1/recent_releases >> $GITHUB_ENV
-            echo "${{ env.APPCENTER_URL }}"
+            ${{ inputs.testnet == true }} && echo "APPCENTER_URL=https://api.appcenter.ms/v0.1/apps/support-zzd0-28/Autonomy-Android-Test/recent_releases" >> $GITHUB_ENV || echo "APPCENTER_URL=https://api.appcenter.ms/v0.1/apps/support-zzd0-28/Autonomy-Android-1/recent_releases" >> $GITHUB_ENV
+            echo "APPCENTER_URL=${{ env.APPCENTER_URL }}"
+            echo "$APPCENTER_URL"
 
             # Make the API request and extract the short_version using jq
             API_RESPONSE=$(curl -X 'GET' \
