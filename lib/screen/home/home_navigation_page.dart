@@ -90,6 +90,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   final _notificationService = injector<NotificationService>();
   final _playListService = injector<PlaylistService>();
   final _remoteConfig = injector<RemoteConfigService>();
+  late HomeNavigatorTab _initialTab;
 
   StreamSubscription<FGBGType>? _fgbgSubscription;
 
@@ -201,7 +202,8 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   void initState() {
     unawaited(injector<CustomerSupportService>().getIssuesAndAnnouncement());
     super.initState();
-    _selectedIndex = HomeNavigatorTab.collection.index;
+    _initialTab = HomeNavigatorTab.exhibition;
+    _selectedIndex = _initialTab.index;
     _pageController = PageController(initialPage: _selectedIndex);
 
     unawaited(_clientTokenService.refreshTokens());
@@ -220,7 +222,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       ScanQRPage(
         key: _scanQRPageKey,
         onHandleFinished: () async {
-          await _onItemTapped(HomeNavigatorTab.collection.index);
+          await _onItemTapped(_initialTab.index);
         },
       )
     ];
