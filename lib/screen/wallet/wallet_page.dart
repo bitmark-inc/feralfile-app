@@ -15,23 +15,17 @@ import 'package:autonomy_flutter/screen/onboarding/import_address/import_seeds.d
 import 'package:autonomy_flutter/screen/onboarding/new_address/choose_chain_page.dart';
 import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_address.dart';
 import 'package:autonomy_flutter/screen/settings/connection/accounts_view.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
-import 'package:autonomy_flutter/view/carousel.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_flutter/view/tip_card.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:multi_value_listenable_builder/multi_value_listenable_builder.dart';
 
 class WalletPage extends StatefulWidget {
   const WalletPage({super.key});
@@ -42,9 +36,6 @@ class WalletPage extends StatefulWidget {
 
 class _WalletPageState extends State<WalletPage>
     with RouteAware, WidgetsBindingObserver {
-  /// please increase addressWhatNewVersion when update the content of tip card
-  /// to show the tip card again
-  static const int addressWhatNewVersion = 1;
 
   @override
   void initState() {
@@ -52,7 +43,6 @@ class _WalletPageState extends State<WalletPage>
     WidgetsBinding.instance.addObserver(this);
     context.read<AccountsBloc>().add(GetAccountsEvent());
     unawaited(injector<SettingsDataService>().backup());
-    unawaited(_checkTipCardShowTime());
   }
 
   @override
@@ -151,12 +141,10 @@ class _WalletPageState extends State<WalletPage>
             padding: EdgeInsets.only(
               bottom: ResponsiveLayout.pageEdgeInsetsWithSubmitButton.bottom,
             ),
-            child: Column(
+            child: const Column(
               children: [
-                const SizedBox(height: 40),
-                _carouselTipcard(context),
-                const SizedBox(height: 20),
-                const AccountsView(
+                SizedBox(height: 40),
+                AccountsView(
                   isInSettingsPage: true,
                 ),
               ],
@@ -164,45 +152,4 @@ class _WalletPageState extends State<WalletPage>
           ),
         ),
       );
-
-  Widget _carouselTipcard(BuildContext context) {
-    final configurationService = injector<ConfigurationService>();
-    return MultiValueListenableBuilder(
-      valueListenables: [configurationService.showWhatNewAddressTip],
-      builder: (BuildContext context, List<dynamic> values, Widget? child) =>
-          CarouselWithIndicator(
-        items: _listTipCards(context, values),
-      ),
-    );
-  }
-
-  List<Tipcard> _listTipCards(BuildContext context, List<dynamic> values) {
-    final isShowWhatNew = values[0] as bool;
-    final configurationService = injector<ConfigurationService>();
-    return [
-      if (isShowWhatNew)
-        Tipcard(
-            titleText: 'what_new'.tr(),
-            onClosed: () {
-              unawaited(configurationService
-                  .setShowWhatNewAddressTipRead(addressWhatNewVersion));
-            },
-            content: Markdown(
-              physics: const NeverScrollableScrollPhysics(),
-              shrinkWrap: true,
-              data: 'address_what_new'.tr(),
-              softLineBreak: true,
-              styleSheet: markDownStyleTipCard(context),
-              padding: const EdgeInsets.all(0),
-            ),
-            listener: configurationService.showWhatNewAddressTip),
-    ];
-  }
-
-  Future<void> _checkTipCardShowTime() async {
-    final configurationService = injector<ConfigurationService>();
-    final isShowWhatNew =
-        configurationService.getShowWhatNewAddressTip(addressWhatNewVersion);
-    configurationService.showWhatNewAddressTip.value = isShowWhatNew;
-  }
 }
