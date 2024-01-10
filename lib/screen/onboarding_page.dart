@@ -9,7 +9,6 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/router/router_bloc.dart';
 import 'package:autonomy_flutter/screen/onboarding/new_address/choose_chain_page.dart';
 import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_address.dart';
@@ -235,12 +234,19 @@ class _OnboardingPageState extends State<OnboardingPage>
                 ? PrimaryButton(
                     text: 'h_loading...'.tr(),
                     isProcessing: true,
+                    enabled: false,
+                    disabledColor: AppColor.auGreyBackground,
+                    textColor: AppColor.white,
+                    indicatorColor: AppColor.white,
                   )
                 : (state.onboardingStep == OnboardingStep.restore)
                     ? PrimaryButton(
                         text: 'restoring'.tr(),
                         isProcessing: true,
                         enabled: false,
+                        disabledColor: AppColor.auGreyBackground,
+                        textColor: AppColor.white,
+                        indicatorColor: AppColor.white,
                       )
                     : null;
 
