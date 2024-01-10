@@ -205,7 +205,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                             'assets/images/penrose_moma.svg',
                             colorFilter: ColorFilter.mode(
                                 theme.colorScheme.secondary, BlendMode.srcIn),
-                            width: 27,
+                            height: 27,
                           ),
                         ],
                       ),
