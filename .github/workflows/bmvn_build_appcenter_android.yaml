@@ -2,12 +2,6 @@ name: MacMiniM2 Deploy appcenter Android app
 on:
   workflow_dispatch:
     inputs:
-      version:
-        description: Build version (eg 0.30.0)
-        required: true
-      build-number:
-        description: Build number
-        required: true
       message:
         description: Change logs
         required: false
@@ -18,14 +12,6 @@ on:
         description: Using testnet (Default staging)
   workflow_call:
     inputs:
-      version:
-        description: Build version (eg 0.30.0)
-        type: string
-        required: true
-      build-number:
-        description: Build number
-        type: string
-        required: true
       message:
         description: Change logs
         type: string
@@ -38,7 +24,28 @@ on:
 jobs:
   build:
     runs-on: [ self-hosted, macm2, build-ci-local-bmvn, android ]
+    outputs:
+      short_version: ${{ steps.extract-version.outputs.short_version }}
+      build_number: ${{ steps.extract-version.outputs.build_number }}
     steps:
+      - name: Extract Short Version
+        id: extract-version
+        env:
+            APPCENTER_API_TOKEN: ${{ secrets.APPCENTER_API_TOKEN }}
+        run: |
+            # Make the API request and extract the short_version using jq
+            API_RESPONSE=$(curl -X 'GET' \
+            "https://api.appcenter.ms/v0.1/apps/support-zzd0-28/Autonomy-Android-Test/recent_releases" \
+            -H 'accept: application/json' \
+            -H "X-API-Token: $APPCENTER_API_TOKEN")
+
+            BUILD_NUMBER=$(echo "$API_RESPONSE" | jq -r '.[0].version')
+            # Increase the build number by 1
+            ((BUILD_NUMBER++))
+            
+            SHORT_VERSION=$(echo "$API_RESPONSE" | jq -r '.[0].short_version')
+            echo "short_version=$SHORT_VERSION" >> "$GITHUB_OUTPUT"
+            echo "build_number=$BUILD_NUMBER" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@v2
       - uses: actions/setup-java@v2
         with:
@@ -50,8 +57,8 @@ jobs:
           channel: stable
       - name: Set env
         run: |
-          echo "FLUTTER_VERSION_NAME=${{ inputs.version }}" >> $GITHUB_ENV
-          echo "FLUTTER_VERSION_CODE=${{ inputs.build-number }}" >> $GITHUB_ENV
+          echo "FLUTTER_VERSION_NAME=${{ needs.fetch-deployment.outputs.short_version }}" >> $GITHUB_ENV
+          echo "FLUTTER_VERSION_CODE=${{ needs.fetch-deployment.outputs.build_number }}" >> $GITHUB_ENV
           echo "BRANCH_KEY=${{ secrets.BRANCH_KEY }}" >> $GITHUB_ENV
           echo "BRANCH_KEY_TEST=${{ secrets.BRANCH_KEY_TEST }}" >> $GITHUB_ENV
           ${{ inputs.testnet == true }} && echo APPCENTER_APP_ID=support-zzd0-28/Autonomy-Android-Test >> $GITHUB_ENV || echo APPCENTER_APP_ID=support-zzd0-28/Autonomy-Android-1 >> $GITHUB_ENV
