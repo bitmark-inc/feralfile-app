@@ -1,5 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 // ignore_for_file: unawaited_futures, discarded_futures
+// ignore_for_file: constant_identifier_names
 //
 //  SPDX-License-Identifier: BSD-2-Clause-Patent
 //  Copyright © 2022 Bitmark. All rights reserved.
@@ -106,7 +107,7 @@ class UIHelper {
     String title,
     Widget content, {
     bool isDismissible = false,
-    isRoundCorner = true,
+    bool isRoundCorner = true,
     Color? backgroundColor,
     int autoDismissAfter = 0,
     FeedbackType? feedback = FeedbackType.selection,
@@ -178,7 +179,7 @@ class UIHelper {
     String title,
     Widget content, {
     bool isDismissible = false,
-    isRoundCorner = true,
+    bool isRoundCorner = true,
     int autoDismissAfter = 0,
     FeedbackType? feedback = FeedbackType.selection,
     EdgeInsets? padding,
@@ -389,7 +390,7 @@ class UIHelper {
     BuildContext context,
     Widget content, {
     bool isDismissible = false,
-    isRoundCorner = true,
+    bool isRoundCorner = true,
     Color? backgroundColor,
     int autoDismissAfter = 0,
     FeedbackType? feedback = FeedbackType.selection,
@@ -443,7 +444,7 @@ class UIHelper {
     BuildContext context,
     Widget content, {
     bool isDismissible = true,
-    isRoundCorner = true,
+    bool isRoundCorner = true,
     Color? backgroundColor,
     int autoDismissAfter = 0,
     FeedbackType? feedback = FeedbackType.selection,
@@ -503,7 +504,7 @@ class UIHelper {
     BuildContext context,
     Widget content, {
     bool isDismissible = false,
-    isRoundCorner = true,
+    bool isRoundCorner = true,
     Color? backgroundColor,
     int autoDismissAfter = 0,
     FeedbackType? feedback = FeedbackType.selection,
@@ -768,7 +769,7 @@ class UIHelper {
     );
   }
 
-  static hideInfoDialog(BuildContext context) {
+  static void hideInfoDialog(BuildContext context) {
     currentDialogTitle = '';
     try {
       Navigator.popUntil(context, (route) => route.settings.name != null);
@@ -1003,7 +1004,7 @@ class UIHelper {
     }
   }
 
-  static showHideArtworkResultDialog(BuildContext context, bool isHidden,
+  static void showHideArtworkResultDialog(BuildContext context, bool isHidden,
       {required Function() onOK}) {
     final theme = Theme.of(context);
 
@@ -1045,7 +1046,7 @@ class UIHelper {
         ));
   }
 
-  static showIdentityDetailDialog(BuildContext context,
+  static void showIdentityDetailDialog(BuildContext context,
       {required String name, required String address}) {
     final theme = Theme.of(context);
 
@@ -1098,7 +1099,7 @@ class UIHelper {
         )));
   }
 
-  static showLoadingScreen(BuildContext context, {String text = ''}) {
+  static void showLoadingScreen(BuildContext context, {String text = ''}) {
     final theme = Theme.of(context);
     Navigator.push(
       context,
@@ -1111,7 +1112,7 @@ class UIHelper {
     );
   }
 
-  static showCenterSheet(BuildContext context,
+  static void showCenterSheet(BuildContext context,
       {required Widget content,
       String? actionButton,
       Function()? actionButtonOnTap,
@@ -1265,7 +1266,7 @@ class UIHelper {
                             children: [
                               if (options?[index].icon != null)
                                 SizedBox(
-                                    width: 30, child: options![index].icon!),
+                                    width: 30, child: options![index].icon),
                               if (options?[index].icon != null)
                                 const SizedBox(
                                   width: 34,
