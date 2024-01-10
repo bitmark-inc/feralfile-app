@@ -43,7 +43,7 @@ jobs:
 
             # Make the API request and extract the short_version using jq
             API_RESPONSE=$(curl -X 'GET' \
-            "$APPCENTER_URL" \
+            $APPCENTER_URL \
             -H 'accept: application/json' \
             -H "X-API-Token: $APPCENTER_API_TOKEN")
 
