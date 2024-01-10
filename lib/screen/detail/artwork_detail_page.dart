@@ -127,7 +127,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 
   List<String> getTags(AssetToken asset) {
     final defaultTags = [
-      'autonomy',
+      'feralfile',
       'digitalartwallet',
       'NFT',
     ];
@@ -135,7 +135,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     if (asset.isMoMAMemento) {
       tags = [
         'refikunsupervised',
-        'autonomyapp',
+        'feralfileapp',
       ];
     }
     return tags;
