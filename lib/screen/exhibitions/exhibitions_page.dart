@@ -72,9 +72,12 @@ class ExhibitionsPageState extends State<ExhibitionsPage> {
   Widget _exhibitionItem(
       BuildContext context, ExhibitionDetail exhibitionDetail, int index) {
     final theme = Theme.of(context);
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    const double padding = 14;
+    final estimatedHeight = (screenWidth - padding * 2) / 16 * 9;
     final exhibition = exhibitionDetail.exhibition;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14),
+      padding: const EdgeInsets.symmetric(horizontal: padding),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -90,6 +93,12 @@ class ExhibitionsPageState extends State<ExhibitionsPage> {
                   borderRadius: BorderRadius.circular(10),
                   child: CachedNetworkImage(
                     imageUrl: exhibition.coverUrl,
+                    placeholder: (context, url) => SizedBox(
+                      height: estimatedHeight,
+                      child: const Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    ),
                     fit: BoxFit.fitWidth,
                   ),
                 ),
