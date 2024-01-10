@@ -38,7 +38,7 @@ jobs:
             APPCENTER_API_TOKEN: ${{ secrets.APPCENTER_API_TOKEN }}
         run: |
             # Set URL for Testnet build or Mainnet build
-            ${{ inputs.testnet == true }} && echo APPCENTER_URL=/v0.1/apps/support-zzd0-28/Autonomy-Android-Test/recent_releases || echo APPCENTER_URL=/v0.1/apps/support-zzd0-28/Autonomy-Android-1/recent_releases
+            ${{ inputs.testnet == true }} && echo APPCENTER_URL=/Autonomy-Android-Test || echo APPCENTER_URL=/Autonomy-Android-1
             # echo "APPCENTER_URL=${{ env.APPCENTER_URL }}"
             echo "$APPCENTER_URL"
             export APPCENTER_URL_TEMP=$APPCENTER_URL
@@ -48,7 +48,7 @@ jobs:
 
             # Make the API request and extract the short_version using jq
             API_RESPONSE=$(curl -X GET \
-            "https://api.appcenter.ms$APPCENTER_URL" \
+            "https://api.appcenter.ms/v0.1/apps/support-zzd0-28$APPCENTER_URL/recent_releases" \
             -H 'accept: application/json' \
             -H "X-API-Token: $APPCENTER_API_TOKEN")
 
