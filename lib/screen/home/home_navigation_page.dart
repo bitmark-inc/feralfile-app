@@ -257,6 +257,9 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   Future<void> didPopNext() async {
     super.didPopNext();
     unawaited(injector<CustomerSupportService>().getIssuesAndAnnouncement());
+    if (_selectedIndex == HomeNavigatorTab.scanQr.index) {
+      await _scanQRPageKey.currentState?.resumeCamera();
+    }
   }
 
   Future<void> _showRemoveCustomerSupport() async {

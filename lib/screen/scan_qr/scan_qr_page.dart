@@ -268,12 +268,17 @@ class QRScanViewState extends State<QRScanView>
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  @override
   void didPopNext() {
     super.didPopNext();
     setState(() {
       _isLoading = false;
     });
-    unawaited(resumeCamera());
   }
 
   @override
@@ -286,6 +291,7 @@ class QRScanViewState extends State<QRScanView>
 
   @override
   void dispose() {
+    routeObserver.unsubscribe(this);
     _timer?.cancel();
     controller.dispose();
     super.dispose();
@@ -579,15 +585,14 @@ class QRScanViewState extends State<QRScanView>
       }
       currentCode = scanData.code;
       String code = scanData.code!;
-
+      setState(() {
+        _isLoading = true;
+      });
+      await pauseCamera();
+      if (!mounted) {
+        return;
+      }
       if (DEEP_LINKS.any((prefix) => code.startsWith(prefix))) {
-        setState(() {
-          _isLoading = true;
-        });
-        unawaited(pauseCamera());
-        if (!mounted) {
-          return;
-        }
         if (_shouldPop) {
           Navigator.pop(context);
         }
@@ -595,49 +600,49 @@ class QRScanViewState extends State<QRScanView>
         injector<DeeplinkService>().handleDeeplink(
           code,
           delay: const Duration(seconds: 1),
+          onFinished: () {
+            if (mounted) {
+              setState(() {
+                _isLoading = false;
+              });
+              unawaited(resumeCamera());
+            }
+          },
         );
         return;
-      }
+      } else {
+        switch (widget.scannerItem) {
+          case ScannerItem.WALLET_CONNECT:
+            if (code.startsWith('wc:')) {
+              await _handleAutonomyConnect(code);
+            } else {
+              _handleError(code);
+            }
+            break;
 
-      switch (widget.scannerItem) {
-        case ScannerItem.WALLET_CONNECT:
-          if (code.startsWith('wc:')) {
-            await _handleAutonomyConnect(code);
-          } else {
-            _handleError(code);
-          }
-          break;
+          case ScannerItem.BEACON_CONNECT:
+            if (code.startsWith('tezos://')) {
+              await _handleBeaconConnect(code);
+            } else {
+              _handleError(code);
+            }
+            break;
 
-        case ScannerItem.BEACON_CONNECT:
-          if (code.startsWith('tezos://')) {
-            await _handleBeaconConnect(code);
-          } else {
-            _handleError(code);
-          }
-          break;
-
-        case ScannerItem.ETH_ADDRESS:
-        case ScannerItem.XTZ_ADDRESS:
-          setState(() {
-            _isLoading = true;
-          });
-          await pauseCamera();
-          if (!mounted) {
-            return;
-          }
-          if (_shouldPop) {
-            Navigator.pop(context, code);
-          }
-          break;
-        case ScannerItem.GLOBAL:
-          if (code.startsWith('wc:')) {
-            setState(() {
-              _isLoading = true;
-            });
-            await _handleAutonomyConnect(code);
-          } else if (code.startsWith('tezos:')) {
-            await _handleBeaconConnect(code);
-            /* TODO: Remove or support for multiple wallets
+          case ScannerItem.ETH_ADDRESS:
+          case ScannerItem.XTZ_ADDRESS:
+            if (!mounted) {
+              return;
+            }
+            if (_shouldPop) {
+              Navigator.pop(context, code);
+            }
+            break;
+          case ScannerItem.GLOBAL:
+            if (code.startsWith('wc:')) {
+              await _handleAutonomyConnect(code);
+            } else if (code.startsWith('tezos:')) {
+              await _handleBeaconConnect(code);
+              /* TODO: Remove or support for multiple wallets
           } else if (code.startsWith("tz1")) {
             Navigator.of(context).popAndPushNamed(SendCryptoPage.tag,
                 arguments: SendData(CryptoType.XTZ, code));
@@ -650,21 +655,28 @@ class QRScanViewState extends State<QRScanView>
               log(err.toString());
             }
             */
-          } else if (_isCanvasQrCode(code)) {
-            unawaited(_lock.synchronized(() async {
-              await _handleCanvasQrCode(code);
-            }));
-          } else {
-            _handleError(code);
-          }
-          break;
-        case ScannerItem.CANVAS_DEVICE:
-          if (_isCanvasQrCode(code)) {
-            unawaited(_lock.synchronized(() => _handleCanvasQrCode(code)));
-          } else {
-            _handleError(code);
-          }
-          break;
+            } else if (_isCanvasQrCode(code)) {
+              unawaited(_lock.synchronized(() async {
+                await _handleCanvasQrCode(code);
+              }));
+            } else {
+              _handleError(code);
+            }
+            break;
+          case ScannerItem.CANVAS_DEVICE:
+            if (_isCanvasQrCode(code)) {
+              unawaited(_lock.synchronized(() => _handleCanvasQrCode(code)));
+            } else {
+              _handleError(code);
+            }
+            break;
+        }
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+          await resumeCamera();
+        }
       }
     });
   }
@@ -680,10 +692,6 @@ class QRScanViewState extends State<QRScanView>
 
   Future<bool> _handleCanvasQrCode(String code) async {
     log.info('Canvas device scanned: $code');
-    setState(() {
-      _isLoading = true;
-    });
-    await pauseCamera();
     try {
       final device = CanvasDevice.fromJson(jsonDecode(code));
       final canvasClient = injector<CanvasClientService>();
@@ -752,13 +760,6 @@ class QRScanViewState extends State<QRScanView>
   }
 
   Future<void> _handleAutonomyConnect(String code) async {
-    setState(() {
-      _isLoading = true;
-    });
-    await pauseCamera();
-    if (!mounted) {
-      return;
-    }
     if (_shouldPop) {
       Navigator.pop(context);
     }
@@ -770,13 +771,6 @@ class QRScanViewState extends State<QRScanView>
   }
 
   Future<void> _handleBeaconConnect(String code) async {
-    setState(() {
-      _isLoading = true;
-    });
-    await pauseCamera();
-    if (!mounted) {
-      return;
-    }
     if (_shouldPop) {
       Navigator.pop(context);
     }

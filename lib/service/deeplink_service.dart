@@ -46,7 +46,7 @@ import 'package:uni_links/uni_links.dart';
 abstract class DeeplinkService {
   Future setup();
 
-  void handleDeeplink(String? link, {Duration delay});
+  void handleDeeplink(String? link, {Duration delay, Function? onFinished});
 
   void handleBranchDeeplinkData(Map<dynamic, dynamic> data);
 }
@@ -121,6 +121,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
   void handleDeeplink(
     String? link, {
     Duration delay = const Duration(seconds: 2),
+    Function? onFinished,
   }) {
     // return for case when FeralFile pass empty deeplink to return Autonomy
     if (link == 'autonomy://') {
@@ -147,6 +148,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
       _deepLinkHandlingMap.remove(link);
       handlingDeepLink = null;
       memoryValues.irlLink.value = null;
+      onFinished?.call();
     });
   }
 
