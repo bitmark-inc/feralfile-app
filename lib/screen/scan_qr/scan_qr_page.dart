@@ -72,6 +72,9 @@ class ScanQRPageState extends State<ScanQRPage>
       unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.leanBack));
     }
     _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(() {
+      setState(() {});
+    });
   }
 
   Future<void> pauseCamera() async {
@@ -102,7 +105,7 @@ class ScanQRPageState extends State<ScanQRPage>
           body: Stack(
             children: <Widget>[
               _content(context),
-              _header(context),
+              if (_tabController.index == 0) _header(context),
             ],
           ),
         ),

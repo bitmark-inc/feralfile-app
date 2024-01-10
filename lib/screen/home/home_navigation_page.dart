@@ -309,6 +309,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
 
   @override
   Widget build(BuildContext context) => Scaffold(
+        backgroundColor: AppColor.primaryBlack,
         body: SafeArea(
           top: false,
           child: Stack(

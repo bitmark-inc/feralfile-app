@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/gestures.dart';
@@ -87,8 +88,8 @@ class ExhibitionsPageState extends State<ExhibitionsPage> {
               GestureDetector(
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(10),
-                  child: Image.network(
-                    exhibition.coverUrl,
+                  child: CachedNetworkImage(
+                    imageUrl: exhibition.coverUrl,
                     fit: BoxFit.fitWidth,
                   ),
                 ),

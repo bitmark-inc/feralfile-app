@@ -530,8 +530,8 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                     child: AddButton(
                       icon: SvgPicture.asset(
                         'assets/images/Add.svg',
-                        width: 21,
-                        height: 21,
+                        width: 30,
+                        height: 30,
                       ),
                       onTap: () async {
                         await moveToAddNftToCollection(context);
