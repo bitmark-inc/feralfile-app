@@ -53,6 +53,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
+import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nft_collection/database/dao/asset_token_dao.dart';
@@ -324,12 +325,16 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
                 physics: const NeverScrollableScrollPhysics(),
                 children: _pages,
               ),
-              Positioned.fill(
-                bottom: 40,
-                child: Align(
-                  alignment: Alignment.bottomCenter,
-                  child: _buildBottomNavigationBar(context),
-                ),
+              KeyboardVisibilityBuilder(
+                builder: (context, isKeyboardVisible) => isKeyboardVisible
+                    ? const SizedBox()
+                    : Positioned.fill(
+                        bottom: 40,
+                        child: Align(
+                          alignment: Alignment.bottomCenter,
+                          child: _buildBottomNavigationBar(context),
+                        ),
+                      ),
               ),
             ],
           ),
