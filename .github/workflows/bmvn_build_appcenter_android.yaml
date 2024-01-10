@@ -69,7 +69,7 @@ jobs:
           echo "BRANCH_KEY=${{ secrets.BRANCH_KEY }}" >> $GITHUB_ENV
           echo "BRANCH_KEY_TEST=${{ secrets.BRANCH_KEY_TEST }}" >> $GITHUB_ENV
           ${{ inputs.testnet == true }} && echo APPCENTER_APP_ID=support-zzd0-28/Autonomy-Android-Test >> $GITHUB_ENV || echo APPCENTER_APP_ID=support-zzd0-28/Autonomy-Android-1 >> $GITHUB_ENV
-          ${{ inputs.testnet == true }} && echo NAME_SUFFIX=test-${{.FLUTTER_VERSION_CODE}} >> $GITHUB_ENV || echo NAME_SUFFIX=main-${{.FLUTTER_VERSION_CODE}} >> $GITHUB_ENV
+          ${{ inputs.testnet == true }} && echo NAME_SUFFIX=test-${{env.FLUTTER_VERSION_CODE}} >> $GITHUB_ENV || echo NAME_SUFFIX=main-${{env.FLUTTER_VERSION_CODE}} >> $GITHUB_ENV
 
       - uses: webfactory/ssh-agent@v0.5.4
         with:
