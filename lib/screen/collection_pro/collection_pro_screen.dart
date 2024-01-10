@@ -162,8 +162,9 @@ class CollectionProState extends State<CollectionPro>
                   });
                 },
                 builder: (context, identityState) {
-                  final isEmptyView =
-                      _isLoaded && searchStr.value.isNotEmpty && isEmpty();
+                  final isEmptyView = _isLoaded &&
+                      searchStr.value.isNotEmpty &&
+                      _isEmptyCollection();
                   return CustomScrollView(
                     controller: _scrollController,
                     shrinkWrap: true,
@@ -245,7 +246,7 @@ class CollectionProState extends State<CollectionPro>
     );
   }
 
-  bool isEmpty() {
+  bool _isEmptyCollection() {
     final collection =
         _collectionSectionKey.currentState?.filterPlaylist(searchStr.value) ??
             [];
