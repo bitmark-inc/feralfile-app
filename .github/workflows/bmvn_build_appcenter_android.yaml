@@ -41,6 +41,7 @@ jobs:
             ${{ inputs.testnet == true }} && echo APPCENTER_URL=https://api.appcenter.ms/v0.1/apps/support-zzd0-28/Autonomy-Android-Test/recent_releases || echo APPCENTER_URL=https://api.appcenter.ms/v0.1/apps/support-zzd0-28/Autonomy-Android-1/recent_releases
             # echo "APPCENTER_URL=${{ env.APPCENTER_URL }}"
             echo "$APPCENTER_URL"
+            export APPCENTER_URL=$APPCENTER_URL
             echo "APPCENTER_URL_BUILD=$APPCENTER_URL" >> "$GITHUB_ENV"
             # echo ${{ env.APPCENTER_URL }}
 
