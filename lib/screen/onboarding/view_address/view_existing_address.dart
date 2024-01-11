@@ -36,7 +36,8 @@ class _ViewExistingAddressState extends State<ViewExistingAddress> {
   bool _isError = false;
   String _address = '';
   bool _isValid = false;
-  final _checkDomain = Lock();
+  final _checkDomainLock = Lock();
+  Timer? _timer;
 
   @override
   Widget build(BuildContext context) {
@@ -121,7 +122,7 @@ class _ViewExistingAddressState extends State<ViewExistingAddress> {
                           isDismissible: true,
                           closeButton: 'close'.tr(), onClose: () {
                         injector<NavigationService>().popUntilHome();
-                      }));
+                      });
                     } catch (_) {}
                     break;
                   default:
@@ -147,6 +148,7 @@ class _ViewExistingAddressState extends State<ViewExistingAddress> {
   }
 
   Future<void> _onTextChanged(value) async {
+    _timer?.cancel();
     final text = value.trim();
     if (text.isEmpty) {
       setState(() {
@@ -161,13 +163,14 @@ class _ViewExistingAddressState extends State<ViewExistingAddress> {
     if (type == CryptoType.ETH || type == CryptoType.XTZ) {
       _setValid(text);
     } else {
-       await checkDomain(text);
-       print ('address: $text');
+      _timer = Timer(const Duration(milliseconds: 500), () async {
+        await _checkDomain(text);
+      });
     }
   }
 
-  Future<void> checkDomain(String text) async {
-    await _checkDomain.synchronized(() async {
+  Future<void> _checkDomain(String text) async {
+    await _checkDomainLock.synchronized(() async {
       if (text.isNotEmpty) {
         try {
           final address = await DomainService.getAddress(text);
