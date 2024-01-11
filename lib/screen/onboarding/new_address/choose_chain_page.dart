@@ -27,45 +27,46 @@ class _ChooseChainPageState extends State<ChooseChainPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-      appBar: getBackAppBar(context,
-          title: 'choose_a_chain'.tr().capitalize(),
-          onBack: () => Navigator.of(context).pop()),
-      body: Padding(
-        padding: const EdgeInsets.only(bottom: 32),
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    const SizedBox(height: 40),
-                    _addressOption(context,
-                        cryptoType: CryptoType.ETH, isSelected: _ethSelected),
-                    _addressOption(context,
-                        cryptoType: CryptoType.XTZ, isSelected: _tezosSelected),
-                  ],
+        appBar: getBackAppBar(context,
+            title: 'choose_a_chain'.tr().capitalize(),
+            onBack: () => Navigator.of(context).pop()),
+        body: Padding(
+          padding: const EdgeInsets.only(bottom: 32),
+          child: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 40),
+                      _addressOption(context,
+                          cryptoType: CryptoType.ETH, isSelected: _ethSelected),
+                      _addressOption(context,
+                          cryptoType: CryptoType.XTZ,
+                          isSelected: _tezosSelected),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            Padding(
-              padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-              child: PrimaryAsyncButton(
-                text: 'continue'.tr(),
-                enabled: _ethSelected || _tezosSelected,
-                onTap: () async {
-                  final walletType = WalletType.getWallet(
-                      eth: _ethSelected, tezos: _tezosSelected);
-                  if (walletType != null) {
-                    await Navigator.of(context).pushNamed(AddressAlias.tag,
-                        arguments: AddressAliasPayload(walletType));
-                  }
-                },
+              Padding(
+                padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                child: PrimaryAsyncButton(
+                  text: 'continue'.tr(),
+                  enabled: _ethSelected || _tezosSelected,
+                  onTap: () async {
+                    final walletType = WalletType.getWallet(
+                        eth: _ethSelected, tezos: _tezosSelected);
+                    if (walletType != null) {
+                      await Navigator.of(context).pushNamed(AddressAlias.tag,
+                          arguments: AddressAliasPayload(walletType));
+                    }
+                  },
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
-    );
+      );
 
   Widget _addressOption(BuildContext context,
       {required CryptoType cryptoType, required bool isSelected}) {
