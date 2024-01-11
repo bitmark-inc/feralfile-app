@@ -57,10 +57,12 @@ class CollectionProState extends State<CollectionPro>
   List<PredefinedCollectionModel> _listPredefinedCollectionByArtist = [];
   List<PredefinedCollectionModel> _listPredefinedCollectionByMedium = [];
   List<CompactedAssetToken> _works = [];
+  late bool _isLoaded;
 
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
+    _isLoaded = false;
     searchStr = ValueNotifier('');
     searchStr.addListener(() {
       loadCollection();
@@ -126,9 +128,8 @@ class CollectionProState extends State<CollectionPro>
             setState(() {
               _listPredefinedCollectionByMedium =
                   state.listPredefinedCollectionByMedium ?? [];
-              _listPredefinedCollectionByArtist =
-                  state.listPredefinedCollectionByArtist ?? [];
               _works = state.works;
+              _isLoaded = true;
             });
           }
         },
@@ -160,27 +161,43 @@ class CollectionProState extends State<CollectionPro>
                         listPredefinedCollectionByArtist;
                   });
                 },
-                builder: (context, identityState) => CustomScrollView(
-                      controller: _scrollController,
-                      shrinkWrap: true,
-                      slivers: [
-                        SliverToBoxAdapter(
-                          child: SizedBox(height: paddingTop),
+                builder: (context, identityState) {
+                  final isEmptyView = _isLoaded &&
+                      searchStr.value.isNotEmpty &&
+                      _isEmptyCollection();
+                  return CustomScrollView(
+                    controller: _scrollController,
+                    shrinkWrap: true,
+                    slivers: [
+                      SliverToBoxAdapter(
+                        child: SizedBox(height: paddingTop),
+                      ),
+                      SliverToBoxAdapter(
+                        child: _pageHeader(context),
+                      ),
+                      SliverToBoxAdapter(
+                        child: ValueListenableBuilder(
+                          valueListenable: searchStr,
+                          builder: (BuildContext context, String value,
+                                  Widget? child) =>
+                              CollectionSection(
+                            key: _collectionSectionKey,
+                            filterString: value,
+                          ),
                         ),
+                      ),
+                      if (isEmptyView) ...[
                         SliverToBoxAdapter(
-                          child: _pageHeader(context),
-                        ),
-                        SliverToBoxAdapter(
-                          child: ValueListenableBuilder(
-                            valueListenable: searchStr,
-                            builder: (BuildContext context, String value,
-                                    Widget? child) =>
-                                CollectionSection(
-                              key: _collectionSectionKey,
-                              filterString: value,
+                          child: Visibility(
+                            visible: isEmptyView,
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 15),
+                              child: _emptyView(context),
                             ),
                           ),
                         ),
+                      ] else ...[
                         const SliverToBoxAdapter(
                           child: SizedBox(height: 60),
                         ),
@@ -218,12 +235,35 @@ class CollectionProState extends State<CollectionPro>
                           child: SizedBox(height: 100),
                         ),
                       ],
-                    ),
+                    ],
+                  );
+                },
                 bloc: _identityBloc);
           }
           return const Center(child: CircularProgressIndicator());
         },
       ),
+    );
+  }
+
+  bool _isEmptyCollection() {
+    final collection =
+        _collectionSectionKey.currentState?.filterPlaylist(searchStr.value) ??
+            [];
+    final isEmpty = _listPredefinedCollectionByArtist.isEmpty &&
+            _listPredefinedCollectionByMedium.isEmpty ||
+        (_works.isEmpty &&
+            searchStr.value.isNotEmpty &&
+            _listPredefinedCollectionByArtist.isEmpty &&
+            collection.isEmpty);
+    return isEmpty;
+  }
+
+  Widget _emptyView(BuildContext context) {
+    final theme = Theme.of(context);
+    return Text(
+      'no_results'.tr(),
+      style: theme.textTheme.ppMori400White14,
     );
   }
 
@@ -545,6 +585,7 @@ class CollectionSectionState extends State<CollectionSection>
   final _playlistService = injector.get<PlaylistService>();
   final _versionService = injector.get<VersionService>();
   late ValueNotifier<List<PlayListModel>?> _playlists;
+  List<PlayListModel>? _currentPlaylists;
   late bool isDemo;
 
   Future<List<PlayListModel>?> getPlaylist({bool withDefault = false}) async {
@@ -563,9 +604,19 @@ class CollectionSectionState extends State<CollectionSection>
     _playlists.value = await getPlaylist() ?? [];
   }
 
+  List<PlayListModel> getPlaylists() => _currentPlaylists ?? [];
+
+  List<PlayListModel> filterPlaylist(String filterString) =>
+      _playlists.value?.filter(filterString) ?? [];
+
   @override
   void initState() {
     _playlists = ValueNotifier(null);
+    _playlists.addListener(() {
+      setState(() {
+        _currentPlaylists = filterPlaylist(widget.filterString);
+      });
+    });
     isDemo = _configurationService.isDemoArtworksMode();
     super.initState();
     unawaited(_initPlayList());
@@ -609,34 +660,29 @@ class CollectionSectionState extends State<CollectionSection>
   }
 
   @override
-  Widget build(BuildContext context) =>
-      ValueListenableBuilder<List<PlayListModel>?>(
-        valueListenable: _playlists,
-        builder: (context, value, child) {
-          if (value == null) {
-            return const SizedBox.shrink();
-          }
-
-          final playlists = value.filter(widget.filterString);
-          final playlistIDsString = playlists.map((e) => e.id).toList().join();
-          final playlistKeyBytes = utf8.encode(playlistIDsString);
-          final playlistKey = sha256.convert(playlistKeyBytes).toString();
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ListPlaylistsScreen(
-                key: Key(playlistKey),
-                playlists: _playlists,
-                filter: widget.filterString,
-                onReorder: (oldIndex, newIndex) {},
-                onAdd: () async {
-                  await _gotoCreatePlaylist(context);
-                },
-              )
-            ],
-          );
-        },
-      );
+  Widget build(BuildContext context) {
+    if (_currentPlaylists == null) {
+      return const SizedBox.shrink();
+    }
+    final playlists = _currentPlaylists!;
+    final playlistIDsString = playlists.map((e) => e.id).toList().join();
+    final playlistKeyBytes = utf8.encode(playlistIDsString);
+    final playlistKey = sha256.convert(playlistKeyBytes).toString();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ListPlaylistsScreen(
+          key: Key(playlistKey),
+          playlists: _playlists,
+          filter: widget.filterString,
+          onReorder: (oldIndex, newIndex) {},
+          onAdd: () async {
+            await _gotoCreatePlaylist(context);
+          },
+        )
+      ],
+    );
+  }
 }
 
 class SectionInfo {
