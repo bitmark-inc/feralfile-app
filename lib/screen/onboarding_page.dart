@@ -295,7 +295,13 @@ class _OnboardingPageState extends State<OnboardingPage>
               .copyWith(fontSize: 36, height: 1),
         ),
         const SizedBox(height: 40),
-        Image.asset(image),
+        SizedBox(
+          width: double.infinity,
+          child: Image.asset(
+            image,
+            fit: BoxFit.fitWidth,
+          ),
+        ),
         const SizedBox(height: 40),
         Text(
           desc,

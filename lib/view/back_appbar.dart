@@ -398,6 +398,7 @@ AppBar getFFAppBar(
                 icon: SvgPicture.asset(
                   'assets/images/ff_back_dark.svg',
                 ),
+                padding: const EdgeInsets.all(0),
               ))
           : const SizedBox(width: 36),
       automaticallyImplyLeading: false,
