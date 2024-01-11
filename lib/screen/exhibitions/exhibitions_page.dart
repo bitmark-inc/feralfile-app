@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
@@ -25,7 +26,7 @@ class ExhibitionsPage extends StatefulWidget {
   State<ExhibitionsPage> createState() => ExhibitionsPageState();
 }
 
-class ExhibitionsPageState extends State<ExhibitionsPage> {
+class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
   late ExhibitionBloc _exhibitionBloc;
   late ScrollController _controller;
   final _navigationService = injector<NavigationService>();
@@ -43,6 +44,29 @@ class ExhibitionsPageState extends State<ExhibitionsPage> {
     unawaited(_controller.animateTo(0,
         duration: const Duration(milliseconds: 500),
         curve: Curves.fastOutSlowIn));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  @override
+  void didPopNext() {
+    super.didPopNext();
+    refreshExhibitions();
+  }
+
+  void refreshExhibitions() {
+    _exhibitionBloc.add(GetAllExhibitionsEvent());
   }
 
   @override
@@ -96,7 +120,11 @@ class ExhibitionsPageState extends State<ExhibitionsPage> {
                     placeholder: (context, url) => SizedBox(
                       height: estimatedHeight,
                       child: const Center(
-                        child: CircularProgressIndicator(),
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          backgroundColor: AppColor.auQuickSilver,
+                          strokeWidth: 2,
+                        ),
                       ),
                     ),
                     fit: BoxFit.fitWidth,
@@ -173,20 +201,25 @@ class ExhibitionsPageState extends State<ExhibitionsPage> {
           final exhibitions = state.exhibitions;
           if (exhibitions == null) {
             return const Center(
-              child: CircularProgressIndicator(),
+              child: CircularProgressIndicator(
+                color: Colors.white,
+                backgroundColor: AppColor.auQuickSilver,
+                strokeWidth: 2,
+              ),
+            );
+          } else {
+            return Column(
+              children: [
+                ...exhibitions
+                    .map((e) => [
+                          _exhibitionItem(context, e, exhibitions.indexOf(e)),
+                          const SizedBox(height: 40)
+                        ])
+                    .flattened,
+                const SizedBox(height: 100),
+              ],
             );
           }
-          return Column(
-            children: [
-              ...exhibitions
-                  .map((e) => [
-                        _exhibitionItem(context, e, exhibitions.indexOf(e)),
-                        const SizedBox(height: 40)
-                      ])
-                  .flattened,
-              const SizedBox(height: 100),
-            ],
-          );
         },
         listener: (context, state) {},
       );

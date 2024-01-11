@@ -128,6 +128,9 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         unawaited(_clientTokenService.refreshTokens());
         unawaited(_playListService.refreshPlayLists());
       }
+      if (index == HomeNavigatorTab.exhibition.index) {
+        _exhibitionsPageKey.currentState?.refreshExhibitions();
+      }
     } else {
       final currentIndex = _selectedIndex;
       setState(() {
