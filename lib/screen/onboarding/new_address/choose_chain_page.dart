@@ -15,59 +15,58 @@ import 'package:flutter/material.dart';
 class ChooseChainPage extends StatefulWidget {
   static const String tag = 'choose_chain_page';
 
-  const ChooseChainPage({Key? key}) : super(key: key);
+  const ChooseChainPage({super.key});
 
   @override
   State<ChooseChainPage> createState() => _ChooseChainPageState();
 }
 
 class _ChooseChainPageState extends State<ChooseChainPage> {
-  bool _ethSelected = false;
-  bool _tezosSelected = false;
+  bool _ethSelected = true;
+  bool _tezosSelected = true;
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: getBackAppBar(context,
-          title: "choose_a_chain".tr().capitalize(),
-          onBack: () => Navigator.of(context).pop()),
-      body: Padding(
-        padding: const EdgeInsets.only(bottom: 32),
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    const SizedBox(height: 40),
-                    _addressOption(context,
-                        cryptoType: CryptoType.ETH, isSelected: _ethSelected),
-                    _addressOption(context,
-                        cryptoType: CryptoType.XTZ, isSelected: _tezosSelected),
-                  ],
+  Widget build(BuildContext context) => Scaffold(
+        appBar: getBackAppBar(context,
+            title: 'choose_a_chain'.tr().capitalize(),
+            onBack: () => Navigator.of(context).pop()),
+        body: Padding(
+          padding: const EdgeInsets.only(bottom: 32),
+          child: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 40),
+                      _addressOption(context,
+                          cryptoType: CryptoType.ETH, isSelected: _ethSelected),
+                      _addressOption(context,
+                          cryptoType: CryptoType.XTZ,
+                          isSelected: _tezosSelected),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            Padding(
-              padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-              child: PrimaryButton(
-                text: "continue".tr(),
-                enabled: _ethSelected || _tezosSelected,
-                onTap: () {
-                  final walletType = WalletType.getWallet(
-                      eth: _ethSelected, tezos: _tezosSelected);
-                  if (walletType != null) {
-                    Navigator.of(context).pushNamed(AddressAlias.tag,
-                        arguments: AddressAliasPayload(walletType));
-                  }
-                },
+              Padding(
+                padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                child: PrimaryAsyncButton(
+                  text: 'continue'.tr(),
+                  enabled: _ethSelected || _tezosSelected,
+                  onTap: () async {
+                    final walletType = WalletType.getWallet(
+                        eth: _ethSelected, tezos: _tezosSelected);
+                    if (walletType != null) {
+                      await Navigator.of(context).pushNamed(AddressAlias.tag,
+                          arguments: AddressAliasPayload(walletType));
+                    }
+                  },
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
-    );
-  }
+      );
 
   Widget _addressOption(BuildContext context,
       {required CryptoType cryptoType, required bool isSelected}) {
@@ -92,7 +91,7 @@ class _ChooseChainPageState extends State<ChooseChainPage> {
                 }
               });
             },
-            child: Container(
+            child: DecoratedBox(
               decoration: const BoxDecoration(color: Colors.transparent),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
