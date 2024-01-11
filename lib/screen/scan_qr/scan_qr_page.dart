@@ -31,6 +31,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:autonomy_tv_proto/models/canvas_device.dart';
@@ -43,41 +44,233 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:synchronized/synchronized.dart';
 
+// ignore_for_file: constant_identifier_names
+
 class ScanQRPage extends StatefulWidget {
   static const String tag = AppRouter.scanQRPage;
 
   final ScannerItem scannerItem;
+  final Function? onHandleFinished;
 
-  const ScanQRPage({Key? key, this.scannerItem = ScannerItem.GLOBAL})
-      : super(key: key);
+  const ScanQRPage(
+      {super.key,
+      this.scannerItem = ScannerItem.GLOBAL,
+      this.onHandleFinished});
 
   @override
-  State<ScanQRPage> createState() => _ScanQRPageState();
+  State<ScanQRPage> createState() => ScanQRPageState();
 }
 
-class _ScanQRPageState extends State<ScanQRPage>
+class ScanQRPageState extends State<ScanQRPage>
     with RouteAware, TickerProviderStateMixin {
+  late TabController _tabController;
+  late bool _shouldPop;
+  final GlobalKey<QRScanViewState> _qrScanViewKey = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    _shouldPop = !(widget.scannerItem == ScannerItem.GLOBAL);
+    //There is a conflict with lib qr_code_scanner on Android.
+    if (Platform.isIOS) {
+      unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.leanBack));
+    }
+    _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(() {
+      setState(() {});
+    });
+  }
+
+  Future<void> pauseCamera() async {
+    await Future.delayed(const Duration(milliseconds: 100));
+    await _qrScanViewKey.currentState?.pauseCamera();
+  }
+
+  Future<void> resumeCamera() async {
+    if (_tabController.index == 0) {
+      await _qrScanViewKey.currentState?.resumeCamera();
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  @override
+  Widget build(BuildContext context) => SafeArea(
+        top: false,
+        child: Scaffold(
+          extendBodyBehindAppBar: true,
+          appBar: _tabController.index == 0
+              ? getDarkEmptyAppBar(Colors.transparent)
+              : getLightEmptyAppBar(),
+          body: Stack(
+            children: <Widget>[
+              _content(context),
+              if (_tabController.index == 0) _header(context),
+            ],
+          ),
+        ),
+      );
+
+  Widget _content(BuildContext context) {
+    final size1 = MediaQuery.of(context).size.height / 2;
+    final qrSize = size1 < 240.0 ? size1 : 240.0;
+
+    double cutPaddingTop = qrSize + 500 - MediaQuery.of(context).size.height;
+    if (cutPaddingTop < 0) {
+      cutPaddingTop = 0;
+    }
+    return Column(
+      children: [
+        Expanded(
+          child: TabBarView(
+            controller: _tabController,
+            children: [
+              QRScanView(
+                key: _qrScanViewKey,
+                scannerItem: widget.scannerItem,
+                onHandleFinished: widget.onHandleFinished,
+              ),
+              MultiBlocProvider(
+                  providers: [
+                    BlocProvider(
+                        create: (_) =>
+                            accounts.AccountsBloc(injector(), injector())),
+                    BlocProvider(
+                      create: (_) => PersonaBloc(
+                        injector<CloudDatabase>(),
+                        injector(),
+                        injector<AuditService>(),
+                      ),
+                    ),
+                    BlocProvider(
+                        create: (_) => EthereumBloc(injector(), injector())),
+                    BlocProvider(
+                      create: (_) => TezosBloc(injector(), injector()),
+                    ),
+                  ],
+                  child: GlobalReceivePage(
+                    onClose: () {
+                      setState(() {
+                        _tabController.animateTo(0,
+                            duration: const Duration(milliseconds: 300));
+                        unawaited(resumeCamera());
+                      });
+                    },
+                  )),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _header(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Padding(
+          padding: EdgeInsets.only(top: MediaQuery.of(context).viewPadding.top),
+          child: HeaderView(
+              title: 'scan'.tr(),
+              action: widget.scannerItem == ScannerItem.GLOBAL
+                  ? GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          unawaited(pauseCamera());
+                          _tabController.animateTo(1,
+                              duration: const Duration(milliseconds: 300));
+                        });
+                      },
+                      child: Text(
+                        'show_my_code'.tr(),
+                        style: theme.textTheme.ppMori400White14.copyWith(
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    )
+                  : GestureDetector(
+                      onTap: () {
+                        if (_shouldPop) {
+                          Navigator.pop(context);
+                        }
+                      },
+                      child: closeIcon(color: AppColor.white),
+                    )),
+        ),
+      ],
+    );
+  }
+
+  @override
+  void didPopNext() {
+    super.didPopNext();
+    if (Platform.isIOS) {
+      unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.leanBack));
+    }
+  }
+
+  @override
+  void didPushNext() {
+    super.didPushNext();
+    unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
+        overlays: SystemUiOverlay.values));
+    unawaited(pauseCamera());
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
+        overlays: SystemUiOverlay.values));
+    super.dispose();
+  }
+}
+
+enum ScannerItem {
+  WALLET_CONNECT,
+  BEACON_CONNECT,
+  ETH_ADDRESS,
+  XTZ_ADDRESS,
+  CANVAS_DEVICE,
+  GLOBAL
+}
+
+class QRScanView extends StatefulWidget {
+  final ScannerItem scannerItem;
+  final Function? onHandleFinished;
+
+  const QRScanView(
+      {required this.scannerItem, super.key, this.onHandleFinished});
+
+  @override
+  State<QRScanView> createState() => QRScanViewState();
+}
+
+class QRScanViewState extends State<QRScanView>
+    with RouteAware, AutomaticKeepAliveClientMixin<QRScanView> {
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
   late QRViewController controller;
-  var isScanDataError = false;
-  var _isLoading = false;
+  bool isScanDataError = false;
+  bool _isLoading = false;
   bool cameraPermission = false;
   String? currentCode;
-  late TabController _tabController;
   final metricClient = injector<MetricClientService>();
   final _navigationService = injector<NavigationService>();
   late Lock _lock;
   Timer? _timer;
 
+  late bool _shouldPop;
+
   @override
   void initState() {
     super.initState();
-    //There is a conflict with lib qr_code_scanner on Android.
-    if (Platform.isIOS) {
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.leanBack);
-    }
-    _tabController = TabController(length: 2, vsync: this);
-    checkPermission();
+    _shouldPop = !(widget.scannerItem == ScannerItem.GLOBAL);
+    unawaited(_checkPermission());
     _lock = Lock();
   }
 
@@ -87,7 +280,39 @@ class _ScanQRPageState extends State<ScanQRPage>
     routeObserver.subscribe(this, ModalRoute.of(context)!);
   }
 
-  Future checkPermission() async {
+  @override
+  void didPopNext() {
+    super.didPopNext();
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
+  @override
+  void didPushNext() {
+    super.didPushNext();
+    unawaited(Future.delayed(const Duration(milliseconds: 300)).then((_) {
+      pauseCamera();
+    }));
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    _timer?.cancel();
+    controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> resumeCamera() async {
+    await controller.resumeCamera();
+  }
+
+  Future<void> pauseCamera() async {
+    await controller.pauseCamera();
+  }
+
+  Future _checkPermission() async {
     await Permission.camera.request();
     final status = await Permission.camera.status;
 
@@ -105,7 +330,7 @@ class _ScanQRPageState extends State<ScanQRPage>
         if (Platform.isAndroid) {
           _timer?.cancel();
           _timer = Timer(const Duration(seconds: 1), () {
-            controller.resumeCamera();
+            resumeCamera();
           });
         }
       }
@@ -114,164 +339,49 @@ class _ScanQRPageState extends State<ScanQRPage>
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final size1 = MediaQuery.of(context).size.height / 2;
     final qrSize = size1 < 240.0 ? size1 : 240.0;
 
     var cutPaddingTop = qrSize + 500 - MediaQuery.of(context).size.height;
-    if (cutPaddingTop < 0) cutPaddingTop = 0;
+    if (cutPaddingTop < 0) {
+      cutPaddingTop = 0;
+    }
     final theme = Theme.of(context);
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      backgroundColor: cameraPermission ? null : theme.colorScheme.primary,
-      appBar: _tabController.index == 0
-          ? _qrCodeAppBar(context)
-          : AppBar(
-              systemOverlayStyle: const SystemUiOverlayStyle(
-                statusBarColor: Colors.white,
-                statusBarIconBrightness: Brightness.dark,
-                statusBarBrightness: Brightness.light,
-              ),
-              toolbarHeight: 0,
-              shadowColor: Colors.transparent,
-              elevation: 0,
+    return Stack(
+      children: [
+        if (!cameraPermission)
+          _noPermissionView(context)
+        else ...[
+          _qrView(context),
+          Padding(
+            padding: EdgeInsets.fromLTRB(
+              0,
+              MediaQuery.of(context).size.height / 2 +
+                  qrSize / 2 -
+                  cutPaddingTop,
+              0,
+              15,
             ),
-      body: Stack(
-        children: <Widget>[
-          if (!cameraPermission)
-            _noPermissionView(context)
-          else
-            Stack(
-              children: [
-                Column(
-                  children: [
-                    Expanded(
-                      child: TabBarView(
-                        controller: _tabController,
-                        children: [
-                          Stack(
-                            children: [
-                              _qrView(context),
-                              Padding(
-                                padding: EdgeInsets.fromLTRB(
-                                  0,
-                                  MediaQuery.of(context).size.height / 2 +
-                                      qrSize / 2 -
-                                      cutPaddingTop,
-                                  0,
-                                  15,
-                                ),
-                                child: Center(
-                                  child: Column(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      _instructionView(context),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          MultiBlocProvider(providers: [
-                            BlocProvider(
-                                create: (_) => accounts.AccountsBloc(
-                                    injector(), injector())),
-                            BlocProvider(
-                              create: (_) => PersonaBloc(
-                                injector<CloudDatabase>(),
-                                injector(),
-                                injector<AuditService>(),
-                              ),
-                            ),
-                            BlocProvider(
-                                create: (_) =>
-                                    EthereumBloc(injector(), injector())),
-                            BlocProvider(
-                              create: (_) => TezosBloc(injector(), injector()),
-                            ),
-                          ], child: const GlobalReceivePage()),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16.0, 10, 16.0, 40),
-                    child: Container(
-                      height: 55,
-                      padding: const EdgeInsets.all(5),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(50),
-                        color: theme.auLightGrey,
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: OutlineButton(
-                              onTap: () {
-                                _tabController.animateTo(0,
-                                    duration:
-                                        const Duration(milliseconds: 300));
-                                setState(() {});
-                              },
-                              text: 'scan_code'.tr(),
-                              color: _tabController.index == 0
-                                  ? theme.colorScheme.primary
-                                  : theme.auLightGrey,
-                              borderColor: Colors.transparent,
-                              textColor: _tabController.index == 1
-                                  ? AppColor.disabledColor
-                                  : AppColor.white,
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: OutlineButton(
-                              onTap: () {
-                                _tabController.animateTo(1,
-                                    duration:
-                                        const Duration(milliseconds: 300));
-                                setState(() {});
-                              },
-                              text: 'show_my_code'.tr(),
-                              color: _tabController.index == 1
-                                  ? theme.colorScheme.primary
-                                  : theme.auLightGrey,
-                              borderColor: Colors.transparent,
-                              textColor: _tabController.index == 0
-                                  ? AppColor.disabledColor
-                                  : AppColor.white,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          if (_isLoading) ...[
-            Center(
-              child: CupertinoActivityIndicator(
-                color: theme.colorScheme.primary,
-                radius: 16,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _instructionView(context),
+                ],
               ),
             ),
-          ]
+          )
         ],
-      ),
-    );
-  }
-
-  AppBar _qrCodeAppBar(BuildContext context) {
-    return getCloseAppBar(
-      context,
-      onClose: () => Navigator.of(context).pop(),
-      withBottomDivider: false,
-      icon: closeIcon(color: AppColor.white),
-      isWhite: false,
+        if (_isLoading) ...[
+          Center(
+            child: CupertinoActivityIndicator(
+              color: theme.colorScheme.primary,
+              radius: 16,
+            ),
+          ),
+        ],
+      ],
     );
   }
 
@@ -281,7 +391,9 @@ class _ScanQRPageState extends State<ScanQRPage>
     final qrSize = size1 < 240.0 ? size1 : 240.0;
 
     var cutPaddingTop = qrSize + 500 - MediaQuery.of(context).size.height;
-    if (cutPaddingTop < 0) cutPaddingTop = 0;
+    if (cutPaddingTop < 0) {
+      cutPaddingTop = 0;
+    }
     final cutOutBottomOffset = 80 + cutPaddingTop;
     return Stack(
       children: [
@@ -290,9 +402,9 @@ class _ScanQRPageState extends State<ScanQRPage>
           overlay: QrScannerOverlayShape(
             borderColor:
                 isScanDataError ? AppColor.red : theme.colorScheme.secondary,
-            overlayColor: (cameraPermission)
+            overlayColor: cameraPermission
                 ? const Color.fromRGBO(0, 0, 0, 0.6)
-                : const Color.fromRGBO(0, 0, 0, 1.0),
+                : const Color.fromRGBO(0, 0, 0, 1),
             cutOutSize: qrSize,
             borderWidth: 8,
             borderRadius: 40,
@@ -331,7 +443,9 @@ class _ScanQRPageState extends State<ScanQRPage>
     final qrSize = size1 < 240.0 ? size1 : 240.0;
 
     var cutPaddingTop = qrSize + 500 - MediaQuery.of(context).size.height;
-    if (cutPaddingTop < 0) cutPaddingTop = 0;
+    if (cutPaddingTop < 0) {
+      cutPaddingTop = 0;
+    }
     final cutOutBottomOffset = 80 + cutPaddingTop;
     return Stack(
       children: [
@@ -344,7 +458,7 @@ class _ScanQRPageState extends State<ScanQRPage>
                 cutOutBottomOffset +
                 32,
             0,
-            30,
+            120,
           ),
           child: Center(
             child: Column(
@@ -352,15 +466,15 @@ class _ScanQRPageState extends State<ScanQRPage>
               children: [
                 _instructionViewNoPermission(context),
                 Padding(
-                  padding: const EdgeInsets.all(8.0),
+                  padding: const EdgeInsets.all(8),
                   child: PrimaryButton(
-                    text: "open_setting".tr(
+                    text: 'open_setting'.tr(
                       namedArgs: {
-                        "device": Platform.isAndroid ? "Device" : "iOS",
+                        'device': Platform.isAndroid ? 'Device' : 'iOS',
                       },
                     ),
-                    onTap: () {
-                      openAppSettings();
+                    onTap: () async {
+                      await openAppSettings();
                     },
                   ),
                 )
@@ -407,7 +521,7 @@ class _ScanQRPageState extends State<ScanQRPage>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "scan_qr_to".tr(),
+                  'scan_qr_to'.tr(),
                   style: theme.textTheme.ppMori700White14,
                 ),
                 Divider(
@@ -416,14 +530,14 @@ class _ScanQRPageState extends State<ScanQRPage>
                 ),
                 RichText(
                   text: TextSpan(
-                    text: "apps".tr(),
+                    text: 'apps'.tr(),
                     children: [
                       TextSpan(
                         text: ' ',
                         style: theme.textTheme.ppMori400Grey14,
                       ),
                       TextSpan(
-                        text: "such_as_openSea".tr(),
+                        text: 'such_as_openSea'.tr(),
                         style: theme.textTheme.ppMori400Grey14,
                       ),
                     ],
@@ -433,7 +547,7 @@ class _ScanQRPageState extends State<ScanQRPage>
                 const SizedBox(height: 15),
                 RichText(
                   text: TextSpan(
-                    text: "autonomy_canvas".tr(),
+                    text: 'autonomy_canvas'.tr(),
                     children: [
                       TextSpan(
                         text: ' ',
@@ -456,7 +570,7 @@ class _ScanQRPageState extends State<ScanQRPage>
       case ScannerItem.XTZ_ADDRESS:
         return Column(
           children: [
-            Text("scan_qr".tr(), style: theme.primaryTextTheme.labelLarge),
+            Text('scan_qr'.tr(), style: theme.primaryTextTheme.labelLarge),
           ],
         );
       case ScannerItem.CANVAS_DEVICE:
@@ -467,61 +581,76 @@ class _ScanQRPageState extends State<ScanQRPage>
   void _onQRViewCreated(QRViewController controller) {
     this.controller = controller;
     controller.scannedDataStream.listen((scanData) async {
-      if (_isLoading) return;
-      if (scanData.code == null) return;
-      if (scanData.code == currentCode && isScanDataError) return;
+      if (_isLoading) {
+        return;
+      }
+      if (scanData.code == null) {
+        return;
+      }
+      if (scanData.code == currentCode && isScanDataError) {
+        return;
+      }
       currentCode = scanData.code;
       String code = scanData.code!;
-
+      setState(() {
+        _isLoading = true;
+      });
+      await pauseCamera();
+      if (!mounted) {
+        return;
+      }
       if (DEEP_LINKS.any((prefix) => code.startsWith(prefix))) {
-        setState(() {
-          _isLoading = true;
-        });
-        controller.pauseCamera();
-        if (!mounted) return;
-        Navigator.pop(context);
+        if (_shouldPop) {
+          Navigator.pop(context);
+        }
 
         injector<DeeplinkService>().handleDeeplink(
           code,
           delay: const Duration(seconds: 1),
+          onFinished: () {
+            if (mounted) {
+              setState(() {
+                _isLoading = false;
+              });
+              unawaited(resumeCamera());
+            }
+            widget.onHandleFinished?.call();
+          },
         );
         return;
-      }
+      } else {
+        switch (widget.scannerItem) {
+          case ScannerItem.WALLET_CONNECT:
+            if (code.startsWith('wc:')) {
+              await _handleAutonomyConnect(code);
+            } else {
+              _handleError(code);
+            }
+            break;
 
-      switch (widget.scannerItem) {
-        case ScannerItem.WALLET_CONNECT:
-          if (code.startsWith("wc:") == true) {
-            _handleAutonomyConnect(code);
-          } else {
-            _handleError(code);
-          }
-          break;
+          case ScannerItem.BEACON_CONNECT:
+            if (code.startsWith('tezos://')) {
+              await _handleBeaconConnect(code);
+            } else {
+              _handleError(code);
+            }
+            break;
 
-        case ScannerItem.BEACON_CONNECT:
-          if (code.startsWith("tezos://") == true) {
-            _handleBeaconConnect(code);
-          } else {
-            _handleError(code);
-          }
-          break;
-
-        case ScannerItem.ETH_ADDRESS:
-        case ScannerItem.XTZ_ADDRESS:
-          setState(() {
-            _isLoading = true;
-          });
-          controller.pauseCamera();
-          Navigator.pop(context, code);
-          break;
-        case ScannerItem.GLOBAL:
-          if (code.startsWith("wc:") == true) {
-            setState(() {
-              _isLoading = true;
-            });
-            _handleAutonomyConnect(code);
-          } else if (code.startsWith("tezos:") == true) {
-            _handleBeaconConnect(code);
-            /* TODO: Remove or support for multiple wallets
+          case ScannerItem.ETH_ADDRESS:
+          case ScannerItem.XTZ_ADDRESS:
+            if (!mounted) {
+              return;
+            }
+            if (_shouldPop) {
+              Navigator.pop(context, code);
+            }
+            break;
+          case ScannerItem.GLOBAL:
+            if (code.startsWith('wc:')) {
+              await _handleAutonomyConnect(code);
+            } else if (code.startsWith('tezos:')) {
+              await _handleBeaconConnect(code);
+              /* TODO: Remove or support for multiple wallets
           } else if (code.startsWith("tz1")) {
             Navigator.of(context).popAndPushNamed(SendCryptoPage.tag,
                 arguments: SendData(CryptoType.XTZ, code));
@@ -534,21 +663,31 @@ class _ScanQRPageState extends State<ScanQRPage>
               log(err.toString());
             }
             */
-          } else if (_isCanvasQrCode(code)) {
-            _lock.synchronized(() async {
-              await _handleCanvasQrCode(code);
-            });
-          } else {
-            _handleError(code);
-          }
-          break;
-        case ScannerItem.CANVAS_DEVICE:
-          if (_isCanvasQrCode(code)) {
-            _lock.synchronized(() => _handleCanvasQrCode(code));
-          } else {
-            _handleError(code);
-          }
-          break;
+            } else if (_isCanvasQrCode(code)) {
+              unawaited(_lock.synchronized(() async {
+                await _handleCanvasQrCode(code);
+              }));
+            } else {
+              _handleError(code);
+            }
+            break;
+          case ScannerItem.CANVAS_DEVICE:
+            if (_isCanvasQrCode(code)) {
+              unawaited(_lock.synchronized(() => _handleCanvasQrCode(code)));
+            } else {
+              _handleError(code);
+            }
+            break;
+        }
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+          await resumeCamera();
+        }
+        if (!isScanDataError) {
+          widget.onHandleFinished?.call();
+        }
       }
     });
   }
@@ -563,11 +702,7 @@ class _ScanQRPageState extends State<ScanQRPage>
   }
 
   Future<bool> _handleCanvasQrCode(String code) async {
-    log.info("Canvas device scanned: $code");
-    setState(() {
-      _isLoading = true;
-    });
-    controller.pauseCamera();
+    log.info('Canvas device scanned: $code');
     try {
       final device = CanvasDevice.fromJson(jsonDecode(code));
       final canvasClient = injector<CanvasClientService>();
@@ -575,36 +710,46 @@ class _ScanQRPageState extends State<ScanQRPage>
       if (result) {
         device.isConnecting = true;
       }
-      if (!mounted) return false;
-      Navigator.pop(context, device);
+      if (!mounted) {
+        return false;
+      }
+      if (_shouldPop) {
+        Navigator.pop(context, device);
+      }
       return result;
     } catch (e) {
-      Navigator.pop(context);
-      if (e.toString().contains("DEADLINE_EXCEEDED") || true) {
-        UIHelper.showInfoDialog(_navigationService.navigatorKey.currentContext!,
-            "failed_to_connect".tr(), "canvas_ip_fail".tr(),
-            closeButton: "close".tr());
+      if (mounted) {
+        if (_shouldPop) {
+          Navigator.pop(context);
+        }
+        if (e.toString().contains('DEADLINE_EXCEEDED') || true) {
+          await UIHelper.showInfoDialog(
+              _navigationService.navigatorKey.currentContext!,
+              'failed_to_connect'.tr(),
+              'canvas_ip_fail'.tr(),
+              closeButton: 'close'.tr());
+        }
       }
     }
     return false;
   }
 
-  Future _addScanQREvent(
+  void _addScanQREvent(
       {required String link,
       required String linkType,
       required String prefix,
-      Map<dynamic, dynamic> addData = const {}}) async {
+      Map<dynamic, dynamic> addData = const {}}) {
     final uri = Uri.parse(link);
     final uriData = uri.queryParameters;
     final data = {
-      "link": link,
+      'link': link,
       'linkType': linkType,
-      "prefix": prefix,
-    };
-    data.addAll(uriData);
-    data.addAll(addData.map((key, value) => MapEntry(key, value.toString())));
+      'prefix': prefix,
+    }
+      ..addAll(uriData)
+      ..addAll(addData.map((key, value) => MapEntry(key, value.toString())));
 
-    metricClient.addEvent(MixpanelEvent.scanQR, data: data);
+    unawaited(metricClient.addEvent(MixpanelEvent.scanQR, data: data));
   }
 
   void _handleError(String data) {
@@ -619,68 +764,37 @@ class _ScanQRPageState extends State<ScanQRPage>
       }
     });
 
-    log.info("[Scanner][start] scan ${widget.scannerItem}");
-    log.info(
-        "[Scanner][incorrectScanItem] item: ${data.substring(0, data.length ~/ 2)}");
+    log
+      ..info('[Scanner][start] scan ${widget.scannerItem}')
+      ..info('[Scanner][incorrectScanItem] item: '
+          '${data.substring(0, data.length ~/ 2)}');
   }
 
   Future<void> _handleAutonomyConnect(String code) async {
-    setState(() {
-      _isLoading = true;
-    });
-    controller.pauseCamera();
-    Navigator.pop(context);
+    if (_shouldPop) {
+      Navigator.pop(context);
+    }
     await Future.delayed(const Duration(seconds: 1));
 
     _addScanQREvent(
-        link: code, linkType: LinkType.autonomyConnect, prefix: "wc:");
-    injector<Wc2Service>().connect(code);
+        link: code, linkType: LinkType.autonomyConnect, prefix: 'wc:');
+    await injector<Wc2Service>().connect(code);
   }
 
   Future<void> _handleBeaconConnect(String code) async {
-    setState(() {
-      _isLoading = true;
-    });
-    controller.pauseCamera();
-    Navigator.pop(context);
+    if (_shouldPop) {
+      Navigator.pop(context);
+    }
     await Future.delayed(const Duration(seconds: 1));
 
     _addScanQREvent(
-        link: code, linkType: LinkType.beaconConnect, prefix: "tezos://");
-    injector<TezosBeaconService>().addPeer(code);
-
-    injector<NavigationService>().showContactingDialog();
+        link: code, linkType: LinkType.beaconConnect, prefix: 'tezos://');
+    await Future.wait([
+      injector<TezosBeaconService>().addPeer(code),
+      injector<NavigationService>().showContactingDialog()
+    ]);
   }
 
   @override
-  void didPopNext() {
-    if (Platform.isIOS) {
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.leanBack);
-    }
-  }
-
-  @override
-  void didPushNext() {
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
-        overlays: SystemUiOverlay.values);
-  }
-
-  @override
-  void dispose() {
-    controller.dispose();
-    _timer?.cancel();
-    routeObserver.unsubscribe(this);
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
-        overlays: SystemUiOverlay.values);
-    super.dispose();
-  }
-}
-
-enum ScannerItem {
-  WALLET_CONNECT,
-  BEACON_CONNECT,
-  ETH_ADDRESS,
-  XTZ_ADDRESS,
-  CANVAS_DEVICE,
-  GLOBAL
+  bool get wantKeepAlive => true;
 }

@@ -18,30 +18,28 @@ class PlayControlModel {
   PlayControlModel copyWith({
     int? timer,
     bool? isShuffle,
-  }) {
-    return PlayControlModel(
-      timer: timer ?? this.timer,
-      isShuffle: isShuffle ?? this.isShuffle,
-    );
-  }
+  }) =>
+      PlayControlModel(
+        timer: timer ?? this.timer,
+        isShuffle: isShuffle ?? this.isShuffle,
+      );
 
-  Map<String, dynamic> toJson() {
-    return <String, dynamic>{
-      'timer': timer,
-      'isShuffle': isShuffle,
-    };
-  }
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'timer': timer,
+        'isShuffle': isShuffle,
+      };
 
-  factory PlayControlModel.fromJson(Map<String, dynamic> map) {
-    return PlayControlModel(
-      timer: map['timer'] as int,
-      isShuffle: map['isShuffle'] as bool,
-    );
-  }
+  factory PlayControlModel.fromJson(Map<String, dynamic> map) =>
+      PlayControlModel(
+        timer: map['timer'] as int,
+        isShuffle: map['isShuffle'] as bool,
+      );
 
   @override
   bool operator ==(covariant PlayControlModel other) {
-    if (identical(this, other)) return true;
+    if (identical(this, other)) {
+      return true;
+    }
 
     return other.timer == timer && other.isShuffle == isShuffle;
   }

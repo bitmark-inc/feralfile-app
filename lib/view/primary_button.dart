@@ -5,33 +5,40 @@ import 'package:flutter/material.dart';
 class PrimaryButton extends StatelessWidget {
   final Function()? onTap;
   final Color? color;
+  final Color? disabledColor;
   final String? text;
+  final Color? textColor;
   final double? width;
   final bool isProcessing;
   final bool enabled;
+  final Color? indicatorColor;
 
   const PrimaryButton({
     super.key,
     this.onTap,
     this.color,
+    this.disabledColor,
     this.text,
+    this.textColor,
     this.width,
     this.enabled = true,
     this.isProcessing = false,
+    this.indicatorColor,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final disabledColor = this.disabledColor ?? theme.auLightGrey;
     return SizedBox(
       width: width,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor:
-              enabled ? color ?? theme.auSuperTeal : theme.auLightGrey,
+              enabled ? color ?? AppColor.feralFileHighlight : disabledColor,
           shadowColor: Colors.transparent,
-          disabledForegroundColor: theme.auLightGrey,
-          disabledBackgroundColor: theme.auLightGrey,
+          disabledForegroundColor: disabledColor,
+          disabledBackgroundColor: disabledColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(32),
           ),
@@ -49,7 +56,7 @@ class PrimaryButton extends StatelessWidget {
                     width: 14,
                     margin: const EdgeInsets.only(right: 8),
                     child: CircularProgressIndicator(
-                      color: theme.colorScheme.primary,
+                      color: indicatorColor ?? theme.colorScheme.primary,
                       backgroundColor: theme.colorScheme.surface,
                       strokeWidth: 2,
                     ),
@@ -58,7 +65,8 @@ class PrimaryButton extends StatelessWidget {
                   const SizedBox(),
                 Text(
                   text ?? '',
-                  style: theme.textTheme.ppMori400Black14,
+                  style: theme.textTheme.ppMori400Black14
+                      .copyWith(color: textColor),
                 ),
               ],
             ),

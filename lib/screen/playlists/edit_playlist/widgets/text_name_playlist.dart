@@ -1,18 +1,19 @@
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/view/text_field.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 
 class TextNamePlaylist extends StatefulWidget {
   final Function(String)? onEditPlaylistName;
   final FocusNode? focusNode;
+
   const TextNamePlaylist({
-    Key? key,
     required this.playList,
+    super.key,
     this.onEditPlaylistName,
     this.focusNode,
-  }) : super(key: key);
+  });
 
   final PlayListModel? playList;
 
@@ -49,7 +50,7 @@ class _TextNamePlaylistState extends State<TextNamePlaylist> {
       hintText: tr('untitled'),
       controller: _playlistNameC,
       cursorColor: theme.colorScheme.primary,
-      style: theme.textTheme.ppMori700Black14,
+      style: theme.textTheme.ppMori400Black14,
       hintStyle: theme.textTheme.ppMori400Grey14,
       textAlign: TextAlign.center,
       border: InputBorder.none,

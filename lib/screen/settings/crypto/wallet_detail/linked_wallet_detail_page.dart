@@ -430,7 +430,7 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: isCopied
-                              ? AppColor.auSuperTeal
+                              ? AppColor.feralFileHighlight
                               : AppColor.auLightGrey,
                           shadowColor: Colors.transparent,
                           shape: RoundedRectangleBorder(

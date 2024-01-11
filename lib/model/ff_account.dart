@@ -5,15 +5,14 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/common/environment.dart';
-import 'package:collection/collection.dart';
+import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'ff_account.g.dart';
 
 @JsonSerializable()
 class FFAccount {
-  @JsonKey(name: "ID", defaultValue: '')
+  @JsonKey(name: 'ID', defaultValue: '')
   String id;
   String alias;
   String location;
@@ -33,17 +32,11 @@ class FFAccount {
   Map<String, dynamic> toJson() => _$FFAccountToJson(this);
 
   @override
-  String toString() {
-    return toJson().toString();
-  }
+  String toString() => toJson().toString();
 
-  String? get ethereumAddress {
-    return vaultAddresses?['ethereum'];
-  }
+  String? get ethereumAddress => vaultAddresses?['ethereum'];
 
-  String? get tezosAddress {
-    return vaultAddresses?['tezos'];
-  }
+  String? get tezosAddress => vaultAddresses?['tezos'];
 }
 
 @JsonSerializable()
@@ -58,191 +51,6 @@ class WyreWallet {
       _$WyreWalletFromJson(json);
 
   Map<String, dynamic> toJson() => _$WyreWalletToJson(this);
-}
-
-@JsonSerializable()
-class Exhibition {
-  final String id;
-  final String title;
-  final String slug;
-  final DateTime exhibitionStartAt;
-  final DateTime? exhibitionEndAt;
-  final String? coverURI;
-  final String? thumbnailCoverURI;
-  final String mintBlockchain;
-  final List<FFArtist>? artists;
-  final List<FFSeries>? series;
-  final List<FFContract>? contracts;
-  final FFArtist? partner;
-
-  Exhibition(
-    this.id,
-    this.title,
-    this.slug,
-    this.exhibitionStartAt,
-    this.exhibitionEndAt,
-    this.coverURI,
-    this.thumbnailCoverURI,
-    this.artists,
-    this.series,
-    this.contracts,
-    this.mintBlockchain,
-    this.partner,
-  );
-
-  factory Exhibition.fromJson(Map<String, dynamic> json) =>
-      _$ExhibitionFromJson(json);
-
-  Map<String, dynamic> toJson() => _$ExhibitionToJson(this);
-
-  FFArtist? getArtist(FFSeries? series) {
-    final artistId = series?.artistID;
-    return artists?.firstWhereOrNull((artist) => artist.id == artistId);
-  }
-
-  String getThumbnailURL() {
-    return "${Environment.feralFileAssetURL}/$thumbnailCoverURI";
-  }
-}
-
-@JsonSerializable()
-class ExhibitionResponse {
-  final Exhibition result;
-
-  ExhibitionResponse(this.result);
-
-  factory ExhibitionResponse.fromJson(Map<String, dynamic> json) =>
-      _$ExhibitionResponseFromJson(json);
-
-  Map<String, dynamic> toJson() => _$ExhibitionResponseToJson(this);
-}
-
-@JsonSerializable()
-class FFArtist {
-  @JsonKey(name: "ID")
-  final String id;
-  final String alias;
-  final String slug;
-  final bool? verified;
-  final bool? isArtist;
-  final String? fullName;
-  final String? avatarURI;
-  final String? accountNumber;
-  final String? type;
-
-  FFArtist(
-    this.id,
-    this.alias,
-    this.slug,
-    this.verified,
-    this.isArtist,
-    this.fullName,
-    this.avatarURI,
-    this.accountNumber,
-    this.type,
-  );
-
-  factory FFArtist.fromJson(Map<String, dynamic> json) =>
-      _$FFArtistFromJson(json);
-
-  Map<String, dynamic> toJson() => _$FFArtistToJson(this);
-}
-
-@JsonSerializable()
-class FFSeries {
-  final String id;
-  final String artistID;
-  final String? assetID;
-  final String title;
-  final String slug;
-  final String medium;
-  final String? description;
-  final String? thumbnailURI;
-  final String exhibitionID;
-  final Map<String, dynamic>? metadata;
-  final int? displayIndex;
-  final int? featuringIndex;
-  final FFSeriesSettings? settings;
-  final FFArtist? artist;
-  final Exhibition? exhibition;
-  final AirdropInfo? airdropInfo;
-  final DateTime? createdAt;
-  final DateTime? updatedAt;
-
-  FFSeries(
-    this.id,
-    this.artistID,
-    this.assetID,
-    this.title,
-    this.slug,
-    this.medium,
-    this.description,
-    this.thumbnailURI,
-    this.exhibitionID,
-    this.metadata,
-    this.settings,
-    this.artist,
-    this.exhibition,
-    this.airdropInfo,
-    this.createdAt,
-    this.displayIndex,
-    this.featuringIndex,
-    this.updatedAt,
-  );
-
-  int get maxEdition {
-    return settings?.maxArtwork ?? -1;
-  }
-
-  FFContract? get contract {
-    return exhibition?.contracts?.firstWhereOrNull((e) {
-      return e.address == airdropInfo?.contractAddress;
-    });
-  }
-
-  String getThumbnailURL() {
-    return "${Environment.feralFileAssetURL}/$thumbnailURI";
-  }
-
-  bool get isAirdropSeries {
-    return settings?.isAirdrop == true;
-  }
-
-  factory FFSeries.fromJson(Map<String, dynamic> json) =>
-      _$FFSeriesFromJson(json);
-
-  Map<String, dynamic> toJson() => _$FFSeriesToJson(this);
-}
-
-@JsonSerializable()
-class FFSeriesResponse {
-  final FFSeries result;
-
-  FFSeriesResponse(
-    this.result,
-  );
-
-  factory FFSeriesResponse.fromJson(Map<String, dynamic> json) =>
-      _$FFSeriesResponseFromJson(json);
-
-  Map<String, dynamic> toJson() => _$FFSeriesResponseToJson(this);
-}
-
-@JsonSerializable()
-class FFSeriesSettings {
-  final int maxArtwork;
-  final String? saleModel;
-
-  FFSeriesSettings(this.saleModel, this.maxArtwork);
-
-  factory FFSeriesSettings.fromJson(Map<String, dynamic> json) =>
-      _$FFSeriesSettingsFromJson(json);
-
-  Map<String, dynamic> toJson() => _$FFSeriesSettingsToJson(this);
-
-  bool get isAirdrop {
-    return ["airdrop", "shopping_airdrop"].contains(saleModel?.toLowerCase());
-  }
 }
 
 @JsonSerializable()
@@ -294,9 +102,7 @@ class AirdropInfo {
 
   Map<String, dynamic> toJson() => _$AirdropInfoToJson(this);
 
-  bool get isAirdropStarted {
-    return startedAt?.isBefore(DateTime.now()) == true;
-  }
+  bool get isAirdropStarted => startedAt?.isBefore(DateTime.now()) == true;
 }
 
 @JsonSerializable()
@@ -311,9 +117,7 @@ class TokenClaimResponse {
   Map<String, dynamic> toJson() => _$TokenClaimResponseToJson(this);
 
   @override
-  String toString() {
-    return 'TokenClaimResponse{result: $result}';
-  }
+  String toString() => 'TokenClaimResponse{result: $result}';
 }
 
 @JsonSerializable()
@@ -342,9 +146,11 @@ class TokenClaimResult {
   Map<String, dynamic> toJson() => _$TokenClaimResultToJson(this);
 
   @override
-  String toString() {
-    return 'TokenClaimResult{id: $id, claimerID: $claimerID, exhibitionID: $exhibitionID, artworkID: $artworkID, txID: $txID}';
-  }
+  String toString() => 'TokenClaimResult{id: $id, '
+      'claimerID: $claimerID, '
+      'exhibitionID: $exhibitionID, '
+      'artworkID: $artworkID, '
+      'txID: $txID}';
 }
 
 @JsonSerializable()
@@ -363,9 +169,7 @@ class FeralfileError {
   Map<String, dynamic> toJson() => _$FeralfileErrorToJson(this);
 
   @override
-  String toString() {
-    return 'FeralfileError{code: $code, message: $message}';
-  }
+  String toString() => 'FeralfileError{code: $code, message: $message}';
 }
 
 @JsonSerializable()
@@ -433,11 +237,15 @@ class Artwork {
   final bool? burned;
   final String blockchainStatus;
   final bool isExternal;
+  final String thumbnailURI;
+  final String previewURI;
+  final Map<String, dynamic> metadata;
   final DateTime mintedAt;
   final DateTime createdAt;
   final DateTime updatedAt;
   final bool? isArchived;
   final FFSeries? series;
+  final ArtworkSwap? swap;
 
   Artwork(
       this.id,
@@ -450,14 +258,105 @@ class Artwork {
       this.burned,
       this.blockchainStatus,
       this.isExternal,
+      this.thumbnailURI,
+      this.previewURI,
+      this.metadata,
       this.mintedAt,
       this.createdAt,
       this.updatedAt,
       this.isArchived,
-      this.series);
+      this.series,
+      this.swap);
 
   factory Artwork.fromJson(Map<String, dynamic> json) =>
       _$ArtworkFromJson(json);
 
   Map<String, dynamic> toJson() => _$ArtworkToJson(this);
+}
+
+class ArtworkSwap {
+  final String id;
+  final String artworkID;
+  final String seriesID;
+  final String? paymentID;
+  final double? fee;
+  final String currency;
+  final int artworkIndex;
+  final String ownerAccount;
+  final String status;
+  final String contractName;
+  final String contractAddress;
+  final String recipientAddress;
+  final String? ipfsCid;
+  final String? token;
+  final String blockchainType;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime expiredAt;
+
+  // Constructor
+  ArtworkSwap({
+    required this.id,
+    required this.artworkID,
+    required this.seriesID,
+    required this.currency,
+    required this.artworkIndex,
+    required this.ownerAccount,
+    required this.status,
+    required this.contractName,
+    required this.contractAddress,
+    required this.recipientAddress,
+    required this.blockchainType,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.expiredAt,
+    this.ipfsCid,
+    this.token,
+    this.paymentID,
+    this.fee,
+  });
+
+  // Factory method to create an ArtworkSwap instance from JSON
+  factory ArtworkSwap.fromJson(Map<String, dynamic> json) => ArtworkSwap(
+        id: json['id'],
+        artworkID: json['artworkID'],
+        seriesID: json['seriesID'],
+        paymentID: json['paymentID'],
+        fee: json['fee']?.toDouble(),
+        currency: json['currency'],
+        artworkIndex: json['artworkIndex'],
+        ownerAccount: json['ownerAccount'],
+        status: json['status'],
+        contractName: json['contractName'],
+        contractAddress: json['contractAddress'],
+        recipientAddress: json['recipientAddress'],
+        ipfsCid: json['ipfsCid'],
+        token: json['token'],
+        blockchainType: json['blockchainType'],
+        createdAt: DateTime.parse(json['createdAt']),
+        updatedAt: DateTime.parse(json['updatedAt']),
+        expiredAt: DateTime.parse(json['expiredAt']),
+      );
+
+  // Method to convert ArtworkSwap instance to JSON
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'artworkID': artworkID,
+        'seriesID': seriesID,
+        'paymentID': paymentID,
+        'fee': fee,
+        'currency': currency,
+        'artworkIndex': artworkIndex,
+        'ownerAccount': ownerAccount,
+        'status': status,
+        'contractName': contractName,
+        'contractAddress': contractAddress,
+        'recipientAddress': recipientAddress,
+        'ipfsCid': ipfsCid,
+        'token': token,
+        'blockchainType': blockchainType,
+        'createdAt': createdAt.toIso8601String(),
+        'updatedAt': updatedAt.toIso8601String(),
+        'expiredAt': expiredAt.toIso8601String(),
+      };
 }

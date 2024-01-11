@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/model/otp.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/claim/preview_token_claim.dart';
@@ -48,16 +51,14 @@ class ClaimTokenPage extends StatefulWidget {
   final bool allowViewOnlyClaim;
 
   const ClaimTokenPage({
-    Key? key,
     required this.series,
+    super.key,
     this.otp,
     this.allowViewOnlyClaim = false,
-  }) : super(key: key);
+  });
 
   @override
-  State<StatefulWidget> createState() {
-    return _ClaimTokenPageState();
-  }
+  State<StatefulWidget> createState() => _ClaimTokenPageState();
 }
 
 class _ClaimTokenPageState extends State<ClaimTokenPage> {
@@ -70,11 +71,11 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
   Widget build(BuildContext context) {
     final artwork = widget.series;
     final artist = artwork.artist;
-    final artistName = artist != null ? artist.getDisplayName() : "";
+    final artistName = artist != null ? artist.getDisplayName() : '';
     final artworkThumbnail = artwork.getThumbnailURL();
     String gifter =
-        artwork.airdropInfo?.gifter?.replaceAll(" ", "\u00A0") ?? "";
-    String giftIntro = "you_can_receive_free_gift".tr();
+        artwork.airdropInfo?.gifter?.replaceAll(' ', '\u00A0') ?? '';
+    String giftIntro = 'you_can_receive_free_gift'.tr();
     if (gifter.trim().isNotEmpty) {
       giftIntro += " ${'from'.tr().toLowerCase()} ";
     }
@@ -153,8 +154,8 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                             ),
                           ),
                         ),
-                        onTap: () {
-                          Navigator.push(
+                        onTap: () async {
+                          await Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) => PreviewTokenClaim(
@@ -182,8 +183,8 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                                     minFontSize: 14,
                                     maxLines: 2,
                                   ),
-                                  onTap: () {
-                                    Navigator.push(
+                                  onTap: () async {
+                                    await Navigator.push(
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) => PreviewTokenClaim(
@@ -194,17 +195,17 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                                   },
                                 ),
                                 Text(
-                                  "by".tr(args: [artistName]),
+                                  'by'.tr(args: [artistName]),
                                   style: theme.textTheme.ppMori400White14,
                                 ),
                               ],
                             ),
                           ),
                           SvgPicture.asset(
-                            "assets/images/penrose_moma.svg",
+                            'assets/images/penrose_moma.svg',
                             colorFilter: ColorFilter.mode(
                                 theme.colorScheme.secondary, BlendMode.srcIn),
-                            width: 27,
+                            height: 27,
                           ),
                         ],
                       ),
@@ -227,7 +228,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                             style: theme.primaryTextTheme.ppMori700White14,
                           ),
                           TextSpan(
-                            text: ".",
+                            text: '.',
                             style: theme.primaryTextTheme.ppMori400White14,
                           ),
                         ],
@@ -237,23 +238,23 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                       height: 30,
                     ),
                     PrimaryButton(
-                      text: "accept_ownership".tr(),
+                      text: 'accept_ownership'.tr(),
                       enabled: !_processing,
                       isProcessing: _processing,
                       onTap: () async {
-                        metricClient.addEvent(
+                        unawaited(metricClient.addEvent(
                           MixpanelEvent.acceptOwnership,
                           data: {
-                            "id": widget.series.id,
+                            'id': widget.series.id,
                           },
-                        );
+                        ));
                         setState(() {
                           _processing = true;
                         });
                         final blockchain = widget
                                 .series.exhibition?.mintBlockchain
                                 .capitalize() ??
-                            "Tezos";
+                            'Tezos';
                         final accountService = injector<AccountService>();
                         final addresses = await accountService.getAddress(
                             blockchain,
@@ -265,22 +266,24 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                               await accountService.getOrCreateDefaultPersona();
                           final walletAddress =
                               await defaultPersona.insertNextAddress(
-                                  blockchain.toLowerCase() == "tezos"
+                                  blockchain.toLowerCase() == 'tezos'
                                       ? WalletType.Tezos
                                       : WalletType.Ethereum);
 
                           final configService =
                               injector<ConfigurationService>();
                           await configService.setDoneOnboarding(true);
-                          injector<MetricClientService>()
+                          unawaited(injector<MetricClientService>()
                               .mixPanelClient
-                              .initIfDefaultAccount();
+                              .initIfDefaultAccount());
                           await configService.setPendingSettings(true);
                           address = walletAddress.first.address;
                         } else if (addresses.length == 1) {
                           address = addresses.first;
                         } else {
-                          if (!mounted) return;
+                          if (!mounted) {
+                            return;
+                          }
                           await Navigator.of(context).pushNamed(
                             AppRouter.claimSelectAccountPage,
                             arguments: SelectAccountPageArgs(
@@ -292,7 +295,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                           );
                         }
                         if (address != null && mounted) {
-                          _claimToken(context, address);
+                          unawaited(_claimToken(context, address));
                         } else {
                           setState(() {
                             _processing = false;
@@ -304,7 +307,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                       height: 30,
                     ),
                     Text(
-                      "accept_ownership_desc".tr(),
+                      'accept_ownership_desc'.tr(),
                       style: theme.primaryTextTheme.ppMori400White14,
                     ),
                     const SizedBox(
@@ -312,11 +315,11 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                     ),
                     RichText(
                       text: TextSpan(
-                        text: "airdrop_accept_privacy_policy".tr(),
+                        text: 'airdrop_accept_privacy_policy'.tr(),
                         style: theme.textTheme.ppMori400Grey12,
                         children: [
                           TextSpan(
-                              text: "airdrop_privacy_policy".tr(),
+                              text: 'airdrop_privacy_policy'.tr(),
                               style: makeLinkStyle(
                                 theme.textTheme.ppMori400Grey12,
                               ),
@@ -325,7 +328,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                                   _openFFArtistCollector();
                                 }),
                           TextSpan(
-                            text: ".",
+                            text: '.',
                             style: theme.primaryTextTheme.bodyLarge
                                 ?.copyWith(fontSize: 14),
                           ),
@@ -340,16 +343,16 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
               height: 10,
             ),
             OutlineButton(
-              text: "decline".tr(),
+              text: 'decline'.tr(),
               enabled: !_processing,
               color: theme.colorScheme.primary,
               onTap: () {
-                metricClient.addEvent(
+                unawaited(metricClient.addEvent(
                   MixpanelEvent.declineOwnership,
                   data: {
-                    "id": widget.series.id,
+                    'id': widget.series.id,
                   },
-                );
+                ));
                 memoryValues.branchDeeplinkData.value = null;
                 Navigator.of(context).pop(false);
               },
@@ -369,16 +372,17 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
         address: receiveAddress,
         otp: widget.otp,
       );
-      metricClient.addEvent(
+      unawaited(metricClient.addEvent(
         MixpanelEvent.acceptOwnershipSuccess,
         data: {
-          "id": widget.series.id,
+          'id': widget.series.id,
         },
-      );
-      configurationService.setAlreadyClaimedAirdrop(widget.series.id, true);
+      ));
+      unawaited(configurationService.setAlreadyClaimedAirdrop(
+          widget.series.id, true));
       memoryValues.branchDeeplinkData.value = null;
     } catch (e) {
-      log.info("[ClaimTokenPage] Claim token failed. $e");
+      log.info('[ClaimTokenPage] Claim token failed. $e');
       if (mounted) {
         await UIHelper.showClaimTokenError(
           context,
@@ -392,7 +396,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
       _processing = false;
     });
     if (mounted) {
-      Navigator.of(context).pushNamedAndRemoveUntil(
+      await Navigator.of(context).pushNamedAndRemoveUntil(
         AppRouter.homePage,
         (route) => false,
       );
@@ -403,18 +407,20 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
       if (token == null) {
         return;
       }
-      Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
-          arguments: ArtworkDetailPayload(
-              [ArtworkIdentity(token.id, token.owner)], 0,
-              twitterCaption: caption ?? ""));
+      if (mounted) {
+        await Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
+            arguments: ArtworkDetailPayload(
+                [ArtworkIdentity(token.id, token.owner)], 0,
+                twitterCaption: caption ?? ''));
+      }
     }
   }
 
   void _openFFArtistCollector() {
     String uri = (widget.series.exhibition?.id == null)
         ? FF_ARTIST_COLLECTOR
-        : "$FF_ARTIST_COLLECTOR/${widget.series.exhibition?.id}";
-    launchUrl(Uri.parse(uri), mode: LaunchMode.externalApplication);
+        : '$FF_ARTIST_COLLECTOR/${widget.series.exhibition?.id}';
+    unawaited(launchUrl(Uri.parse(uri), mode: LaunchMode.externalApplication));
   }
 }
 

@@ -108,7 +108,7 @@ android {
         inhouse {
             dimension "env"
             applicationIdSuffix ".inhouse"
-            resValue "string", "app_name", "Autonomy (Dev)"
+            resValue "string", "app_name", "Feral File (Dev)"
             manifestPlaceholders = [
                     appIcon     : "@mipmap/ic_launcher_dev",
                     appIconRound: "@mipmap/ic_launcher_dev_round"
@@ -117,7 +117,7 @@ android {
 
         prd {
             dimension "env"
-            resValue "string", "app_name", "Autonomy"
+            resValue "string", "app_name", "Feral File"
             manifestPlaceholders = [
                     appIcon     : "@mipmap/ic_launcher",
                     appIconRound: "@mipmap/ic_launcher_round"

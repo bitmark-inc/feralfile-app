@@ -5,7 +5,8 @@ import 'dart:math';
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/model/ff_exhibition.dart';
+import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -145,6 +146,7 @@ Widget tokenGalleryThumbnailWidget(
   int cachedImageSize, {
   bool usingThumbnailID = true,
   bool useHero = true,
+  Widget? galleryThumbnailPlaceholder,
 }) {
   final thumbnailUrl =
       token.getGalleryThumbnailUrl(usingThumbnailID: usingThumbnailID);
@@ -195,7 +197,9 @@ Widget tokenGalleryThumbnailWidget(
               cacheManager: cacheManager,
               placeholder: (context, index) => FutureBuilder<bool>(
                   future: cachingState,
-                  builder: (context, snapshot) => GalleryThumbnailPlaceholder(
+                  builder: (context, snapshot) =>
+                      galleryThumbnailPlaceholder ??
+                      GalleryThumbnailPlaceholder(
                         loading: !(snapshot.data ?? true),
                       )),
               errorWidget: (context, url, error) => CachedNetworkImage(
@@ -210,7 +214,9 @@ Widget tokenGalleryThumbnailWidget(
                 cacheManager: cacheManager,
                 placeholder: (context, index) => FutureBuilder<bool>(
                     future: cachingState,
-                    builder: (context, snapshot) => GalleryThumbnailPlaceholder(
+                    builder: (context, snapshot) =>
+                        galleryThumbnailPlaceholder ??
+                        GalleryThumbnailPlaceholder(
                           loading: !(snapshot.data ?? true),
                         )),
                 errorWidget: (context, url, error) =>
@@ -395,7 +401,6 @@ Widget placeholder(BuildContext context) {
           children: [
             GifView.asset(
               'assets/images/loading_white.gif',
-              width: 52,
               height: 52,
               frameRate: 12,
             ),
@@ -492,7 +497,7 @@ class PreviewUnSupportedTokenWidget extends StatelessWidget {
                   child: Text(
                     'hide_from_collection'.tr(),
                     style: theme.textTheme.ppMori400Black12
-                        .copyWith(color: AppColor.auSuperTeal),
+                        .copyWith(color: AppColor.feralFileHighlight),
                   ),
                 )
               ],
@@ -563,7 +568,7 @@ class _BrokenTokenWidgetState extends State<BrokenTokenWidget>
                   child: Text(
                     'reload'.tr(),
                     style: theme.textTheme.ppMori400Black12
-                        .copyWith(color: AppColor.auSuperTeal),
+                        .copyWith(color: AppColor.feralFileHighlight),
                   ),
                 )
               ],
@@ -661,7 +666,6 @@ class _PreviewPlaceholderState extends State<PreviewPlaceholder>
           children: [
             GifView.asset(
               'assets/images/loading_white.gif',
-              width: 52,
               height: 52,
               frameRate: 12,
             ),
@@ -1496,7 +1500,7 @@ class MetaDataItem extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               maxLines: 3,
               style: onValueTap != null
-                  ? linkStyle ?? theme.textTheme.ppMori400Green14
+                  ? linkStyle ?? theme.textTheme.ppMori400FFYellow14
                   : valueStyle ?? theme.textTheme.ppMori400White14,
             ),
           ),
@@ -1571,14 +1575,14 @@ class ProvenanceItem extends StatelessWidget {
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     border: Border.all(
-                      color: theme.auSuperTeal,
+                      color: AppColor.feralFileHighlight,
                     ),
                     borderRadius: BorderRadius.circular(64),
                   ),
                   child: Text(
                     'view'.tr(),
                     overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.ppMori400Green14,
+                    style: theme.textTheme.ppMori400FFYellow14,
                   ),
                 ),
               ),
@@ -1654,8 +1658,8 @@ Widget artworkDetailsProvenanceSectionNotEmpty(
                       // subTitle: el.blockchain.toUpperCase(),
                       tapLink: el.txURL,
                       onNameTap: () => identity != null
-                          ? UIHelper.showIdentityDetailDialog(context,
-                              name: identity, address: el.owner)
+                          ? unawaited(UIHelper.showIdentityDetailDialog(context,
+                              name: identity, address: el.owner))
                           : null,
                       forceSafariVC: true,
                     ),
@@ -1958,7 +1962,7 @@ class ArtworkDetailsHeader extends StatelessWidget {
             child: Text(
               subTitle,
               style: theme.textTheme.ppMori700White14.copyWith(
-                  color: AppColor.auSuperTeal,
+                  color: AppColor.feralFileHighlight,
                   fontWeight: isReverse ? FontWeight.w400 : null),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -1971,7 +1975,7 @@ class ArtworkDetailsHeader extends StatelessWidget {
           child: Text(
             title,
             style: theme.textTheme.ppMori400White14.copyWith(
-                color: AppColor.auSuperTeal,
+                color: AppColor.feralFileHighlight,
                 fontWeight: isReverse ? FontWeight.w700 : null),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,

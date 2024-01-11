@@ -93,8 +93,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "144b94a396e78841a74b353d22e9e94b5e279ce1"
-      resolved-ref: "144b94a396e78841a74b353d22e9e94b5e279ce1"
+      ref: c667b128bf647ed2ece6f275b21a77839da434f2
+      resolved-ref: c667b128bf647ed2ece6f275b21a77839da434f2
       url: "https://github.com/bitmark-inc/autonomy-client-shared-theme.git"
     source: git
     version: "0.0.1+20"
@@ -780,10 +780,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_keyboard_visibility
-      sha256: "4983655c26ab5b959252ee204c2fffa4afeb4413cd030455194ec0caa3b8e7cb"
+      sha256: "98664be7be0e3ffca00de50f7f6a287ab62c763fc8c762e0a21584584a3ff4f8"
       url: "https://pub.dev"
     source: hosted
-    version: "5.4.1"
+    version: "6.0.0"
   flutter_keyboard_visibility_linux:
     dependency: transitive
     description:
@@ -1742,8 +1742,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: a5cb97d342b95819b6a9ca03262bde5b8a541b17
-      resolved-ref: a5cb97d342b95819b6a9ca03262bde5b8a541b17
+      ref: "8576446fd7ef71a202dbed054ee42b8d01d61b06"
+      resolved-ref: "8576446fd7ef71a202dbed054ee42b8d01d61b06"
       url: "https://github.com/autonomy-system/nft-collection"
     source: git
     version: "0.0.1"

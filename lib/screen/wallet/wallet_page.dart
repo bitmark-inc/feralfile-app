@@ -67,7 +67,7 @@ class _WalletPageState extends State<WalletPage>
   void _showAddWalletOption() {
     final transparentTextTheme = Theme.of(context)
         .textTheme
-        .ppMori400Green14
+        .ppMori400FFYellow14
         .copyWith(color: Colors.transparent);
     final options = [
       OptionItem(
@@ -122,9 +122,9 @@ class _WalletPageState extends State<WalletPage>
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: getBackAppBar(context,
-            title: 'addresses'.tr(),
-            onBack: null,
+        appBar: getBackAppBar(context, title: 'addresses'.tr(), onBack: () {
+          Navigator.of(context).pop();
+        },
             icon: Semantics(
               label: 'address_menu',
               child: SvgPicture.asset(

@@ -66,7 +66,7 @@ dependencies:
   infinite_scroll_pagination: ^3.2.0
   intl: ^0.18.0
   jiffy: ^6.2.1
-  flutter_keyboard_visibility: ^5.4.1
+  flutter_keyboard_visibility: ^6.0.0
   libauk_dart:
     git:
       url: https://github.com/autonomy-system/libauk-dart.git
@@ -114,7 +114,7 @@ dependencies:
   autonomy_theme:
     git:
       url: https://github.com/bitmark-inc/autonomy-client-shared-theme.git
-      ref: 144b94a396e78841a74b353d22e9e94b5e279ce1
+      ref: c667b128bf647ed2ece6f275b21a77839da434f2
   marqueer: ^1.2.0
   markdown: ^7.1.1
   easy_localization: ^3.0.1
@@ -123,7 +123,7 @@ dependencies:
   nft_collection:
     git:
       url: https://github.com/autonomy-system/nft-collection
-      ref: a5cb97d342b95819b6a9ca03262bde5b8a541b17
+      ref: 8576446fd7ef71a202dbed054ee42b8d01d61b06
   autonomy_tv_proto:
     git:
       url: https://github.com/autonomy-system/autonomy-tv-proto-communication
@@ -241,6 +241,10 @@ flutter:
     - family: AuIcon
       fonts:
         - asset: assets/fonts/AuIcon.ttf
+
+    - family: FFIcon
+      fonts:
+        - asset: assets/fonts/FFIcon.ttf
 
     - family: MoMASans
       fonts:

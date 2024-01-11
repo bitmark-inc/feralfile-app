@@ -1,7 +1,9 @@
+import 'dart:async';
+
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
 import 'package:autonomy_flutter/screen/claim/preview_token_claim.dart';
@@ -45,14 +47,12 @@ class ClaimAirdropPage extends StatefulWidget {
   final ClaimTokenPagePayload payload;
 
   const ClaimAirdropPage({
-    Key? key,
     required this.payload,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
-  State<ClaimAirdropPage> createState() {
-    return _ClaimAirdropPageState();
-  }
+  State<ClaimAirdropPage> createState() => _ClaimAirdropPageState();
 }
 
 class _ClaimAirdropPageState extends State<ClaimAirdropPage> {
@@ -67,11 +67,11 @@ class _ClaimAirdropPageState extends State<ClaimAirdropPage> {
   Widget build(BuildContext context) {
     final artwork = widget.payload.series;
     final artist = artwork.artist;
-    final artistName = artist != null ? artist.getDisplayName() : "";
+    final artistName = artist != null ? artist.getDisplayName() : '';
     final artworkThumbnail = artwork.getThumbnailURL();
     String gifter =
-        artwork.airdropInfo?.gifter?.replaceAll(" ", "\u00A0") ?? "";
-    String giftIntro = "you_can_receive_free_gift".tr();
+        artwork.airdropInfo?.gifter?.replaceAll(' ', '\u00A0') ?? '';
+    String giftIntro = 'you_can_receive_free_gift'.tr();
     if (gifter.trim().isNotEmpty) {
       giftIntro += " ${'from'.tr().toLowerCase()} ";
     }
@@ -150,8 +150,8 @@ class _ClaimAirdropPageState extends State<ClaimAirdropPage> {
                             ),
                           ),
                         ),
-                        onTap: () {
-                          Navigator.push(
+                        onTap: () async {
+                          await Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) => PreviewTokenClaim(
@@ -179,8 +179,8 @@ class _ClaimAirdropPageState extends State<ClaimAirdropPage> {
                                     minFontSize: 14,
                                     maxLines: 2,
                                   ),
-                                  onTap: () {
-                                    Navigator.push(
+                                  onTap: () async {
+                                    await Navigator.push(
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) => PreviewTokenClaim(
@@ -191,17 +191,17 @@ class _ClaimAirdropPageState extends State<ClaimAirdropPage> {
                                   },
                                 ),
                                 Text(
-                                  "by".tr(args: [artistName]),
+                                  'by'.tr(args: [artistName]),
                                   style: theme.textTheme.ppMori400White14,
                                 ),
                               ],
                             ),
                           ),
                           SvgPicture.asset(
-                            "assets/images/penrose_moma.svg",
+                            'assets/images/penrose_moma.svg',
                             colorFilter: ColorFilter.mode(
                                 theme.colorScheme.secondary, BlendMode.srcIn),
-                            width: 27,
+                            height: 27,
                           ),
                         ],
                       ),
@@ -224,7 +224,7 @@ class _ClaimAirdropPageState extends State<ClaimAirdropPage> {
                             style: theme.primaryTextTheme.ppMori700White14,
                           ),
                           TextSpan(
-                            text: ".",
+                            text: '.',
                             style: theme.primaryTextTheme.ppMori400White14,
                           ),
                         ],
@@ -234,23 +234,23 @@ class _ClaimAirdropPageState extends State<ClaimAirdropPage> {
                       height: 30,
                     ),
                     PrimaryButton(
-                      text: "accept_ownership".tr(),
+                      text: 'accept_ownership'.tr(),
                       enabled: !_processing,
                       isProcessing: _processing,
                       onTap: () async {
-                        _metricClient.addEvent(
+                        unawaited(_metricClient.addEvent(
                           MixpanelEvent.acceptOwnership,
                           data: {
-                            "id": widget.payload.series.id,
+                            'id': widget.payload.series.id,
                           },
-                        );
+                        ));
                         setState(() {
                           _processing = true;
                         });
                         final blockchain = widget
                                 .payload.series.exhibition?.mintBlockchain
                                 .capitalize() ??
-                            "Tezos";
+                            'Tezos';
                         final addresses = await _accountService.getAddress(
                             blockchain,
                             withViewOnly: widget.payload.allowViewOnlyClaim);
@@ -261,11 +261,12 @@ class _ClaimAirdropPageState extends State<ClaimAirdropPage> {
                               await _accountService.getOrCreateDefaultPersona();
                           final walletAddress =
                               await defaultPersona.insertNextAddress(
-                                  blockchain.toLowerCase() == "tezos"
+                                  blockchain.toLowerCase() == 'tezos'
                                       ? WalletType.Tezos
                                       : WalletType.Ethereum);
                           await _configService.setDoneOnboarding(true);
-                          _metricClient.mixPanelClient.initIfDefaultAccount();
+                          unawaited(_metricClient.mixPanelClient
+                              .initIfDefaultAccount());
                           await _configService.setPendingSettings(true);
                           address = walletAddress.first.address;
                         } else if (addresses.length == 1) {
@@ -284,7 +285,7 @@ class _ClaimAirdropPageState extends State<ClaimAirdropPage> {
                         }
 
                         if (address != null && mounted) {
-                          _claimToken(
+                          await _claimToken(
                             context: context,
                             claimID: widget.payload.claimID,
                             shareCode: widget.payload.shareCode,
@@ -302,7 +303,7 @@ class _ClaimAirdropPageState extends State<ClaimAirdropPage> {
                       height: 30,
                     ),
                     Text(
-                      "accept_ownership_desc".tr(),
+                      'accept_ownership_desc'.tr(),
                       style: theme.primaryTextTheme.ppMori400White14,
                     ),
                     const SizedBox(
@@ -310,11 +311,11 @@ class _ClaimAirdropPageState extends State<ClaimAirdropPage> {
                     ),
                     RichText(
                       text: TextSpan(
-                        text: "airdrop_accept_privacy_policy".tr(),
+                        text: 'airdrop_accept_privacy_policy'.tr(),
                         style: theme.textTheme.ppMori400Grey12,
                         children: [
                           TextSpan(
-                              text: "airdrop_privacy_policy".tr(),
+                              text: 'airdrop_privacy_policy'.tr(),
                               style: makeLinkStyle(
                                 theme.textTheme.ppMori400Grey12,
                               ),
@@ -323,7 +324,7 @@ class _ClaimAirdropPageState extends State<ClaimAirdropPage> {
                                   _openFFArtistCollector();
                                 }),
                           TextSpan(
-                            text: ".",
+                            text: '.',
                             style: theme.primaryTextTheme.bodyLarge
                                 ?.copyWith(fontSize: 14),
                           ),
@@ -338,16 +339,16 @@ class _ClaimAirdropPageState extends State<ClaimAirdropPage> {
               height: 10,
             ),
             OutlineButton(
-              text: "decline".tr(),
+              text: 'decline'.tr(),
               enabled: !_processing,
               color: theme.colorScheme.primary,
               onTap: () {
-                _metricClient.addEvent(
+                unawaited(_metricClient.addEvent(
                   MixpanelEvent.declineOwnership,
                   data: {
-                    "id": widget.payload.series.id,
+                    'id': widget.payload.series.id,
                   },
-                );
+                ));
                 memoryValues.branchDeeplinkData.value = null;
                 Navigator.of(context).pop(false);
               },
@@ -371,13 +372,13 @@ class _ClaimAirdropPageState extends State<ClaimAirdropPage> {
           shareCode: shareCode,
           seriesId: seriesId,
           receivingAddress: receiveAddress);
-      _metricClient.addEvent(
+      unawaited(_metricClient.addEvent(
         MixpanelEvent.acceptOwnershipSuccess,
         data: {
-          "id": widget.payload.series.id,
+          'id': widget.payload.series.id,
         },
-      );
-      _configService.setAlreadyClaimedAirdrop(seriesId, true);
+      ));
+      unawaited(_configService.setAlreadyClaimedAirdrop(seriesId, true));
     } catch (e) {
       setState(() {
         _processing = false;
@@ -388,7 +389,7 @@ class _ClaimAirdropPageState extends State<ClaimAirdropPage> {
       _processing = false;
     });
     if (mounted) {
-      Navigator.of(context).pushNamedAndRemoveUntil(
+      await Navigator.of(context).pushNamedAndRemoveUntil(
         AppRouter.homePage,
         (route) => false,
       );
@@ -396,17 +397,19 @@ class _ClaimAirdropPageState extends State<ClaimAirdropPage> {
           .add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
       final token = claimRespone.token;
       final caption = claimRespone.airdropInfo.twitterCaption;
-      Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
-          arguments: ArtworkDetailPayload(
-              [ArtworkIdentity(token.id, token.owner)], 0,
-              twitterCaption: caption ?? ""));
+      if (mounted) {
+        await Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
+            arguments: ArtworkDetailPayload(
+                [ArtworkIdentity(token.id, token.owner)], 0,
+                twitterCaption: caption ?? ''));
+      }
     }
   }
 
   void _openFFArtistCollector() {
     String uri = (widget.payload.series.exhibition?.id == null)
         ? FF_ARTIST_COLLECTOR
-        : "$FF_ARTIST_COLLECTOR/${widget.payload.series.exhibition?.id}";
-    launchUrl(Uri.parse(uri), mode: LaunchMode.externalApplication);
+        : '$FF_ARTIST_COLLECTOR/${widget.payload.series.exhibition?.id}';
+    unawaited(launchUrl(Uri.parse(uri), mode: LaunchMode.externalApplication));
   }
 }

@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/model/eth_pending_tx_amount.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
+import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/notification_service.dart';
@@ -114,6 +115,8 @@ _setupApp() async {
   await notificationService.initNotification();
   await notificationService.startListeningNotificationEvents();
   await disableLandscapeMode();
+  final isPremium = await injector.get<IAPService>().isSubscribed();
+  await injector<ConfigurationService>().setPremium(isPremium);
 
   await SentryFlutter.init(
     (options) {
@@ -229,8 +232,11 @@ enum HomePageTab {
 }
 
 enum HomeNavigatorTab {
-  COLLECTION,
-  WALLET,
+  collection,
+  organization,
+  exhibition,
+  scanQr,
+  menu,
 }
 
 @pragma('vm:entry-point')
