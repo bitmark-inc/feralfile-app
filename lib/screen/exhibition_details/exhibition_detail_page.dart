@@ -212,12 +212,6 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage> {
         exhibitionDetail.artworks!.isEmpty) {
       return;
     }
-    exhibitionDetail.artworks!.sort((a, b) {
-      if (a.index != b.index) {
-        a.index.compareTo(b.index);
-      }
-      return a.seriesID.compareTo(b.seriesID);
-    });
     final tokenIds = exhibitionDetail.artworks
         ?.map((e) => exhibitionDetail.getArtworkTokenId(e)!)
         .toList();
