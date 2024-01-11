@@ -170,18 +170,17 @@ class AccountServiceImpl extends AccountService {
     await androidBackupKeys();
     await _auditService.auditPersonaAction('import', persona);
     final metricClient = injector.get<MetricClientService>();
-    metricClient.addEvent(MixpanelEvent.importFullAccount, hashedData: {
+    unawaited(
+        metricClient.addEvent(MixpanelEvent.importFullAccount, hashedData: {
       'id': uuid,
-    });
+    }));
     log.info('[AccountService] imported persona ${persona.uuid}');
     return persona;
   }
 
   @override
   Future<WalletStorage> getDefaultAccount() async =>
-      _defaultAccountLock.synchronized(() async {
-        return await _getDefaultAccount();
-      });
+      _defaultAccountLock.synchronized(() async => await _getDefaultAccount());
 
   @override
   Future<WalletStorage?> getCurrentDefaultAccount() async {
@@ -284,8 +283,8 @@ class AccountServiceImpl extends AccountService {
     final connections = await _cloudDB.connectionDao.getConnections();
     Set<P2PPeer> bcPeers = {};
 
-    log.info(
-        '[AccountService] deletePersona - deleteConnections ${connections.length}');
+    log.info('[AccountService] deletePersona - '
+        'deleteConnections ${connections.length}');
     for (var connection in connections) {
       switch (connection.connectionType) {
         case 'beaconP2PPeer':
