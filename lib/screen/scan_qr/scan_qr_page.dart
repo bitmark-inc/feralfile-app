@@ -129,6 +129,7 @@ class ScanQRPageState extends State<ScanQRPage>
         Expanded(
           child: TabBarView(
             controller: _tabController,
+            physics: const NeverScrollableScrollPhysics(),
             children: [
               QRScanView(
                 key: _qrScanViewKey,
@@ -136,32 +137,35 @@ class ScanQRPageState extends State<ScanQRPage>
                 onHandleFinished: widget.onHandleFinished,
               ),
               MultiBlocProvider(
-                  providers: [
-                    BlocProvider(
-                        create: (_) =>
-                            accounts.AccountsBloc(injector(), injector())),
-                    BlocProvider(
-                      create: (_) => PersonaBloc(
-                        injector<CloudDatabase>(),
-                        injector(),
-                        injector<AuditService>(),
-                      ),
+                providers: [
+                  BlocProvider(
+                      create: (_) =>
+                          accounts.AccountsBloc(injector(), injector())),
+                  BlocProvider(
+                    create: (_) => PersonaBloc(
+                      injector<CloudDatabase>(),
+                      injector(),
+                      injector<AuditService>(),
                     ),
-                    BlocProvider(
-                        create: (_) => EthereumBloc(injector(), injector())),
-                    BlocProvider(
-                      create: (_) => TezosBloc(injector(), injector()),
-                    ),
-                  ],
-                  child: GlobalReceivePage(
-                    onClose: () {
-                      setState(() {
+                  ),
+                  BlocProvider(
+                      create: (_) => EthereumBloc(injector(), injector())),
+                  BlocProvider(
+                    create: (_) => TezosBloc(injector(), injector()),
+                  ),
+                ],
+                child: GlobalReceivePage(
+                  onClose: () {
+                    setState(
+                      () {
                         _tabController.animateTo(0,
                             duration: const Duration(milliseconds: 300));
                         unawaited(resumeCamera());
-                      });
-                    },
-                  )),
+                      },
+                    );
+                  },
+                ),
+              ),
             ],
           ),
         ),
