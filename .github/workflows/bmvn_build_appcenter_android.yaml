@@ -36,8 +36,9 @@ jobs:
         id: extract-version-testnet
         env:
           APPCENTER_API_TOKEN: ${{ secrets.APPCENTER_API_TOKEN }}
-          APP_NAME: ${{ inputs.testnet == true ? 'Autonomy-Android-Test' : 'Autonomy-Android-1' }}
+          APP_NAME: ${{ inputs.testnet == true }} && echo APP_NAME=Autonomy-Android-Test || echo APP_NAME=Autonomy-Android-1
         run: |
+          echo "$APP_NAME"
           API_RESPONSE=$(curl -X GET \
           "https://api.appcenter.ms/v0.1/apps/support-zzd0-28/$APP_NAME/recent_releases" \
           -H 'accept: application/json' \
