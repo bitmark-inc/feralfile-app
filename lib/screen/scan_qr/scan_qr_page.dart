@@ -597,14 +597,15 @@ class QRScanViewState extends State<QRScanView>
       }
       currentCode = scanData.code;
       String code = scanData.code!;
-      setState(() {
-        _isLoading = true;
-      });
-      await pauseCamera();
-      if (!mounted) {
-        return;
-      }
+
       if (DEEP_LINKS.any((prefix) => code.startsWith(prefix))) {
+        setState(() {
+          _isLoading = true;
+        });
+        await pauseCamera();
+        if (!mounted) {
+          return;
+        }
         if (_shouldPop) {
           Navigator.pop(context);
         }
@@ -685,10 +686,10 @@ class QRScanViewState extends State<QRScanView>
             break;
         }
         if (mounted) {
+          await resumeCamera();
           setState(() {
             _isLoading = false;
           });
-          await resumeCamera();
         }
         if (!isScanDataError) {
           widget.onHandleFinished?.call();
@@ -708,6 +709,13 @@ class QRScanViewState extends State<QRScanView>
 
   Future<bool> _handleCanvasQrCode(String code) async {
     log.info('Canvas device scanned: $code');
+    setState(() {
+      _isLoading = true;
+    });
+    await pauseCamera();
+    if (!mounted) {
+      return false;
+    }
     try {
       final device = CanvasDevice.fromJson(jsonDecode(code));
       final canvasClient = injector<CanvasClientService>();
@@ -776,6 +784,13 @@ class QRScanViewState extends State<QRScanView>
   }
 
   Future<void> _handleAutonomyConnect(String code) async {
+    setState(() {
+      _isLoading = true;
+    });
+    await pauseCamera();
+    if (!mounted) {
+      return;
+    }
     if (_shouldPop) {
       Navigator.pop(context);
     }
@@ -787,6 +802,13 @@ class QRScanViewState extends State<QRScanView>
   }
 
   Future<void> _handleBeaconConnect(String code) async {
+    setState(() {
+      _isLoading = true;
+    });
+    await pauseCamera();
+    if (!mounted) {
+      return;
+    }
     if (_shouldPop) {
       Navigator.pop(context);
     }
