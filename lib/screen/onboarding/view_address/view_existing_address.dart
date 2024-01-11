@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/import_seeds.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/domain_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -18,6 +19,7 @@ import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:synchronized/synchronized.dart';
 
 class ViewExistingAddress extends StatefulWidget {
   static const String tag = 'view_existing_address';
@@ -32,7 +34,9 @@ class ViewExistingAddress extends StatefulWidget {
 class _ViewExistingAddressState extends State<ViewExistingAddress> {
   final _controller = TextEditingController();
   bool _isError = false;
-  bool _isProcessing = false;
+  String _address = '';
+  bool _isValid = false;
+  final _checkDomain = Lock();
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +55,7 @@ class _ViewExistingAddressState extends State<ViewExistingAddress> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     addTitleSpace(),
-                    Text('enter_a_wallet_address'.tr(),
+                    Text('enter_address_alias'.tr(),
                         style: theme.textTheme.ppMori400Black14),
                     const SizedBox(height: 10),
                     AuTextField(
@@ -66,7 +70,10 @@ class _ViewExistingAddressState extends State<ViewExistingAddress> {
                         onPressed: () async {
                           if (_controller.text.isNotEmpty) {
                             _controller.clear();
-                            setState(() {});
+                            setState(() {
+                              _isValid = false;
+                              _address = '';
+                            });
                             return;
                           }
                           dynamic address = await Navigator.of(context)
@@ -75,37 +82,31 @@ class _ViewExistingAddressState extends State<ViewExistingAddress> {
                           if (address != null && address is String) {
                             address = address.replacePrefix('ethereum:', '');
                             _controller.text = address;
-                            setState(() {});
+                            await _onTextChanged(address);
                           }
                         },
                       ),
-                      onChanged: (value) {
-                        setState(() {
-                          _isError = false;
-                        });
-                      },
+                      onChanged: _onTextChanged,
                     ),
                   ],
                 ),
               ),
             ),
-            PrimaryButton(
-              enabled: _controller.text.trim().isNotEmpty,
+            PrimaryAsyncButton(
+              enabled: _address.isNotEmpty && _isValid,
               text: 'continue'.tr(),
-              isProcessing: _isProcessing,
               onTap: () async {
-                setState(() {
-                  _isProcessing = true;
-                });
-                final address = _controller.text.trim();
+                final address = _address;
                 final cryptoType = CryptoType.fromAddress(address);
                 switch (cryptoType) {
                   case CryptoType.ETH:
                   case CryptoType.XTZ:
                     try {
                       final connection = await injector<AccountService>()
-                          .linkManuallyAddress(
-                              _controller.text.trim(), cryptoType);
+                          .linkManuallyAddress(address, cryptoType,
+                              name: _address != _controller.text.trim()
+                                  ? _controller.text.trim()
+                                  : null);
                       if (!mounted) {
                         return;
                       }
@@ -116,7 +117,7 @@ class _ViewExistingAddressState extends State<ViewExistingAddress> {
                       setState(() {
                         _isError = true;
                       });
-                      unawaited(UIHelper.showInfoDialog(context, e.message, '',
+                      await UIHelper.showInfoDialog(context, e.message, '',
                           isDismissible: true,
                           closeButton: 'close'.tr(), onClose: () {
                         injector<NavigationService>().popUntilHome();
@@ -128,9 +129,6 @@ class _ViewExistingAddressState extends State<ViewExistingAddress> {
                       _isError = true;
                     });
                 }
-                setState(() {
-                  _isProcessing = false;
-                });
               },
             ),
             const SizedBox(height: 20),
@@ -146,6 +144,50 @@ class _ViewExistingAddressState extends State<ViewExistingAddress> {
         ),
       ),
     );
+  }
+
+  Future<void> _onTextChanged(value) async {
+    final text = value.trim();
+    if (text.isEmpty) {
+      setState(() {
+        _isValid = false;
+      });
+      return;
+    }
+    setState(() {
+      _isError = false;
+    });
+    final type = CryptoType.fromAddress(text);
+    if (type == CryptoType.ETH || type == CryptoType.XTZ) {
+      _setValid(text);
+    } else {
+       await checkDomain(text);
+       print ('address: $text');
+    }
+  }
+
+  Future<void> checkDomain(String text) async {
+    await _checkDomain.synchronized(() async {
+      if (text.isNotEmpty) {
+        try {
+          final address = await DomainService.getAddress(text);
+          if (address != null) {
+            _setValid(address);
+          } else {
+            setState(() {
+              _isValid = false;
+            });
+          }
+        } catch (_) {}
+      }
+    });
+  }
+
+  void _setValid(String value) {
+    setState(() {
+      _isValid = true;
+      _address = value;
+    });
   }
 }
 
