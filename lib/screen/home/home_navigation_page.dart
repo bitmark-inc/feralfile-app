@@ -128,6 +128,9 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         unawaited(_clientTokenService.refreshTokens());
         unawaited(_playListService.refreshPlayLists());
       }
+      if (index == HomeNavigatorTab.exhibition.index) {
+        _exhibitionsPageKey.currentState?.refreshExhibitions();
+      }
     } else {
       final currentIndex = _selectedIndex;
       setState(() {
@@ -320,6 +323,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         backgroundColor: AppColor.primaryBlack,
         body: SafeArea(
           top: false,
+          bottom: false,
           child: Stack(
             children: [
               PageView(
