@@ -101,6 +101,7 @@ class ScanQRPageState extends State<ScanQRPage>
   @override
   Widget build(BuildContext context) => SafeArea(
         top: false,
+        bottom: false,
         child: Scaffold(
           extendBodyBehindAppBar: true,
           appBar: _tabController.index == 0

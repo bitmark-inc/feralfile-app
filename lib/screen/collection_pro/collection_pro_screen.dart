@@ -120,6 +120,7 @@ class CollectionProState extends State<CollectionPro>
     final paddingTop = MediaQuery.of(context).padding.top;
     return SafeArea(
       top: false,
+      bottom: false,
       child: BlocConsumer(
         bloc: _bloc,
         listener: (context, state) {

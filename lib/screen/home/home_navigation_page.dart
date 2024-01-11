@@ -320,6 +320,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         backgroundColor: AppColor.primaryBlack,
         body: SafeArea(
           top: false,
+          bottom: false,
           child: Stack(
             children: [
               PageView(
