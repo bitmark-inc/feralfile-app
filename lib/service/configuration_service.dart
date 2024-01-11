@@ -180,10 +180,6 @@ abstract class ConfigurationService {
 
   Future setShowBackupSettingTip(DateTime time);
 
-  bool getShowWhatNewAddressTip(int currentVersion);
-
-  Future setShowWhatNewAddressTipRead(int currentVersion);
-
   // Do at once
 
   /// to determine a hash value of the current addresses where
@@ -208,8 +204,6 @@ abstract class ConfigurationService {
   ValueNotifier<bool> get showLinkOrImportTip;
 
   ValueNotifier<bool> get showBackupSettingTip;
-
-  ValueNotifier<bool> get showWhatNewAddressTip;
 
   List<SharedPostcard> getSharedPostcard();
 
@@ -332,9 +326,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   static const String KEY_SHOW_BACK_UP_SETTINGS_TIP =
       'show_back_up_settings_tip';
-
-  static const String KEY_SHOW_WHAT_NEW_ADDRESS_TIP =
-      'show_what_new_address_tip';
 
   static const String KEY_STAMPING_POSTCARD = 'stamping_postcard';
 
@@ -802,9 +793,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   ValueNotifier<bool> showTvAppTip = ValueNotifier(false);
 
   @override
-  ValueNotifier<bool> showWhatNewAddressTip = ValueNotifier(false);
-
-  @override
   DateTime? getDoneOnboardingTime() {
     final timeString = _preferences.getString(KEY_DONE_ON_BOARDING_TIME);
     if (timeString == null) {
@@ -1022,18 +1010,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   Future<void> setVersionInfo(String version) async {
     await _preferences.setString(KEY_PACKAGE_INFO, version);
-  }
-
-  @override
-  bool getShowWhatNewAddressTip(int currentVersion) {
-    final latestReadVersion =
-        _preferences.getInt(KEY_SHOW_WHAT_NEW_ADDRESS_TIP) ?? 0;
-    return latestReadVersion < currentVersion;
-  }
-
-  @override
-  Future setShowWhatNewAddressTipRead(int currentVersion) async {
-    await _preferences.setInt(KEY_SHOW_WHAT_NEW_ADDRESS_TIP, currentVersion);
   }
 
   @override

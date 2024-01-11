@@ -1,12 +1,12 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+// ignore_for_file: unawaited_futures, discarded_futures
+// ignore_for_file: constant_identifier_names
 //
 //  SPDX-License-Identifier: BSD-2-Clause-Patent
 //  Copyright © 2022 Bitmark. All rights reserved.
 //  Use of this source code is governed by the BSD-2-Clause Plus Patent License
 //  that can be found in the LICENSE file.
 //
-
-// ignore_for_file: constant_identifier_names
 
 import 'dart:async';
 import 'dart:convert';
@@ -67,10 +67,18 @@ Future<void> doneOnboarding(BuildContext context) async {
       injector<MetricClientService>().mixPanelClient.initIfDefaultAccount());
   await injector<NavigationService>()
       .navigateUntil(AppRouter.homePage, (route) => false);
+}
 
-  // await askForNotification();
-  // Future.delayed(
-  //     SHORT_SHOW_DIALOG_DURATION, () => showSurveysNotification(context));
+void nameContinue(BuildContext context) {
+  if (injector<ConfigurationService>().isDoneOnboarding()) {
+    Navigator.of(context).popUntil((route) =>
+        route.settings.name == AppRouter.claimSelectAccountPage ||
+        route.settings.name == AppRouter.wcConnectPage ||
+        route.settings.name == AppRouter.homePage ||
+        route.settings.name == AppRouter.homePageNoTransition);
+  } else {
+    unawaited(doneOnboarding(context));
+  }
 }
 
 Future askForNotification() async {
@@ -1482,17 +1490,17 @@ class UIHelper {
 
   static Future<void> showReceivePostcardFailed(
           BuildContext context, DioException error) async =>
-      showErrorDialog(context, 'accept_postcard_failed'.tr(),
+      await showErrorDialog(context, 'accept_postcard_failed'.tr(),
           'postcard_has_been_claimed'.tr(), 'close'.tr());
 
   static Future<void> showAlreadyClaimedPostcard(
           BuildContext context, DioException error) async =>
-      showErrorDialog(context, 'you_already_claimed_this_postcard'.tr(),
+      await showErrorDialog(context, 'you_already_claimed_this_postcard'.tr(),
           'send_it_to_someone_else'.tr(), 'close'.tr());
 
   static Future<void> showSharePostcardFailed(
           BuildContext context, DioException error) async =>
-      _showPostcardError(
+      await _showPostcardError(
         context,
         message: 'cannot_send_postcard'.tr(),
       );
@@ -1559,18 +1567,19 @@ class UIHelper {
   }
 
   static Future<void> showAirdropClaimFailed(BuildContext context) async =>
-      showErrorDialog(context, 'airdrop_claim_failed'.tr(), '', 'close'.tr());
+      await showErrorDialog(
+          context, 'airdrop_claim_failed'.tr(), '', 'close'.tr());
 
   static Future<void> showAirdropAlreadyClaim(BuildContext context) async =>
-      showErrorDialog(context, 'already_claimed'.tr(),
+      await showErrorDialog(context, 'already_claimed'.tr(),
           'already_claimed_desc'.tr(), 'close'.tr());
 
   static Future<void> showAirdropJustOnce(BuildContext context) async =>
-      showErrorDialog(
+      await showErrorDialog(
           context, 'just_once'.tr(), 'just_once_desc'.tr(), 'close'.tr());
 
   static Future<void> showAirdropCannotShare(BuildContext context) async =>
-      showErrorDialog(context, 'already_claimed'.tr(),
+      await showErrorDialog(context, 'already_claimed'.tr(),
           'cannot_share_aridrop_desc'.tr(), 'close'.tr());
 
   static Future<void> showPostcardShareLinkExpired(BuildContext context) async {

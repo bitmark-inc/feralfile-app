@@ -1,12 +1,7 @@
-import 'dart:io';
-
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_state.dart';
-import 'package:autonomy_flutter/screen/cloud/cloud_android_page.dart';
-import 'package:autonomy_flutter/screen/cloud/cloud_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -19,7 +14,7 @@ class NameAddressPersona extends StatefulWidget {
   static const String tag = 'name_address_persona';
   final NameAddressPersonaPayload payload;
 
-  const NameAddressPersona({Key? key, required this.payload}) : super(key: key);
+  const NameAddressPersona({required this.payload, super.key});
 
   @override
   State<NameAddressPersona> createState() => _NameAddressPersonaState();
@@ -46,7 +41,7 @@ class _NameAddressPersonaState extends State<NameAddressPersona> {
     final theme = Theme.of(context);
     return Scaffold(
       appBar: getBackAppBar(context,
-          title: "import_address".tr(),
+          title: 'import_address'.tr(),
           onBack: () => Navigator.of(context).pop()),
       body: Padding(
         padding: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
@@ -55,14 +50,14 @@ class _NameAddressPersonaState extends State<NameAddressPersona> {
           children: [
             const SizedBox(height: 40),
             Text(
-              "enter_address_alias".tr(),
+              'enter_address_alias'.tr(),
               style: theme.textTheme.ppMori400Black14,
             ),
             const SizedBox(height: 10),
             AuTextField(
-                labelSemantics: "enter_alias_full",
-                title: "",
-                placeholder: "enter_address".tr(),
+                labelSemantics: 'enter_alias_full',
+                title: '',
+                placeholder: 'enter_address'.tr(),
                 controller: _nameController,
                 onChanged: (valueChanged) {
                   if (_nameController.text.trim().isEmpty !=
@@ -75,7 +70,7 @@ class _NameAddressPersonaState extends State<NameAddressPersona> {
               children: [
                 Expanded(
                   child: PrimaryAsyncButton(
-                    text: "continue".tr(),
+                    text: 'continue'.tr(),
                     onTap: isSavingAliasDisabled
                         ? null
                         : () async {
@@ -83,11 +78,15 @@ class _NameAddressPersonaState extends State<NameAddressPersona> {
                             final walletAddress =
                                 await accountService.getAddressPersona(
                                     widget.payload.addressInfo.address);
-                            if (walletAddress == null) return;
+                            if (walletAddress == null) {
+                              return;
+                            }
                             await accountService.updateAddressPersona(
                                 walletAddress.copyWith(
                                     name: _nameController.text.trim()));
-                            if (!mounted) return;
+                            if (!mounted) {
+                              return;
+                            }
                             await doneNaming(context);
                           },
                   ),
@@ -102,33 +101,7 @@ class _NameAddressPersonaState extends State<NameAddressPersona> {
 }
 
 Future<void> doneNaming(BuildContext context) async {
-  if (Platform.isAndroid) {
-    final isAndroidEndToEndEncryptionAvailable =
-        await injector<AccountService>().isAndroidEndToEndEncryptionAvailable();
-
-    if (context.mounted) {
-      final payload = CloudAndroidPagePayload(
-          isEncryptionAvailable: isAndroidEndToEndEncryptionAvailable);
-      if (injector<ConfigurationService>().isDoneOnboarding()) {
-        Navigator.of(context).pushReplacementNamed(AppRouter.cloudAndroidPage,
-            arguments: payload);
-      } else {
-        Navigator.of(context).pushNamedAndRemoveUntil(
-            AppRouter.cloudAndroidPage, (route) => false,
-            arguments: payload);
-      }
-    }
-  } else {
-    final payload = CloudPagePayload(section: "nameAlias");
-    if (injector<ConfigurationService>().isDoneOnboarding()) {
-      Navigator.of(context)
-          .pushReplacementNamed(AppRouter.cloudPage, arguments: payload);
-    } else {
-      Navigator.of(context).pushNamedAndRemoveUntil(
-          AppRouter.cloudPage, (route) => false,
-          arguments: payload);
-    }
-  }
+  nameContinue(context);
 }
 
 class NameAddressPersonaPayload {

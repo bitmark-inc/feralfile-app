@@ -5,10 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 class HeaderView extends StatelessWidget {
   final String title;
@@ -51,34 +49,4 @@ class HeaderView extends StatelessWidget {
       ),
     );
   }
-}
-
-class AutonomyLogo extends StatelessWidget {
-  final bool isWhite;
-
-  const AutonomyLogo({super.key, this.isWhite = false});
-
-  @override
-  Widget build(BuildContext context) => FutureBuilder<bool>(
-      // ignore: discarded_futures
-      future: logoState(),
-      builder: (context, snapshot) {
-        if (snapshot.data == null) {
-          return const SizedBox(height: 50);
-        }
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SvgPicture.asset(
-              isWhite
-                  ? 'assets/images/autonomy_icon_white.svg'
-                  : snapshot.data!
-                      ? 'assets/images/logo_dev.svg'
-                      : 'assets/images/penrose_moma.svg',
-              width: 50,
-              height: 50,
-            ),
-          ],
-        );
-      });
 }
