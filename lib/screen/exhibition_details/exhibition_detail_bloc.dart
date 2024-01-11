@@ -21,6 +21,12 @@ class ExhibitionDetailBloc
       final exhibitionDetail = ExhibitionDetail(
           exhibition: result[0] as Exhibition,
           artworks: result[1] as List<Artwork>);
+      exhibitionDetail.artworks!.sort((a, b) {
+        if (a.index != b.index) {
+          a.index.compareTo(b.index);
+        }
+        return a.seriesID.compareTo(b.seriesID);
+      });
       exhibitionDetail.artworks!.removeWhere(
           (element) => exhibitionDetail.getArtworkTokenId(element) == null);
       emit(state.copyWith(exhibitionDetail: exhibitionDetail));
