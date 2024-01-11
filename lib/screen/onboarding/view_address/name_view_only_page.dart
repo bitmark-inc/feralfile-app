@@ -36,13 +36,19 @@ class NameViewOnlyAddressPage extends StatefulWidget {
 class _NameViewOnlyAddressPageState extends State<NameViewOnlyAddressPage> {
   final TextEditingController _nameController = TextEditingController();
 
-  bool isSavingAliasDisabled = true;
+  bool isSavingAliasDisabled = false;
   bool canPop = false;
 
   void saveAliasButtonChangedState() {
     setState(() {
       isSavingAliasDisabled = !isSavingAliasDisabled;
     });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController.text = widget.connection.name;
   }
 
   @override
