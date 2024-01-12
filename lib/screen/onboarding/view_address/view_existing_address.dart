@@ -6,7 +6,6 @@ import 'package:autonomy_flutter/screen/onboarding/import_address/import_seeds.d
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/domain_service.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -56,7 +55,7 @@ class _ViewExistingAddressState extends State<ViewExistingAddress> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     addTitleSpace(),
-                    Text('enter_address_alias'.tr(),
+                    Text('enter_a_wallet_address'.tr(),
                         style: theme.textTheme.ppMori400Black14),
                     const SizedBox(height: 10),
                     AuTextField(
@@ -121,7 +120,11 @@ class _ViewExistingAddressState extends State<ViewExistingAddress> {
                       await UIHelper.showInfoDialog(context, e.message, '',
                           isDismissible: true,
                           closeButton: 'close'.tr(), onClose: () {
-                        injector<NavigationService>().popUntilHome();
+                        Navigator.of(context).popUntil((route) =>
+                            route.settings.name ==
+                                AppRouter.homePageNoTransition ||
+                            route.settings.name == AppRouter.homePage ||
+                            route.settings.name == AppRouter.walletPage);
                       });
                     } catch (_) {}
                     break;
