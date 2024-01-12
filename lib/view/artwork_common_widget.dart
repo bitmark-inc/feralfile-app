@@ -1058,21 +1058,21 @@ Widget postcardDetailsMetadataSection(
             valueStyle: theme.textTheme.moMASans400Black12,
           ),
         ),
-        Divider(
-          height: 32,
-          color: theme.auLightGrey,
-        ),
-        Padding(
-          padding: padding,
-          child: MetaDataItem(
-            title: 'date_minted'.tr(),
-            titleStyle: titleStyle,
-            value: assetToken.mintedAt != null
-                ? postcardTimeString(assetToken.mintedAt!)
-                : '',
-            valueStyle: theme.textTheme.moMASans400Black12,
+        if (assetToken.mintedAt != null) ...[
+          Divider(
+            height: 32,
+            color: theme.auLightGrey,
           ),
-        ),
+          Padding(
+            padding: padding,
+            child: MetaDataItem(
+              title: 'date_minted'.tr(),
+              titleStyle: titleStyle,
+              value: postcardTimeString(assetToken.mintedAt!),
+              valueStyle: theme.textTheme.moMASans400Black12,
+            ),
+          ),
+        ],
         if (assetToken.assetData != null && assetToken.assetData!.isNotEmpty)
           Column(
             children: [
@@ -1203,16 +1203,18 @@ Widget artworkDetailsMetadataSection(
           title: 'medium'.tr(),
           value: assetToken.medium?.capitalize() ?? '',
         ),
-        Divider(
-          height: 32,
-          color: theme.auLightGrey,
-        ),
-        MetaDataItem(
-          title: 'date_minted'.tr(),
-          value: assetToken.mintedAt != null
-              ? localTimeString(assetToken.mintedAt!)
-              : '',
-        ),
+        if (assetToken.mintedAt != null) ...[
+          Divider(
+            height: 32,
+            color: theme.auLightGrey,
+          ),
+          MetaDataItem(
+            title: 'date_minted'.tr(),
+            value: assetToken.mintedAt != null
+                ? localTimeString(assetToken.mintedAt!)
+                : '',
+          ),
+        ],
         if (assetToken.assetData != null && assetToken.assetData!.isNotEmpty)
           Column(
             children: [
@@ -1220,7 +1222,7 @@ Widget artworkDetailsMetadataSection(
               MetaDataItem(
                 title: 'artwork_data'.tr(),
                 value: assetToken.assetData!,
-              )
+              ),
             ],
           )
         else
@@ -1377,16 +1379,18 @@ Widget tokenOwnership(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 32),
-        MetaDataItem(
-          title: 'editions'.tr(),
-          value: '${assetToken.maxEdition}',
-          tapLink: assetToken.tokenURL,
-          forceSafariVC: true,
-        ),
-        Divider(
-          height: 32,
-          color: theme.auLightGrey,
-        ),
+        if ((assetToken.maxEdition ?? 0) > 0) ...[
+          MetaDataItem(
+            title: 'editions'.tr(),
+            value: '${assetToken.maxEdition}',
+            tapLink: assetToken.tokenURL,
+            forceSafariVC: true,
+          ),
+          Divider(
+            height: 32,
+            color: theme.auLightGrey,
+          ),
+        ],
         MetaDataItem(
           title: 'token_holder'.tr(),
           value: alias.isNotEmpty ? alias : ownerAddress.maskOnly(5),
@@ -1915,16 +1919,18 @@ class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {
           'medium'.tr(),
           series.medium.capitalize(),
         ),
-        const Divider(
-          height: 32,
-          color: AppColor.secondarySpanishGrey,
-        ),
-        _rowItem(
-          context,
-          'date_minted'.tr(),
-          mintDate != null ? df.format(mintDate).toUpperCase() : null,
-          maxLines: 1,
-        ),
+        if (mintDate != null) ...[
+          const Divider(
+            height: 32,
+            color: AppColor.secondarySpanishGrey,
+          ),
+          _rowItem(
+            context,
+            'date_minted'.tr(),
+            df.format(mintDate).toUpperCase(),
+            maxLines: 1,
+          ),
+        ],
       ],
     );
   }
