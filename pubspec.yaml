@@ -62,7 +62,7 @@ dependencies:
   hive_flutter: ^1.1.0
   http: ^1.1.0
   image_picker: ^1.0.1
-  in_app_purchase: ^3.0.6
+  in_app_purchase: ^3.1.13
   infinite_scroll_pagination: ^3.2.0
   intl: ^0.18.0
   jiffy: ^6.2.1
@@ -144,8 +144,8 @@ dependencies:
   elliptic: ^0.3.8
   sentry: ^7.9.0
   path: ^1.8.2
-  in_app_purchase_storekit: ^0.3.4
-  in_app_purchase_android: ^0.2.3+7
+  in_app_purchase_storekit: ^0.3.8
+  in_app_purchase_android: ^0.3.0+17
   convert: ^3.1.1
   sqflite: ^2.2.2
   slidable_button: ^3.0.0+1
