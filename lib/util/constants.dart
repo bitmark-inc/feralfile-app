@@ -211,7 +211,7 @@ Future<bool> isAppCenterBuild() async {
 Future<bool> isSubscribedOrInhouse() async {
   final result = await Future.wait([
     isAppCenterBuild(),
-      injector.get<IAPService>().isSubscribed(),
+    injector.get<IAPService>().isSubscribed(),
   ]);
   return result[0] || result[1];
 }
