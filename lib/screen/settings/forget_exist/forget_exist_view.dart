@@ -67,7 +67,6 @@ class ForgetExistView extends StatelessWidget {
                     Expanded(
                       child: Text(
                         'this_not_effect'.tr(),
-                        //"This will not affect private keys of linked accounts",
                         style: theme.primaryTextTheme.ppMori400White14,
                       ),
                     ),
