@@ -213,7 +213,7 @@ Future<bool> isSubscribedOrInhouse() async {
     isAppCenterBuild(),
     injector.get<IAPService>().isSubscribed(),
   ]);
-  return result[0] || result[1];
+  return result.any((element) => true);
 }
 
 Future<bool> logoState() async {
