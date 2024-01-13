@@ -199,7 +199,13 @@ const int COLLECTION_INITIAL_MIN_SIZE = 20;
 
 const int LEADERBOARD_PAGE_SIZE = 50;
 
+const int maxCollectionListSize = 3;
+
+const double collectionListArtworkAspectRatio = 375 / 210.94;
+const String collectionListArtworkThumbnailVariant = 'thumbnailList';
+
 const String POSTCARD_ONSITE_REQUEST_ID = 'moma-postcard-onsite';
+const String POSTCARD_ONLINE_REQUEST_ID = 'moma-postcard-online';
 
 Future<bool> isAppCenterBuild() async {
   final PackageInfo info = await PackageInfo.fromPlatform();

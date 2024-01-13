@@ -319,7 +319,7 @@ class CollectionHomePageState extends State<CollectionHomePage>
       SliverToBoxAdapter(
         child: _header(context),
       ),
-      if (tokens.length <= 3) ...[
+      if (tokens.length <= maxCollectionListSize) ...[
         const SliverToBoxAdapter(
           child: SizedBox(
             height: 30,
@@ -344,7 +344,7 @@ class CollectionHomePageState extends State<CollectionHomePage>
                   await _hidePostcardBanner();
                 },
                 onMakingPostcard: () async {
-                  const id = 'moma-postcard-online';
+                  const id = POSTCARD_ONLINE_REQUEST_ID;
                   await _deepLinkService.openClaimEmptyPostcard(id);
                   await _hidePostcardBanner();
                 },
@@ -379,18 +379,17 @@ class CollectionHomePageState extends State<CollectionHomePage>
     List<CompactedAssetToken> tokens,
     int index,
     List<ArtworkIdentity> accountIdentities, {
-    String variant = 'thumbnailList',
+    String variant = collectionListArtworkThumbnailVariant,
   }) {
     final theme = Theme.of(context);
     final asset = tokens[index];
     final title = asset.title;
     final artistTitle = asset.artistTitle;
-    const aspectRatio = 375 / 210.94;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AspectRatio(
-          aspectRatio: aspectRatio,
+          aspectRatio: collectionListArtworkAspectRatio,
           child: _assetBuilder(context, tokens, index, accountIdentities,
               variant: variant),
         ),
