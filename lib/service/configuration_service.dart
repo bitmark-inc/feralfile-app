@@ -261,6 +261,10 @@ abstract class ConfigurationService {
   bool getDidSyncArtists();
 
   List<String> getHiddenOrSentTokenIDs();
+
+  Future<void> setShowPostcardBanner(bool bool);
+
+  bool getShowPostcardBanner();
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
@@ -350,6 +354,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   static const String KEY_PROCESSING_STAMP_POSTCARD =
       'processing_stamp_postcard';
+
+  static const String KEY_SHOW_POSTCARD_BANNER = 'show_postcard_banner';
 
   @override
   Future setAlreadyShowProTip(bool show) async {
@@ -1169,6 +1175,15 @@ class ConfigurationServiceImpl implements ConfigurationService {
         .toList());
     return hiddenTokens;
   }
+
+  @override
+  Future<void> setShowPostcardBanner(bool bool) async {
+    await _preferences.setBool(KEY_SHOW_POSTCARD_BANNER, bool);
+  }
+
+  @override
+  bool getShowPostcardBanner() =>
+      _preferences.getBool(KEY_SHOW_POSTCARD_BANNER) ?? true;
 }
 
 enum ConflictAction {

@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/blockchain.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
@@ -22,19 +23,23 @@ import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
+import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/locale_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/token_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/header.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -66,12 +71,16 @@ class CollectionHomePageState extends State<CollectionHomePage>
   int _cachedImageSize = 0;
   final _clientTokenService = injector<ClientTokenService>();
   final _configurationService = injector<ConfigurationService>();
+  final _deepLinkService = injector<DeeplinkService>();
 
   final nftBloc = injector<ClientTokenService>().nftBloc;
+  late bool _showPostcardBanner;
+  final _identityBloc = injector<IdentityBloc>();
 
   @override
   void initState() {
     super.initState();
+    _showPostcardBanner = _configurationService.getShowPostcardBanner();
     _metricClient = injector.get<MetricClientService>();
     WidgetsBinding.instance.addObserver(this);
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
@@ -108,6 +117,11 @@ class CollectionHomePageState extends State<CollectionHomePage>
       }
       nftBloc.add(GetTokensByOwnerEvent(pageKey: nextKey));
     }
+  }
+
+  void _getArtistIdentity(List<CompactedAssetToken> tokens) {
+    final needIdentities = tokens.map((e) => e.artistTitle ?? '').toList();
+    _identityBloc.add(GetIdentityEvent(needIdentities));
   }
 
   @override
@@ -291,7 +305,9 @@ class CollectionHomePageState extends State<CollectionHomePage>
         .where((e) => e.pending != true || e.hasMetadata)
         .map((element) => element.identity)
         .toList();
-
+    if (tokens.length <= maxCollectionListSize) {
+      _getArtistIdentity(tokens);
+    }
     const int cellPerRowPhone = 3;
     const int cellPerRowTablet = 6;
     const double cellSpacing = 3;
@@ -313,63 +329,56 @@ class CollectionHomePageState extends State<CollectionHomePage>
       SliverToBoxAdapter(
         child: _header(context),
       ),
-      SliverGrid(
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: cellPerRow,
-          crossAxisSpacing: cellSpacing,
-          mainAxisSpacing: cellSpacing,
+      if (tokens.length <= maxCollectionListSize) ...[
+        const SliverToBoxAdapter(
+          child: SizedBox(
+            height: 30,
+          ),
         ),
-        delegate: SliverChildBuilderDelegate(
-          (BuildContext context, int index) {
-            final asset = tokens[index];
-
-            if (asset.pending == true && asset.isPostcard) {
-              return MintTokenWidget(
-                thumbnail: asset.galleryThumbnailURL,
-                tokenId: asset.tokenId,
-              );
-            }
-
-            return GestureDetector(
-              child: asset.pending == true && !asset.hasMetadata
-                  ? PendingTokenWidget(
-                      thumbnail: asset.galleryThumbnailURL,
-                      tokenId: asset.tokenId,
-                    )
-                  : tokenGalleryThumbnailWidget(
-                      context,
-                      asset,
-                      _cachedImageSize,
-                      usingThumbnailID: index > 50,
-                    ),
-              onTap: () {
-                if (asset.pending == true && !asset.hasMetadata) {
-                  return;
-                }
-
-                final index = tokens
-                    .where((e) => e.pending != true || e.hasMetadata)
-                    .toList()
-                    .indexOf(asset);
-                final payload = asset.isPostcard
-                    ? PostcardDetailPagePayload(accountIdentities, index)
-                    : ArtworkDetailPayload(accountIdentities, index);
-
-                final pageName = asset.isPostcard
-                    ? AppRouter.claimedPostcardDetailsPage
-                    : AppRouter.artworkDetailsPage;
-                unawaited(Navigator.of(context)
-                    .pushNamed(pageName, ////need change to pageName
-                        arguments: payload));
-
-                unawaited(_metricClient.addEvent(MixpanelEvent.viewArtwork,
-                    data: {'id': asset.id}));
-              },
-            );
-          },
-          childCount: tokens.length,
+        SliverList(
+            delegate: SliverChildBuilderDelegate(
+                (_, index) => BlocBuilder<IdentityBloc, IdentityState>(
+                    bloc: _identityBloc,
+                    builder: (context, identityState) {
+                      final artistIdentities = identityState.identityMap;
+                      return Column(
+                        children: [
+                          _assetDetailBuilder(context, tokens, index,
+                              accountIdentities, artistIdentities),
+                          const SizedBox(height: 50),
+                        ],
+                      );
+                    }),
+                childCount: tokens.length)),
+        if (_showPostcardBanner)
+          SliverToBoxAdapter(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 15),
+              child: MakingPostcardBanner(
+                onClose: () async {
+                  await _hidePostcardBanner();
+                },
+                onMakingPostcard: () async {
+                  const id = POSTCARD_ONLINE_REQUEST_ID;
+                  await _deepLinkService.openClaimEmptyPostcard(id);
+                  await _hidePostcardBanner();
+                },
+              ),
+            ),
+          ),
+      ] else
+        SliverGrid(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: cellPerRow,
+            crossAxisSpacing: cellSpacing,
+            mainAxisSpacing: cellSpacing,
+          ),
+          delegate: SliverChildBuilderDelegate(
+            (BuildContext context, int index) =>
+                _assetBuilder(context, tokens, index, accountIdentities),
+            childCount: tokens.length,
+          ),
         ),
-      ),
       const SliverToBoxAdapter(child: SizedBox(height: 100)),
     ];
 
@@ -377,6 +386,107 @@ class CollectionHomePageState extends State<CollectionHomePage>
       physics: const AlwaysScrollableScrollPhysics(),
       slivers: sources,
       controller: _controller,
+    );
+  }
+
+  Widget _assetDetailBuilder(
+    BuildContext context,
+    List<CompactedAssetToken> tokens,
+    int index,
+    List<ArtworkIdentity> accountIdentities,
+    Map<String, String> artistIdentities, {
+    String variant = collectionListArtworkThumbnailVariant,
+  }) {
+    final theme = Theme.of(context);
+    final asset = tokens[index];
+    final title = asset.title;
+    final artistTitle = asset.artistTitle?.toIdentityOrMask(artistIdentities);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AspectRatio(
+          aspectRatio: collectionListArtworkAspectRatio,
+          child: _assetBuilder(context, tokens, index, accountIdentities,
+              variant: variant),
+        ),
+        if (title != null && title.isNotEmpty) ...[
+          const SizedBox(height: 20),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 15),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: theme.textTheme.ppMori400White16,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (artistTitle != null && artistTitle.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    'by'.tr(args: [artistTitle]),
+                    style: theme.textTheme.ppMori400White14,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ],
+            ),
+          )
+        ],
+      ],
+    );
+  }
+
+  Widget _assetBuilder(BuildContext context, List<CompactedAssetToken> tokens,
+      int index, List<ArtworkIdentity> accountIdentities,
+      {String variant = ''}) {
+    final asset = tokens[index];
+
+    if (asset.pending == true && asset.isPostcard) {
+      return MintTokenWidget(
+        thumbnail: asset.galleryThumbnailURL,
+        tokenId: asset.tokenId,
+      );
+    }
+
+    return GestureDetector(
+      child: asset.pending == true && !asset.hasMetadata
+          ? PendingTokenWidget(
+              thumbnail: asset.galleryThumbnailURL,
+              tokenId: asset.tokenId,
+            )
+          : tokenGalleryThumbnailWidget(
+              context,
+              asset,
+              _cachedImageSize,
+              // usingThumbnailID: index > 50,
+              variant: variant,
+            ),
+      onTap: () {
+        if (asset.pending == true && !asset.hasMetadata) {
+          return;
+        }
+
+        final index = tokens
+            .where((e) => e.pending != true || e.hasMetadata)
+            .toList()
+            .indexOf(asset);
+        final payload = asset.isPostcard
+            ? PostcardDetailPagePayload(accountIdentities, index)
+            : ArtworkDetailPayload(accountIdentities, index);
+
+        final pageName = asset.isPostcard
+            ? AppRouter.claimedPostcardDetailsPage
+            : AppRouter.artworkDetailsPage;
+        unawaited(Navigator.of(context)
+            .pushNamed(pageName, ////need change to pageName
+                arguments: payload));
+
+        unawaited(_metricClient
+            .addEvent(MixpanelEvent.viewArtwork, data: {'id': asset.id}));
+      },
     );
   }
 
@@ -445,6 +555,71 @@ class CollectionHomePageState extends State<CollectionHomePage>
     unawaited(FileLogger.shrinkLogFileIfNeeded());
   }
 
+  Future<void> _hidePostcardBanner() async {
+    setState(() {
+      _showPostcardBanner = false;
+    });
+    await _configurationService.setShowPostcardBanner(false);
+  }
+
   @override
   bool get wantKeepAlive => true;
+}
+
+class MakingPostcardBanner extends StatelessWidget {
+  final Function? onClose;
+  final Function? onMakingPostcard;
+
+  const MakingPostcardBanner({super.key, this.onMakingPostcard, this.onClose});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    return Container(
+      decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          color: AppColor.auGreyBackground),
+      padding: const EdgeInsets.all(15),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  'try_making_your_own_postcard'.tr(),
+                  style: textTheme.ppMori400White14,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              IconButton(
+                onPressed: () {
+                  onClose?.call();
+                },
+                iconSize: 18,
+                constraints: const BoxConstraints(maxHeight: 18, maxWidth: 18),
+                icon: const Icon(
+                  AuIcon.close,
+                  color: AppColor.white,
+                ),
+                padding: EdgeInsets.zero,
+              )
+            ],
+          ),
+          const SizedBox(
+            height: 20,
+          ),
+          PrimaryAsyncButton(
+            onTap: () {
+              onMakingPostcard?.call();
+            },
+            text: 'get_started'.tr(),
+          )
+        ],
+      ),
+    );
+  }
 }
