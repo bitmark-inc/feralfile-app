@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/blockchain.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
@@ -32,6 +33,7 @@ import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/token_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
@@ -73,6 +75,7 @@ class CollectionHomePageState extends State<CollectionHomePage>
 
   final nftBloc = injector<ClientTokenService>().nftBloc;
   late bool _showPostcardBanner;
+  final _identityBloc = injector<IdentityBloc>();
 
   @override
   void initState() {
@@ -114,6 +117,11 @@ class CollectionHomePageState extends State<CollectionHomePage>
       }
       nftBloc.add(GetTokensByOwnerEvent(pageKey: nextKey));
     }
+  }
+
+  void _getArtistIdentity(List<CompactedAssetToken> tokens) {
+    final needIdentities = tokens.map((e) => e.artistTitle ?? '').toList();
+    _identityBloc.add(GetIdentityEvent(needIdentities));
   }
 
   @override
@@ -297,7 +305,9 @@ class CollectionHomePageState extends State<CollectionHomePage>
         .where((e) => e.pending != true || e.hasMetadata)
         .map((element) => element.identity)
         .toList();
-
+    if (tokens.length <= maxCollectionListSize) {
+      _getArtistIdentity(tokens);
+    }
     const int cellPerRowPhone = 3;
     const int cellPerRowTablet = 6;
     const double cellSpacing = 3;
@@ -327,13 +337,18 @@ class CollectionHomePageState extends State<CollectionHomePage>
         ),
         SliverList(
             delegate: SliverChildBuilderDelegate(
-                (_, index) => Column(
-                      children: [
-                        _assetDetailBuilder(
-                            context, tokens, index, accountIdentities),
-                        const SizedBox(height: 50),
-                      ],
-                    ),
+                (_, index) => BlocBuilder<IdentityBloc, IdentityState>(
+                    bloc: _identityBloc,
+                    builder: (context, identityState) {
+                      final artistIdentities = identityState.identityMap;
+                      return Column(
+                        children: [
+                          _assetDetailBuilder(context, tokens, index,
+                              accountIdentities, artistIdentities),
+                          const SizedBox(height: 50),
+                        ],
+                      );
+                    }),
                 childCount: tokens.length)),
         if (_showPostcardBanner)
           SliverToBoxAdapter(
@@ -378,13 +393,14 @@ class CollectionHomePageState extends State<CollectionHomePage>
     BuildContext context,
     List<CompactedAssetToken> tokens,
     int index,
-    List<ArtworkIdentity> accountIdentities, {
+    List<ArtworkIdentity> accountIdentities,
+    Map<String, String> artistIdentities, {
     String variant = collectionListArtworkThumbnailVariant,
   }) {
     final theme = Theme.of(context);
     final asset = tokens[index];
     final title = asset.title;
-    final artistTitle = asset.artistTitle;
+    final artistTitle = asset.artistTitle?.toIdentityOrMask(artistIdentities);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -393,7 +409,7 @@ class CollectionHomePageState extends State<CollectionHomePage>
           child: _assetBuilder(context, tokens, index, accountIdentities,
               variant: variant),
         ),
-        if (title != null && title.isNotEmpty && artistTitle != null) ...[
+        if (title != null && title.isNotEmpty) ...[
           const SizedBox(height: 20),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 15),
@@ -406,13 +422,15 @@ class CollectionHomePageState extends State<CollectionHomePage>
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  artistTitle,
-                  style: theme.textTheme.ppMori400White14,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
+                if (artistTitle != null && artistTitle.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    'by'.tr(args: [artistTitle]),
+                    style: theme.textTheme.ppMori400White14,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ],
             ),
           )
