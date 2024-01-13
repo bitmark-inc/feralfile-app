@@ -145,11 +145,12 @@ Widget tokenGalleryThumbnailWidget(
   CompactedAssetToken token,
   int cachedImageSize, {
   bool usingThumbnailID = true,
+  String variant = 'thumbnail',
   bool useHero = true,
   Widget? galleryThumbnailPlaceholder,
 }) {
-  final thumbnailUrl =
-      token.getGalleryThumbnailUrl(usingThumbnailID: usingThumbnailID);
+  final thumbnailUrl = token.getGalleryThumbnailUrl(
+      usingThumbnailID: usingThumbnailID, variant: variant);
 
   if (thumbnailUrl == null || thumbnailUrl.isEmpty) {
     return GalleryNoThumbnailWidget(

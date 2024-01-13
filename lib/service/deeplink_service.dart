@@ -49,6 +49,8 @@ abstract class DeeplinkService {
   void handleDeeplink(String? link, {Duration delay, Function? onFinished});
 
   void handleBranchDeeplinkData(Map<dynamic, dynamic> data);
+
+  Future<void> openClaimEmptyPostcard(String id, {String? otp});
 }
 
 class DeeplinkServiceImpl extends DeeplinkService {
@@ -631,6 +633,11 @@ class DeeplinkServiceImpl extends DeeplinkService {
         unawaited(_navigationService.showPostcardShareLinkInvalid());
       }
     }
+  }
+
+  @override
+  Future<void> openClaimEmptyPostcard(String id, {String? otp}) async {
+    await _handleClaimEmptyPostcardDeeplink(id, otp: otp);
   }
 
   Future<void> _handleClaimEmptyPostcardDeeplink(String? id,

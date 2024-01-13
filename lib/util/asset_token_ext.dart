@@ -436,7 +436,8 @@ extension CompactedAssetTokenExtension on CompactedAssetToken {
     }
   }
 
-  String? getGalleryThumbnailUrl({bool usingThumbnailID = true}) {
+  String? getGalleryThumbnailUrl(
+      {bool usingThumbnailID = true, String variant = 'thumbnail'}) {
     if (galleryThumbnailURL == null || galleryThumbnailURL!.isEmpty) {
       return null;
     }
@@ -450,7 +451,7 @@ extension CompactedAssetTokenExtension on CompactedAssetToken {
         return replaceIPFS(galleryThumbnailURL!); // return null;
       }
       return _refineToCloudflareURL(
-          galleryThumbnailURL!, thumbnailID!, 'thumbnail');
+          galleryThumbnailURL!, thumbnailID!, variant);
     }
 
     return replaceIPFS(galleryThumbnailURL!);
