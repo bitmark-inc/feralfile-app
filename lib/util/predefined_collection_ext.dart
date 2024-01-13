@@ -3,7 +3,9 @@ import 'package:nft_collection/models/predefined_collection_model.dart';
 
 extension PredefinedCollectionModelListExt on List<PredefinedCollectionModel> {
   List<PredefinedCollectionModel> filterByName(String name) =>
-      where((element) => element.name?.contains(name) ?? false).toList();
+      where((element) =>
+              element.name?.toLowerCase().contains(name.toLowerCase()) ?? false)
+          .toList();
 }
 
 extension PredefinedCollectionModelExt on PredefinedCollectionModel {

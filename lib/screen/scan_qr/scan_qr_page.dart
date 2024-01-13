@@ -644,6 +644,10 @@ class QRScanViewState extends State<QRScanView>
 
           case ScannerItem.ETH_ADDRESS:
           case ScannerItem.XTZ_ADDRESS:
+            setState(() {
+              _isLoading = true;
+            });
+            await pauseCamera();
             if (!mounted) {
               return;
             }
