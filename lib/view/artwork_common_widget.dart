@@ -173,7 +173,7 @@ Widget tokenGalleryThumbnailWidget(
         return cached;
       });
   final memCacheWidth = cachedImageSize;
-  final memCacheHeight = (memCacheWidth / ratio).toInt();
+  final memCacheHeight = memCacheWidth ~/ ratio;
 
   return Semantics(
     label: 'gallery_artwork_${token.id}',
