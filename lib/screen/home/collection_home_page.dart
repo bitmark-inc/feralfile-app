@@ -407,7 +407,7 @@ class CollectionHomePageState extends State<CollectionHomePage>
         AspectRatio(
           aspectRatio: collectionListArtworkAspectRatio,
           child: _assetBuilder(context, tokens, index, accountIdentities,
-              variant: variant),
+              variant: variant, ratio: collectionListArtworkAspectRatio),
         ),
         if (title != null && title.isNotEmpty) ...[
           const SizedBox(height: 20),
@@ -441,7 +441,7 @@ class CollectionHomePageState extends State<CollectionHomePage>
 
   Widget _assetBuilder(BuildContext context, List<CompactedAssetToken> tokens,
       int index, List<ArtworkIdentity> accountIdentities,
-      {String variant = ''}) {
+      {String variant = '', double ratio = 1}) {
     final asset = tokens[index];
 
     if (asset.pending == true && asset.isPostcard) {
@@ -463,6 +463,7 @@ class CollectionHomePageState extends State<CollectionHomePage>
               _cachedImageSize,
               // usingThumbnailID: index > 50,
               variant: variant,
+              ratio: ratio,
             ),
       onTap: () {
         if (asset.pending == true && !asset.hasMetadata) {
