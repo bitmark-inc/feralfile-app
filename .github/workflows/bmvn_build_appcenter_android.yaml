@@ -36,7 +36,7 @@ jobs:
         id: extract-version-testnet
         env:
           APPCENTER_API_TOKEN: ${{ secrets.APPCENTER_API_TOKEN }}
-          APP_NAME: ${{ inputs.testnet == 'true' && 'Autonomy-Android-Test' || echo 'Autonomy-Android-1'}}
+          APP_NAME: ${{ inputs.testnet == 'true' && 'Autonomy-Android-Test' || 'Autonomy-Android-1'}}
         run: |
           echo "$APP_NAME"
           API_RESPONSE=$(curl -X GET \
