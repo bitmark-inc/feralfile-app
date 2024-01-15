@@ -12,13 +12,14 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/account/access_method_page.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/import_seeds.dart';
-import 'package:autonomy_flutter/screen/onboarding/new_address/choose_chain_page.dart';
+import 'package:autonomy_flutter/screen/onboarding/new_address/address_alias.dart';
 import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_address.dart';
 import 'package:autonomy_flutter/screen/settings/connection/accounts_view.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
@@ -79,7 +80,8 @@ class _WalletPageState extends State<WalletPage>
           height: 24,
         ),
         onTap: () {
-          unawaited(Navigator.of(context).popAndPushNamed(ChooseChainPage.tag));
+          unawaited(Navigator.of(context).pushNamed(AddressAlias.tag,
+              arguments: AddressAliasPayload(WalletType.Autonomy)));
         },
       ),
       OptionItem(

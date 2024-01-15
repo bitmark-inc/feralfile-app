@@ -11,7 +11,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/router/router_bloc.dart';
-import 'package:autonomy_flutter/screen/onboarding/new_address/choose_chain_page.dart';
+import 'package:autonomy_flutter/screen/onboarding/new_address/address_alias.dart';
 import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_address.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
@@ -20,6 +20,7 @@ import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -435,8 +436,8 @@ class _OnboardingPageState extends State<OnboardingPage>
                   PrimaryButton(
                     text: 'get_started'.tr(),
                     onTap: () async {
-                      await Navigator.of(context)
-                          .pushNamed(ChooseChainPage.tag);
+                      await Navigator.of(context).pushNamed(AddressAlias.tag,
+                          arguments: AddressAliasPayload(WalletType.Autonomy));
                     },
                   ),
                   const SizedBox(height: 16),

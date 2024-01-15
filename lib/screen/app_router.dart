@@ -89,7 +89,6 @@ import 'package:autonomy_flutter/screen/onboarding/import_address/import_seeds.d
 import 'package:autonomy_flutter/screen/onboarding/import_address/name_address_persona.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/select_addresses.dart';
 import 'package:autonomy_flutter/screen/onboarding/new_address/address_alias.dart';
-import 'package:autonomy_flutter/screen/onboarding/new_address/choose_chain_page.dart';
 import 'package:autonomy_flutter/screen/onboarding/view_address/name_view_only_page.dart';
 import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_address.dart';
 import 'package:autonomy_flutter/screen/onboarding_page.dart';
@@ -608,10 +607,6 @@ class AppRouter {
                 payload: settings.arguments! as ArtworkDetailPayload,
               ),
             ));
-
-      case ChooseChainPage.tag:
-        return CupertinoPageRoute(
-            settings: settings, builder: (context) => const ChooseChainPage());
 
       case ViewExistingAddress.tag:
         return CupertinoPageRoute(
