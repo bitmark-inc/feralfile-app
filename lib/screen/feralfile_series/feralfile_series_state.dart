@@ -6,8 +6,9 @@ class FeralFileSeriesEvent {}
 
 class FeralFileSeriesGetSeriesEvent extends FeralFileSeriesEvent {
   final String seriesId;
+  final String exhibitionId;
 
-  FeralFileSeriesGetSeriesEvent(this.seriesId);
+  FeralFileSeriesGetSeriesEvent(this.seriesId, this.exhibitionId);
 }
 
 class FeralFileSeriesState {
