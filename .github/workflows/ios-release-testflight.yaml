@@ -1,4 +1,4 @@
-name: Deploy the iOS app
+name: Deploy the iOS app for TestFlight
 on:
   # Enable manual run
   workflow_dispatch:
