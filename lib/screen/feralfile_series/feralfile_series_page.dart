@@ -29,8 +29,8 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
   void initState() {
     super.initState();
     _feralFileSeriesBloc = context.read<FeralFileSeriesBloc>();
-    _feralFileSeriesBloc
-        .add(FeralFileSeriesGetSeriesEvent(widget.payload.seriesId));
+    _feralFileSeriesBloc.add(FeralFileSeriesGetSeriesEvent(
+        widget.payload.seriesId, widget.payload.exhibitionId));
   }
 
   @override
@@ -97,8 +97,10 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
 
 class FeralFileSeriesPagePayload {
   final String seriesId;
+  final String exhibitionId;
 
   const FeralFileSeriesPagePayload({
     required this.seriesId,
+    required this.exhibitionId,
   });
 }

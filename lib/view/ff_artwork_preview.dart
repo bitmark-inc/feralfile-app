@@ -32,6 +32,7 @@ class FeralFileArtworkPreview extends StatelessWidget {
               AppRouter.feralFileSeriesPage,
               arguments: FeralFileSeriesPagePayload(
                 seriesId: payload.series.id,
+                exhibitionId: payload.series.exhibitionID,
               ),
             ),
             child: Row(
