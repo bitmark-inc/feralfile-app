@@ -288,7 +288,7 @@ class CollectionHomePageState extends State<CollectionHomePage>
           height: MediaQuery.of(context).padding.top,
         ),
         _header(context),
-        if (_showPostcardBanner || true)
+        if (_showPostcardBanner)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 15),
             child: MakingPostcardBanner(
