@@ -8,6 +8,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
+import 'package:autonomy_flutter/screen/home/home_navigation_page.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -219,6 +220,9 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
     await Navigator.of(context).pushNamedAndRemoveUntil(
       AppRouter.homePage,
       (route) => false,
+      arguments: const HomeNavigationPagePayload(
+        startedTab: HomeNavigatorTab.collection,
+      ),
     );
     final token = claimResponse?.token;
     final caption = claimResponse?.airdropInfo.twitterCaption;

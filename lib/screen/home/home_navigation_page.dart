@@ -62,10 +62,23 @@ import 'package:nft_collection/nft_collection.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class HomeNavigationPage extends StatefulWidget {
+class HomeNavigationPagePayload {
   final bool fromOnboarding;
+  final HomeNavigatorTab startedTab;
 
-  const HomeNavigationPage({super.key, this.fromOnboarding = false});
+  const HomeNavigationPagePayload(
+      {bool? fromOnboarding, HomeNavigatorTab? startedTab})
+      : fromOnboarding = fromOnboarding ?? false,
+        startedTab = startedTab ?? HomeNavigatorTab.exhibition;
+}
+
+class HomeNavigationPage extends StatefulWidget {
+  final HomeNavigationPagePayload payload;
+
+  const HomeNavigationPage({
+    super.key,
+    this.payload = const HomeNavigationPagePayload(),
+  });
 
   @override
   State<HomeNavigationPage> createState() => _HomeNavigationPageState();
@@ -241,7 +254,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       });
     });
 
-    if (!widget.fromOnboarding) {
+    if (!widget.payload.fromOnboarding) {
       unawaited(injector<TezosBeaconService>().cleanup());
       unawaited(injector<Wc2Service>().cleanup());
     }
@@ -723,6 +736,9 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
 
   @override
   FutureOr<void> afterFirstLayout(BuildContext context) {
+    if (widget.payload.startedTab != _initialTab) {
+      _onItemTapped(widget.payload.startedTab.index);
+    }
     _cloudBackup();
     final initialAction = _notificationService.initialAction;
     if (initialAction != null) {

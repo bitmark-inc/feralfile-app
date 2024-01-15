@@ -305,6 +305,7 @@ class AppRouter {
             ));
 
       case homePageNoTransition:
+        final payload = settings.arguments as HomeNavigationPagePayload?;
         return PageRouteBuilder(
             settings: settings,
             pageBuilder: (context, animation1, animation2) => MultiBlocProvider(
@@ -318,11 +319,15 @@ class AppRouter {
                       create: (_) => personaBloc,
                     ),
                   ],
-                  child: const HomeNavigationPage(fromOnboarding: true),
+                  child: HomeNavigationPage(
+                      payload: HomeNavigationPagePayload(
+                          fromOnboarding: true,
+                          startedTab: payload?.startedTab)),
                 ),
             transitionDuration: const Duration());
 
       case homePage:
+        final payload = settings.arguments as HomeNavigationPagePayload?;
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => MultiBlocProvider(
@@ -336,7 +341,10 @@ class AppRouter {
                       create: (_) => personaBloc,
                     ),
                   ],
-                  child: const HomeNavigationPage(),
+                  child: HomeNavigationPage(
+                    payload: HomeNavigationPagePayload(
+                        startedTab: payload?.startedTab),
+                  ),
                 ));
 
       case ChatThreadPage.tag:
