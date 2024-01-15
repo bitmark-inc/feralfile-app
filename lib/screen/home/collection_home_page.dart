@@ -288,14 +288,25 @@ class CollectionHomePageState extends State<CollectionHomePage>
           height: MediaQuery.of(context).padding.top,
         ),
         _header(context),
-        Padding(
-          padding: const EdgeInsets.only(left: 15),
-          child: Text(
-            'collection_empty_now'.tr(),
-            //"Your collection is empty for now.",
-            style: theme.textTheme.ppMori400White14,
+        if (_showPostcardBanner || true)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 15),
+            child: MakingPostcardBanner(
+              onClose: () async {
+                await _hidePostcardBanner();
+              },
+              onMakingPostcard: _onMakePostcard,
+            ),
+          )
+        else
+          Padding(
+            padding: const EdgeInsets.only(left: 15),
+            child: Text(
+              'collection_empty_now'.tr(),
+              //"Your collection is empty for now.",
+              style: theme.textTheme.ppMori400White14,
+            ),
           ),
-        ),
       ],
     );
   }
@@ -358,11 +369,7 @@ class CollectionHomePageState extends State<CollectionHomePage>
                 onClose: () async {
                   await _hidePostcardBanner();
                 },
-                onMakingPostcard: () async {
-                  const id = POSTCARD_ONLINE_REQUEST_ID;
-                  await _deepLinkService.openClaimEmptyPostcard(id);
-                  await _hidePostcardBanner();
-                },
+                onMakingPostcard: _onMakePostcard,
               ),
             ),
           ),
@@ -561,6 +568,12 @@ class CollectionHomePageState extends State<CollectionHomePage>
       _showPostcardBanner = false;
     });
     await _configurationService.setShowPostcardBanner(false);
+  }
+
+  Future<void> _onMakePostcard() async {
+    const id = POSTCARD_ONLINE_REQUEST_ID;
+    await _deepLinkService.openClaimEmptyPostcard(id);
+    await _hidePostcardBanner();
   }
 
   @override
