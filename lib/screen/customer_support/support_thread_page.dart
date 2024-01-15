@@ -375,7 +375,14 @@ class _SupportThreadPageState extends State<SupportThreadPage>
               theme: _chatTheme,
               customMessageBuilder: _customMessageBuilder,
               emptyState: const CupertinoActivityIndicator(),
-              messages: messages,
+              messages: messages.map((e) {
+                if (e is types.TextMessage &&
+                    e.text.startsWith(RATING_MESSAGE_START)) {
+                  return e.copyWith(
+                      text: e.text.substring(RATING_MESSAGE_START.length));
+                }
+                return e;
+              }).toList(),
               onSendPressed: _handleSendPressed,
               user: _user,
               listBottomWidget:
