@@ -12,7 +12,7 @@ on:
 
 jobs:
   fastlane-deploy:
-    runs-on: macOS-12
+    runs-on: [ self-hosted, macm2, build-ci-local-bmvn, ios ]
     steps:
       # Set up Flutter.
       - name: Clone Flutter repository with master channel
@@ -20,9 +20,6 @@ jobs:
         with:
           flutter-version: "3.13.0"
           channel: stable
-      - uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: "14.0"
 
       - name: Set env
         run: |
@@ -31,14 +28,6 @@ jobs:
       # Checkout code and get packages.
       - name: Checkout code
         uses: actions/checkout@v3
-
-      # Setup Ruby, Bundler, and Gemfile dependencies
-      - name: Setup Fastlane
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: "2.6"
-          bundler-cache: true
-          working-directory: ios
 
       - uses: webfactory/ssh-agent@v0.5.4
         with:
@@ -138,6 +127,9 @@ jobs:
           JSON_FILE: ${{ secrets.JSON_FILE }}
           SENTRY_AUTH: ${{ secrets.SENTRY_AUTH }}
           APPCENTER_API_TOKEN: ${{ secrets.APPCENTER_API_TOKEN }}
+          TESTFLIGHT_KEY_ID: ${{ secrets.TESTFLIGHT_KEY_ID }}
+          TESTFLIGHT_ISSUER_ID: ${{ secrets.TESTFLIGHT_ISSUER_ID }}
+          TESTFLIGHT_API_TOKEN: ${{ secrets.TESTFLIGHT_API_TOKEN }}
           APP_VERSION: ${{ github.event.inputs.version }}
           BRANCH_KEY: ${{ secrets.BRANCH_KEY }}
           RELEASE_NOTES: ${{ github.event.inputs.message }}
