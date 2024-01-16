@@ -448,7 +448,7 @@ class CollectionHomePageState extends State<CollectionHomePage>
 
   Widget _assetBuilder(BuildContext context, List<CompactedAssetToken> tokens,
       int index, List<ArtworkIdentity> accountIdentities,
-      {String variant = '', double ratio = 1}) {
+      {String variant = 'thumbnail', double ratio = 1}) {
     final asset = tokens[index];
 
     if (asset.pending == true && asset.isPostcard) {
