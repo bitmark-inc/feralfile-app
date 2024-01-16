@@ -79,7 +79,7 @@ class ExhibitionEventView extends StatelessWidget {
                       arguments: InAppWebViewPayload(eventUrl));
                 },
                 child: Text(
-                  'watch_more'.tr(),
+                  'watch'.tr(),
                   style: theme.textTheme.ppMori400White14.copyWith(
                     decoration: TextDecoration.underline,
                   ),

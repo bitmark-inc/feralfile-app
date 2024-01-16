@@ -106,11 +106,14 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage> {
                 final series = exhibitionDetail.exhibition.series!.firstWhere(
                     (element) =>
                         element.id == viewingArtworks[seriesIndex].seriesID);
-                return FeralFileArtworkPreview(
-                  payload: FeralFileArtworkPreviewPayload(
-                    tokenId: tokenIds[seriesIndex],
-                    artwork: viewingArtworks[seriesIndex],
-                    series: series,
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 40),
+                  child: FeralFileArtworkPreview(
+                    payload: FeralFileArtworkPreviewPayload(
+                      tokenId: tokenIds[seriesIndex],
+                      artwork: viewingArtworks[seriesIndex],
+                      series: series,
+                    ),
                   ),
                 );
             }
