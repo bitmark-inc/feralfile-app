@@ -64,14 +64,8 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       addTitleSpace(),
-                      Center(
-                        child: SvgPicture.asset(
-                          'assets/images/subscription.svg',
-                          height: 80,
-                        ),
-                      ),
                       const SizedBox(
-                        height: 18,
+                        height: 98,
                       ),
                       Padding(
                         padding: ResponsiveLayout.pageHorizontalEdgeInsets,
