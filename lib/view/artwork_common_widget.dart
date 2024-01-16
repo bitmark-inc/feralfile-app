@@ -146,6 +146,7 @@ Widget tokenGalleryThumbnailWidget(
   int cachedImageSize, {
   bool usingThumbnailID = true,
   String variant = 'thumbnail',
+  double ratio = 1,
   bool useHero = true,
   Widget? galleryThumbnailPlaceholder,
 }) {
@@ -171,6 +172,8 @@ Widget tokenGalleryThumbnailWidget(
         }
         return cached;
       });
+  final memCacheWidth = cachedImageSize;
+  final memCacheHeight = memCacheWidth ~/ ratio;
 
   return Semantics(
     label: 'gallery_artwork_${token.id}',
@@ -191,8 +194,8 @@ Widget tokenGalleryThumbnailWidget(
               imageUrl: thumbnailUrl,
               fadeInDuration: Duration.zero,
               fit: BoxFit.cover,
-              memCacheHeight: cachedImageSize,
-              memCacheWidth: cachedImageSize,
+              memCacheHeight: memCacheHeight,
+              memCacheWidth: memCacheWidth,
               maxWidthDiskCache: cachedImageSize,
               maxHeightDiskCache: cachedImageSize,
               cacheManager: cacheManager,

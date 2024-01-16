@@ -442,10 +442,6 @@ extension CompactedAssetTokenExtension on CompactedAssetToken {
       return null;
     }
 
-    if (galleryThumbnailURL!.contains('cdn.feralfileassets.com')) {
-      return galleryThumbnailURL;
-    }
-
     if (usingThumbnailID) {
       if (thumbnailID == null || thumbnailID!.isEmpty) {
         return replaceIPFS(galleryThumbnailURL!); // return null;
