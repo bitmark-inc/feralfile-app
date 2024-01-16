@@ -124,14 +124,6 @@ class MockConfigurationService extends _i1.Mock
         ),
       ) as _i2.ValueNotifier<bool>);
   @override
-  _i2.ValueNotifier<bool> get showWhatNewAddressTip => (super.noSuchMethod(
-        Invocation.getter(#showWhatNewAddressTip),
-        returnValue: _FakeValueNotifier_0<bool>(
-          this,
-          Invocation.getter(#showWhatNewAddressTip),
-        ),
-      ) as _i2.ValueNotifier<bool>);
-  @override
   _i6.Future<void> setHasMerchandiseSupport(
     String? indexId, {
     bool? value = true,
@@ -698,23 +690,6 @@ class MockConfigurationService extends _i1.Mock
         Invocation.method(
           #setShowBackupSettingTip,
           [time],
-        ),
-        returnValue: _i6.Future<dynamic>.value(),
-      ) as _i6.Future<dynamic>);
-  @override
-  bool getShowWhatNewAddressTip(int? currentVersion) => (super.noSuchMethod(
-        Invocation.method(
-          #getShowWhatNewAddressTip,
-          [currentVersion],
-        ),
-        returnValue: false,
-      ) as bool);
-  @override
-  _i6.Future<dynamic> setShowWhatNewAddressTipRead(int? currentVersion) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #setShowWhatNewAddressTipRead,
-          [currentVersion],
         ),
         returnValue: _i6.Future<dynamic>.value(),
       ) as _i6.Future<dynamic>);

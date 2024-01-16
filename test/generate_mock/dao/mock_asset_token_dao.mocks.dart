@@ -76,6 +76,22 @@ class MockAssetTokenDao extends _i1.Mock implements _i4.AssetTokenDao {
         returnValue: _i3.Future<List<_i5.AssetToken>>.value(<_i5.AssetToken>[]),
       ) as _i3.Future<List<_i5.AssetToken>>);
   @override
+  _i3.Future<List<_i5.AssetToken>> findAllAssetTokensByFilter({
+    required String? filter,
+    bool? withHidden = false,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #findAllAssetTokensByFilter,
+          [],
+          {
+            #filter: filter,
+            #withHidden: withHidden,
+          },
+        ),
+        returnValue: _i3.Future<List<_i5.AssetToken>>.value(<_i5.AssetToken>[]),
+      ) as _i3.Future<List<_i5.AssetToken>>);
+  @override
   _i3.Future<List<_i5.AssetToken>> findAllAssetTokensWithoutOffset(
           List<String>? owners) =>
       (super.noSuchMethod(
@@ -135,6 +151,46 @@ class MockAssetTokenDao extends _i1.Mock implements _i4.AssetTokenDao {
             lastTime,
             id,
           ],
+        ),
+        returnValue: _i3.Future<List<_i5.AssetToken>>.value(<_i5.AssetToken>[]),
+      ) as _i3.Future<List<_i5.AssetToken>>);
+  @override
+  _i3.Future<List<_i5.AssetToken>> findAllAssetTokensByArtistID({
+    required String? artistID,
+    bool? withHidden = false,
+    String? filter = r'',
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #findAllAssetTokensByArtistID,
+          [],
+          {
+            #artistID: artistID,
+            #withHidden: withHidden,
+            #filter: filter,
+          },
+        ),
+        returnValue: _i3.Future<List<_i5.AssetToken>>.value(<_i5.AssetToken>[]),
+      ) as _i3.Future<List<_i5.AssetToken>>);
+  @override
+  _i3.Future<List<_i5.AssetToken>> findAllAssetTokensByMimeTypesOrMediums({
+    required List<String>? mimeTypes,
+    required List<String>? mediums,
+    bool? isInMimeTypes = true,
+    bool? withHidden = false,
+    String? filter = r'',
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #findAllAssetTokensByMimeTypesOrMediums,
+          [],
+          {
+            #mimeTypes: mimeTypes,
+            #mediums: mediums,
+            #isInMimeTypes: isInMimeTypes,
+            #withHidden: withHidden,
+            #filter: filter,
+          },
         ),
         returnValue: _i3.Future<List<_i5.AssetToken>>.value(<_i5.AssetToken>[]),
       ) as _i3.Future<List<_i5.AssetToken>>);
