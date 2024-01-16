@@ -59,5 +59,7 @@ abstract class FeralFileApi {
     @Query('exhibitionID') String? exhibitionId,
     @Query('seriesID') String? seriesId,
     @Query('includeActiveSwap') bool includeActiveSwap = true,
+    @Query('sortBy') String sortBy = 'index',
+    @Query('sortOrder') String sortOrder = 'ASC',
   });
 }
