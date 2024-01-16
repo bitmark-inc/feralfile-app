@@ -196,7 +196,7 @@ class _ClaimActivationPageState extends State<ClaimActivationPage> {
                       height: 30,
                     ),
                     RichText(
-                      maxLines: 2,
+                      maxLines: 5,
                       overflow: TextOverflow.ellipsis,
                       text: TextSpan(
                         text: giftIntro,

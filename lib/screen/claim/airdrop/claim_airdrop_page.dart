@@ -213,7 +213,7 @@ class _ClaimAirdropPageState extends State<ClaimAirdropPage> {
                       height: 30,
                     ),
                     RichText(
-                      maxLines: 2,
+                      maxLines: 5,
                       overflow: TextOverflow.ellipsis,
                       text: TextSpan(
                         text: giftIntro,

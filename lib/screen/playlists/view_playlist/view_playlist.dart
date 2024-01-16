@@ -189,12 +189,12 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                             alignment: Alignment.centerRight,
                             child: IconButton(
                               onPressed: () => Navigator.pop(context),
-                              padding: EdgeInsets.zero,
+                              padding: const EdgeInsets.all(5),
                               constraints: const BoxConstraints(
-                                  maxHeight: 22, maxWidth: 22),
+                                  maxHeight: 28, maxWidth: 28),
                               icon: const Icon(
                                 AuIcon.close,
-                                size: 22,
+                                size: 18,
                               ),
                             ),
                           ),
