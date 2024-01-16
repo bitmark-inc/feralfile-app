@@ -182,7 +182,7 @@ class _SettingsPageState extends State<SettingsPage>
                     addOnlyDivider(),
                     _settingItem(
                       title: 'autonomy_pro'.tr(),
-                      icon: const Icon(AuIcon.subscription),
+                      icon: const Icon(AuIcon.add),
                       onTap: () async {
                         await Navigator.of(context)
                             .pushNamed(AppRouter.subscriptionPage);
