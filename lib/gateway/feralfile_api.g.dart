@@ -236,12 +236,16 @@ class _FeralFileApi implements FeralFileApi {
     String? exhibitionId,
     String? seriesId,
     bool includeActiveSwap = true,
+    String sortBy = 'index',
+    String sortOrder = 'ASC',
   }) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
       r'exhibitionID': exhibitionId,
       r'seriesID': seriesId,
       r'includeActiveSwap': includeActiveSwap,
+      r'sortBy': sortBy,
+      r'sortOrder': sortOrder,
     };
     queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};

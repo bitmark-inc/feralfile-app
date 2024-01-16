@@ -67,8 +67,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage> {
       );
     }
 
-    final viewingArtworks = exhibitionDetail.representArtworks
-      ..sort((a, b) => a.seriesID.compareTo(b.seriesID));
+    final viewingArtworks = exhibitionDetail.representArtworks;
 
     final tokenIds = viewingArtworks
         .map((e) => exhibitionDetail.getArtworkTokenId(e)!)
