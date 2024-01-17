@@ -15,7 +15,6 @@ import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
-import it.airgap.beaconsdk.core.message.BeaconRequest
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.onEach
@@ -59,8 +58,8 @@ class Wc2ConnectPlugin(private val application: Application) : FlutterPlugin,
     private fun initClient() {
         // Initialize Wallet Connect
         val appMetadata = Core.Model.AppMetaData(
-            name = "Autonomy",
-            description = "Autonomy Wallet",
+            name = "Feral File",
+            description = "Feral File Wallet",
             icons = listOf(),
             url = "autonomy.io",
             redirect = null

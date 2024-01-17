@@ -160,6 +160,7 @@ jobs:
           SENTRY_AUTH: ${{ secrets.SENTRY_AUTH }}
           APPCENTER_API_TOKEN: ${{ secrets.APPCENTER_API_TOKEN }}
           APP_VERSION: ${{ inputs.version }}
+          BRANCH_KEY: ${{ secrets.BRANCH_KEY }}
           RELEASE_NOTES: ${{ inputs.message }}
 
         run: |

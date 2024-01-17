@@ -46,9 +46,11 @@ import 'package:uni_links/uni_links.dart';
 abstract class DeeplinkService {
   Future setup();
 
-  void handleDeeplink(String? link, {Duration delay});
+  void handleDeeplink(String? link, {Duration delay, Function? onFinished});
 
   void handleBranchDeeplinkData(Map<dynamic, dynamic> data);
+
+  Future<void> openClaimEmptyPostcard(String id, {String? otp});
 }
 
 class DeeplinkServiceImpl extends DeeplinkService {
@@ -121,6 +123,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
   void handleDeeplink(
     String? link, {
     Duration delay = const Duration(seconds: 2),
+    Function? onFinished,
   }) {
     // return for case when FeralFile pass empty deeplink to return Autonomy
     if (link == 'autonomy://') {
@@ -147,6 +150,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
       _deepLinkHandlingMap.remove(link);
       handlingDeepLink = null;
       memoryValues.irlLink.value = null;
+      onFinished?.call();
     });
   }
 
@@ -214,21 +218,28 @@ class DeeplinkServiceImpl extends DeeplinkService {
       'https://autonomy.io/apps/wc/wc?uri=',
       'autonomy://wc?uri=',
       'autonomy-wc://wc?uri=',
+      'https://app.feralfile.com/apps/wc?uri=',
+      'https://app.feralfile.com/apps/wc/wc?uri=',
+      'feralfile://wc?uri=',
+      'feralfile-wc://wc?uri=',
     ];
 
     final tzPrefixes = [
       'https://au.bitmark.com/apps/tezos?uri=',
       'https://autonomy.io/apps/tezos?uri=',
+      'https://feralfile.com/apps/tezos?uri=',
     ];
 
     final wcDeeplinkPrefixes = [
       'wc:',
       'autonomy-wc:',
+      'feralfile-wc:',
     ];
 
     final tbDeeplinkPrefixes = [
       'tezos://',
       'autonomy-tezos://',
+      'feralfile-tezos://',
     ];
 
     final postcardPayToMintPrefixes = [
@@ -622,6 +633,11 @@ class DeeplinkServiceImpl extends DeeplinkService {
         unawaited(_navigationService.showPostcardShareLinkInvalid());
       }
     }
+  }
+
+  @override
+  Future<void> openClaimEmptyPostcard(String id, {String? otp}) async {
+    await _handleClaimEmptyPostcardDeeplink(id, otp: otp);
   }
 
   Future<void> _handleClaimEmptyPostcardDeeplink(String? id,

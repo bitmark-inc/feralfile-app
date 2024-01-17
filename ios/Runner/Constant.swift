@@ -10,9 +10,9 @@ import Foundation
 struct Constant {
     static var appname: String {
         #if INHOUSE
-        return "Autonomy (Dev)";
+        return "Feral File (Dev)";
         #else
-        return "Autonomy";
+        return "Feral File";
         #endif
     }
 

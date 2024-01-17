@@ -1,0 +1,158 @@
+name: Deploy the iOS app
+on:
+  # Enable manual run
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "App version"
+        required: true
+      message:
+        description: Change logs
+        required: false
+      testnet:
+        type: boolean
+        default: false
+        required: false
+        description: Using testnet (Default staging)
+
+jobs:
+  fastlane-deploy:
+    runs-on: macOS-12
+    steps:
+      # Set up Flutter.
+      - name: Clone Flutter repository with master channel
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.13.0"
+          channel: stable
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: "14.0"
+
+      - name: Set env
+        run: |
+          ${{ github.event.inputs.testnet == 'true' }} && echo FASTLAN_ENV=test >> $GITHUB_ENV || echo FASTLAN_ENV=main >> $GITHUB_ENV
+
+      # Checkout code and get packages.
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Setup Ruby, Bundler, and Gemfile dependencies
+      - name: Setup Fastlane
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "2.6"
+          bundler-cache: true
+          working-directory: ios
+
+      - uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: |
+            ${{ secrets.KEY_VAULT_DEPLOYMENT_KEY }}
+            ${{ secrets.SSH_ASSETS_KEY }}
+
+      - name: Create env file
+        run: |
+          touch .env
+          echo INDEXER_MAINNET_API_URL=${{ secrets.INDEXER_STAGING_API_URL }} >> .env
+          echo INDEXER_TESTNET_API_URL=${{ secrets.INDEXER_TESTNET_API_URL }} >> .env
+          echo WEB3_RPC_MAINNET_URL=${{ secrets.WEB3_RPC_MAINNET_URL }} >> .env
+          echo WEB3_RPC_TESTNET_URL=${{ secrets.WEB3_RPC_TESTNET_URL }} >> .env
+          echo TEZOS_NODE_CLIENT_MAINNET_URL=${{ secrets.TEZOS_NODE_CLIENT_MAINNET_URL }} >> .env
+          echo TEZOS_NODE_CLIENT_TESTNET_URL=${{ secrets.TEZOS_NODE_CLIENT_TESTNET_URL }} >> .env
+          echo BITMARK_API_MAINNET_URL=${{ secrets.BITMARK_API_MAINNET_URL }} >> .env
+          echo BITMARK_API_TESTNET_URL=${{ secrets.BITMARK_API_TESTNET_URL }} >> .env
+          echo FERAL_FILE_API_MAINNET_URL=${{ secrets.FERAL_FILE_API_MAINNET_URL }} >> .env
+          echo FERAL_FILE_API_TESTNET_URL=${{ secrets.FERAL_FILE_API_TESTNET_URL }} >> .env
+          echo FERAL_FILE_SECRET_KEY_TESTNET=${{ secrets.FERAL_FILE_SECRET_KEY_TESTNET }} >> .env
+          echo FERAL_FILE_SECRET_KEY_MAINNET=${{ secrets.FERAL_FILE_SECRET_KEY_MAINNET }} >> .env
+          echo FERAL_FILE_ASSET_URL_TESTNET=${{ secrets.FERAL_FILE_ASSET_URL_TESTNET }} >> .env
+          echo FERAL_FILE_ASSET_URL_MAINNET=${{ secrets.FERAL_FILE_ASSET_URL_MAINNET }} >> .env
+          echo EXTENSION_SUPPORT_MAINNET_URL=${{ secrets.EXTENSION_SUPPORT_MAINNET_URL }} >> .env
+          echo EXTENSION_SUPPORT_TESTNET_URL=${{ secrets.EXTENSION_SUPPORT_TESTNET_URL }} >> .env
+          echo CONNECT_WEBSOCKET_MAINNET_URL=${{ secrets.CONNECT_WEBSOCKET_MAINNET_URL }} >> .env
+          echo CONNECT_WEBSOCKET_TESTNET_URL=${{ secrets.CONNECT_WEBSOCKET_TESTNET_URL }} >> .env
+          ${{ github.event.inputs.testnet == 'true' }} && echo CHAT_SERVER_URL=${{ secrets.CHAT_SERVER_URL_TEST }} >> .env || echo CHAT_SERVER_URL=${{ secrets.CHAT_SERVER_URL_PRODUCTION }} >> .env
+          ${{ github.event.inputs.testnet == 'true' }} && echo CHAT_SERVER_HMAC_KEY=${{ secrets.CHAT_SERVER_HMAC_KEY_TEST }} >> .env || echo CHAT_SERVER_HMAC_KEY=${{ secrets.CHAT_SERVER_HMAC_KEY_PRODUCTION }} >> .env
+
+          ${{ github.event.inputs.testnet == 'true' }} && echo AUTONOMY_AUTH_URL=${{ secrets.AUTONOMY_AUTH_DEV_URL }} >> .env || echo AUTONOMY_AUTH_URL=${{ secrets.AUTONOMY_AUTH_STAGING_URL }} >> .env
+          ${{ github.event.inputs.testnet == 'true' }} && echo CUSTOMER_SUPPORT_URL=${{ secrets.CUSTOMER_SUPPORT_DEV_URL }} >> .env || echo CUSTOMER_SUPPORT_URL=${{ secrets.CUSTOMER_SUPPORT_STAGING_URL }} >> .env
+          ${{ github.event.inputs.testnet == 'true' }} && echo RENDERING_REPORT_URL=${{ secrets.RENDERING_REPORT_DEV_URL }} >> .env || echo RENDERING_REPORT_URL=${{ secrets.RENDERING_REPORT_STAGING_URL }} >> .env
+          ${{ github.event.inputs.testnet == 'true' }} && echo FEED_URL=${{ secrets.FEED_DEV_URL }} >> .env || echo FEED_URL=${{ secrets.FEED_STAGING_URL }} >> .env
+          echo CURRENCY_EXCHANGE_URL=${{ secrets.CURRENCY_EXCHANGE_URL }} >> .env
+          echo AUTONOMY_IPFS_PREFIX=${{ secrets.AUTONOMY_IPFS_PREFIX_DEV }} >> .env
+          ${{ github.event.inputs.testnet == 'true' }} && echo AU_CLAIM_API_URL=${{ secrets.AU_CLAIM_API_TESTNET_URL }} >> .env || echo AU_CLAIM_API_URL=${{ secrets.AU_CLAIM_API_STAGING_URL }} >> .env
+          ${{ github.event.inputs.testnet == 'true' }} && echo AU_CLAIM_SECRET_KEY=${{ secrets.AU_CLAIM_SECRET_KEY_TESTNET }} >> .env || echo AU_CLAIM_SECRET_KEY=${{ secrets.AU_CLAIM_SECRET_KEY_STAGING }} >> .env
+          echo TZKT_TESTNET_URL=${{ secrets.TZKT_TESTNET_URL }} >> .env
+          echo TZKT_MAINNET_URL=${{ secrets.TZKT_MAINNET_URL }} >> .env
+          ${{ github.event.inputs.testnet == 'true' }} && echo POSTCARD_CONTRACT_ADDRESS=${{ secrets.POSTCARD_CONTRACT_ADDRESS_TESTNET }} >> .env || echo POSTCARD_CONTRACT_ADDRESS=${{ secrets.POSTCARD_CONTRACT_ADDRESS_MAINNET }} >> .env
+          ${{ github.event.inputs.testnet == 'true' }} && echo AUTONOMY_MERCHANDISE_BASE_URL=${{ secrets.AUTONOMY_MERCHANDISE_BASE_URL_TESTNET }} >> .env || echo AUTONOMY_MERCHANDISE_BASE_URL=${{ secrets.AUTONOMY_MERCHANDISE_BASE_URL_MAINNET }} >> .env
+          ${{ github.event.inputs.testnet == 'true' }} && echo AUTONOMY_MERCHANDISE_API_URL=${{ secrets.AUTONOMY_MERCHANDISE_API_URL_TESTNET }} >> .env || echo AUTONOMY_MERCHANDISE_API_URL=${{ secrets.AUTONOMY_MERCHANDISE_API_URL_MAINNET }} >> .env    
+          ${{ github.event.inputs.testnet == 'true' }} && echo PAY_TO_MINT_BASE_URL=${{ secrets.PAY_TO_MINT_BASE_URL_TESTNET }} >> .env || echo PAY_TO_MINT_BASE_URL=${{ secrets.PAY_TO_MINT_BASE_URL_MAINNET }} >> .env
+          ${{ github.event.inputs.testnet == 'true' }} && echo AUTONOMY_PUBDOC_URL=${{ secrets.AUTONOMY_PUBDOC_URL_DEV }} >> .env || echo AUTONOMY_PUBDOC_URL=${{ secrets.AUTONOMY_PUBDOC_URL_PRD }} >> .env
+
+          echo FERAL_FILE_AUTHORIZATION_PREFIX=${{ secrets.FERAL_FILE_AUTHORIZATION_PREFIX }} >> .env
+          echo SENTRY_DSN=${{ secrets.SENTRY_DSN }} >> .env
+          echo ONESIGNAL_APP_ID=${{ secrets.ONESIGNAL_DEV_APP_ID }} >> .env
+          echo AWS_IDENTITY_POOL_ID=${{ secrets.AWS_IDENTITY_POOL_ID }} >> .env
+          echo AUTONOMY_SHARD_SERVICE=${{ secrets.AUTONOMY_SHARD_SERVICE }} >> .env
+          echo METRIC_ENDPOINT=${{ secrets.METRIC_ENDPOINT }} >> .env
+          echo METRIC_SECRET_KEY=${{ secrets.METRIC_SECRET_KEY }} >> .env
+          echo BRANCH_KEY=${{ secrets.BRANCH_KEY }} >> .env
+          echo MIXPANEL_KEY=${{ secrets.MIXPANEL_KEY }} >> .env
+          echo CLOUD_FLARE_IMAGE_URL_PREFIX=${{ secrets.CLOUD_FLARE_IMAGE_URL_PREFIX }} >> .env
+          echo WEB3_TESTNET_CHAIN_ID=${{ secrets.WEB3_TESTNET_CHAIN_ID }} >> .env
+          ${{ github.event.inputs.testnet == 'true' }} && echo TOKEN_WEBVIEW_PREFIX=${{ secrets.TOKEN_WEBVIEW_PREFIX_TESTNET }} >> .env || echo TOKEN_WEBVIEW_PREFIX=${{ secrets.TOKEN_WEBVIEW_PREFIX_MAINNET }} >> .env
+          echo AUTONOMY_AIRDROP_URL=${{ secrets.AUTONOMY_AIRDROP_URL }} >> .env
+          echo AUTONOMY_AIRDROP_CONTRACT_ADDRESS=${{ secrets.AUTONOMY_AIRDROP_CONTRACT_ADDRESS }} >> .env
+          ${{ github.event.inputs.testnet == 'true' }} && echo AUTONOMY_ACTIVATION_URL=${{ secrets.AUTONOMY_ACTIVATION_URL_TESTNET }} >> .env || echo AUTONOMY_ACTIVATION_URL=${{ secrets.AUTONOMY_ACTIVATION_URL_MAINNET }} >> .env
+          
+          echo APP_TESTNET_CONFIG=${{ github.event.inputs.testnet == 'true' }} >> .env
+          cat .env
+
+      - name: Flutter doctor
+        run: flutter doctor
+      - name: Submoudles update
+        run: git -c submodule.auto-test.update=none submodule update --init --recursive
+
+      # Precache to fix iOS pod install issue
+      - run: flutter precache --ios
+
+      - name: cache pods
+        uses: actions/cache@v1
+        with:
+          path: ios/Pods
+          key: ${{ runner.os }}-pods-${{ hashFiles('**/ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pods-
+      - name: pod install
+        if: steps.cache-cocoapods.outputs.cache-hit != 'true'
+        run: |
+          flutter pub cache repair
+          flutter clean
+          flutter pub get
+          cd ios/
+          pod install
+
+      - uses: mathieu-bour/setup-sentry-cli@main
+
+      # Build and deploy with Fastlane (by default, to ciappcenter track) 🚀.
+      - name: Build and deploy with Fastlane
+        env:
+          ENTERPRISE_CERTIFICATE_PASSWORD: ${{ secrets.ENTERPRISE_CERTIFICATE_PASSWORD }}
+          APPSTORE_CERTIFICATE_PASSWORD: ${{ secrets.APPSTORE_CERTIFICATE_PASSWORD }}
+          JSON_FILE: ${{ secrets.JSON_FILE }}
+          SENTRY_AUTH: ${{ secrets.SENTRY_AUTH }}
+          APPCENTER_API_TOKEN: ${{ secrets.APPCENTER_API_TOKEN }}
+          APP_VERSION: ${{ github.event.inputs.version }}
+          BRANCH_KEY: ${{ secrets.BRANCH_KEY }}
+          RELEASE_NOTES: ${{ github.event.inputs.message }}
+
+        run: |
+          git clone git@github.com:bitmark-inc/mobile-signing-key-vault.git --depth 1
+          echo $JSON_FILE >> key.json
+          bundle exec fastlane install_plugins
+          echo "APP_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+          bundle exec fastlane ciappcenter env:${{ env.FASTLAN_ENV }}
+
+        working-directory: ios

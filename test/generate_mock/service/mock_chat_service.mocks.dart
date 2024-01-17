@@ -5,6 +5,7 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i3;
 
+import 'package:autonomy_flutter/gateway/chat_api.dart' as _i6;
 import 'package:autonomy_flutter/model/pair.dart' as _i4;
 import 'package:autonomy_flutter/service/chat_service.dart' as _i2;
 import 'package:libauk_dart/libauk_dart.dart' as _i5;
@@ -135,4 +136,40 @@ class MockChatService extends _i1.Mock implements _i2.ChatService {
         returnValue: _i3.Future<void>.value(),
         returnValueForMissingStub: _i3.Future<void>.value(),
       ) as _i3.Future<void>);
+  @override
+  _i3.Future<List<_i6.ChatAlias>> getAliases({
+    required String? indexId,
+    required _i4.Pair<_i5.WalletStorage, int>? wallet,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getAliases,
+          [],
+          {
+            #indexId: indexId,
+            #wallet: wallet,
+          },
+        ),
+        returnValue: _i3.Future<List<_i6.ChatAlias>>.value(<_i6.ChatAlias>[]),
+      ) as _i3.Future<List<_i6.ChatAlias>>);
+  @override
+  _i3.Future<bool> setAlias({
+    required String? alias,
+    required String? indexId,
+    required _i4.Pair<_i5.WalletStorage, int>? wallet,
+    required String? address,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #setAlias,
+          [],
+          {
+            #alias: alias,
+            #indexId: indexId,
+            #wallet: wallet,
+            #address: address,
+          },
+        ),
+        returnValue: _i3.Future<bool>.value(false),
+      ) as _i3.Future<bool>);
 }

@@ -149,6 +149,15 @@ class MockPostcardApi extends _i1.Mock implements _i4.PostcardApi {
         returnValue: _i5.Future<dynamic>.value(),
       ) as _i5.Future<dynamic>);
   @override
+  _i5.Future<String> getMerchandiseEnable(String? tokenId) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getMerchandiseEnable,
+          [tokenId],
+        ),
+        returnValue: _i5.Future<String>.value(''),
+      ) as _i5.Future<String>);
+  @override
   _i5.Future<dynamic> updatePostcard({
     required String? tokenId,
     required _i6.File? data,

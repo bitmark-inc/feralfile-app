@@ -5,9 +5,6 @@ on:
       version:
         description: Build version (eg 0.30.0)
         required: true
-      build-number:
-        description: Build number
-        required: true
       message:
         description: Change logs
         required: false
@@ -20,10 +17,6 @@ on:
     inputs:
       version:
         description: Build version (eg 0.30.0)
-        type: string
-        required: true
-      build-number:
-        description: Build number
         type: string
         required: true
       message:
@@ -39,6 +32,24 @@ jobs:
   build:
     runs-on: [ self-hosted, macm2, build-ci-local-bmvn, android ]
     steps:
+      - name: Extract Build number for Testnet
+        id: extract-version-testnet
+        env:
+          APPCENTER_API_TOKEN: ${{ secrets.APPCENTER_API_TOKEN }}
+          APP_NAME: ${{ inputs.testnet == true && 'Autonomy-Android-Test' || 'Autonomy-Android-1'}}
+        run: |
+          echo "$APP_NAME"
+          API_RESPONSE=$(curl -X GET \
+          "https://api.appcenter.ms/v0.1/apps/support-zzd0-28/$APP_NAME/recent_releases" \
+          -H 'accept: application/json' \
+          -H "X-API-Token: $APPCENTER_API_TOKEN")
+
+          echo "$API_RESPONSE"
+          BUILD_NUMBER=$(echo "$API_RESPONSE" | jq -r '.[0].version')
+          # Increase the build number by 1
+          ((BUILD_NUMBER++))
+          echo "$BUILD_NUMBER"
+          echo "FLUTTER_VERSION_CODE=$BUILD_NUMBER" >> "$GITHUB_ENV"
       - uses: actions/checkout@v2
       - uses: actions/setup-java@v2
         with:
@@ -51,11 +62,11 @@ jobs:
       - name: Set env
         run: |
           echo "FLUTTER_VERSION_NAME=${{ inputs.version }}" >> $GITHUB_ENV
-          echo "FLUTTER_VERSION_CODE=${{ inputs.build-number }}" >> $GITHUB_ENV
+          # echo "FLUTTER_VERSION_CODE=${{ inputs.build-number }}" >> $GITHUB_ENV
           echo "BRANCH_KEY=${{ secrets.BRANCH_KEY }}" >> $GITHUB_ENV
           echo "BRANCH_KEY_TEST=${{ secrets.BRANCH_KEY_TEST }}" >> $GITHUB_ENV
           ${{ inputs.testnet == true }} && echo APPCENTER_APP_ID=support-zzd0-28/Autonomy-Android-Test >> $GITHUB_ENV || echo APPCENTER_APP_ID=support-zzd0-28/Autonomy-Android-1 >> $GITHUB_ENV
-          ${{ inputs.testnet == true }} && echo NAME_SUFFIX=test-${{ inputs.build-number }} >> $GITHUB_ENV || echo NAME_SUFFIX=main-${{ inputs.build-number }} >> $GITHUB_ENV
+          ${{ inputs.testnet == true }} && echo NAME_SUFFIX=test-${{env.FLUTTER_VERSION_CODE}} >> $GITHUB_ENV || echo NAME_SUFFIX=main-${{env.FLUTTER_VERSION_CODE}} >> $GITHUB_ENV
 
       - uses: webfactory/ssh-agent@v0.5.4
         with:

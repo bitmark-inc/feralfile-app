@@ -148,7 +148,6 @@ class _PostcardViewWidgetState extends State<PostcardViewWidget> {
             child: Center(
               child: GifView.asset(
                 "assets/images/loading_white_tran.gif",
-                width: 52,
                 height: 52,
                 frameRate: 12,
               ),

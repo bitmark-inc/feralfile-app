@@ -23,4 +23,8 @@ extension AssetTokenExtension on List<CompactedAssetToken> {
                   timestamp: expiredTime),
         )).toList();
   }
+
+  List<CompactedAssetToken> filterByTitleContain(String title) =>
+      where((element) =>
+          element.title!.toLowerCase().contains(title.toLowerCase())).toList();
 }

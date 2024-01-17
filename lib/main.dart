@@ -12,10 +12,12 @@ import 'dart:ui';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/firebase_options.dart';
+import 'package:autonomy_flutter/model/eth_pending_tx_amount.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/cloud_firestore_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
+import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/notification_service.dart';
@@ -44,7 +46,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 void main() async {
-  runZonedGuarded(() async {
+  unawaited(runZonedGuarded(() async {
     await dotenv.load();
 
     WidgetsFlutterBinding.ensureInitialized();
@@ -60,6 +62,8 @@ void main() async {
 
     await FlutterDownloader.initialize();
     await Hive.initFlutter();
+    _registerHiveAdapter();
+
     FlutterDownloader.registerCallback(downloadCallback);
     await AuFileService().setup();
 
@@ -91,7 +95,13 @@ void main() async {
     } else {
       showErrorDialogFromException(error, stackTrace: stackTrace);
     }
-  });
+  }));
+}
+
+void _registerHiveAdapter() {
+  Hive
+    ..registerAdapter(EthereumPendingTxAmountAdapter())
+    ..registerAdapter(EthereumPendingTxListAdapter());
 }
 
 _setupApp() async {
@@ -111,6 +121,8 @@ _setupApp() async {
   await notificationService.initNotification();
   await notificationService.startListeningNotificationEvents();
   await disableLandscapeMode();
+  final isPremium = await injector.get<IAPService>().isSubscribed();
+  await injector<ConfigurationService>().setPremium(isPremium);
 
   await SentryFlutter.init(
     (options) {
@@ -150,36 +162,35 @@ Future<void> _deleteLocalDatabase() async {
 }
 
 class AutonomyApp extends StatelessWidget {
-  const AutonomyApp({Key? key}) : super(key: key);
+  const AutonomyApp({super.key});
+
   static double maxWidth = 0;
 
   @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        maxWidth = constraints.maxWidth;
-        return MaterialApp(
-          title: 'Autonomy',
-          theme: ResponsiveLayout.isMobile
-              ? AppTheme.lightTheme()
-              : AppTheme.tabletLightTheme(),
-          darkTheme: AppTheme.lightTheme(),
-          localizationsDelegates: context.localizationDelegates,
-          supportedLocales: context.supportedLocales,
-          locale: context.locale,
-          debugShowCheckedModeBanner: false,
-          navigatorKey: injector<NavigationService>().navigatorKey,
-          navigatorObservers: [
-            routeObserver,
-            SentryNavigatorObserver(),
-            HeroController()
-          ],
-          initialRoute: AppRouter.onboardingPage,
-          onGenerateRoute: AppRouter.onGenerateRoute,
-        );
-      },
-    );
-  }
+  Widget build(BuildContext context) => LayoutBuilder(
+        builder: (context, constraints) {
+          maxWidth = constraints.maxWidth;
+          return MaterialApp(
+            title: 'Autonomy',
+            theme: ResponsiveLayout.isMobile
+                ? AppTheme.lightTheme()
+                : AppTheme.tabletLightTheme(),
+            darkTheme: AppTheme.lightTheme(),
+            localizationsDelegates: context.localizationDelegates,
+            supportedLocales: context.supportedLocales,
+            locale: context.locale,
+            debugShowCheckedModeBanner: false,
+            navigatorKey: injector<NavigationService>().navigatorKey,
+            navigatorObservers: [
+              routeObserver,
+              SentryNavigatorObserver(),
+              HeroController()
+            ],
+            initialRoute: AppRouter.onboardingPage,
+            onGenerateRoute: AppRouter.onGenerateRoute,
+          );
+        },
+      );
 }
 
 final RouteObserver<ModalRoute<void>> routeObserver =
@@ -202,25 +213,24 @@ class MemoryValues {
   bool isForeground = true;
 
   MemoryValues({
+    required this.branchDeeplinkData,
+    required this.deepLink,
+    required this.irlLink,
     this.scopedPersona,
     this.viewingSupportThreadIssueID,
     this.inForegroundAt,
     this.inGalleryView = true,
-    required this.branchDeeplinkData,
-    required this.deepLink,
-    required this.irlLink,
   });
 
   MemoryValues copyWith({
     String? scopedPersona,
-  }) {
-    return MemoryValues(
-      scopedPersona: scopedPersona ?? this.scopedPersona,
-      branchDeeplinkData: branchDeeplinkData,
-      deepLink: deepLink,
-      irlLink: irlLink,
-    );
-  }
+  }) =>
+      MemoryValues(
+        scopedPersona: scopedPersona ?? this.scopedPersona,
+        branchDeeplinkData: branchDeeplinkData,
+        deepLink: deepLink,
+        irlLink: irlLink,
+      );
 }
 
 enum HomePageTab {
@@ -228,8 +238,11 @@ enum HomePageTab {
 }
 
 enum HomeNavigatorTab {
-  COLLECTION,
-  WALLET,
+  collection,
+  organization,
+  exhibition,
+  scanQr,
+  menu,
 }
 
 @pragma('vm:entry-point')

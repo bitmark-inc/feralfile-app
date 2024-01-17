@@ -12,14 +12,16 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/announcement_local.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
-import 'package:autonomy_flutter/screen/home/home_page.dart';
+import 'package:autonomy_flutter/screen/exhibitions/exhibitions_bloc.dart';
+import 'package:autonomy_flutter/screen/exhibitions/exhibitions_page.dart';
+import 'package:autonomy_flutter/screen/exhibitions/exhibitions_state.dart';
+import 'package:autonomy_flutter/screen/home/collection_home_page.dart';
+import 'package:autonomy_flutter/screen/home/organize_home_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
-import 'package:autonomy_flutter/screen/wallet/wallet_page.dart';
 import 'package:autonomy_flutter/service/airdrop_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service.dart';
@@ -41,6 +43,7 @@ import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/view/homepage_navigation_bar.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:dio/dio.dart';
@@ -48,17 +51,32 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
+import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nft_collection/database/dao/asset_token_dao.dart';
 import 'package:nft_collection/database/nft_collection_database.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class HomeNavigationPage extends StatefulWidget {
+class HomeNavigationPagePayload {
   final bool fromOnboarding;
+  final HomeNavigatorTab startedTab;
 
-  const HomeNavigationPage({super.key, this.fromOnboarding = false});
+  const HomeNavigationPagePayload(
+      {bool? fromOnboarding, HomeNavigatorTab? startedTab})
+      : fromOnboarding = fromOnboarding ?? false,
+        startedTab = startedTab ?? HomeNavigatorTab.exhibition;
+}
+
+class HomeNavigationPage extends StatefulWidget {
+  final HomeNavigationPagePayload payload;
+
+  const HomeNavigationPage({
+    super.key,
+    this.payload = const HomeNavigationPagePayload(),
+  });
 
   @override
   State<HomeNavigationPage> createState() => _HomeNavigationPageState();
@@ -72,8 +90,10 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   int _selectedIndex = 0;
   late PageController _pageController;
   late List<Widget> _pages;
-  late List<BottomNavigationBarItem> _bottomItems;
-  final GlobalKey<HomePageState> _homePageKey = GlobalKey();
+  final GlobalKey<OrganizeHomePageState> _organizeHomePageKey = GlobalKey();
+  final GlobalKey<CollectionHomePageState> _collectionHomePageKey = GlobalKey();
+  final GlobalKey<ExhibitionsPageState> _exhibitionsPageKey = GlobalKey();
+  final GlobalKey<ScanQRPageState> _scanQRPageKey = GlobalKey();
   final _configurationService = injector<ConfigurationService>();
   late Timer? _timer;
   final _clientTokenService = injector<ClientTokenService>();
@@ -81,6 +101,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   final _notificationService = injector<NotificationService>();
   final _playListService = injector<PlaylistService>();
   final _remoteConfig = injector<RemoteConfigService>();
+  late HomeNavigatorTab _initialTab;
 
   StreamSubscription<FGBGType>? _fgbgSubscription;
 
@@ -90,39 +111,74 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     routeObserver.subscribe(this, ModalRoute.of(context)!);
   }
 
-  void _onItemTapped(int index) {
+  Future<void> _onItemTapped(int index) async {
     if (index < _pages.length) {
       if (_selectedIndex == index) {
-        if (index == 0) {
-          _homePageKey.currentState?.scrollToTop();
+        if (index == HomeNavigatorTab.collection.index) {
+          _collectionHomePageKey.currentState?.scrollToTop();
+        }
+        if (index == HomeNavigatorTab.organization.index) {
+          _organizeHomePageKey.currentState?.scrollToTop();
+        }
+        if (index == HomeNavigatorTab.exhibition.index) {
+          _exhibitionsPageKey.currentState?.scrollToTop();
+        }
+      } else {
+        if (index == HomeNavigatorTab.scanQr.index) {
+          await _scanQRPageKey.currentState?.resumeCamera();
+        } else {
+          await _scanQRPageKey.currentState?.pauseCamera();
         }
       }
       setState(() {
         _selectedIndex = index;
       });
       _pageController.jumpToPage(_selectedIndex);
-      if (index == 0) {
+      if (index == HomeNavigatorTab.collection.index ||
+          index == HomeNavigatorTab.organization.index) {
         unawaited(_clientTokenService.refreshTokens());
         unawaited(_playListService.refreshPlayLists());
       }
-    } else if (index == _pages.length) {
-      unawaited(Navigator.of(context).pushNamed(
-        AppRouter.scanQRPage,
-        arguments: ScannerItem.GLOBAL,
-      ));
+      if (index == HomeNavigatorTab.exhibition.index) {
+        _exhibitionsPageKey.currentState?.refreshExhibitions();
+      }
     } else {
-      unawaited(UIHelper.showDrawerAction(
+      final currentIndex = _selectedIndex;
+      setState(() {
+        _selectedIndex = index;
+      });
+      await UIHelper.showCenterMenu(
         context,
         options: [
           OptionItem(
-              title: 'Settings',
-              icon: const Icon(
-                AuIcon.settings,
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.of(context).pushNamed(AppRouter.settingsPage);
-              }),
+            title: 'moma_postcard'.tr(),
+            icon: SvgPicture.asset(
+              'assets/images/icon_3d.svg',
+              colorFilter: const ColorFilter.mode(
+                  AppColor.white, BlendMode.srcIn), // white
+            ),
+            onTap: () {
+              Navigator.of(context).popAndPushNamed(AppRouter.momaPostcardPage);
+            },
+          ),
+          OptionItem(
+            title: 'addresses'.tr(),
+            icon: const Icon(
+              AuIcon.wallet,
+            ),
+            onTap: () {
+              Navigator.of(context).popAndPushNamed(AppRouter.walletPage);
+            },
+          ),
+          OptionItem(
+            title: 'Settings',
+            icon: const Icon(
+              AuIcon.settings,
+            ),
+            onTap: () {
+              Navigator.of(context).popAndPushNamed(AppRouter.settingsPage);
+            },
+          ),
           OptionItem(
               title: 'Help',
               icon: ValueListenableBuilder<List<int>?>(
@@ -140,11 +196,19 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
                 ),
               ),
               onTap: () {
-                Navigator.pop(context);
-                Navigator.of(context).pushNamed(AppRouter.supportCustomerPage);
+                Navigator.of(context)
+                    .popAndPushNamed(AppRouter.supportCustomerPage);
               }),
         ],
-      ));
+      );
+      if (mounted) {
+        setState(() {
+          _selectedIndex = currentIndex;
+        });
+        if (_selectedIndex == HomeNavigatorTab.scanQr.index) {
+          await _scanQRPageKey.currentState?.resumeCamera();
+        }
+      }
     }
   }
 
@@ -152,7 +216,8 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   void initState() {
     unawaited(injector<CustomerSupportService>().getIssuesAndAnnouncement());
     super.initState();
-    _selectedIndex = HomeNavigatorTab.COLLECTION.index;
+    _initialTab = HomeNavigatorTab.exhibition;
+    _selectedIndex = _initialTab.index;
     _pageController = PageController(initialPage: _selectedIndex);
 
     unawaited(_clientTokenService.refreshTokens());
@@ -162,55 +227,19 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     });
 
     _pages = <Widget>[
-      HomePage(key: _homePageKey),
-      MultiBlocProvider(
-        providers: [
-          BlocProvider.value(value: AccountsBloc(injector(), injector())),
-        ],
-        child: const WalletPage(),
-      ),
+      CollectionHomePage(key: _collectionHomePageKey),
+      OrganizeHomePage(key: _organizeHomePageKey),
+      MultiBlocProvider(providers: [
+        BlocProvider.value(
+            value: ExhibitionBloc(injector())..add(GetAllExhibitionsEvent())),
+      ], child: const ExhibitionsPage()),
+      ScanQRPage(
+        key: _scanQRPageKey,
+        onHandleFinished: () async {
+          await _onItemTapped(_initialTab.index);
+        },
+      )
     ];
-    _bottomItems = [
-      const BottomNavigationBarItem(
-        icon: Icon(
-          AuIcon.playlists,
-          size: 25,
-        ),
-        label: '',
-      ),
-      const BottomNavigationBarItem(
-        icon: Icon(
-          AuIcon.wallet,
-          size: 25,
-        ),
-        label: '',
-      ),
-      const BottomNavigationBarItem(
-        icon: Icon(
-          AuIcon.scan,
-          size: 25,
-        ),
-        label: '',
-      ),
-      BottomNavigationBarItem(
-        icon: ValueListenableBuilder<List<int>?>(
-          valueListenable:
-              injector<CustomerSupportService>().numberOfIssuesInfo,
-          builder: (BuildContext context, List<int>? numberOfIssuesInfo,
-                  Widget? child) =>
-              iconWithRedDot(
-            icon: const Icon(
-              AuIcon.drawer,
-              size: 25,
-            ),
-            padding: const EdgeInsets.only(right: 2, top: 2),
-            withReddot: numberOfIssuesInfo != null && numberOfIssuesInfo[1] > 0,
-          ),
-        ),
-        label: '',
-      ),
-    ];
-
     if (!_configurationService.isReadRemoveSupport()) {
       unawaited(_showRemoveCustomerSupport());
     }
@@ -223,7 +252,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       });
     });
 
-    if (!widget.fromOnboarding) {
+    if (!widget.payload.fromOnboarding) {
       unawaited(injector<TezosBeaconService>().cleanup());
       unawaited(injector<Wc2Service>().cleanup());
     }
@@ -247,6 +276,9 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   Future<void> didPopNext() async {
     super.didPopNext();
     unawaited(injector<CustomerSupportService>().getIssuesAndAnnouncement());
+    if (_selectedIndex == HomeNavigatorTab.scanQr.index) {
+      await _scanQRPageKey.currentState?.resumeCamera();
+    }
   }
 
   Future<void> _showRemoveCustomerSupport() async {
@@ -298,25 +330,122 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   }
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Scaffold(
-      bottomNavigationBar: BottomNavigationBar(
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        currentIndex: _selectedIndex,
-        unselectedItemColor: theme.disabledColor,
-        selectedItemColor: theme.primaryColor,
-        backgroundColor: theme.colorScheme.background.withOpacity(0.95),
-        type: BottomNavigationBarType.fixed,
-        onTap: _onItemTapped,
-        items: _bottomItems,
+  Widget build(BuildContext context) => Scaffold(
+        backgroundColor: AppColor.primaryBlack,
+        body: SafeArea(
+          top: false,
+          bottom: false,
+          child: Stack(
+            children: [
+              PageView(
+                controller: _pageController,
+                physics: const NeverScrollableScrollPhysics(),
+                children: _pages,
+              ),
+              KeyboardVisibilityBuilder(
+                builder: (context, isKeyboardVisible) => isKeyboardVisible
+                    ? const SizedBox()
+                    : Positioned.fill(
+                        bottom: 40,
+                        child: Align(
+                          alignment: Alignment.bottomCenter,
+                          child: _buildBottomNavigationBar(context),
+                        ),
+                      ),
+              ),
+            ],
+          ),
+        ),
+      );
+
+  Widget _buildBottomNavigationBar(BuildContext context) {
+    const selectedColor = AppColor.white;
+    const unselectedColor = AppColor.disabledColor;
+    const selectedColorFilter =
+        ColorFilter.mode(selectedColor, BlendMode.srcIn);
+    const unselectedColorFilter =
+        ColorFilter.mode(unselectedColor, BlendMode.srcIn);
+    const iconSize = 25.0;
+    final bottomItems = [
+      FFNavigationBarItem(
+        icon: SvgPicture.asset(
+          'assets/images/icon_collection.svg',
+          height: iconSize,
+          colorFilter: selectedColorFilter,
+        ),
+        unselectedIcon: SvgPicture.asset(
+          'assets/images/icon_collection.svg',
+          height: iconSize,
+          colorFilter: unselectedColorFilter,
+        ),
+        label: '',
       ),
-      body: PageView(
-        controller: _pageController,
-        physics: const NeverScrollableScrollPhysics(),
-        children: _pages,
+      FFNavigationBarItem(
+        icon: SvgPicture.asset(
+          'assets/images/set_icon.svg',
+          height: iconSize,
+          colorFilter: selectedColorFilter,
+        ),
+        unselectedIcon: SvgPicture.asset(
+          'assets/images/set_icon.svg',
+          height: iconSize,
+          colorFilter: unselectedColorFilter,
+        ),
+        label: '',
       ),
+      FFNavigationBarItem(
+        icon: SvgPicture.asset(
+          'assets/images/controller_icon.svg',
+          height: iconSize,
+          colorFilter: selectedColorFilter,
+        ),
+        unselectedIcon: SvgPicture.asset(
+          'assets/images/controller_icon.svg',
+          height: iconSize,
+          colorFilter: unselectedColorFilter,
+        ),
+        label: '',
+      ),
+      FFNavigationBarItem(
+        icon: SvgPicture.asset(
+          'assets/images/icon_scan.svg',
+          height: iconSize,
+          colorFilter: selectedColorFilter,
+        ),
+        unselectedIcon: SvgPicture.asset(
+          'assets/images/icon_scan.svg',
+          height: iconSize,
+          colorFilter: unselectedColorFilter,
+        ),
+        label: '',
+      ),
+      FFNavigationBarItem(
+        icon: ValueListenableBuilder<List<int>?>(
+          valueListenable:
+              injector<CustomerSupportService>().numberOfIssuesInfo,
+          builder: (BuildContext context, List<int>? numberOfIssuesInfo,
+                  Widget? child) =>
+              iconWithRedDot(
+            icon: SvgPicture.asset(
+              'assets/images/icon_drawer.svg',
+              height: iconSize,
+              colorFilter: unselectedColorFilter,
+            ),
+            padding: const EdgeInsets.only(right: 2, top: 2),
+            withReddot: numberOfIssuesInfo != null && numberOfIssuesInfo[1] > 0,
+          ),
+        ),
+        selectedColor: unselectedColor,
+        label: '',
+      ),
+    ];
+    return FFNavigationBar(
+      items: bottomItems,
+      selectedItemColor: selectedColor,
+      unselectedItemColor: unselectedColor,
+      backgroundColor: AppColor.auGreyBackground,
+      onSelectTab: _onItemTapped,
+      currentIndex: _selectedIndex,
     );
   }
 
@@ -360,7 +489,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
             addOnTextSpan: [
               TextSpan(
                   text: 'tap_to_view'.tr(),
-                  style: Theme.of(context).textTheme.ppMori400Green14),
+                  style: Theme.of(context).textTheme.ppMori400FFYellow14),
             ], openHandler: () async {
           final announcementID = '${data["id"]}';
           unawaited(_openAnnouncement(announcementID));
@@ -404,7 +533,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         Navigator.of(context).popUntil((route) =>
             route.settings.name == AppRouter.homePage ||
             route.settings.name == AppRouter.homePageNoTransition);
-        _pageController.jumpToPage(HomeNavigatorTab.COLLECTION.index);
+        _pageController.jumpToPage(HomeNavigatorTab.collection.index);
         break;
 
       case 'customer_support_new_message':
@@ -436,7 +565,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         Navigator.of(context).popUntil((route) =>
             route.settings.name == AppRouter.homePage ||
             route.settings.name == AppRouter.homePageNoTransition);
-        _pageController.jumpToPage(HomeNavigatorTab.COLLECTION.index);
+        _pageController.jumpToPage(HomeNavigatorTab.collection.index);
         break;
       case 'new_message':
         if (!_remoteConfig.getBool(ConfigGroup.viewDetail, ConfigKey.chat)) {
@@ -560,7 +689,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         addOnTextSpan: [
           TextSpan(
               text: 'tap_to_view'.tr(),
-              style: Theme.of(context).textTheme.ppMori400Green14),
+              style: Theme.of(context).textTheme.ppMori400FFYellow14),
         ], openHandler: () async {
       final announcementID = announcement.announcementContextId;
       unawaited(_openAnnouncement(announcementID));
@@ -578,7 +707,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     final shouldShowAnnouncements = announcements.where((element) =>
         (element.isMemento6 &&
             !_configurationService
-                .getAlreadyClaimedAirdrop(AirdropType.Memento6.seriesId)) &&
+                .getAlreadyClaimedAirdrop(AirdropType.memento6.seriesId)) &&
         showAnnouncementInfo.shouldShowAnnouncementNotification(element));
     if (shouldShowAnnouncements.isEmpty) {
       return;
@@ -604,6 +733,9 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
 
   @override
   FutureOr<void> afterFirstLayout(BuildContext context) {
+    if (widget.payload.startedTab != _initialTab) {
+      _onItemTapped(widget.payload.startedTab.index);
+    }
     final initialAction = _notificationService.initialAction;
     if (initialAction != null) {
       NotificationService.onActionReceivedMethod(initialAction);

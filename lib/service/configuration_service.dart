@@ -127,7 +127,9 @@ abstract class ConfigurationService {
 
   List<PlayListModel> getPlayList();
 
-  Future<void> setPlayList(List<PlayListModel>? value, {bool override = false});
+  Future<void> setPlayList(List<PlayListModel>? value,
+      {bool override = false,
+      ConflictAction onConflict = ConflictAction.abort});
 
   Future<void> removePlayList(String id);
 
@@ -178,10 +180,6 @@ abstract class ConfigurationService {
 
   Future setShowBackupSettingTip(DateTime time);
 
-  bool getShowWhatNewAddressTip(int currentVersion);
-
-  Future setShowWhatNewAddressTipRead(int currentVersion);
-
   // Do at once
 
   /// to determine a hash value of the current addresses where
@@ -206,8 +204,6 @@ abstract class ConfigurationService {
   ValueNotifier<bool> get showLinkOrImportTip;
 
   ValueNotifier<bool> get showBackupSettingTip;
-
-  ValueNotifier<bool> get showWhatNewAddressTip;
 
   List<SharedPostcard> getSharedPostcard();
 
@@ -263,6 +259,12 @@ abstract class ConfigurationService {
   Future<void> setDidSyncArtists(bool value);
 
   bool getDidSyncArtists();
+
+  List<String> getHiddenOrSentTokenIDs();
+
+  Future<void> setShowPostcardBanner(bool bool);
+
+  bool getShowPostcardBanner();
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
@@ -329,9 +331,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_SHOW_BACK_UP_SETTINGS_TIP =
       'show_back_up_settings_tip';
 
-  static const String KEY_SHOW_WHAT_NEW_ADDRESS_TIP =
-      'show_what_new_address_tip';
-
   static const String KEY_STAMPING_POSTCARD = 'stamping_postcard';
 
   static const String KEY_AUTO_SHOW_POSTCARD = 'auto_show_postcard';
@@ -355,6 +354,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   static const String KEY_PROCESSING_STAMP_POSTCARD =
       'processing_stamp_postcard';
+
+  static const String KEY_SHOW_POSTCARD_BANNER = 'show_postcard_banner';
 
   @override
   Future setAlreadyShowProTip(bool show) async {
@@ -712,14 +713,31 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   @override
   Future<void> setPlayList(List<PlayListModel>? value,
-      {bool override = false}) async {
-    final playlists = value?.map((e) => jsonEncode(e)).toList() ?? [];
+      {bool override = false,
+      ConflictAction onConflict = ConflictAction.abort}) async {
+    var newPlaylists = value?.map((e) => jsonEncode(e)).toList() ?? [];
 
     if (override) {
-      await _preferences.setStringList(PLAYLISTS, playlists);
+      await _preferences.setStringList(PLAYLISTS, newPlaylists);
     } else {
-      var playlistsSave = _preferences.getStringList(PLAYLISTS) ?? []
-        ..addAll(playlists);
+      var playlistsSave = _preferences.getStringList(PLAYLISTS) ?? [];
+      final playlists = playlistsSave
+          .map((e) => PlayListModel.fromJson(jsonDecode(e)))
+          .toList();
+      switch (onConflict) {
+        case ConflictAction.replace:
+          playlists.removeWhere((playlist) =>
+              value?.any((element) => playlist.id == element.id) ?? false);
+          playlistsSave = playlists.map((e) => jsonEncode(e)).toList();
+          break;
+        case ConflictAction.abort:
+          value?.removeWhere((playlist) =>
+              playlists.any((element) => element.id == playlist.id));
+          newPlaylists = value?.map((e) => jsonEncode(e)).toList() ?? [];
+          break;
+      }
+
+      playlistsSave.addAll(newPlaylists);
       await _preferences.setStringList(
           PLAYLISTS, playlistsSave.toSet().toList());
     }
@@ -779,9 +797,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   @override
   ValueNotifier<bool> showTvAppTip = ValueNotifier(false);
-
-  @override
-  ValueNotifier<bool> showWhatNewAddressTip = ValueNotifier(false);
 
   @override
   DateTime? getDoneOnboardingTime() {
@@ -1004,18 +1019,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  bool getShowWhatNewAddressTip(int currentVersion) {
-    final latestReadVersion =
-        _preferences.getInt(KEY_SHOW_WHAT_NEW_ADDRESS_TIP) ?? 0;
-    return latestReadVersion < currentVersion;
-  }
-
-  @override
-  Future setShowWhatNewAddressTipRead(int currentVersion) async {
-    await _preferences.setInt(KEY_SHOW_WHAT_NEW_ADDRESS_TIP, currentVersion);
-  }
-
-  @override
   Future<void> updateShowAnnouncementNotificationInfo(
     AnnouncementLocal announcement,
   ) async {
@@ -1161,4 +1164,29 @@ class ConfigurationServiceImpl implements ConfigurationService {
           key, currentStampingPostcard.toSet().toList());
     }
   }
+
+  @override
+  List<String> getHiddenOrSentTokenIDs() {
+    final hiddenTokens = getTempStorageHiddenTokenIDs();
+    final recentlySent = getRecentlySentToken();
+    hiddenTokens.addAll(recentlySent
+        .where((element) => element.isSentAll)
+        .map((e) => e.tokenID)
+        .toList());
+    return hiddenTokens;
+  }
+
+  @override
+  Future<void> setShowPostcardBanner(bool bool) async {
+    await _preferences.setBool(KEY_SHOW_POSTCARD_BANNER, bool);
+  }
+
+  @override
+  bool getShowPostcardBanner() =>
+      _preferences.getBool(KEY_SHOW_POSTCARD_BANNER) ?? true;
+}
+
+enum ConflictAction {
+  abort,
+  replace,
 }

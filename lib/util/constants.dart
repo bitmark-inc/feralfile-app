@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/util/geolocation.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_chat_types/flutter_chat_types.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 // ignore_for_file: constant_identifier_names
@@ -31,8 +32,6 @@ const RATING_MESSAGE_START = '### Customer support rating\n';
 const MUTE_RATING_MESSAGE = 'MUTE_RATING_MESSAGE';
 const STAR_RATING = '###STAR#RATING#';
 const KNOWN_BUGS_LINK = 'https://github.com/orgs/bitmark-inc/projects/16';
-const USER_TEST_CALENDAR_LINK =
-    'https://calendly.com/bencebitmark/autonomy-user-test';
 const IRL_DEEPLINK_PREFIX = 'https://autonomy.io/apps/irl/';
 const AUTONOMY_CLIENT_GITHUB_LINK =
     'https://github.com/bitmark-inc/autonomy-client';
@@ -43,6 +42,10 @@ const DEEP_LINKS = [
   'https://autonomy-app.app.link',
   'https://autonomy-app-alternate.app.link',
   'https://link.autonomy.io',
+  'feralfile://',
+  'https://feralfile-app.app.link',
+  'https://feralfile-app-alternate.app.link',
+  'https://app.feralfile.com',
 ];
 const FF_ARTIST_COLLECTOR =
     'https://feralfile.com/docs/artist-collector-rights';
@@ -196,7 +199,13 @@ const int COLLECTION_INITIAL_MIN_SIZE = 20;
 
 const int LEADERBOARD_PAGE_SIZE = 50;
 
+const int maxCollectionListSize = 3;
+
+const double collectionListArtworkAspectRatio = 375 / 210.94;
+const String collectionListArtworkThumbnailVariant = 'thumbnailList';
+
 const String POSTCARD_ONSITE_REQUEST_ID = 'moma-postcard-onsite';
+const String POSTCARD_ONLINE_REQUEST_ID = 'moma-postcard-online';
 
 Future<bool> isAppCenterBuild() async {
   final PackageInfo info = await PackageInfo.fromPlatform();
@@ -301,17 +310,17 @@ class ReportIssueType {
   static String introMessage(String item) {
     switch (item) {
       case Feature:
-        return 'Thanks for taking the time to help us improve Autonomy. We’re always looking for great ideas. What feature would you like to request?';
+        return 'Thanks for taking the time to help us improve Feral File. We’re always looking for great ideas. What feature would you like to request?';
       case Bug:
-        return 'We’re sorry to hear you’ve experienced a problem using Autonomy. Thanks for taking the time to help us improve. Please describe the bug for us.';
+        return 'We’re sorry to hear you’ve experienced a problem using Feral File. Thanks for taking the time to help us improve. Please describe the bug for us.';
       case Feedback:
         return 'Thanks for taking the time to share your feedback with us. What’s on your mind?';
       case Exception:
-        return 'Thanks for taking the time to help improve Autonomy. We’ve received your automatic crash report and are looking into it. How else can we help?';
+        return 'Thanks for taking the time to help improve Feral File. We’ve received your automatic crash report and are looking into it. How else can we help?';
       case ReportNFTIssue:
-        return 'Thanks for taking the time to help improve Autonomy. We’ve received your NFT issue and are looking into it. How else can we help?';
+        return 'Thanks for taking the time to help improve Feral File. We’ve received your NFT issue and are looking into it. How else can we help?';
       default:
-        return 'Thanks for reaching out to the Autonomy team! What’s on your mind?';
+        return 'Thanks for reaching out to the Feral File team! What’s on your mind?';
     }
   }
 }
@@ -336,7 +345,7 @@ extension PremiumFeatureExtension on PremiumFeature {
   String get moreAutonomyDescription {
     switch (rawValue) {
       case 'AutonomyTV':
-        return 'You must upgrade to an Autonomy subscription to connect to Autonomy on TV.';
+        return 'You must upgrade to an Feral File subscription to connect to Feral File on TV.';
       default:
         return '';
     }
@@ -576,3 +585,12 @@ class IrlWebviewFunction {
 }
 
 const Duration USE_APP_MIN_DURATION = Duration(seconds: 30);
+
+const chatPrivateBannerId = 'chat_private_banner_id';
+final chatPrivateBannerMessage = SystemMessage(
+  id: chatPrivateBannerId,
+  author: const User(id: chatPrivateBannerId),
+  createdAt: 0,
+  text: 'chat_is_private'.tr(),
+  status: Status.delivered,
+);

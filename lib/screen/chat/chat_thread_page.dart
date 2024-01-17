@@ -4,16 +4,21 @@ import 'dart:math';
 import 'dart:ui' as ui;
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/gateway/chat_api.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/chat_message.dart' as app;
 import 'package:autonomy_flutter/model/pair.dart';
+import 'package:autonomy_flutter/screen/chat/chat_bloc.dart';
+import 'package:autonomy_flutter/screen/chat/chat_state.dart';
 import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/chat_alias_ext.dart';
 import 'package:autonomy_flutter/util/chat_messsage_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
+import 'package:autonomy_flutter/util/message_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/postcard_chat.dart';
@@ -23,8 +28,11 @@ import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:flutter_chat_ui/flutter_chat_ui.dart';
+//ignore: implementation_imports
+import 'package:flutter_chat_ui/src/models/date_header.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/models/asset_token.dart';
@@ -47,11 +55,16 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
   int? _lastMessageTimestamp;
   bool _didFetchAllMessages = false;
   String? _historyRequestId;
-  int? _chatPrivateBannerTimestamp;
   final ConfigurationService _configurationService =
-      injector<ConfigurationService>();
+  injector<ConfigurationService>();
   final ChatService _postcardChatService = injector<ChatService>();
   ChatListener? _chatListener;
+  late AuChatBloc _auChatBloc;
+  List<ChatAlias>? _aliases;
+  late TextEditingController _textController;
+  late FocusNode _textFieldFocusNode;
+  late bool _showSetAliasTextField;
+  late bool _withOverlay;
 
   @override
   void initState() {
@@ -60,23 +73,26 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
     _user = types.User(id: _payload.address);
     unawaited(_websocketInitAndFetchHistory());
     memoryValues.currentGroupChatId = _payload.token.id;
-    _checkReadPrivateChatBanner();
+    _textController = TextEditingController();
+    _textFieldFocusNode = FocusNode();
+    _withOverlay = _textFieldFocusNode.hasFocus;
+    _textFieldFocusNode.addListener(_textFieldFocusNodeListener);
+    _showSetAliasTextField = false;
+    _auChatBloc = injector<AuChatBloc>();
+    _auChatBloc.add(GetAliasesEvent(_payload.token));
   }
 
-  void _checkReadPrivateChatBanner() {
-    final config = _configurationService.getPostcardChatConfig(
-        address: _payload.address, id: _payload.token.id);
-    _chatPrivateBannerTimestamp = config.firstTimeJoined;
-    if (_chatPrivateBannerTimestamp == null) {
-      final newConfig = config.copyWith(
-          firstTimeJoined: DateTime.now().millisecondsSinceEpoch);
-      unawaited(_configurationService.setPostcardChatConfig(newConfig));
-    }
+  void _textFieldFocusNodeListener() {
+    setState(() {
+      _withOverlay = _textFieldFocusNode.hasFocus;
+    });
   }
 
   Future<void> _websocketInitAndFetchHistory() async {
     await _websocketInit();
-    _lastMessageTimestamp = DateTime.now().millisecondsSinceEpoch;
+    _lastMessageTimestamp = DateTime
+        .now()
+        .millisecondsSinceEpoch;
     _getHistory();
   }
 
@@ -141,50 +157,36 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
   void _handleNewMessages(List<app.Message> newMessages, {String? id}) {
     if (id != null) {
       if (id == _historyRequestId) {
-        _messages.addAll(_convertMessages(newMessages));
+        _messages.addAll(newMessages.toTypeMessages);
         if (newMessages.isNotEmpty) {
           _lastMessageTimestamp = newMessages.last.timestamp;
         } else {
-          _lastMessageTimestamp = DateTime.now().millisecondsSinceEpoch;
+          _lastMessageTimestamp = DateTime
+              .now()
+              .millisecondsSinceEpoch;
         }
         _historyRequestId = null;
       }
     } else {
-      final otherPeopleMessages = _convertMessages(newMessages)
+      final otherPeopleMessages = newMessages.toTypeMessages
         ..removeWhere((element) => element.author.id == _user.id);
       _messages
         ..insertAll(0, otherPeopleMessages)
         ..sort((a, b) => (b.createdAt ?? 0).compareTo(a.createdAt ?? 0));
     }
     final currentMessageTimestamp =
-        _messages.isNotEmpty ? _messages.first.createdAt ?? 0 : 0;
+    _messages.isNotEmpty ? _messages.first.createdAt ?? 0 : 0;
     final newMessageTimestamp =
-        newMessages.isNotEmpty ? newMessages.first.timestamp : 0;
+    newMessages.isNotEmpty ? newMessages.first.timestamp : 0;
     int readTimestamp = max(currentMessageTimestamp, newMessageTimestamp);
     readTimestamp = readTimestamp == 0
-        ? DateTime.now().millisecondsSinceEpoch
+        ? DateTime
+        .now()
+        .millisecondsSinceEpoch
         : readTimestamp;
 
     unawaited(_updateLastMessageReadTimeStamp(readTimestamp + 1));
 
-    if (_chatPrivateBannerTimestamp != null) {
-      _messages.removeWhere((element) => element.id == _chatPrivateBannerId);
-      int index = _messages.indexWhere((element) =>
-          element.createdAt != null &&
-          element.createdAt! < _chatPrivateBannerTimestamp!);
-      if (index == -1) {
-        index = _messages.length;
-      }
-      _messages.insert(
-          index,
-          types.SystemMessage(
-            id: _chatPrivateBannerId,
-            author: _user,
-            createdAt: _chatPrivateBannerTimestamp,
-            text: 'chat_is_private'.tr(),
-            status: types.Status.delivered,
-          ));
-    }
     if (mounted) {
       setState(() {
         _messages;
@@ -209,7 +211,9 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
           case ChatService.SENT:
             _messages[index] = _messages[index].copyWith(
                 status: types.Status.sent,
-                createdAt: DateTime.now().millisecondsSinceEpoch);
+                createdAt: DateTime
+                    .now()
+                    .millisecondsSinceEpoch);
             break;
           case ChatService.ERROR:
             _messages.removeAt(index);
@@ -227,51 +231,122 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
       unawaited(_postcardChatService.removeListener(_chatListener!));
     }
     memoryValues.currentGroupChatId = null;
+    _textController.dispose();
+    _textFieldFocusNode.dispose();
     super.dispose();
+  }
+
+  void onSubmitAlias(String alias) {
+    setState(() {
+      _showSetAliasTextField = false;
+    });
+    if (alias
+        .trim()
+        .isEmpty) {
+      return;
+    }
+    _auChatBloc
+        .add(SetChatAliasEvent(assetToken: widget.payload.token, alias: alias));
+  }
+
+  Widget _setAliasTextField(BuildContext context) {
+    final theme = Theme.of(context);
+    return TextField(
+      controller: _textController,
+      focusNode: _textFieldFocusNode,
+      onSubmitted: onSubmitAlias,
+      style: theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
+      cursorColor: theme.colorScheme.primary,
+      decoration: InputDecoration(
+        constraints: const BoxConstraints(maxHeight: 56),
+        contentPadding: const EdgeInsets.all(15),
+        border: InputBorder.none,
+        hintText:
+        !_textFieldFocusNode.hasFocus ? 'set_a_chat_alias'.tr() : null,
+        hintStyle: theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
+        isDense: true,
+        fillColor: AppColor.auLightGrey,
+        filled: true,
+        focusedBorder: OutlineInputBorder(
+          borderSide: const BorderSide(color: Colors.transparent),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderSide: const BorderSide(color: Colors.transparent),
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+      cursorWidth: 1,
+      textAlignVertical: TextAlignVertical.center,
+      textAlign: TextAlign.center,
+      textCapitalization: TextCapitalization.sentences,
+      onTapOutside: (event) {
+        if (!_textFieldFocusNode.hasFocus) {
+          return;
+        }
+        _textFieldFocusNode.unfocus();
+        onSubmitAlias(_textController.text);
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Scaffold(
-      backgroundColor: POSTCARD_BACKGROUND_COLOR,
-      appBar: getBackAppBar(
-        context,
-        title: 'messages'.tr(),
-        titleStyle: theme.textTheme.moMASans700Black18,
-        onBack: () => Navigator.of(context).pop(),
-        statusBarColor: POSTCARD_BACKGROUND_COLOR,
-        backgroundColor: POSTCARD_BACKGROUND_COLOR,
-      ),
-      body: Chat(
-        l10n: ChatL10nEn(
-          inputPlaceholder: 'message'.tr(),
-        ),
-        onMessageVisibilityChanged: _onMessageVisibilityChanged,
-        customDateHeaderText: getChatDateTimeRepresentation,
-        systemMessageBuilder: _systemMessageBuilder,
-        bubbleRtlAlignment: BubbleRtlAlignment.left,
-        isLastPage: false,
-        theme: _chatTheme,
-        dateHeaderThreshold: 12 * 60 * 60 * 1000,
-        groupMessagesThreshold: DateTime.now().millisecondsSinceEpoch,
-        emptyState: const SizedBox(),
-        messages: _messages,
-        onSendPressed: (_) {},
-        user: types.User(id: const Uuid().v4()),
-        customBottomWidget: Column(
-          children: [
-            if (_chatPrivateBannerTimestamp == null)
-              _chatPrivateBanner(context)
-            else
-              const SizedBox(),
-            AuInputChat(
-              onSendPressed: _handleSendPressed,
+    return BlocConsumer<AuChatBloc, AuChatState>(
+        bloc: _auChatBloc,
+        builder: (context, chatState) =>
+            Scaffold(
+              backgroundColor: POSTCARD_BACKGROUND_COLOR,
+              appBar: getBackAppBar(
+                context,
+                title: 'messages'.tr(),
+                titleStyle: theme.textTheme.moMASans700Black18,
+                onBack: () => Navigator.of(context).pop(),
+                statusBarColor: POSTCARD_BACKGROUND_COLOR,
+                backgroundColor: POSTCARD_BACKGROUND_COLOR,
+              ),
+              body: _aliases != null
+                  ? Column(
+                children: [
+                  if (_showSetAliasTextField)
+                    Container(
+                      color: Colors.transparent,
+                      child: Padding(
+                        padding: const EdgeInsets.all(15),
+                        child: Column(
+                          children: [
+                            _setAliasTextField(context),
+                          ],
+                        ),
+                      ),
+                    ),
+                  Expanded(
+                    child: Stack(
+                      children: [
+                        _chatThread(context),
+                        if (_withOverlay)
+                          Positioned.fill(
+                              child: Container(
+                                color: Colors.white.withOpacity(0.9),
+                              ))
+                      ],
+                    ),
+                  ),
+                ],
+              )
+                  : const SizedBox(),
             ),
-          ],
-        ),
-      ),
-    );
+        listener: (context, chatState) {
+          setState(() {
+            _aliases = chatState.aliases;
+            final alias = chatState.aliases?.getAlias(_payload.address);
+            _showSetAliasTextField = alias == null;
+            if (alias != null) {
+              _textController.text = alias;
+            }
+          });
+        });
   }
 
   void _onMessageVisibilityChanged(types.Message message, bool visible) {
@@ -279,6 +354,72 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
       _getHistory();
     }
   }
+
+  void _onTapToSetAlias() {
+    setState(() {
+      _textFieldFocusNode.requestFocus();
+      _showSetAliasTextField = true;
+    });
+  }
+
+  Widget _dateHeaderBuilder(BuildContext context, DateHeader date) {
+    final theme = Theme.of(context);
+    if (date.dateTime.millisecondsSinceEpoch ==
+        chatPrivateBannerMessage.createdAt) {
+      return const SizedBox();
+    } else {
+      return Container(
+        alignment: Alignment.center,
+        margin: const EdgeInsets.symmetric(vertical: 12),
+        child: Text(
+          date.text,
+          style: ResponsiveLayout.isMobile
+              ? theme.textTheme.dateDividerTextStyle
+              : theme.textTheme.dateDividerTextStyle14,
+        ),
+      );
+    }
+  }
+
+  Widget _chatThread(BuildContext context) =>
+      Chat(
+        l10n: ChatL10nEn(
+          inputPlaceholder: 'message'.tr(),
+        ),
+        onMessageVisibilityChanged: _onMessageVisibilityChanged,
+        customDateHeaderText: getChatDateTimeRepresentation,
+        systemMessageBuilder: (systemMessage) =>
+            _systemMessageBuilder(
+              message: systemMessage,
+              onAvatarTap: () {},
+              onAliasTap: () {
+                if (_user.id != systemMessage.author.id) {
+                  return;
+                }
+                _onTapToSetAlias();
+              },
+            ),
+        bubbleRtlAlignment: BubbleRtlAlignment.left,
+        isLastPage: false,
+        theme: _chatTheme,
+        dateHeaderThreshold: 12 * 60 * 60 * 1000,
+        groupMessagesThreshold: DateTime
+            .now()
+            .millisecondsSinceEpoch,
+        dateHeaderBuilder: (DateHeader date) =>
+            _dateHeaderBuilder(context, date),
+        emptyState: const SizedBox(),
+        messages: _messages.insertBannerMessage(),
+        onSendPressed: (_) {},
+        user: types.User(id: const Uuid().v4()),
+        customBottomWidget: Column(
+          children: [
+            AuInputChat(
+              onSendPressed: _handleSendPressed,
+            ),
+          ],
+        ),
+      );
 
   Widget _chatPrivateBanner(BuildContext context, {String? text}) {
     final theme = Theme.of(context);
@@ -295,8 +436,8 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
     );
   }
 
-  Widget _postcardCompleteBuilder(
-      BuildContext context, types.SystemMessage message) {
+  Widget _postcardCompleteBuilder(BuildContext context,
+      types.SystemMessage message) {
     final totalDistance = widget.payload.token.totalDistance;
     final distanceFormater = DistanceFormatter();
     return _chatPrivateBanner(context,
@@ -306,8 +447,12 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
         }));
   }
 
-  Widget _systemMessageBuilder(types.SystemMessage message) {
-    if (message.id == _chatPrivateBannerId) {
+  Widget _systemMessageBuilder({
+    required types.SystemMessage message,
+    required void Function()? onAvatarTap,
+    required void Function()? onAliasTap,
+  }) {
+    if (message.isPrivateChatMessage) {
       return _chatPrivateBanner(context, text: message.text);
     }
     if (message.isCompletedPostcardMessage) {
@@ -329,19 +474,26 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              if (message.isSystemMessage)
-                SystemUserAvatar(
+              GestureDetector(
+                onTap: onAvatarTap,
+                child: (message.isSystemMessage)
+                    ? SystemUserAvatar(
                   url: avatarUrl,
                   key: Key(avatarUrl),
                 )
-              else
-                UserAvatar(key: Key(avatarUrl), url: avatarUrl),
+                    : UserAvatar(key: Key(avatarUrl), url: avatarUrl),
+              ),
               const SizedBox(width: 20),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    MessageView(message: message, assetToken: assetToken),
+                    MessageView(
+                      message: message,
+                      assetToken: assetToken,
+                      aliases: _aliases!,
+                      onAliasTap: onAliasTap,
+                    ),
                   ],
                 ),
               ),
@@ -353,7 +505,9 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
   }
 
   void _submit(String message) {
-    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final timestamp = DateTime
+        .now()
+        .millisecondsSinceEpoch;
     final messageId = const Uuid().v4();
 
     final sendingMessage = types.SystemMessage(
@@ -363,9 +517,7 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
       text: message,
       status: types.Status.sending,
     );
-    if (_chatPrivateBannerTimestamp == null) {
-      _checkReadPrivateChatBanner();
-    }
+
     setState(() {
       _messages.insert(0, sendingMessage);
     });
@@ -374,18 +526,14 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
   }
 
   void _sendMessage(types.SystemMessage message) {
-    _postcardChatService.sendMessage(json.encode({
-      'command': 'SEND',
-      'id': message.id,
-      'payload': {'message': message.text}
-    }));
+    _auChatBloc.add(SendMessageEvent(message));
   }
 
   DefaultChatTheme get _chatTheme {
     final theme = Theme.of(context);
     return DefaultChatTheme(
-      messageInsetsVertical: 14,
-      messageInsetsHorizontal: 14,
+      messageInsetsVertical: 0,
+      messageInsetsHorizontal: 0,
       backgroundColor: Colors.transparent,
       typingIndicatorTheme: const TypingIndicatorTheme(
         animatedCirclesColor: neutral1,
@@ -402,10 +550,6 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
       ),
       emptyChatPlaceholderTextStyle: theme.textTheme.ppMori400Black14
           .copyWith(color: AppColor.auQuickSilver),
-      dateDividerMargin: const EdgeInsets.symmetric(vertical: 12),
-      dateDividerTextStyle: ResponsiveLayout.isMobile
-          ? theme.textTheme.dateDividerTextStyle
-          : theme.textTheme.dateDividerTextStyle14,
       primaryColor: Colors.transparent,
       sentMessageBodyTextStyle: ResponsiveLayout.isMobile
           ? theme.textTheme.sentMessageBodyTextStyle
@@ -425,14 +569,9 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
     );
   }
 
-  static const _chatPrivateBannerId = 'chat_private_banner';
-
   void _handleSendPressed(types.PartialText message) {
     _submit(message.text);
   }
-
-  List<types.Message> _convertMessages(List<app.Message> appMessages) =>
-      appMessages.map((e) => e.toTypesMessage()).toList();
 }
 
 class ChatThreadPagePayload {
@@ -457,14 +596,15 @@ class UserAvatar extends StatelessWidget {
   const UserAvatar({required this.url, super.key});
 
   @override
-  Widget build(BuildContext context) => SizedBox(
-      width: 41,
-      height: 41,
-      child: CachedNetworkImage(
-        imageUrl: url,
-        errorWidget: (context, url, error) =>
-            SvgPicture.asset('assets/images/default_avatar.svg'),
-      ));
+  Widget build(BuildContext context) =>
+      SizedBox(
+          width: 41,
+          height: 41,
+          child: CachedNetworkImage(
+            imageUrl: url,
+            errorWidget: (context, url, error) =>
+                SvgPicture.asset('assets/images/default_avatar.svg'),
+          ));
 }
 
 class SystemUserAvatar extends UserAvatar {
@@ -488,7 +628,8 @@ class _AuInputChatState extends State<AuInputChat> {
   final TextEditingController _textController = TextEditingController();
   bool _isTyping = false;
 
-  Widget _sendIcon(BuildContext context) => SvgPicture.asset(
+  Widget _sendIcon(BuildContext context) =>
+      SvgPicture.asset(
         'assets/images/sendMessage.svg',
         width: 22,
         height: 22,
@@ -569,20 +710,18 @@ class _AuInputChatState extends State<AuInputChat> {
 class PostcardChatConfig {
   final String address;
   final String tokenId;
-  final int? firstTimeJoined;
   final int? lastMessageReadTimeStamp;
 
   PostcardChatConfig({
     required this.address,
     required this.tokenId,
-    this.firstTimeJoined,
     this.lastMessageReadTimeStamp,
   });
 
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() =>
+      {
         'address': address,
         'tokenId': tokenId,
-        'firstTimeJoined': firstTimeJoined,
         'lastMessageReadTimeStamp': lastMessageReadTimeStamp,
       };
 
@@ -590,7 +729,6 @@ class PostcardChatConfig {
       PostcardChatConfig(
         address: json['address'] as String,
         tokenId: json['tokenId'] as String,
-        firstTimeJoined: json['firstTimeJoined'] as int?,
         lastMessageReadTimeStamp: json['lastMessageReadTimeStamp'] as int?,
       );
 
@@ -604,8 +742,7 @@ class PostcardChatConfig {
       PostcardChatConfig(
         address: address ?? this.address,
         tokenId: tokenId ?? this.tokenId,
-        firstTimeJoined: firstTimeJoined ?? this.firstTimeJoined,
         lastMessageReadTimeStamp:
-            lastMessageReadTimeStamp ?? this.lastMessageReadTimeStamp,
+        lastMessageReadTimeStamp ?? this.lastMessageReadTimeStamp,
       );
 }

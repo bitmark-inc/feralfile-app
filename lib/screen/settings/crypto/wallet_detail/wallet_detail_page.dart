@@ -485,7 +485,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: isCopied
-                              ? AppColor.auSuperTeal
+                              ? AppColor.feralFileHighlight
                               : AppColor.auLightGrey,
                           shadowColor: Colors.transparent,
                           shape: RoundedRectangleBorder(

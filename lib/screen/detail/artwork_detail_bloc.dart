@@ -5,12 +5,15 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
+
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
 import 'package:autonomy_flutter/service/airdrop_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:http/http.dart' as http;
+import 'package:nft_collection/data/api/indexer_api.dart';
 import 'package:nft_collection/database/dao/dao.dart';
 import 'package:nft_collection/graphql/model/get_list_tokens.dart';
 import 'package:nft_collection/services/indexer_service.dart';
@@ -22,6 +25,7 @@ class ArtworkDetailBloc extends AuBloc<ArtworkDetailEvent, ArtworkDetailState> {
   final IndexerService _indexerService;
   final TokenDao _tokenDao;
   final AirdropService _airdropService;
+  final IndexerApi _indexerApi;
 
   ArtworkDetailBloc(
     this._assetTokenDao,
@@ -30,6 +34,7 @@ class ArtworkDetailBloc extends AuBloc<ArtworkDetailEvent, ArtworkDetailState> {
     this._indexerService,
     this._tokenDao,
     this._airdropService,
+    this._indexerApi,
   ) : super(ArtworkDetailState(provenances: [])) {
     on<ArtworkDetailGetInfoEvent>((event, emit) async {
       final tokens = await _tokenDao.findTokensByID(event.identity.id);
@@ -71,31 +76,36 @@ class ArtworkDetailBloc extends AuBloc<ArtworkDetailEvent, ArtworkDetailState> {
             final res = await http
                 .head(uri)
                 .timeout(const Duration(milliseconds: 10000));
-            assetToken.asset!.mimeType = res.headers["content-type"];
-            _assetDao.updateAsset(assetToken.asset!);
+            assetToken.asset!.mimeType = res.headers['content-type'];
+            unawaited(_assetDao.updateAsset(assetToken.asset!));
             emit(ArtworkDetailState(
               assetToken: assetToken,
               provenances: provenances,
               owners: owners,
             ));
           } catch (error) {
-            log.info("ArtworkDetailGetInfoEvent: preview url error", error);
+            log.info('ArtworkDetailGetInfoEvent: preview url error', error);
           }
         }
       }
       if (assetToken != null && assetToken.isAirdropToken) {
         add(ArtworkDetailGetAirdropDeeplink(assetToken: state.assetToken!));
       }
+      await _indexHistory(event.identity.id);
     });
     on<ArtworkDetailGetAirdropDeeplink>((event, emit) async {
-      String deeplink = "";
+      String deeplink = '';
       try {
-        deeplink = await _airdropService.shareAirdrop(event.assetToken) ?? "";
+        deeplink = await _airdropService.shareAirdrop(event.assetToken) ?? '';
       } catch (error) {
-        log.info("ArtworkDetailGetAirdropDeeplink: share airdrop error",
+        log.info('ArtworkDetailGetAirdropDeeplink: share airdrop error',
             error.toString());
       }
       emit(state.copyWith(airdropDeeplink: deeplink));
     });
+  }
+
+  Future<void> _indexHistory(String tokenId) async {
+    await _indexerApi.indexTokenHistory({'indexID': tokenId});
   }
 }

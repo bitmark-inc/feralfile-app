@@ -56,9 +56,9 @@ class CanvasDeviceState {
 
   CanvasDeviceState({
     required this.devices,
-    this.sceneId = "",
-    this.isConnectError = false,
     required this.isLoaded,
+    this.sceneId = '',
+    this.isConnectError = false,
   });
 
   CanvasDeviceState copyWith({
@@ -66,14 +66,13 @@ class CanvasDeviceState {
     String? sceneId,
     bool? isConnectError,
     bool? isLoaded,
-  }) {
-    return CanvasDeviceState(
-      devices: devices ?? this.devices,
-      sceneId: sceneId ?? this.sceneId,
-      isConnectError: isConnectError ?? false,
-      isLoaded: isLoaded ?? this.isLoaded,
-    );
-  }
+  }) =>
+      CanvasDeviceState(
+        devices: devices ?? this.devices,
+        sceneId: sceneId ?? this.sceneId,
+        isConnectError: isConnectError ?? false,
+        isLoaded: isLoaded ?? this.isLoaded,
+      );
 
   CanvasDeviceState replaceDeviceState(
       {required CanvasDevice device, required DeviceState deviceState}) {
@@ -86,24 +85,20 @@ class CanvasDeviceState {
     return copyWith(devices: newDeviceState);
   }
 
-  List<CanvasDevice> get playingDevice {
-    return devices
-        .map((e) {
-          if (e.status == DeviceStatus.playing) {
-            return e.device;
-          }
-        })
-        .whereNotNull()
-        .toList();
-  }
+  List<CanvasDevice> get playingDevice => devices
+      .map((e) {
+        if (e.status == DeviceStatus.playing) {
+          return e.device;
+        }
+      })
+      .whereNotNull()
+      .toList();
 
-  bool get isCasting {
-    return devices.firstWhereOrNull((deviceState) {
-          return deviceState.status == DeviceStatus.playing &&
-              deviceState.device.playingSceneId == sceneId;
-        }) !=
-        null;
-  }
+  bool get isCasting =>
+      devices.firstWhereOrNull((deviceState) =>
+          deviceState.status == DeviceStatus.playing &&
+          deviceState.device.playingSceneId == sceneId) !=
+      null;
 }
 
 class DeviceState {
@@ -120,12 +115,11 @@ class DeviceState {
   DeviceState copyWith({
     CanvasDevice? device,
     DeviceStatus? status,
-  }) {
-    return DeviceState(
-      device: device ?? this.device,
-      status: status ?? this.status,
-    );
-  }
+  }) =>
+      DeviceState(
+        device: device ?? this.device,
+        status: status ?? this.status,
+      );
 }
 
 enum DeviceStatus {
@@ -177,12 +171,12 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
                 DeviceState(device: device, status: DeviceStatus.loading)));
         final connected = await _canvasClientService.connectToDevice(device);
         if (!connected) {
-          throw Exception("Failed to connect to device");
+          throw Exception('Failed to connect to device');
         }
         final ok =
             await _canvasClientService.castSingleArtwork(device, event.tokenId);
         if (!ok) {
-          throw Exception("Failed to cast to device");
+          throw Exception('Failed to cast to device');
         }
         emit(state.replaceDeviceState(
             device: device,
@@ -205,12 +199,12 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
                 DeviceState(device: device, status: DeviceStatus.loading)));
         final connected = await _canvasClientService.connectToDevice(device);
         if (!connected) {
-          throw Exception("Failed to connect to device");
+          throw Exception('Failed to connect to device');
         }
         final ok =
             await _canvasClientService.castCollection(device, event.playlist);
         if (!ok) {
-          throw Exception("Failed to cast to device");
+          throw Exception('Failed to cast to device');
         }
         emit(state.replaceDeviceState(
             device: device,
