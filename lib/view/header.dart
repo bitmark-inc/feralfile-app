@@ -5,72 +5,48 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 class HeaderView extends StatelessWidget {
-  final double paddingTop;
-  final bool isWhite;
+  final String title;
+  final TextStyle? titleStyle;
   final Widget? action;
+  final EdgeInsets? padding;
 
-  const HeaderView(
-      {required this.paddingTop, super.key, this.isWhite = false, this.action});
-
-  @override
-  Widget build(BuildContext context) => Align(
-        alignment: Alignment.centerLeft,
-        child: Container(
-          padding: EdgeInsets.fromLTRB(0, paddingTop, 0, 40),
-          child: Column(
-            children: [
-              headDivider(),
-              const SizedBox(height: 7),
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(left: 15),
-                    child: AutonomyLogo(
-                      isWhite: isWhite,
-                    ),
-                  ),
-                  const Spacer(),
-                  action ?? const SizedBox()
-                ],
-              ),
-            ],
-          ),
-        ),
-      );
-}
-
-class AutonomyLogo extends StatelessWidget {
-  final bool isWhite;
-
-  const AutonomyLogo({super.key, this.isWhite = false});
+  const HeaderView({
+    required this.title,
+    this.titleStyle,
+    this.padding,
+    super.key,
+    this.action,
+  });
 
   @override
-  Widget build(BuildContext context) => FutureBuilder<bool>(
-      // ignore: discarded_futures
-      future: logoState(),
-      builder: (context, snapshot) {
-        if (snapshot.data == null) {
-          return const SizedBox(height: 50);
-        }
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final defaultStyle =
+        theme.textTheme.ppMori700White24.copyWith(fontSize: 36);
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Container(
+        padding: padding ?? const EdgeInsets.fromLTRB(12, 33, 12, 42),
+        child: Column(
           children: [
-            SvgPicture.asset(
-              isWhite
-                  ? 'assets/images/autonomy_icon_white.svg'
-                  : snapshot.data!
-                      ? 'assets/images/logo_dev.svg'
-                      : 'assets/images/penrose_moma.svg',
-              width: 50,
-              height: 50,
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    title,
+                    style: titleStyle ?? defaultStyle,
+                  ),
+                ),
+                action ?? const SizedBox()
+              ],
             ),
           ],
-        );
-      });
+        ),
+      ),
+    );
+  }
 }

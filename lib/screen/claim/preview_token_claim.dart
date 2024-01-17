@@ -1,16 +1,17 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:after_layout/after_layout.dart';
-import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shake/shake.dart';
 
@@ -18,9 +19,9 @@ class PreviewTokenClaim extends StatefulWidget {
   final FFSeries series;
 
   const PreviewTokenClaim({
-    Key? key,
     required this.series,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<PreviewTokenClaim> createState() => _PreviewTokenClaimState();
@@ -37,10 +38,10 @@ class _PreviewTokenClaimState extends State<PreviewTokenClaim>
     WidgetsBinding.instance.removeObserver(this);
     _detector?.stopListening();
     if (Platform.isAndroid) {
-      SystemChrome.setEnabledSystemUIMode(
+      unawaited(SystemChrome.setEnabledSystemUIMode(
         SystemUiMode.manual,
         overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom],
-      );
+      ));
     }
   }
 
@@ -52,10 +53,10 @@ class _PreviewTokenClaimState extends State<PreviewTokenClaim>
         setState(() {
           isFullScreen = false;
         });
-        SystemChrome.setEnabledSystemUIMode(
+        unawaited(SystemChrome.setEnabledSystemUIMode(
           SystemUiMode.manual,
           overlays: SystemUiOverlay.values,
-        );
+        ));
       },
     );
 
@@ -93,7 +94,7 @@ class _PreviewTokenClaimState extends State<PreviewTokenClaim>
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               SvgPicture.asset(
-                                "assets/images/iconInfo.svg",
+                                'assets/images/iconInfo.svg',
                                 colorFilter: ColorFilter.mode(
                                     theme.colorScheme.secondary,
                                     BlendMode.srcIn),
@@ -115,12 +116,13 @@ class _PreviewTokenClaimState extends State<PreviewTokenClaim>
                                     ),
                                     Row(
                                       children: [
-                                        const SizedBox(height: 4.0),
+                                        const SizedBox(height: 4),
                                         Text(
-                                          "by".tr(args: [
-                                            artist != null
-                                                ? artist.getDisplayName()
-                                                : ""
+                                          'by'.tr(args: [
+                                            if (artist != null)
+                                              artist.getDisplayName()
+                                            else
+                                              ''
                                           ]).trim(),
                                           overflow: TextOverflow.ellipsis,
                                           style: theme
@@ -134,8 +136,8 @@ class _PreviewTokenClaimState extends State<PreviewTokenClaim>
                               const SizedBox(width: 5),
                             ],
                           ),
-                          onTap: () {
-                            Navigator.of(context).pushNamed(
+                          onTap: () async {
+                            await Navigator.of(context).pushNamed(
                               AppRouter.airdropTokenDetailPage,
                               arguments: artwork,
                             );
@@ -157,7 +159,7 @@ class _PreviewTokenClaimState extends State<PreviewTokenClaim>
                       IconButton(
                         onPressed: () => Navigator.of(context).pop(),
                         icon: closeIcon(color: theme.colorScheme.secondary),
-                        tooltip: "CloseArtwork",
+                        tooltip: 'CloseArtwork',
                       )
                     ],
                   ),

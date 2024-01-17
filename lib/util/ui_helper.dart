@@ -1,4 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+// ignore_for_file: unawaited_futures, discarded_futures
+// ignore_for_file: constant_identifier_names
 //
 //  SPDX-License-Identifier: BSD-2-Clause-Patent
 //  Copyright © 2022 Bitmark. All rights reserved.
@@ -13,6 +15,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
@@ -65,10 +68,18 @@ Future<void> doneOnboarding(BuildContext context) async {
   // injector<MetricClientService>().mixPanelClient.initIfDefaultAccount();
   await injector<NavigationService>()
       .navigateUntil(AppRouter.homePage, (route) => false);
+}
 
-  // await askForNotification();
-  // Future.delayed(
-  //     SHORT_SHOW_DIALOG_DURATION, () => showSurveysNotification(context));
+void nameContinue(BuildContext context) {
+  if (injector<ConfigurationService>().isDoneOnboarding()) {
+    Navigator.of(context).popUntil((route) =>
+        route.settings.name == AppRouter.claimSelectAccountPage ||
+        route.settings.name == AppRouter.wcConnectPage ||
+        route.settings.name == AppRouter.homePage ||
+        route.settings.name == AppRouter.homePageNoTransition);
+  } else {
+    unawaited(doneOnboarding(context));
+  }
 }
 
 Future askForNotification() async {
@@ -996,10 +1007,8 @@ class UIHelper {
   }
 
   static Future<void> showHideArtworkResultDialog(
-    BuildContext context,
-    bool isHidden, {
-    required Function() onOK,
-  }) async {
+      BuildContext context, bool isHidden,
+      {required Function() onOK}) async {
     final theme = Theme.of(context);
 
     await showDialog(
@@ -1122,7 +1131,7 @@ class UIHelper {
                     const EdgeInsets.symmetric(horizontal: 15, vertical: 128),
                 child: DecoratedBox(
                   decoration: BoxDecoration(
-                    color: AppColor.auSuperTeal,
+                    color: AppColor.feralFileHighlight,
                     borderRadius: BorderRadius.circular(5),
                   ),
                   child: Padding(
@@ -1159,7 +1168,7 @@ class UIHelper {
                                 onPressed: actionButtonOnTap,
                                 borderColor: AppColor.primaryBlack,
                                 textColor: AppColor.primaryBlack,
-                                backgroundColor: AppColor.auSuperTeal,
+                                backgroundColor: AppColor.feralFileHighlight,
                               ),
                               const SizedBox(
                                 height: 15,
@@ -1174,7 +1183,7 @@ class UIHelper {
                               },
                           borderColor: AppColor.primaryBlack,
                           textColor: AppColor.primaryBlack,
-                          backgroundColor: AppColor.auSuperTeal,
+                          backgroundColor: AppColor.feralFileHighlight,
                         ),
                       ],
                     ),
@@ -1217,9 +1226,93 @@ class UIHelper {
             ));
   }
 
+  static Future<void> showCenterMenu(BuildContext context,
+      {required List<OptionItem> options}) async {
+    final theme = Theme.of(context);
+    await showCupertinoModalPopup(
+      context: context,
+      builder: (context) => Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              color: AppColor.auGreyBackground,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ListView.separated(
+                  shrinkWrap: true,
+                  padding: const EdgeInsets.all(0),
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemBuilder: (BuildContext context, int index) {
+                    final option = options[index];
+                    final child = Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 16,
+                        horizontal: 13,
+                      ),
+                      child: Row(
+                        children: [
+                          if (option.icon != null)
+                            SizedBox(
+                                width: 30,
+                                child: IconTheme(
+                                    data: const IconThemeData(
+                                      color: AppColor.white,
+                                    ),
+                                    child: option.icon!)),
+                          if (option.icon != null)
+                            const SizedBox(
+                              width: 39,
+                            ),
+                          Text(
+                            option.title ?? '',
+                            style: option.titleStyle ??
+                                theme.textTheme.ppMori400White14
+                                    .copyWith(decoration: TextDecoration.none),
+                          ),
+                        ],
+                      ),
+                    );
+                    if (option.builder != null) {
+                      return option.builder!.call(context, option);
+                    }
+                    return GestureDetector(
+                      onTap: () {
+                        option.onTap?.call();
+                      },
+                      child: Stack(
+                        children: [
+                          child,
+                          Positioned.fill(
+                              child: Container(
+                            color: Colors.transparent,
+                          )),
+                        ],
+                      ),
+                    );
+                  },
+                  itemCount: options.length,
+                  separatorBuilder: (context, index) => const Divider(
+                    height: 1,
+                    color: AppColor.primaryBlack,
+                  ),
+                )
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   static Future<void> showDrawerAction(BuildContext context,
       {List<OptionItem>? options}) async {
     final theme = Theme.of(context);
+
     await showModalBottomSheet<dynamic>(
         context: context,
         backgroundColor: Colors.transparent,
@@ -1231,7 +1324,7 @@ class UIHelper {
         barrierColor: Colors.black.withOpacity(0.5),
         isScrollControlled: true,
         builder: (context) => Container(
-              color: theme.auSuperTeal,
+              color: AppColor.feralFileHighlight,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -1398,17 +1491,17 @@ class UIHelper {
 
   static Future<void> showReceivePostcardFailed(
           BuildContext context, DioException error) async =>
-      showErrorDialog(context, 'accept_postcard_failed'.tr(),
+      await showErrorDialog(context, 'accept_postcard_failed'.tr(),
           'postcard_has_been_claimed'.tr(), 'close'.tr());
 
   static Future<void> showAlreadyClaimedPostcard(
           BuildContext context, DioException error) async =>
-      showErrorDialog(context, 'you_already_claimed_this_postcard'.tr(),
+      await showErrorDialog(context, 'you_already_claimed_this_postcard'.tr(),
           'send_it_to_someone_else'.tr(), 'close'.tr());
 
   static Future<void> showSharePostcardFailed(
           BuildContext context, DioException error) async =>
-      _showPostcardError(
+      await _showPostcardError(
         context,
         message: 'cannot_send_postcard'.tr(),
       );
@@ -1452,8 +1545,8 @@ class UIHelper {
                 bool result = false;
                 try {
                   result = await registerPushNotifications(askPermission: true);
-                  unawaited(injector<ConfigurationService>()
-                      .setPendingSettings(false));
+                  await injector<ConfigurationService>()
+                      .setPendingSettings(false);
                 } catch (error) {
                   log.warning('Error when setting notification: $error');
                 }
@@ -1475,18 +1568,19 @@ class UIHelper {
   }
 
   static Future<void> showAirdropClaimFailed(BuildContext context) async =>
-      showErrorDialog(context, 'airdrop_claim_failed'.tr(), '', 'close'.tr());
+      await showErrorDialog(
+          context, 'airdrop_claim_failed'.tr(), '', 'close'.tr());
 
   static Future<void> showAirdropAlreadyClaim(BuildContext context) async =>
-      showErrorDialog(context, 'already_claimed'.tr(),
+      await showErrorDialog(context, 'already_claimed'.tr(),
           'already_claimed_desc'.tr(), 'close'.tr());
 
   static Future<void> showAirdropJustOnce(BuildContext context) async =>
-      showErrorDialog(
+      await showErrorDialog(
           context, 'just_once'.tr(), 'just_once_desc'.tr(), 'close'.tr());
 
   static Future<void> showAirdropCannotShare(BuildContext context) async =>
-      showErrorDialog(context, 'already_claimed'.tr(),
+      await showErrorDialog(context, 'already_claimed'.tr(),
           'cannot_share_aridrop_desc'.tr(), 'close'.tr());
 
   static Future<void> showPostcardShareLinkExpired(BuildContext context) async {

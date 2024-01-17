@@ -127,7 +127,7 @@ class KeySyncPage extends StatelessWidget {
                           padding: const EdgeInsets.all(15),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(5),
-                            color: AppColor.auSuperTeal,
+                            color: AppColor.feralFileHighlight,
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,

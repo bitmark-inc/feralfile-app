@@ -4,11 +4,13 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/model/otp.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/claim/preview_token_claim.dart';
 import 'package:autonomy_flutter/screen/claim/select_account_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
+import 'package:autonomy_flutter/screen/home/home_navigation_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
@@ -204,7 +206,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                             'assets/images/penrose_moma.svg',
                             colorFilter: ColorFilter.mode(
                                 theme.colorScheme.secondary, BlendMode.srcIn),
-                            width: 27,
+                            height: 27,
                           ),
                         ],
                       ),
@@ -216,7 +218,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                       height: 30,
                     ),
                     RichText(
-                      maxLines: 2,
+                      maxLines: 5,
                       overflow: TextOverflow.ellipsis,
                       text: TextSpan(
                         text: giftIntro,
@@ -294,7 +296,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                           );
                         }
                         if (address != null && mounted) {
-                          await _claimToken(context, address);
+                          unawaited(_claimToken(context, address));
                         } else {
                           setState(() {
                             _processing = false;
@@ -398,6 +400,9 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
       await Navigator.of(context).pushNamedAndRemoveUntil(
         AppRouter.homePage,
         (route) => false,
+        arguments: const HomeNavigationPagePayload(
+          startedTab: HomeNavigatorTab.collection,
+        ),
       );
       NftCollectionBloc.eventController
           .add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
@@ -406,13 +411,12 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
       if (token == null) {
         return;
       }
-      if (!mounted) {
-        return;
+      if (mounted) {
+        await Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
+            arguments: ArtworkDetailPayload(
+                [ArtworkIdentity(token.id, token.owner)], 0,
+                twitterCaption: caption ?? ''));
       }
-      unawaited(Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
-          arguments: ArtworkDetailPayload(
-              [ArtworkIdentity(token.id, token.owner)], 0,
-              twitterCaption: caption ?? '')));
     }
   }
 

@@ -11,13 +11,14 @@ import 'dart:ui';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/model/eth_pending_tx_amount.dart';
 import 'package:autonomy_flutter/firebase_options.dart';
+import 'package:autonomy_flutter/model/eth_pending_tx_amount.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/auth_firebase_service.dart';
 import 'package:autonomy_flutter/service/cloud_firestore_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
+import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/notification_service.dart';
@@ -58,17 +59,17 @@ void main() async {
 
     FlutterNativeSplash.preserve(
         widgetsBinding: WidgetsFlutterBinding.ensureInitialized());
-    await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
     await FlutterDownloader.initialize();
     await Hive.initFlutter();
     _registerHiveAdapter();
 
-    await FlutterDownloader.registerCallback(downloadCallback);
+    FlutterDownloader.registerCallback(downloadCallback);
     await AuFileService().setup();
 
-    await OneSignal.shared.setLogLevel(OSLogLevel.error, OSLogLevel.none);
-    await OneSignal.shared.setAppId(Environment.onesignalAppID);
+    OneSignal.shared.setLogLevel(OSLogLevel.error, OSLogLevel.none);
+    OneSignal.shared.setAppId(Environment.onesignalAppID);
 
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
       statusBarColor: AppColor.white,
@@ -93,7 +94,7 @@ void main() async {
         await _setupApp();
       });
     } else {
-      await showErrorDialogFromException(error, stackTrace: stackTrace);
+      showErrorDialogFromException(error, stackTrace: stackTrace);
     }
   }));
 }
@@ -122,6 +123,8 @@ Future<void> _setupApp() async {
   await notificationService.initNotification();
   await notificationService.startListeningNotificationEvents();
   await disableLandscapeMode();
+  final isPremium = await injector.get<IAPService>().isSubscribed();
+  await injector<ConfigurationService>().setPremium(isPremium);
 
   await SentryFlutter.init(
     (options) {
@@ -148,7 +151,7 @@ Future<void> _setupApp() async {
 
   //safe delay to wait for onboarding finished
   Future.delayed(const Duration(seconds: 2), () async {
-    await injector<DeeplinkService>().setup();
+    injector<DeeplinkService>().setup();
   });
 }
 
@@ -234,8 +237,11 @@ class MemoryValues {
 }
 
 enum HomeNavigatorTab {
-  COLLECTION,
-  WALLET,
+  collection,
+  organization,
+  exhibition,
+  scanQr,
+  menu,
 }
 
 @pragma('vm:entry-point')

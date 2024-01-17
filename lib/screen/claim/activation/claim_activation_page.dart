@@ -1,3 +1,5 @@
+// ignore_for_file: discarded_futures, unawaited_futures
+
 import 'dart:async';
 
 import 'package:auto_size_text/auto_size_text.dart';
@@ -184,7 +186,7 @@ class _ClaimActivationPageState extends State<ClaimActivationPage> {
                             'assets/images/penrose_moma.svg',
                             colorFilter: ColorFilter.mode(
                                 theme.colorScheme.secondary, BlendMode.srcIn),
-                            width: 27,
+                            height: 27,
                           ),
                         ],
                       ),
@@ -196,7 +198,7 @@ class _ClaimActivationPageState extends State<ClaimActivationPage> {
                       height: 30,
                     ),
                     RichText(
-                      maxLines: 2,
+                      maxLines: 5,
                       overflow: TextOverflow.ellipsis,
                       text: TextSpan(
                         text: giftIntro,

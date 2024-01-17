@@ -15,7 +15,7 @@ class BiometricAuthenticationViewController: UIViewController {
         let img: UIImage?
         let imgView: UIImageView
     #if prod
-        img = UIImage(named: "moma")
+        img = UIImage(named: "LaunchImage")
         imgView = UIImageView(image: img)
         imgView.frame.size = CGSize(width: 143, height: 143)
     #else
@@ -85,7 +85,7 @@ extension BiometricAuthenticationViewController {
         authContext.localizedFallbackTitle = "Use Passcode"
 
         var authError: NSError?
-        let reasonString = "Authentication for \"Autonomy\""
+        let reasonString = "Authentication for \"Feral File\""
 
         if authContext.canEvaluatePolicy(.deviceOwnerAuthentication, error: &authError) {
             authContext.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: reasonString) { [weak self] success, evaluateError in

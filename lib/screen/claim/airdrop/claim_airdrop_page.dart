@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
 import 'package:autonomy_flutter/screen/claim/preview_token_claim.dart';
@@ -201,7 +201,7 @@ class _ClaimAirdropPageState extends State<ClaimAirdropPage> {
                             'assets/images/penrose_moma.svg',
                             colorFilter: ColorFilter.mode(
                                 theme.colorScheme.secondary, BlendMode.srcIn),
-                            width: 27,
+                            height: 27,
                           ),
                         ],
                       ),
@@ -213,7 +213,7 @@ class _ClaimAirdropPageState extends State<ClaimAirdropPage> {
                       height: 30,
                     ),
                     RichText(
-                      maxLines: 2,
+                      maxLines: 5,
                       overflow: TextOverflow.ellipsis,
                       text: TextSpan(
                         text: giftIntro,
@@ -396,13 +396,12 @@ class _ClaimAirdropPageState extends State<ClaimAirdropPage> {
           .add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
       final token = claimRespone.token;
       final caption = claimRespone.airdropInfo.twitterCaption;
-      if (!mounted) {
-        return;
+      if (mounted) {
+        await Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
+            arguments: ArtworkDetailPayload(
+                [ArtworkIdentity(token.id, token.owner)], 0,
+                twitterCaption: caption ?? ''));
       }
-      await Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
-          arguments: ArtworkDetailPayload(
-              [ArtworkIdentity(token.id, token.owner)], 0,
-              twitterCaption: caption ?? ''));
     }
   }
 

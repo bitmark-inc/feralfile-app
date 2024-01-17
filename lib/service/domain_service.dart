@@ -1,16 +1,16 @@
 import 'package:graphql_flutter/graphql_flutter.dart';
 
 class DomainService {
-  static const String _tnsDomain = "https://api.tezos.domains/graphql";
+  static const String _tnsDomain = 'https://api.tezos.domains/graphql';
   static const String _ensDomain =
-      "https://api.thegraph.com/subgraphs/name/ensdomains/ens";
-  static const String _tnsQuery = r"""
+      'https://api.thegraph.com/subgraphs/name/ensdomains/ens';
+  static const String _tnsQuery = '''
     { domains(where: { name: { in: ["<var>"] } }) { items { address name} } }
-  """;
+  ''';
 
-  static const String _ensQuery = r"""
+  static const String _ensQuery = '''
     { domains(where: {name: "<var>"}) { name resolvedAddress { id } } }
-  """;
+  ''';
 
   static GraphClient get _tnsClient => GraphClient(_tnsDomain);
 
@@ -18,8 +18,8 @@ class DomainService {
 
   static Future<String?> getEthAddress(String domain) async {
     final result = await _ensClient.query(
-      doc: _ensQuery.replaceFirst("<var>", domain),
-      subKey: "domains",
+      doc: _ensQuery.replaceFirst('<var>', domain),
+      subKey: 'domains',
     );
     if (result == null || result.isEmpty) {
       return null;
@@ -29,8 +29,8 @@ class DomainService {
 
   static Future<String?> getTezosAddress(String domain) async {
     final result = await _tnsClient.query(
-      doc: _tnsQuery.replaceFirst("<var>", domain),
-      subKey: "domains",
+      doc: _tnsQuery.replaceFirst('<var>', domain),
+      subKey: 'domains',
     );
     if (result == null) {
       return null;
@@ -40,6 +40,14 @@ class DomainService {
       return null;
     }
     return items.first['address'];
+  }
+
+  static Future<String?> getAddress(String domain) async {
+    final ethAddress = await getEthAddress(domain);
+    if (ethAddress != null) {
+      return ethAddress;
+    }
+    return getTezosAddress(domain);
   }
 }
 
@@ -99,7 +107,5 @@ class GraphClient {
     }
   }
 
-  Future<String> _getToken() async {
-    return "";
-  }
+  Future<String> _getToken() async => '';
 }

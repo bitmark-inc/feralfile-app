@@ -178,6 +178,15 @@ platform :ios do
 		install_provisioning_profile(path: "fastlane/provisioning_profiles/Autonomy_Inhouse_Adhoc.mobileprovision")
 		install_provisioning_profile(path: "fastlane/provisioning_profiles/Autonomy_Inhouse_Adhoc_Notification.mobileprovision")
 
+        update_info_plist(
+            xcodeproj: "Runner.xcodeproj",
+            plist_path: "Runner/Info.plist",
+            block: proc do |plist|
+                urlScheme = plist["branch_key"]
+                urlScheme["live"] = ENV["BRANCH_KEY"]
+            end
+        )
+
         if env == 'test'
 		    build_appcenter_test
         else
@@ -191,11 +200,18 @@ platform :ios do
 
 	lane :build_testflight do
 		app_identifier = 'com.bitmark.autonomywallet'
+
+		api_key = app_store_connect_api_key(
+          key_id: ENV["TESTFLIGHT_KEY_ID"],
+          issuer_id: ENV["TESTFLIGHT_ISSUER_ID"],
+          key_content: ENV["TESTFLIGHT_API_TOKEN"],
+        )
+
 		old_build_number = latest_testflight_build_number(
 			version: ENV["APP_VERSION"],
 			initial_build_number: 0,
 			app_identifier: app_identifier,
-			api_key_path: "fastlane/key.json"
+			api_key: api_key,
 		)
 		next_build_number = old_build_number.to_i + 1
 		increment_build_number(build_number: next_build_number)
@@ -209,6 +225,7 @@ platform :ios do
 			scheme: "prd",
 			export_method: "app-store",
 			workspace: "Runner.xcworkspace",
+			cloned_source_packages_path: "SourcePackages",
 			include_bitcode: false,
 			clean: true,
 			export_options: {
@@ -219,11 +236,12 @@ platform :ios do
 				},
 				iCloudContainerEnvironment: 'Production'
 			},
+			configuration: "Release-prd",
 			skip_profile_detection: true,
 			output_directory: "./ipas")
 
 		upload_to_testflight(
-			api_key_path: "fastlane/key.json",
+			api_key: api_key,
 			app_version: ENV["APP_VERSION"],
 			build_number: next_build_number.to_s,
 			notify_external_testers: false
@@ -296,8 +314,17 @@ platform :ios do
 			keychain_password: keychainPassword
 		)
 
-		install_provisioning_profile(path: "ios/fastlane/provisioning_profiles/Autonomy_Wallet_Appstore.mobileprovision")
-		install_provisioning_profile(path: "ios/fastlane/provisioning_profiles/Autonomy_Wallet_Push_Notification_Appstore.mobileprovision")
+		install_provisioning_profile(path: "fastlane/provisioning_profiles/Autonomy_Wallet_Appstore.mobileprovision")
+		install_provisioning_profile(path: "fastlane/provisioning_profiles/Autonomy_Wallet_Push_Notification_Appstore.mobileprovision")
+
+		update_info_plist(
+          xcodeproj: "Runner.xcodeproj",
+          plist_path: "Runner/Info.plist",
+          block: proc do |plist|
+            urlScheme = plist["branch_key"]
+            urlScheme["live"] = ENV["BRANCH_KEY"]
+          end
+        )
 
 		build_testflight
 

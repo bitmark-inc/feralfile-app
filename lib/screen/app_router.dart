@@ -10,7 +10,7 @@ import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
-import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
@@ -55,6 +55,11 @@ import 'package:autonomy_flutter/screen/detail/preview/canvas_help_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/keyboard_control_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/touchpad_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview_primer.dart';
+import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_bloc.dart';
+import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
+import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artwork_preview_page.dart';
+import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_bloc.dart';
+import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_page.dart';
 import 'package:autonomy_flutter/screen/gallery/gallery_bloc.dart';
 import 'package:autonomy_flutter/screen/gallery/gallery_page.dart';
 import 'package:autonomy_flutter/screen/github_doc.dart';
@@ -78,19 +83,21 @@ import 'package:autonomy_flutter/screen/irl_screen/sign_message_screen.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_bloc.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_page.dart';
+import 'package:autonomy_flutter/screen/moma_postcard_page/moma_postcard_page.dart';
 import 'package:autonomy_flutter/screen/notification_onboarding_page.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/import_seeds.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/name_address_persona.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/select_addresses.dart';
 import 'package:autonomy_flutter/screen/onboarding/new_address/address_alias.dart';
-import 'package:autonomy_flutter/screen/onboarding/new_address/choose_chain_page.dart';
 import 'package:autonomy_flutter/screen/onboarding/view_address/name_view_only_page.dart';
 import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_address.dart';
 import 'package:autonomy_flutter/screen/onboarding_page.dart';
 import 'package:autonomy_flutter/screen/participate_user_test_page.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist.dart';
+import 'package:autonomy_flutter/screen/playlists/add_to_playlist/add_to_playlist.dart';
 import 'package:autonomy_flutter/screen/playlists/edit_playlist/edit_playlist.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
+import 'package:autonomy_flutter/screen/predefined_collection/predefined_collection_screen.dart';
 import 'package:autonomy_flutter/screen/release_notes_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
@@ -208,6 +215,12 @@ class AppRouter {
   static const previewActivationClaimPage = 'preview_activation_claim_page';
   static const postcardLeaderboardPage = 'postcard_leaderboard_page';
   static const postcardLocationExplain = 'postcard_location_explain';
+  static const predefinedCollectionPage = 'predefined_collection_page';
+  static const addToCollectionPage = 'add_to_collection_page';
+  static const exhibitionDetailPage = 'exhibition_detail_page';
+  static const ffArtworkPreviewPage = 'ff_artwork_preview_page';
+  static const feralFileSeriesPage = 'feral_file_series_page';
+  static const momaPostcardPage = 'moma_postcard_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector(), injector());
@@ -240,7 +253,7 @@ class AppRouter {
               injector(),
             ),
             child: ViewPlaylistScreen(
-              playListModel: settings.arguments as PlayListModel?,
+              payload: settings.arguments! as ViewPlaylistScreenPayload,
             ),
           ),
         );
@@ -293,6 +306,7 @@ class AppRouter {
             ));
 
       case homePageNoTransition:
+        final payload = settings.arguments as HomeNavigationPagePayload?;
         return PageRouteBuilder(
             settings: settings,
             pageBuilder: (context, animation1, animation2) => MultiBlocProvider(
@@ -306,11 +320,15 @@ class AppRouter {
                       create: (_) => personaBloc,
                     ),
                   ],
-                  child: const HomeNavigationPage(fromOnboarding: true),
+                  child: HomeNavigationPage(
+                      payload: HomeNavigationPagePayload(
+                          fromOnboarding: true,
+                          startedTab: payload?.startedTab)),
                 ),
             transitionDuration: const Duration());
 
       case homePage:
+        final payload = settings.arguments as HomeNavigationPagePayload?;
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => MultiBlocProvider(
@@ -324,7 +342,10 @@ class AppRouter {
                       create: (_) => personaBloc,
                     ),
                   ],
-                  child: const HomeNavigationPage(),
+                  child: HomeNavigationPage(
+                    payload: HomeNavigationPagePayload(
+                        startedTab: payload?.startedTab),
+                  ),
                 ));
 
       case ChatThreadPage.tag:
@@ -470,7 +491,6 @@ class AppRouter {
       case settingsPage:
         return CupertinoPageRoute(
             settings: settings,
-            fullscreenDialog: true,
             builder: (context) => MultiBlocProvider(providers: [
                   BlocProvider.value(value: accountsBloc),
                   BlocProvider(create: (_) => personaBloc),
@@ -597,10 +617,6 @@ class AppRouter {
               ),
             ));
 
-      case ChooseChainPage.tag:
-        return CupertinoPageRoute(
-            settings: settings, builder: (context) => const ChooseChainPage());
-
       case ViewExistingAddress.tag:
         return CupertinoPageRoute(
             settings: settings,
@@ -661,6 +677,7 @@ class AppRouter {
                   BlocProvider(create: (_) => identityBloc),
                   BlocProvider(
                       create: (_) => ArtworkDetailBloc(
+                            injector(),
                             injector(),
                             injector(),
                             injector(),
@@ -767,12 +784,9 @@ class AppRouter {
             ));
 
       case supportCustomerPage:
-        return PageTransition(
+        return CupertinoPageRoute(
             settings: settings,
-            type: PageTransitionType.topToBottom,
-            curve: Curves.easeIn,
-            duration: const Duration(milliseconds: 250),
-            child: const SupportCustomerPage());
+            builder: (context) => const SupportCustomerPage());
 
       case supportListPage:
         return CupertinoPageRoute(
@@ -812,6 +826,48 @@ class AppRouter {
                     ),
                   ],
                   child: const HiddenArtworksPage(),
+                ));
+      case momaPostcardPage:
+        return CupertinoPageRoute(
+            settings: settings, builder: (context) => const MoMAPostcardPage());
+
+      case exhibitionDetailPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => MultiBlocProvider(
+                  providers: [
+                    BlocProvider(
+                      create: (_) => ExhibitionDetailBloc(injector()),
+                    ),
+                    BlocProvider(
+                      create: (_) => CanvasDeviceBloc(
+                        injector(),
+                      ),
+                    ),
+                  ],
+                  child: ExhibitionDetailPage(
+                    payload: settings.arguments! as ExhibitionDetailPayload,
+                  ),
+                ));
+      case ffArtworkPreviewPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => FeralFileArtworkPreviewPage(
+                payload:
+                    settings.arguments! as FeralFileArtworkPreviewPagePayload));
+
+      case feralFileSeriesPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => MultiBlocProvider(
+                  providers: [
+                    BlocProvider(
+                      create: (_) => FeralFileSeriesBloc(injector()),
+                    ),
+                  ],
+                  child: FeralFileSeriesPage(
+                    payload: settings.arguments! as FeralFileSeriesPagePayload,
+                  ),
                 ));
 
       case githubDocPage:
@@ -1146,6 +1202,24 @@ class AppRouter {
           reverseDuration: const Duration(milliseconds: 300),
           child: PostcardLocationExplain(
             payload: settings.arguments! as PostcardExplainPayload,
+          ),
+        );
+
+      case predefinedCollectionPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) {
+              final payload =
+                  settings.arguments! as PredefinedCollectionScreenPayload;
+              return PredefinedCollectionScreen(
+                payload: payload,
+              );
+            });
+      case addToCollectionPage:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) => AddToCollectionScreen(
+            playList: settings.arguments! as PlayListModel,
           ),
         );
 

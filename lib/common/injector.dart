@@ -31,11 +31,14 @@ import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/gateway/postcard_api.dart';
 import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
 import 'package:autonomy_flutter/gateway/tzkt_api.dart';
+import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/chat/chat_bloc.dart';
+import 'package:autonomy_flutter/screen/collection_pro/collection_pro_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/claim_empty_postcard/claim_empty_postcard_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/edit_playlist/edit_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_bloc.dart';
+import 'package:autonomy_flutter/screen/predefined_collection/predefined_collection_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/activation_service.dart';
 import 'package:autonomy_flutter/service/airdrop_service.dart';
@@ -162,6 +165,8 @@ Future<void> setup() async {
   injector.registerLazySingleton(() => NftCollection.database.tokenDao);
   injector.registerLazySingleton(() => NftCollection.database.assetTokenDao);
   injector.registerLazySingleton(() => NftCollection.database.provenanceDao);
+  injector.registerLazySingleton(
+      () => NftCollection.database.predefinedCollectionDao);
   injector.registerLazySingleton(() => cloudDB);
 
   injector
@@ -334,7 +339,7 @@ Future<void> setup() async {
       .registerLazySingleton<TezosService>(() => TezosServiceImpl(injector()));
   injector.registerLazySingleton<AppDatabase>(() => mainnetDB);
   injector.registerLazySingleton<PlaylistService>(
-      () => PlayListServiceImp(injector(), injector(), injector()));
+      () => PlayListServiceImp(injector(), injector(), injector(), injector()));
 
   injector.registerLazySingleton<CanvasClientService>(
       () => CanvasClientService(injector()));
@@ -421,5 +426,10 @@ Future<void> setup() async {
   injector.registerFactory<EditPlaylistBloc>(() => EditPlaylistBloc());
   injector
       .registerFactory<ClaimEmptyPostCardBloc>(() => ClaimEmptyPostCardBloc());
+  injector.registerFactory<CollectionProBloc>(() => CollectionProBloc());
+  injector.registerFactory<PredefinedCollectionBloc>(
+      () => PredefinedCollectionBloc());
+  injector.registerFactory<IdentityBloc>(
+      () => IdentityBloc(injector(), injector()));
   injector.registerFactory<AuChatBloc>(() => AuChatBloc(injector()));
 }

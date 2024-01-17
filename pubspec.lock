@@ -101,8 +101,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "144b94a396e78841a74b353d22e9e94b5e279ce1"
-      resolved-ref: "144b94a396e78841a74b353d22e9e94b5e279ce1"
+      ref: "2411652517ba92b2510c586b3b8217bd77f8a068"
+      resolved-ref: "2411652517ba92b2510c586b3b8217bd77f8a068"
       url: "https://github.com/bitmark-inc/autonomy-client-shared-theme.git"
     source: git
     version: "0.0.1+20"
@@ -860,10 +860,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_keyboard_visibility
-      sha256: "4983655c26ab5b959252ee204c2fffa4afeb4413cd030455194ec0caa3b8e7cb"
+      sha256: "98664be7be0e3ffca00de50f7f6a287ab62c763fc8c762e0a21584584a3ff4f8"
       url: "https://pub.dev"
     source: hosted
-    version: "5.4.1"
+    version: "6.0.0"
   flutter_keyboard_visibility_linux:
     dependency: transitive
     description:
@@ -1480,18 +1480,18 @@ packages:
     dependency: "direct main"
     description:
       name: in_app_purchase
-      sha256: af00db44f0314eda24f5e7ff18a6b445ab95e11fcf49c53e4b7c6bef005eeecf
+      sha256: def70fbaa2a274f4d835677459f6f7afc5469de912438f86076e51cbd4cbd5b4
       url: "https://pub.dev"
     source: hosted
-    version: "3.1.5"
+    version: "3.1.13"
   in_app_purchase_android:
     dependency: "direct main"
     description:
       name: in_app_purchase_android
-      sha256: "8d24e7141d5da4e239045438cb990b98fe8fd3e8de6884fbc76ff4ecec30caf5"
+      sha256: "28164faac635a6cc357c96f47813e675eec7622a8f41e829b501573dbbce2cce"
       url: "https://pub.dev"
     source: hosted
-    version: "0.2.5+4"
+    version: "0.3.0+17"
   in_app_purchase_platform_interface:
     dependency: transitive
     description:
@@ -1504,10 +1504,10 @@ packages:
     dependency: "direct main"
     description:
       name: in_app_purchase_storekit
-      sha256: f598169999604d9c40c28bb6f47b58e03c8c498e344cdc015f937a1f528982ab
+      sha256: "4c29a82fcc68484fc3ac9ae5c2eab8bb3954e3a3d6059d1a31c8383630697fa6"
       url: "https://pub.dev"
     source: hosted
-    version: "0.3.6+4"
+    version: "0.3.8"
   in_app_review:
     dependency: "direct main"
     description:
@@ -1822,8 +1822,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: a5cb97d342b95819b6a9ca03262bde5b8a541b17
-      resolved-ref: a5cb97d342b95819b6a9ca03262bde5b8a541b17
+      ref: "820e595c855d441c8070b6b879ae8b2277fc5899"
+      resolved-ref: "820e595c855d441c8070b6b879ae8b2277fc5899"
       url: "https://github.com/autonomy-system/nft-collection"
     source: git
     version: "0.0.1"
@@ -1831,8 +1831,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "6f4f077603068e5957509912155f586de44f6c2f"
-      resolved-ref: "6f4f077603068e5957509912155f586de44f6c2f"
+      ref: e9d1061f7b0d70f557ce4c1310219482177683a8
+      resolved-ref: e9d1061f7b0d70f557ce4c1310219482177683a8
       url: "https://github.com/autonomy-system/nft-rendering.git"
     source: git
     version: "1.0.9"

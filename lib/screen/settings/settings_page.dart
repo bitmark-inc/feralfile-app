@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
@@ -25,7 +26,6 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/external_app_info_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
-import 'package:autonomy_flutter/view/tip_card.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -35,7 +35,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 class SettingsPage extends StatefulWidget {
-  const SettingsPage({Key? key}) : super(key: key);
+  const SettingsPage({super.key});
 
   @override
   State<SettingsPage> createState() => _SettingsPageState();
@@ -51,15 +51,18 @@ class _SettingsPageState extends State<SettingsPage>
 
   final GlobalKey<State> _preferenceKey = GlobalKey();
   bool _pendingSettingsCleared = false;
+  final _settingsDataServices = injector<SettingsDataService>();
+  final _versionService = injector<VersionService>();
+  final _configurationService = injector<ConfigurationService>();
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _loadPackageInfo();
-    _checkVersion();
-    injector<SettingsDataService>().backup();
-    injector<VersionService>().checkForUpdate();
+    unawaited(_loadPackageInfo());
+    unawaited(_checkVersion());
+    unawaited(_settingsDataServices.backup());
+    unawaited(_versionService.checkForUpdate());
     _controller = ScrollController();
   }
 
@@ -87,7 +90,7 @@ class _SettingsPageState extends State<SettingsPage>
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
       statusBarBrightness: Brightness.light,
     ));
-    injector<SettingsDataService>().backup();
+    unawaited(injector<SettingsDataService>().backup());
   }
 
   Widget _settingItem({
@@ -118,122 +121,128 @@ class _SettingsPageState extends State<SettingsPage>
   }
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Scaffold(
-      appBar: getCloseAppBar(
-        context,
-        title: "settings".tr(),
-        onClose: () {
-          Navigator.of(context).pop();
-        },
-      ),
-      body: SafeArea(
-        child: NotificationListener(
-          child: Column(
-            children: [
-              const SizedBox(height: 30),
-              Column(
-                children: [
-                  _settingItem(
-                    title: "preferences".tr(),
-                    icon: const Icon(AuIcon.preferences),
-                    onTap: () {
-                      Navigator.of(context)
-                          .pushNamed(AppRouter.preferencesPage);
-                    },
-                  ),
-                  addOnlyDivider(),
-                  _settingItem(
-                    title: "back_up".tr(),
-                    icon: SvgPicture.asset("assets/images/icon_backup.svg"),
-                    onTap: () async {
-                      if (Platform.isAndroid) {
-                        final isAndroidEndToEndEncryptionAvailable =
-                            await injector<AccountService>()
-                                .isAndroidEndToEndEncryptionAvailable();
-                        if (!mounted) return;
-                        Navigator.of(context).pushNamed(
-                            AppRouter.cloudAndroidPage,
-                            arguments: CloudAndroidPagePayload(
-                                isEncryptionAvailable:
-                                    isAndroidEndToEndEncryptionAvailable));
-                      } else {
-                        Navigator.of(context).pushNamed(AppRouter.cloudPage,
-                            arguments: CloudPagePayload(section: "nameAlias"));
-                      }
-                    },
-                    stateWidget: const CloudState(),
-                  ),
-                  addOnlyDivider(),
-                  _settingItem(
-                    title: "hidden_artwork".tr(),
-                    icon: const Icon(AuIcon.hidden_artwork),
-                    onTap: () {
-                      Navigator.of(context)
-                          .pushNamed(AppRouter.hiddenArtworksPage);
-                    },
-                  ),
-                  addOnlyDivider(),
-                  _settingItem(
-                    title: "autonomy_pro".tr(),
-                    icon: const Icon(AuIcon.subscription),
-                    onTap: () {
-                      Navigator.of(context)
-                          .pushNamed(AppRouter.subscriptionPage);
-                    },
-                  ),
-                  addOnlyDivider(),
-                  _settingItem(
-                    title: "data_management".tr(),
-                    icon: const Icon(AuIcon.data_management),
-                    onTap: () {
-                      Navigator.of(context)
-                          .pushNamed(AppRouter.dataManagementPage);
-                    },
-                  ),
-                  addOnlyDivider(),
-                  _settingItem(
-                    title: "help_us_improve".tr(),
-                    icon: const Icon(AuIcon.help_us),
-                    onTap: () {
-                      Navigator.of(context).pushNamed(AppRouter.helpUsPage);
-                    },
-                  ),
-                  addOnlyDivider(),
-                ],
-              ),
-              const Spacer(),
-              Container(
-                padding: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
-                alignment: Alignment.bottomCenter,
-                child: _versionSection(),
-              ),
-            ],
-          ),
-          onNotification: (ScrollNotification notification) {
-            var currentContext = _preferenceKey.currentContext;
-            if (currentContext == null) return false;
-            final renderObject = currentContext.findRenderObject();
-            if (renderObject == null) return false;
-            final viewport = RenderAbstractViewport.of(renderObject);
-            final bottom = viewport.getOffsetToReveal(renderObject, 1.0).offset;
-            final top = viewport.getOffsetToReveal(renderObject, 0.0).offset;
-            final offset = notification.metrics.pixels;
-            if (offset > 2 * (top + (bottom - top) / 3)) {
-              _clearPendingSettings();
-            }
-            return false;
+  Widget build(BuildContext context) => Scaffold(
+        appBar: getBackAppBar(
+          context,
+          title: 'settings'.tr(),
+          onBack: () {
+            Navigator.of(context).pop();
           },
         ),
-      ),
-    );
-  }
+        body: SafeArea(
+          child: NotificationListener(
+            child: Column(
+              children: [
+                const SizedBox(height: 30),
+                Column(
+                  children: [
+                    _settingItem(
+                      title: 'preferences'.tr(),
+                      icon: const Icon(AuIcon.preferences),
+                      onTap: () async {
+                        await Navigator.of(context)
+                            .pushNamed(AppRouter.preferencesPage);
+                      },
+                    ),
+                    addOnlyDivider(),
+                    _settingItem(
+                      title: 'back_up'.tr(),
+                      icon: SvgPicture.asset('assets/images/icon_backup.svg'),
+                      onTap: () async {
+                        if (Platform.isAndroid) {
+                          final isAndroidEndToEndEncryptionAvailable =
+                              await injector<AccountService>()
+                                  .isAndroidEndToEndEncryptionAvailable();
+                          if (!mounted) {
+                            return;
+                          }
+                          await Navigator.of(context).pushNamed(
+                              AppRouter.cloudAndroidPage,
+                              arguments: CloudAndroidPagePayload(
+                                  isEncryptionAvailable:
+                                      isAndroidEndToEndEncryptionAvailable));
+                        } else {
+                          await Navigator.of(context).pushNamed(
+                              AppRouter.cloudPage,
+                              arguments:
+                                  CloudPagePayload(section: 'nameAlias'));
+                        }
+                      },
+                      stateWidget: const CloudState(),
+                    ),
+                    addOnlyDivider(),
+                    _settingItem(
+                      title: 'hidden_artwork'.tr(),
+                      icon: const Icon(AuIcon.hidden_artwork),
+                      onTap: () async {
+                        await Navigator.of(context)
+                            .pushNamed(AppRouter.hiddenArtworksPage);
+                      },
+                    ),
+                    addOnlyDivider(),
+                    _settingItem(
+                      title: 'autonomy_pro'.tr(),
+                      icon: const Icon(AuIcon.add),
+                      onTap: () async {
+                        await Navigator.of(context)
+                            .pushNamed(AppRouter.subscriptionPage);
+                      },
+                    ),
+                    addOnlyDivider(),
+                    _settingItem(
+                      title: 'data_management'.tr(),
+                      icon: const Icon(AuIcon.data_management),
+                      onTap: () async {
+                        await Navigator.of(context)
+                            .pushNamed(AppRouter.dataManagementPage);
+                      },
+                    ),
+                    addOnlyDivider(),
+                    _settingItem(
+                      title: 'help_us_improve'.tr(),
+                      icon: const Icon(AuIcon.help_us),
+                      onTap: () async {
+                        await Navigator.of(context)
+                            .pushNamed(AppRouter.helpUsPage);
+                      },
+                    ),
+                    addOnlyDivider(),
+                  ],
+                ),
+                const Spacer(),
+                Container(
+                  padding: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
+                  alignment: Alignment.bottomCenter,
+                  child: _versionSection(),
+                ),
+              ],
+            ),
+            onNotification: (ScrollNotification notification) {
+              var currentContext = _preferenceKey.currentContext;
+              if (currentContext == null) {
+                return false;
+              }
+              final renderObject = currentContext.findRenderObject();
+              if (renderObject == null) {
+                return false;
+              }
+              final viewport = RenderAbstractViewport.of(renderObject);
+              final bottom = viewport.getOffsetToReveal(renderObject, 1).offset;
+              final top = viewport.getOffsetToReveal(renderObject, 0).offset;
+              final offset = notification.metrics.pixels;
+              if (offset > 2 * (top + (bottom - top) / 3)) {
+                _clearPendingSettings();
+              }
+              return false;
+            },
+          ),
+        ),
+      );
 
   void _clearPendingSettings() {
     if (!_pendingSettingsCleared) {
-      injector<ConfigurationService>().setPendingSettings(false);
-      injector<ConfigurationService>().setShouldShowSubscriptionHint(false);
+      unawaited(_configurationService.setPendingSettings(false));
+      unawaited(_configurationService.setShouldShowSubscriptionHint(false));
       _pendingSettingsCleared = true;
     }
   }
@@ -261,32 +270,32 @@ class _SettingsPageState extends State<SettingsPage>
         children: [
           GestureDetector(
             child: Text(
-              "eula".tr(),
+              'eula'.tr(),
               style: theme.textTheme.ppMori400Grey12
                   .copyWith(decoration: TextDecoration.underline),
             ),
-            onTap: () => Navigator.of(context)
+            onTap: () async => Navigator.of(context)
                 .pushNamed(AppRouter.githubDocPage, arguments: {
-              "prefix": "/bitmark-inc/autonomy.io/main/apps/docs/",
-              "document": "eula.md",
-              "title": "eula".tr(),
+              'prefix': '/bitmark-inc/autonomy.io/main/apps/docs/',
+              'document': 'eula.md',
+              'title': 'eula'.tr(),
             }),
           ),
           Text(
-            "_and".tr(),
+            '_and'.tr(),
             style: theme.textTheme.ppMori400Grey12,
           ),
           GestureDetector(
             child: Text(
-              "privacy_policy".tr(),
+              'privacy_policy'.tr(),
               style: theme.textTheme.ppMori400Grey12
                   .copyWith(decoration: TextDecoration.underline),
             ),
-            onTap: () => Navigator.of(context)
+            onTap: () async => Navigator.of(context)
                 .pushNamed(AppRouter.githubDocPage, arguments: {
-              "prefix": "/bitmark-inc/autonomy.io/main/apps/docs/",
-              "document": "privacy.md",
-              "title": "privacy_policy".tr(),
+              'prefix': '/bitmark-inc/autonomy.io/main/apps/docs/',
+              'document': 'privacy.md',
+              'title': 'privacy_policy'.tr(),
             }),
           ),
         ],
@@ -301,24 +310,24 @@ class _SettingsPageState extends State<SettingsPage>
                 border: Border.all(color: AppColor.auGrey),
               ),
               child: Text(
-                "version_".tr(
+                'version_'.tr(
                   namedArgs: {
-                    "version": _packageInfo!.version,
-                    "buildNumber": _packageInfo!.buildNumber
+                    'version': _packageInfo!.version,
+                    'buildNumber': _packageInfo!.buildNumber
                   },
                 ),
-                key: const Key("version"),
+                key: const Key('version'),
                 style: theme.textTheme.ppMori400Grey14,
               ),
             ),
             onTap: () async {
-              injector<VersionService>().showReleaseNotes();
+              await injector<VersionService>().showReleaseNotes();
             }),
       const SizedBox(height: 10),
       StatefulBuilder(builder: (BuildContext context, StateSetter setState) {
         final isLatestVersion = compareVersion(
-                _versionCheck?.packageVersion ?? "",
-                _versionCheck?.storeVersion ?? "") >=
+                _versionCheck?.packageVersion ?? '',
+                _versionCheck?.storeVersion ?? '') >=
             0;
         return GestureDetector(
           onTap: () async {
@@ -329,12 +338,15 @@ class _SettingsPageState extends State<SettingsPage>
                 if (_consecutiveTaps == 3) {
                   final newValue = await injector<ConfigurationService>()
                       .toggleDemoArtworksMode();
-                  if (!mounted) return;
+                  if (!mounted) {
+                    return;
+                  }
                   await UIHelper.showInfoDialog(
                       context,
-                      "demo_mode".tr(),
-                      "demo_mode_en".tr(
-                          args: [newValue ? "enable".tr() : "disable".tr()]),
+                      'demo_mode'.tr(),
+                      'demo_mode_en'.tr(args: [
+                        if (newValue) 'enable'.tr() else 'disable'.tr()
+                      ]),
                       autoDismissAfter: 1);
                 }
               } else {
@@ -342,18 +354,18 @@ class _SettingsPageState extends State<SettingsPage>
               }
               _lastTap = now;
             } else {
-              UIHelper.showMessageAction(
+              await UIHelper.showMessageAction(
                 context,
-                "update_available".tr(),
-                "want_to_update".tr(
+                'update_available'.tr(),
+                'want_to_update'.tr(
                   args: [
-                    _versionCheck?.storeVersion ?? "the_latest_version".tr(),
-                    _packageInfo?.version ?? ""
+                    _versionCheck?.storeVersion ?? 'the_latest_version'.tr(),
+                    _packageInfo?.version ?? ''
                   ],
                 ),
                 isDismissible: true,
-                closeButton: "close".tr(),
-                actionButton: "update".tr(),
+                closeButton: 'close'.tr(),
+                actionButton: 'update'.tr(),
                 onAction: () {
                   injector<VersionService>().openLatestVersion();
                 },

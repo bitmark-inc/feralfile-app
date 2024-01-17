@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
@@ -23,12 +25,11 @@ class CanvasDeviceView extends StatefulWidget {
   final PlayListModel? playlist;
 
   const CanvasDeviceView(
-      {Key? key,
-      required this.sceneId,
+      {required this.sceneId,
+      super.key,
       this.onClose,
       this.isCollection = false,
-      this.playlist})
-      : super(key: key);
+      this.playlist});
 
   @override
   State<CanvasDeviceView> createState() => _CanvasDeviceViewState();
@@ -41,7 +42,7 @@ class _CanvasDeviceViewState extends State<CanvasDeviceView> {
   void initState() {
     super.initState();
     _bloc = context.read<CanvasDeviceBloc>();
-    _fetchDevice();
+    unawaited(_fetchDevice());
   }
 
   Future<void> _fetchDevice() async {
@@ -55,9 +56,9 @@ class _CanvasDeviceViewState extends State<CanvasDeviceView> {
       listener: (context, state) {
         setState(() {});
         if (state.isConnectError) {
-          UIHelper.showInfoDialog(
-              context, "fail_to_connect".tr(), "canvas_fail_des".tr(),
-              closeButton: "close".tr());
+          unawaited(UIHelper.showInfoDialog(
+              context, 'fail_to_connect'.tr(), 'canvas_fail_des'.tr(),
+              closeButton: 'close'.tr()));
         }
       },
       builder: (context, state) {
@@ -71,26 +72,26 @@ class _CanvasDeviceViewState extends State<CanvasDeviceView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("connect_to_frame".tr(),
+                  Text('connect_to_frame'.tr(),
                       style: theme.textTheme.ppMori700White24),
                   const SizedBox(height: 40),
                   RichText(
                       text: TextSpan(children: <TextSpan>[
                     TextSpan(
                       text: widget.isCollection
-                          ? "display_your_collection_on".tr()
-                          : "display_your_artwork_on".tr(),
+                          ? 'display_your_collection_on'.tr()
+                          : 'display_your_artwork_on'.tr(),
                       style: theme.textTheme.ppMori400White14,
                     ),
                     TextSpan(
-                      text: "compatible_platforms".tr(),
-                      style: theme.textTheme.ppMori400Green14,
+                      text: 'compatible_platforms'.tr(),
+                      style: theme.textTheme.ppMori400FFYellow14,
                       recognizer: TapGestureRecognizer()
-                        ..onTap = () => Navigator.of(context)
+                        ..onTap = () async => Navigator.of(context)
                             .pushNamed(AppRouter.canvasHelpPage),
                     ),
                     TextSpan(
-                      text: "for_a_better_viewing".tr(),
+                      text: 'for_a_better_viewing'.tr(),
                       style: theme.textTheme.ppMori400White14,
                     ),
                   ])),
@@ -119,7 +120,7 @@ class _CanvasDeviceViewState extends State<CanvasDeviceView> {
                 children: [
                   _newCanvas(state),
                   OutlineButton(
-                    text: "close".tr(),
+                    text: 'close'.tr(),
                     onTap: () {
                       widget.onClose?.call();
                     },
@@ -141,8 +142,8 @@ class _CanvasDeviceViewState extends State<CanvasDeviceView> {
       return Column(
         children: [
           PrimaryButton(
-            text: "add_new_frame".tr(),
-            onTap: () => _addNewCanvas(),
+            text: 'add_new_frame'.tr(),
+            onTap: () async => _addNewCanvas(),
           ),
           const SizedBox(height: 10),
         ],
@@ -151,20 +152,20 @@ class _CanvasDeviceViewState extends State<CanvasDeviceView> {
       return Column(
         children: [
           GestureDetector(
-            onTap: () => _addNewCanvas(),
-            child: Container(
+            onTap: () async => _addNewCanvas(),
+            child: DecoratedBox(
               decoration: const BoxDecoration(color: Colors.transparent),
               child: Row(
                 children: [
                   Text(
-                    "add_new_frame".tr(),
-                    style: theme.textTheme.ppMori400Green14,
+                    'add_new_frame'.tr(),
+                    style: theme.textTheme.ppMori400FFYellow14,
                   ),
                   const Spacer(),
                   SvgPicture.asset(
-                    "assets/images/joinFile.svg",
+                    'assets/images/joinFile.svg',
                     colorFilter: const ColorFilter.mode(
-                        AppColor.auSuperTeal, BlendMode.srcIn),
+                        AppColor.feralFileHighlight, BlendMode.srcIn),
                   ),
                 ],
               ),
@@ -179,7 +180,9 @@ class _CanvasDeviceViewState extends State<CanvasDeviceView> {
   Future<void> _addNewCanvas() async {
     dynamic device = await Navigator.of(context)
         .pushNamed(ScanQRPage.tag, arguments: ScannerItem.CANVAS_DEVICE);
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
     if (device != null && device is CanvasDevice) {
       _bloc.add(CanvasDeviceAddEvent(DeviceState(device: device)));
     }
@@ -193,7 +196,7 @@ class _CanvasDeviceViewState extends State<CanvasDeviceView> {
         Padding(
           padding: ResponsiveLayout.pageHorizontalEdgeInsets
               .copyWith(top: 20, bottom: 20),
-          child: Container(
+          child: DecoratedBox(
             decoration: const BoxDecoration(color: Colors.transparent),
             child: Row(
               children: [
@@ -249,20 +252,20 @@ class _CanvasDeviceViewState extends State<CanvasDeviceView> {
             Container(
               decoration: BoxDecoration(
                 color: Colors.transparent,
-                border: Border.all(color: AppColor.auSuperTeal),
-                borderRadius: BorderRadius.circular(15.0),
+                border: Border.all(color: AppColor.feralFileHighlight),
+                borderRadius: BorderRadius.circular(15),
               ),
               padding: const EdgeInsets.symmetric(
                 horizontal: 10,
                 vertical: 5,
               ),
-              child:
-                  Text("playing".tr(), style: theme.textTheme.ppMori400Green12),
+              child: Text('playing'.tr(),
+                  style: theme.textTheme.ppMori400FFYellow14),
             ),
             const SizedBox(width: 20),
             GestureDetector(
               child: SvgPicture.asset(
-                "assets/images/stop_icon.svg",
+                'assets/images/stop_icon.svg',
                 width: 30,
                 height: 30,
               ),
@@ -276,13 +279,15 @@ class _CanvasDeviceViewState extends State<CanvasDeviceView> {
       case DeviceStatus.connected:
         return GestureDetector(
           child: SvgPicture.asset(
-            "assets/images/play_canvas_icon.svg",
+            'assets/images/play_canvas_icon.svg',
             colorFilter:
                 const ColorFilter.mode(AppColor.white, BlendMode.srcIn),
           ),
           onTap: () {
             if (widget.isCollection) {
-              if (widget.playlist == null) return;
+              if (widget.playlist == null) {
+                return;
+              }
               _bloc.add(CanvasDeviceCastCollectionEvent(
                   deviceState.device, widget.playlist!));
             } else {
@@ -293,13 +298,13 @@ class _CanvasDeviceViewState extends State<CanvasDeviceView> {
         );
       case DeviceStatus.error:
         return GestureDetector(
-          onTap: () {
-            Navigator.of(context).pushNamed(AppRouter.canvasHelpPage);
+          onTap: () async {
+            await Navigator.of(context).pushNamed(AppRouter.canvasHelpPage);
           },
           child: SvgPicture.asset(
-            "assets/images/help_icon.svg",
-            colorFilter:
-                const ColorFilter.mode(AppColor.auSuperTeal, BlendMode.srcIn),
+            'assets/images/help_icon.svg',
+            colorFilter: const ColorFilter.mode(
+                AppColor.feralFileHighlight, BlendMode.srcIn),
           ),
         );
     }

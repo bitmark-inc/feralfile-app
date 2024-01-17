@@ -248,8 +248,9 @@ class MockAccountService extends _i1.Mock implements _i6.AccountService {
   @override
   _i7.Future<_i5.Connection> linkManuallyAddress(
     String? address,
-    _i9.CryptoType? cryptoType,
-  ) =>
+    _i9.CryptoType? cryptoType, {
+    String? name,
+  }) =>
       (super.noSuchMethod(
         Invocation.method(
           #linkManuallyAddress,
@@ -257,6 +258,7 @@ class MockAccountService extends _i1.Mock implements _i6.AccountService {
             address,
             cryptoType,
           ],
+          {#name: name},
         ),
         returnValue: _i7.Future<_i5.Connection>.value(_FakeConnection_3(
           this,
@@ -266,6 +268,7 @@ class MockAccountService extends _i1.Mock implements _i6.AccountService {
               address,
               cryptoType,
             ],
+            {#name: name},
           ),
         )),
       ) as _i7.Future<_i5.Connection>);
@@ -344,16 +347,6 @@ class MockAccountService extends _i1.Mock implements _i6.AccountService {
         ),
         returnValue: _i7.Future<List<String>>.value(<String>[]),
       ) as _i7.Future<List<String>>);
-  @override
-  _i7.Future<List<_i10.AddressIndex>> getAllAddressIndexes() =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #getAllAddressIndexes,
-          [],
-        ),
-        returnValue:
-            _i7.Future<List<_i10.AddressIndex>>.value(<_i10.AddressIndex>[]),
-      ) as _i7.Future<List<_i10.AddressIndex>>);
   @override
   _i7.Future<List<String>> getAddress(
     String? blockchain, {

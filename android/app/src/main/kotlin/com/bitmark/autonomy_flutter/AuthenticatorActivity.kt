@@ -51,13 +51,13 @@ class AuthenticatorActivity : AppCompatActivity() {
         promptInfo = if (android.os.Build.VERSION.SDK_INT >= 30) {
             BiometricPrompt.PromptInfo.Builder()
                 .setTitle("Authentication required")
-                .setDescription("Authentication for \"Autonomy\"")
+                .setDescription("Authentication for \"Feral File\"")
                 .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.DEVICE_CREDENTIAL)
                 .build()
         } else {
             BiometricPrompt.PromptInfo.Builder()
                 .setTitle("Authentication required")
-                .setDescription("Authentication for \"Autonomy\"")
+                .setDescription("Authentication for \"Feral File\"")
                 .setDeviceCredentialAllowed(true)
                 .build()
         }
@@ -68,7 +68,8 @@ class AuthenticatorActivity : AppCompatActivity() {
         val keyguardManager = getSystemService(KEYGUARD_SERVICE) as KeyguardManager
 
         if (biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)
-            == BiometricManager.BIOMETRIC_SUCCESS || keyguardManager.isDeviceSecure) {
+            == BiometricManager.BIOMETRIC_SUCCESS || keyguardManager.isDeviceSecure
+        ) {
             biometricPrompt.authenticate(promptInfo)
         } else {
             MainActivity.isAuthenticate = true

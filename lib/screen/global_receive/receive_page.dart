@@ -16,7 +16,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class GlobalReceivePage extends StatefulWidget {
-  const GlobalReceivePage({Key? key}) : super(key: key);
+  final Function()? onClose;
+
+  const GlobalReceivePage({
+    super.key,
+    this.onClose,
+  });
 
   @override
   State<GlobalReceivePage> createState() => _GlobalReceivePageState();
@@ -36,8 +41,8 @@ class _GlobalReceivePageState extends State<GlobalReceivePage> {
     return Scaffold(
       appBar: getCloseAppBar(
         context,
-        title: "select_wallet_tt".tr(),
-        onClose: () => Navigator.of(context).pop(),
+        title: 'select_wallet_tt'.tr(),
+        onClose: widget.onClose,
       ),
       body: BlocBuilder<AccountsBloc, AccountsState>(builder: (context, state) {
         final categorizedAccounts = state.accounts;
@@ -56,7 +61,7 @@ class _GlobalReceivePageState extends State<GlobalReceivePage> {
               Padding(
                 padding: ResponsiveLayout.pageEdgeInsets,
                 child: Text(
-                  "select_address".tr(),
+                  'select_address'.tr(),
                   style: theme.textTheme.ppMori400Black14,
                 ),
               ),
@@ -64,12 +69,13 @@ class _GlobalReceivePageState extends State<GlobalReceivePage> {
               ListView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  itemBuilder: ((context, index) => Container(
+                  itemBuilder: (context, index) => Container(
                         padding: const EdgeInsets.only(top: 16),
                         child: accountWithConnectionItem(
                             context, categorizedAccounts[index]),
-                      )),
+                      ),
                   itemCount: categorizedAccounts.length),
+              const SizedBox(height: 100),
             ],
           ),
         );
