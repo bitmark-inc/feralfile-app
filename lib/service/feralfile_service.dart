@@ -29,7 +29,7 @@ abstract class FeralFileService {
 
   Future<FFSeries> getSeries(String id);
 
-  Future<ClaimResponse> afterClaimToken(
+  Future<ClaimResponse> setPendingToken(
       {required String receiver,
       required TokenClaimResponse response,
       required FFSeries series});
@@ -93,7 +93,7 @@ class FeralFileServiceImpl extends FeralFileService {
       (await _feralFileApi.getSeries(id)).result;
 
   @override
-  Future<ClaimResponse> afterClaimToken(
+  Future<ClaimResponse> setPendingToken(
       {required String receiver,
       required TokenClaimResponse response,
       required FFSeries series}) async {
@@ -156,7 +156,7 @@ class FeralFileServiceImpl extends FeralFileService {
         if (otp != null) ...{'airdropTOTPPasscode': otp.code}
       };
       final response = await _feralFileApi.claimSeries(series.id, body);
-      final claimResponse = afterClaimToken(
+      final claimResponse = setPendingToken(
           receiver: receiver, response: response, series: series);
       return claimResponse;
     } else {

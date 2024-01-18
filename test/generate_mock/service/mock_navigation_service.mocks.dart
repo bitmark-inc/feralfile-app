@@ -496,4 +496,29 @@ class MockNavigationService extends _i2.Mock implements _i3.NavigationService {
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
+  @override
+  _i4.Future<void> showFeralFileClaimTokenPassLimit(
+          {required _i6.FFSeries? series}) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #showFeralFileClaimTokenPassLimit,
+          [],
+          {#series: series},
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
+  _i4.Future<dynamic> showClaimTokenError(
+    Object? e, {
+    required _i6.FFSeries? series,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #showClaimTokenError,
+          [e],
+          {#series: series},
+        ),
+        returnValue: _i4.Future<dynamic>.value(),
+      ) as _i4.Future<dynamic>);
 }

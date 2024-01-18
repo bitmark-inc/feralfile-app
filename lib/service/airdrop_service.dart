@@ -231,7 +231,7 @@ class AirdropService {
               did: didKey,
               didSignature: didKeySignature,
               timestamp: timestamp));
-      final claimResponse = await _feralFileService.afterClaimToken(
+      final claimResponse = await _feralFileService.setPendingToken(
         receiver: receiveAddress,
         response: tokenClaimResponse,
         series: series,

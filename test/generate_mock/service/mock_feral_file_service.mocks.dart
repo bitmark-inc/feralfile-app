@@ -103,14 +103,14 @@ class MockFeralFileService extends _i1.Mock implements _i6.FeralFileService {
         )),
       ) as _i7.Future<_i2.FFSeries>);
   @override
-  _i7.Future<_i3.ClaimResponse> afterClaimToken({
+  _i7.Future<_i3.ClaimResponse> setPendingToken({
     required String? receiver,
     required _i4.TokenClaimResponse? response,
     required _i2.FFSeries? series,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
-          #afterClaimToken,
+          #setPendingToken,
           [],
           {
             #receiver: receiver,
@@ -121,7 +121,7 @@ class MockFeralFileService extends _i1.Mock implements _i6.FeralFileService {
         returnValue: _i7.Future<_i3.ClaimResponse>.value(_FakeClaimResponse_1(
           this,
           Invocation.method(
-            #afterClaimToken,
+            #setPendingToken,
             [],
             {
               #receiver: receiver,
