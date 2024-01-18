@@ -197,6 +197,9 @@ class _ClaimAirdropPageState extends State<ClaimAirdropPage> {
                               ],
                             ),
                           ),
+                          const SizedBox(
+                            width: 10,
+                          ),
                           SvgPicture.asset(
                             'assets/images/penrose_moma.svg',
                             colorFilter: ColorFilter.mode(
