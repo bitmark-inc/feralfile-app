@@ -29,13 +29,13 @@ import 'package:marqueer/marqueer.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class ClaimTokenPagePayload {
+class ClaimAirdropPagePayload {
   final String claimID;
   final String shareCode;
   final FFSeries series;
   final bool allowViewOnlyClaim;
 
-  ClaimTokenPagePayload({
+  ClaimAirdropPagePayload({
     required this.claimID,
     required this.shareCode,
     required this.series,
@@ -44,7 +44,7 @@ class ClaimTokenPagePayload {
 }
 
 class ClaimAirdropPage extends StatefulWidget {
-  final ClaimTokenPagePayload payload;
+  final ClaimAirdropPagePayload payload;
 
   const ClaimAirdropPage({
     required this.payload,

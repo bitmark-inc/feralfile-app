@@ -166,6 +166,8 @@ class NavigationService {
   Future openClaimTokenPage(
     FFSeries series, {
     Otp? otp,
+    Future<ClaimResponse?> Function({required String receiveAddress})?
+        claimFunction,
   }) async {
     log.info('NavigationService.openClaimTokenPage');
     final isAllowViewOnlyClaim = AirdropType.memento6.seriesId == series.id;
@@ -173,10 +175,11 @@ class NavigationService {
         navigatorKey.currentContext != null) {
       await navigatorKey.currentState?.pushNamed(
         AppRouter.claimFeralfileTokenPage,
-        arguments: ClaimTokenPageArgs(
+        arguments: ClaimTokenPagePayload(
           series: series,
           otp: otp,
           allowViewOnlyClaim: isAllowViewOnlyClaim,
+          claimFunction: claimFunction,
         ),
       );
     } else {

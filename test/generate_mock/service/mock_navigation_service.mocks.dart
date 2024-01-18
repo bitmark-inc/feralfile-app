@@ -8,11 +8,12 @@ import 'dart:async' as _i4;
 import 'package:autonomy_flutter/model/ff_series.dart' as _i6;
 import 'package:autonomy_flutter/model/otp.dart' as _i7;
 import 'package:autonomy_flutter/screen/claim/activation/claim_activation_page.dart'
-    as _i8;
+    as _i9;
+import 'package:autonomy_flutter/screen/claim/claim_token_page.dart' as _i8;
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart'
-    as _i10;
+    as _i11;
 import 'package:autonomy_flutter/service/navigation_service.dart' as _i3;
-import 'package:autonomy_flutter/util/error_handler.dart' as _i9;
+import 'package:autonomy_flutter/util/error_handler.dart' as _i10;
 import 'package:flutter/material.dart' as _i1;
 import 'package:mockito/mockito.dart' as _i2;
 import 'package:nft_collection/models/asset_token.dart' as _i5;
@@ -199,18 +200,23 @@ class MockNavigationService extends _i2.Mock implements _i3.NavigationService {
   _i4.Future<dynamic> openClaimTokenPage(
     _i6.FFSeries? series, {
     _i7.Otp? otp,
+    _i4.Future<_i8.ClaimResponse?> Function({required String receiveAddress})?
+        claimFunction,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
           #openClaimTokenPage,
           [series],
-          {#otp: otp},
+          {
+            #otp: otp,
+            #claimFunction: claimFunction,
+          },
         ),
         returnValue: _i4.Future<dynamic>.value(),
       ) as _i4.Future<dynamic>);
   @override
   _i4.Future<void> openActivationPage(
-          {required _i8.ClaimActivationPagePayload? payload}) =>
+          {required _i9.ClaimActivationPagePayload? payload}) =>
       (super.noSuchMethod(
         Invocation.method(
           #openActivationPage,
@@ -222,7 +228,7 @@ class MockNavigationService extends _i2.Mock implements _i3.NavigationService {
       ) as _i4.Future<void>);
   @override
   void showErrorDialog(
-    _i9.ErrorEvent? event, {
+    _i10.ErrorEvent? event, {
     dynamic Function()? defaultAction,
     dynamic Function()? cancelAction,
   }) =>
@@ -331,7 +337,7 @@ class MockNavigationService extends _i2.Mock implements _i3.NavigationService {
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
   @override
-  _i4.Future<dynamic> goToIRLWebview(_i10.IRLWebScreenPayload? payload) =>
+  _i4.Future<dynamic> goToIRLWebview(_i11.IRLWebScreenPayload? payload) =>
       (super.noSuchMethod(
         Invocation.method(
           #goToIRLWebview,

@@ -991,4 +991,21 @@ class MockConfigurationService extends _i1.Mock
         ),
         returnValue: <String>[],
       ) as List<String>);
+  @override
+  _i6.Future<void> setShowPostcardBanner(bool? bool) => (super.noSuchMethod(
+        Invocation.method(
+          #setShowPostcardBanner,
+          [bool],
+        ),
+        returnValue: _i6.Future<void>.value(),
+        returnValueForMissingStub: _i6.Future<void>.value(),
+      ) as _i6.Future<void>);
+  @override
+  bool getShowPostcardBanner() => (super.noSuchMethod(
+        Invocation.method(
+          #getShowPostcardBanner,
+          [],
+        ),
+        returnValue: false,
+      ) as bool);
 }
