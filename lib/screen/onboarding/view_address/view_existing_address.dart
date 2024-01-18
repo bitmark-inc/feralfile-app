@@ -37,6 +37,7 @@ class _ViewExistingAddressState extends State<ViewExistingAddress> {
   bool _isValid = false;
   final _checkDomainLock = Lock();
   Timer? _timer;
+  final _domainService = injector<DomainService>();
 
   @override
   Widget build(BuildContext context) {
@@ -176,7 +177,7 @@ class _ViewExistingAddressState extends State<ViewExistingAddress> {
     await _checkDomainLock.synchronized(() async {
       if (text.isNotEmpty) {
         try {
-          final address = await DomainService.getAddress(text);
+          final address = await _domainService.getAddress(text);
           if (address != null) {
             _setValid(address);
           } else {

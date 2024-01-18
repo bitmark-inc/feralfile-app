@@ -50,6 +50,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/currency_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
+import 'package:autonomy_flutter/service/domain_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/hive_service.dart';
@@ -280,6 +281,8 @@ Future<void> setup() async {
 
   final cloudService = CloudService();
   injector.registerLazySingleton(() => cloudService);
+
+  injector.registerLazySingleton<DomainService>(() => DomainServiceImpl());
 
   injector.registerLazySingleton(
       () => Web3Client(Environment.web3RpcURL, injector()));

@@ -577,6 +577,7 @@ class AppRouter {
                       injector(),
                       injector(),
                       (settings.arguments! as SendData).type,
+                      injector(),
                       injector()),
                   child: SendCryptoPage(data: settings.arguments! as SendData),
                 ));

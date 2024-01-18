@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_state.dart';
 import 'package:autonomy_flutter/service/currency_service.dart';
+import 'package:autonomy_flutter/service/domain_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
@@ -23,6 +24,7 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:synchronized/synchronized.dart';
 import 'package:tezart/tezart.dart';
 import 'package:web3dart/json_rpc.dart';
 import 'package:web3dart/web3dart.dart';
@@ -33,6 +35,7 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
   final CurrencyService _currencyService;
   final CryptoType _type;
   final NavigationService _navigationService;
+  final DomainService _domainService;
   String? cachedAddress;
   BigInt? cachedAmount;
   bool isEstimating = false;
@@ -40,12 +43,16 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
   final _xtzSafeBuffer = BigInt.from(10);
   final _ethSafeBuffer = BigInt.from(100);
 
+  final _ensLock = Lock();
+  final _tnsLock = Lock();
+
   SendCryptoBloc(
     this._ethereumService,
     this._tezosService,
     this._currencyService,
     this._type,
     this._navigationService,
+    this._domainService,
   ) : super(SendCryptoState()) {
     on<GetBalanceEvent>((event, emit) async {
       final newState = state.clone()
@@ -129,7 +136,19 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
 
               add(EstimateFeeEvent(address.hexEip55, BigInt.zero));
             } catch (err) {
-              newState.isAddressError = true;
+              final address = await _getEthereumAddressFromENS(event.address);
+              if (address != null) {
+                final checksumAddress =
+                    EthereumAddress.fromHex(address).hexEip55;
+                newState
+                  ..address = checksumAddress
+                  ..domain = event.address
+                  ..isAddressError = false;
+
+                add(EstimateFeeEvent(checksumAddress, BigInt.zero));
+              } else {
+                newState.isAddressError = true;
+              }
             }
             break;
           case CryptoType.XTZ:
@@ -140,7 +159,17 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
 
               add(EstimateFeeEvent(event.address, BigInt.one));
             } else {
-              newState.isAddressError = true;
+              final address = await _getTezosAddressFromTNS(event.address);
+              if (address != null) {
+                newState
+                  ..address = address
+                  ..domain = event.address
+                  ..isAddressError = false;
+
+                add(EstimateFeeEvent(address, BigInt.one));
+              } else {
+                newState.isAddressError = true;
+              }
             }
             break;
           default:
@@ -367,5 +396,25 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
     final amount = state.amount!;
 
     return amount > BigInt.zero && amount <= state.maxAllow!;
+  }
+
+  // get the address from the ENS domain
+  Future<String?> _getEthereumAddressFromENS(String domain) async {
+    try {
+      return await _ensLock
+          .synchronized(() async => await _domainService.getEthAddress(domain));
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // get the address from the TNS domain
+  Future<String?> _getTezosAddressFromTNS(String domain) async {
+    try {
+      return await _tnsLock.synchronized(
+          () async => await _domainService.getTezosAddress(domain));
+    } catch (e) {
+      return null;
+    }
   }
 }
