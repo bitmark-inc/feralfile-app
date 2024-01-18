@@ -31,7 +31,7 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:nft_collection/models/asset_token.dart'; // ignore: implementation_imports
+import 'package:nft_collection/models/asset_token.dart'; // ignore_for_file: implementation_imports
 import 'package:overlay_support/src/overlay_state_finder.dart';
 
 class NavigationService {
@@ -464,5 +464,26 @@ class NavigationService {
     await Navigator.of(navigatorKey.currentContext!).pushNamed(
         AppRouter.inappWebviewPage,
         arguments: InAppWebViewPayload(url));
+  }
+
+  Future<void> showFeralFileClaimTokenPassLimit(
+      {required FFSeries series}) async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await UIHelper.showFeralFileClaimTokenPassLimit(
+        context,
+        series: series,
+      );
+    }
+  }
+
+  Future showClaimTokenError(
+    Object e, {
+    required FFSeries series,
+  }) async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await UIHelper.showClaimTokenError(context, e, series: series);
+    }
   }
 }

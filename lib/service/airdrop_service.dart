@@ -215,27 +215,32 @@ class AirdropService {
   }) async {
     final series = await _feralFileService.getSeries(seriesID);
 
-    series.checkAirdropStatusAndThrowIfError();
+    try {
+      series.checkAirdropStatusAndThrowIfError();
 
-    final defaultAccount = await _accountService.getDefaultAccount();
-    final didKey = await defaultAccount.getAccountDID();
-    final timestamp =
-        (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
-    final didKeySignature =
-        await defaultAccount.getAccountDIDSignature(timestamp);
-    final tokenClaimResponse = await _airdropApi.feralfileClaim(
-        FeralFileTokenClaimRequest(
-            id: id,
-            receivingAddress: receiveAddress,
-            did: didKey,
-            didSignature: didKeySignature,
-            timestamp: timestamp));
-    final claimResponse = await _feralFileService.afterClaimToken(
-      receiver: receiveAddress,
-      response: tokenClaimResponse,
-      series: series,
-    );
-    return claimResponse;
+      final defaultAccount = await _accountService.getDefaultAccount();
+      final didKey = await defaultAccount.getAccountDID();
+      final timestamp =
+          (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
+      final didKeySignature =
+          await defaultAccount.getAccountDIDSignature(timestamp);
+      final tokenClaimResponse = await _airdropApi.feralfileClaim(
+          FeralFileTokenClaimRequest(
+              id: id,
+              receivingAddress: receiveAddress,
+              did: didKey,
+              didSignature: didKeySignature,
+              timestamp: timestamp));
+      final claimResponse = await _feralFileService.afterClaimToken(
+        receiver: receiveAddress,
+        response: tokenClaimResponse,
+        series: series,
+      );
+      return claimResponse;
+    } catch (e) {
+      log.info('[Airdrop service] claimFeralFileToken: error $e');
+      rethrow;
+    }
   }
 }
 
