@@ -54,8 +54,8 @@ class ViewExistingAddressBloc
         default:
           log.info('check domain for ${event.address}');
           final pair = await _checkDomain(event.address);
-          log.info(
-              'pair: ${pair?.first}, ${pair?.second}, domain: ${event.address}');
+          log.info('pair: ${pair?.first}, ${pair?.second}, '
+              'domain: ${event.address}');
           if (pair != null) {
             emit(state.copyWith(
               address: pair.first,
