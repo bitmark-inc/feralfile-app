@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_state.dart';
 import 'package:autonomy_flutter/service/currency_service.dart';
+import 'package:autonomy_flutter/service/domain_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
@@ -25,6 +26,7 @@ import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:synchronized/synchronized.dart';
 import 'package:tezart/tezart.dart';
 import 'package:web3dart/json_rpc.dart';
 import 'package:web3dart/web3dart.dart';
@@ -35,10 +37,14 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
   final CurrencyService _currencyService;
   final NavigationService _navigationService;
   final AssetToken _asset;
+  final DomainService _domainService;
   String? cachedAddress;
   BigInt? cachedBalance;
 
   final _safeBuffer = BigInt.from(10);
+
+  final _ensLock = Lock();
+  final _tnsLock = Lock();
 
   SendArtworkBloc(
     this._ethereumService,
@@ -46,6 +52,7 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
     this._currencyService,
     this._navigationService,
     this._asset,
+    this._domainService,
   ) : super(SendArtworkState()) {
     final type =
         _asset.blockchain == 'ethereum' ? CryptoType.ETH : CryptoType.XTZ;
@@ -119,7 +126,20 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
               add(EstimateFeeEvent(address.hexEip55, event.index,
                   _asset.contractAddress!, _asset.tokenId!, state.quantity));
             } catch (err) {
-              newState.isAddressError = true;
+              final address = await _getEthereumAddressFromENS(event.address);
+              if (address != null) {
+                final checksumAddress =
+                    EthereumAddress.fromHex(address).hexEip55;
+                newState
+                  ..address = checksumAddress
+                  ..domain = event.address
+                  ..isAddressError = false;
+
+                add(EstimateFeeEvent(checksumAddress, event.index,
+                    _asset.contractAddress!, _asset.tokenId!, state.quantity));
+              } else {
+                newState.isAddressError = true;
+              }
             }
             break;
           case CryptoType.XTZ:
@@ -131,7 +151,18 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
               add(EstimateFeeEvent(event.address, event.index,
                   _asset.contractAddress!, _asset.tokenId!, state.quantity));
             } else {
-              newState.isAddressError = true;
+              final address = await _getTezosAddressFromTNS(event.address);
+              if (address != null) {
+                newState
+                  ..address = address
+                  ..domain = event.address
+                  ..isAddressError = false;
+
+                add(EstimateFeeEvent(address, event.index,
+                    _asset.contractAddress!, _asset.tokenId!, state.quantity));
+              } else {
+                newState.isAddressError = true;
+              }
             }
             break;
           default:
@@ -291,5 +322,25 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
     }
 
     return state.fee! <= state.balance! - _safeBuffer;
+  }
+
+  // get the address from the ENS domain
+  Future<String?> _getEthereumAddressFromENS(String domain) async {
+    try {
+      return await _ensLock
+          .synchronized(() async => await _domainService.getEthAddress(domain));
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // get the address from the TNS domain
+  Future<String?> _getTezosAddressFromTNS(String domain) async {
+    try {
+      return await _tnsLock.synchronized(
+          () async => await _domainService.getTezosAddress(domain));
+    } catch (e) {
+      return null;
+    }
   }
 }

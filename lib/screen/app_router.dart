@@ -895,7 +895,8 @@ class AppRouter {
                         injector(),
                         injector(),
                         injector(),
-                        (settings.arguments! as SendArtworkPayload).asset)),
+                        (settings.arguments! as SendArtworkPayload).asset,
+                        injector())),
                 BlocProvider(create: (_) => identityBloc),
               ],
               child: SendArtworkPage(

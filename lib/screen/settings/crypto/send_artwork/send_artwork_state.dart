@@ -107,6 +107,8 @@ class SendArtworkState {
 
   int quantity;
 
+  String? domain;
+
   SendArtworkState(
       {this.wallet,
       this.index,
@@ -118,10 +120,11 @@ class SendArtworkState {
       this.fee,
       this.address,
       this.balance,
-      this.exchangeRate = const CurrencyExchangeRate(eth: "1.0", xtz: "1.0"),
+      this.exchangeRate = const CurrencyExchangeRate(eth: '1.0', xtz: '1.0'),
       this.quantity = 1,
       this.feeOption = DEFAULT_FEE_OPTION,
-      this.feeOptionValue});
+      this.feeOptionValue,
+      this.domain});
 
   SendArtworkState clone() => SendArtworkState(
         wallet: wallet,
@@ -138,26 +141,26 @@ class SendArtworkState {
         quantity: quantity,
         feeOption: feeOption,
         feeOptionValue: feeOptionValue,
+        domain: domain,
       );
 
-  SendArtworkState copyWith({int? quantity, bool? isEstimating, BigInt? fee}) {
-    return SendArtworkState(
-      wallet: wallet,
-      index: index,
-      isScanQR: isScanQR,
-      isAddressError: isAddressError,
-      isQuantityError: isQuantityError,
-      isEstimating: isEstimating ?? this.isEstimating,
-      isValid: isValid,
-      fee: fee ?? this.fee,
-      address: address,
-      exchangeRate: exchangeRate,
-      balance: balance,
-      quantity: quantity ?? this.quantity,
-      feeOption: feeOption,
-      feeOptionValue: feeOptionValue,
-    );
-  }
+  SendArtworkState copyWith({int? quantity, bool? isEstimating, BigInt? fee}) =>
+      SendArtworkState(
+          wallet: wallet,
+          index: index,
+          isScanQR: isScanQR,
+          isAddressError: isAddressError,
+          isQuantityError: isQuantityError,
+          isEstimating: isEstimating ?? this.isEstimating,
+          isValid: isValid,
+          fee: fee ?? this.fee,
+          address: address,
+          exchangeRate: exchangeRate,
+          balance: balance,
+          quantity: quantity ?? this.quantity,
+          feeOption: feeOption,
+          feeOptionValue: feeOptionValue,
+          domain: domain);
 
   @override
   bool operator ==(Object other) =>
