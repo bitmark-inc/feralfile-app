@@ -53,6 +53,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
   final xtzFormatter = XtzAmountFormatter();
   final ethFormatter = EthAmountFormatter();
   final usdcFormatter = USDCAmountFormatter();
+  Timer? _timer;
 
   @override
   void initState() {
@@ -165,9 +166,13 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                                 ),
                                 onChanged: (value) {
                                   _initialChangeAddress = true;
-                                  context.read<SendCryptoBloc>().add(
-                                      AddressChangedEvent(
-                                          _addressController.text));
+                                  _timer?.cancel();
+                                  _timer = Timer(
+                                      const Duration(milliseconds: 500), () {
+                                    context.read<SendCryptoBloc>().add(
+                                        AddressChangedEvent(
+                                            _addressController.text));
+                                  });
                                 },
                               ),
                               const SizedBox(height: 16),

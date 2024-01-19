@@ -10,7 +10,9 @@ import 'dart:math';
 
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/address.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_state.dart';
+import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/currency_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -21,8 +23,8 @@ import 'package:autonomy_flutter/util/fee_util.dart';
 import 'package:autonomy_flutter/util/rpc_error_extension.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
-import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:synchronized/synchronized.dart';
 import 'package:tezart/tezart.dart';
 import 'package:web3dart/json_rpc.dart';
 import 'package:web3dart/web3dart.dart';
@@ -33,6 +35,7 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
   final CurrencyService _currencyService;
   final CryptoType _type;
   final NavigationService _navigationService;
+  final DomainAddressService _domainAddressService;
   String? cachedAddress;
   BigInt? cachedAmount;
   bool isEstimating = false;
@@ -40,12 +43,15 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
   final _xtzSafeBuffer = BigInt.from(10);
   final _ethSafeBuffer = BigInt.from(100);
 
+  final _domainLock = Lock();
+
   SendCryptoBloc(
     this._ethereumService,
     this._tezosService,
     this._currencyService,
     this._type,
     this._navigationService,
+    this._domainAddressService,
   ) : super(SendCryptoState()) {
     on<GetBalanceEvent>((event, emit) async {
       final newState = state.clone()
@@ -118,33 +124,16 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
         ..isAddressError = false;
 
       if (event.address.isNotEmpty) {
-        switch (_type) {
-          case CryptoType.ETH:
-          case CryptoType.USDC:
-            try {
-              final address = EthereumAddress.fromHex(event.address);
-              newState
-                ..address = address.hexEip55
-                ..isAddressError = false;
-
-              add(EstimateFeeEvent(address.hexEip55, BigInt.zero));
-            } catch (err) {
-              newState.isAddressError = true;
-            }
-            break;
-          case CryptoType.XTZ:
-            if (event.address.isValidTezosAddress) {
-              newState
-                ..address = event.address
-                ..isAddressError = false;
-
-              add(EstimateFeeEvent(event.address, BigInt.one));
-            } else {
-              newState.isAddressError = true;
-            }
-            break;
-          default:
-            break;
+        final address = await _getAddressFromNS(event.address, _type);
+        if (address != null) {
+          newState
+            ..address = address.address
+            ..domain = address.domain
+            ..isAddressError = false;
+          add(EstimateFeeEvent(address.address,
+              _type == CryptoType.XTZ ? BigInt.one : BigInt.zero));
+        } else {
+          newState.isAddressError = true;
         }
       }
 
@@ -368,4 +357,8 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
 
     return amount > BigInt.zero && amount <= state.maxAllow!;
   }
+
+  Future<Address?> _getAddressFromNS(String domain, CryptoType type) async =>
+      await _domainLock.synchronized(() async => await _domainAddressService
+          .verifyAddressOrDomainWithType(domain, type));
 }

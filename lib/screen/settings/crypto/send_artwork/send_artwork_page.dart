@@ -58,6 +58,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
   bool _initialChangeAddress = false;
   final _focusNode = FocusNode();
   late FeeOption _selectedPriority;
+  Timer? _timer;
 
   @override
   void initState() {
@@ -298,10 +299,16 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                                     },
                                     onChanged: (value) {
                                       _initialChangeAddress = true;
-                                      context.read<SendArtworkBloc>().add(
-                                            AddressChangedEvent(
-                                                _addressController.text, index),
-                                          );
+                                      _timer?.cancel();
+                                      _timer = Timer(
+                                          const Duration(milliseconds: 500),
+                                          () {
+                                        context.read<SendArtworkBloc>().add(
+                                              AddressChangedEvent(
+                                                  _addressController.text,
+                                                  index),
+                                            );
+                                      });
                                     },
                                   ),
                                   const SizedBox(height: 8),
