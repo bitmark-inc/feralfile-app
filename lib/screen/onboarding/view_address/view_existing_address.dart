@@ -64,70 +64,69 @@ class _ViewExistingAddressState extends State<ViewExistingAddress> {
           }
         },
         builder: (context, state) => Padding(
-            padding: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
-            child: Column(
-              children: [
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Column(
+          padding: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
+          child: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        addTitleSpace(),
-                        Text('enter_a_wallet_address'.tr(),
-                            style: theme.textTheme.ppMori400Black14),
-                        const SizedBox(height: 10),
-                        AuTextField(
-                          title: '',
-                          placeholder: 'enter_address'.tr(),
-                          controller: _controller,
-                          isError: state.isError,
-                          suffix: IconButton(
-                            icon: Icon(_controller.text.isEmpty
-                                ? AuIcon.scan
-                                : AuIcon.close),
-                            onPressed: () async {
-                              if (_controller.text.isNotEmpty) {
-                                _controller.clear();
-                                _bloc.add(AddressChangeEvent(''));
-                                return;
-                              }
-                              dynamic address = await Navigator.of(context)
-                                  .pushNamed(ScanQRPage.tag,
-                                      arguments: ScannerItem.ETH_ADDRESS);
-                              if (address != null && address is String) {
-                                address =
-                                    address.replacePrefix('ethereum:', '');
-                                _controller.text = address;
-                                _bloc.add(AddressChangeEvent(address));
-                              }
-                            },
-                          ),
-                          onChanged: _onTextChanged,
+                    children: [
+                      addTitleSpace(),
+                      Text('enter_a_wallet_address'.tr(),
+                          style: theme.textTheme.ppMori400Black14),
+                      const SizedBox(height: 10),
+                      AuTextField(
+                        title: '',
+                        placeholder: 'enter_address'.tr(),
+                        controller: _controller,
+                        isError: state.isError,
+                        suffix: IconButton(
+                          icon: Icon(_controller.text.isEmpty
+                              ? AuIcon.scan
+                              : AuIcon.close),
+                          onPressed: () async {
+                            if (_controller.text.isNotEmpty) {
+                              _controller.clear();
+                              _bloc.add(AddressChangeEvent(''));
+                              return;
+                            }
+                            dynamic address = await Navigator.of(context)
+                                .pushNamed(ScanQRPage.tag,
+                                    arguments: ScannerItem.ETH_ADDRESS);
+                            if (address != null && address is String) {
+                              address = address.replacePrefix('ethereum:', '');
+                              _controller.text = address;
+                              _bloc.add(AddressChangeEvent(address));
+                            }
+                          },
                         ),
-                      ],
-                    ),
+                        onChanged: _onTextChanged,
+                      ),
+                    ],
                   ),
                 ),
-                PrimaryButton(
-                  enabled: state.address.isNotEmpty && state.isValid,
-                  isProcessing: state.isAddConnectionLoading,
-                  text: 'continue'.tr(),
-                  onTap: () {
-                    _bloc.add(AddConnectionEvent());
-                  },
-                ),
-                const SizedBox(height: 20),
-                TextButton(
-                  onPressed: () async {
-                    await Navigator.of(context).pushNamed(ImportSeedsPage.tag);
-                  },
-                  child: Text('or_import_address'.tr(),
-                      style: theme.textTheme.ppMori400Black14
-                          .copyWith(decoration: TextDecoration.underline)),
-                )
-              ],
-            ),
+              ),
+              PrimaryButton(
+                enabled: state.address.isNotEmpty && state.isValid,
+                isProcessing: state.isAddConnectionLoading,
+                text: 'continue'.tr(),
+                onTap: () {
+                  _bloc.add(AddConnectionEvent());
+                },
+              ),
+              const SizedBox(height: 20),
+              TextButton(
+                onPressed: () async {
+                  await Navigator.of(context).pushNamed(ImportSeedsPage.tag);
+                },
+                child: Text('or_import_address'.tr(),
+                    style: theme.textTheme.ppMori400Black14
+                        .copyWith(decoration: TextDecoration.underline)),
+              )
+            ],
           ),
+        ),
       ),
     );
   }
