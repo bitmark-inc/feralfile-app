@@ -2,15 +2,10 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/model/address.dart';
-import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_address_state.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
-import 'package:autonomy_flutter/service/domain_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/log.dart';
 import 'package:synchronized/synchronized.dart';
-import 'package:web3dart/credentials.dart';
 
 class ViewExistingAddressBloc
     extends AuBloc<ViewExistingAddressEvent, ViewExistingAddressState> {
