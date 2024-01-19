@@ -912,8 +912,8 @@ class UIHelper {
 
   static Future showFeralFileClaimTokenPassLimit(BuildContext context,
       {required FFSeries series}) async {
-    const message = 'Feral File claim token pass limit';
-    final dialogTitle = 'error'.tr();
+    final message = 'all_gifts_claimed_desc'.tr();
+    final dialogTitle = 'all_gifts_claimed'.tr();
 
     unawaited(
       metricClient.addEvent(
