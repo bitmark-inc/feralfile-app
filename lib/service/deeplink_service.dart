@@ -478,8 +478,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
         if (sharedCode != null) {
           log.info('[DeeplinkService] _handlePostcardDeeplink $sharedCode');
           await _handlePostcardDeeplink(sharedCode);
-        } else {
-          unawaited(_navigationService.waitTooLongDialog());
         }
         break;
       case 'autonomy_irl':
@@ -531,8 +529,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
                     series: series,
                     allowViewOnlyClaim: true),
               ));
-            } else {
-              unawaited(_navigationService.waitTooLongDialog());
             }
         }
 
