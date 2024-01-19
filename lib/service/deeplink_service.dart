@@ -604,11 +604,11 @@ class DeeplinkServiceImpl extends DeeplinkService {
           Future.delayed(const Duration(seconds: 5), () {
             currentExhibitionId = null;
           });
-          await _navigationService.openClaimTokenPage(
+          unawaited(_navigationService.openClaimTokenPage(
             series,
             otp: otp,
             claimFunction: claimFunction,
-          );
+          ));
         }
         currentExhibitionId = null;
       } else {

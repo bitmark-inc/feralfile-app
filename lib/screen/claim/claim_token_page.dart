@@ -413,13 +413,13 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
       _processing = false;
     });
     if (mounted) {
-      await Navigator.of(context).pushNamedAndRemoveUntil(
+      unawaited(Navigator.of(context).pushNamedAndRemoveUntil(
         AppRouter.homePage,
         (route) => false,
         arguments: const HomeNavigationPagePayload(
           startedTab: HomeNavigatorTab.collection,
         ),
-      );
+      ));
       NftCollectionBloc.eventController
           .add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
       final token = claimResponse?.token;
@@ -428,10 +428,10 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
         return;
       }
       if (mounted) {
-        await Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
+        unawaited(Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
             arguments: ArtworkDetailPayload(
                 [ArtworkIdentity(token.id, token.owner)], 0,
-                twitterCaption: caption ?? ''));
+                twitterCaption: caption ?? '')));
       }
     }
   }
