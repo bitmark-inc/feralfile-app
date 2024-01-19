@@ -26,30 +26,38 @@ class DomainServiceImpl implements DomainService {
 
   @override
   Future<String?> getEthAddress(String domain) async {
-    final result = await _ensClient.query(
-      doc: _ensQuery.replaceFirst('<var>', domain),
-      subKey: 'domains',
-    );
-    if (result == null || result.isEmpty) {
+    try {
+      final result = await _ensClient.query(
+        doc: _ensQuery.replaceFirst('<var>', domain),
+        subKey: 'domains',
+      );
+      if (result == null || result.isEmpty) {
+        return null;
+      }
+      return result.first['resolvedAddress']['id'];
+    } catch (e) {
       return null;
     }
-    return result.first['resolvedAddress']['id'];
   }
 
   @override
   Future<String?> getTezosAddress(String domain) async {
-    final result = await _tnsClient.query(
-      doc: _tnsQuery.replaceFirst('<var>', domain),
-      subKey: 'domains',
-    );
-    if (result == null) {
+    try {
+      final result = await _tnsClient.query(
+        doc: _tnsQuery.replaceFirst('<var>', domain),
+        subKey: 'domains',
+      );
+      if (result == null) {
+        return null;
+      }
+      final items = result['items'];
+      if (items == null || items.isEmpty) {
+        return null;
+      }
+      return items.first['address'];
+    } catch (e) {
       return null;
     }
-    final items = result['items'];
-    if (items == null || items.isEmpty) {
-      return null;
-    }
-    return items.first['address'];
   }
 
   @override
@@ -58,7 +66,7 @@ class DomainServiceImpl implements DomainService {
     if (ethAddress != null) {
       return ethAddress;
     }
-    return getTezosAddress(domain);
+    return await getTezosAddress(domain);
   }
 }
 

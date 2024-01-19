@@ -1,9 +1,11 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/au_bloc.dart';
+import 'package:autonomy_flutter/model/address.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_address_state.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/domain_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -12,7 +14,7 @@ import 'package:web3dart/credentials.dart';
 
 class ViewExistingAddressBloc
     extends AuBloc<ViewExistingAddressEvent, ViewExistingAddressState> {
-  final DomainService _domainService;
+  final DomainAddressService _domainService;
   final AccountService _accountService;
 
   final _checkDomainLock = Lock();
@@ -33,42 +35,20 @@ class ViewExistingAddressBloc
         return;
       }
 
-      final type = CryptoType.fromAddress(event.address);
-      switch (type) {
-        case CryptoType.ETH:
-          final checksumAddress =
-              EthereumAddress.fromHex(event.address).hexEip55;
-          emit(state.copyWith(
-            address: checksumAddress,
-            isValid: true,
-            type: type,
-          ));
-          return;
-        case CryptoType.XTZ:
-          emit(state.copyWith(
-            address: event.address,
-            isValid: true,
-            type: type,
-          ));
-          return;
-        default:
-          log.info('check domain for ${event.address}');
-          final pair = await _checkDomain(event.address);
-          log.info('pair: ${pair?.first}, ${pair?.second}, '
-              'domain: ${event.address}');
-          if (pair != null) {
-            emit(state.copyWith(
-              address: pair.first,
-              domain: event.address,
-              isValid: true,
-              type: pair.second,
-            ));
-          } else {
-            emit(state.copyWith(
-              address: event.address,
-              isValid: false,
-            ));
-          }
+      final address = await _checkDomain(event.address);
+
+      if (address != null) {
+        emit(state.copyWith(
+          address: address.address,
+          domain: address.domain,
+          isValid: true,
+          type: address.type,
+        ));
+      } else {
+        emit(state.copyWith(
+          address: event.address,
+          isValid: false,
+        ));
       }
     });
 
@@ -107,25 +87,7 @@ class ViewExistingAddressBloc
   bool get isValid =>
       state.isValid && state.address.isNotEmpty && state.type != null;
 
-  Future<Pair<String, CryptoType>?> _checkDomain(String text) async =>
-      await _checkDomainLock.synchronized(() async {
-        if (text.isNotEmpty) {
-          try {
-            final ethAddress = await _domainService.getEthAddress(text);
-            if (ethAddress != null) {
-              final checksumAddress =
-                  EthereumAddress.fromHex(ethAddress).hexEip55;
-              return Pair(checksumAddress, CryptoType.ETH);
-            }
-
-            final xtzAddress = await _domainService.getTezosAddress(text);
-            if (xtzAddress != null) {
-              return Pair(xtzAddress, CryptoType.XTZ);
-            }
-          } catch (_) {
-            return null;
-          }
-        }
-        return null;
-      });
+  Future<Address?> _checkDomain(String text) async =>
+      await _checkDomainLock.synchronized(
+          () async => await _domainService.verifyAddressOrDomain(text));
 }
