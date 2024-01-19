@@ -9,13 +9,13 @@ import 'package:synchronized/synchronized.dart';
 
 class ViewExistingAddressBloc
     extends AuBloc<ViewExistingAddressEvent, ViewExistingAddressState> {
-  final DomainAddressService _domainService;
+  final DomainAddressService _domainAddressService;
   final AccountService _accountService;
 
   final _checkDomainLock = Lock();
 
   ViewExistingAddressBloc(
-    this._domainService,
+    this._domainAddressService,
     this._accountService,
   ) : super(ViewExistingAddressState()) {
     on<AddressChangeEvent>((event, emit) async {
@@ -84,5 +84,5 @@ class ViewExistingAddressBloc
 
   Future<Address?> _checkDomain(String text) async =>
       await _checkDomainLock.synchronized(
-          () async => await _domainService.verifyAddressOrDomain(text));
+          () async => await _domainAddressService.verifyAddressOrDomain(text));
 }

@@ -37,7 +37,7 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
   final CurrencyService _currencyService;
   final NavigationService _navigationService;
   final AssetToken _asset;
-  final DomainAddressService _addressService;
+  final DomainAddressService _domainAddressService;
   String? cachedAddress;
   BigInt? cachedBalance;
 
@@ -51,7 +51,7 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
     this._currencyService,
     this._navigationService,
     this._asset,
-    this._addressService,
+    this._domainAddressService,
   ) : super(SendArtworkState()) {
     final type =
         _asset.blockchain == 'ethereum' ? CryptoType.ETH : CryptoType.XTZ;
@@ -283,6 +283,6 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
   }
 
   Future<Address?> _getAddressFromNS(String domain, CryptoType type) async =>
-      await _domainLock.synchronized(() async =>
-          await _addressService.verifyAddressOrDomainWithType(domain, type));
+      await _domainLock.synchronized(() async => await _domainAddressService
+          .verifyAddressOrDomainWithType(domain, type));
 }

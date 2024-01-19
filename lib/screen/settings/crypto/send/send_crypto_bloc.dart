@@ -35,7 +35,7 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
   final CurrencyService _currencyService;
   final CryptoType _type;
   final NavigationService _navigationService;
-  final DomainAddressService _addressService;
+  final DomainAddressService _domainAddressService;
   String? cachedAddress;
   BigInt? cachedAmount;
   bool isEstimating = false;
@@ -51,7 +51,7 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
     this._currencyService,
     this._type,
     this._navigationService,
-    this._addressService,
+    this._domainAddressService,
   ) : super(SendCryptoState()) {
     on<GetBalanceEvent>((event, emit) async {
       final newState = state.clone()
@@ -359,6 +359,6 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
   }
 
   Future<Address?> _getAddressFromNS(String domain, CryptoType type) async =>
-      await _domainLock.synchronized(() async =>
-          await _addressService.verifyAddressOrDomainWithType(domain, type));
+      await _domainLock.synchronized(() async => await _domainAddressService
+          .verifyAddressOrDomainWithType(domain, type));
 }
