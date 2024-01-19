@@ -23,4 +23,8 @@ abstract class AirdropApi {
   @POST('/v1/share/{token_id}')
   Future<AirdropShareResponse> share(
       @Path('token_id') String tokenId, @Body() AirdropShareRequest body);
+
+  @POST('/v1/feralfile-claim')
+  Future<TokenClaimResponse> feralfileClaim(
+      @Body() FeralFileTokenClaimRequest body);
 }

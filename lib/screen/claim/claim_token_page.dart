@@ -8,23 +8,25 @@ import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/model/otp.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/claim/preview_token_claim.dart';
-import 'package:autonomy_flutter/screen/claim/select_account_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/home/home_navigation_page.dart';
+import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_select_account_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/dio_exception_ext.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -34,28 +36,27 @@ import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class ClaimTokenPageArgs {
+class ClaimTokenPagePayload {
   final FFSeries series;
   final Otp? otp;
   final bool allowViewOnlyClaim;
+  final Future<ClaimResponse?> Function({required String receiveAddress})?
+      claimFunction;
 
-  ClaimTokenPageArgs({
+  ClaimTokenPagePayload({
     required this.series,
+    required this.claimFunction,
     this.otp,
     this.allowViewOnlyClaim = false,
   });
 }
 
 class ClaimTokenPage extends StatefulWidget {
-  final FFSeries series;
-  final Otp? otp;
-  final bool allowViewOnlyClaim;
+  final ClaimTokenPagePayload payload;
 
   const ClaimTokenPage({
-    required this.series,
+    required this.payload,
     super.key,
-    this.otp,
-    this.allowViewOnlyClaim = false,
   });
 
   @override
@@ -67,10 +68,11 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
 
   final metricClient = injector.get<MetricClientService>();
   final configurationService = injector.get<ConfigurationService>();
+  final _navigationService = injector.get<NavigationService>();
 
   @override
   Widget build(BuildContext context) {
-    final artwork = widget.series;
+    final artwork = widget.payload.series;
     final artist = artwork.artist;
     final artistName = artist != null ? artist.getDisplayName() : '';
     final artworkThumbnail = artwork.getThumbnailURL();
@@ -160,7 +162,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                             context,
                             MaterialPageRoute(
                               builder: (context) => PreviewTokenClaim(
-                                series: widget.series,
+                                series: widget.payload.series,
                               ),
                             ),
                           );
@@ -189,7 +191,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) => PreviewTokenClaim(
-                                          series: widget.series,
+                                          series: widget.payload.series,
                                         ),
                                       ),
                                     );
@@ -249,20 +251,20 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                         unawaited(metricClient.addEvent(
                           MixpanelEvent.acceptOwnership,
                           data: {
-                            'id': widget.series.id,
+                            'id': widget.payload.series.id,
                           },
                         ));
                         setState(() {
                           _processing = true;
                         });
                         final blockchain = widget
-                                .series.exhibition?.mintBlockchain
+                                .payload.series.exhibition?.mintBlockchain
                                 .capitalize() ??
                             'Tezos';
                         final accountService = injector<AccountService>();
                         final addresses = await accountService.getAddress(
                             blockchain,
-                            withViewOnly: widget.allowViewOnlyClaim);
+                            withViewOnly: widget.payload.allowViewOnlyClaim);
 
                         String? address;
                         if (addresses.isEmpty) {
@@ -288,15 +290,17 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                           if (!mounted) {
                             return;
                           }
-                          await Navigator.of(context).pushNamed(
-                            AppRouter.claimSelectAccountPage,
-                            arguments: SelectAccountPageArgs(
-                              blockchain,
-                              widget.series,
-                              widget.otp,
-                              withViewOnly: widget.allowViewOnlyClaim,
-                            ),
-                          );
+                          if (mounted) {
+                            final response =
+                                await Navigator.of(context).pushNamed(
+                              AppRouter.receivePostcardSelectAccountPage,
+                              arguments: ReceivePostcardSelectAccountPageArgs(
+                                blockchain,
+                                withLinked: widget.payload.allowViewOnlyClaim,
+                              ),
+                            );
+                            address = response as String?;
+                          }
                         }
                         if (address != null && mounted) {
                           unawaited(_claimToken(context, address));
@@ -354,7 +358,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                 unawaited(metricClient.addEvent(
                   MixpanelEvent.declineOwnership,
                   data: {
-                    'id': widget.series.id,
+                    'id': widget.payload.series.id,
                   },
                 ));
                 memoryValues.branchDeeplinkData.value = null;
@@ -368,31 +372,40 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
   }
 
   Future _claimToken(BuildContext context, String receiveAddress) async {
-    ClaimResponse? claimRespone;
+    ClaimResponse? claimResponse;
     final ffService = injector<FeralFileService>();
     try {
-      claimRespone = await ffService.claimToken(
-        seriesId: widget.series.id,
-        address: receiveAddress,
-        otp: widget.otp,
-      );
+      if (widget.payload.claimFunction != null) {
+        claimResponse =
+            await widget.payload.claimFunction!(receiveAddress: receiveAddress);
+      } else {
+        claimResponse = await ffService.claimToken(
+          seriesId: widget.payload.series.id,
+          address: receiveAddress,
+          otp: widget.payload.otp,
+        );
+      }
       unawaited(metricClient.addEvent(
         MixpanelEvent.acceptOwnershipSuccess,
         data: {
-          'id': widget.series.id,
+          'id': widget.payload.series.id,
         },
       ));
       unawaited(configurationService.setAlreadyClaimedAirdrop(
-          widget.series.id, true));
+          widget.payload.series.id, true));
       memoryValues.branchDeeplinkData.value = null;
     } catch (e) {
       log.info('[ClaimTokenPage] Claim token failed. $e');
       if (mounted) {
-        await UIHelper.showClaimTokenError(
-          context,
-          e,
-          series: widget.series,
-        );
+        if (e is DioException && e.isClaimPassLimit) {
+          await _navigationService.showFeralFileClaimTokenPassLimit(
+              series: widget.payload.series);
+        } else {
+          await _navigationService.showClaimTokenError(
+            e,
+            series: widget.payload.series,
+          );
+        }
       }
       memoryValues.branchDeeplinkData.value = null;
     }
@@ -400,33 +413,33 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
       _processing = false;
     });
     if (mounted) {
-      await Navigator.of(context).pushNamedAndRemoveUntil(
+      unawaited(Navigator.of(context).pushNamedAndRemoveUntil(
         AppRouter.homePage,
         (route) => false,
         arguments: const HomeNavigationPagePayload(
           startedTab: HomeNavigatorTab.collection,
         ),
-      );
+      ));
       NftCollectionBloc.eventController
           .add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
-      final token = claimRespone?.token;
-      final caption = claimRespone?.airdropInfo.twitterCaption;
+      final token = claimResponse?.token;
+      final caption = claimResponse?.airdropInfo.twitterCaption;
       if (token == null) {
         return;
       }
       if (mounted) {
-        await Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
+        unawaited(Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
             arguments: ArtworkDetailPayload(
                 [ArtworkIdentity(token.id, token.owner)], 0,
-                twitterCaption: caption ?? ''));
+                twitterCaption: caption ?? '')));
       }
     }
   }
 
   void _openFFArtistCollector() {
-    String uri = (widget.series.exhibition?.id == null)
+    String uri = (widget.payload.series.exhibition?.id == null)
         ? FF_ARTIST_COLLECTOR
-        : '$FF_ARTIST_COLLECTOR/${widget.series.exhibition?.id}';
+        : '$FF_ARTIST_COLLECTOR/${widget.payload.series.exhibition?.id}';
     unawaited(launchUrl(Uri.parse(uri), mode: LaunchMode.externalApplication));
   }
 }

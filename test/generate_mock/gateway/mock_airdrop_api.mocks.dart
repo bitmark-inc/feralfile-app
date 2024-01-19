@@ -147,4 +147,21 @@ class MockAirdropApi extends _i1.Mock implements _i4.AirdropApi {
           ),
         )),
       ) as _i5.Future<_i2.AirdropShareResponse>);
+  @override
+  _i5.Future<_i3.TokenClaimResponse> feralfileClaim(
+          _i2.FeralFileTokenClaimRequest? body) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #feralfileClaim,
+          [body],
+        ),
+        returnValue:
+            _i5.Future<_i3.TokenClaimResponse>.value(_FakeTokenClaimResponse_1(
+          this,
+          Invocation.method(
+            #feralfileClaim,
+            [body],
+          ),
+        )),
+      ) as _i5.Future<_i3.TokenClaimResponse>);
 }

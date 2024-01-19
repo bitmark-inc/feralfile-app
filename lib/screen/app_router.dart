@@ -918,13 +918,11 @@ class AppRouter {
                 ));
 
       case claimFeralfileTokenPage:
-        final args = settings.arguments! as ClaimTokenPageArgs;
+        final payload = settings.arguments! as ClaimTokenPagePayload;
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => ClaimTokenPage(
-                  series: args.series,
-                  otp: args.otp,
-                  allowViewOnlyClaim: args.allowViewOnlyClaim,
+                  payload: payload,
                 ));
 
       case airdropTokenDetailPage:
@@ -1140,7 +1138,7 @@ class AppRouter {
           builder: (context) => BlocProvider.value(
             value: accountsBloc,
             child: ClaimAirdropPage(
-              payload: settings.arguments! as ClaimTokenPagePayload,
+              payload: settings.arguments! as ClaimAirdropPagePayload,
             ),
           ),
         );

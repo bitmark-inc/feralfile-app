@@ -413,7 +413,7 @@ class _SupportThreadPageState extends State<SupportThreadPage>
                                     }
                                     unawaited(Navigator.of(context).pushNamed(
                                         AppRouter.claimAirdropPage,
-                                        arguments: ClaimTokenPagePayload(
+                                        arguments: ClaimAirdropPagePayload(
                                             claimID: response.claimID,
                                             series: series,
                                             shareCode: '')));
