@@ -1008,4 +1008,26 @@ class MockConfigurationService extends _i1.Mock
         ),
         returnValue: false,
       ) as bool);
+  @override
+  _i6.Future<void> setMerchandiseOrderIds(
+    List<String>? ids, {
+    bool? override = false,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #setMerchandiseOrderIds,
+          [ids],
+          {#override: override},
+        ),
+        returnValue: _i6.Future<void>.value(),
+        returnValueForMissingStub: _i6.Future<void>.value(),
+      ) as _i6.Future<void>);
+  @override
+  List<String> getMerchandiseOrderIds() => (super.noSuchMethod(
+        Invocation.method(
+          #getMerchandiseOrderIds,
+          [],
+        ),
+        returnValue: <String>[],
+      ) as List<String>);
 }
