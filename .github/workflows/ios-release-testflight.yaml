@@ -93,10 +93,10 @@ jobs:
           
           cat .env
 
-      - name: Create GoogleServices-Info.json
+      - name: Create ios/Runner/GoogleService-Info.plist
         run: |
-          touch ios/Runner/GoogleServices-Info.json
-          echo ${{ secrets.GOOGLE_SERVICE_INFO_JSON }} >> ios/Runner/GoogleServices-Info.json
+          touch ios/Runner/GoogleService-Info.plist
+          echo ${{ secrets.GOOGLE_SERVICE_INFO_PLIST }} >> ios/Runner/GoogleService-Info.plist
       - name: Flutter doctor
         run: flutter doctor
       - name: Submoudles update

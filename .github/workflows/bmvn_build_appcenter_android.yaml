@@ -68,10 +68,10 @@ jobs:
           ${{ inputs.testnet == true }} && echo APPCENTER_APP_ID=support-zzd0-28/Autonomy-Android-Test >> $GITHUB_ENV || echo APPCENTER_APP_ID=support-zzd0-28/Autonomy-Android-1 >> $GITHUB_ENV
           ${{ inputs.testnet == true }} && echo NAME_SUFFIX=test-${{env.FLUTTER_VERSION_CODE}} >> $GITHUB_ENV || echo NAME_SUFFIX=main-${{env.FLUTTER_VERSION_CODE}} >> $GITHUB_ENV
 
-      - name: Create google-services.json
+      - name: Create android/app/google-services.json
         run: |
-          touch android/google-services.json
-          echo ${{ secrets.GOOGLE_SERVICE_JSON }} >> android/google-services.json
+          touch android/app/google-services.json
+          echo ${{ secrets.GOOGLE_SERVICE_JSON }} >> android/app/google-services.json
       - uses: webfactory/ssh-agent@v0.5.4
         with:
           ssh-private-key: ${{ secrets.SSH_ASSETS_KEY }}

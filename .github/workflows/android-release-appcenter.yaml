@@ -101,10 +101,10 @@ jobs:
           echo APP_TESTNET_CONFIG=${{ github.event.inputs.testnet == 'true' }} >> .env
           cat .env
 
-      - name: Create google-services.json
+      - name: Create android/app/google-services.json
         run: |
-          touch android/google-services.json
-          echo ${{ secrets.GOOGLE_SERVICE_JSON }} >> android/google-services.json
+          touch android/app/google-services.json
+          echo ${{ secrets.GOOGLE_SERVICE_JSON }} >> android/app/google-services.json
       - name: Submoudles update
         run: git -c submodule.auto-test.update=none submodule update --init --recursive
       - run: flutter pub cache repair
