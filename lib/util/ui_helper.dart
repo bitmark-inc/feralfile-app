@@ -54,6 +54,8 @@ import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:share_plus/share_plus.dart';
 
+// ignore_for_file: constant_identifier_names
+
 enum ActionState { notRequested, loading, error, done }
 
 const SHOW_DIALOG_DURATION = Duration(seconds: 2);
@@ -63,8 +65,7 @@ Future<void> doneOnboarding(BuildContext context) async {
   unawaited(injector<IAPService>().restore());
   await injector<ConfigurationService>().setPendingSettings(true);
   await injector<ConfigurationService>().setDoneOnboarding(true);
-  unawaited(
-      injector<MetricClientService>().mixPanelClient.initIfDefaultAccount());
+  // injector<MetricClientService>().mixPanelClient.initIfDefaultAccount();
   await injector<NavigationService>()
       .navigateUntil(AppRouter.homePage, (route) => false);
 }

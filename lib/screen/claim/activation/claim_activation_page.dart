@@ -1,5 +1,7 @@
 // ignore_for_file: discarded_futures, unawaited_futures
 
+import 'dart:async';
+
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/activation_api.dart';
@@ -161,8 +163,8 @@ class _ClaimActivationPageState extends State<ClaimActivationPage> {
                                     minFontSize: 14,
                                     maxLines: 2,
                                   ),
-                                  onTap: () {
-                                    Navigator.push(
+                                  onTap: () async {
+                                    await Navigator.push(
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) =>
@@ -224,12 +226,12 @@ class _ClaimActivationPageState extends State<ClaimActivationPage> {
                       enabled: !_processing,
                       isProcessing: _processing,
                       onTap: () async {
-                        _metricClient.addEvent(
+                        unawaited(_metricClient.addEvent(
                           MixpanelEvent.acceptOwnership,
                           data: {
                             'id': widget.payload.assetToken.id,
                           },
-                        );
+                        ));
                         setState(() {
                           _processing = true;
                         });
@@ -247,7 +249,7 @@ class _ClaimActivationPageState extends State<ClaimActivationPage> {
                                       ? WalletType.Tezos
                                       : WalletType.Ethereum);
                           await _configService.setDoneOnboarding(true);
-                          _metricClient.mixPanelClient.initIfDefaultAccount();
+                          //_metricClient.mixPanelClient.initIfDefaultAccount();
                           await _configService.setPendingSettings(true);
                           address = walletAddress.first.address;
                         } else if (addresses.length == 1) {
@@ -267,7 +269,7 @@ class _ClaimActivationPageState extends State<ClaimActivationPage> {
                         }
 
                         if (address != null && mounted) {
-                          _claimActivation(
+                          await _claimActivation(
                             context: context,
                             activationID: widget.payload.activationID,
                             receiveAddress: address,
@@ -303,12 +305,12 @@ class _ClaimActivationPageState extends State<ClaimActivationPage> {
               enabled: !_processing,
               color: theme.colorScheme.primary,
               onTap: () {
-                _metricClient.addEvent(
+                unawaited(_metricClient.addEvent(
                   MixpanelEvent.declineOwnership,
                   data: {
                     'id': widget.payload.assetToken.id,
                   },
-                );
+                ));
                 memoryValues.branchDeeplinkData.value = null;
                 Navigator.of(context).pop(false);
               },
@@ -334,12 +336,12 @@ class _ClaimActivationPageState extends State<ClaimActivationPage> {
         ),
         assetToken: assetToken,
       );
-      _metricClient.addEvent(
+      unawaited(_metricClient.addEvent(
         MixpanelEvent.acceptOwnershipSuccess,
         data: {
           'id': widget.payload.assetToken.id,
         },
-      );
+      ));
     } catch (e) {
       setState(() {
         _processing = false;
@@ -350,7 +352,7 @@ class _ClaimActivationPageState extends State<ClaimActivationPage> {
       _processing = false;
     });
     if (mounted) {
-      Navigator.of(context).pushNamedAndRemoveUntil(
+      await Navigator.of(context).pushNamedAndRemoveUntil(
         AppRouter.homePage,
         (route) => false,
       );
@@ -358,7 +360,10 @@ class _ClaimActivationPageState extends State<ClaimActivationPage> {
           .add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
       final token = widget.payload.assetToken;
       const caption = '';
-      Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
+      if (!mounted) {
+        return;
+      }
+      await Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
           arguments: ArtworkDetailPayload(
               [ArtworkIdentity(token.id, receiveAddress)], 0,
               twitterCaption: caption));

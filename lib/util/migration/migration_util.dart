@@ -104,6 +104,30 @@ class MigrationUtil {
     }
   }
 
+  Future<Persona?> getDefaultPersonaFromKeychainIOS() async {
+    if (!Platform.isIOS) {
+      return null;
+    }
+    final List personaUUIDs =
+        await _channel.invokeMethod('getWalletUUIDsFromKeychain', {});
+    for (var personaUUID in personaUUIDs) {
+      final uuid = personaUUID.toLowerCase();
+      final wallet = Persona.newPersona(uuid: uuid).wallet();
+      final name = await wallet.getName();
+
+      final backupVersion = await _backupService.fetchBackupVersion(wallet);
+      final isDefaultAccount = backupVersion.isNotEmpty;
+      if (isDefaultAccount) {
+        return Persona.newPersona(
+          uuid: uuid,
+          name: name,
+          createdAt: DateTime.now(),
+        );
+      }
+    }
+    return null;
+  }
+
   Future<void> migrationFromKeychain() async {
     if (!Platform.isIOS) {
       return;

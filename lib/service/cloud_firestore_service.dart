@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/sqlite_cloud_database.dart';
+import 'package:autonomy_flutter/service/auth_firebase_service.dart';
+import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/cloud_firestore.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration/migration_util.dart';
@@ -11,9 +13,11 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 class CloudFirestoreService {
   FirebaseFirestore fireBaseFirestore;
+  AuthFirebaseService authFiresabeService;
+
   String? deviceId;
 
-  CloudFirestoreService(this.fireBaseFirestore);
+  CloudFirestoreService(this.fireBaseFirestore, this.authFiresabeService);
 
   // init service
   Future<void> initService() async {
@@ -44,12 +48,15 @@ class CloudFirestoreService {
     return data?['backup'] ?? false;
   }
 
-  CollectionReference _userCollection() => fireBaseFirestore
-      .collection('$mobileAppCloudDatabase/$virtualDocumentId/$deviceId');
+  DocumentReference _userDocument() {
+    final userID = authFiresabeService.user?.uid;
+    return fireBaseFirestore
+        .doc('$mobileAppCloudDatabase/$virtualDocumentId/users/$userID');
+  }
 
   CollectionReference getCollection(FirestoreCollection collection) =>
-      fireBaseFirestore.collection(
-          '${_userCollection().path}/$virtualDocumentId/${collection.name}');
+      fireBaseFirestore
+          .collection('${_userDocument().path}/${collection.name}');
 
   // method getBatch
   WriteBatch getBatch() => fireBaseFirestore.batch();
@@ -76,15 +83,12 @@ class CloudFirestoreService {
     log.info('[BackupService] done database backup');
   }
 
-  Future removeAll() {
-    final collection = _userCollection();
-    return collection.get().then((snapshot) {
-      final batch = getBatch();
-      for (var doc in snapshot.docs) {
-        batch.delete(doc.reference);
-      }
-      return batch.commit();
-    });
+  Future removeAll() async {
+    final document = _userDocument();
+    final cloudFirestoreDatabase = injector<CloudDatabase>();
+    await cloudFirestoreDatabase.removeAll();
+    await injector<SettingsDataService>().removeAll();
+    await document.delete();
   }
 }
 

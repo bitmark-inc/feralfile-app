@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/au_bloc.dart';
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/address.dart';
 import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_address_state.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
@@ -59,6 +60,7 @@ class ViewExistingAddressBloc
       ));
 
       try {
+        await injector<AccountService>().getOrCreateDefaultPersona();
         final connection = await _accountService.linkManuallyAddress(
             state.address, state.type!,
             name: state.domain);

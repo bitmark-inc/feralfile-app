@@ -268,8 +268,7 @@ class _ClaimAirdropPageState extends State<ClaimAirdropPage> {
                                       ? WalletType.Tezos
                                       : WalletType.Ethereum);
                           await _configService.setDoneOnboarding(true);
-                          unawaited(_metricClient.mixPanelClient
-                              .initIfDefaultAccount());
+                          //_metricClient.mixPanelClient.initIfDefaultAccount();
                           await _configService.setPendingSettings(true);
                           address = walletAddress.first.address;
                         } else if (addresses.length == 1) {
@@ -323,8 +322,8 @@ class _ClaimAirdropPageState extends State<ClaimAirdropPage> {
                                 theme.textTheme.ppMori400Grey12,
                               ),
                               recognizer: TapGestureRecognizer()
-                                ..onTap = () {
-                                  _openFFArtistCollector();
+                                ..onTap = () async {
+                                  await _openFFArtistCollector();
                                 }),
                           TextSpan(
                             text: '.',
@@ -409,10 +408,10 @@ class _ClaimAirdropPageState extends State<ClaimAirdropPage> {
     }
   }
 
-  void _openFFArtistCollector() {
+  Future<void> _openFFArtistCollector() async {
     String uri = (widget.payload.series.exhibition?.id == null)
         ? FF_ARTIST_COLLECTOR
         : '$FF_ARTIST_COLLECTOR/${widget.payload.series.exhibition?.id}';
-    unawaited(launchUrl(Uri.parse(uri), mode: LaunchMode.externalApplication));
+    await launchUrl(Uri.parse(uri), mode: LaunchMode.externalApplication);
   }
 }

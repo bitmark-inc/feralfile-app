@@ -44,6 +44,7 @@ import 'package:autonomy_flutter/service/activation_service.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/airdrop_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
+import 'package:autonomy_flutter/service/auth_firebase_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
@@ -170,8 +171,10 @@ Future<void> setup() async {
       () => NftCollection.database.predefinedCollectionDao);
   injector.registerLazySingleton(() => cloudDB);
 
+  injector
+      .registerLazySingleton<AuthFirebaseService>(() => AuthFirebaseService());
   injector.registerLazySingleton<CloudFirestoreService>(
-      () => CloudFirestoreService(FirebaseFirestore.instance));
+      () => CloudFirestoreService(FirebaseFirestore.instance, injector()));
 
   injector.registerLazySingleton<FirestorePersonaDao>(
       () => FirestorePersonaDaoImp(injector()));

@@ -886,7 +886,11 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
-                  create: (_) => KeySyncBloc(injector(), injector()),
+                  create: (_) => KeySyncBloc(
+                    injector(),
+                    injector(),
+                    injector(),
+                  ),
                   child: const KeySyncPage(),
                 ));
 

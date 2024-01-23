@@ -279,9 +279,9 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                           final configService =
                               injector<ConfigurationService>();
                           await configService.setDoneOnboarding(true);
-                          unawaited(injector<MetricClientService>()
-                              .mixPanelClient
-                              .initIfDefaultAccount());
+                          // injector<MetricClientService>()
+                          //     .mixPanelClient
+                          //     .initIfDefaultAccount();
                           await configService.setPendingSettings(true);
                           address = walletAddress.first.address;
                         } else if (addresses.length == 1) {
@@ -332,7 +332,7 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                                 theme.textTheme.ppMori400Grey12,
                               ),
                               recognizer: TapGestureRecognizer()
-                                ..onTap = () {
+                                ..onTap = () async {
                                   _openFFArtistCollector();
                                 }),
                           TextSpan(

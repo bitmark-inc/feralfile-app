@@ -46,10 +46,17 @@ class FirestorePersonaDaoImp implements FirestorePersonaDao {
       );
 
   @override
-  Future<List<Persona>> getDefaultPersonas() async =>
-      _collectionRef.where('defaultAccount', isEqualTo: 1).get().then(
-            (snapshot) => snapshot.docs.map((e) => e.data()).toList(),
-          );
+  Future<List<Persona>> getDefaultPersonas() async {
+    try {
+      final personas =
+          await _collectionRef.where('defaultAccount', isEqualTo: 1).get().then(
+                (snapshot) => snapshot.docs.map((e) => e.data()).toList(),
+              );
+      return personas;
+    } catch (e) {
+      return [];
+    }
+  }
 
   @override
   Future<int?> getPersonasCount() async => _collectionRef.get().then(

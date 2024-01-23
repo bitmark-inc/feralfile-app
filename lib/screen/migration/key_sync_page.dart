@@ -80,8 +80,8 @@ class KeySyncPage extends StatelessWidget {
                                 borderRadius:
                                     const BorderRadius.all(Radius.circular(5))),
                             child: GestureDetector(
-                              onTap: () {
-                                UIHelper.showDialog(
+                              onTap: () async {
+                                await UIHelper.showDialog(
                                     context,
                                     'select_wallet_type'.tr(),
                                     SelectKeychainView(
@@ -147,7 +147,7 @@ class KeySyncPage extends StatelessWidget {
                               ),
                               const SizedBox(height: 12),
                               TextButton(
-                                onPressed: () => Navigator.of(context)
+                                onPressed: () async => Navigator.of(context)
                                     .pushNamed(AppRouter.autonomySecurityPage),
                                 style: TextButton.styleFrom(
                                   minimumSize: Size.zero,

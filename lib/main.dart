@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/firebase_options.dart';
 import 'package:autonomy_flutter/model/eth_pending_tx_amount.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/service/auth_firebase_service.dart';
 import 'package:autonomy_flutter/service/cloud_firestore_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
@@ -83,7 +84,7 @@ void main() async {
     await _setupApp();
   }, (Object error, StackTrace stackTrace) async {
     /// Check error is Database issue
-    if (error.toString().contains("DatabaseException")) {
+    if (error.toString().contains('DatabaseException')) {
       log.info('[DatabaseException] Remove local database and resume app');
 
       await _deleteLocalDatabase();
@@ -104,17 +105,18 @@ void _registerHiveAdapter() {
     ..registerAdapter(EthereumPendingTxListAdapter());
 }
 
-_setupApp() async {
+Future<void> _setupApp() async {
   await setup();
 
   await DeviceInfo.instance.init();
   await injector<CloudFirestoreService>().initService();
+  await injector<AuthFirebaseService>().initService();
   final metricClient = injector.get<MetricClientService>();
   await metricClient.initService();
   await injector<RemoteConfigService>().loadConfigs();
 
   final countOpenApp = injector<ConfigurationService>().countOpenApp() ?? 0;
-  injector<ConfigurationService>().setCountOpenApp(countOpenApp + 1);
+  unawaited(injector<ConfigurationService>().setCountOpenApp(countOpenApp + 1));
   final packageInfo = await PackageInfo.fromPlatform();
   await injector<ConfigurationService>().setVersionInfo(packageInfo.version);
   final notificationService = injector<NotificationService>();
@@ -126,10 +128,11 @@ _setupApp() async {
 
   await SentryFlutter.init(
     (options) {
-      options.dsn = Environment.sentryDSN;
-      options.enableAutoSessionTracking = true;
-      options.tracesSampleRate = 0.25;
-      options.attachStacktrace = true;
+      options
+        ..dsn = Environment.sentryDSN
+        ..enableAutoSessionTracking = true
+        ..tracesSampleRate = 0.25
+        ..attachStacktrace = true;
     },
     appRunner: () => runApp(EasyLocalization(
         supportedLocales: const [Locale('en', 'US')],
@@ -141,7 +144,7 @@ _setupApp() async {
   Sentry.configureScope((scope) async {
     final deviceID = await getDeviceID();
     if (deviceID != null) {
-      scope.setUser(SentryUser(id: deviceID));
+      unawaited(scope.setUser(SentryUser(id: deviceID)));
     }
   });
   FlutterNativeSplash.remove();
@@ -154,9 +157,9 @@ _setupApp() async {
 
 Future<void> _deleteLocalDatabase() async {
   String appDatabaseMainnet =
-      await sqfliteDatabaseFactory.getDatabasePath("app_database_mainnet.db");
+      await sqfliteDatabaseFactory.getDatabasePath('app_database_mainnet.db');
   String appDatabaseTestnet =
-      await sqfliteDatabaseFactory.getDatabasePath("app_database_testnet.db");
+      await sqfliteDatabaseFactory.getDatabasePath('app_database_testnet.db');
   await sqfliteDatabaseFactory.deleteDatabase(appDatabaseMainnet);
   await sqfliteDatabaseFactory.deleteDatabase(appDatabaseTestnet);
 }
@@ -196,7 +199,7 @@ class AutonomyApp extends StatelessWidget {
 final RouteObserver<ModalRoute<void>> routeObserver =
     CustomRouteObserver<ModalRoute<void>>();
 
-var memoryValues = MemoryValues(
+MemoryValues memoryValues = MemoryValues(
     branchDeeplinkData: ValueNotifier(null),
     deepLink: ValueNotifier(null),
     irlLink: ValueNotifier(null));
@@ -233,10 +236,6 @@ class MemoryValues {
       );
 }
 
-enum HomePageTab {
-  HOME,
-}
-
 enum HomeNavigatorTab {
   collection,
   organization,
@@ -251,5 +250,3 @@ void downloadCallback(String id, int status, int progress) {
       IsolateNameServer.lookupPortByName('downloader_send_port');
   send?.send([id, status, progress]);
 }
-
-void imageError(Object exception, StackTrace? stackTrace) {}
