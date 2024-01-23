@@ -7,7 +7,8 @@
 
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
-import 'package:autonomy_flutter/screen/migration/key_sync_stat;
+import 'package:autonomy_flutter/screen/migration/key_sync_state.dart';
+import 'package:autonomy_flutter/service/backup_service.dart';
 
 class KeySyncBloc extends AuBloc<KeySyncEvent, KeySyncState> {
   final BackupService _backupService;

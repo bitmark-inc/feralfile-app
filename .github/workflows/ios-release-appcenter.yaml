@@ -110,6 +110,10 @@ jobs:
           echo APP_TESTNET_CONFIG=${{ github.event.inputs.testnet == 'true' }} >> .env
           cat .env
 
+      - name: Create GoogleServices-Info.json
+        run: |
+          touch ios/Runner/GoogleServices-Info.json
+          echo ${{ secrets.GOOGLE_SERVICE_INFO_JSON }} >> ios/Runner/GoogleServices-Info.json
       - name: Flutter doctor
         run: flutter doctor
       - name: Submoudles update
