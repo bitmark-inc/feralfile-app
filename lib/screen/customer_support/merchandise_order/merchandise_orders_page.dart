@@ -7,6 +7,7 @@ import 'package:autonomy_flutter/service/merchandise_service.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/merchandise_order_view.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 class MerchandiseOrderPage extends StatefulWidget {
@@ -28,7 +29,6 @@ class _MerchandiseOrderPageState extends State<MerchandiseOrderPage> {
 
   Future<void> _fetchOrders() async {
     final orderIds = injector<ConfigurationService>().getMerchandiseOrderIds();
-    orderIds.add('b6714e85-d12b-4b65-adb6-90b63f9caf1f');
     for (final id in orderIds) {
       final order = await _merchandiseService.getOrder(id);
       setState(() {
@@ -45,11 +45,12 @@ class _MerchandiseOrderPageState extends State<MerchandiseOrderPage> {
           onClose: () {
             Navigator.pop(context);
           },
-          title: 'purchase_history',
+          title: 'purchase_history'.tr(),
         ),
         body: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               ..._orders.map((e) => MerchandiseOrderView(order: e))
             ],

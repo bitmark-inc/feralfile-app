@@ -195,7 +195,7 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
 
   Widget _transactionHistoryTap(BuildContext context, List<String> orderIds) {
     final theme = Theme.of(context);
-    if (orderIds.isEmpty && false) {
+    if (orderIds.isEmpty) {
       return const SizedBox();
     }
     return Column(

@@ -14,6 +14,7 @@ class MerchandiseOrderView extends StatelessWidget {
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsets.only(bottom: 40),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'order_'.tr(args: [order.id]),
@@ -34,7 +35,8 @@ class MerchandiseOrderView extends StatelessWidget {
             MerchandiseOrderItemView(
               name: 'total'.tr(),
               total: order.data.totalCosts,
-            )
+            ),
+            addDivider()
           ],
         ),
       );
@@ -59,34 +61,37 @@ class MerchandiseOrderItemView extends StatelessWidget {
     return Column(
       children: [
         addDivider(),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 5),
-          child: Row(
-            children: [
-              Flexible(
-                  child: Text(
-                'x$quantity',
-                style: Theme.of(context).textTheme.moMASans400Black14,
-              )),
-              Flexible(
-                flex: 3,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: 60,
+              child: quantity == null
+                ? const SizedBox()
+                : Text(
+              'x$quantity',
+              style: Theme.of(context).textTheme.moMASans400Black14,
+            ),),
+            Expanded(
+              flex: 3,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: theme.textTheme.moMASans700Black14,
+                  ),
+                  if (note != null)
                     Text(
-                      name,
-                      style: theme.textTheme.moMASans700Black14,
+                      '(${note!})',
+                      style: theme.textTheme.moMASans400Grey14
+                          .copyWith(color: AppColor.auQuickSilver),
                     ),
-                    if (note != null)
-                      Text(
-                        '(${note!})',
-                        style: theme.textTheme.moMASans400Grey14
-                            .copyWith(color: AppColor.auQuickSilver),
-                      ),
-                  ],
-                ),
+                ],
               ),
-              Row(
+            ),
+            Flexible(
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   Text(
@@ -95,8 +100,8 @@ class MerchandiseOrderItemView extends StatelessWidget {
                   ),
                 ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ],
     );
