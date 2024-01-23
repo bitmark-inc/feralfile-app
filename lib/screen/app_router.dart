@@ -889,7 +889,6 @@ class AppRouter {
                   create: (_) => KeySyncBloc(
                     injector(),
                     injector(),
-                    injector(),
                   ),
                   child: const KeySyncPage(),
                 ));

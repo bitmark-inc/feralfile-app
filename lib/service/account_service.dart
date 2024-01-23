@@ -233,7 +233,6 @@ class AccountServiceImpl extends AccountService {
     );
   }
 
-  @override
   Future<Persona?> getDefaultPersonaFromKeychain() async {
     if (Platform.isAndroid) {
       return _getDefaultPersonaFromKeychainAndroid();

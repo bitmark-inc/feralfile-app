@@ -5,6 +5,9 @@
 //  that can be found in the LICENSE file.
 //
 
+// ignore_for_file: unawaited_futures
+// ignore_for_file: unreachable_from_main
+
 import 'dart:async';
 import 'dart:isolate';
 import 'dart:ui';

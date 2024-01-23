@@ -54,8 +54,6 @@ import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:share_plus/share_plus.dart';
 
-// ignore_for_file: constant_identifier_names
-
 enum ActionState { notRequested, loading, error, done }
 
 const SHOW_DIALOG_DURATION = Duration(seconds: 2);

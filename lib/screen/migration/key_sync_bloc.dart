@@ -7,17 +7,13 @@
 
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
-import 'package:autonomy_flutter/screen/migration/key_sync_state.dart';
-import 'package:autonomy_flutter/service/auth_firebase_service.dart';
-import 'package:autonomy_flutter/service/backup_service.dart';
+import 'package:autonomy_flutter/screen/migration/key_sync_stat;
 
 class KeySyncBloc extends AuBloc<KeySyncEvent, KeySyncState> {
   final BackupService _backupService;
   final CloudDatabase _cloudDatabase;
-  final AuthFirebaseService _authFirebaseService;
 
-  KeySyncBloc(
-      this._backupService, this._cloudDatabase, this._authFirebaseService)
+  KeySyncBloc(this._backupService, this._cloudDatabase)
       : super(KeySyncState(true, null, true)) {
     on<ToggleKeySyncEvent>((event, emit) async {
       emit(state.copyWith(isLocalSelected: state.isLocalSelectedTmp));
