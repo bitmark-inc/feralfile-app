@@ -262,7 +262,7 @@ class QRScanViewState extends State<QRScanView>
   late QRViewController controller;
   bool isScanDataError = false;
   bool _isLoading = false;
-  bool cameraPermission = false;
+  bool? _cameraPermission;
   String? currentCode;
   final metricClient = injector<MetricClientService>();
   final _navigationService = injector<NavigationService>();
@@ -322,15 +322,15 @@ class QRScanViewState extends State<QRScanView>
     final status = await Permission.camera.status;
 
     if (status.isPermanentlyDenied || status.isDenied) {
-      if (cameraPermission) {
+      if (_cameraPermission != false) {
         setState(() {
-          cameraPermission = false;
+          _cameraPermission = false;
         });
       }
     } else {
-      if (!cameraPermission) {
+      if (_cameraPermission != true) {
         setState(() {
-          cameraPermission = true;
+          _cameraPermission = true;
         });
         if (Platform.isAndroid) {
           _timer?.cancel();
@@ -355,7 +355,7 @@ class QRScanViewState extends State<QRScanView>
     final theme = Theme.of(context);
     return Stack(
       children: [
-        if (!cameraPermission)
+        if (_cameraPermission == false)
           _noPermissionView(context)
         else ...[
           _qrView(context),
@@ -407,7 +407,7 @@ class QRScanViewState extends State<QRScanView>
           overlay: QrScannerOverlayShape(
             borderColor:
                 isScanDataError ? AppColor.red : theme.colorScheme.secondary,
-            overlayColor: cameraPermission
+            overlayColor: _cameraPermission == true
                 ? const Color.fromRGBO(0, 0, 0, 0.6)
                 : const Color.fromRGBO(0, 0, 0, 1),
             cutOutSize: qrSize,
@@ -418,7 +418,7 @@ class QRScanViewState extends State<QRScanView>
           onQRViewCreated: _onQRViewCreated,
           onPermissionSet: (ctrl, p) {
             setState(() {
-              cameraPermission = ctrl.hasPermissions;
+              _cameraPermission = ctrl.hasPermissions;
             });
           },
         ),

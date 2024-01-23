@@ -7,6 +7,7 @@ import 'package:nft_collection/database/dao/asset_token_dao.dart';
 import 'package:nft_collection/database/dao/predefined_collection_dao.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/predefined_collection_model.dart';
+import 'package:nft_collection/services/address_service.dart';
 import 'package:nft_collection/utils/medium_category.dart';
 
 class CollectionProBloc
@@ -18,8 +19,13 @@ class CollectionProBloc
   CollectionProBloc() : super(CollectionLoadedState()) {
     on<LoadCollectionEvent>((event, emit) async {
       final hiddenTokenIDs = _configurationService.getHiddenOrSentTokenIDs();
+      final hiddenAddresses =
+          await injector<AddressService>().getHiddenAddresses();
       final hiddenTokens =
           await _assetTokenDao.findAllAssetTokensByTokenIDs(hiddenTokenIDs);
+      hiddenTokens.removeWhere((element) =>
+          hiddenAddresses.contains(element.owner) ||
+          (element.balance ?? 0) <= 0);
 
       if (event.filterStr.isEmpty) {
         List<PredefinedCollectionModel> listPredefinedCollectionModelByMedium =

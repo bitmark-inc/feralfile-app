@@ -41,6 +41,7 @@ import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_bl
 import 'package:autonomy_flutter/screen/predefined_collection/predefined_collection_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/activation_service.dart';
+import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/airdrop_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
@@ -56,6 +57,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/currency_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
+import 'package:autonomy_flutter/service/domain_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/hive_service.dart';
@@ -302,6 +304,11 @@ Future<void> setup() async {
 
   final cloudService = CloudService();
   injector.registerLazySingleton(() => cloudService);
+
+  injector.registerLazySingleton<DomainService>(() => DomainServiceImpl());
+
+  injector.registerLazySingleton<DomainAddressService>(
+      () => DomainAddressServiceImpl(injector()));
 
   injector.registerLazySingleton(
       () => Web3Client(Environment.web3RpcURL, injector()));

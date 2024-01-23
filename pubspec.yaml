@@ -79,7 +79,7 @@ dependencies:
   nft_rendering:
     git:
       url: https://github.com/autonomy-system/nft-rendering.git
-      ref: e9d1061f7b0d70f557ce4c1310219482177683a8
+      ref: 7136d752f860e486dec48451721266432089422b
   onesignal_flutter: ^3.3.0
   open_settings: ^2.0.2
   overlay_support: ^2.0.0
@@ -123,7 +123,7 @@ dependencies:
   nft_collection:
     git:
       url: https://github.com/autonomy-system/nft-collection
-      ref: 820e595c855d441c8070b6b879ae8b2277fc5899
+      ref: d3cc13e8c56d2c005c85f7a2b3d898162a122e51
   autonomy_tv_proto:
     git:
       url: https://github.com/autonomy-system/autonomy-tv-proto-communication

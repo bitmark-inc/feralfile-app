@@ -199,12 +199,12 @@ class ExhibitionEvent {
 class MediaUri {
   final String url;
   final String type;
-  final String title;
+  final String? title;
 
   MediaUri({
     required this.url,
     required this.type,
-    required this.title,
+    this.title,
   });
 
   factory MediaUri.fromJson(Map<String, dynamic> json) => MediaUri(

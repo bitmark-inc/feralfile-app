@@ -1,6 +1,14 @@
 import 'package:graphql_flutter/graphql_flutter.dart';
 
-class DomainService {
+abstract class DomainService {
+  Future<String?> getAddress(String domain);
+
+  Future<String?> getEthAddress(String domain);
+
+  Future<String?> getTezosAddress(String domain);
+}
+
+class DomainServiceImpl implements DomainService {
   static const String _tnsDomain = 'https://api.tezos.domains/graphql';
   static const String _ensDomain =
       'https://api.thegraph.com/subgraphs/name/ensdomains/ens';
@@ -16,38 +24,49 @@ class DomainService {
 
   static GraphClient get _ensClient => GraphClient(_ensDomain);
 
-  static Future<String?> getEthAddress(String domain) async {
-    final result = await _ensClient.query(
-      doc: _ensQuery.replaceFirst('<var>', domain),
-      subKey: 'domains',
-    );
-    if (result == null || result.isEmpty) {
+  @override
+  Future<String?> getEthAddress(String domain) async {
+    try {
+      final result = await _ensClient.query(
+        doc: _ensQuery.replaceFirst('<var>', domain),
+        subKey: 'domains',
+      );
+      if (result == null || result.isEmpty) {
+        return null;
+      }
+      return result.first['resolvedAddress']['id'];
+    } catch (e) {
       return null;
     }
-    return result.first['resolvedAddress']['id'];
   }
 
-  static Future<String?> getTezosAddress(String domain) async {
-    final result = await _tnsClient.query(
-      doc: _tnsQuery.replaceFirst('<var>', domain),
-      subKey: 'domains',
-    );
-    if (result == null) {
+  @override
+  Future<String?> getTezosAddress(String domain) async {
+    try {
+      final result = await _tnsClient.query(
+        doc: _tnsQuery.replaceFirst('<var>', domain),
+        subKey: 'domains',
+      );
+      if (result == null) {
+        return null;
+      }
+      final items = result['items'];
+      if (items == null || items.isEmpty) {
+        return null;
+      }
+      return items.first['address'];
+    } catch (e) {
       return null;
     }
-    final items = result['items'];
-    if (items == null || items.isEmpty) {
-      return null;
-    }
-    return items.first['address'];
   }
 
-  static Future<String?> getAddress(String domain) async {
+  @override
+  Future<String?> getAddress(String domain) async {
     final ethAddress = await getEthAddress(domain);
     if (ethAddress != null) {
       return ethAddress;
     }
-    return getTezosAddress(domain);
+    return await getTezosAddress(domain);
   }
 }
 

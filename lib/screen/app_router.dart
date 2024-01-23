@@ -91,6 +91,7 @@ import 'package:autonomy_flutter/screen/onboarding/import_address/select_address
 import 'package:autonomy_flutter/screen/onboarding/new_address/address_alias.dart';
 import 'package:autonomy_flutter/screen/onboarding/view_address/name_view_only_page.dart';
 import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_address.dart';
+import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_address_bloc.dart';
 import 'package:autonomy_flutter/screen/onboarding_page.dart';
 import 'package:autonomy_flutter/screen/participate_user_test_page.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist.dart';
@@ -578,6 +579,7 @@ class AppRouter {
                       injector(),
                       injector(),
                       (settings.arguments! as SendData).type,
+                      injector(),
                       injector()),
                   child: SendCryptoPage(data: settings.arguments! as SendData),
                 ));
@@ -620,8 +622,12 @@ class AppRouter {
       case ViewExistingAddress.tag:
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) => ViewExistingAddress(
-                  payload: settings.arguments! as ViewExistingAddressPayload,
+            builder: (context) => BlocProvider(
+                  create: (_) =>
+                      ViewExistingAddressBloc(injector(), injector()),
+                  child: ViewExistingAddress(
+                    payload: settings.arguments! as ViewExistingAddressPayload,
+                  ),
                 ));
       case ImportSeedsPage.tag:
         return CupertinoPageRoute(
@@ -895,7 +901,8 @@ class AppRouter {
                         injector(),
                         injector(),
                         injector(),
-                        (settings.arguments! as SendArtworkPayload).asset)),
+                        (settings.arguments! as SendArtworkPayload).asset,
+                        injector())),
                 BlocProvider(create: (_) => identityBloc),
               ],
               child: SendArtworkPage(
@@ -912,13 +919,11 @@ class AppRouter {
                 ));
 
       case claimFeralfileTokenPage:
-        final args = settings.arguments! as ClaimTokenPageArgs;
+        final payload = settings.arguments! as ClaimTokenPagePayload;
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => ClaimTokenPage(
-                  series: args.series,
-                  otp: args.otp,
-                  allowViewOnlyClaim: args.allowViewOnlyClaim,
+                  payload: payload,
                 ));
 
       case airdropTokenDetailPage:
@@ -1134,7 +1139,7 @@ class AppRouter {
           builder: (context) => BlocProvider.value(
             value: accountsBloc,
             child: ClaimAirdropPage(
-              payload: settings.arguments! as ClaimTokenPagePayload,
+              payload: settings.arguments! as ClaimAirdropPagePayload,
             ),
           ),
         );
