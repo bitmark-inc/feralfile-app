@@ -51,9 +51,7 @@ class _MerchandiseOrderPageState extends State<MerchandiseOrderPage> {
           padding: const EdgeInsets.symmetric(horizontal: 14),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ..._orders.map((e) => MerchandiseOrderView(order: e))
-            ],
+            children: [..._orders.map((e) => MerchandiseOrderView(order: e))],
           ),
         ),
       );
