@@ -280,6 +280,8 @@ Future<void> setup() async {
                 baseUrl: Environment.customerSupportURL),
           ));
 
+  injector.registerLazySingleton<AuditService>(() => auditService);
+
   injector.registerLazySingleton<MerchandiseService>(
       () => MerchandiseServiceImpl(MerchandiseApi(
             authenticatedDio,
