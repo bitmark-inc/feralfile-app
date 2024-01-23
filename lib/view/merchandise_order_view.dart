@@ -67,11 +67,12 @@ class MerchandiseOrderItemView extends StatelessWidget {
             SizedBox(
               width: 60,
               child: quantity == null
-                ? const SizedBox()
-                : Text(
-              'x$quantity',
-              style: Theme.of(context).textTheme.moMASans400Black14,
-            ),),
+                  ? const SizedBox()
+                  : Text(
+                      'x$quantity',
+                      style: Theme.of(context).textTheme.moMASans400Black14,
+                    ),
+            ),
             Expanded(
               flex: 3,
               child: Column(
