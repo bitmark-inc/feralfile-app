@@ -6,7 +6,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/merchandise_service.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/merchandise_order_view.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
@@ -41,17 +41,23 @@ class _MerchandiseOrderPageState extends State<MerchandiseOrderPage> {
   Widget build(BuildContext context) => Scaffold(
         appBar: getCloseAppBar(
           context,
-          titleStyle: Theme.of(context).textTheme.ppMori700Black14,
+          titleStyle: Theme.of(context).textTheme.moMASans700Black18,
+          withBottomDivider: false,
           onClose: () {
             Navigator.pop(context);
           },
           title: 'purchase_history'.tr(),
         ),
-        body: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [..._orders.map((e) => MerchandiseOrderView(order: e))],
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 40),
+                ..._orders.map((e) => MerchandiseOrderView(order: e))
+              ],
+            ),
           ),
         ),
       );

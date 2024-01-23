@@ -27,15 +27,15 @@ class MerchandiseOrder {
 
 @JsonSerializable()
 class OrderData {
+  final List<Item> items;
   final Token token;
-  final List<Variant> variants;
   final Recipient recipient;
   @JsonKey(name: 'total_costs')
   final double totalCosts;
 
   OrderData({
+    required this.items,
     required this.token,
-    required this.variants,
     required this.recipient,
     required this.totalCosts,
   });
@@ -47,58 +47,38 @@ class OrderData {
 }
 
 @JsonSerializable()
-class Token {
-  @JsonKey(name: 'index_id')
-  final String indexId;
-  @JsonKey(name: 'image_url')
-  final String imageUrl;
-  @JsonKey(name: 'preview_url')
-  final String previewUrl;
+class Item {
+  final Variant variant;
+  final int quantity;
 
-  Token({
-    required this.indexId,
-    required this.imageUrl,
-    required this.previewUrl,
+  Item({
+    required this.variant,
+    required this.quantity,
   });
 
-  factory Token.fromJson(Map<String, dynamic> json) => _$TokenFromJson(json);
+  factory Item.fromJson(Map<String, dynamic> json) => _$ItemFromJson(json);
 
-  Map<String, dynamic> toJson() => _$TokenToJson(this);
+  Map<String, dynamic> toJson() => _$ItemToJson(this);
 }
 
 @JsonSerializable()
 class Variant {
-  final Item item;
-  final int quantity;
-
-  Variant({
-    required this.item,
-    required this.quantity,
-  });
-
-  factory Variant.fromJson(Map<String, dynamic> json) =>
-      _$VariantFromJson(json);
-
-  Map<String, dynamic> toJson() => _$VariantToJson(this);
-}
-
-@JsonSerializable()
-class Item {
   final String id;
   final String name;
   final double price;
   final Product product;
 
-  Item({
+  Variant({
     required this.id,
     required this.name,
     required this.price,
     required this.product,
   });
 
-  factory Item.fromJson(Map<String, dynamic> json) => _$ItemFromJson(json);
+  factory Variant.fromJson(Map<String, dynamic> json) =>
+      _$VariantFromJson(json);
 
-  Map<String, dynamic> toJson() => _$ItemToJson(this);
+  Map<String, dynamic> toJson() => _$VariantToJson(this);
 }
 
 @JsonSerializable()
@@ -120,6 +100,26 @@ class Product {
       _$ProductFromJson(json);
 
   Map<String, dynamic> toJson() => _$ProductToJson(this);
+}
+
+@JsonSerializable()
+class Token {
+  @JsonKey(name: 'index_id')
+  final String indexId;
+  @JsonKey(name: 'image_url')
+  final String imageUrl;
+  @JsonKey(name: 'preview_url')
+  final String previewUrl;
+
+  Token({
+    required this.indexId,
+    required this.imageUrl,
+    required this.previewUrl,
+  });
+
+  factory Token.fromJson(Map<String, dynamic> json) => _$TokenFromJson(json);
+
+  Map<String, dynamic> toJson() => _$TokenToJson(this);
 }
 
 @JsonSerializable()

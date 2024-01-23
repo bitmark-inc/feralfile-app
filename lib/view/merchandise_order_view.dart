@@ -26,17 +26,17 @@ class MerchandiseOrderView extends StatelessWidget {
               style: Theme.of(context).textTheme.moMASans700Black14,
             ),
             const SizedBox(height: 20),
-            ...order.data.variants.map((variant) => MerchandiseOrderItemView(
-                  name: '${variant.item.product.name}  ${variant.item.name}',
-                  quantity: variant.quantity,
-                  note: '_per_item'.tr(args: [variant.item.price.toString()]),
-                  total: variant.item.price * variant.quantity,
+            ...order.data.items.map((item) => MerchandiseOrderItemView(
+                  name: '${item.variant.product.name}  ${item.variant.name}',
+                  quantity: item.quantity,
+                  note: '_per_item'.tr(args: [item.variant.price.toString()]),
+                  total: item.variant.price * item.quantity,
                 )),
             MerchandiseOrderItemView(
               name: 'total'.tr(),
               total: order.data.totalCosts,
             ),
-            addDivider()
+            addDivider(color: AppColor.primaryBlack),
           ],
         ),
       );
@@ -60,7 +60,7 @@ class MerchandiseOrderItemView extends StatelessWidget {
     final theme = Theme.of(context);
     return Column(
       children: [
-        addDivider(),
+        addDivider(color: AppColor.primaryBlack),
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -97,7 +97,7 @@ class MerchandiseOrderItemView extends StatelessWidget {
                 children: [
                   Text(
                     '\$${total.toStringAsFixed(2)}',
-                    style: Theme.of(context).textTheme.ppMori700Black14,
+                    style: Theme.of(context).textTheme.ppMori400Black14,
                   ),
                 ],
               ),

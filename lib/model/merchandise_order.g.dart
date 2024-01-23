@@ -23,51 +23,39 @@ Map<String, dynamic> _$MerchandiseOrderToJson(MerchandiseOrder instance) =>
     };
 
 OrderData _$OrderDataFromJson(Map<String, dynamic> json) => OrderData(
-      token: Token.fromJson(json['token'] as Map<String, dynamic>),
-      variants: (json['variants'] as List<dynamic>)
-          .map((e) => Variant.fromJson(e as Map<String, dynamic>))
+      items: (json['items'] as List<dynamic>)
+          .map((e) => Item.fromJson(e as Map<String, dynamic>))
           .toList(),
+      token: Token.fromJson(json['token'] as Map<String, dynamic>),
       recipient: Recipient.fromJson(json['recipient'] as Map<String, dynamic>),
       totalCosts: (json['total_costs'] as num).toDouble(),
     );
 
 Map<String, dynamic> _$OrderDataToJson(OrderData instance) => <String, dynamic>{
+      'items': instance.items,
       'token': instance.token,
-      'variants': instance.variants,
       'recipient': instance.recipient,
       'total_costs': instance.totalCosts,
     };
 
-Token _$TokenFromJson(Map<String, dynamic> json) => Token(
-      indexId: json['index_id'] as String,
-      imageUrl: json['image_url'] as String,
-      previewUrl: json['preview_url'] as String,
-    );
-
-Map<String, dynamic> _$TokenToJson(Token instance) => <String, dynamic>{
-      'index_id': instance.indexId,
-      'image_url': instance.imageUrl,
-      'preview_url': instance.previewUrl,
-    };
-
-Variant _$VariantFromJson(Map<String, dynamic> json) => Variant(
-      item: Item.fromJson(json['item'] as Map<String, dynamic>),
+Item _$ItemFromJson(Map<String, dynamic> json) => Item(
+      variant: Variant.fromJson(json['variant'] as Map<String, dynamic>),
       quantity: json['quantity'] as int,
     );
 
-Map<String, dynamic> _$VariantToJson(Variant instance) => <String, dynamic>{
-      'item': instance.item,
+Map<String, dynamic> _$ItemToJson(Item instance) => <String, dynamic>{
+      'variant': instance.variant,
       'quantity': instance.quantity,
     };
 
-Item _$ItemFromJson(Map<String, dynamic> json) => Item(
+Variant _$VariantFromJson(Map<String, dynamic> json) => Variant(
       id: json['id'] as String,
       name: json['name'] as String,
       price: (json['price'] as num).toDouble(),
       product: Product.fromJson(json['product'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$ItemToJson(Item instance) => <String, dynamic>{
+Map<String, dynamic> _$VariantToJson(Variant instance) => <String, dynamic>{
       'id': instance.id,
       'name': instance.name,
       'price': instance.price,
@@ -86,6 +74,18 @@ Map<String, dynamic> _$ProductToJson(Product instance) => <String, dynamic>{
       'name': instance.name,
       'image_url': instance.imageUrl,
       'description': instance.description,
+    };
+
+Token _$TokenFromJson(Map<String, dynamic> json) => Token(
+      indexId: json['index_id'] as String,
+      imageUrl: json['image_url'] as String,
+      previewUrl: json['preview_url'] as String,
+    );
+
+Map<String, dynamic> _$TokenToJson(Token instance) => <String, dynamic>{
+      'index_id': instance.indexId,
+      'image_url': instance.imageUrl,
+      'preview_url': instance.previewUrl,
     };
 
 Recipient _$RecipientFromJson(Map<String, dynamic> json) => Recipient(
