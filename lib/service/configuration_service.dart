@@ -1169,8 +1169,11 @@ class ConfigurationServiceImpl implements ConfigurationService {
   List<String> getHiddenOrSentTokenIDs() {
     final hiddenTokens = getTempStorageHiddenTokenIDs();
     final recentlySent = getRecentlySentToken();
+    log
+      ..info('[ConfigurationService] Hidden tokens: $hiddenTokens')
+      ..info('[ConfigurationService] Recently sent: $recentlySent');
     hiddenTokens.addAll(recentlySent
-        .where((element) => element.isSentAll)
+        .where((element) => element.isSentAll && !element.isExpired())
         .map((e) => e.tokenID)
         .toList());
     return hiddenTokens;

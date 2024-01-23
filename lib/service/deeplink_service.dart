@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/claim/activation/claim_activation_page.dart';
 import 'package:autonomy_flutter/screen/claim/airdrop/claim_airdrop_page.dart';
+import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/activation_service.dart';
@@ -477,8 +478,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
         if (sharedCode != null) {
           log.info('[DeeplinkService] _handlePostcardDeeplink $sharedCode');
           await _handlePostcardDeeplink(sharedCode);
-        } else {
-          unawaited(_navigationService.waitTooLongDialog());
         }
         break;
       case 'autonomy_irl':
@@ -494,25 +493,45 @@ class DeeplinkServiceImpl extends DeeplinkService {
         await _handlePayToMint();
         break;
       case 'autonomy_airdrop':
-        final String? sharedCode = data['share_code'];
-        if (sharedCode != null) {
-          log.info('[DeeplinkService] _handlePostcardDeeplink $sharedCode');
-          final sharedInfor = await _airdropService.claimShare(
-            AirdropClaimShareRequest(shareCode: sharedCode),
-          );
-          final series =
-              await _feralFileService.getSeries(sharedInfor.seriesID);
-          unawaited(_navigationService.navigateTo(
-            AppRouter.claimAirdropPage,
-            arguments: ClaimTokenPagePayload(
-                claimID: '',
-                shareCode: sharedInfor.shareCode,
-                series: series,
-                allowViewOnlyClaim: true),
-          ));
-        } else {
-          unawaited(_navigationService.waitTooLongDialog());
+        final type = data['type'];
+        switch (type) {
+          case 'claim_pass':
+            final id = data['claim_pass_id'];
+            final seriesId = data['series_id'];
+            if (id != null) {
+              await _claimFFAirdropToken(
+                seriesId: seriesId,
+                otp: _getOtpFromBranchData(data),
+                claimFunction: ({required String receiveAddress}) async {
+                  final response = await _airdropService.claimFeralFileToken(
+                      receiveAddress: receiveAddress,
+                      id: id,
+                      seriesID: seriesId);
+                  return response;
+                },
+              );
+            }
+            break;
+          default:
+            final String? sharedCode = data['share_code'];
+            if (sharedCode != null) {
+              log.info('[DeeplinkService] _handlePostcardDeeplink $sharedCode');
+              final sharedInfor = await _airdropService.claimShare(
+                AirdropClaimShareRequest(shareCode: sharedCode),
+              );
+              final series =
+                  await _feralFileService.getSeries(sharedInfor.seriesID);
+              unawaited(_navigationService.navigateTo(
+                AppRouter.claimAirdropPage,
+                arguments: ClaimAirdropPagePayload(
+                    claimID: '',
+                    shareCode: sharedInfor.shareCode,
+                    series: series,
+                    allowViewOnlyClaim: true),
+              ));
+            }
         }
+
         break;
 
       case 'Autonomy_Activation':
@@ -547,6 +566,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
     String? exhibitionId,
     String? seriesId,
     Otp? otp,
+    Future<ClaimResponse?> Function({required String receiveAddress})?
+        claimFunction,
   }) async {
     log.info('[DeeplinkService] Claim FF Airdrop token. '
         'Exhibition $exhibitionId, otp: ${otp?.toJson()}');
@@ -583,10 +604,11 @@ class DeeplinkServiceImpl extends DeeplinkService {
           Future.delayed(const Duration(seconds: 5), () {
             currentExhibitionId = null;
           });
-          await _navigationService.openClaimTokenPage(
+          unawaited(_navigationService.openClaimTokenPage(
             series,
             otp: otp,
-          );
+            claimFunction: claimFunction,
+          ));
         }
         currentExhibitionId = null;
       } else {

@@ -29,6 +29,11 @@ abstract class FeralFileService {
 
   Future<FFSeries> getSeries(String id);
 
+  Future<ClaimResponse> setPendingToken(
+      {required String receiver,
+      required TokenClaimResponse response,
+      required FFSeries series});
+
   Future<ClaimResponse?> claimToken({
     required String seriesId,
     String? address,
@@ -88,6 +93,36 @@ class FeralFileServiceImpl extends FeralFileService {
       (await _feralFileApi.getSeries(id)).result;
 
   @override
+  Future<ClaimResponse> setPendingToken(
+      {required String receiver,
+      required TokenClaimResponse response,
+      required FFSeries series}) async {
+    final indexer = injector<TokensService>();
+    await indexer.reindexAddresses([receiver]);
+
+    final indexerId =
+        series.airdropInfo!.getTokenIndexerId(response.result.artworkID);
+    List<AssetToken> assetTokens = await _fetchTokens(
+      indexerId: indexerId,
+      receiver: receiver,
+    );
+    if (assetTokens.isNotEmpty) {
+      await indexer.setCustomTokens(assetTokens);
+    } else {
+      assetTokens = [
+        createPendingAssetToken(
+          series: series,
+          owner: receiver,
+          tokenId: response.result.artworkID,
+        )
+      ];
+      await indexer.setCustomTokens(assetTokens);
+    }
+    return ClaimResponse(
+        token: assetTokens.first, airdropInfo: series.airdropInfo!);
+  }
+
+  @override
   Future<ClaimResponse?> claimToken(
       {required String seriesId,
       String? address,
@@ -121,29 +156,9 @@ class FeralFileServiceImpl extends FeralFileService {
         if (otp != null) ...{'airdropTOTPPasscode': otp.code}
       };
       final response = await _feralFileApi.claimSeries(series.id, body);
-      final indexer = injector<TokensService>();
-      await indexer.reindexAddresses([receiver]);
-
-      final indexerId =
-          series.airdropInfo!.getTokenIndexerId(response.result.artworkID);
-      List<AssetToken> assetTokens = await _fetchTokens(
-        indexerId: indexerId,
-        receiver: receiver,
-      );
-      if (assetTokens.isNotEmpty) {
-        await indexer.setCustomTokens(assetTokens);
-      } else {
-        assetTokens = [
-          createPendingAssetToken(
-            series: series,
-            owner: receiver,
-            tokenId: response.result.artworkID,
-          )
-        ];
-        await indexer.setCustomTokens(assetTokens);
-      }
-      return ClaimResponse(
-          token: assetTokens.first, airdropInfo: series.airdropInfo!);
+      final claimResponse = setPendingToken(
+          receiver: receiver, response: response, series: series);
+      return claimResponse;
     } else {
       throw NoRemainingToken();
     }

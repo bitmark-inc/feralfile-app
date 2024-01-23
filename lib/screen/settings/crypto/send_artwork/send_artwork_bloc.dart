@@ -9,7 +9,9 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/address.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_state.dart';
+import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/currency_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -21,10 +23,10 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/rpc_error_extension.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
-import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:synchronized/synchronized.dart';
 import 'package:tezart/tezart.dart';
 import 'package:web3dart/json_rpc.dart';
 import 'package:web3dart/web3dart.dart';
@@ -35,10 +37,13 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
   final CurrencyService _currencyService;
   final NavigationService _navigationService;
   final AssetToken _asset;
+  final DomainAddressService _domainAddressService;
   String? cachedAddress;
   BigInt? cachedBalance;
 
   final _safeBuffer = BigInt.from(10);
+
+  final _domainLock = Lock();
 
   SendArtworkBloc(
     this._ethereumService,
@@ -46,6 +51,7 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
     this._currencyService,
     this._navigationService,
     this._asset,
+    this._domainAddressService,
   ) : super(SendArtworkState()) {
     final type =
         _asset.blockchain == 'ethereum' ? CryptoType.ETH : CryptoType.XTZ;
@@ -108,34 +114,17 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
         ..fee = null;
 
       if (event.address.isNotEmpty) {
-        switch (type) {
-          case CryptoType.ETH:
-            try {
-              final address = EthereumAddress.fromHex(event.address);
-              newState
-                ..address = address.hexEip55
-                ..isAddressError = false;
+        final address = await _getAddressFromNS(event.address, type);
+        if (address != null) {
+          newState
+            ..address = address.address
+            ..domain = address.domain
+            ..isAddressError = false;
 
-              add(EstimateFeeEvent(address.hexEip55, event.index,
-                  _asset.contractAddress!, _asset.tokenId!, state.quantity));
-            } catch (err) {
-              newState.isAddressError = true;
-            }
-            break;
-          case CryptoType.XTZ:
-            if (event.address.isValidTezosAddress) {
-              newState
-                ..address = event.address
-                ..isAddressError = false;
-
-              add(EstimateFeeEvent(event.address, event.index,
-                  _asset.contractAddress!, _asset.tokenId!, state.quantity));
-            } else {
-              newState.isAddressError = true;
-            }
-            break;
-          default:
-            break;
+          add(EstimateFeeEvent(address.address, event.index,
+              _asset.contractAddress!, _asset.tokenId!, state.quantity));
+        } else {
+          newState.isAddressError = true;
         }
       } else {
         newState
@@ -292,4 +281,8 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
 
     return state.fee! <= state.balance! - _safeBuffer;
   }
+
+  Future<Address?> _getAddressFromNS(String domain, CryptoType type) async =>
+      await _domainLock.synchronized(() async => await _domainAddressService
+          .verifyAddressOrDomainWithType(domain, type));
 }

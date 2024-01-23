@@ -911,6 +911,28 @@ class UIHelper {
     }
   }
 
+  static Future showFeralFileClaimTokenPassLimit(BuildContext context,
+      {required FFSeries series}) async {
+    final message = 'all_gifts_claimed_desc'.tr();
+    final dialogTitle = 'all_gifts_claimed'.tr();
+
+    unawaited(
+      metricClient.addEvent(
+        MixpanelEvent.acceptOwnershipFail,
+        data: {
+          'message': message,
+          'id': series.id,
+        },
+      ),
+    );
+    await showErrorDialog(
+      context,
+      dialogTitle,
+      message,
+      'close'.tr(),
+    );
+  }
+
   static Future showActivationError(
       BuildContext context, Object e, String id) async {
     if (e is AirdropExpired) {

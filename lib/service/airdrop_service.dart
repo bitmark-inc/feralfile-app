@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:autonomy_flutter/gateway/airdrop_api.dart';
@@ -17,6 +18,7 @@ import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
+import 'package:autonomy_flutter/util/ff_series_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:collection/collection.dart';
@@ -80,7 +82,7 @@ class AirdropService {
       return requestClaimResponse;
     } catch (e) {
       log.info('[Airdrop service] claimGift: $e');
-      _navigationService.showAirdropJustOnce();
+      unawaited(_navigationService.showAirdropJustOnce());
       rethrow;
     }
   }
@@ -133,20 +135,20 @@ class AirdropService {
       if (e is DioException) {
         switch (e.response?.data['message']) {
           case 'cannot self claim':
-            _navigationService.showAirdropJustOnce();
+            unawaited(_navigationService.showAirdropJustOnce());
             break;
           case 'invalid claim':
-            _navigationService.showAirdropAlreadyClaimed();
+            unawaited(_navigationService.showAirdropAlreadyClaimed());
             break;
           case 'the token is not available for share':
-            _navigationService.showAirdropAlreadyClaimed();
+            unawaited(_navigationService.showAirdropAlreadyClaimed());
             break;
           default:
-            UIHelper.showClaimTokenError(
+            unawaited(UIHelper.showClaimTokenError(
               _navigationService.navigatorKey.currentContext!,
               e,
               series: series,
-            );
+            ));
         }
       }
       rethrow;
@@ -203,6 +205,41 @@ class AirdropService {
     } catch (e) {
       log.info('[Airdrop service] shareGift: error $e');
       return null;
+    }
+  }
+
+  Future<ClaimResponse?> claimFeralFileToken({
+    required String receiveAddress,
+    required String id,
+    required String seriesID,
+  }) async {
+    final series = await _feralFileService.getSeries(seriesID);
+
+    try {
+      series.checkAirdropStatusAndThrowIfError();
+
+      final defaultAccount = await _accountService.getDefaultAccount();
+      final didKey = await defaultAccount.getAccountDID();
+      final timestamp =
+          (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
+      final didKeySignature =
+          await defaultAccount.getAccountDIDSignature(timestamp);
+      final tokenClaimResponse = await _airdropApi.feralfileClaim(
+          FeralFileTokenClaimRequest(
+              id: id,
+              receivingAddress: receiveAddress,
+              did: didKey,
+              didSignature: didKeySignature,
+              timestamp: timestamp));
+      final claimResponse = await _feralFileService.setPendingToken(
+        receiver: receiveAddress,
+        response: tokenClaimResponse,
+        series: series,
+      );
+      return claimResponse;
+    } catch (e) {
+      log.info('[Airdrop service] claimFeralFileToken: error $e');
+      rethrow;
     }
   }
 }
@@ -409,4 +446,39 @@ enum AirdropType {
         return 'unknown';
     }
   }
+}
+
+class FeralFileTokenClaimRequest {
+  final String id;
+  final String receivingAddress;
+  final String did;
+  final String didSignature;
+  final String timestamp;
+
+  FeralFileTokenClaimRequest({
+    required this.id,
+    required this.receivingAddress,
+    required this.did,
+    required this.didSignature,
+    required this.timestamp,
+  });
+
+  //toJson
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'receivingAddress': receivingAddress,
+        'did': did,
+        'didSignature': didSignature,
+        'timestamp': timestamp,
+      };
+
+  // fromJson
+  factory FeralFileTokenClaimRequest.fromJson(Map<String, dynamic> json) =>
+      FeralFileTokenClaimRequest(
+        id: json['id'],
+        receivingAddress: json['receivingAddress'],
+        did: json['did'],
+        didSignature: json['didSignature'],
+        timestamp: json['timestamp'],
+      );
 }

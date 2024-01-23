@@ -182,6 +182,9 @@ class _ClaimActivationPageState extends State<ClaimActivationPage> {
                               ],
                             ),
                           ),
+                          const SizedBox(
+                            width: 10,
+                          ),
                           SvgPicture.asset(
                             'assets/images/penrose_moma.svg',
                             colorFilter: ColorFilter.mode(
