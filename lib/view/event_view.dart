@@ -1,10 +1,10 @@
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
-import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 
 class ExhibitionEventView extends StatelessWidget {
   final ExhibitionEvent exhibitionEvent;
@@ -21,10 +21,16 @@ class ExhibitionEventView extends StatelessWidget {
     final theme = Theme.of(context);
     final dateFormat = DateFormat('MMM d, y');
     final timeFormat = DateFormat('h:mm a');
-    final eventMediaUrl = getFFUrl(exhibitionEvent.mediaUri?.url);
-    final eventUrl = exhibitionEvent.links?.isNotEmpty == true
+    final mediaImageUrl = exhibitionEvent.mediaUri?.type == 'image'
+        ? exhibitionEvent.mediaUri?.url
+        : null;
+    final mediaVideoUrl = exhibitionEvent.mediaUri?.type == 'video'
+        ? exhibitionEvent.mediaUri?.url
+        : null;
+    final eventLink = exhibitionEvent.links?.isNotEmpty == true
         ? exhibitionEvent.links!.values.first
         : null;
+    final watchMoreUrl = mediaVideoUrl ?? eventLink;
 
     return Padding(
       padding: const EdgeInsets.only(right: 14),
@@ -44,9 +50,9 @@ class ExhibitionEventView extends StatelessWidget {
               style: theme.textTheme.ppMori400White12,
             ),
             const SizedBox(height: 30),
-            if (eventMediaUrl != null) ...[
+            if (mediaImageUrl != null) ...[
               Image.network(
-                eventMediaUrl,
+                mediaImageUrl,
                 fit: BoxFit.fitWidth,
               ),
               const SizedBox(height: 20),
@@ -65,18 +71,18 @@ class ExhibitionEventView extends StatelessWidget {
               ),
             ],
             if (exhibitionEvent.description != null) ...[
-              Text(
+              HtmlWidget(
                 exhibitionEvent.description!,
-                style: theme.textTheme.ppMori400White14,
+                textStyle: theme.textTheme.ppMori400White14,
               ),
               const SizedBox(height: 20),
             ],
-            if (eventUrl != null)
+            if (watchMoreUrl != null && watchMoreUrl.isNotEmpty)
               GestureDetector(
                 onTap: () async {
                   await Navigator.of(context).pushNamed(
                       AppRouter.inappWebviewPage,
-                      arguments: InAppWebViewPayload(eventUrl));
+                      arguments: InAppWebViewPayload(watchMoreUrl));
                 },
                 child: Text(
                   'watch'.tr(),
