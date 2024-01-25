@@ -315,7 +315,8 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
                   {
                     'name': '',
                     'url': '',
-                    'icons': ['']
+                    'icons': [''],
+                    'description': '',
                   }),
               WCEthereumTransaction.fromJson(transaction),
               account.wallet.uuid,
