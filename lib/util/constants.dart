@@ -50,6 +50,12 @@ const DEEP_LINKS = [
 const FF_ARTIST_COLLECTOR =
     'https://feralfile.com/docs/artist-collector-rights';
 const WEB3_PRIMER_URL = 'https://autonomy.io/catalog/primer/';
+const COLLECTOR_RIGHTS_DEFAULT_DOCS =
+    "/bitmark-inc/feral-file-docs/master/docs/collector-rights/standard/en.md";
+const COLLECTOR_RIGHTS_MEMENTO_DOCS =
+    "/bitmark-inc/feral-file-docs/master/docs/collector-rights/MoMA-Memento/en.md";
+const COLLECTOR_RIGHTS_MOMA_009_UNSUPERVISED_DOCS =
+    "/bitmark-inc/feral-file-docs/master/docs/collector-rights/009-unsupervised/en.md";
 
 const POSTCARD_RIGHTS_DOCS =
     'https://raw.githubusercontent.com/bitmark-inc/autonomy-apps/main/docs/postcard_collector_rights.md';

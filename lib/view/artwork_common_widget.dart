@@ -5,8 +5,10 @@ import 'dart:math';
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
+import 'package:autonomy_flutter/screen/detail/royalty/royalty_bloc.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -748,6 +750,12 @@ Widget artworkDetailsRightSection(BuildContext context, AssetToken assetToken) {
       ((assetToken.swapped ?? false) && assetToken.originTokenInfoId != null)
           ? assetToken.originTokenInfoId
           : assetToken.id.split('-').last;
+  if (assetToken.source == "feralfile") {
+    return ArtworkRightsView(
+      contract: FFContract("", "", assetToken.contractAddress ?? ""),
+      artworkID: artworkID,
+    );
+  }
   if (assetToken.isPostcard) {
     return PostcardRightsView(
       editionID: artworkID,
@@ -1769,6 +1777,77 @@ class _PostcardRightsViewState extends State<PostcardRightsView> {
   }
 }
 
+class ArtworkRightsView extends StatefulWidget {
+  final TextStyle? linkStyle;
+  final FFContract contract;
+  final String? artworkID;
+  final String? exhibitionID;
+
+  const ArtworkRightsView(
+      {Key? key,
+      this.linkStyle,
+      required this.contract,
+      this.artworkID,
+      this.exhibitionID})
+      : super(key: key);
+
+  @override
+  State<ArtworkRightsView> createState() => _ArtworkRightsViewState();
+}
+
+class _ArtworkRightsViewState extends State<ArtworkRightsView> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<RoyaltyBloc>().add(GetRoyaltyInfoEvent(
+        exhibitionID: widget.exhibitionID,
+        artworkID: widget.artworkID,
+        contractAddress: widget.contract.address));
+  }
+
+  String getUrl(RoyaltyState state) {
+    if (state.exhibitionID != null) {
+      return "$FF_ARTIST_COLLECTOR/${state.exhibitionID}";
+    } else {
+      return FF_ARTIST_COLLECTOR;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<RoyaltyBloc, RoyaltyState>(builder: (context, state) {
+      if (state.markdownData != null) {
+        return SectionExpandedWidget(
+          header: "rights".tr(),
+          padding: const EdgeInsets.only(bottom: 23),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Markdown(
+                key: const Key("rightsSection"),
+                data: state.markdownData!.replaceAll(".**", "**"),
+                softLineBreak: true,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(0),
+                styleSheet: markDownRightStyle(context),
+                onTapLink: (text, href, title) async {
+                  if (href == null) return;
+                  launchUrl(Uri.parse(href),
+                      mode: LaunchMode.externalApplication);
+                },
+              ),
+              const SizedBox(height: 23.0),
+            ],
+          ),
+        );
+      } else {
+        return const SizedBox();
+      }
+    });
+  }
+}
+
 Widget _rowItem(
   BuildContext context,
   String name,
@@ -1856,6 +1935,28 @@ Widget _rowItem(
       )
     ],
   );
+}
+
+class ArtworkRightWidget extends StatelessWidget {
+  final FFContract? contract;
+  final String? exhibitionID;
+
+  const ArtworkRightWidget(
+      {Key? key, @required this.contract, this.exhibitionID})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final linkStyle = Theme.of(context).primaryTextTheme.linkStyle.copyWith(
+          color: Colors.white,
+          decorationColor: Colors.white,
+        );
+    return ArtworkRightsView(
+      linkStyle: linkStyle,
+      contract: FFContract("", "", ""),
+      exhibitionID: exhibitionID,
+    );
+  }
 }
 
 class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {
