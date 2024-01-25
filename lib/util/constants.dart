@@ -51,11 +51,11 @@ const FF_ARTIST_COLLECTOR =
     'https://feralfile.com/docs/artist-collector-rights';
 const WEB3_PRIMER_URL = 'https://autonomy.io/catalog/primer/';
 const COLLECTOR_RIGHTS_DEFAULT_DOCS =
-    "/bitmark-inc/feral-file-docs/master/docs/collector-rights/standard/en.md";
+    '/bitmark-inc/feral-file-docs/master/docs/collector-rights/standard/en.md';
 const COLLECTOR_RIGHTS_MEMENTO_DOCS =
-    "/bitmark-inc/feral-file-docs/master/docs/collector-rights/MoMA-Memento/en.md";
+    '/bitmark-inc/feral-file-docs/master/docs/collector-rights/MoMA-Memento/en.md';
 const COLLECTOR_RIGHTS_MOMA_009_UNSUPERVISED_DOCS =
-    "/bitmark-inc/feral-file-docs/master/docs/collector-rights/009-unsupervised/en.md";
+    '/bitmark-inc/feral-file-docs/master/docs/collector-rights/009-unsupervised/en.md';
 
 const POSTCARD_RIGHTS_DOCS =
     'https://raw.githubusercontent.com/bitmark-inc/autonomy-apps/main/docs/postcard_collector_rights.md';
@@ -103,6 +103,9 @@ const MOMA_MEMENTO_CONTRACT_ADDRESSES_MAINNET = [
   'KT1KzEtNm6Bb9qip8trTsnBohoriH2g2dvc7',
   'KT1RWFkvQPkhjxQQzg1ZvS2EKbprbkAdPRSc',
 ];
+
+const wedgwoodActivationContractAddress =
+    'KT1VNooU9Nrj6hB1SwTkCA5yFXJxjZQCtBRM';
 
 List<String> get momaMementoContractAddresses {
   if (Environment.appTestnetConfig) {

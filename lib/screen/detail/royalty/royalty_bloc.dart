@@ -1,12 +1,11 @@
+import 'package:autonomy_flutter/au_bloc.dart';
+import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/dio_util.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
-
-import '../../../au_bloc.dart';
-import '../../../model/ff_account.dart';
-import '../../../service/feralfile_service.dart';
-import '../../../util/log.dart';
 
 abstract class RoyaltyEvent {}
 
@@ -16,7 +15,7 @@ class GetRoyaltyInfoEvent extends RoyaltyEvent {
   final String contractAddress;
 
   GetRoyaltyInfoEvent(
-      {this.exhibitionID, this.artworkID, this.contractAddress = ""});
+      {this.exhibitionID, this.artworkID, this.contractAddress = ''});
 }
 
 class RoyaltyState {
@@ -29,7 +28,7 @@ class RoyaltyState {
 class RoyaltyBloc extends AuBloc<RoyaltyEvent, RoyaltyState> {
   final FeralFileService _feralFileService;
   final dio = baseDio(BaseOptions(
-    baseUrl: "https://raw.githubusercontent.com",
+    baseUrl: 'https://raw.githubusercontent.com',
     connectTimeout: const Duration(seconds: 5),
   ));
 
@@ -38,7 +37,7 @@ class RoyaltyBloc extends AuBloc<RoyaltyEvent, RoyaltyState> {
       try {
         final String? exhibitionID = event.exhibitionID ??
             (await _feralFileService
-                    .getExhibitionFromTokenID(event.artworkID ?? ""))
+                    .getExhibitionFromTokenID(event.artworkID ?? ''))
                 ?.id;
         if (exhibitionID != null) {
           if (MOMA_MEMENTO_EXHIBITION_IDS.contains(exhibitionID)) {
@@ -62,16 +61,16 @@ class RoyaltyBloc extends AuBloc<RoyaltyEvent, RoyaltyState> {
               await _feralFileService.getResaleInfo(exhibitionID);
           final name = await _feralFileService.getPartnerFullName(exhibitionID);
           final revenueSetting =
-              _getRevenueSetting(resaleInfo, name ?? "partner".tr());
+              _getRevenueSetting(resaleInfo, name ?? 'partner'.tr());
           var data = await dataFuture;
           if (data.statusCode == 200) {
             emit(RoyaltyState(
                 markdownData: data.data
-                    ?.replaceAll("{{revenue_setting}}", revenueSetting)));
+                    ?.replaceAll('{{revenue_setting}}', revenueSetting)));
           }
         }
       } catch (e) {
-        log.info("Royalty bloc ${e.toString()}");
+        log.info('Royalty bloc $e');
         emit(RoyaltyState());
       }
     });
@@ -83,10 +82,10 @@ class RoyaltyBloc extends AuBloc<RoyaltyEvent, RoyaltyState> {
     final platform = (resaleInfo.platform * 100).toString();
     final partner = (resaleInfo.partner * 100).toString();
     if (resaleInfo.partner > 0) {
-      return "revenue_setting_with"
+      return 'revenue_setting_with'
           .tr(args: [artist, platform, partnerName, partner]);
     } else {
-      return "revenue_setting".tr(args: [artist, platform]);
+      return 'revenue_setting'.tr(args: [artist, platform]);
     }
   }
 }
