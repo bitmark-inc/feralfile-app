@@ -27,24 +27,25 @@ class ExhibitionDetailLastPage extends StatelessWidget {
                   color: AppColor.auGreyBackground,
                   borderRadius: BorderRadius.circular(25),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      TextButton(
-                        onPressed: startOver,
-                        child: Text(
+                child: GestureDetector(
+                  onTap: startOver,
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
                           'start_over'.tr(),
                           style: theme.textTheme.ppMori400White14,
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      SvgPicture.asset(
-                        'assets/images/start_over.svg',
-                      ),
-                    ],
+                        const SizedBox(width: 8),
+                        SvgPicture.asset(
+                          'assets/images/start_over.svg',
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
