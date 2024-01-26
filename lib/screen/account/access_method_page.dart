@@ -5,17 +5,22 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/common/injector.dart';
 // ignore_for_file: unused_field
 
+import 'dart:async';
+
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/au_toggle.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -23,7 +28,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class AccessMethodPage extends StatefulWidget {
-  static const tag = "access_method_page";
+  static const tag = 'access_method_page';
 
   const AccessMethodPage({Key? key}) : super(key: key);
 
@@ -34,24 +39,41 @@ class AccessMethodPage extends StatefulWidget {
 class _AccessMethodPageState extends State<AccessMethodPage> {
   var _redrawObject = Object();
   final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
+  final _controller = TextEditingController();
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: getBackAppBar(
-        context,
-        title: "Test page",
-        onBack: () {
-          Navigator.of(context).pop();
-        },
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: _linkDebugWidget(context),
+  Widget build(BuildContext context) => Scaffold(
+        appBar: getBackAppBar(
+          context,
+          title: 'Test page',
+          onBack: () {
+            Navigator.of(context).pop();
+          },
         ),
-      ),
-    );
-  }
+        body: SafeArea(
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                _linkDebugWidget(context),
+                const SizedBox(height: 16),
+                AuTextField(title: 'url', controller: _controller),
+                const SizedBox(height: 16),
+                PrimaryButton(
+                  text: 'open irl url',
+                  onTap: () {
+                    final url = _controller.text.trim();
+                    if (url.isNotEmpty) {
+                      unawaited(Navigator.of(context).pushNamed(
+                          AppRouter.irlWebView,
+                          arguments: IRLWebScreenPayload(url)));
+                    }
+                  },
+                )
+              ],
+            ),
+          ),
+        ),
+      );
 
   Widget _addWalletItem(
       {required BuildContext context,
@@ -83,7 +105,7 @@ class _AccessMethodPageState extends State<AccessMethodPage> {
               const SizedBox(height: 16),
             ],
             Text(
-              content ?? "",
+              content ?? '',
               style: theme.textTheme.ppMori400Black14,
             ),
           ],
@@ -116,7 +138,7 @@ class _AccessMethodPageState extends State<AccessMethodPage> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text("show_token_debug_log".tr(),
+              Text('show_token_debug_log'.tr(),
                   style: theme.textTheme.headlineMedium),
               AuToggle(
                 value: injector<ConfigurationService>().showTokenDebugInfo(),
@@ -136,26 +158,24 @@ class _AccessMethodPageState extends State<AccessMethodPage> {
     );
   }
 
-  Widget _linkTokenIndexerIDWidget(BuildContext context) {
-    return Column(
-      children: [
-        _addWalletItem(
-          context: context,
-          title: "debug_indexer_tokenId".tr(),
-          content: "dit_manually_input_an".tr(),
-          onTap: () => Navigator.of(context)
-              .pushNamed(AppRouter.linkManually, arguments: 'indexerTokenID'),
-        ),
-        TextButton(
-            onPressed: () async {
-              await injector<CloudDatabase>()
-                  .connectionDao
-                  .deleteConnectionsByType(
-                      ConnectionType.manuallyIndexerTokenID.rawValue);
-              injector<ClientTokenService>().refreshTokens();
-            },
-            child: Text("delete_all_debug_li".tr())),
-      ],
-    );
-  }
+  Widget _linkTokenIndexerIDWidget(BuildContext context) => Column(
+        children: [
+          _addWalletItem(
+            context: context,
+            title: 'debug_indexer_tokenId'.tr(),
+            content: 'dit_manually_input_an'.tr(),
+            onTap: () async => Navigator.of(context)
+                .pushNamed(AppRouter.linkManually, arguments: 'indexerTokenID'),
+          ),
+          TextButton(
+              onPressed: () async {
+                await injector<CloudDatabase>()
+                    .connectionDao
+                    .deleteConnectionsByType(
+                        ConnectionType.manuallyIndexerTokenID.rawValue);
+                unawaited(injector<ClientTokenService>().refreshTokens());
+              },
+              child: Text('delete_all_debug_li'.tr())),
+        ],
+      );
 }

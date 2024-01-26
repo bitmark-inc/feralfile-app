@@ -55,6 +55,7 @@ import 'package:autonomy_flutter/screen/detail/preview/canvas_help_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/keyboard_control_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/touchpad_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview_primer.dart';
+import 'package:autonomy_flutter/screen/detail/royalty/royalty_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
 import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artwork_preview_page.dart';
@@ -681,6 +682,7 @@ class AppRouter {
                 providers: [
                   BlocProvider.value(value: accountsBloc),
                   BlocProvider(create: (_) => identityBloc),
+                  BlocProvider(create: (_) => RoyaltyBloc(injector())),
                   BlocProvider(
                       create: (_) => ArtworkDetailBloc(
                             injector(),
@@ -706,6 +708,7 @@ class AppRouter {
                 providers: [
                   BlocProvider.value(value: accountsBloc),
                   BlocProvider(create: (_) => identityBloc),
+                  BlocProvider(create: (_) => RoyaltyBloc(injector())),
                   BlocProvider(create: (_) => TravelInfoBloc()),
                   BlocProvider(create: (_) => postcardDetailBloc),
                 ],
@@ -932,8 +935,11 @@ class AppRouter {
       case airdropTokenDetailPage:
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) => TokenDetailPage(
-                  series: settings.arguments! as FFSeries,
+            builder: (context) => BlocProvider(
+                  create: (_) => RoyaltyBloc(injector()),
+                  child: TokenDetailPage(
+                    series: settings.arguments! as FFSeries,
+                  ),
                 ));
 
       case claimSelectAccountPage:

@@ -654,6 +654,7 @@ class QRScanViewState extends State<QRScanView>
             if (_shouldPop) {
               Navigator.pop(context, code);
             }
+            await Future.delayed(const Duration(milliseconds: 300));
             break;
           case ScannerItem.GLOBAL:
             if (code.startsWith('wc:')) {

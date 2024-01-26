@@ -363,6 +363,14 @@ extension AssetTokenExtension on AssetToken {
         ...momaMementoContractAddresses,
         Environment.autonomyAirDropContractAddress
       ].contains(contractAddress);
+
+  bool get isFeralfile => source == 'feralfile';
+
+  bool get isWedgwoodActivationToken =>
+      contractAddress == wedgwoodActivationContractAddress;
+
+  bool get shouldShowFeralfileRight =>
+      isFeralfile && !isWedgwoodActivationToken;
 }
 
 extension CompactedAssetTokenExtension on CompactedAssetToken {
