@@ -52,18 +52,18 @@ class DefaultFirebaseOptions {
 
   static FirebaseOptions android = FirebaseOptions(
     apiKey: Environment.firebaseAndroidKey,
-    appId: '1:887245084469:android:1884bfad977da157e1de7c',
-    messagingSenderId: '887245084469',
-    projectId: 'my-first-project-sang',
-    storageBucket: 'my-first-project-sang.appspot.com',
+    appId: '1:513216654446:android:7df2ef0c0650cb75414a7f',
+    messagingSenderId: '513216654446',
+    projectId: 'feralfile-user-store-db',
+    storageBucket: 'feralfile-user-store-db.appspot.com',
   );
 
   static FirebaseOptions ios = FirebaseOptions(
     apiKey: Environment.firebaseIosKey,
-    appId: '1:887245084469:ios:875669b063548a75e1de7c',
-    messagingSenderId: '887245084469',
-    projectId: 'my-first-project-sang',
-    storageBucket: 'my-first-project-sang.appspot.com',
+    appId: '1:513216654446:ios:c6112b5fd32247f0414a7f',
+    messagingSenderId: '513216654446',
+    projectId: 'feralfile-user-store-db',
+    storageBucket: 'feralfile-user-store-db.appspot.com',
     iosBundleId: 'com.bitmark.autonomywallet',
   );
 }
