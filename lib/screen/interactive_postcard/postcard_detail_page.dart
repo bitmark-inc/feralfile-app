@@ -801,20 +801,18 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
               final indexId = assetToken.id;
               final jwtToken =
                   (await injector<AuthService>().getAuthToken()).jwtToken;
-              final hasCustomerSupport =
-                  _configurationService.hasMerchandiseSupport(indexId);
-              log.info('?indexId=$indexId&hasCS=$hasCustomerSupport');
+              final userIndex = assetToken.stampIndex;
+              log.info('?indexId=$indexId&userIndex=$userIndex');
               if (!context.mounted) {
                 return;
               }
-              final userIndex = assetToken.stampIndex;
               final url = '${Environment.merchandiseBaseUrl}'
                   '?indexId=$indexId'
-                  '&hasCS=$hasCustomerSupport'
                   '&token=$jwtToken'
                   '&userIndex=$userIndex';
               await Navigator.of(context).pushNamed(AppRouter.irlWebView,
                   arguments: IRLWebScreenPayload(url,
+                      statusBarColor: const Color.fromRGBO(242, 242, 242, 1),
                       isPlainUI: true, localStorageItems: {'token': jwtToken}));
             },
           ),
