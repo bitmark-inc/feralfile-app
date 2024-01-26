@@ -29,6 +29,7 @@ OrderData _$OrderDataFromJson(Map<String, dynamic> json) => OrderData(
       token: Token.fromJson(json['token'] as Map<String, dynamic>),
       recipient: Recipient.fromJson(json['recipient'] as Map<String, dynamic>),
       totalCosts: (json['total_costs'] as num).toDouble(),
+      shippingFee: (json['shipping_fee'] as num).toDouble(),
     );
 
 Map<String, dynamic> _$OrderDataToJson(OrderData instance) => <String, dynamic>{
@@ -36,6 +37,7 @@ Map<String, dynamic> _$OrderDataToJson(OrderData instance) => <String, dynamic>{
       'token': instance.token,
       'recipient': instance.recipient,
       'total_costs': instance.totalCosts,
+      'shipping_fee': instance.shippingFee,
     };
 
 Item _$ItemFromJson(Map<String, dynamic> json) => Item(

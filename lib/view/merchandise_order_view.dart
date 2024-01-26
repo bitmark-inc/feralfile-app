@@ -21,11 +21,6 @@ class MerchandiseOrderView extends StatelessWidget {
               style: Theme.of(context).textTheme.moMASans700Black18,
             ),
             const SizedBox(height: 20),
-            Text(
-              'estimated_delivery_date'.tr(),
-              style: Theme.of(context).textTheme.moMASans700Black14,
-            ),
-            const SizedBox(height: 20),
             ...order.data.items.map((item) => MerchandiseOrderItemView(
                   name: '${item.variant.product.name}  ${item.variant.name}',
                   quantity: item.quantity,
@@ -33,8 +28,13 @@ class MerchandiseOrderView extends StatelessWidget {
                   total: item.variant.price * item.quantity,
                 )),
             MerchandiseOrderItemView(
+              name: 'shipping_fee'.tr(),
+              total: order.data.shippingFee,
+            ),
+            MerchandiseOrderItemView(
               name: 'total'.tr(),
               total: order.data.totalCosts,
+              isBold: true,
             ),
             addDivider(color: AppColor.primaryBlack),
           ],
@@ -48,12 +48,14 @@ class MerchandiseOrderItemView extends StatelessWidget {
       required this.total,
       super.key,
       this.quantity,
-      this.note});
+      this.note,
+      this.isBold = false});
 
   final int? quantity;
   final String name;
   final String? note;
   final double total;
+  final bool isBold;
 
   @override
   Widget build(BuildContext context) {
@@ -97,7 +99,10 @@ class MerchandiseOrderItemView extends StatelessWidget {
                 children: [
                   Text(
                     '\$${total.toStringAsFixed(2)}',
-                    style: Theme.of(context).textTheme.ppMori400Black14,
+                    style:
+                        Theme.of(context).textTheme.ppMori400Black14.copyWith(
+                              fontWeight: isBold ? FontWeight.bold : null,
+                            ),
                   ),
                 ],
               ),

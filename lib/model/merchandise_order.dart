@@ -32,12 +32,15 @@ class OrderData {
   final Recipient recipient;
   @JsonKey(name: 'total_costs')
   final double totalCosts;
+  @JsonKey(name: 'shipping_fee')
+  final double shippingFee;
 
   OrderData({
     required this.items,
     required this.token,
     required this.recipient,
     required this.totalCosts,
+    required this.shippingFee,
   });
 
   factory OrderData.fromJson(Map<String, dynamic> json) =>
