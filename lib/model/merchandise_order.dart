@@ -28,7 +28,7 @@ class MerchandiseOrder {
 @JsonSerializable()
 class OrderData {
   final List<Item> items;
-  final Token token;
+  final MerchandiseToken token;
   final Recipient recipient;
   @JsonKey(name: 'total_costs')
   final double totalCosts;
@@ -106,23 +106,24 @@ class Product {
 }
 
 @JsonSerializable()
-class Token {
+class MerchandiseToken {
   @JsonKey(name: 'index_id')
   final String indexId;
-  @JsonKey(name: 'image_url')
-  final String imageUrl;
+  @JsonKey(name: 'image_urls')
+  final List<String> imageUrls;
   @JsonKey(name: 'preview_url')
   final String previewUrl;
 
-  Token({
+  MerchandiseToken({
     required this.indexId,
-    required this.imageUrl,
+    required this.imageUrls,
     required this.previewUrl,
   });
 
-  factory Token.fromJson(Map<String, dynamic> json) => _$TokenFromJson(json);
+  factory MerchandiseToken.fromJson(Map<String, dynamic> json) =>
+      _$MerchandiseTokenFromJson(json);
 
-  Map<String, dynamic> toJson() => _$TokenToJson(this);
+  Map<String, dynamic> toJson() => _$MerchandiseTokenToJson(this);
 }
 
 @JsonSerializable()

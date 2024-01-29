@@ -26,7 +26,7 @@ OrderData _$OrderDataFromJson(Map<String, dynamic> json) => OrderData(
       items: (json['items'] as List<dynamic>)
           .map((e) => Item.fromJson(e as Map<String, dynamic>))
           .toList(),
-      token: Token.fromJson(json['token'] as Map<String, dynamic>),
+      token: MerchandiseToken.fromJson(json['token'] as Map<String, dynamic>),
       recipient: Recipient.fromJson(json['recipient'] as Map<String, dynamic>),
       totalCosts: (json['total_costs'] as num).toDouble(),
       shippingFee: (json['shipping_fee'] as num).toDouble(),
@@ -78,15 +78,19 @@ Map<String, dynamic> _$ProductToJson(Product instance) => <String, dynamic>{
       'description': instance.description,
     };
 
-Token _$TokenFromJson(Map<String, dynamic> json) => Token(
+MerchandiseToken _$MerchandiseTokenFromJson(Map<String, dynamic> json) =>
+    MerchandiseToken(
       indexId: json['index_id'] as String,
-      imageUrl: json['image_url'] as String,
+      imageUrls: (json['image_urls'] as List<dynamic>)
+          .map((e) => e as String)
+          .toList(),
       previewUrl: json['preview_url'] as String,
     );
 
-Map<String, dynamic> _$TokenToJson(Token instance) => <String, dynamic>{
+Map<String, dynamic> _$MerchandiseTokenToJson(MerchandiseToken instance) =>
+    <String, dynamic>{
       'index_id': instance.indexId,
-      'image_url': instance.imageUrl,
+      'image_urls': instance.imageUrls,
       'preview_url': instance.previewUrl,
     };
 
