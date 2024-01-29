@@ -16,7 +16,7 @@ class MerchandiseOrderView extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            SelectableText(
               'order_'.tr(args: [order.id]),
               style: Theme.of(context).textTheme.moMASans700Black18,
             ),
