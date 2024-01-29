@@ -107,6 +107,20 @@ const MOMA_MEMENTO_CONTRACT_ADDRESSES_MAINNET = [
 const wedgwoodActivationContractAddress =
     'KT1VNooU9Nrj6hB1SwTkCA5yFXJxjZQCtBRM';
 
+const CASA_BATLLO_CONTRACT_ADDRESS_TESTNET =
+    'KT1LHMthpZWUyzgjtxu4ktD9kCbzEYQJBHGp';
+
+const CASA_BATLLO_CONTRACT_ADDRESS_MAINNET =
+    'KT19VkuK7tw22m4P36xRpPiMT4qzEw8YAN8A';
+
+String get casaBatlloContractAddress => Environment.appTestnetConfig
+    ? CASA_BATLLO_CONTRACT_ADDRESS_TESTNET
+    : CASA_BATLLO_CONTRACT_ADDRESS_MAINNET;
+
+List<String> tranferNotAllowContractAddresses = [
+  casaBatlloContractAddress,
+];
+
 List<String> get momaMementoContractAddresses {
   if (Environment.appTestnetConfig) {
     return MOMA_MEMENTO_CONTRACT_ADDRESSES_TESTNET;

@@ -473,7 +473,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
             }));
           },
         ),
-        if (ownerWallet != null) ...[
+        if (ownerWallet != null && asset.isTransferable) ...[
           OptionItem(
             title: 'send_artwork'.tr(),
             icon: SvgPicture.asset('assets/images/Send.svg'),
