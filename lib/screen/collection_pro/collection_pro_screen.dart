@@ -145,9 +145,10 @@ class CollectionProState extends State<CollectionPro>
                           [])
                       .map(
                         (e) {
-                          String name = identityMap[e.id] ?? e.name ?? e.id;
+                          String name = e.name ?? e.id;
                           if (name == e.id) {
-                            name = name.maskOnly(5);
+                            name = name.toIdentityOrMask(identityMap) ??
+                                name.maskOnly(5);
                           }
                           e.name = name;
                           return e;
