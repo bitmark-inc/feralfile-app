@@ -782,6 +782,9 @@ extension PostcardExtension on AssetToken {
         !remoteConfig.getBool(ConfigGroup.merchandise, ConfigKey.mustCompleted);
     return isEnable;
   }
+
+  bool get isTransferable =>
+      !tranferNotAllowContractAddresses.contains(contractAddress);
 }
 
 extension CompactedAssetTokenExt on List<CompactedAssetToken> {

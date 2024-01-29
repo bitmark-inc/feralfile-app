@@ -8,7 +8,6 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/au_bloc.dart';
-import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/address.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_state.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
@@ -24,6 +23,7 @@ import 'package:autonomy_flutter/util/rpc_error_extension.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:synchronized/synchronized.dart';
@@ -218,15 +218,32 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
                     baseOperationCustomFeeHigh));
           } on TezartNodeError catch (err) {
             if (!emit.isDone) {
-              unawaited(UIHelper.showInfoDialog(
-                injector<NavigationService>().navigatorKey.currentContext!,
-                'estimation_failed'.tr(),
-                getTezosErrorMessage(err),
-                isDismissible: true,
-              ));
+              if (_navigationService.mounted) {
+                unawaited(UIHelper.showInfoDialog(
+                  _navigationService.context,
+                  'estimation_failed'.tr(),
+                  getTezosErrorMessage(err),
+                  isDismissible: true,
+                ));
+              }
               fee = BigInt.zero;
               feeOptionValue =
                   FeeOptionValue(BigInt.zero, BigInt.zero, BigInt.zero);
+            }
+          } on TezartHttpError catch (err) {
+            log.info(err);
+            if (_navigationService.mounted) {
+              unawaited(UIHelper.showInfoDialog(
+                _navigationService.context,
+                'estimation_failed'.tr(),
+                'cannot_connect_to_rpc'.tr(),
+                isDismissible: true,
+                closeButton: 'try_again'.tr(),
+                onClose: () {
+                  add(event);
+                  Navigator.of(_navigationService.context).pop();
+                },
+              ));
             }
           } catch (err) {
             if (!emit.isDone) {
