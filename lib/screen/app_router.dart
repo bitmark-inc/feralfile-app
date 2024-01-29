@@ -42,6 +42,7 @@ import 'package:autonomy_flutter/screen/cloud/cloud_android_page.dart';
 import 'package:autonomy_flutter/screen/cloud/cloud_page.dart';
 import 'package:autonomy_flutter/screen/connection/connection_details_page.dart';
 import 'package:autonomy_flutter/screen/connection/persona_connections_page.dart';
+import 'package:autonomy_flutter/screen/customer_support/merchandise_order/merchandise_orders_page.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_customer_page.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_list_page.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
@@ -175,6 +176,7 @@ class AppRouter {
   static const hiddenArtworksPage = 'hidden_artworks';
   static const supportCustomerPage = 'supportCustomerPage';
   static const supportListPage = 'supportListPage';
+  static const merchOrdersPage = 'merchOrderDetailPage';
   static const supportThreadPage = 'supportThreadPage';
   static const bugBountyPage = 'bugBountyPage';
   static const participateUserTestPage = 'participateUserTestPage';
@@ -799,6 +801,11 @@ class AppRouter {
       case supportListPage:
         return CupertinoPageRoute(
             settings: settings, builder: (context) => const SupportListPage());
+
+      case merchOrdersPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => const MerchandiseOrderPage());
 
       case TutorialVideo.tag:
         return CupertinoPageRoute(

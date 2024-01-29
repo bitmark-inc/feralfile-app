@@ -265,6 +265,11 @@ abstract class ConfigurationService {
   Future<void> setShowPostcardBanner(bool bool);
 
   bool getShowPostcardBanner();
+
+  Future<void> setMerchandiseOrderIds(List<String> ids,
+      {bool override = false});
+
+  List<String> getMerchandiseOrderIds();
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
@@ -356,6 +361,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
       'processing_stamp_postcard';
 
   static const String KEY_SHOW_POSTCARD_BANNER = 'show_postcard_banner';
+
+  static const String KEY_MERCHANDISE_ORDER_IDS = 'merchandise_order_ids';
 
   @override
   Future setAlreadyShowProTip(bool show) async {
@@ -1187,6 +1194,24 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   bool getShowPostcardBanner() =>
       _preferences.getBool(KEY_SHOW_POSTCARD_BANNER) ?? true;
+
+  @override
+  List<String> getMerchandiseOrderIds() =>
+      _preferences.getStringList(KEY_MERCHANDISE_ORDER_IDS) ?? [];
+
+  @override
+  Future<void> setMerchandiseOrderIds(List<String> ids,
+      {bool override = false}) async {
+    if (override) {
+      await _preferences.setStringList(KEY_MERCHANDISE_ORDER_IDS, ids);
+    } else {
+      final currentIds =
+          _preferences.getStringList(KEY_MERCHANDISE_ORDER_IDS) ?? []
+            ..addAll(ids);
+      await _preferences.setStringList(
+          KEY_MERCHANDISE_ORDER_IDS, currentIds.toSet().toList());
+    }
+  }
 }
 
 enum ConflictAction {
