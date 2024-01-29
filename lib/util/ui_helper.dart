@@ -75,7 +75,8 @@ void nameContinue(BuildContext context) {
         route.settings.name == AppRouter.claimSelectAccountPage ||
         route.settings.name == AppRouter.wcConnectPage ||
         route.settings.name == AppRouter.homePage ||
-        route.settings.name == AppRouter.homePageNoTransition);
+        route.settings.name == AppRouter.homePageNoTransition ||
+        route.settings.name == AppRouter.walletPage);
   } else {
     unawaited(doneOnboarding(context));
   }
