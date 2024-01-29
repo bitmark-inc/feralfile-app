@@ -20,6 +20,7 @@ import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration/migration_util.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 part 'router_state.dart';
 
@@ -96,41 +97,46 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
     });
 
     on<RestoreCloudDatabaseRoutingEvent>((event, emit) async {
-      if (_configurationService.isDoneOnboarding()) {
-        return;
-      }
-      await _backupService.restoreCloudDatabase(
-          await _accountService.getDefaultAccount(), event.version);
-
-      await _settingsDataService.restoreSettingsData();
-
-      await _accountService.androidRestoreKeys();
-
-      final personas = await _cloudDB.personaDao.getPersonas();
-      for (var persona in personas) {
-        if (persona.name != '') {
-          unawaited(persona.wallet().updateName(persona.name));
-        }
-      }
-      final connections =
-          await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
-      if (personas.isEmpty && connections.isEmpty) {
-        await _configurationService.setDoneOnboarding(false);
-        emit(RouterState(onboardingStep: OnboardingStep.startScreen));
-      } else {
-        await _configurationService.setOldUser();
+      try {
         if (_configurationService.isDoneOnboarding()) {
           return;
         }
-        await _configurationService.setDoneOnboarding(true);
+        await _backupService.restoreCloudDatabase(
+            await _accountService.getDefaultAccount(), event.version);
+
+        await _settingsDataService.restoreSettingsData();
+
+        await _accountService.androidRestoreKeys();
+
+        final personas = await _cloudDB.personaDao.getPersonas();
+        for (var persona in personas) {
+          if (persona.name != '') {
+            unawaited(persona.wallet().updateName(persona.name));
+          }
+        }
+        final connections =
+            await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
+        if (personas.isEmpty && connections.isEmpty) {
+          await _configurationService.setDoneOnboarding(false);
+          emit(RouterState(onboardingStep: OnboardingStep.startScreen));
+        } else {
+          await _configurationService.setOldUser();
+          if (_configurationService.isDoneOnboarding()) {
+            return;
+          }
+          await _configurationService.setDoneOnboarding(true);
+          unawaited(injector<MetricClientService>()
+              .mixPanelClient
+              .initIfDefaultAccount());
+          emit(RouterState(onboardingStep: OnboardingStep.dashboard));
+        }
+        await migrationUtil.migrateIfNeeded();
         unawaited(injector<MetricClientService>()
-            .mixPanelClient
-            .initIfDefaultAccount());
-        emit(RouterState(onboardingStep: OnboardingStep.dashboard));
+            .addEvent(MixpanelEvent.restoreAccount));
+      } catch (e, stacktrace) {
+        await Sentry.captureException(e, stackTrace: stacktrace);
+        rethrow;
       }
-      await migrationUtil.migrateIfNeeded();
-      unawaited(injector<MetricClientService>()
-          .addEvent(MixpanelEvent.restoreAccount));
     });
   }
 }

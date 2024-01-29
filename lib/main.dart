@@ -45,39 +45,26 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 void main() async {
   unawaited(runZonedGuarded(() async {
     await dotenv.load();
-
-    WidgetsFlutterBinding.ensureInitialized();
-    // feature/text_localization
-    await EasyLocalization.ensureInitialized();
-
-    FlutterNativeSplash.preserve(
-        widgetsBinding: WidgetsFlutterBinding.ensureInitialized());
-    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-
-    await FlutterDownloader.initialize();
-    await Hive.initFlutter();
-    _registerHiveAdapter();
-
-    FlutterDownloader.registerCallback(downloadCallback);
-    await AuFileService().setup();
-
-    OneSignal.shared.setLogLevel(OSLogLevel.error, OSLogLevel.none);
-    OneSignal.shared.setAppId(Environment.onesignalAppID);
-
-    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-      statusBarColor: AppColor.white,
-      statusBarIconBrightness: Brightness.dark,
-      statusBarBrightness: Brightness.light,
-    ));
-    FlutterError.onError = (FlutterErrorDetails details) {
-      FlutterError.presentError(details);
-      showErrorDialogFromException(details.exception,
-          stackTrace: details.stack, library: details.library);
-    };
-    await _setupApp();
+    await SentryFlutter.init(
+      (options) {
+        options
+          ..dsn = Environment.sentryDSN
+          ..enableAutoSessionTracking = true
+          ..tracesSampleRate = 0.25
+          ..attachStacktrace = true;
+      },
+      appRunner: () async {
+        try {
+          await runFeralFileApp();
+        } catch (e, stackTrace) {
+          await Sentry.captureException(e, stackTrace: stackTrace);
+          rethrow;
+        }
+      },
+    );
   }, (Object error, StackTrace stackTrace) async {
     /// Check error is Database issue
-    if (error.toString().contains("DatabaseException")) {
+    if (error.toString().contains('DatabaseException')) {
       log.info('[DatabaseException] Remove local database and resume app');
 
       await _deleteLocalDatabase();
@@ -90,6 +77,39 @@ void main() async {
       showErrorDialogFromException(error, stackTrace: stackTrace);
     }
   }));
+}
+
+Future<void> runFeralFileApp() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // feature/text_localization
+  await EasyLocalization.ensureInitialized();
+
+  FlutterNativeSplash.preserve(
+      widgetsBinding: WidgetsFlutterBinding.ensureInitialized());
+  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+
+  await FlutterDownloader.initialize();
+  await Hive.initFlutter();
+  _registerHiveAdapter();
+
+  FlutterDownloader.registerCallback(downloadCallback);
+  await AuFileService().setup();
+
+  OneSignal.shared.setLogLevel(OSLogLevel.error, OSLogLevel.none);
+  OneSignal.shared.setAppId(Environment.onesignalAppID);
+
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarColor: AppColor.white,
+    statusBarIconBrightness: Brightness.dark,
+    statusBarBrightness: Brightness.light,
+  ));
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    showErrorDialogFromException(details.exception,
+        stackTrace: details.stack, library: details.library);
+  };
+
+  await _setupApp();
 }
 
 void _registerHiveAdapter() {
@@ -118,18 +138,15 @@ _setupApp() async {
   final isPremium = await injector.get<IAPService>().isSubscribed();
   await injector<ConfigurationService>().setPremium(isPremium);
 
-  await SentryFlutter.init(
-    (options) {
-      options.dsn = Environment.sentryDSN;
-      options.enableAutoSessionTracking = true;
-      options.tracesSampleRate = 0.25;
-      options.attachStacktrace = true;
-    },
-    appRunner: () => runApp(EasyLocalization(
-        supportedLocales: const [Locale('en', 'US')],
-        path: 'assets/translations',
-        fallbackLocale: const Locale('en', 'US'),
-        child: const OverlaySupport.global(child: AutonomyApp()))),
+  runApp(
+    EasyLocalization(
+      supportedLocales: const [Locale('en', 'US')],
+      path: 'assets/translations',
+      fallbackLocale: const Locale('en', 'US'),
+      child: const OverlaySupport.global(
+        child: AutonomyApp(),
+      ),
+    ),
   );
 
   Sentry.configureScope((scope) async {
@@ -148,9 +165,9 @@ _setupApp() async {
 
 Future<void> _deleteLocalDatabase() async {
   String appDatabaseMainnet =
-      await sqfliteDatabaseFactory.getDatabasePath("app_database_mainnet.db");
+      await sqfliteDatabaseFactory.getDatabasePath('app_database_mainnet.db');
   String appDatabaseTestnet =
-      await sqfliteDatabaseFactory.getDatabasePath("app_database_testnet.db");
+      await sqfliteDatabaseFactory.getDatabasePath('app_database_testnet.db');
   await sqfliteDatabaseFactory.deleteDatabase(appDatabaseMainnet);
   await sqfliteDatabaseFactory.deleteDatabase(appDatabaseTestnet);
 }
