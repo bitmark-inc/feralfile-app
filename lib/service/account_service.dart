@@ -21,6 +21,7 @@ import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
@@ -41,8 +42,6 @@ import 'package:nft_collection/services/address_service.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:synchronized/synchronized.dart';
 import 'package:uuid/uuid.dart';
-
-import 'iap_service.dart';
 
 abstract class AccountService {
   Future<WalletStorage> getDefaultAccount();
@@ -106,6 +105,8 @@ abstract class AccountService {
   Future<void> updateAddressPersona(WalletAddress walletAddress);
 
   Future<void> restoreIfNeeded({bool isCreateNew = true});
+
+  Future<List<Connection>> getAllViewOnlyAddresses();
 }
 
 class AccountServiceImpl extends AccountService {
@@ -142,9 +143,9 @@ class AccountServiceImpl extends AccountService {
     await androidBackupKeys();
     await _auditService.auditPersonaAction('create', persona);
     final metricClient = injector.get<MetricClientService>();
-    metricClient.addEvent(MixpanelEvent.createFullAccount,
-        data: {'isDefault': isDefault}, hashedData: {'id': persona.uuid});
-    _autonomyService.postLinkedAddresses();
+    unawaited(metricClient.addEvent(MixpanelEvent.createFullAccount,
+        data: {'isDefault': isDefault}, hashedData: {'id': persona.uuid}));
+    unawaited(_autonomyService.postLinkedAddresses());
     log.info('[AccountService] Created persona ${persona.uuid}}');
     return persona;
   }
@@ -200,7 +201,9 @@ class AccountServiceImpl extends AccountService {
       personas = await _cloudDB.personaDao.getPersonas();
     }
 
-    if (personas.isEmpty) return null;
+    if (personas.isEmpty) {
+      return null;
+    }
     final defaultWallet = personas.first.wallet();
 
     return await defaultWallet.isWalletCreated() ? defaultWallet : null;
@@ -258,8 +261,7 @@ class AccountServiceImpl extends AccountService {
     if (personas.isEmpty) {
       personas = await _cloudDB.personaDao.getPersonas();
       if (personas.isNotEmpty) {
-        defaultPersona = personas.first;
-        defaultPersona.defaultAccount = 1;
+        defaultPersona = personas.first..defaultAccount = 1;
         await _cloudDB.personaDao.updatePersona(defaultPersona);
       } else {
         log.info('[AccountService] create default account');
@@ -292,7 +294,9 @@ class AccountServiceImpl extends AccountService {
             await _cloudDB.connectionDao.deleteConnection(connection);
             injector<MetricClientService>().onRemoveConnection(connection);
             final bcPeer = connection.beaconConnectConnection?.peer;
-            if (bcPeer != null) bcPeers.add(bcPeer);
+            if (bcPeer != null) {
+              bcPeers.add(bcPeer);
+            }
           }
           break;
 
@@ -305,7 +309,7 @@ class AccountServiceImpl extends AccountService {
         await _tezosBeaconService.removePeer(peer);
       }
     } catch (exception) {
-      Sentry.captureException(exception);
+      unawaited(Sentry.captureException(exception));
     }
 
     log.info('[AccountService] deletePersona finished - ${persona.uuid}');
@@ -315,7 +319,7 @@ class AccountServiceImpl extends AccountService {
   Future deleteLinkedAccount(Connection connection) async {
     await _cloudDB.connectionDao.deleteConnection(connection);
     final addressIndexes = connection.addressIndexes;
-    Future.wait(addressIndexes.map((element) async {
+    await Future.wait(addressIndexes.map((element) async {
       await setHideLinkedAccountInGallery(element.address, false);
     }));
     await _addressService
@@ -352,7 +356,7 @@ class AccountServiceImpl extends AccountService {
 
     await _cloudDB.connectionDao.insertConnection(connection);
     await _addressService.addAddresses([checkSumAddress]);
-    _autonomyService.postLinkedAddresses();
+    unawaited(_autonomyService.postLinkedAddresses());
     return connection;
   }
 
@@ -468,7 +472,9 @@ class AccountServiceImpl extends AccountService {
     final existingConnections = await _cloudDB.connectionDao
         .getConnectionsByAccountNumber(accountNumber);
 
-    if (existingConnections.isEmpty) return null;
+    if (existingConnections.isEmpty) {
+      return null;
+    }
 
     return existingConnections.first;
   }
@@ -493,13 +499,13 @@ class AccountServiceImpl extends AccountService {
     addresses.addAll(linkedAccounts.expand((e) => e.accountNumbers));
     if (logHiddenAddress) {
       log.info(
-          "[Account Service] all addresses (persona ${addressPersona.length}): ${addresses.join(", ")}");
+          '[Account Service] all addresses (persona ${addressPersona.length}): '
+          '${addresses.join(", ")}');
       final hiddenAddresses = addressPersona
           .where((element) => element.isHidden)
           .map((e) => e.address.maskOnly(5))
-          .toList();
-      hiddenAddresses
-          .addAll(_configurationService.getLinkedAccountsHiddenInGallery());
+          .toList()
+        ..addAll(_configurationService.getLinkedAccountsHiddenInGallery());
       log.info(
           "[Account Service] hidden addresses: ${hiddenAddresses.join(", ")}");
     }
@@ -515,7 +521,9 @@ class AccountServiceImpl extends AccountService {
     final personas = await _cloudDB.personaDao.getPersonas();
     for (var persona in personas) {
       final personaWallet = persona.wallet();
-      if (!await personaWallet.isWalletCreated()) continue;
+      if (!await personaWallet.isWalletCreated()) {
+        continue;
+      }
       switch (blockchain.toLowerCase()) {
         case 'tezos':
           addresses.addAll(await persona.getTezosAddresses());
@@ -533,7 +541,9 @@ class AccountServiceImpl extends AccountService {
       final connections =
           await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
       for (var connection in connections) {
-        if (connection.accountNumber.isEmpty) continue;
+        if (connection.accountNumber.isEmpty) {
+          continue;
+        }
         final crytoType =
             CryptoType.fromAddress(connection.accountNumber).source;
         if (crytoType.toLowerCase() == blockchain.toLowerCase()) {
@@ -632,7 +642,7 @@ class AccountServiceImpl extends AccountService {
   @override
   Future<void> deleteAddressPersona(
       Persona persona, WalletAddress walletAddress) async {
-    _cloudDB.addressDao.deleteAddress(walletAddress);
+    await _cloudDB.addressDao.deleteAddress(walletAddress);
     final metricClientService = injector<MetricClientService>();
     await _addressService.deleteAddresses([walletAddress.address]);
     switch (CryptoType.fromSource(walletAddress.cryptoType)) {
@@ -641,7 +651,7 @@ class AccountServiceImpl extends AccountService {
             .getConnectionsByType(ConnectionType.dappConnect2.rawValue);
         for (var connection in connections) {
           if (connection.accountNumber.contains(walletAddress.address)) {
-            _cloudDB.connectionDao.deleteConnection(connection);
+            await _cloudDB.connectionDao.deleteConnection(connection);
             metricClientService.onRemoveConnection(connection);
           }
         }
@@ -654,7 +664,7 @@ class AccountServiceImpl extends AccountService {
           if (connection.beaconConnectConnection?.personaUuid == persona.uuid &&
               connection.beaconConnectConnection?.index ==
                   walletAddress.index) {
-            _cloudDB.connectionDao.deleteConnection(connection);
+            await _cloudDB.connectionDao.deleteConnection(connection);
             metricClientService.onRemoveConnection(connection);
           }
         }
@@ -671,7 +681,9 @@ class AccountServiceImpl extends AccountService {
 
   @override
   Future<void> restoreIfNeeded({bool isCreateNew = true}) async {
-    if (_configurationService.isDoneOnboarding()) return;
+    if (_configurationService.isDoneOnboarding()) {
+      return;
+    }
 
     final iapService = injector<IAPService>();
     final auditService = injector<AuditService>();
@@ -682,30 +694,36 @@ class AccountServiceImpl extends AccountService {
     final personas = await _cloudDB.personaDao.getPersonas();
     final connections = await _cloudDB.connectionDao.getConnections();
     if (personas.isNotEmpty || connections.isNotEmpty) {
-      _configurationService.setOldUser();
+      unawaited(_configurationService.setOldUser());
       final defaultAccount = await getDefaultAccount();
       final backupVersion =
           await _backupService.fetchBackupVersion(defaultAccount);
       if (backupVersion.isNotEmpty) {
-        _backupService.restoreCloudDatabase(defaultAccount, backupVersion);
+        unawaited(
+            _backupService.restoreCloudDatabase(defaultAccount, backupVersion));
         for (var persona in personas) {
           if (persona.name != '') {
-            persona.wallet().updateName(persona.name);
+            await persona.wallet().updateName(persona.name);
           }
         }
         await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
-        _configurationService.setDoneOnboarding(true);
-        injector<MetricClientService>().mixPanelClient.initIfDefaultAccount();
-        injector<NavigationService>()
-            .navigateTo(AppRouter.homePageNoTransition);
+        unawaited(_configurationService.setDoneOnboarding(true));
+        unawaited(injector<MetricClientService>()
+            .mixPanelClient
+            .initIfDefaultAccount());
+        unawaited(injector<NavigationService>()
+            .navigateTo(AppRouter.homePageNoTransition));
       }
     } else if (isCreateNew) {
-      _configurationService.setDoneOnboarding(true);
+      unawaited(_configurationService.setDoneOnboarding(true));
       final persona = await createPersona();
       await persona.insertNextAddress(WalletType.Tezos);
       await persona.insertNextAddress(WalletType.Ethereum);
-      injector<MetricClientService>().mixPanelClient.initIfDefaultAccount();
-      injector<NavigationService>().navigateTo(AppRouter.homePageNoTransition);
+      unawaited(injector<MetricClientService>()
+          .mixPanelClient
+          .initIfDefaultAccount());
+      unawaited(injector<NavigationService>()
+          .navigateTo(AppRouter.homePageNoTransition));
     }
   }
 
@@ -726,6 +744,12 @@ class AccountServiceImpl extends AccountService {
           (element) => _cloudDB.connectionDao.deleteConnection(element));
     }
     return result;
+  }
+
+  @override
+  Future<List<Connection>> getAllViewOnlyAddresses() {
+    final connections = _cloudDB.connectionDao.getLinkedAccounts();
+    return connections;
   }
 }
 
