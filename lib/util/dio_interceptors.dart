@@ -22,7 +22,11 @@ import 'package:web3dart/crypto.dart';
 class LoggingInterceptor extends Interceptor {
   LoggingInterceptor();
 
-  static final List<String> _skipLogPaths = [Environment.pubdocURL];
+  static final List<String> _skipLogPaths = [
+    Environment.pubdocURL,
+    '${Environment.feralFileAPIURL}/api/exhibitions',
+    '${Environment.feralFileAPIURL}/api/artworks',
+  ];
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {

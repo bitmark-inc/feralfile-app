@@ -222,6 +222,10 @@ class FeralFileServiceImpl extends FeralFileService {
     final exhibitions = await _feralFileApi.getAllExhibitions(
         sortBy: sortBy, sortOrder: sortOrder, limit: limit, offset: offset);
     final listExhibition = exhibitions.result;
+    log
+      ..info('[FeralFileService] Get all exhibitions: ${listExhibition.length}')
+      ..info('[FeralFileService] Get all exhibitions: '
+          '${listExhibition.map((e) => e.id).toList()}');
     final listExhibitionDetail =
         listExhibition.map((e) => ExhibitionDetail(exhibition: e)).toList();
     if (withArtworks) {
@@ -247,12 +251,30 @@ class FeralFileServiceImpl extends FeralFileService {
   Future<List<Artwork>> getExhibitionArtworks(String exhibitionId) async {
     final artworks =
         await _feralFileApi.getListArtworks(exhibitionId: exhibitionId);
-    return artworks.result;
+    final listArtwork = artworks.result;
+    log
+      ..info(
+        '[FeralFileService] Get exhibition artworks: ${listArtwork.length}',
+      )
+      ..info(
+        '[FeralFileService] Get exhibition artworks: '
+        '${listArtwork.map((e) => e.id).toList()}',
+      );
+    return listArtwork;
   }
 
   @override
   Future<List<Artwork>> getSeriesArtworks(String seriesId) async {
     final artworks = await _feralFileApi.getListArtworks(seriesId: seriesId);
-    return artworks.result;
+    final listArtwork = artworks.result;
+    log
+      ..info(
+        '[FeralFileService] Get series artworks: ${listArtwork.length}',
+      )
+      ..info(
+        '[FeralFileService] Get series artworks: '
+        '${listArtwork.map((e) => e.id).toList()}',
+      );
+    return listArtwork;
   }
 }
