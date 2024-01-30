@@ -1,6 +1,6 @@
 import 'package:autonomy_flutter/view/touchpad.dart';
 import 'package:autonomy_theme/style/colors.dart';
-import 'package:autonomy_tv_proto/autonomy_tv_proto.dart';
+import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter/material.dart';
 
 class TouchPadPagePayload {
@@ -12,7 +12,7 @@ class TouchPadPagePayload {
 class TouchPadPage extends StatefulWidget {
   final TouchPadPagePayload payload;
 
-  const TouchPadPage({super.key, required this.payload});
+  const TouchPadPage({required this.payload, super.key});
 
   @override
   State<TouchPadPage> createState() => _TouchPadPageState();
@@ -25,7 +25,7 @@ class _TouchPadPageState extends State<TouchPadPage> {
     return Scaffold(
       backgroundColor: theme.colorScheme.primary,
       appBar: AppBar(
-        toolbarHeight: 0.0,
+        toolbarHeight: 0,
       ),
       body: Container(
         color: AppColor.disabledColor,

@@ -98,15 +98,6 @@ packages:
       url: "https://github.com/bitmark-inc/feralfile-app-client-shared-theme"
     source: git
     version: "0.0.1+20"
-  autonomy_tv_proto:
-    dependency: "direct main"
-    description:
-      path: "."
-      ref: e9f0aefc49e313074d2391842e45e559a27ee8b3
-      resolved-ref: e9f0aefc49e313074d2391842e45e559a27ee8b3
-      url: "https://github.com/autonomy-system/feralfile-app-tv-proto-communication"
-    source: git
-    version: "0.0.1"
   awesome_notifications:
     dependency: "direct main"
     description:
@@ -564,6 +555,15 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.2.1"
+  feralfile_app_tv_proto:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: e050458005e8eea9ef8988bdd1c3a1469a9572ff
+      resolved-ref: e050458005e8eea9ef8988bdd1c3a1469a9572ff
+      url: "https://github.com/autonomy-system/feralfile-app-tv-proto-communication"
+    source: git
+    version: "0.0.1"
   ffi:
     dependency: transitive
     description:

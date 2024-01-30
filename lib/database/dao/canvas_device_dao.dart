@@ -1,4 +1,4 @@
-import 'package:autonomy_tv_proto/models/canvas_device.dart';
+import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:floor/floor.dart';
 
 @dao
