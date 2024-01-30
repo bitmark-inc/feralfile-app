@@ -88,14 +88,14 @@ class Variant {
 class Product {
   final String id;
   final String name;
-  @JsonKey(name: 'image_url')
-  final String imageUrl;
+  @JsonKey(name: 'image_urls')
+  final List<String> imageUrls;
   final String description;
 
   Product({
     required this.id,
     required this.name,
-    required this.imageUrl,
+    required this.imageUrls,
     required this.description,
   });
 

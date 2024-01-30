@@ -67,14 +67,16 @@ Map<String, dynamic> _$VariantToJson(Variant instance) => <String, dynamic>{
 Product _$ProductFromJson(Map<String, dynamic> json) => Product(
       id: json['id'] as String,
       name: json['name'] as String,
-      imageUrl: json['image_url'] as String,
+      imageUrls: (json['image_urls'] as List<dynamic>)
+          .map((e) => e as String)
+          .toList(),
       description: json['description'] as String,
     );
 
 Map<String, dynamic> _$ProductToJson(Product instance) => <String, dynamic>{
       'id': instance.id,
       'name': instance.name,
-      'image_url': instance.imageUrl,
+      'image_urls': instance.imageUrls,
       'description': instance.description,
     };
 
