@@ -10,29 +10,30 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class SelectAccountScreen extends StatefulWidget {
+class PostcardSelectAddressScreen extends StatefulWidget {
   final String blockchain;
   final bool withLinked;
   final Future Function(String) onConfirm;
 
-  const SelectAccountScreen({
-    super.key,
+  const PostcardSelectAddressScreen({
     required this.blockchain,
     required this.onConfirm,
+    super.key,
     this.withLinked = true,
   });
 
   @override
-  State<SelectAccountScreen> createState() => _SelectAccountScreenState();
+  State<PostcardSelectAddressScreen> createState() =>
+      _SelectAccountScreenState();
 }
 
-class _SelectAccountScreenState extends State<SelectAccountScreen> {
+class _SelectAccountScreenState extends State<PostcardSelectAddressScreen> {
   String? _selectedAddress;
   late final bool _isTezos;
 
   @override
   void initState() {
-    _isTezos = widget.blockchain.toLowerCase() == "tezos";
+    _isTezos = widget.blockchain.toLowerCase() == 'tezos';
     _callAccountEvent();
     super.initState();
   }
@@ -51,7 +52,7 @@ class _SelectAccountScreenState extends State<SelectAccountScreen> {
         onBack: () {
           Navigator.of(context).pop();
         },
-        title: "claim_address".tr(),
+        title: 'claim_address'.tr(),
         titleStyle: theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
       ),
       body: Container(
@@ -63,7 +64,7 @@ class _SelectAccountScreenState extends State<SelectAccountScreen> {
             Padding(
               padding: ResponsiveLayout.pageHorizontalEdgeInsets,
               child: Text(
-                "select_address_claim_postcard".tr(args: [
+                'select_address_claim_postcard'.tr(args: [
                   widget.blockchain,
                 ]),
                 style:
@@ -79,10 +80,10 @@ class _SelectAccountScreenState extends State<SelectAccountScreen> {
             Padding(
               padding: ResponsiveLayout.pageHorizontalEdgeInsets,
               child: PostcardAsyncButton(
-                text: "continue".tr(),
+                text: 'continue'.tr(),
                 fontSize: 18,
                 enabled: _selectedAddress != null,
-                onTap: () => widget.onConfirm(_selectedAddress!),
+                onTap: () async => widget.onConfirm(_selectedAddress!),
                 color: AppColor.momaGreen,
               ),
             ),
@@ -92,20 +93,19 @@ class _SelectAccountScreenState extends State<SelectAccountScreen> {
     );
   }
 
-  Widget _buildAddressList() {
-    return BlocBuilder<AccountsBloc, AccountsState>(builder: (context, state) {
-      final accounts = state.accounts ?? [];
-      void select(Account value) {
-        setState(() {
-          _selectedAddress = value.accountNumber;
-        });
-      }
+  Widget _buildAddressList() =>
+      BlocBuilder<AccountsBloc, AccountsState>(builder: (context, state) {
+        final accounts = state.accounts ?? [];
+        void select(Account value) {
+          setState(() {
+            _selectedAddress = value.accountNumber;
+          });
+        }
 
-      return PostcardListAccountConnect(
-        accounts: accounts,
-        onSelectEth: !_isTezos ? select : null,
-        onSelectTez: _isTezos ? select : null,
-      );
-    });
-  }
+        return PostcardListAccountConnect(
+          accounts: accounts,
+          onSelectEth: !_isTezos ? select : null,
+          onSelectTez: _isTezos ? select : null,
+        );
+      });
 }
