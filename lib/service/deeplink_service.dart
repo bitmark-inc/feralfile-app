@@ -106,7 +106,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
         await handleBranchDeeplinkData(data);
         handlingDeepLink = null;
       }
-    }, onError: (error) {
+    }, onError: (error, stacktrace) {
+      Sentry.captureException(error, stackTrace: stacktrace);
       log.warning('[DeeplinkService] InitBranchSession error: $error');
     });
 
