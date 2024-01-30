@@ -113,7 +113,7 @@ dependencies:
   iso_duration_parser: ^1.1.1
   autonomy_theme:
     git:
-      url: https://github.com/bitmark-inc/autonomy-client-shared-theme.git
+      url: https://github.com/bitmark-inc/feralfile-app-client-shared-theme
       ref: 2411652517ba92b2510c586b3b8217bd77f8a068
   marqueer: ^1.2.0
   markdown: ^7.1.1
@@ -126,7 +126,7 @@ dependencies:
       ref: 103d9009bd87a5d95123c53dd0a0ee4da6bc3904
   autonomy_tv_proto:
     git:
-      url: https://github.com/autonomy-system/autonomy-tv-proto-communication
+      url: https://github.com/autonomy-system/feralfile-app-tv-proto-communication
       ref: e9f0aefc49e313074d2391842e45e559a27ee8b3
   flutter_branch_sdk: ^6.1.0
   flutter_rating_bar: ^4.0.1

@@ -95,7 +95,7 @@ packages:
       path: "."
       ref: "2411652517ba92b2510c586b3b8217bd77f8a068"
       resolved-ref: "2411652517ba92b2510c586b3b8217bd77f8a068"
-      url: "https://github.com/bitmark-inc/autonomy-client-shared-theme.git"
+      url: "https://github.com/bitmark-inc/feralfile-app-client-shared-theme"
     source: git
     version: "0.0.1+20"
   autonomy_tv_proto:
@@ -104,7 +104,7 @@ packages:
       path: "."
       ref: e9f0aefc49e313074d2391842e45e559a27ee8b3
       resolved-ref: e9f0aefc49e313074d2391842e45e559a27ee8b3
-      url: "https://github.com/autonomy-system/autonomy-tv-proto-communication"
+      url: "https://github.com/autonomy-system/feralfile-app-tv-proto-communication"
     source: git
     version: "0.0.1"
   awesome_notifications:
