@@ -7,8 +7,8 @@ import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
 import 'package:autonomy_flutter/screen/claim/preview_token_claim.dart';
+import 'package:autonomy_flutter/screen/claim/select_account_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
-import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_select_account_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/airdrop_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -278,9 +278,10 @@ class _ClaimAirdropPageState extends State<ClaimAirdropPage> {
                           if (mounted) {
                             final response =
                                 await Navigator.of(context).pushNamed(
-                              AppRouter.receivePostcardSelectAccountPage,
-                              arguments: ReceivePostcardSelectAccountPageArgs(
-                                blockchain,
+                              AppRouter.claimSelectAccountPage,
+                              arguments: SelectAddressPagePayload(
+                                blockchain: blockchain,
+                                withViewOnly: true,
                               ),
                             );
                             address = response as String?;
