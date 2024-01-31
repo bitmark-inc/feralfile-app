@@ -40,7 +40,7 @@ MarkdownStyleSheet markDownStyle(BuildContext context, Color textColor) {
   final bodyText2 = theme.textTheme.ppMori400Black16.copyWith(color: textColor);
   return MarkdownStyleSheet(
     a: TextStyle(
-      fontFamily: AppTheme.atlasGrotesk,
+      fontFamily: AppTheme.ppMori,
       color: Colors.transparent,
       fontWeight: FontWeight.w500,
       shadows: [Shadow(color: textColor, offset: const Offset(0, -1))],
@@ -98,6 +98,72 @@ MarkdownStyleSheet markDownStyle(BuildContext context, Color textColor) {
         top: BorderSide(
           width: 5,
           color: theme.dividerColor,
+        ),
+      ),
+    ),
+  );
+}
+
+MarkdownStyleSheet markDownRightStyle(BuildContext context) {
+  final theme = Theme.of(context);
+  final bodyText2 = theme.textTheme.ppMori400White14;
+  return MarkdownStyleSheet(
+    a: const TextStyle(
+      fontFamily: AppTheme.ppMori,
+      color: AppColor.feralFileHighlight,
+      fontWeight: FontWeight.w400,
+      fontSize: 14,
+    ),
+    p: theme.textTheme.ppMori400White14,
+    pPadding: EdgeInsets.zero,
+    code: bodyText2.copyWith(backgroundColor: Colors.transparent),
+    h1: theme.textTheme.ppMori400White16,
+    h1Padding: EdgeInsets.zero,
+    h2: theme.textTheme.ppMori400White16,
+    h2Padding: EdgeInsets.zero,
+    h3: theme.textTheme.ppMori400White16,
+    h3Padding: EdgeInsets.zero,
+    h4: theme.textTheme.ppMori400White16,
+    h4Padding: EdgeInsets.zero,
+    h5: theme.textTheme.ppMori400White16,
+    h5Padding: EdgeInsets.zero,
+    h6: theme.textTheme.ppMori400White16,
+    h6Padding: EdgeInsets.zero,
+    em: const TextStyle(fontStyle: FontStyle.normal, color: Colors.white),
+    strong: theme.textTheme.ppMori400White14,
+    del: const TextStyle(
+        decoration: TextDecoration.lineThrough, color: Colors.white),
+    blockquote: bodyText2,
+    img: bodyText2,
+    checkbox: bodyText2.copyWith(color: theme.colorScheme.secondary),
+    blockSpacing: 16,
+    listIndent: 24,
+    listBullet: bodyText2.copyWith(color: Colors.black),
+    listBulletPadding: const EdgeInsets.only(right: 4),
+    tableHead: const TextStyle(fontWeight: FontWeight.w600),
+    tableBody: bodyText2,
+    tableHeadAlign: TextAlign.center,
+    tableBorder: TableBorder.all(
+      color: theme.dividerColor,
+    ),
+    tableColumnWidth: const FlexColumnWidth(),
+    tableCellsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+    tableCellsDecoration: const BoxDecoration(),
+    blockquotePadding: const EdgeInsets.all(8),
+    blockquoteDecoration: BoxDecoration(
+      color: Colors.blue.shade100,
+      borderRadius: BorderRadius.circular(2),
+    ),
+    codeblockPadding: const EdgeInsets.all(8),
+    codeblockDecoration: BoxDecoration(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(2),
+    ),
+    horizontalRuleDecoration: BoxDecoration(
+      border: Border(
+        top: BorderSide(
+          width: 0.5,
+          color: theme.disableColor,
         ),
       ),
     ),
@@ -179,9 +245,9 @@ MarkdownStyleSheet markDownAnnouncementStyle(BuildContext context) {
   final theme = Theme.of(context);
   final bodyText2 = theme.textTheme.ppMori400White12;
   return MarkdownStyleSheet(
-    a: TextStyle(
+    a: const TextStyle(
       fontFamily: AppTheme.ppMori,
-      color: theme.auSuperTeal,
+      color: AppColor.feralFileHighlight,
       fontWeight: FontWeight.w400,
       fontSize: 14,
     ),
@@ -364,7 +430,7 @@ MarkdownStyleSheet markDownChangeLogStyle(BuildContext context) {
     blockquotePadding: const EdgeInsets.only(left: 20),
     blockquoteDecoration: const BoxDecoration(
       border: Border(
-        left: BorderSide(width: 2, color: AppColor.auSuperTeal),
+        left: BorderSide(width: 2, color: AppColor.feralFileHighlight),
       ),
     ),
     codeblockPadding: const EdgeInsets.all(8),
@@ -373,7 +439,7 @@ MarkdownStyleSheet markDownChangeLogStyle(BuildContext context) {
       borderRadius: BorderRadius.circular(2),
     ),
     horizontalRuleDecoration: CustomBoxDecoration(
-      color: AppColor.auSuperTeal,
+      color: AppColor.feralFileHighlight,
     ),
   );
 }
@@ -485,12 +551,12 @@ Divider addDivider({double height = 32, Color? color}) => Divider(
 Divider headDivider() => const Divider(
       height: 30,
       thickness: 3,
-      color: AppColor.auSuperTeal,
+      color: AppColor.feralFileHighlight,
     );
 
-Divider addOnlyDivider({Color? color}) => Divider(
+Divider addOnlyDivider({Color? color, double border = 1.0}) => Divider(
       height: 1,
-      thickness: 1,
+      thickness: border,
       color: color,
     );
 
@@ -606,7 +672,7 @@ class MomaPallet {
 
 Map<String, String>? auHtmlStyle(dom.Element element) {
   if (element.localName == 'a') {
-    const linkColor = AppColor.auSuperTeal;
+    const linkColor = AppColor.feralFileHighlight;
     // convert linkColor to hex string
     String hexColor =
         "#${(linkColor.value & 0xFFFFFF).toRadixString(16).padLeft(6, '0')}";

@@ -2,33 +2,33 @@ import 'package:autonomy_flutter/gateway/activation_api.dart';
 import 'package:autonomy_flutter/service/activation_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:nft_collection/services/tokens_service.dart';
 
-import '../gateway/activation_mock.dart';
-import '../gateway/token_service_mock_data.dart';
-import 'activation_service_test.mocks.dart';
+import '../generate_mock/gateway/mock_activation_api.mocks.dart';
+import '../generate_mock/service/mock_navigation_service.mocks.dart';
+import '../generate_mock/service/mock_tokens_service.mocks.dart';
+import '../mock_data/activation_mock.dart';
+import '../mock_data/constants.dart';
+import '../mock_data/token_service_mock_data.dart';
 
-@GenerateMocks([ActivationApi, TokensService, NavigationService])
 void main() async {
-  group('ActivationService tests', () {
-    late ActivationApi mockActivationApi;
-    late TokensService mockTokensService;
-    late NavigationService mockNavigationService;
-    late ActivationService activationService;
+  late ActivationApi mockActivationApi;
+  late TokensService mockTokensService;
+  late NavigationService mockNavigationService;
+  late ActivationService activationService;
 
-    setUp(() {
-      mockActivationApi = MockActivationApi();
-      mockTokensService = MockTokensService();
-      mockNavigationService = MockNavigationService();
-      activationService = ActivationService(
-          mockActivationApi, mockTokensService, mockNavigationService);
+  setUp(() {
+    mockActivationApi = MockActivationApi();
+    mockTokensService = MockTokensService();
+    mockNavigationService = MockNavigationService();
+    activationService = ActivationService(
+        mockActivationApi, mockTokensService, mockNavigationService);
 
-      ActivationApiMock.setup(mockActivationApi);
-      TokenServiceMockData.setUp(mockTokensService as MockTokensService);
-    });
-
+    ActivationApiMock.setup(mockActivationApi);
+    TokenServiceMockData.setUp(mockTokensService as MockTokensService);
+  });
+  group('getActivation tests', () {
     test('getActivation case valid', () async {
       expect(
           await activationService.getActivation(
@@ -88,6 +88,17 @@ void main() async {
           .called(1);
     });
 
+    // Add more test cases for other methods if needed
+
+    tearDown(() {
+      // Verify that methods on dependencies were called as expected
+      //verifyNoMoreInteractions(mockActivationApi);
+      //verifyNoMoreInteractions(mockTokensService);
+      //verifyNoMoreInteractions(mockNavigationService);
+    });
+  });
+
+  group('claimActivation test', () {
     test('claimActivation: case valid', () async {
       expect(
           await activationService.claimActivation(
@@ -208,13 +219,25 @@ void main() async {
       expect(error, throwsA(ActivationApiMock.claimAlreadyShare.res));
     });
 
-    // Add more test cases for other methods if needed
-
     tearDown(() {
       // Verify that methods on dependencies were called as expected
       //verifyNoMoreInteractions(mockActivationApi);
       //verifyNoMoreInteractions(mockTokensService);
       //verifyNoMoreInteractions(mockNavigationService);
+    });
+  });
+
+  group('getIndexerId', () {
+    test('case ethereum', () {
+      final indexerID =
+          activationService.getIndexerID(ethChain, contractAddress, tokenID);
+      expect(indexerID, ethIndexerID);
+    });
+
+    test('case tezos', () {
+      final indexerID =
+          activationService.getIndexerID(tezChain, contractAddress, tokenID);
+      expect(indexerID, tezosIndexerID);
     });
   });
 }

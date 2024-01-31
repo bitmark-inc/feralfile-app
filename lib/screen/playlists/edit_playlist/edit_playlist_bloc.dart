@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/playlists/edit_playlist/edit_playlist_state.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
@@ -46,6 +48,12 @@ class EditPlaylistBloc extends Bloc<EditPlaylistEvent, EditPlaylistState> {
       emit(state.copyWith(playListModel: playlist, selectedItem: []));
     });
 
+    on<UpdateNamePlaylist>((event, emit) {
+      final playlist = state.playListModel;
+      playlist?.name = event.name;
+      emit(state.copyWith(playListModel: playlist));
+    });
+
     on<SavePlaylist>((event, emit) async {
       final playListModel = state.playListModel;
       final service = injector.get<PlaylistService>();
@@ -55,8 +63,8 @@ class EditPlaylistBloc extends Bloc<EditPlaylistEvent, EditPlaylistState> {
           playlists.indexWhere((element) => element.id == playListModel?.id);
       if (index != -1 && playListModel != null) {
         playlists[index] = playListModel;
-        service.setPlayList(playlists, override: true);
-        injector.get<SettingsDataService>().backup();
+        await service.setPlayList(playlists, override: true);
+        unawaited(injector.get<SettingsDataService>().backup());
         emit(state.copyWith(isAddSuccess: true));
       }
     });

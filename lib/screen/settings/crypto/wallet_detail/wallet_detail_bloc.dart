@@ -5,8 +5,6 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'dart:math';
-
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_state.dart';
 import 'package:autonomy_flutter/service/currency_service.dart';
@@ -14,7 +12,6 @@ import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
-import 'package:autonomy_flutter/util/fiat_formater.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 
 class WalletDetailBloc extends AuBloc<WalletDetailEvent, WalletDetailState> {
@@ -35,18 +32,15 @@ class WalletDetailBloc extends AuBloc<WalletDetailEvent, WalletDetailState> {
         case CryptoType.ETH:
           final balance = await _ethereumService.getBalance(event.address);
           newState.balance = '${ethFormatter.format(balance.getInWei)} ETH';
-          final usdBalance = balance.getInWei.toDouble() /
-              pow(10, 18) *
-              double.parse(exchangeRate.eth);
-          final balanceInUSD = '${FiatFormatter(usdBalance).format()} USD';
+          final usdBalance = exchangeRate.ethToUsd(balance.getInWei);
+          final balanceInUSD = '$usdBalance USD';
           newState.balanceInUSD = balanceInUSD;
           break;
         case CryptoType.XTZ:
           final balance = await _tezosService.getBalance(event.address);
           newState.balance = '${xtzFormatter.format(balance)} XTZ';
-          final usdBalance =
-              balance / pow(10, 6) / double.parse(exchangeRate.xtz);
-          final balanceInUSD = '${FiatFormatter(usdBalance).format()} USD';
+          final usdBalance = exchangeRate.xtzToUsd(balance);
+          final balanceInUSD = '$usdBalance USD';
           newState.balanceInUSD = balanceInUSD;
 
           break;

@@ -8,7 +8,7 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/model/otp.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/claim/activation/claim_activation_page.dart';
@@ -16,11 +16,12 @@ import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
-import 'package:autonomy_flutter/service/airdrop_service.dart';
+import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
+import 'package:autonomy_flutter/util/feral_file_helper.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -29,7 +30,7 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:nft_collection/models/asset_token.dart'; // ignore: implementation_imports
+import 'package:nft_collection/models/asset_token.dart'; // ignore_for_file: implementation_imports
 import 'package:overlay_support/src/overlay_state_finder.dart';
 
 class NavigationService {
@@ -164,17 +165,19 @@ class NavigationService {
   Future openClaimTokenPage(
     FFSeries series, {
     Otp? otp,
+    Future<ClaimResponse?> Function({required String receiveAddress})?
+        claimFunction,
   }) async {
     log.info('NavigationService.openClaimTokenPage');
-    final isAllowViewOnlyClaim = AirdropType.Memento6.seriesId == series.id;
     if (navigatorKey.currentState?.mounted == true &&
         navigatorKey.currentContext != null) {
       await navigatorKey.currentState?.pushNamed(
         AppRouter.claimFeralfileTokenPage,
-        arguments: ClaimTokenPageArgs(
+        arguments: ClaimTokenPagePayload(
           series: series,
           otp: otp,
-          allowViewOnlyClaim: isAllowViewOnlyClaim,
+          allowViewOnlyClaim: true,
+          claimFunction: claimFunction,
         ),
       );
     } else {
@@ -438,6 +441,47 @@ class NavigationService {
         'document': document,
         'title': title,
       });
+    }
+  }
+
+  Future<void> openFeralFileArtistPage(String alias) async {
+    if (alias.contains(',') || alias.isEmpty) {
+      return;
+    }
+    final url = FeralFileHelper.getArtistUrl(alias);
+    await Navigator.of(navigatorKey.currentContext!).pushNamed(
+        AppRouter.inappWebviewPage,
+        arguments: InAppWebViewPayload(url));
+  }
+
+  Future<void> openFeralFileCuratorPage(String alias) async {
+    if (alias.contains(',') || alias.isEmpty) {
+      return;
+    }
+    final url = FeralFileHelper.getCuratorUrl(alias);
+    await Navigator.of(navigatorKey.currentContext!).pushNamed(
+        AppRouter.inappWebviewPage,
+        arguments: InAppWebViewPayload(url));
+  }
+
+  Future<void> showFeralFileClaimTokenPassLimit(
+      {required FFSeries series}) async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await UIHelper.showFeralFileClaimTokenPassLimit(
+        context,
+        series: series,
+      );
+    }
+  }
+
+  Future showClaimTokenError(
+    Object e, {
+    required FFSeries series,
+  }) async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await UIHelper.showClaimTokenError(context, e, series: series);
     }
   }
 }

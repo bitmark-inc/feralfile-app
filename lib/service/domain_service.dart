@@ -1,45 +1,72 @@
 import 'package:graphql_flutter/graphql_flutter.dart';
 
-class DomainService {
-  static const String _tnsDomain = "https://api.tezos.domains/graphql";
-  static const String _ensDomain =
-      "https://api.thegraph.com/subgraphs/name/ensdomains/ens";
-  static const String _tnsQuery = r"""
-    { domains(where: { name: { in: ["<var>"] } }) { items { address name} } }
-  """;
+abstract class DomainService {
+  Future<String?> getAddress(String domain);
 
-  static const String _ensQuery = r"""
+  Future<String?> getEthAddress(String domain);
+
+  Future<String?> getTezosAddress(String domain);
+}
+
+class DomainServiceImpl implements DomainService {
+  static const String _tnsDomain = 'https://api.tezos.domains/graphql';
+  static const String _ensDomain =
+      'https://api.thegraph.com/subgraphs/name/ensdomains/ens';
+  static const String _tnsQuery = '''
+    { domains(where: { name: { in: ["<var>"] } }) { items { address name} } }
+  ''';
+
+  static const String _ensQuery = '''
     { domains(where: {name: "<var>"}) { name resolvedAddress { id } } }
-  """;
+  ''';
 
   static GraphClient get _tnsClient => GraphClient(_tnsDomain);
 
   static GraphClient get _ensClient => GraphClient(_ensDomain);
 
-  static Future<String?> getEthAddress(String domain) async {
-    final result = await _ensClient.query(
-      doc: _ensQuery.replaceFirst("<var>", domain),
-      subKey: "domains",
-    );
-    if (result == null || result.isEmpty) {
+  @override
+  Future<String?> getEthAddress(String domain) async {
+    try {
+      final result = await _ensClient.query(
+        doc: _ensQuery.replaceFirst('<var>', domain),
+        subKey: 'domains',
+      );
+      if (result == null || result.isEmpty) {
+        return null;
+      }
+      return result.first['resolvedAddress']['id'];
+    } catch (e) {
       return null;
     }
-    return result.first['resolvedAddress']['id'];
   }
 
-  static Future<String?> getTezosAddress(String domain) async {
-    final result = await _tnsClient.query(
-      doc: _tnsQuery.replaceFirst("<var>", domain),
-      subKey: "domains",
-    );
-    if (result == null) {
+  @override
+  Future<String?> getTezosAddress(String domain) async {
+    try {
+      final result = await _tnsClient.query(
+        doc: _tnsQuery.replaceFirst('<var>', domain),
+        subKey: 'domains',
+      );
+      if (result == null) {
+        return null;
+      }
+      final items = result['items'];
+      if (items == null || items.isEmpty) {
+        return null;
+      }
+      return items.first['address'];
+    } catch (e) {
       return null;
     }
-    final items = result['items'];
-    if (items == null || items.isEmpty) {
-      return null;
+  }
+
+  @override
+  Future<String?> getAddress(String domain) async {
+    final ethAddress = await getEthAddress(domain);
+    if (ethAddress != null) {
+      return ethAddress;
     }
-    return items.first['address'];
+    return await getTezosAddress(domain);
   }
 }
 
@@ -99,7 +126,5 @@ class GraphClient {
     }
   }
 
-  Future<String> _getToken() async {
-    return "";
-  }
+  Future<String> _getToken() async => '';
 }

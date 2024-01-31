@@ -43,6 +43,7 @@ class WCSendTransactionBloc
       final newState = state.clone();
       final exchangeRate = await _currencyService.getExchangeRates();
       newState.exchangeRate = exchangeRate;
+      emit(newState);
       try {
         newState.feeOptionValue = await _ethereumService.estimateFee(
             persona, event.index, event.address, event.amount, event.data);

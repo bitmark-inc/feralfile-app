@@ -1,13 +1,5 @@
 import 'dart:async';
-import 'dart:io';
-
-import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
-import 'package:autonomy_flutter/screen/cloud/cloud_android_page.dart';
-import 'package:autonomy_flutter/screen/cloud/cloud_page.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
@@ -70,7 +62,7 @@ class _AddressAliasState extends State<AddressAlias> {
         listener: (context, state) async {
           switch (state.createAccountState) {
             case ActionState.done:
-              await _doneNaming();
+              await _doneNaming(context);
               isProcessing = false;
               break;
             case ActionState.loading:
@@ -133,39 +125,8 @@ class _AddressAliasState extends State<AddressAlias> {
     );
   }
 
-  Future _doneNaming() async {
-    final isDoneOnboarding =
-        injector<ConfigurationService>().isDoneOnboarding();
-    if (Platform.isAndroid) {
-      final isAndroidEndToEndEncryptionAvailable =
-          await injector<AccountService>()
-              .isAndroidEndToEndEncryptionAvailable();
-
-      if (!mounted) {
-        return;
-      }
-      final payload = CloudAndroidPagePayload(
-          isEncryptionAvailable: isAndroidEndToEndEncryptionAvailable);
-      if (isDoneOnboarding) {
-        unawaited(Navigator.of(context).pushReplacementNamed(
-            AppRouter.cloudAndroidPage,
-            arguments: payload));
-      } else {
-        unawaited(Navigator.of(context).pushNamedAndRemoveUntil(
-            AppRouter.cloudAndroidPage, (route) => false,
-            arguments: payload));
-      }
-    } else {
-      final payload = CloudPagePayload(section: 'nameAlias');
-      if (isDoneOnboarding) {
-        unawaited(Navigator.of(context)
-            .pushReplacementNamed(AppRouter.cloudPage, arguments: payload));
-      } else {
-        unawaited(Navigator.of(context).pushNamedAndRemoveUntil(
-            AppRouter.cloudPage, (route) => false,
-            arguments: payload));
-      }
-    }
+  Future _doneNaming(BuildContext context) async {
+    nameContinue(context);
   }
 }
 

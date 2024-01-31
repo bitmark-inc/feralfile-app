@@ -76,6 +76,8 @@ class SendCryptoState {
 
   CurrencyExchangeRate exchangeRate;
 
+  String? domain;
+
   SendCryptoState(
       {this.wallet,
       this.index,
@@ -92,7 +94,8 @@ class SendCryptoState {
       this.ethBalance,
       this.exchangeRate = const CurrencyExchangeRate(eth: '1.0', xtz: '1.0'),
       this.feeOption = DEFAULT_FEE_OPTION,
-      this.feeOptionValue});
+      this.feeOptionValue,
+      this.domain});
 
   SendCryptoState clone() => SendCryptoState(
         wallet: wallet,
@@ -111,5 +114,6 @@ class SendCryptoState {
         exchangeRate: exchangeRate,
         feeOption: feeOption,
         feeOptionValue: feeOptionValue,
+        domain: domain,
       );
 }

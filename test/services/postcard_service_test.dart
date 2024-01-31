@@ -6,25 +6,21 @@ import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:nft_collection/services/indexer_service.dart';
 import 'package:nft_collection/services/tokens_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../gateway/postcard_api_mock.dart';
-import 'postcard_service_test.mocks.dart';
+import '../generate_mock/gateway/mock_postcard_api.mocks.dart';
+import '../generate_mock/service/mock_account_service.mocks.dart';
+import '../generate_mock/service/mock_chat_service.mocks.dart';
+import '../generate_mock/service/mock_configuration_service.mocks.dart';
+import '../generate_mock/service/mock_indexer_service.mocks.dart';
+import '../generate_mock/service/mock_metric_client_service.mocks.dart';
+import '../generate_mock/service/mock_tezos_service.mocks.dart';
+import '../generate_mock/service/mock_tokens_service.mocks.dart';
+import '../mock_data/postcard_api_mock.dart';
 
-@GenerateMocks([
-  PostcardApi,
-  TezosService,
-  IndexerService,
-  ConfigurationService,
-  AccountService,
-  TokensService,
-  MetricClientService,
-  ChatService,
-])
 void main() async {
   setUpAll(() {
     TestWidgetsFlutterBinding.ensureInitialized();

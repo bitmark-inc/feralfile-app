@@ -16,14 +16,14 @@ class EditPlaylistGridView extends StatefulWidget {
   final Function()? onAddTap;
 
   const EditPlaylistGridView({
-    Key? key,
-    this.controller,
     required this.tokens,
+    required this.onReorder,
+    super.key,
+    this.controller,
     this.onChangedSelect,
     this.selectedTokens,
-    required this.onReorder,
     this.onAddTap,
-  }) : super(key: key);
+  });
 
   @override
   State<EditPlaylistGridView> createState() => _EditPlaylistGridViewState();
@@ -32,7 +32,7 @@ class EditPlaylistGridView extends StatefulWidget {
 class _EditPlaylistGridViewState extends State<EditPlaylistGridView> {
   final int cellPerRowPhone = 3;
   final int cellPerRowTablet = 6;
-  final double cellSpacing = 3.0;
+  final double cellSpacing = 3;
   late int cellPerRow;
 
   @override
@@ -46,30 +46,17 @@ class _EditPlaylistGridViewState extends State<EditPlaylistGridView> {
     final estimatedCellWidth = MediaQuery.of(context).size.width / cellPerRow -
         cellSpacing * (cellPerRow - 1);
     final cachedImageSize = (estimatedCellWidth * 3).ceil();
-
     return ReorderableGridView.count(
       controller: widget.controller,
-      footer: [
-        Visibility(
-          visible: widget.tokens.isNotEmpty,
-          child: GestureDetector(
-            onTap: widget.onAddTap,
-            child: const AddTokenWidget(),
-          ),
-        ),
-
-        /// add 3 blank cells to make space for done button
-        const SizedBox(),
-        const SizedBox(),
-        const SizedBox(),
-      ],
       onDragStart: (dragIndex) {
         Vibrate.feedback(FeedbackType.light);
       },
       onReorder: (oldIndex, newIndex) {
         setState(() {
           final element = widget.tokens.removeAt(oldIndex);
-          if (element != null) widget.tokens.insert(newIndex, element);
+          if (element != null) {
+            widget.tokens.insert(newIndex, element);
+          }
           widget.tokens.removeWhere((element) => element == null);
         });
         widget.onReorder.call(List.from(widget.tokens));
@@ -99,8 +86,8 @@ class _EditPlaylistGridViewState extends State<EditPlaylistGridView> {
 
 class AddTokenWidget extends StatelessWidget {
   const AddTokenWidget({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -113,7 +100,7 @@ class AddTokenWidget extends StatelessWidget {
         color: Colors.transparent,
         child: Center(
           child: SvgPicture.asset(
-            "assets/images/joinFile.svg",
+            'assets/images/joinFile.svg',
             colorFilter: ColorFilter.mode(theme.primaryColor, BlendMode.srcIn),
           ),
         ),

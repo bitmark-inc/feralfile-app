@@ -110,26 +110,31 @@ class SettingsDataServiceImpl implements SettingsDataService {
   @override
   Future restoreSettingsData() async {
     log.info('[SettingsDataService][Start] restoreSettingsData');
-    final response =
-        await _iapApi.getProfileData(_requester, _filename, _version);
-    final data = SettingsDataBackup.fromJson(json.decode(response));
+    try {
+      final response =
+          await _iapApi.getProfileData(_requester, _filename, _version);
+      final data = SettingsDataBackup.fromJson(json.decode(response));
 
-    _configurationService.setAnalyticEnabled(data.isAnalyticsEnabled);
+      _configurationService.setAnalyticEnabled(data.isAnalyticsEnabled);
 
-    await _configurationService.updateTempStorageHiddenTokenIDs(
-        data.hiddenMainnetTokenIDs, true,
-        override: true);
+      await _configurationService.updateTempStorageHiddenTokenIDs(
+          data.hiddenMainnetTokenIDs, true,
+          override: true);
 
-    await Future.wait((data.hiddenAddressesFromGallery ?? [])
-        .map((e) => _cloudDB.addressDao.setAddressIsHidden(e, true)));
+      await Future.wait((data.hiddenAddressesFromGallery ?? [])
+          .map((e) => _cloudDB.addressDao.setAddressIsHidden(e, true)));
 
-    await _configurationService.setHideLinkedAccountInGallery(
-        data.hiddenLinkedAccountsFromGallery, true,
-        override: true);
+      await _configurationService.setHideLinkedAccountInGallery(
+          data.hiddenLinkedAccountsFromGallery, true,
+          override: true);
 
-    await _configurationService.setPlayList(data.playlists, override: true);
+      await _configurationService.setPlayList(data.playlists, override: true);
 
-    log.info('[SettingsDataService][Done] restoreSettingsData');
+      log.info('[SettingsDataService][Done] restoreSettingsData');
+    } catch (exception, stacktrace) {
+      await Sentry.captureException(exception, stackTrace: stacktrace);
+      return;
+    }
   }
 }
 

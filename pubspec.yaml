@@ -62,11 +62,11 @@ dependencies:
   hive_flutter: ^1.1.0
   http: ^1.1.0
   image_picker: ^1.0.1
-  in_app_purchase: ^3.0.6
+  in_app_purchase: ^3.1.13
   infinite_scroll_pagination: ^3.2.0
   intl: ^0.18.0
   jiffy: ^6.2.1
-  flutter_keyboard_visibility: ^5.4.1
+  flutter_keyboard_visibility: ^6.0.0
   libauk_dart:
     git:
       url: https://github.com/autonomy-system/libauk-dart.git
@@ -79,7 +79,7 @@ dependencies:
   nft_rendering:
     git:
       url: https://github.com/autonomy-system/nft-rendering.git
-      ref: 6f4f077603068e5957509912155f586de44f6c2f
+      ref: 7136d752f860e486dec48451721266432089422b
   onesignal_flutter: ^3.3.0
   open_settings: ^2.0.2
   overlay_support: ^2.0.0
@@ -114,7 +114,7 @@ dependencies:
   autonomy_theme:
     git:
       url: https://github.com/bitmark-inc/autonomy-client-shared-theme.git
-      ref: 144b94a396e78841a74b353d22e9e94b5e279ce1
+      ref: 2411652517ba92b2510c586b3b8217bd77f8a068
   marqueer: ^1.2.0
   markdown: ^7.1.1
   easy_localization: ^3.0.1
@@ -123,7 +123,7 @@ dependencies:
   nft_collection:
     git:
       url: https://github.com/autonomy-system/nft-collection
-      ref: 93f3bcc0fb188ed9368be175878a59da8498a2e3
+      ref: 103d9009bd87a5d95123c53dd0a0ee4da6bc3904
   autonomy_tv_proto:
     git:
       url: https://github.com/autonomy-system/autonomy-tv-proto-communication
@@ -144,8 +144,8 @@ dependencies:
   elliptic: ^0.3.8
   sentry: ^7.9.0
   path: ^1.8.2
-  in_app_purchase_storekit: ^0.3.4
-  in_app_purchase_android: ^0.2.3+7
+  in_app_purchase_storekit: ^0.3.8
+  in_app_purchase_android: ^0.3.0+17
   convert: ^3.1.1
   sqflite: ^2.2.2
   slidable_button: ^3.0.0+1
@@ -158,7 +158,7 @@ dependencies:
   video_player: ^2.4.8
   walletconnect_flutter_v2: ^2.1.4
   youtube_player_iframe: ^4.0.4
-  awesome_notifications: ^0.7.5-dev.3
+  awesome_notifications: ^0.8.3
   shimmer: ^3.0.0
   graphql_flutter: ^5.1.2
   card_swiper: ^3.0.1
@@ -242,6 +242,10 @@ flutter:
     - family: AuIcon
       fonts:
         - asset: assets/fonts/AuIcon.ttf
+
+    - family: FFIcon
+      fonts:
+        - asset: assets/fonts/FFIcon.ttf
 
     - family: MoMASans
       fonts:

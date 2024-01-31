@@ -5,7 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
@@ -21,9 +21,9 @@ class TokenDetailPage extends StatefulWidget {
   final FFSeries series;
 
   const TokenDetailPage({
-    Key? key,
     required this.series,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<TokenDetailPage> createState() => _TokenDetailPageState();
@@ -35,6 +35,7 @@ class _TokenDetailPageState extends State<TokenDetailPage> {
     final theme = Theme.of(context);
     final series = widget.series;
     final artist = series.artist;
+    final contract = series.contract;
     return Scaffold(
         appBar: _appBar(
           context,
@@ -45,7 +46,7 @@ class _TokenDetailPageState extends State<TokenDetailPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 16.0),
+              const SizedBox(height: 16),
               Padding(
                 padding: ResponsiveLayout.getPadding,
                 child: Text(
@@ -53,22 +54,22 @@ class _TokenDetailPageState extends State<TokenDetailPage> {
                   style: theme.primaryTextTheme.displayLarge,
                 ),
               ),
-              const SizedBox(height: 8.0),
+              const SizedBox(height: 8),
               Padding(
                 padding: ResponsiveLayout.getPadding,
                 child: Text(
-                  "by".tr(args: [artist?.getDisplayName() ?? ""]).trim(),
+                  'by'.tr(args: [artist?.getDisplayName() ?? '']).trim(),
                   style: theme.primaryTextTheme.headlineMedium
                       ?.copyWith(fontSize: 18),
                 ),
               ),
-              const SizedBox(height: 15.0),
+              const SizedBox(height: 15),
               // Show artwork here.
               CachedNetworkImage(
                 imageUrl: series.getThumbnailURL(),
                 fit: BoxFit.fitWidth,
               ),
-              const SizedBox(height: 24.0),
+              const SizedBox(height: 24),
               Padding(
                 padding: ResponsiveLayout.getPadding,
                 child: HtmlWidget(
@@ -77,7 +78,7 @@ class _TokenDetailPageState extends State<TokenDetailPage> {
                   textStyle: theme.primaryTextTheme.bodyLarge,
                 ),
               ),
-              const SizedBox(height: 40.0),
+              const SizedBox(height: 40),
               Padding(
                 padding: ResponsiveLayout.getPadding,
                 child: Column(
@@ -89,7 +90,15 @@ class _TokenDetailPageState extends State<TokenDetailPage> {
                         series: widget.series,
                       ),
                     ),
-                    const SizedBox(height: 40.0),
+                    const SizedBox(height: 40),
+                    Theme(
+                      data: theme.copyWith(textTheme: theme.primaryTextTheme),
+                      child: ArtworkRightWidget(
+                        contract: contract,
+                        exhibitionID: widget.series.exhibition?.id,
+                      ),
+                    ),
+                    const SizedBox(height: 40),
                   ],
                 ),
               )
@@ -110,7 +119,7 @@ class _TokenDetailPageState extends State<TokenDetailPage> {
         statusBarBrightness: Brightness.light,
       ),
       leading: const SizedBox(),
-      leadingWidth: 0.0,
+      leadingWidth: 0,
       title: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -128,7 +137,7 @@ class _TokenDetailPageState extends State<TokenDetailPage> {
                   ),
                   const SizedBox(width: 7),
                   Text(
-                    "BACK",
+                    'BACK',
                     style: theme.primaryTextTheme.labelLarge,
                   ),
                 ],

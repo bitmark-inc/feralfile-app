@@ -12,7 +12,6 @@ import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -36,13 +35,19 @@ class NameViewOnlyAddressPage extends StatefulWidget {
 class _NameViewOnlyAddressPageState extends State<NameViewOnlyAddressPage> {
   final TextEditingController _nameController = TextEditingController();
 
-  bool isSavingAliasDisabled = true;
+  bool isSavingAliasDisabled = false;
   bool canPop = false;
 
   void saveAliasButtonChangedState() {
     setState(() {
       isSavingAliasDisabled = !isSavingAliasDisabled;
     });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController.text = widget.connection.name;
   }
 
   @override
@@ -117,7 +122,10 @@ class _NameViewOnlyAddressPageState extends State<NameViewOnlyAddressPage> {
 
   void _doneNaming() {
     if (injector<ConfigurationService>().isDoneOnboarding()) {
-      injector<NavigationService>().popUntilHomeOrSettings();
+      Navigator.of(context).popUntil((route) =>
+          route.settings.name == AppRouter.homePageNoTransition ||
+          route.settings.name == AppRouter.homePage ||
+          route.settings.name == AppRouter.walletPage);
     } else {
       unawaited(injector<ConfigurationService>().setDoneOnboarding(true));
       unawaited(Navigator.of(context).pushNamed(AppRouter.homePage));

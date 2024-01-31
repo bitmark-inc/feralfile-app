@@ -123,7 +123,7 @@ class PlaylistControl extends StatelessWidget {
               ),
               Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: CastButton(
+                child: FFCastButton(
                   onCastTap: () => {onCastTap?.call()},
                   isCasting: isCasting,
                 ),

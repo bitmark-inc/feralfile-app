@@ -170,8 +170,8 @@ import Starscream
         
 
         let metadata = AppMetadata(
-            name: "Autonomy",
-            description: "Autonomy Wallet",
+            name: "Feral File",
+            description: "Feral File Wallet",
             url: "https://autonomy.io",
             icons: [])
         

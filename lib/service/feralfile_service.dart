@@ -8,6 +8,8 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/feralfile_api.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/model/ff_exhibition.dart';
+import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/model/otp.dart';
 import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
@@ -27,6 +29,11 @@ abstract class FeralFileService {
 
   Future<FFSeries> getSeries(String id);
 
+  Future<ClaimResponse> setPendingToken(
+      {required String receiver,
+      required TokenClaimResponse response,
+      required FFSeries series});
+
   Future<ClaimResponse?> claimToken({
     required String seriesId,
     String? address,
@@ -41,6 +48,20 @@ abstract class FeralFileService {
   Future<String?> getPartnerFullName(String exhibitionId);
 
   Future<Exhibition> getExhibition(String id);
+
+  Future<List<ExhibitionDetail>> getAllExhibitions({
+    String sortBy = 'openAt',
+    String sortOrder = 'DESC',
+    int limit = 8,
+    int offset = 0,
+    bool withArtworks = false,
+  });
+
+  Future<Exhibition> getFeaturedExhibition();
+
+  Future<List<Artwork>> getExhibitionArtworks(String exhibitionId);
+
+  Future<List<Artwork>> getSeriesArtworks(String seriesId);
 }
 
 class FeralFileServiceImpl extends FeralFileService {
@@ -63,13 +84,42 @@ class FeralFileServiceImpl extends FeralFileService {
       final airdropSeries = await _feralFileApi.getSeries(airdropSeriesId);
       return airdropSeries.result;
     } else {
-      throw Exception("Not airdrop exhibition");
+      throw Exception('Not airdrop exhibition');
     }
   }
 
   @override
-  Future<FFSeries> getSeries(String id) async {
-    return (await _feralFileApi.getSeries(id)).result;
+  Future<FFSeries> getSeries(String id) async =>
+      (await _feralFileApi.getSeries(id)).result;
+
+  @override
+  Future<ClaimResponse> setPendingToken(
+      {required String receiver,
+      required TokenClaimResponse response,
+      required FFSeries series}) async {
+    final indexer = injector<TokensService>();
+    await indexer.reindexAddresses([receiver]);
+
+    final indexerId =
+        series.airdropInfo!.getTokenIndexerId(response.result.artworkID);
+    List<AssetToken> assetTokens = await _fetchTokens(
+      indexerId: indexerId,
+      receiver: receiver,
+    );
+    if (assetTokens.isNotEmpty) {
+      await indexer.setCustomTokens(assetTokens);
+    } else {
+      assetTokens = [
+        createPendingAssetToken(
+          series: series,
+          owner: receiver,
+          tokenId: response.result.artworkID,
+        )
+      ];
+      await indexer.setCustomTokens(assetTokens);
+    }
+    return ClaimResponse(
+        token: assetTokens.first, airdropInfo: series.airdropInfo!);
   }
 
   @override
@@ -78,7 +128,7 @@ class FeralFileServiceImpl extends FeralFileService {
       String? address,
       Otp? otp,
       Future<bool> Function(FFSeries)? onConfirm}) async {
-    log.info("[FeralFileService] Claim token - series: $seriesId");
+    log.info('[FeralFileService] Claim token - series: $seriesId');
     final series = await getSeries(seriesId);
 
     if (series.airdropInfo == null ||
@@ -89,7 +139,7 @@ class FeralFileServiceImpl extends FeralFileService {
     if ((series.airdropInfo?.remainAmount ?? 0) > 0) {
       final accepted = await onConfirm?.call(series) ?? true;
       if (!accepted) {
-        log.info("[FeralFileService] User refused claim token");
+        log.info('[FeralFileService] User refused claim token');
         return null;
       }
       final wallet = await _accountService.getDefaultAccount();
@@ -99,36 +149,16 @@ class FeralFileServiceImpl extends FeralFileService {
       final signature = await wallet.getAccountDIDSignature(message);
       final receiver = address ?? await wallet.getTezosAddress();
       Map<String, dynamic> body = {
-        "claimer": accountDID,
-        "timestamp": message,
-        "signature": signature,
-        "address": receiver,
-        if (otp != null) ...{"airdropTOTPPasscode": otp.code}
+        'claimer': accountDID,
+        'timestamp': message,
+        'signature': signature,
+        'address': receiver,
+        if (otp != null) ...{'airdropTOTPPasscode': otp.code}
       };
       final response = await _feralFileApi.claimSeries(series.id, body);
-      final indexer = injector<TokensService>();
-      await indexer.reindexAddresses([receiver]);
-
-      final indexerId =
-          series.airdropInfo!.getTokenIndexerId(response.result.artworkID);
-      List<AssetToken> assetTokens = await _fetchTokens(
-        indexerId: indexerId,
-        receiver: receiver,
-      );
-      if (assetTokens.isNotEmpty) {
-        await indexer.setCustomTokens(assetTokens);
-      } else {
-        assetTokens = [
-          createPendingAssetToken(
-            series: series,
-            owner: receiver,
-            tokenId: response.result.artworkID,
-          )
-        ];
-        await indexer.setCustomTokens(assetTokens);
-      }
-      return ClaimResponse(
-          token: assetTokens.first, airdropInfo: series.airdropInfo!);
+      final claimResponse = setPendingToken(
+          receiver: receiver, response: response, series: series);
+      return claimResponse;
     } else {
       throw NoRemainingToken();
     }
@@ -158,7 +188,7 @@ class FeralFileServiceImpl extends FeralFileService {
           .toList();
       return tokens;
     } catch (e) {
-      log.info("[FeralFileService] Fetch token failed ($indexerId) $e");
+      log.info('[FeralFileService] Fetch token failed ($indexerId) $e');
       return [];
     }
   }
@@ -179,5 +209,72 @@ class FeralFileServiceImpl extends FeralFileService {
   Future<Exhibition?> getExhibitionFromTokenID(String artworkID) async {
     final artwork = await _feralFileApi.getArtworks(artworkID);
     return artwork.result.series?.exhibition;
+  }
+
+  @override
+  Future<List<ExhibitionDetail>> getAllExhibitions({
+    String sortBy = 'openAt',
+    String sortOrder = 'DESC',
+    int limit = 8,
+    int offset = 0,
+    bool withArtworks = false,
+  }) async {
+    final exhibitions = await _feralFileApi.getAllExhibitions(
+        sortBy: sortBy, sortOrder: sortOrder, limit: limit, offset: offset);
+    final listExhibition = exhibitions.result;
+    log
+      ..info('[FeralFileService] Get all exhibitions: ${listExhibition.length}')
+      ..info('[FeralFileService] Get all exhibitions: '
+          '${listExhibition.map((e) => e.id).toList()}');
+    final listExhibitionDetail =
+        listExhibition.map((e) => ExhibitionDetail(exhibition: e)).toList();
+    if (withArtworks) {
+      try {
+        await Future.wait(listExhibitionDetail.map((e) async {
+          final artworks = await getExhibitionArtworks(e.exhibition.id);
+          e.artworks = artworks;
+        }));
+      } catch (e) {
+        log.info('[FeralFileService] Get artworks failed $e');
+      }
+    }
+    return listExhibitionDetail;
+  }
+
+  @override
+  Future<Exhibition> getFeaturedExhibition() async {
+    final featuredExhibition = await _feralFileApi.getFeaturedExhibition();
+    return featuredExhibition.result;
+  }
+
+  @override
+  Future<List<Artwork>> getExhibitionArtworks(String exhibitionId) async {
+    final artworks =
+        await _feralFileApi.getListArtworks(exhibitionId: exhibitionId);
+    final listArtwork = artworks.result;
+    log
+      ..info(
+        '[FeralFileService] Get exhibition artworks: ${listArtwork.length}',
+      )
+      ..info(
+        '[FeralFileService] Get exhibition artworks: '
+        '${listArtwork.map((e) => e.id).toList()}',
+      );
+    return listArtwork;
+  }
+
+  @override
+  Future<List<Artwork>> getSeriesArtworks(String seriesId) async {
+    final artworks = await _feralFileApi.getListArtworks(seriesId: seriesId);
+    final listArtwork = artworks.result;
+    log
+      ..info(
+        '[FeralFileService] Get series artworks: ${listArtwork.length}',
+      )
+      ..info(
+        '[FeralFileService] Get series artworks: '
+        '${listArtwork.map((e) => e.id).toList()}',
+      );
+    return listArtwork;
   }
 }

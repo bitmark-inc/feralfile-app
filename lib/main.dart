@@ -11,9 +11,11 @@ import 'dart:ui';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/eth_pending_tx_amount.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
+import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/notification_service.dart';
@@ -41,39 +43,28 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 void main() async {
-  runZonedGuarded(() async {
+  unawaited(runZonedGuarded(() async {
     await dotenv.load();
-
-    WidgetsFlutterBinding.ensureInitialized();
-    // feature/text_localization
-    await EasyLocalization.ensureInitialized();
-
-    FlutterNativeSplash.preserve(
-        widgetsBinding: WidgetsFlutterBinding.ensureInitialized());
-    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-
-    await FlutterDownloader.initialize();
-    await Hive.initFlutter();
-    FlutterDownloader.registerCallback(downloadCallback);
-    await AuFileService().setup();
-
-    OneSignal.shared.setLogLevel(OSLogLevel.error, OSLogLevel.none);
-    OneSignal.shared.setAppId(Environment.onesignalAppID);
-
-    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-      statusBarColor: AppColor.white,
-      statusBarIconBrightness: Brightness.dark,
-      statusBarBrightness: Brightness.light,
-    ));
-    FlutterError.onError = (FlutterErrorDetails details) {
-      FlutterError.presentError(details);
-      showErrorDialogFromException(details.exception,
-          stackTrace: details.stack, library: details.library);
-    };
-    await _setupApp();
+    await SentryFlutter.init(
+      (options) {
+        options
+          ..dsn = Environment.sentryDSN
+          ..enableAutoSessionTracking = true
+          ..tracesSampleRate = 0.25
+          ..attachStacktrace = true;
+      },
+      appRunner: () async {
+        try {
+          await runFeralFileApp();
+        } catch (e, stackTrace) {
+          await Sentry.captureException(e, stackTrace: stackTrace);
+          rethrow;
+        }
+      },
+    );
   }, (Object error, StackTrace stackTrace) async {
     /// Check error is Database issue
-    if (error.toString().contains("DatabaseException")) {
+    if (error.toString().contains('DatabaseException')) {
       log.info('[DatabaseException] Remove local database and resume app');
 
       await _deleteLocalDatabase();
@@ -85,7 +76,46 @@ void main() async {
     } else {
       showErrorDialogFromException(error, stackTrace: stackTrace);
     }
-  });
+  }));
+}
+
+Future<void> runFeralFileApp() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // feature/text_localization
+  await EasyLocalization.ensureInitialized();
+
+  FlutterNativeSplash.preserve(
+      widgetsBinding: WidgetsFlutterBinding.ensureInitialized());
+  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+
+  await FlutterDownloader.initialize();
+  await Hive.initFlutter();
+  _registerHiveAdapter();
+
+  FlutterDownloader.registerCallback(downloadCallback);
+  await AuFileService().setup();
+
+  OneSignal.shared.setLogLevel(OSLogLevel.error, OSLogLevel.none);
+  OneSignal.shared.setAppId(Environment.onesignalAppID);
+
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarColor: AppColor.white,
+    statusBarIconBrightness: Brightness.dark,
+    statusBarBrightness: Brightness.light,
+  ));
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    showErrorDialogFromException(details.exception,
+        stackTrace: details.stack, library: details.library);
+  };
+
+  await _setupApp();
+}
+
+void _registerHiveAdapter() {
+  Hive
+    ..registerAdapter(EthereumPendingTxAmountAdapter())
+    ..registerAdapter(EthereumPendingTxListAdapter());
 }
 
 _setupApp() async {
@@ -105,19 +135,18 @@ _setupApp() async {
   await notificationService.initNotification();
   await notificationService.startListeningNotificationEvents();
   await disableLandscapeMode();
+  final isPremium = await injector.get<IAPService>().isSubscribed();
+  await injector<ConfigurationService>().setPremium(isPremium);
 
-  await SentryFlutter.init(
-    (options) {
-      options.dsn = Environment.sentryDSN;
-      options.enableAutoSessionTracking = true;
-      options.tracesSampleRate = 0.25;
-      options.attachStacktrace = true;
-    },
-    appRunner: () => runApp(EasyLocalization(
-        supportedLocales: const [Locale('en', 'US')],
-        path: 'assets/translations',
-        fallbackLocale: const Locale('en', 'US'),
-        child: const OverlaySupport.global(child: AutonomyApp()))),
+  runApp(
+    EasyLocalization(
+      supportedLocales: const [Locale('en', 'US')],
+      path: 'assets/translations',
+      fallbackLocale: const Locale('en', 'US'),
+      child: const OverlaySupport.global(
+        child: AutonomyApp(),
+      ),
+    ),
   );
 
   Sentry.configureScope((scope) async {
@@ -136,44 +165,43 @@ _setupApp() async {
 
 Future<void> _deleteLocalDatabase() async {
   String appDatabaseMainnet =
-      await sqfliteDatabaseFactory.getDatabasePath("app_database_mainnet.db");
+      await sqfliteDatabaseFactory.getDatabasePath('app_database_mainnet.db');
   String appDatabaseTestnet =
-      await sqfliteDatabaseFactory.getDatabasePath("app_database_testnet.db");
+      await sqfliteDatabaseFactory.getDatabasePath('app_database_testnet.db');
   await sqfliteDatabaseFactory.deleteDatabase(appDatabaseMainnet);
   await sqfliteDatabaseFactory.deleteDatabase(appDatabaseTestnet);
 }
 
 class AutonomyApp extends StatelessWidget {
-  const AutonomyApp({Key? key}) : super(key: key);
+  const AutonomyApp({super.key});
+
   static double maxWidth = 0;
 
   @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        maxWidth = constraints.maxWidth;
-        return MaterialApp(
-          title: 'Autonomy',
-          theme: ResponsiveLayout.isMobile
-              ? AppTheme.lightTheme()
-              : AppTheme.tabletLightTheme(),
-          darkTheme: AppTheme.lightTheme(),
-          localizationsDelegates: context.localizationDelegates,
-          supportedLocales: context.supportedLocales,
-          locale: context.locale,
-          debugShowCheckedModeBanner: false,
-          navigatorKey: injector<NavigationService>().navigatorKey,
-          navigatorObservers: [
-            routeObserver,
-            SentryNavigatorObserver(),
-            HeroController()
-          ],
-          initialRoute: AppRouter.onboardingPage,
-          onGenerateRoute: AppRouter.onGenerateRoute,
-        );
-      },
-    );
-  }
+  Widget build(BuildContext context) => LayoutBuilder(
+        builder: (context, constraints) {
+          maxWidth = constraints.maxWidth;
+          return MaterialApp(
+            title: 'Autonomy',
+            theme: ResponsiveLayout.isMobile
+                ? AppTheme.lightTheme()
+                : AppTheme.tabletLightTheme(),
+            darkTheme: AppTheme.lightTheme(),
+            localizationsDelegates: context.localizationDelegates,
+            supportedLocales: context.supportedLocales,
+            locale: context.locale,
+            debugShowCheckedModeBanner: false,
+            navigatorKey: injector<NavigationService>().navigatorKey,
+            navigatorObservers: [
+              routeObserver,
+              SentryNavigatorObserver(),
+              HeroController()
+            ],
+            initialRoute: AppRouter.onboardingPage,
+            onGenerateRoute: AppRouter.onGenerateRoute,
+          );
+        },
+      );
 }
 
 final RouteObserver<ModalRoute<void>> routeObserver =
@@ -196,25 +224,24 @@ class MemoryValues {
   bool isForeground = true;
 
   MemoryValues({
+    required this.branchDeeplinkData,
+    required this.deepLink,
+    required this.irlLink,
     this.scopedPersona,
     this.viewingSupportThreadIssueID,
     this.inForegroundAt,
     this.inGalleryView = true,
-    required this.branchDeeplinkData,
-    required this.deepLink,
-    required this.irlLink,
   });
 
   MemoryValues copyWith({
     String? scopedPersona,
-  }) {
-    return MemoryValues(
-      scopedPersona: scopedPersona ?? this.scopedPersona,
-      branchDeeplinkData: branchDeeplinkData,
-      deepLink: deepLink,
-      irlLink: irlLink,
-    );
-  }
+  }) =>
+      MemoryValues(
+        scopedPersona: scopedPersona ?? this.scopedPersona,
+        branchDeeplinkData: branchDeeplinkData,
+        deepLink: deepLink,
+        irlLink: irlLink,
+      );
 }
 
 enum HomePageTab {
@@ -222,8 +249,11 @@ enum HomePageTab {
 }
 
 enum HomeNavigatorTab {
-  COLLECTION,
-  WALLET,
+  collection,
+  organization,
+  exhibition,
+  scanQr,
+  menu,
 }
 
 @pragma('vm:entry-point')

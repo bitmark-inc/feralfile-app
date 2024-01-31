@@ -165,7 +165,8 @@ class _WCConnectPageState extends State<WCConnectPage>
       return;
     }
 
-    UIHelper.showLoadingScreen(context, text: 'connecting_wallet'.tr());
+    unawaited(
+        UIHelper.showLoadingScreen(context, text: 'connecting_wallet'.tr()));
     late String payloadAddress;
     late CryptoType payloadType;
     switch (connectionRequest.runtimeType) {
@@ -289,7 +290,7 @@ class _WCConnectPageState extends State<WCConnectPage>
       addOnTextSpan: [
         TextSpan(
           text: connectionRequest.name,
-          style: Theme.of(context).textTheme.ppMori400Green14,
+          style: Theme.of(context).textTheme.ppMori400FFYellow14,
         )
       ],
     );
@@ -668,7 +669,7 @@ class _WCConnectPageState extends State<WCConnectPage>
       );
 
   Future _createAccount(BuildContext context) async {
-    UIHelper.showLoadingScreen(context, text: 'connecting'.tr());
+    unawaited(UIHelper.showLoadingScreen(context, text: 'connecting'.tr()));
     final persona =
         await injector<AccountService>().getOrCreateDefaultPersona();
     await persona.insertNextAddress(connectionRequest.isBeaconConnect
