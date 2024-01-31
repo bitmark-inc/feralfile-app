@@ -7,8 +7,8 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/otp.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/claim/activation/preview_activation_claim.dart';
+import 'package:autonomy_flutter/screen/claim/select_account_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
-import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_select_account_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/activation_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -256,10 +256,9 @@ class _ClaimActivationPageState extends State<ClaimActivationPage> {
                           if (mounted) {
                             final response =
                                 await Navigator.of(context).pushNamed(
-                              AppRouter.receivePostcardSelectAccountPage,
-                              arguments: ReceivePostcardSelectAccountPageArgs(
-                                blockchain,
-                                withLinked: false,
+                              AppRouter.claimSelectAccountPage,
+                              arguments: SelectAddressPagePayload(
+                                blockchain: blockchain,
                               ),
                             );
                             address = response as String?;

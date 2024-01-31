@@ -327,7 +327,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
       return;
     }
     final address = await _navigationService.navigateTo(
-      AppRouter.selectAddressScreen,
+      AppRouter.postcardSelectAddressScreen,
       arguments: {
         'blockchain': 'Tezos',
         'onConfirm': (String address) async {

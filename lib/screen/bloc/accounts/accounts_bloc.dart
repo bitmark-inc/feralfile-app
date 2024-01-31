@@ -101,7 +101,7 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
       }
       List<Account> viewOnlyAccounts = [];
       if (event.includeLinkedAccount) {
-        final connections = await _cloudDB.connectionDao.getConnections();
+        final connections = await _accountService.getAllViewOnlyAddresses();
         final categorizedConnection = [];
         if (event.getTezos) {
           final tezosConnections = connections.where((connection) {

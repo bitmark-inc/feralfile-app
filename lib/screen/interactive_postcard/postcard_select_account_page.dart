@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -12,12 +10,12 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class SelectAccountScreen extends StatefulWidget {
+class PostcardSelectAddressScreen extends StatefulWidget {
   final String blockchain;
   final bool withLinked;
   final Future Function(String) onConfirm;
 
-  const SelectAccountScreen({
+  const PostcardSelectAddressScreen({
     required this.blockchain,
     required this.onConfirm,
     super.key,
@@ -25,10 +23,11 @@ class SelectAccountScreen extends StatefulWidget {
   });
 
   @override
-  State<SelectAccountScreen> createState() => _SelectAccountScreenState();
+  State<PostcardSelectAddressScreen> createState() =>
+      _SelectAccountScreenState();
 }
 
-class _SelectAccountScreenState extends State<SelectAccountScreen> {
+class _SelectAccountScreenState extends State<PostcardSelectAddressScreen> {
   String? _selectedAddress;
   late final bool _isTezos;
 
@@ -84,7 +83,7 @@ class _SelectAccountScreenState extends State<SelectAccountScreen> {
                 text: 'continue'.tr(),
                 fontSize: 18,
                 enabled: _selectedAddress != null,
-                onTap: () => unawaited(widget.onConfirm(_selectedAddress!)),
+                onTap: () async => widget.onConfirm(_selectedAddress!),
                 color: AppColor.momaGreen,
               ),
             ),
