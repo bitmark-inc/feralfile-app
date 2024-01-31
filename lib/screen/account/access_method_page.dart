@@ -9,6 +9,9 @@
 
 import 'dart:async';
 
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
@@ -19,19 +22,15 @@ import 'package:autonomy_flutter/view/au_toggle.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-
-import '../../common/injector.dart';
-import '../../database/cloud_database.dart';
-import '../../database/entity/connection.dart';
 
 class AccessMethodPage extends StatefulWidget {
   static const tag = 'access_method_page';
 
-  const AccessMethodPage({Key? key}) : super(key: key);
+  const AccessMethodPage({super.key});
 
   @override
   State<AccessMethodPage> createState() => _AccessMethodPageState();
@@ -79,13 +78,13 @@ class _AccessMethodPageState extends State<AccessMethodPage> {
   Widget _addWalletItem(
       {required BuildContext context,
       required String title,
-      String? content,
       required dynamic Function()? onTap,
+      String? content,
       bool forward = true}) {
     final theme = Theme.of(context);
     return GestureDetector(
       onTap: onTap,
-      child: Container(
+      child: DecoratedBox(
         decoration: const BoxDecoration(color: Colors.transparent),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -98,9 +97,10 @@ class _AccessMethodPageState extends State<AccessMethodPage> {
                     style: theme.textTheme.ppMori400Black16,
                   ),
                   const Spacer(),
-                  forward
-                      ? SvgPicture.asset('assets/images/iconForward.svg')
-                      : const SizedBox(),
+                  if (forward)
+                    SvgPicture.asset('assets/images/iconForward.svg')
+                  else
+                    const SizedBox(),
                 ],
               ),
               const SizedBox(height: 16),
@@ -124,7 +124,7 @@ class _AccessMethodPageState extends State<AccessMethodPage> {
           child: _addWalletItem(
               context: context,
               title: 'test_artwork'.tr(),
-              onTap: () => Navigator.of(context).pushNamed(
+              onTap: () async => Navigator.of(context).pushNamed(
                     AppRouter.testArtwork,
                   )),
         ),

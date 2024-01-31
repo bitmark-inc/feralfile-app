@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_bloc.dart';
@@ -13,9 +15,9 @@ import 'package:autonomy_flutter/view/crypto_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/radio_check_box.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -23,8 +25,7 @@ class SelectAddressesPage extends StatefulWidget {
   static const String tag = 'select_addresses_page';
   final SelectAddressesPayload payload;
 
-  const SelectAddressesPage({Key? key, required this.payload})
-      : super(key: key);
+  const SelectAddressesPage({required this.payload, super.key});
 
   @override
   State<SelectAddressesPage> createState() => _SelectAddressesPageState();
@@ -48,7 +49,7 @@ class _SelectAddressesPageState extends State<SelectAddressesPage> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _callBloc();
-      fetchImportedAddresses();
+      unawaited(fetchImportedAddresses());
     });
   }
 
@@ -65,7 +66,7 @@ class _SelectAddressesPageState extends State<SelectAddressesPage> {
     return Scaffold(
       appBar: getBackAppBar(
         context,
-        title: "import_address".tr(),
+        title: 'import_address'.tr(),
         onBack: () {
           Navigator.of(context).pop();
         },
@@ -73,14 +74,15 @@ class _SelectAddressesPageState extends State<SelectAddressesPage> {
       body: BlocConsumer<ScanWalletBloc, ScanWalletState>(
           listener: (context, scanState) {
         if (scanState.addresses.isNotEmpty && !scanState.isScanning) {
-          _addresses.addAll(scanState.addresses);
-          _addresses.sort((a, b) {
-            if (a.getCryptoType() == b.getCryptoType()) {
-              return a.getCryptoType().index - b.getCryptoType().index;
-            } else {
-              return a.getCryptoType() == CryptoType.ETH ? -1 : 1;
-            }
-          });
+          _addresses
+            ..addAll(scanState.addresses)
+            ..sort((a, b) {
+              if (a.getCryptoType() == b.getCryptoType()) {
+                return a.getCryptoType().index - b.getCryptoType().index;
+              } else {
+                return a.getCryptoType() == CryptoType.ETH ? -1 : 1;
+              }
+            });
         }
       }, builder: (context, scanState) {
         final scanningNext = _addresses.isNotEmpty && scanState.isScanning;
@@ -98,12 +100,12 @@ class _SelectAddressesPageState extends State<SelectAddressesPage> {
                   child: Row(
                     children: [
                       Text(
-                        "only_show_balance".tr(),
+                        'only_show_balance'.tr(),
                         style: theme.textTheme.ppMori400Black14,
                       ),
                       const Spacer(),
                       Semantics(
-                        label: "only_show_balance_toggle",
+                        label: 'only_show_balance_toggle',
                         child: AuToggle(
                           value: _onlyBalance,
                           onToggle: (value) {
@@ -122,13 +124,13 @@ class _SelectAddressesPageState extends State<SelectAddressesPage> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Image.asset(
-                              "assets/images/loading.gif",
+                              'assets/images/loading.gif',
                               width: 52,
                               height: 52,
                             ),
                             const SizedBox(height: 20),
                             Text(
-                              "h_loading...".tr(),
+                              'h_loading...'.tr(),
                               style: theme.textTheme.ppMori400White14,
                             )
                           ],
@@ -148,7 +150,6 @@ class _SelectAddressesPageState extends State<SelectAddressesPage> {
                                           height: 1, color: AppColor.auGrey),
                                     ])
                                 .flattened
-                                .toList()
                           ],
                         ),
                       ),
@@ -162,14 +163,14 @@ class _SelectAddressesPageState extends State<SelectAddressesPage> {
                         _callBloc();
                       },
                       isProcessing: scanningNext,
-                      text: "scan_more".tr(),
+                      text: 'scan_more'.tr(),
                       color: AppColor.white,
                       textColor: AppColor.primaryBlack,
                       borderColor: AppColor.primaryBlack,
                     ),
                     const SizedBox(height: 10),
                     PrimaryAsyncButton(
-                      text: "continue".tr(),
+                      text: 'continue'.tr(),
                       enabled: _selectedAddresses.isNotEmpty,
                       onTap: () async {
                         final didReplaceConnection =
@@ -177,14 +178,18 @@ class _SelectAddressesPageState extends State<SelectAddressesPage> {
                                 widget.payload.persona, _selectedAddresses);
                         if (_selectedAddresses.length > 1 ||
                             didReplaceConnection) {
-                          if (!mounted) return;
-                          doneNaming(context);
+                          if (!mounted) {
+                            return;
+                          }
+                          unawaited(doneNaming(context));
                         } else {
-                          if (!mounted) return;
-                          Navigator.of(context).pushNamed(
+                          if (!mounted) {
+                            return;
+                          }
+                          unawaited(Navigator.of(context).pushNamed(
                               NameAddressPersona.tag,
                               arguments: NameAddressPersonaPayload(
-                                  _selectedAddresses.first));
+                                  _selectedAddresses.first)));
                         }
                       },
                     )
@@ -217,7 +222,7 @@ class _SelectAddressesPageState extends State<SelectAddressesPage> {
                   }
                 });
               },
-        child: Container(
+        child: DecoratedBox(
           decoration: const BoxDecoration(color: Colors.transparent),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -250,16 +255,17 @@ class _SelectAddressesPageState extends State<SelectAddressesPage> {
                 ],
               ),
               const Spacer(),
-              isImported
-                  ? Text("imported_".tr(),
-                      style: theme.textTheme.ppMori400Black14.copyWith(
-                        color: AppColor.disabledColor,
-                      ))
-                  : Text(
-                      addressInfo.getBalance(),
-                      style: theme.textTheme.ppMori400Black14
-                          .copyWith(color: color),
-                    )
+              if (isImported)
+                Text('imported_'.tr(),
+                    style: theme.textTheme.ppMori400Black14.copyWith(
+                      color: AppColor.disabledColor,
+                    ))
+              else
+                Text(
+                  addressInfo.getBalance(),
+                  style:
+                      theme.textTheme.ppMori400Black14.copyWith(color: color),
+                )
             ],
           ),
         ),

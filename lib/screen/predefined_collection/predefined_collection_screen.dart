@@ -7,7 +7,7 @@ import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.da
 import 'package:autonomy_flutter/screen/predefined_collection/predefined_collection_bloc.dart';
 import 'package:autonomy_flutter/screen/predefined_collection/predefined_collection_state.dart';
 import 'package:autonomy_flutter/util/medium_category_ext.dart';
-import 'package:autonomy_theme/style/colors.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';

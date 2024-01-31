@@ -22,8 +22,8 @@ import 'package:autonomy_flutter/view/account_view.dart';
 import 'package:autonomy_flutter/view/crypto_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -128,7 +128,7 @@ class _AccountsViewState extends State<AccountsView> {
               isHidden ? 'assets/images/unhide.svg' : 'assets/images/hide.svg'),
         ),
         onPressed: (_) {
-          account.setViewAccount(!isHidden);
+          unawaited(account.setViewAccount(!isHidden));
           context.read<AccountsBloc>().add(GetAccountsEvent());
         },
       ),
@@ -277,7 +277,7 @@ class _AccountsViewState extends State<AccountsView> {
       accountName = account.accountNumber.mask(4);
     }
 
-    showModalBottomSheet(
+    unawaited(showModalBottomSheet(
         context: pageContext,
         enableDrag: false,
         backgroundColor: Colors.transparent,
@@ -350,7 +350,7 @@ class _AccountsViewState extends State<AccountsView> {
                   ],
                 ),
               ),
-            ));
+            )));
   }
 
   Future<void> _deleteAccount(BuildContext context, Account account) async {

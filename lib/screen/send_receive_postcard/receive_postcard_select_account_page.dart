@@ -5,8 +5,8 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/list_address_account.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -23,15 +23,14 @@ class ReceivePostcardSelectAccountPage extends StatefulWidget {
   final bool withLinked;
 
   const ReceivePostcardSelectAccountPage({
-    Key? key,
+    super.key,
     this.blockchain,
     this.withLinked = true,
-  }) : super(key: key);
+  });
 
   @override
-  State<StatefulWidget> createState() {
-    return _ReceivePostcardSelectAccountPageState();
-  }
+  State<StatefulWidget> createState() =>
+      _ReceivePostcardSelectAccountPageState();
 }
 
 class _ReceivePostcardSelectAccountPageState
@@ -42,7 +41,7 @@ class _ReceivePostcardSelectAccountPageState
 
   @override
   void initState() {
-    _isTezos = widget.blockchain?.toLowerCase() == "tezos";
+    _isTezos = widget.blockchain?.toLowerCase() == 'tezos';
     _callAccountEvent();
     super.initState();
   }
@@ -81,7 +80,7 @@ class _ReceivePostcardSelectAccountPageState
         onBack: () {
           Navigator.of(context).pop();
         },
-        title: "gift_edition".tr(),
+        title: 'gift_edition'.tr(),
       ),
       body: Container(
         padding: const EdgeInsets.only(bottom: 32),
@@ -92,7 +91,7 @@ class _ReceivePostcardSelectAccountPageState
             Padding(
               padding: ResponsiveLayout.pageHorizontalEdgeInsets,
               child: Text(
-                "where_do_want_to_receive_gift".tr(),
+                'where_do_want_to_receive_gift'.tr(),
                 style: theme.textTheme.ppMori700Black24,
               ),
             ),
@@ -100,9 +99,9 @@ class _ReceivePostcardSelectAccountPageState
             Padding(
               padding: ResponsiveLayout.pageHorizontalEdgeInsets,
               child: Text(
-                "receive_postcard_desc".tr(args: [
-                  widget.blockchain ?? "Tezos",
-                  widget.blockchain ?? "Tezos",
+                'receive_postcard_desc'.tr(args: [
+                  widget.blockchain ?? 'Tezos',
+                  widget.blockchain ?? 'Tezos',
                 ]),
                 style: theme.textTheme.ppMori400Black14,
               ),
@@ -114,7 +113,7 @@ class _ReceivePostcardSelectAccountPageState
               child: PrimaryButton(
                   isProcessing: _processing,
                   enabled: !_processing,
-                  text: "h_confirm".tr(),
+                  text: 'h_confirm'.tr(),
                   onTap: _selectedAddress == null
                       ? null
                       : () {
@@ -127,20 +126,19 @@ class _ReceivePostcardSelectAccountPageState
     );
   }
 
-  Widget _buildAddressList() {
-    return BlocBuilder<AccountsBloc, AccountsState>(builder: (context, state) {
-      final accounts = state.accounts ?? [];
-      void select(Account value) {
-        setState(() {
-          _selectedAddress = value.accountNumber;
-        });
-      }
+  Widget _buildAddressList() =>
+      BlocBuilder<AccountsBloc, AccountsState>(builder: (context, state) {
+        final accounts = state.accounts ?? [];
+        void select(Account value) {
+          setState(() {
+            _selectedAddress = value.accountNumber;
+          });
+        }
 
-      return ListAccountConnect(
-        accounts: accounts,
-        onSelectEth: !_isTezos ? select : null,
-        onSelectTez: _isTezos ? select : null,
-      );
-    });
-  }
+        return ListAccountConnect(
+          accounts: accounts,
+          onSelectEth: !_isTezos ? select : null,
+          onSelectTez: _isTezos ? select : null,
+        );
+      });
 }

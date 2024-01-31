@@ -6,13 +6,12 @@
 //
 
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:overlay_support/overlay_support.dart';
-
 // ignore: implementation_imports
 import 'package:overlay_support/src/overlay_state_finder.dart';
 

@@ -5,7 +5,10 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/screen/settings/hidden_artworks/hidden_artworks_bloc.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
@@ -15,9 +18,9 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -26,10 +29,8 @@ import 'package:nft_collection/nft_collection.dart';
 import 'package:nft_rendering/nft_rendering.dart';
 import 'package:path/path.dart' as p;
 
-import 'hidden_artworks_bloc.dart';
-
 class HiddenArtworksPage extends StatefulWidget {
-  const HiddenArtworksPage({Key? key}) : super(key: key);
+  const HiddenArtworksPage({super.key});
 
   @override
   State<HiddenArtworksPage> createState() => _HiddenArtworksPageState();
@@ -46,21 +47,18 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: getBackAppBar(context, title: "hidden_artwork".tr(), onBack: () {
-        Navigator.of(context).pop();
-      }),
-      body: BlocBuilder<HiddenArtworksBloc, List<CompactedAssetToken>>(
-          builder: (context, state) {
-        return Container(
-          child: state.isEmpty
-              ? _emptyHiddenArtwork(context)
-              : _assetsWidget(state),
-        );
-      }),
-    );
-  }
+  Widget build(BuildContext context) => Scaffold(
+        appBar:
+            getBackAppBar(context, title: 'hidden_artwork'.tr(), onBack: () {
+          Navigator.of(context).pop();
+        }),
+        body: BlocBuilder<HiddenArtworksBloc, List<CompactedAssetToken>>(
+            builder: (context, state) => Container(
+                  child: state.isEmpty
+                      ? _emptyHiddenArtwork(context)
+                      : _assetsWidget(state),
+                )),
+      );
 
   Widget _emptyHiddenArtwork(BuildContext context) {
     final theme = Theme.of(context);
@@ -88,7 +86,7 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
                 WidgetSpan(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 5),
-                    child: Container(
+                    child: DecoratedBox(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(50),
                         border: Border.all(),
@@ -115,7 +113,7 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
   Widget _assetsWidget(List<CompactedAssetToken> tokens) {
     const int cellPerRowPhone = 3;
     const int cellPerRowTablet = 6;
-    const double cellSpacing = 3.0;
+    const double cellSpacing = 3;
     int cellPerRow =
         ResponsiveLayout.isMobile ? cellPerRowPhone : cellPerRowTablet;
 
@@ -148,39 +146,40 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
                 return GestureDetector(
                   child: Stack(
                     children: [
-                      thumbnailUrl == null || thumbnailUrl.isEmpty
-                          ? GalleryNoThumbnailWidget(
-                              assetToken: asset,
-                            )
-                          : Hero(
-                              tag: asset.id,
-                              child: ext == ".svg"
-                                  ? SvgImage(
-                                      url: thumbnailUrl,
-                                      loadingWidgetBuilder: (_) =>
-                                          const GalleryThumbnailPlaceholder(),
-                                      errorWidgetBuilder: (_) =>
-                                          const GalleryThumbnailErrorWidget(),
-                                      unsupportWidgetBuilder: (context) =>
-                                          const GalleryUnSupportThumbnailWidget(),
-                                    )
-                                  : CachedNetworkImage(
-                                      imageUrl: thumbnailUrl,
-                                      width: double.infinity,
-                                      height: double.infinity,
-                                      fit: BoxFit.cover,
-                                      memCacheHeight: _cachedImageSize,
-                                      memCacheWidth: _cachedImageSize,
-                                      cacheManager: injector<CacheManager>(),
-                                      placeholder: (context, index) =>
-                                          const GalleryThumbnailPlaceholder(),
-                                      errorWidget: (context, url, error) =>
-                                          const GalleryThumbnailErrorWidget(),
-                                      placeholderFadeInDuration: const Duration(
-                                        milliseconds: 300,
-                                      ),
-                                    ),
-                            ),
+                      if (thumbnailUrl == null || thumbnailUrl.isEmpty)
+                        GalleryNoThumbnailWidget(
+                          assetToken: asset,
+                        )
+                      else
+                        Hero(
+                          tag: asset.id,
+                          child: ext == '.svg'
+                              ? SvgImage(
+                                  url: thumbnailUrl,
+                                  loadingWidgetBuilder: (_) =>
+                                      const GalleryThumbnailPlaceholder(),
+                                  errorWidgetBuilder: (_) =>
+                                      const GalleryThumbnailErrorWidget(),
+                                  unsupportWidgetBuilder: (context) =>
+                                      const GalleryUnSupportThumbnailWidget(),
+                                )
+                              : CachedNetworkImage(
+                                  imageUrl: thumbnailUrl,
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                  fit: BoxFit.cover,
+                                  memCacheHeight: _cachedImageSize,
+                                  memCacheWidth: _cachedImageSize,
+                                  cacheManager: injector<CacheManager>(),
+                                  placeholder: (context, index) =>
+                                      const GalleryThumbnailPlaceholder(),
+                                  errorWidget: (context, url, error) =>
+                                      const GalleryThumbnailErrorWidget(),
+                                  placeholderFadeInDuration: const Duration(
+                                    milliseconds: 300,
+                                  ),
+                                ),
+                        ),
                       ClipRRect(
                         // Clip it cleanly.
                         child: Container(
@@ -198,17 +197,19 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
                     const isHidden = true;
                     await injector<ConfigurationService>()
                         .updateTempStorageHiddenTokenIDs([asset.id], !isHidden);
-                    injector<SettingsDataService>().backup();
+                    unawaited(injector<SettingsDataService>().backup());
                     NftCollectionBloc.eventController.add(ReloadEvent());
 
-                    if (!mounted) return;
-                    UIHelper.showHideArtworkResultDialog(context, !isHidden,
-                        onOK: () {
+                    if (!mounted) {
+                      return;
+                    }
+                    unawaited(UIHelper.showHideArtworkResultDialog(
+                        context, !isHidden, onOK: () {
                       Navigator.of(context).pop();
                       context
                           .read<HiddenArtworksBloc>()
                           .add(HiddenArtworksEvent());
-                    });
+                    }));
                   },
                 );
               },
@@ -216,7 +217,7 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
             )),
         SliverToBoxAdapter(
             child: Container(
-          height: 56.0,
+          height: 56,
         ))
       ],
       controller: ScrollController(),

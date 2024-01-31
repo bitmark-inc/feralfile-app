@@ -5,12 +5,13 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 
 class BadgeView extends StatelessWidget {
   final int number;
-  const BadgeView({Key? key, required this.number}) : super(key: key);
+
+  const BadgeView({required this.number, super.key});
 
   @override
   Widget build(BuildContext context) {

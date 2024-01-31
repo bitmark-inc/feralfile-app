@@ -1,12 +1,14 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_flutter/view/postcard_list_address_account.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
-import 'package:autonomy_theme/style/style.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:feralfile_app_theme/extensions/theme_extension/moma_sans.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -16,9 +18,9 @@ class SelectAccountScreen extends StatefulWidget {
   final Future Function(String) onConfirm;
 
   const SelectAccountScreen({
-    super.key,
     required this.blockchain,
     required this.onConfirm,
+    super.key,
     this.withLinked = true,
   });
 
@@ -32,7 +34,7 @@ class _SelectAccountScreenState extends State<SelectAccountScreen> {
 
   @override
   void initState() {
-    _isTezos = widget.blockchain.toLowerCase() == "tezos";
+    _isTezos = widget.blockchain.toLowerCase() == 'tezos';
     _callAccountEvent();
     super.initState();
   }
@@ -51,7 +53,7 @@ class _SelectAccountScreenState extends State<SelectAccountScreen> {
         onBack: () {
           Navigator.of(context).pop();
         },
-        title: "claim_address".tr(),
+        title: 'claim_address'.tr(),
         titleStyle: theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
       ),
       body: Container(
@@ -63,7 +65,7 @@ class _SelectAccountScreenState extends State<SelectAccountScreen> {
             Padding(
               padding: ResponsiveLayout.pageHorizontalEdgeInsets,
               child: Text(
-                "select_address_claim_postcard".tr(args: [
+                'select_address_claim_postcard'.tr(args: [
                   widget.blockchain,
                 ]),
                 style:
@@ -79,10 +81,10 @@ class _SelectAccountScreenState extends State<SelectAccountScreen> {
             Padding(
               padding: ResponsiveLayout.pageHorizontalEdgeInsets,
               child: PostcardAsyncButton(
-                text: "continue".tr(),
+                text: 'continue'.tr(),
                 fontSize: 18,
                 enabled: _selectedAddress != null,
-                onTap: () => widget.onConfirm(_selectedAddress!),
+                onTap: () => unawaited(widget.onConfirm(_selectedAddress!)),
                 color: AppColor.momaGreen,
               ),
             ),
@@ -92,20 +94,19 @@ class _SelectAccountScreenState extends State<SelectAccountScreen> {
     );
   }
 
-  Widget _buildAddressList() {
-    return BlocBuilder<AccountsBloc, AccountsState>(builder: (context, state) {
-      final accounts = state.accounts ?? [];
-      void select(Account value) {
-        setState(() {
-          _selectedAddress = value.accountNumber;
-        });
-      }
+  Widget _buildAddressList() =>
+      BlocBuilder<AccountsBloc, AccountsState>(builder: (context, state) {
+        final accounts = state.accounts ?? [];
+        void select(Account value) {
+          setState(() {
+            _selectedAddress = value.accountNumber;
+          });
+        }
 
-      return PostcardListAccountConnect(
-        accounts: accounts,
-        onSelectEth: !_isTezos ? select : null,
-        onSelectTez: _isTezos ? select : null,
-      );
-    });
-  }
+        return PostcardListAccountConnect(
+          accounts: accounts,
+          onSelectEth: !_isTezos ? select : null,
+          onSelectTez: _isTezos ? select : null,
+        );
+      });
 }

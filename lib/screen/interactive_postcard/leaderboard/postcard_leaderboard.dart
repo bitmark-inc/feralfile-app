@@ -6,8 +6,8 @@ import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_sta
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
-import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:feralfile_app_theme/extensions/theme_extension/moma_sans.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -24,7 +24,7 @@ class PostcardLeaderboardPagePayload {
 class PostcardLeaderboardPage extends StatefulWidget {
   final PostcardLeaderboardPagePayload? payload;
 
-  const PostcardLeaderboardPage({Key? key, this.payload}) : super(key: key);
+  const PostcardLeaderboardPage({super.key, this.payload});
 
   @override
   State<PostcardLeaderboardPage> createState() =>
@@ -76,38 +76,36 @@ class _PostcardLeaderboardPageState extends State<PostcardLeaderboardPage> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return BlocConsumer<PostcardDetailBloc, PostcardDetailState>(
-        builder: (context, state) {
-      return Scaffold(
-        appBar: getBackAppBar(
-          context,
-          onBack: () {
-            Navigator.pop(context);
-          },
-          title: "leaderboard".tr(),
-          titleStyle: Theme.of(context)
-              .textTheme
-              .moMASans700Black16
-              .copyWith(fontSize: 18),
-          withDivider: false,
-          backgroundColor: POSTCARD_BACKGROUND_COLOR,
-          statusBarColor: POSTCARD_BACKGROUND_COLOR,
-        ),
-        backgroundColor: POSTCARD_BACKGROUND_COLOR,
-        body: PostcardLeaderboardView(
-          leaderboard: state.leaderboard,
-          assetToken: widget.payload?.assetToken,
-          scrollController: _scrollController,
-        ),
-      );
-    }, listener: (context, state) {
-      setState(() {
-        leaderboard = state.leaderboard;
-        isFetchingLeaderboard = state.isFetchingLeaderboard;
-      });
-    });
-  }
+  Widget build(BuildContext context) =>
+      BlocConsumer<PostcardDetailBloc, PostcardDetailState>(
+          builder: (context, state) => Scaffold(
+                appBar: getBackAppBar(
+                  context,
+                  onBack: () {
+                    Navigator.pop(context);
+                  },
+                  title: 'leaderboard'.tr(),
+                  titleStyle: Theme.of(context)
+                      .textTheme
+                      .moMASans700Black16
+                      .copyWith(fontSize: 18),
+                  withDivider: false,
+                  backgroundColor: POSTCARD_BACKGROUND_COLOR,
+                  statusBarColor: POSTCARD_BACKGROUND_COLOR,
+                ),
+                backgroundColor: POSTCARD_BACKGROUND_COLOR,
+                body: PostcardLeaderboardView(
+                  leaderboard: state.leaderboard,
+                  assetToken: widget.payload?.assetToken,
+                  scrollController: _scrollController,
+                ),
+              ),
+          listener: (context, state) {
+            setState(() {
+              leaderboard = state.leaderboard;
+              isFetchingLeaderboard = state.isFetchingLeaderboard;
+            });
+          });
 }
 
 class PostcardLeaderboardItem {
@@ -127,31 +125,26 @@ class PostcardLeaderboardItem {
     required this.imageURL,
   });
 
-  static PostcardLeaderboardItem fromJson(Map<String, dynamic> json) {
-    return PostcardLeaderboardItem(
-      id: json['token_id'],
-      rank: json['rank'],
-      title: json['title'] ?? "",
-      totalDistance: json['mileage'].toDouble(),
-      creators:
-          json['creators'] == null ? [] : json['creators'] as List<String>,
-      imageURL: json['imageURL'] ?? "",
-    );
-  }
+  static PostcardLeaderboardItem fromJson(Map<String, dynamic> json) =>
+      PostcardLeaderboardItem(
+        id: json['token_id'],
+        rank: json['rank'],
+        title: json['title'] ?? '',
+        totalDistance: json['mileage'].toDouble(),
+        creators:
+            json['creators'] == null ? [] : json['creators'] as List<String>,
+        imageURL: json['imageURL'] ?? '',
+      );
 
-  Map<String, dynamic> toJson() {
-    return {
-      "id": id,
-      "rank": rank,
-      "title": title,
-      "totalDistance": totalDistance,
-      "creators": creators,
-    };
-  }
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'rank': rank,
+        'title': title,
+        'totalDistance': totalDistance,
+        'creators': creators,
+      };
 
-  String get previewUrl {
-    return replaceIPFS(imageURL);
-  }
+  String get previewUrl => replaceIPFS(imageURL);
 }
 
 class PostcardLeaderboard {
@@ -163,20 +156,17 @@ class PostcardLeaderboard {
     required this.lastUpdated,
   });
 
-  static PostcardLeaderboard fromJson(Map<String, dynamic> json) {
-    return PostcardLeaderboard(
-      items: json['items']
-          .map<PostcardLeaderboardItem>(
-              (item) => PostcardLeaderboardItem.fromJson(item))
-          .toList(),
-      lastUpdated: DateTime.parse(json['lastUpdated']),
-    );
-  }
+  static PostcardLeaderboard fromJson(Map<String, dynamic> json) =>
+      PostcardLeaderboard(
+        items: json['items']
+            .map<PostcardLeaderboardItem>(
+                (item) => PostcardLeaderboardItem.fromJson(item))
+            .toList(),
+        lastUpdated: DateTime.parse(json['lastUpdated']),
+      );
 
-  Map<String, dynamic> toJson() {
-    return {
-      "items": items.map((item) => item.toJson()).toList(),
-      "lastUpdated": lastUpdated.toIso8601String(),
-    };
-  }
+  Map<String, dynamic> toJson() => {
+        'items': items.map((item) => item.toJson()).toList(),
+        'lastUpdated': lastUpdated.toIso8601String(),
+      };
 }

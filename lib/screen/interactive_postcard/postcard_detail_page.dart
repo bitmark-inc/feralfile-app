@@ -55,11 +55,11 @@ import 'package:autonomy_flutter/view/postcard_chat.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/prompt_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
-import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
 import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:feralfile_app_theme/extensions/theme_extension/moma_sans.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -813,7 +813,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
               await Navigator.of(context).pushNamed(AppRouter.irlWebView,
                   arguments: IRLWebScreenPayload(url,
                       statusBarColor: const Color.fromRGBO(242, 242, 242, 1),
-                      isPlainUI: true, localStorageItems: {'token': jwtToken}));
+                      isPlainUI: true,
+                      localStorageItems: {'token': jwtToken}));
             },
           ),
           if (!isEnable) ...[
@@ -1164,11 +1165,12 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             }
             NftCollectionBloc.eventController.add(ReloadEvent());
             Navigator.of(context).pop();
-            UIHelper.showHideArtworkResultDialog(context, !isHidden, onOK: () {
+            unawaited(UIHelper.showHideArtworkResultDialog(context, !isHidden,
+                onOK: () {
               Navigator.of(context).popUntil((route) =>
                   route.settings.name == AppRouter.homePage ||
                   route.settings.name == AppRouter.homePageNoTransition);
-            });
+            }));
           },
         ),
       ],

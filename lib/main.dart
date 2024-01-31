@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+// ignore_for_file: unawaited_futures, type_annotate_public_apis
+
 import 'dart:async';
 import 'dart:isolate';
 import 'dart:ui';
@@ -28,8 +30,8 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:floor/floor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -118,7 +120,7 @@ void _registerHiveAdapter() {
     ..registerAdapter(EthereumPendingTxListAdapter());
 }
 
-_setupApp() async {
+Future<void> _setupApp() async {
   await setup();
 
   await DeviceInfo.instance.init();
@@ -242,10 +244,6 @@ class MemoryValues {
         deepLink: deepLink,
         irlLink: irlLink,
       );
-}
-
-enum HomePageTab {
-  HOME,
 }
 
 enum HomeNavigatorTab {
