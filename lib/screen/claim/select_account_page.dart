@@ -1,61 +1,31 @@
-import 'dart:async';
-
-import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/model/ff_series.dart';
-import 'package:autonomy_flutter/model/otp.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
-import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
-import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
-import 'package:autonomy_flutter/screen/home/home_navigation_page.dart';
-import 'package:autonomy_flutter/service/feralfile_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/list_address_account.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class SelectAccountPageArgs {
+class SelectAddressPagePayload {
   final String? blockchain;
-
-  final FFSeries? artwork;
-  final bool fromWebview;
-
-  final Otp? otp;
   final bool withViewOnly;
 
-  SelectAccountPageArgs(
+  SelectAddressPagePayload({
     this.blockchain,
-    this.artwork,
-    this.otp, {
-    this.fromWebview = false,
     this.withViewOnly = false,
   });
 }
 
 class SelectAccountPage extends StatefulWidget {
-  final String? blockchain;
-  final FFSeries? artwork;
-  final bool? fromWebview;
-  final Otp? otp;
-  final bool withViewOnly;
+  final SelectAddressPagePayload payload;
 
   const SelectAccountPage({
-    required this.artwork,
+    required this.payload,
     super.key,
-    this.blockchain,
-    this.otp,
-    this.fromWebview = false,
-    this.withViewOnly = false,
   });
 
   @override
@@ -68,7 +38,7 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
 
   @override
   void initState() {
-    _isTezos = widget.blockchain?.toLowerCase() == 'tezos';
+    _isTezos = widget.payload.blockchain?.toLowerCase() == 'tezos';
     _callAccountEvent();
     super.initState();
   }
@@ -95,7 +65,7 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
     context.read<AccountsBloc>().add(GetCategorizedAccountsEvent(
         getEth: !_isTezos,
         getTezos: _isTezos,
-        includeLinkedAccount: widget.withViewOnly));
+        includeLinkedAccount: widget.payload.withViewOnly));
   }
 
   @override
@@ -127,8 +97,8 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
               padding: ResponsiveLayout.pageHorizontalEdgeInsets,
               child: Text(
                 'claim_airdrop_select_account_desc'.tr(args: [
-                  widget.blockchain ?? 'Tezos',
-                  widget.blockchain ?? 'Tezos',
+                  widget.payload.blockchain ?? 'Tezos',
+                  widget.payload.blockchain ?? 'Tezos',
                 ]),
                 style: theme.textTheme.ppMori400Black14,
               ),
@@ -143,18 +113,7 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
                 text: 'h_confirm'.tr(),
                 enabled: _selectedAddress != null,
                 onTap: () async {
-                  if (widget.fromWebview == true) {
-                    Navigator.pop(context, _selectedAddress);
-                    return;
-                  }
-                  if (widget.artwork != null) {
-                    await _claimToken(
-                      context,
-                      _selectedAddress!,
-                      widget.artwork!.id,
-                      otp: widget.otp,
-                    );
-                  }
+                  Navigator.pop(context, _selectedAddress);
                 },
               ),
             ),
@@ -164,78 +123,20 @@ class _SelectAccountPageState extends State<SelectAccountPage> with RouteAware {
     );
   }
 
-  Widget _buildAddressList() =>
-      BlocBuilder<AccountsBloc, AccountsState>(builder: (context, state) {
-        final accounts = state.accounts ?? [];
-        void select(Account value) {
-          setState(() {
-            _selectedAddress = value.accountNumber;
-          });
-        }
+  Widget _buildAddressList() => BlocBuilder<AccountsBloc, AccountsState>(
+        builder: (context, state) {
+          final accounts = state.accounts ?? [];
+          void select(Account value) {
+            setState(() {
+              _selectedAddress = value.accountNumber;
+            });
+          }
 
-        return ListAccountConnect(
-          accounts: accounts,
-          onSelectEth: !_isTezos ? select : null,
-          onSelectTez: _isTezos ? select : null,
-        );
-      });
-
-  Future _claimToken(
-    BuildContext context,
-    String address,
-    String artworkId, {
-    Otp? otp,
-  }) async {
-    ClaimResponse? claimResponse;
-    try {
-      final ffService = injector<FeralFileService>();
-      claimResponse = await ffService.claimToken(
-        seriesId: artworkId,
-        address: address,
-        otp: otp,
-      );
-      final metricClient = injector.get<MetricClientService>();
-      unawaited(metricClient.addEvent(
-        MixpanelEvent.acceptOwnershipSuccess,
-        data: {
-          'id': widget.artwork?.id,
+          return ListAccountConnect(
+            accounts: accounts,
+            onSelectEth: !_isTezos ? select : null,
+            onSelectTez: _isTezos ? select : null,
+          );
         },
-      ));
-      memoryValues.branchDeeplinkData.value = null;
-    } catch (e) {
-      log.info('[SelectAccountPage] Claim token failed. $e');
-      if (mounted) {
-        await UIHelper.showClaimTokenError(
-          context,
-          e,
-          series: widget.artwork!,
-        );
-      }
-      memoryValues.branchDeeplinkData.value = null;
-    }
-
-    if (!mounted) {
-      return;
-    }
-    await Navigator.of(context).pushNamedAndRemoveUntil(
-      AppRouter.homePage,
-      (route) => false,
-      arguments: const HomeNavigationPagePayload(
-        startedTab: HomeNavigatorTab.collection,
-      ),
-    );
-    final token = claimResponse?.token;
-    final caption = claimResponse?.airdropInfo.twitterCaption;
-    if (token == null) {
-      return;
-    }
-    if (mounted) {
-      await Navigator.of(context).pushNamed(
-        AppRouter.artworkDetailsPage,
-        arguments: ArtworkDetailPayload(
-            [ArtworkIdentity(token.id, token.owner)], 0,
-            twitterCaption: caption ?? ''),
       );
-    }
-  }
 }

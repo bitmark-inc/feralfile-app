@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
+
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -12,8 +14,8 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -65,10 +67,10 @@ class BugBountyPage extends StatelessWidget {
                     ),
                     TextSpan(
                       recognizer: TapGestureRecognizer()
-                        ..onTap = () => launchUrl(
+                        ..onTap = () => unawaited(launchUrl(
                               Uri.parse(KNOWN_BUGS_LINK),
                               mode: LaunchMode.externalApplication,
-                            ),
+                            )),
                       text: 'known_bugs'.tr(),
                       style: ResponsiveLayout.isMobile
                           ? theme.textTheme.linkStyle16.copyWith(
@@ -158,10 +160,10 @@ class BugBountyPage extends StatelessWidget {
               const SizedBox(height: 32),
               PrimaryButton(
                 text: 'report_a_bug'.tr(),
-                onTap: () => Navigator.of(context).pushNamed(
+                onTap: () => unawaited(Navigator.of(context).pushNamed(
                     AppRouter.supportThreadPage,
                     arguments:
-                        NewIssuePayload(reportIssueType: ReportIssueType.Bug)),
+                        NewIssuePayload(reportIssueType: ReportIssueType.Bug))),
               ),
               const SizedBox(height: 56),
             ],

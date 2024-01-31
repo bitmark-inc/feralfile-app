@@ -5,9 +5,13 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/local_auth_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
@@ -18,20 +22,19 @@ import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:libauk_dart/libauk_dart.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:walletconnect_flutter_v2/apis/core/pairing/utils/pairing_models.dart';
 
 class AUSignMessagePage extends StatefulWidget {
   static const String tag = 'au_sign_message';
   final Wc2RequestPayload request;
 
-  const AUSignMessagePage({Key? key, required this.request}) : super(key: key);
+  const AUSignMessagePage({required this.request, super.key});
 
   @override
   State<AUSignMessagePage> createState() => _AUSignMessagePageState();
@@ -43,7 +46,7 @@ class _AUSignMessagePageState extends State<AUSignMessagePage> {
   @override
   void initState() {
     super.initState();
-    fetchPersona();
+    unawaited(fetchPersona());
   }
 
   Future fetchPersona() async {
@@ -73,7 +76,7 @@ class _AUSignMessagePageState extends State<AUSignMessagePage> {
   }
 
   Future _rejectRequest({String? reason}) async {
-    log.info("[AUSignMessagePage] _rejectRequest: $reason");
+    log.info('[AUSignMessagePage] _rejectRequest: $reason');
     await injector<Wc2Service>().respondOnReject(
       widget.request.topic,
       reason: reason,
@@ -98,11 +101,11 @@ class _AUSignMessagePageState extends State<AUSignMessagePage> {
         chain: chain,
         message: params.message,
       );
-      if(!mounted) return;
+      if (!mounted) return;
       Navigator.of(context).pop(signature);
       log.info("[Wc2RequestPage] _handleAuSignRequest: $signature");
     } catch (e) {
-      log.info("[Wc2RequestPage] _handleAuSignRequest $e");
+      log.info('[Wc2RequestPage] _handleAuSignRequest $e');
     }
   }
 
@@ -114,17 +117,17 @@ class _AUSignMessagePageState extends State<AUSignMessagePage> {
 
     return WillPopScope(
       onWillPop: () async {
-        await _rejectRequest(reason: "User reject");
+        await _rejectRequest(reason: 'User reject');
         return true;
       },
       child: Scaffold(
         appBar: getBackAppBar(
           context,
           onBack: () {
-            _rejectRequest(reason: "User reject");
+            unawaited(_rejectRequest(reason: 'User reject'));
             Navigator.of(context).pop();
           },
-          title: "signature_request".tr(),
+          title: 'signature_request'.tr(),
         ),
         body: Container(
           margin: const EdgeInsets.only(bottom: 32),
@@ -141,17 +144,17 @@ class _AUSignMessagePageState extends State<AUSignMessagePage> {
                         padding: ResponsiveLayout.pageHorizontalEdgeInsets,
                         child: _wc2AppInfo(widget.request.proposer),
                       ),
-                      const SizedBox(height: 60.0),
+                      const SizedBox(height: 60),
                       addOnlyDivider(),
-                      const SizedBox(height: 30.0),
+                      const SizedBox(height: 30),
                       Padding(
                         padding: ResponsiveLayout.pageHorizontalEdgeInsets,
                         child: Text(
-                          "message".tr(),
+                          'message'.tr(),
                           style: theme.textTheme.ppMori400Black14,
                         ),
                       ),
-                      const SizedBox(height: 4.0),
+                      const SizedBox(height: 4),
                       Padding(
                         padding: ResponsiveLayout.pageHorizontalEdgeInsets,
                         child: Container(
@@ -177,17 +180,20 @@ class _AUSignMessagePageState extends State<AUSignMessagePage> {
                   children: [
                     Expanded(
                       child: PrimaryButton(
-                        text: "sign".tr(),
+                        text: 'sign'.tr(),
                         onTap: _currentPersona != null
                             ? () => withDebounce(() async {
-                                  _handleAuSignRequest(request: widget.request);
-                                  if (!mounted) return;
+                                  unawaited(_handleAuSignRequest(
+                                      request: widget.request));
+                                  if (!mounted) {
+                                    return;
+                                  }
                                   Navigator.of(context).pop();
                                   showInfoNotification(
-                                    const Key("signed"),
-                                    "signed".tr(),
+                                    const Key('signed'),
+                                    'signed'.tr(),
                                     frontWidget: SvgPicture.asset(
-                                      "assets/images/checkbox_icon.svg",
+                                      'assets/images/checkbox_icon.svg',
                                       width: 24,
                                     ),
                                   );
@@ -214,22 +220,22 @@ class _AUSignMessagePageState extends State<AUSignMessagePage> {
               if (proposer.icons.isNotEmpty) ...[
                 CachedNetworkImage(
                   imageUrl: proposer.icons.first,
-                  width: 64.0,
-                  height: 64.0,
+                  width: 64,
+                  height: 64,
                   errorWidget: (context, url, error) => SizedBox(
                       width: 64,
                       height: 64,
                       child: SvgPicture.asset(
-                          "assets/images/feralfileAppIcon.svg")),
+                          'assets/images/feralfileAppIcon.svg')),
                 ),
               ] else ...[
                 SizedBox(
                     width: 64,
                     height: 64,
                     child:
-                        SvgPicture.asset("assets/images/feralfileAppIcon.svg")),
+                        SvgPicture.asset('assets/images/feralfileAppIcon.svg')),
               ],
-              const SizedBox(width: 16.0),
+              const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
@@ -12,8 +13,8 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -28,8 +29,7 @@ class PenroseTopBarView extends StatefulWidget {
   final ScrollController scrollController;
   final PenroseTopBarViewStyle style;
 
-  const PenroseTopBarView(this.scrollController, this.style, {Key? key})
-      : super(key: key);
+  const PenroseTopBarView(this.scrollController, this.style, {super.key});
 
   @override
   State<PenroseTopBarView> createState() => _PenroseTopBarViewState();
@@ -73,12 +73,12 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
   void didPushNext() {
     // Reset to normal SystemUIMode
     if (Platform.isIOS) {
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
-          overlays: SystemUiOverlay.values);
+      unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
+          overlays: SystemUiOverlay.values));
     }
   }
 
-  _scrollListener() {
+  void _scrollListener() {
     if (widget.scrollController.positions.isEmpty) {
       // ScrollController not attached to any scroll views.
       return;
@@ -89,15 +89,16 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
 
     if (widget.scrollController.offset > breakpoint) {
       if (Platform.isIOS) {
-        SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+        unawaited(
+            SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky));
       }
       setState(() {
         _opacity = 0;
       });
     } else {
       if (Platform.isIOS) {
-        SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
-            overlays: SystemUiOverlay.values);
+        unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
+            overlays: SystemUiOverlay.values));
       }
       setState(() {
         _opacity = 1;
@@ -106,16 +107,14 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: AnimatedBuilder(
-        builder: (context, value) => Stack(children: [
-          Opacity(opacity: _opacity, child: _headerWidget(context)),
-        ]),
-        animation: widget.scrollController,
-      ),
-    );
-  }
+  Widget build(BuildContext context) => SafeArea(
+        child: AnimatedBuilder(
+          builder: (context, value) => Stack(children: [
+            Opacity(opacity: _opacity, child: _headerWidget(context)),
+          ]),
+          animation: widget.scrollController,
+        ),
+      );
 
   Widget _headerWidget(BuildContext context) {
     switch (widget.style) {
@@ -155,7 +154,7 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
                 SvgPicture.asset('assets/images/nav-arrow-left.svg'),
                 const SizedBox(width: 7),
                 Text(
-                  "back".tr(),
+                  'back'.tr(),
                   style: theme.textTheme.labelLarge,
                 ),
               ],
@@ -178,7 +177,7 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
           child: Padding(
             padding: const EdgeInsets.fromLTRB(0, 0, 0, 10),
             child: Text(
-              "settings".tr().toUpperCase(),
+              'settings'.tr().toUpperCase(),
               style: theme.textTheme.labelLarge,
             ),
           ),
@@ -186,14 +185,17 @@ class _PenroseTopBarViewState extends State<PenroseTopBarView> with RouteAware {
         Container(
           padding: const EdgeInsets.fromLTRB(0, 0, 0, 20),
           child: Semantics(
-            label: isInSettingsPage ? "close_icon" : "Settings",
+            label: isInSettingsPage ? 'close_icon' : 'Settings',
             child: IconButton(
               onPressed: () {
-                if (_opacity == 0) return;
+                if (_opacity == 0) {
+                  return;
+                }
                 if (isInSettingsPage) {
                   Navigator.of(context).pop();
                 } else {
-                  Navigator.of(context).pushNamed(AppRouter.settingsPage);
+                  unawaited(
+                      Navigator.of(context).pushNamed(AppRouter.settingsPage));
                 }
               },
               icon: isInSettingsPage ? closeIcon() : _settingIcon(),

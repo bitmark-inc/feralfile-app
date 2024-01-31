@@ -22,10 +22,10 @@ import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:eth_sig_util/eth_sig_util.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:libauk_dart/libauk_dart.dart';
@@ -37,7 +37,7 @@ class WCSignMessagePage extends StatefulWidget {
 
   final WCSignMessagePageArgs args;
 
-  const WCSignMessagePage({Key? key, required this.args}) : super(key: key);
+  const WCSignMessagePage({required this.args, super.key});
 
   @override
   State<WCSignMessagePage> createState() => _WCSignMessagePageState();
@@ -72,7 +72,7 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
           onBack: () {
             Navigator.of(context).pop(false);
           },
-          title: "signature_request".tr(),
+          title: 'signature_request'.tr(),
         ),
         body: Container(
           margin: const EdgeInsets.only(bottom: 32),
@@ -89,17 +89,17 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
                         padding: ResponsiveLayout.pageHorizontalEdgeInsets,
                         child: _wcAppInfo(widget.args.peerMeta),
                       ),
-                      const SizedBox(height: 60.0),
+                      const SizedBox(height: 60),
                       addOnlyDivider(),
-                      const SizedBox(height: 30.0),
+                      const SizedBox(height: 30),
                       Padding(
                         padding: ResponsiveLayout.pageHorizontalEdgeInsets,
                         child: Text(
-                          "message".tr(),
+                          'message'.tr(),
                           style: theme.textTheme.ppMori400Black14,
                         ),
                       ),
-                      const SizedBox(height: 4.0),
+                      const SizedBox(height: 4),
                       Padding(
                         padding: ResponsiveLayout.pageHorizontalEdgeInsets,
                         child: Container(
@@ -138,22 +138,22 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
         if (peerMeta.icons.isNotEmpty) ...[
           CachedNetworkImage(
             imageUrl: peerMeta.icons.first,
-            width: 64.0,
-            height: 64.0,
+            width: 64,
+            height: 64,
             errorWidget: (context, url, error) => SizedBox(
                 width: 64,
                 height: 64,
                 child:
-                    Image.asset("assets/images/walletconnect-alternative.png")),
+                    Image.asset('assets/images/walletconnect-alternative.png')),
           ),
         ] else ...[
           SizedBox(
               width: 64,
               height: 64,
               child:
-                  Image.asset("assets/images/walletconnect-alternative.png")),
+                  Image.asset('assets/images/walletconnect-alternative.png')),
         ],
-        const SizedBox(width: 16.0),
+        const SizedBox(width: 16),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -175,14 +175,13 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
             text: "sign".tr(),
             onTap: () => withDebounce(() async {
               final didAuthenticate =
-              await LocalAuthenticationService.checkLocalAuth();
+                  await LocalAuthenticationService.checkLocalAuth();
               if (!didAuthenticate) {
                 return;
               }
               final args = widget.args;
               final WalletIndex wallet;
-              wallet =
-                  WalletIndex(LibAukDart.getWallet(args.uuid), args.index);
+              wallet = WalletIndex(LibAukDart.getWallet(args.uuid), args.index);
               final String signature;
 
               switch (args.type) {
@@ -190,7 +189,7 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
                 case WCSignType.MESSAGE:
                   signature = await injector<EthereumService>()
                       .signPersonalMessage(
-                      wallet.wallet, wallet.index, message);
+                          wallet.wallet, wallet.index, message);
                   break;
                 case WCSignType.TYPED_MESSAGE:
                   signature = await injector<EthereumService>()
@@ -230,9 +229,11 @@ class WCSignMessagePageArgs {
     this.message,
     this.type,
     this.uuid,
-    this.index,);
+    this.index,
+  );
 }
 
+// ignore: constant_identifier_names
 enum WCSignType { MESSAGE, PERSONAL_MESSAGE, TYPED_MESSAGE }
 
 class WCEthereumSignMessage {

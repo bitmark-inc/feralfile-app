@@ -119,7 +119,7 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
       }
       final navigationService = injector.get<NavigationService>();
       address = await navigationService.navigateTo(
-        AppRouter.selectAddressScreen,
+        AppRouter.postcardSelectAddressScreen,
         arguments: {
           'blockchain': 'Tezos',
           'onConfirm': (String address) async {

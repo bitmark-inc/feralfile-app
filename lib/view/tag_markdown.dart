@@ -5,7 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:markdown/markdown.dart' as md;
@@ -22,8 +22,8 @@ class TagBlockSyntax extends md.BlockSyntax {
   md.Node parse(md.BlockParser parser) {
     var childLines = parseChildLines(parser);
 
-    final contents = childLines.map((e) => e?.content).toList();
-    contents.removeWhere((element) => element == null);
+    final contents = childLines.map((e) => e?.content).toList()
+      ..removeWhere((element) => element == null);
     var content = contents.join('\n');
 
     final md.Element el = md.Element('p', [
@@ -38,29 +38,28 @@ class TagBuilder extends MarkdownElementBuilder {
   @override
   Widget visitElementAfter(md.Element element, TextStyle? preferredStyle) {
     final parts =
-        element.textContent.replaceFirst("[#]", "").trim().split(" - ");
-    return Builder(builder: (context) {
-      return parts.length == 2
-          ? Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(parts[1],
-                    style: Theme.of(context).textTheme.ppMori400Grey14),
-                Container(
-                  decoration: BoxDecoration(
-                      border: Border.all(
-                        color: AppColor.greyMedium,
-                      ),
-                      borderRadius:
-                          const BorderRadius.all(Radius.circular(64))),
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 4.0, horizontal: 8.0),
-                  child: Text(parts[0],
-                      style: Theme.of(context).textTheme.ppMori400Grey12),
-                )
-              ],
-            )
-          : Text(element.textContent, style: preferredStyle);
-    });
+        element.textContent.replaceFirst('[#]', '').trim().split(' - ');
+    return Builder(
+        builder: (context) => parts.length == 2
+            ? Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(parts[1],
+                      style: Theme.of(context).textTheme.ppMori400Grey14),
+                  Container(
+                    decoration: BoxDecoration(
+                        border: Border.all(
+                          color: AppColor.greyMedium,
+                        ),
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(64))),
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                    child: Text(parts[0],
+                        style: Theme.of(context).textTheme.ppMori400Grey12),
+                  )
+                ],
+              )
+            : Text(element.textContent, style: preferredStyle));
   }
 }

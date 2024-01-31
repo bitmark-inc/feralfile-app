@@ -1,12 +1,13 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -17,9 +18,9 @@ class PreviewActivationTokenPage extends StatefulWidget {
   final AssetToken assetToken;
 
   const PreviewActivationTokenPage({
-    Key? key,
     required this.assetToken,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<PreviewActivationTokenPage> createState() =>
@@ -37,10 +38,10 @@ class _PreviewActivationTokenPageState extends State<PreviewActivationTokenPage>
     WidgetsBinding.instance.removeObserver(this);
     _detector?.stopListening();
     if (Platform.isAndroid) {
-      SystemChrome.setEnabledSystemUIMode(
+      unawaited(SystemChrome.setEnabledSystemUIMode(
         SystemUiMode.manual,
         overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom],
-      );
+      ));
     }
   }
 
@@ -52,10 +53,10 @@ class _PreviewActivationTokenPageState extends State<PreviewActivationTokenPage>
         setState(() {
           isFullScreen = false;
         });
-        SystemChrome.setEnabledSystemUIMode(
+        unawaited(SystemChrome.setEnabledSystemUIMode(
           SystemUiMode.manual,
           overlays: SystemUiOverlay.values,
-        );
+        ));
       },
     );
 
@@ -93,7 +94,7 @@ class _PreviewActivationTokenPageState extends State<PreviewActivationTokenPage>
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               SvgPicture.asset(
-                                "assets/images/iconInfo.svg",
+                                'assets/images/iconInfo.svg',
                                 colorFilter: ColorFilter.mode(
                                     theme.colorScheme.secondary,
                                     BlendMode.srcIn),
@@ -107,7 +108,7 @@ class _PreviewActivationTokenPageState extends State<PreviewActivationTokenPage>
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Text(
-                                      assetToken.title ?? "",
+                                      assetToken.title ?? '',
                                       overflow: TextOverflow.ellipsis,
                                       style: ResponsiveLayout.isMobile
                                           ? theme.textTheme.atlasWhiteBold12
@@ -115,9 +116,9 @@ class _PreviewActivationTokenPageState extends State<PreviewActivationTokenPage>
                                     ),
                                     Row(
                                       children: [
-                                        const SizedBox(height: 4.0),
+                                        const SizedBox(height: 4),
                                         Text(
-                                          "by".tr(args: [artist ?? ""]).trim(),
+                                          'by'.tr(args: [artist ?? '']).trim(),
                                           overflow: TextOverflow.ellipsis,
                                           style: theme
                                               .primaryTextTheme.headlineSmall,
@@ -131,10 +132,10 @@ class _PreviewActivationTokenPageState extends State<PreviewActivationTokenPage>
                             ],
                           ),
                           onTap: () {
-                            Navigator.of(context).pushNamed(
+                            unawaited(Navigator.of(context).pushNamed(
                               AppRouter.activationTokenDetailPage,
                               arguments: assetToken,
-                            );
+                            ));
                           },
                         ),
                       ),
@@ -153,7 +154,7 @@ class _PreviewActivationTokenPageState extends State<PreviewActivationTokenPage>
                       IconButton(
                         onPressed: () => Navigator.of(context).pop(),
                         icon: closeIcon(color: theme.colorScheme.secondary),
-                        tooltip: "CloseArtwork",
+                        tooltip: 'CloseArtwork',
                       )
                     ],
                   ),

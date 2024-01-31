@@ -6,7 +6,7 @@
 //
 
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 
 class AuTextField extends StatelessWidget {
@@ -27,13 +27,13 @@ class AuTextField extends StatelessWidget {
   final bool widePadding;
 
   const AuTextField({
-    Key? key,
     required this.title,
-    this.placeholder = "",
+    required this.controller,
+    super.key,
+    this.placeholder = '',
     this.isError = false,
     this.maxLines = 1,
     this.hintMaxLines,
-    required this.controller,
     this.subTitleView,
     this.suffix,
     this.keyboardType = TextInputType.text,
@@ -43,7 +43,7 @@ class AuTextField extends StatelessWidget {
     this.focusNode,
     this.isDark = false,
     this.widePadding = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -53,8 +53,8 @@ class AuTextField extends StatelessWidget {
       label: labelSemantics,
       child: Container(
           padding: (title.isNotEmpty || suffix != null) && !widePadding
-              ? const EdgeInsets.only(top: 3.0, left: 8.0, bottom: 3.0)
-              : const EdgeInsets.only(top: 13.5, left: 8.0, bottom: 16.5),
+              ? const EdgeInsets.only(top: 3, left: 8, bottom: 3)
+              : const EdgeInsets.only(top: 13.5, left: 8, bottom: 16.5),
           decoration: BoxDecoration(
             border: Border.all(
                 color: isEmpty
@@ -84,14 +84,15 @@ class AuTextField extends StatelessWidget {
                                 : theme.textTheme.atlasGreyBold14,
                           ),
                         ],
-                        subTitleView != null
-                            ? Text(
-                                " | ",
-                                style: ResponsiveLayout.isMobile
-                                    ? theme.textTheme.atlasGreyNormal12
-                                    : theme.textTheme.atlasGreyNormal14,
-                              )
-                            : const SizedBox(),
+                        if (subTitleView != null)
+                          Text(
+                            ' | ',
+                            style: ResponsiveLayout.isMobile
+                                ? theme.textTheme.atlasGreyNormal12
+                                : theme.textTheme.atlasGreyNormal14,
+                          )
+                        else
+                          const SizedBox(),
                         subTitleView ?? const SizedBox(),
                       ],
                     ),
@@ -114,7 +115,7 @@ class AuTextField extends StatelessWidget {
   Widget _textFieldWidget(BuildContext context) {
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      padding: const EdgeInsets.symmetric(horizontal: 8),
       child: TextField(
         autocorrect: false,
         focusNode: focusNode,

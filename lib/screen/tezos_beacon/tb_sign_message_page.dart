@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -24,10 +25,10 @@ import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:libauk_dart/libauk_dart.dart';
@@ -37,7 +38,7 @@ class TBSignMessagePage extends StatefulWidget {
   static const String tag = 'tb_sign_message';
   final BeaconRequest request;
 
-  const TBSignMessagePage({Key? key, required this.request}) : super(key: key);
+  const TBSignMessagePage({required this.request, super.key});
 
   @override
   State<TBSignMessagePage> createState() => _TBSignMessagePageState();
@@ -49,14 +50,15 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
   @override
   void initState() {
     super.initState();
-    fetchPersona();
+    unawaited(fetchPersona());
   }
 
   @override
   void dispose() {
     super.dispose();
     Future.delayed(const Duration(seconds: 2), () {
-      injector<TezosBeaconService>().handleNextRequest(isRemoved: true);
+      unawaited(
+          injector<TezosBeaconService>().handleNextRequest(isRemoved: true));
     });
   }
 
@@ -74,9 +76,11 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
 
     if (currentWallet == null) {
       await _rejectRequest(
-        reason: "No wallet found for address ${widget.request.sourceAddress}",
+        reason: 'No wallet found for address ${widget.request.sourceAddress}',
       );
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       Navigator.of(context).pop(false);
       return;
     }
@@ -87,7 +91,7 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
   }
 
   Future _rejectRequest({String? reason}) async {
-    log.info("[TBSignMessagePage] _rejectRequest: $reason");
+    log.info('[TBSignMessagePage] _rejectRequest: $reason');
     if (widget.request.wc2Topic != null) {
       await injector<Wc2Service>().respondOnReject(
         widget.request.wc2Topic!,
@@ -102,7 +106,7 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
   }
 
   Future _approveRequest({required String signature}) async {
-    log.info("[TBSignMessagePage] _approveRequest");
+    log.info('[TBSignMessagePage] _approveRequest');
     if (widget.request.wc2Topic != null) {
       await injector<Wc2Service>().respondOnApprove(
         widget.request.wc2Topic!,
@@ -117,7 +121,7 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
     }
   }
 
-  _sign(BuildContext context, Uint8List message) async {
+  Future<void> _sign(BuildContext context, Uint8List message) async {
     final didAuthenticate = await LocalAuthenticationService.checkLocalAuth();
     if (!didAuthenticate) {
       return;
@@ -125,21 +129,23 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
     final signature = await injector<TezosService>()
         .signMessage(_currentPersona!.wallet, _currentPersona!.index, message);
     await _approveRequest(signature: signature);
-    log.info("[TBSignMessagePage] _sign: $signature");
-    if (!mounted) return;
+    log.info('[TBSignMessagePage] _sign: $signature');
+    if (!mounted) {
+      return;
+    }
 
     final metricClient = injector.get<MetricClientService>();
 
-    metricClient.addEvent(
-      "Sign In",
-      hashedData: {"uuid": widget.request.id},
-    );
+    unawaited(metricClient.addEvent(
+      'Sign In',
+      hashedData: {'uuid': widget.request.id},
+    ));
     Navigator.of(context).pop(true);
     showInfoNotification(
-      const Key("signed"),
-      "signed".tr(),
+      const Key('signed'),
+      'signed'.tr(),
       frontWidget: SvgPicture.asset(
-        "assets/images/checkbox_icon.svg",
+        'assets/images/checkbox_icon.svg',
         width: 24,
       ),
     );
@@ -158,17 +164,17 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
 
     return WillPopScope(
       onWillPop: () async {
-        await _rejectRequest(reason: "User reject");
+        await _rejectRequest(reason: 'User reject');
         return true;
       },
       child: Scaffold(
         appBar: getBackAppBar(
           context,
           onBack: () {
-            _rejectRequest(reason: "User reject");
+            unawaited(_rejectRequest(reason: 'User reject'));
             Navigator.of(context).pop(false);
           },
-          title: "signature_request".tr(),
+          title: 'signature_request'.tr(),
         ),
         body: Container(
           margin: const EdgeInsets.only(bottom: 32),
@@ -191,11 +197,11 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
                       Padding(
                         padding: ResponsiveLayout.pageHorizontalEdgeInsets,
                         child: Text(
-                          "message".tr(),
+                          'message'.tr(),
                           style: theme.textTheme.ppMori400Black14,
                         ),
                       ),
-                      const SizedBox(height: 4.0),
+                      const SizedBox(height: 4),
                       Padding(
                         padding: ResponsiveLayout.pageHorizontalEdgeInsets,
                         child: Container(
@@ -221,9 +227,10 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
                   children: [
                     Expanded(
                       child: PrimaryButton(
-                        text: "sign".tr(),
+                        text: 'sign'.tr(),
                         onTap: _currentPersona != null
-                            ? () => withDebounce(() => _sign(context, message))
+                            ? () => withDebounce(
+                                () => unawaited(_sign(context, message)))
                             : null,
                       ),
                     )
@@ -242,28 +249,29 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
 
     return Row(
       children: [
-        request.icon != null
-            ? CachedNetworkImage(
-                imageUrl: request.icon!,
-                width: 64.0,
-                height: 64.0,
-                errorWidget: (context, url, error) => SvgPicture.asset(
-                  "assets/images/tezos_social_icon.svg",
-                  width: 64.0,
-                  height: 64.0,
-                ),
-              )
-            : SvgPicture.asset(
-                "assets/images/tezos_social_icon.svg",
-                width: 64.0,
-                height: 64.0,
-              ),
-        const SizedBox(width: 24.0),
+        if (request.icon != null)
+          CachedNetworkImage(
+            imageUrl: request.icon!,
+            width: 64,
+            height: 64,
+            errorWidget: (context, url, error) => SvgPicture.asset(
+              'assets/images/tezos_social_icon.svg',
+              width: 64,
+              height: 64,
+            ),
+          )
+        else
+          SvgPicture.asset(
+            'assets/images/tezos_social_icon.svg',
+            width: 64,
+            height: 64,
+          ),
+        const SizedBox(width: 24),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(request.appName ?? "",
+              Text(request.appName ?? '',
                   style: theme.textTheme.ppMori700Black24),
             ],
           ),

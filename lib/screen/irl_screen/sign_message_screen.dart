@@ -1,32 +1,33 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'dart:async';
 import 'dart:convert';
-
-import 'package:autonomy_flutter/service/local_auth_service.dart';
-import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/view/primary_button.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:collection/collection.dart';
-import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:web3dart/crypto.dart';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/local_auth_service.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:collection/collection.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:web3dart/crypto.dart';
 
 class IRLSignMessagePayload {
   String payload;
   String chain;
   String sourceAddress;
   Map<String, dynamic>? metadata;
+
   IRLSignMessagePayload({
     required this.payload,
     required this.chain,
@@ -34,25 +35,22 @@ class IRLSignMessagePayload {
     this.metadata,
   });
 
-  Map<String, dynamic> toJson() {
-    return <String, dynamic>{
-      'payload': payload,
-      'chain': chain,
-      'sourceAddress': sourceAddress,
-      'metadata': metadata,
-    };
-  }
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'payload': payload,
+        'chain': chain,
+        'sourceAddress': sourceAddress,
+        'metadata': metadata,
+      };
 
-  factory IRLSignMessagePayload.fromJson(Map<String, dynamic> map) {
-    return IRLSignMessagePayload(
-      payload: map['payload'] as String,
-      chain: map['chain'] as String,
-      sourceAddress: map['sourceAddress'] as String,
-      metadata: map['metadata'] == null
-          ? null
-          : map['metadata'] as Map<String, dynamic>,
-    );
-  }
+  factory IRLSignMessagePayload.fromJson(Map<String, dynamic> map) =>
+      IRLSignMessagePayload(
+        payload: map['payload'] as String,
+        chain: map['chain'] as String,
+        sourceAddress: map['sourceAddress'] as String,
+        metadata: map['metadata'] == null
+            ? null
+            : map['metadata'] as Map<String, dynamic>,
+      );
 }
 
 class IRLSendTransactionPayload {
@@ -68,35 +66,32 @@ class IRLSendTransactionPayload {
     this.metadata,
   });
 
-  Map<String, dynamic> toJson() {
-    return <String, dynamic>{
-      'transactions': transactions,
-      'chain': chain,
-      'sourceAddress': sourceAddress,
-      'metadata': metadata,
-    };
-  }
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'transactions': transactions,
+        'chain': chain,
+        'sourceAddress': sourceAddress,
+        'metadata': metadata,
+      };
 
-  factory IRLSendTransactionPayload.fromJson(Map<String, dynamic> map) {
-    return IRLSendTransactionPayload(
-      transactions: List<Map<String, dynamic>>.from(
-        (map['transactions'] as List).map<Map<String, dynamic>>(
-          (x) => x,
+  factory IRLSendTransactionPayload.fromJson(Map<String, dynamic> map) =>
+      IRLSendTransactionPayload(
+        transactions: List<Map<String, dynamic>>.from(
+          (map['transactions'] as List).map<Map<String, dynamic>>(
+            (x) => x,
+          ),
         ),
-      ),
-      chain: map['chain'] as String,
-      sourceAddress: map['sourceAddress'] as String,
-      metadata: map['metadata'] == null
-          ? null
-          : map['metadata'] as Map<String, dynamic>,
-    );
-  }
+        chain: map['chain'] as String,
+        sourceAddress: map['sourceAddress'] as String,
+        metadata: map['metadata'] == null
+            ? null
+            : map['metadata'] as Map<String, dynamic>,
+      );
 }
 
 class IRLSignMessageScreen extends StatefulWidget {
   final IRLSignMessagePayload payload;
-  const IRLSignMessageScreen({Key? key, required this.payload})
-      : super(key: key);
+
+  const IRLSignMessageScreen({required this.payload, super.key});
 
   @override
   State<IRLSignMessageScreen> createState() => _IRLSignMessageScreenState();
@@ -108,10 +103,10 @@ class _IRLSignMessageScreenState extends State<IRLSignMessageScreen> {
   @override
   void initState() {
     super.initState();
-    getWallet();
+    unawaited(getWallet());
   }
 
-  getWallet() async {
+  Future<void> getWallet() async {
     final accountService = injector<AccountService>();
     _currentWallet = await accountService.getAccountByAddress(
       chain: widget.payload.chain,
@@ -120,7 +115,7 @@ class _IRLSignMessageScreenState extends State<IRLSignMessageScreen> {
     setState(() {});
   }
 
-  void _sign() async {
+  Future<void> _sign() async {
     final didAuthenticate = await LocalAuthenticationService.checkLocalAuth();
     if (!didAuthenticate) {
       return;
@@ -130,17 +125,19 @@ class _IRLSignMessageScreenState extends State<IRLSignMessageScreen> {
       message: widget.payload.payload,
     );
 
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
 
     Navigator.of(context).pop(signature);
     final notificationEnabled =
         injector<ConfigurationService>().isNotificationEnabled() ?? false;
     if (notificationEnabled) {
       showInfoNotification(
-        const Key("signed"),
-        "signed".tr(),
+        const Key('signed'),
+        'signed'.tr(),
         frontWidget: SvgPicture.asset(
-          "assets/images/checkbox_icon.svg",
+          'assets/images/checkbox_icon.svg',
           width: 24,
         ),
       );
@@ -159,16 +156,14 @@ class _IRLSignMessageScreenState extends State<IRLSignMessageScreen> {
     final theme = Theme.of(context);
 
     return WillPopScope(
-      onWillPop: () async {
-        return true;
-      },
+      onWillPop: () async => true,
       child: Scaffold(
         appBar: getBackAppBar(
           context,
           onBack: () {
             Navigator.of(context).pop();
           },
-          title: "signature_request".tr(),
+          title: 'signature_request'.tr(),
         ),
         body: Container(
           margin: const EdgeInsets.only(bottom: 32),
@@ -185,17 +180,17 @@ class _IRLSignMessageScreenState extends State<IRLSignMessageScreen> {
                         padding: ResponsiveLayout.pageHorizontalEdgeInsets,
                         child: _metadataInfo(widget.payload.metadata),
                       ),
-                      const SizedBox(height: 60.0),
+                      const SizedBox(height: 60),
                       addOnlyDivider(),
-                      const SizedBox(height: 30.0),
+                      const SizedBox(height: 30),
                       Padding(
                         padding: ResponsiveLayout.pageHorizontalEdgeInsets,
                         child: Text(
-                          "message".tr(),
+                          'message'.tr(),
                           style: theme.textTheme.ppMori400Black14,
                         ),
                       ),
-                      const SizedBox(height: 4.0),
+                      const SizedBox(height: 4),
                       Padding(
                         padding: ResponsiveLayout.pageHorizontalEdgeInsets,
                         child: Container(
@@ -221,7 +216,7 @@ class _IRLSignMessageScreenState extends State<IRLSignMessageScreen> {
                   children: [
                     Expanded(
                       child: PrimaryButton(
-                        text: "sign".tr(),
+                        text: 'sign'.tr(),
                         onTap: _currentWallet != null
                             ? () => withDebounce(_sign)
                             : null,
@@ -249,8 +244,8 @@ class _IRLSignMessageScreenState extends State<IRLSignMessageScreen> {
               if (icons != null && icons.isNotEmpty) ...[
                 CachedNetworkImage(
                   imageUrl: icons.first,
-                  width: 64.0,
-                  height: 64.0,
+                  width: 64,
+                  height: 64,
                   errorWidget: (context, url, error) => const SizedBox(
                     width: 64,
                     height: 64,
@@ -262,7 +257,7 @@ class _IRLSignMessageScreenState extends State<IRLSignMessageScreen> {
                   height: 64,
                 ),
               ],
-              const SizedBox(width: 16.0),
+              const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

@@ -1,8 +1,8 @@
 import 'package:autonomy_flutter/model/merchandise_order.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
-import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:feralfile_app_theme/extensions/theme_extension/moma_sans.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 
 class MerchandiseOrderView extends StatelessWidget {

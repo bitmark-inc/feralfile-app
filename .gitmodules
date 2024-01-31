@@ -1,6 +1,6 @@
 [submodule "assets"]
 	path = assets
-	url = git@github.com:bitmark-inc/autonomy-client-assets.git
+	url = git@github.com:bitmark-inc/feralfile-app-client-assets.git
 [submodule "auto-test"]
 	path = auto-test
-	url = git@github.com:bitmark-inc/autonomy-automation-tests.git
+	url = git@github.com:bitmark-inc/feralfile-app-automation-tests.git

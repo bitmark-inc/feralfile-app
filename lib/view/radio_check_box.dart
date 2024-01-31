@@ -1,4 +1,4 @@
-import 'package:autonomy_theme/style/colors.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:roundcheckbox/roundcheckbox.dart';
@@ -11,13 +11,13 @@ class RadioSelectAddress extends StatelessWidget {
   final Function(bool?)? onTap;
 
   const RadioSelectAddress({
-    Key? key,
+    super.key,
     this.isChecked,
     this.onTap,
     this.checkColor,
     this.uncheckColor,
     this.borderColor,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -54,22 +54,20 @@ class AuCheckBox extends StatelessWidget {
   final Color? color;
 
   const AuCheckBox({
-    Key? key,
+    super.key,
     this.isChecked,
     this.color,
-  }) : super(key: key);
+  });
 
   @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 24,
-      child: SvgPicture.asset(
-        isChecked ?? false
-            ? "assets/images/check_box_true.svg"
-            : "assets/images/check_box_false.svg",
-        colorFilter:
-            ColorFilter.mode(color ?? AppColor.primaryBlack, BlendMode.srcIn),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => SizedBox(
+        width: 24,
+        child: SvgPicture.asset(
+          isChecked ?? false
+              ? 'assets/images/check_box_true.svg'
+              : 'assets/images/check_box_false.svg',
+          colorFilter:
+              ColorFilter.mode(color ?? AppColor.primaryBlack, BlendMode.srcIn),
+        ),
+      );
 }

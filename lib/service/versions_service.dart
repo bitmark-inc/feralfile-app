@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
@@ -17,8 +18,8 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/helpers.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -33,8 +34,12 @@ class VersionService {
       this._pubdocAPI, this._configurationService, this._navigationService);
 
   Future checkForUpdate() async {
-    if (kDebugMode) return;
-    if (UIHelper.currentDialogTitle == "update_required".tr()) return;
+    if (kDebugMode) {
+      return;
+    }
+    if (UIHelper.currentDialogTitle == 'update_required'.tr()) {
+      return;
+    }
 
     final versionInfo = await getVersionInfo();
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
@@ -53,13 +58,16 @@ class VersionService {
       final readVersion = _configurationService.getReadReleaseNotesVersion();
       if (readVersion == null ||
           compareVersion(readVersion, currentVersion) >= 0) {
-        _configurationService.setReadReleaseNotesInVersion(currentVersion);
+        unawaited(
+            _configurationService.setReadReleaseNotesInVersion(currentVersion));
         return;
       }
     }
 
     final releaseNotes = await getReleaseNotes(currentVersion);
-    if (releaseNotes == "TBD") return;
+    if (releaseNotes == 'TBD') {
+      return;
+    }
 
     if (currentVersion != null) {
       await _configurationService.setReadReleaseNotesInVersion(currentVersion);
@@ -71,8 +79,8 @@ class VersionService {
     final versionsInfo = await _pubdocAPI.getVersionsInfo();
     final isAppCenter = await isAppCenterBuild();
     var app = '';
-    app += (isAppCenter) ? "dev" : "prod";
-    app += Platform.isIOS ? "_ios" : "_android";
+    app += isAppCenter ? 'dev' : 'prod';
+    app += Platform.isIOS ? '_ios' : '_android';
 
     switch (app) {
       case 'prod_ios':
@@ -87,19 +95,19 @@ class VersionService {
   }
 
   Future<String> getReleaseNotes(String? currentVersion) async {
-    var releaseNotes = "";
+    var releaseNotes = '';
     try {
       final app = (await isAppCenterBuild()) ? 'dev' : 'production';
       releaseNotes = await _pubdocAPI.getReleaseNotesContent(app);
 
       if (currentVersion != null) {
-        final textBegin = "[#] $currentVersion";
+        final textBegin = '[#] $currentVersion';
         if (!releaseNotes.startsWith(textBegin)) {
-          releaseNotes = "TBD";
+          releaseNotes = 'TBD';
         }
       }
     } catch (_) {
-      releaseNotes = "TBD";
+      releaseNotes = 'TBD';
     }
 
     return releaseNotes;
@@ -107,24 +115,24 @@ class VersionService {
 
   Future showForceUpdateDialog(String link) async {
     final context = _navigationService.navigatorKey.currentContext;
-    if (context == null) return;
+    if (context == null) {
+      return;
+    }
 
     final theme = Theme.of(context);
     await UIHelper.showDialog(
       context,
-      "update_required".tr(),
+      'update_required'.tr(),
       WillPopScope(
-        onWillPop: () async {
-          return false;
-        },
+        onWillPop: () async => false,
         child: Column(children: [
-          Text("newer_version".tr(), style: theme.textTheme.ppMori400White14),
+          Text('newer_version'.tr(), style: theme.textTheme.ppMori400White14),
           const SizedBox(height: 35),
           Row(
             children: [
               Expanded(
                 child: PrimaryButton(
-                  text: "update".tr(),
+                  text: 'update'.tr(),
                   onTap: () {
                     final uri = Uri.tryParse(link);
                     if (uri != null) {
@@ -142,8 +150,10 @@ class VersionService {
 
   Future showReleaseNodeDialog(String releaseNotes) async {
     var screenKey =
-        "what_new".tr(); // avoid showing multiple what's new screens
-    if (UIHelper.currentDialogTitle == screenKey) return;
+        'what_new'.tr(); // avoid showing multiple what's new screens
+    if (UIHelper.currentDialogTitle == screenKey) {
+      return;
+    }
 
     UIHelper.currentDialogTitle = screenKey;
 
@@ -155,11 +165,10 @@ class VersionService {
     final versionInfo = await getVersionInfo();
     final uri = Uri.tryParse(versionInfo.link);
     if (uri != null) {
-      launchUrl(uri, mode: LaunchMode.externalApplication);
+      unawaited(launchUrl(uri, mode: LaunchMode.externalApplication));
     }
   }
 
-  Future<List<PlayListModel>> getDemoAccountFromGithub() async {
-    return _pubdocAPI.getDemoAccountFromGithub();
-  }
+  Future<List<PlayListModel>> getDemoAccountFromGithub() async =>
+      _pubdocAPI.getDemoAccountFromGithub();
 }

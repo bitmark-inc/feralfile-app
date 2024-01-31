@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_bloc.dart';
@@ -15,13 +17,14 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_toggle.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class PreferenceView extends StatelessWidget {
-  const PreferenceView({Key? key}) : super(key: key);
+  const PreferenceView({super.key});
+
   @override
   Widget build(BuildContext context) {
     context.read<PreferencesBloc>().add(PreferenceInfoEvent());
@@ -38,12 +41,12 @@ class PreferenceView extends StatelessWidget {
             child: _preferenceItem(
               context,
               state.authMethodName,
-              "use_device_passcode".tr(args: [
-                state.authMethodName != "device_passcode".tr()
-                    ? state.authMethodName
-                    : "device_passcode".tr()
+              'use_device_passcode'.tr(args: [
+                if (state.authMethodName != 'device_passcode'.tr())
+                  state.authMethodName
+                else
+                  'device_passcode'.tr()
               ]),
-              //"Use ${state.authMethodName != 'Device Passcode' ? state.authMethodName : 'device passcode'} to unlock the app, transact, and authenticate.",
               state.isDevicePasscodeEnabled,
               (value) {
                 final newState = state.copyWith(isDevicePasscodeEnabled: value);
@@ -58,13 +61,12 @@ class PreferenceView extends StatelessWidget {
             padding: padding,
             child: _preferenceItem(
                 context,
-                "notifications".tr(),
-                "receive_notification".tr(),
-                //"Receive notifications when you get new NFTs, signing requests, or customer support messages.",
+                'notifications'.tr(),
+                'receive_notification'.tr(),
                 state.isNotificationEnabled, (value) {
               final metricClient = injector<MetricClientService>();
-              metricClient.addEvent(MixpanelEvent.enableNotification,
-                  data: {'isEnable': value});
+              unawaited(metricClient.addEvent(MixpanelEvent.enableNotification,
+                  data: {'isEnable': value}));
               metricClient.mixPanelClient.mixpanel
                   .getPeople()
                   .set(MixpanelProp.enableNotification, value);
@@ -74,7 +76,7 @@ class PreferenceView extends StatelessWidget {
               if (value) {
                 configService.showNotifTip.value = false;
               }
-              configService.setPendingSettings(false);
+              unawaited(configService.setPendingSettings(false));
               context
                   .read<PreferencesBloc>()
                   .add(PreferenceUpdateEvent(newState));
@@ -85,19 +87,18 @@ class PreferenceView extends StatelessWidget {
             padding: padding,
             child: _preferenceItemWithBuilder(
               context,
-              "analytics".tr(),
+              'analytics'.tr(),
               description: (context) => Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "contribute_anonymize".tr(),
-                    //"Contribute anonymized, aggregate usage data to help improve Autonomy.",
+                    'contribute_anonymize'.tr(),
                     style: theme.textTheme.ppMori400Black14,
                   ),
                   const SizedBox(height: 10),
                   GestureDetector(
                       child: Text(
-                        "learn_anonymize".tr(),
+                        'learn_anonymize'.tr(),
                         textAlign: TextAlign.left,
                         style: ResponsiveLayout.isMobile
                             ? theme.textTheme.ppMori400Black14.copyWith(
@@ -108,14 +109,14 @@ class PreferenceView extends StatelessWidget {
                               )
                             : theme.textTheme.linkStyle16,
                       ),
-                      onTap: () => Navigator.of(context).pushNamed(
+                      onTap: () => unawaited(Navigator.of(context).pushNamed(
                             AppRouter.githubDocPage,
                             arguments: {
-                              "document": "protect_your_usage_data.md",
-                              "title": "how_protect_data".tr()
+                              'document': 'protect_your_usage_data.md',
+                              'title': 'how_protect_data'.tr()
                               // "How we protect your usage data"
                             },
-                          )),
+                          ))),
                 ],
               ),
               isEnabled: state.isAnalyticEnabled,

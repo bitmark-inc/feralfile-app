@@ -10,9 +10,9 @@ import 'package:autonomy_flutter/view/account_view.dart';
 import 'package:autonomy_flutter/view/crypto_view.dart';
 import 'package:autonomy_flutter/view/radio_check_box.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:crypto/crypto.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 
 class ListAccountConnect extends StatefulWidget {
@@ -23,8 +23,8 @@ class ListAccountConnect extends StatefulWidget {
   final bool isSeparateHidden;
 
   ListAccountConnect({
-    Key? key,
     required this.accounts,
+    Key? key,
     this.onSelectEth,
     this.onSelectTez,
     this.isAutoSelect = false,
@@ -67,7 +67,7 @@ class _ListAccountConnectState extends State<ListAccountConnect> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         ..._listAddresses(showedAccounts),
-        const SizedBox(height: 30.0),
+        const SizedBox(height: 30),
         if (hiddenAccounts.isNotEmpty) ...[
           GestureDetector(
             onTap: () {
@@ -77,10 +77,10 @@ class _ListAccountConnectState extends State<ListAccountConnect> {
             },
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               Text(
-                "hidden_addresses".tr(),
+                'hidden_addresses'.tr(),
                 style: theme.textTheme.ppMori400Grey14,
               ),
-              const SizedBox(width: 8.0),
+              const SizedBox(width: 8),
               RotatedBox(
                 quarterTurns: showHiddenAddresses ? -1 : 1,
                 child: const Icon(
@@ -97,42 +97,40 @@ class _ListAccountConnectState extends State<ListAccountConnect> {
     );
   }
 
-  List<Widget> _listAddresses(List<Account> accounts) {
-    return accounts
-        .map((account) => PersonalConnectItem(
-              account: account,
-              ethSelectedAddress: ethSelectedAddress,
-              tezSelectedAddress: tezSelectedAddress,
-              onSelectEth: (value) {
-                widget.onSelectEth?.call(value);
-                setState(() {
-                  ethSelectedAddress = value.accountNumber;
-                });
-              },
-              onSelectTez: (value) {
-                widget.onSelectTez?.call(value);
-                setState(() {
-                  tezSelectedAddress = value.accountNumber;
-                });
-              },
-              isAutoSelect: widget.isAutoSelect,
-            ))
-        .toList();
-  }
+  List<Widget> _listAddresses(List<Account> accounts) => accounts
+      .map((account) => PersonalConnectItem(
+            account: account,
+            ethSelectedAddress: ethSelectedAddress,
+            tezSelectedAddress: tezSelectedAddress,
+            onSelectEth: (value) {
+              widget.onSelectEth?.call(value);
+              setState(() {
+                ethSelectedAddress = value.accountNumber;
+              });
+            },
+            onSelectTez: (value) {
+              widget.onSelectTez?.call(value);
+              setState(() {
+                tezSelectedAddress = value.accountNumber;
+              });
+            },
+            isAutoSelect: widget.isAutoSelect,
+          ))
+      .toList();
 }
 
 class AddressItem extends StatelessWidget {
   const AddressItem({
-    Key? key,
     required this.cryptoType,
     required this.address,
-    this.name = "",
+    super.key,
+    this.name = '',
     this.ethSelectedAddress,
     this.tezSelectedAddress,
     this.onTap,
     this.isAutoSelect = false,
     this.isViewOnly = false,
-  }) : super(key: key);
+  });
 
   final CryptoType cryptoType;
   final String address;
@@ -219,14 +217,14 @@ class PersonalConnectItem extends StatefulWidget {
   final bool isAutoSelect;
 
   const PersonalConnectItem({
-    Key? key,
     required this.account,
+    super.key,
     this.tezSelectedAddress,
     this.ethSelectedAddress,
     this.onSelectEth,
     this.onSelectTez,
     this.isAutoSelect = false,
-  }) : super(key: key);
+  });
 
   @override
   State<PersonalConnectItem> createState() => _PersonalConnectItemState();

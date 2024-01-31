@@ -111,10 +111,10 @@ dependencies:
   web_socket_channel: ^2.1.0
   json_annotation: ^4.6.0
   iso_duration_parser: ^1.1.1
-  autonomy_theme:
+  feralfile_app_theme:
     git:
-      url: https://github.com/bitmark-inc/autonomy-client-shared-theme.git
-      ref: 2411652517ba92b2510c586b3b8217bd77f8a068
+      url: https://github.com/bitmark-inc/feralfile-app-client-shared-theme
+      ref: 75b30a8f41124dd1afaaf05201e21e0268a723b5
   marqueer: ^1.2.0
   markdown: ^7.1.1
   easy_localization: ^3.0.1
@@ -124,10 +124,10 @@ dependencies:
     git:
       url: https://github.com/autonomy-system/nft-collection
       ref: 103d9009bd87a5d95123c53dd0a0ee4da6bc3904
-  autonomy_tv_proto:
+  feralfile_app_tv_proto:
     git:
-      url: https://github.com/autonomy-system/autonomy-tv-proto-communication
-      ref: e9f0aefc49e313074d2391842e45e559a27ee8b3
+      url: https://github.com/autonomy-system/feralfile-app-tv-proto-communication
+      ref: e050458005e8eea9ef8988bdd1c3a1469a9572ff
   flutter_branch_sdk: ^6.1.0
   flutter_rating_bar: ^4.0.1
   multi_value_listenable_builder: ^0.0.2
