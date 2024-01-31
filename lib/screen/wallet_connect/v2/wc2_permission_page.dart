@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
@@ -27,10 +28,10 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/list_address_account.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -38,7 +39,7 @@ import 'package:flutter_svg/svg.dart';
 class Wc2RequestPage extends StatefulWidget {
   final Wc2Request request;
 
-  const Wc2RequestPage({Key? key, required this.request}) : super(key: key);
+  const Wc2RequestPage({required this.request, super.key});
 
   @override
   State<Wc2RequestPage> createState() => _Wc2RequestPageState();
@@ -98,14 +99,14 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
   }
 
   Future _reject() async {
-    log.info("[Wc2RequestPage] Reject request.");
+    log.info('[Wc2RequestPage] Reject request.');
     try {
       await injector<Wc2Service>().respondOnReject(
         widget.request.topic,
-        reason: "User reject",
+        reason: 'User reject',
       );
     } catch (e) {
-      log.info("[Wc2RequestPage] Reject request error. $e");
+      log.info('[Wc2RequestPage] Reject request error. $e');
     }
   }
 
@@ -135,7 +136,7 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
       });
       final chains = (await Future.wait(chainFutures))
           .where((e) => e != null)
-          .map((e) => e as Wc2Chain)
+          .map((e) => e!)
           .toList();
       return Wc2PermissionResult(
         type: permission.type,
@@ -167,33 +168,37 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
       final connection = connections
           .firstWhereOrNull((element) => element.key.contains(pendingSession));
       if (connection != null) {
-        final accountNumber = selectedAddresses.values.join("||");
+        final accountNumber = selectedAddresses.values.join('||');
         await cloudDB.connectionDao.updateConnection(
             connection.copyWith(accountNumber: accountNumber));
       }
       wc2Service.removePendingSession(pendingSession);
     }
 
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
     Navigator.of(context).pop();
 
     showInfoNotification(
-      const Key("signed"),
-      "signed".tr(),
+      const Key('signed'),
+      'signed'.tr(),
       frontWidget: SvgPicture.asset(
-        "assets/images/checkbox_icon.svg",
+        'assets/images/checkbox_icon.svg',
         width: 24,
       ),
     );
     Future.delayed(const Duration(seconds: 3), () {
-      showInfoNotification(const Key("switchBack"), "you_all_set".tr());
+      showInfoNotification(const Key('switchBack'), 'you_all_set'.tr());
     });
   }
 
   Widget _wcAppInfo(BuildContext context) {
     final theme = Theme.of(context);
     final proposer = widget.request.proposer;
-    if (proposer == null) return const SizedBox();
+    if (proposer == null) {
+      return const SizedBox();
+    }
     final peerMeta = AppMetadata(
       name: proposer.name,
       url: proposer.url,
@@ -205,13 +210,13 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
         if (peerMeta.icons.isNotEmpty) ...[
           CachedNetworkImage(
             imageUrl: peerMeta.icons.first,
-            width: 64.0,
-            height: 64.0,
+            width: 64,
+            height: 64,
             errorWidget: (context, url, error) => SizedBox(
               width: 64,
               height: 64,
               child: Image.asset(
-                "assets/images/walletconnect-alternative.png",
+                'assets/images/walletconnect-alternative.png',
               ),
             ),
           ),
@@ -220,11 +225,11 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
             width: 64,
             height: 64,
             child: Image.asset(
-              "assets/images/walletconnect-alternative.png",
+              'assets/images/walletconnect-alternative.png',
             ),
           ),
         ],
-        const SizedBox(width: 16.0),
+        const SizedBox(width: 16),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -251,10 +256,12 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
           context,
           onBack: () async {
             await _reject();
-            if (!mounted) return;
+            if (!mounted) {
+              return;
+            }
             Navigator.pop(context);
           },
-          title: "address_request".tr(),
+          title: 'address_request'.tr(),
         ),
         body: Container(
           margin: const EdgeInsets.only(bottom: 32),
@@ -291,7 +298,9 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
                     setState(() {});
                   }, builder: (context, state) {
                     final accounts = state.accounts ?? [];
-                    if (accounts.isEmpty) return const SizedBox();
+                    if (accounts.isEmpty) {
+                      return const SizedBox();
+                    }
 
                     return Column(
                       children: [
@@ -299,7 +308,7 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
                           padding: ResponsiveLayout.pageHorizontalEdgeInsets,
                           child: Text(
                             _selectETHAddress && _selectXTZAddress
-                                ? "select_tezo_and_eth_address"
+                                ? 'select_tezo_and_eth_address'
                                     .tr(args: ['1', '1'])
                                 : _selectETHAddress
                                     ? 'select_eth_address'.tr(args: ['1'])
@@ -309,7 +318,7 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
                             style: theme.textTheme.ppMori400Black16,
                           ),
                         ),
-                        const SizedBox(height: 16.0),
+                        const SizedBox(height: 16),
                         ListAccountConnect(
                           accounts: accounts,
                           onSelectEth: (value) {
@@ -337,9 +346,9 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
                       padding: ResponsiveLayout.pageHorizontalEdgeInsets,
                       child: PrimaryButton(
                         enabled: _isAccountSelected,
-                        text: "h_confirm".tr(),
+                        text: 'h_confirm'.tr(),
                         onTap: _isAccountSelected
-                            ? () => withDebounce(() => _approve())
+                            ? () => withDebounce(() => unawaited(_approve()))
                             : null,
                       ),
                     ),

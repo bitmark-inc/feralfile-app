@@ -11,7 +11,7 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
@@ -32,7 +32,7 @@ class GalleryPagePayload {
 class GalleryPage extends StatefulWidget {
   final GalleryPagePayload payload;
 
-  const GalleryPage({Key? key, required this.payload}) : super(key: key);
+  const GalleryPage({required this.payload, super.key});
 
   @override
   State<GalleryPage> createState() => _GalleryPageState();
@@ -68,7 +68,7 @@ class _GalleryPageState extends State<GalleryPage> {
     super.dispose();
   }
 
-  _scrollListenerToLoadMore() {
+  void _scrollListenerToLoadMore() {
     if (_scrollController.position.pixels + 100 >=
             _scrollController.position.maxScrollExtent &&
         _latestTokensLength != 0 &&
@@ -85,7 +85,9 @@ class _GalleryPageState extends State<GalleryPage> {
       child: BlocConsumer<GalleryBloc, GalleryState>(
         listener: (context, state) {
           final tokens = state.tokens;
-          if (tokens == null) return;
+          if (tokens == null) {
+            return;
+          }
 
           _latestTokensLength = tokens.length;
           _isLastPage = state.isLastPage;
@@ -115,7 +117,7 @@ class _GalleryPageState extends State<GalleryPage> {
   Widget _assetsWidget(List<CompactedAssetToken>? tokens, bool isLoading) {
     const int cellPerRowPhone = 3;
     const int cellPerRowTablet = 6;
-    const double cellSpacing = 3.0;
+    const double cellSpacing = 3;
     int cellPerRow =
         ResponsiveLayout.isMobile ? cellPerRowPhone : cellPerRowTablet;
 
@@ -142,9 +144,7 @@ class _GalleryPageState extends State<GalleryPage> {
             mainAxisSpacing: cellSpacing,
           ),
           delegate: SliverChildBuilderDelegate(
-            (BuildContext context, int index) {
-              return placeholder(context);
-            },
+            (BuildContext context, int index) => placeholder(context),
             childCount: 15,
           ),
         ),
@@ -161,16 +161,19 @@ class _GalleryPageState extends State<GalleryPage> {
 
               return GestureDetector(
                 onTap: () async {
-                  if (token.pending == true && !token.hasMetadata) return;
+                  if (token.pending == true && !token.hasMetadata) {
+                    return;
+                  }
                   final payload = ArtworkDetailPayload(
                       [ArtworkIdentity(token.id, token.owner)], 0,
                       useIndexer: true);
-                  Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
-                      arguments: payload);
+                  unawaited(Navigator.of(context).pushNamed(
+                      AppRouter.artworkDetailsPage,
+                      arguments: payload));
 
-                  injector<MetricClientService>().addEvent(
+                  unawaited(injector<MetricClientService>().addEvent(
                       MixpanelEvent.viewArtwork,
-                      data: {"id": token.id});
+                      data: {'id': token.id}));
                 },
                 child: tokenGalleryThumbnailWidget(
                     context, token, _cachedImageSize),
@@ -192,16 +195,13 @@ class _GalleryPageState extends State<GalleryPage> {
             ),
           ),
         ),
-      ]
-    ];
-
-    sources.add(
+      ],
       SliverToBoxAdapter(
         child: Container(
-          height: 40.0,
+          height: 40,
         ),
-      ),
-    );
+      )
+    ];
 
     return CustomScrollView(
       slivers: sources,

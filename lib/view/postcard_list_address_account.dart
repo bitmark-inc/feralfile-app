@@ -7,10 +7,10 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/radio_check_box.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
-import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
 import 'package:crypto/crypto.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:feralfile_app_theme/extensions/theme_extension/moma_sans.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 
 class PostcardListAccountConnect extends StatefulWidget {
@@ -21,8 +21,8 @@ class PostcardListAccountConnect extends StatefulWidget {
   final bool isSeparateHidden;
 
   PostcardListAccountConnect({
-    Key? key,
     required this.accounts,
+    Key? key,
     this.onSelectEth,
     this.onSelectTez,
     this.isAutoSelect = false,
@@ -67,7 +67,7 @@ class _PostcardListAccountConnectState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         ..._listAddresses(showedAccounts),
-        const SizedBox(height: 30.0),
+        const SizedBox(height: 30),
         if (hiddenAccounts.isNotEmpty) ...[
           GestureDetector(
             onTap: () {
@@ -77,10 +77,10 @@ class _PostcardListAccountConnectState
             },
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               Text(
-                "hidden_addresses".tr(),
+                'hidden_addresses'.tr(),
                 style: theme.textTheme.ppMori400Grey14,
               ),
-              const SizedBox(width: 8.0),
+              const SizedBox(width: 8),
               RotatedBox(
                 quarterTurns: showHiddenAddresses ? -1 : 1,
                 child: const Icon(
@@ -97,41 +97,39 @@ class _PostcardListAccountConnectState
     );
   }
 
-  List<Widget> _listAddresses(List<Account> accounts) {
-    return accounts
-        .map((account) => PostcardPersonalConnectItem(
-              account: account,
-              ethSelectedAddress: ethSelectedAddress,
-              tezSelectedAddress: tezSelectedAddress,
-              onSelectEth: (value) {
-                widget.onSelectEth?.call(value);
-                setState(() {
-                  ethSelectedAddress = value.accountNumber;
-                });
-              },
-              onSelectTez: (value) {
-                widget.onSelectTez?.call(value);
-                setState(() {
-                  tezSelectedAddress = value.accountNumber;
-                });
-              },
-              isAutoSelect: widget.isAutoSelect,
-            ))
-        .toList();
-  }
+  List<Widget> _listAddresses(List<Account> accounts) => accounts
+      .map((account) => PostcardPersonalConnectItem(
+            account: account,
+            ethSelectedAddress: ethSelectedAddress,
+            tezSelectedAddress: tezSelectedAddress,
+            onSelectEth: (value) {
+              widget.onSelectEth?.call(value);
+              setState(() {
+                ethSelectedAddress = value.accountNumber;
+              });
+            },
+            onSelectTez: (value) {
+              widget.onSelectTez?.call(value);
+              setState(() {
+                tezSelectedAddress = value.accountNumber;
+              });
+            },
+            isAutoSelect: widget.isAutoSelect,
+          ))
+      .toList();
 }
 
 class PostcardAddressItem extends StatelessWidget {
   const PostcardAddressItem({
-    Key? key,
     required this.cryptoType,
     required this.address,
-    this.name = "",
+    super.key,
+    this.name = '',
     this.ethSelectedAddress,
     this.tezSelectedAddress,
     this.onTap,
     this.isAutoSelect = false,
-  }) : super(key: key);
+  });
 
   final CryptoType cryptoType;
   final String address;
@@ -148,12 +146,12 @@ class PostcardAddressItem extends StatelessWidget {
       onTap: onTap,
       child: Container(
         color: AppColor.white,
-        padding: const EdgeInsets.symmetric(horizontal: 15.0),
+        padding: const EdgeInsets.symmetric(horizontal: 15),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 15.0),
+              padding: const EdgeInsets.symmetric(vertical: 15),
               child: Row(
                 children: [
                   Text(
@@ -205,14 +203,14 @@ class PostcardPersonalConnectItem extends StatefulWidget {
   final bool isAutoSelect;
 
   const PostcardPersonalConnectItem({
-    Key? key,
     required this.account,
+    super.key,
     this.tezSelectedAddress,
     this.ethSelectedAddress,
     this.onSelectEth,
     this.onSelectTez,
     this.isAutoSelect = false,
-  }) : super(key: key);
+  });
 
   @override
   State<PostcardPersonalConnectItem> createState() =>

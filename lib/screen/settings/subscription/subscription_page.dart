@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:after_layout/after_layout.dart';
@@ -19,15 +20,15 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class SubscriptionPage extends StatefulWidget {
-  const SubscriptionPage({Key? key}) : super(key: key);
+  const SubscriptionPage({super.key});
 
   @override
   State<SubscriptionPage> createState() => _SubscriptionPageState();
@@ -37,7 +38,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
     with AfterLayoutMixin {
   @override
   void afterFirstLayout(BuildContext context) {
-    injector<ConfigurationService>().setAlreadyShowProTip(true);
+    unawaited(injector<ConfigurationService>().setAlreadyShowProTip(true));
     injector<ConfigurationService>().showProTip.value = false;
   }
 
@@ -48,53 +49,52 @@ class _SubscriptionPageState extends State<SubscriptionPage>
     return Scaffold(
       appBar: getBackAppBar(
         context,
-        title: "autonomy_pro".tr(),
+        title: 'autonomy_pro'.tr(),
         onBack: () {
           Navigator.of(context).pop();
         },
       ),
       body: SafeArea(
-        child:
-            BlocBuilder<UpgradesBloc, UpgradeState>(builder: (context, state) {
-          return Column(
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      addTitleSpace(),
-                      const SizedBox(
-                        height: 98,
+        child: BlocBuilder<UpgradesBloc, UpgradeState>(
+            builder: (context, state) => Column(
+                  children: [
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            addTitleSpace(),
+                            const SizedBox(
+                              height: 98,
+                            ),
+                            Padding(
+                              padding:
+                                  ResponsiveLayout.pageHorizontalEdgeInsets,
+                              child: _statusSection(context, state),
+                            ),
+                          ],
+                        ),
                       ),
-                      Padding(
-                        padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-                        child: _statusSection(context, state),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Padding(
-                padding:
-                    ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
-                child: _actionSection(context, state),
-              ),
-            ],
-          );
-        }),
+                    ),
+                    Padding(
+                      padding: ResponsiveLayout
+                          .pageHorizontalEdgeInsetsWithSubmitButton,
+                      child: _actionSection(context, state),
+                    ),
+                  ],
+                )),
       ),
     );
   }
 
   static String get _subscriptionsManagementLocation {
     if (Platform.isIOS) {
-      return "set_apl_sub".tr(); //"Settings > Apple ID > Subscriptions.";
+      return 'set_apl_sub'.tr(); //"Settings > Apple ID > Subscriptions.";
     } else if (Platform.isAndroid) {
-      return "pla_pay_sub"
+      return 'pla_pay_sub'
           .tr(); //"Play Store -> Payments & subscriptions -> Subscriptions.";
     } else {
-      return "";
+      return '';
     }
   }
 
@@ -113,14 +113,13 @@ class _SubscriptionPageState extends State<SubscriptionPage>
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("subscribed".tr(), style: theme.textTheme.ppMori400Black16),
-            const SizedBox(height: 16.0),
-            Text("thank_support".tr(args: [_subscriptionsManagementLocation]),
-                //"Thank you for your support. Manage your subscription in $_subscriptionsManagementLocation",
+            Text('subscribed'.tr(), style: theme.textTheme.ppMori400Black16),
+            const SizedBox(height: 16),
+            Text('thank_support'.tr(args: [_subscriptionsManagementLocation]),
                 style: theme.textTheme.ppMori400Black14),
-            const SizedBox(height: 10.0),
+            const SizedBox(height: 10),
             _benefitImage(context),
-            const SizedBox(height: 30.0),
+            const SizedBox(height: 30),
           ],
         );
       case IAPProductStatus.trial:
@@ -130,15 +129,15 @@ class _SubscriptionPageState extends State<SubscriptionPage>
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("sub_30_days".tr(), //"Subscribed (30-day free trial)",
+            Text('sub_30_days'.tr(), //"Subscribed (30-day free trial)",
                 style: theme.textTheme.ppMori400Black16),
-            const SizedBox(height: 16.0),
+            const SizedBox(height: 16),
             Text(
-                "to_cancel_your_subscription".tr(
-                    namedArgs: {"location": _subscriptionsManagementLocation}),
+                'to_cancel_your_subscription'.tr(
+                    namedArgs: {'location': _subscriptionsManagementLocation}),
                 //"You will be charged ${state.productDetails?.price ?? "US\$4.99"}/month starting $trialExpireDate. To cancel your subscription, go to $_subscriptionsManagementLocation",
                 style: theme.textTheme.ppMori400Black14),
-            const SizedBox(height: 10.0),
+            const SizedBox(height: 10),
             _benefitImage(context),
             const SizedBox(height: 30),
           ],
@@ -162,7 +161,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
               style: theme.textTheme.ppMori400Black14,
             ),
             _benefitImage(context),
-            const SizedBox(height: 30.0),
+            const SizedBox(height: 30),
           ],
         );
       case IAPProductStatus.notPurchased:
@@ -176,11 +175,11 @@ class _SubscriptionPageState extends State<SubscriptionPage>
               style: theme.textTheme.ppMori400Black14,
             ),
             _benefitImage(context),
-            const SizedBox(height: 30.0),
+            const SizedBox(height: 30),
           ],
         );
       case IAPProductStatus.error:
-        return Text("error_loading_sub".tr(),
+        return Text('error_loading_sub'.tr(),
             //"Error when loading your subscription.",
             style: theme.textTheme.ppMori400Black12);
     }
@@ -205,12 +204,12 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                         text: 'subscribed'.tr(), color: theme.disableColor),
                     const SizedBox(height: 6),
                     Text(
-                      "you_will_be_charged".tr(
+                      'you_will_be_charged'.tr(
                         namedArgs: {
-                          "price":
-                              state.productDetails?.price ?? "4.99usd".tr(),
-                          "date": "",
-                          "location": _subscriptionsManagementLocation
+                          'price':
+                              state.productDetails?.price ?? '4.99usd'.tr(),
+                          'date': '',
+                          'location': _subscriptionsManagementLocation
                         },
                       ),
                       style: theme.textTheme.ppMori400Black12,
@@ -220,7 +219,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
           ],
         );
       case IAPProductStatus.trial:
-        final df = DateFormat("yyyy-MMM-dd");
+        final df = DateFormat('yyyy-MMM-dd');
         final trialExpireDate =
             df.format(state.trialExpiredDate ?? DateTime.now());
         return Column(
@@ -239,8 +238,8 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                   Text(
                     'you_will_be_charged_starting'.tr(
                       namedArgs: {
-                        "price": state.productDetails?.price ?? "4.99usd".tr(),
-                        "date": trialExpireDate,
+                        'price': state.productDetails?.price ?? '4.99usd'.tr(),
+                        'date': trialExpireDate,
                       },
                     ),
                     style: theme.textTheme.ppMori400Black12,
@@ -268,7 +267,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                     },
                     text: 'renew_for'.tr(
                       namedArgs: {
-                        'price': state.productDetails?.price ?? "4.99usd".tr(),
+                        'price': state.productDetails?.price ?? '4.99usd'.tr(),
                       },
                     ),
                   ),
@@ -295,7 +294,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                   ),
                   Text(
                     'then_price'.tr(
-                      args: [state.productDetails?.price ?? "4.99usd".tr()],
+                      args: [state.productDetails?.price ?? '4.99usd'.tr()],
                     ),
                     style: theme.textTheme.ppMori400Black12,
                   ),
@@ -305,24 +304,22 @@ class _SubscriptionPageState extends State<SubscriptionPage>
           ],
         );
       case IAPProductStatus.error:
-        return Text("error_loading_sub".tr(),
+        return Text('error_loading_sub'.tr(),
             //"Error when loading your subscription.",
             style: theme.textTheme.headlineMedium);
     }
   }
 
-  Widget _benefitImage(BuildContext context) {
-    return Column(
-      children: [
-        Center(
-          child: SvgPicture.asset(
-            'assets/images/premium_comparation_light.svg',
-            height: 320,
+  Widget _benefitImage(BuildContext context) => Column(
+        children: [
+          Center(
+            child: SvgPicture.asset(
+              'assets/images/premium_comparation_light.svg',
+              height: 320,
+            ),
           ),
-        ),
-      ],
-    );
-  }
+        ],
+      );
 
   void onPressSubscribe(BuildContext context) {
     context.read<UpgradesBloc>().add(UpgradePurchaseEvent());

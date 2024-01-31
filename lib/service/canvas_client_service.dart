@@ -10,8 +10,8 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart' as my_device;
-import 'package:autonomy_tv_proto/autonomy_tv_proto.dart';
 import 'package:collection/collection.dart';
+import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter/material.dart';
 import 'package:synchronized/synchronized.dart';
 import 'package:uuid/uuid.dart';
@@ -40,7 +40,7 @@ class CanvasClientService {
       return;
     }
     final device = my_device.DeviceInfo.instance;
-    _deviceName = await device.getMachineName() ?? "Autonomy App";
+    _deviceName = await device.getMachineName() ?? 'Autonomy App';
     final account = await _accountService.getDefaultAccount();
     _deviceId = await account.getAccountDID();
     _didInitialized = true;
@@ -55,26 +55,21 @@ class CanvasClientService {
     await channel.shutdown();
   }
 
-  ClientChannel _getChannel(CanvasDevice device) {
-    return ClientChannel(
-      device.ip,
-      port: device.port,
-      options: const ChannelOptions(
-        credentials: ChannelCredentials.insecure(),
-      ),
-    );
-  }
+  ClientChannel _getChannel(CanvasDevice device) => ClientChannel(
+        device.ip,
+        port: device.port,
+        options: const ChannelOptions(
+          credentials: ChannelCredentials.insecure(),
+        ),
+      );
 
   CanvasControlClient _getStub(CanvasDevice device) {
     final channel = _getChannel(device);
     return CanvasControlClient(channel);
   }
 
-  Future<bool> connectToDevice(CanvasDevice device) async {
-    return _connectDevice.synchronized(() async {
-      return await _connectToDevice(device);
-    });
-  }
+  Future<bool> connectToDevice(CanvasDevice device) async =>
+      _connectDevice.synchronized(() async => await _connectToDevice(device));
 
   Future<bool> _connectToDevice(CanvasDevice device) async {
     final stub = _getStub(device);
@@ -160,17 +155,17 @@ class CanvasClientService {
         case CanvasServerStatus.connected:
           device.playingSceneId = status.second;
           device.isConnecting = true;
-          _db.canvasDeviceDao.updateCanvasDevice(device);
+          unawaited(_db.canvasDeviceDao.updateCanvasDevice(device));
           devicesToAdd.add(device);
           break;
         case CanvasServerStatus.open:
           device.playingSceneId = status.second;
           device.isConnecting = false;
-          _db.canvasDeviceDao.updateCanvasDevice(device);
+          unawaited(_db.canvasDeviceDao.updateCanvasDevice(device));
           devicesToAdd.add(device);
           break;
         case CanvasServerStatus.notServing:
-          _updateLocalDisconnectedDevice(device);
+          unawaited(_updateLocalDisconnectedDevice(device));
           break;
         case CanvasServerStatus.error:
           break;
@@ -178,12 +173,12 @@ class CanvasClientService {
     });
     devicesToAdd.unique((element) => element.ip);
     _devices.addAll(devicesToAdd);
-    log.info("Canvas client service sync device available ${_devices.length}");
+    log.info('Canvas client service sync device available ${_devices.length}');
   }
 
   Future<List<CanvasDevice>> getAllDevices() async {
     final devices = await _db.canvasDeviceDao.getCanvasDevices();
-    log.info("Canvas client service get devices local ${devices.length}");
+    log.info('Canvas client service get devices local ${devices.length}');
     return devices;
   }
 
@@ -200,8 +195,8 @@ class CanvasClientService {
   }
 
   Future<void> _updateLocalDisconnectedDevice(CanvasDevice device) async {
-    final updatedDevice = device.copyWith(isConnecting: false);
-    updatedDevice.playingSceneId = null;
+    final updatedDevice = device.copyWith(isConnecting: false)
+      ..playingSceneId = null;
     await _db.canvasDeviceDao.updateCanvasDevice(updatedDevice);
   }
 
@@ -210,9 +205,7 @@ class CanvasClientService {
     final size =
         MediaQuery.of(_navigationService.navigatorKey.currentContext!).size;
     final playingDevice = _devices.firstWhereOrNull(
-      (element) {
-        return element.playingSceneId != null;
-      },
+      (element) => element.playingSceneId != null,
     );
     if (playingDevice != null) {
       currentCursorOffset = await getCursorOffset(playingDevice);
@@ -241,7 +234,7 @@ class CanvasClientService {
 
   Future<void> uncastSingleArtwork(CanvasDevice device) async {
     final stub = _getStub(device);
-    final uncastRequest = UncastSingleRequest()..id = "";
+    final uncastRequest = UncastSingleRequest()..id = '';
     final response = await stub.uncastSingleArtwork(uncastRequest);
     if (response.ok) {
       _devices
@@ -252,7 +245,9 @@ class CanvasClientService {
 
   Future<bool> castCollection(
       CanvasDevice device, PlayListModel playlist) async {
-    if (playlist.tokenIDs == null || playlist.tokenIDs!.isEmpty) return false;
+    if (playlist.tokenIDs == null || playlist.tokenIDs!.isEmpty) {
+      return false;
+    }
     final stub = _getStub(device);
 
     final castRequest = CastCollectionRequest()
@@ -273,7 +268,7 @@ class CanvasClientService {
 
   Future<void> unCast(CanvasDevice device) async {
     final stub = _getStub(device);
-    final unCastRequest = UnCastRequest()..id = "";
+    final unCastRequest = UnCastRequest()..id = '';
     final response = await stub.unCastArtwork(unCastRequest);
     if (response.ok) {
       _devices
@@ -288,9 +283,9 @@ class CanvasClientService {
       final sendKeyboardRequest = KeyboardEventRequest()..code = code;
       final response = await stub.keyboardEvent(sendKeyboardRequest);
       if (response.ok) {
-        log.info("Canvas Client Service: Keyboard Event Success $code");
+        log.info('Canvas Client Service: Keyboard Event Success $code');
       } else {
-        log.info("Canvas Client Service: Keyboard Event Failed $code");
+        log.info('Canvas Client Service: Keyboard Event Failed $code');
       }
     }
   }
@@ -303,9 +298,9 @@ class CanvasClientService {
     try {
       final response = await stub.rotate(rotateCanvasRequest);
       log.info(
-          "Canvas Client Service: Rotate Canvas Success ${response.degree}");
+          'Canvas Client Service: Rotate Canvas Success ${response.degree}');
     } catch (e) {
-      log.info("Canvas Client Service: Rotate Canvas Failed");
+      log.info('Canvas Client Service: Rotate Canvas Failed');
     }
   }
 

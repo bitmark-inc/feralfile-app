@@ -10,8 +10,8 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/touchpad.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
-import 'package:autonomy_tv_proto/autonomy_tv_proto.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
+import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
@@ -27,7 +27,7 @@ class KeyboardControlPagePayload {
 class KeyboardControlPage extends StatefulWidget {
   final KeyboardControlPagePayload payload;
 
-  const KeyboardControlPage({super.key, required this.payload});
+  const KeyboardControlPage({required this.payload, super.key});
 
   @override
   State<StatefulWidget> createState() => _KeyboardControlPageState();
@@ -51,7 +51,7 @@ class _KeyboardControlPageState extends State<KeyboardControlPage>
   @override
   void dispose() {
     _textController.dispose();
-    _keyboardSubscription?.cancel();
+    unawaited(_keyboardSubscription?.cancel());
     WidgetsBinding.instance.removeObserver(this);
     routeObserver.unsubscribe(this);
 
@@ -135,10 +135,10 @@ class _KeyboardControlPageState extends State<KeyboardControlPage>
                             style: theme.textTheme.ppMori400Grey14,
                           ),
                         ),
-                        const SizedBox(height: 16.0),
+                        const SizedBox(height: 16),
                         HtmlWidget(
                           customStylesBuilder: auHtmlStyle,
-                          assetToken.description ?? "",
+                          assetToken.description ?? '',
                           textStyle: theme.textTheme.ppMori400White14,
                         ),
                         TextField(
@@ -155,7 +155,7 @@ class _KeyboardControlPageState extends State<KeyboardControlPage>
                           onChanged: (_) async {
                             final text = _textController.text;
                             final code = text[text.length - 1];
-                            _textController.text = "";
+                            _textController.text = '';
                             final devices = widget.payload.devices;
                             await injector<CanvasClientService>()
                                 .sendKeyBoard(devices, code.codeUnitAt(0));
@@ -169,16 +169,17 @@ class _KeyboardControlPageState extends State<KeyboardControlPage>
               Container(
                 height: 210,
                 color: AppColor.greyMedium,
-                padding: const EdgeInsets.all(15.0),
+                padding: const EdgeInsets.all(15),
                 child: Column(
                   children: [
                     Expanded(
                         child: TouchPad(
                       devices: widget.payload.devices,
                       onExpand: () {
-                        Navigator.of(context).pushNamed(AppRouter.touchPadPage,
+                        unawaited(Navigator.of(context).pushNamed(
+                            AppRouter.touchPadPage,
                             arguments:
-                                TouchPadPagePayload(widget.payload.devices));
+                                TouchPadPagePayload(widget.payload.devices)));
                       },
                     )),
                   ],

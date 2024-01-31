@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
@@ -10,10 +12,10 @@ import 'package:autonomy_flutter/util/number_formater.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/skeleton.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
-import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:feralfile_app_theme/extensions/theme_extension/moma_sans.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nft_collection/models/asset_token.dart';
@@ -24,8 +26,7 @@ class PostcardLeaderboardView extends StatefulWidget {
   final ScrollController? scrollController;
 
   const PostcardLeaderboardView(
-      {Key? key, this.leaderboard, this.assetToken, this.scrollController})
-      : super(key: key);
+      {super.key, this.leaderboard, this.assetToken, this.scrollController});
 
   @override
   State<PostcardLeaderboardView> createState() =>
@@ -48,26 +49,24 @@ class _PostcardLeaderboardViewState extends State<PostcardLeaderboardView> {
     super.dispose();
   }
 
-  Widget _loadingLeaderboard(BuildContext context) {
-    return SizedBox(
-      child: Column(
-        children: [
-          Expanded(
-            child: AnimatedList(
-              controller: widget.scrollController,
-              initialItemCount: 51,
-              itemBuilder: (context, index, animation) {
-                if (index == 0) {
-                  return _leaderboardHeader(context);
-                }
-                return _loadingLeaderboardItem(context, index: index);
-              },
+  Widget _loadingLeaderboard(BuildContext context) => SizedBox(
+        child: Column(
+          children: [
+            Expanded(
+              child: AnimatedList(
+                controller: widget.scrollController,
+                initialItemCount: 51,
+                itemBuilder: (context, index, animation) {
+                  if (index == 0) {
+                    return _leaderboardHeader(context);
+                  }
+                  return _loadingLeaderboardItem(context, index: index);
+                },
+              ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
+          ],
+        ),
+      );
 
   Widget _leaderboardHeader(BuildContext context) {
     final theme = Theme.of(context);
@@ -78,7 +77,7 @@ class _PostcardLeaderboardViewState extends State<PostcardLeaderboardView> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              "last_updated".tr(),
+              'last_updated'.tr(),
               style: theme.textTheme.moMASans400Grey12,
             )
           ],
@@ -89,52 +88,51 @@ class _PostcardLeaderboardViewState extends State<PostcardLeaderboardView> {
     );
   }
 
-  Widget _loadingLeaderboardItem(BuildContext context, {int index = 1}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: TappableForwardRow(
-            onTap: () {},
-            leftWidget: const Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(
-                  height: 65,
-                  width: 85,
-                  child: SkeletonContainer(),
-                ),
-                SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SkeletonContainer(
-                        width: 70,
-                        height: 17,
-                      ),
-                      SizedBox(height: 5),
-                      SkeletonContainer(
-                        width: 110,
-                        height: 17,
-                      )
-                    ],
+  Widget _loadingLeaderboardItem(BuildContext context, {int index = 1}) =>
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: TappableForwardRow(
+              onTap: () {},
+              leftWidget: const Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    height: 65,
+                    width: 85,
+                    child: SkeletonContainer(),
                   ),
-                ),
-              ],
-            ),
-            forwardIcon: SvgPicture.asset(
-              'assets/images/iconForward.svg',
-              colorFilter: const ColorFilter.mode(
-                  AppColor.secondarySpanishGrey, BlendMode.srcIn),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SkeletonContainer(
+                          width: 70,
+                          height: 17,
+                        ),
+                        SizedBox(height: 5),
+                        SkeletonContainer(
+                          width: 110,
+                          height: 17,
+                        )
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              forwardIcon: SvgPicture.asset(
+                'assets/images/iconForward.svg',
+                colorFilter: const ColorFilter.mode(
+                    AppColor.secondarySpanishGrey, BlendMode.srcIn),
+              ),
             ),
           ),
-        ),
-        addOnlyDivider(color: AppColor.auLightGrey),
-      ],
-    );
-  }
+          addOnlyDivider(color: AppColor.auLightGrey),
+        ],
+      );
 
   void _onTapLeaderboardItem(BuildContext context,
       PostcardLeaderboardItem leaderBoardItem, bool isYour) {
@@ -158,10 +156,10 @@ class _PostcardLeaderboardViewState extends State<PostcardLeaderboardView> {
       isFromLeaderboard: true,
       useIndexer: true,
     );
-    Navigator.of(context).pushNamed(
+    unawaited(Navigator.of(context).pushNamed(
       AppRouter.claimedPostcardDetailsPage,
       arguments: payload,
-    );
+    ));
   }
 
   Widget _leaderboardItem(
@@ -206,7 +204,7 @@ class _PostcardLeaderboardViewState extends State<PostcardLeaderboardView> {
                             ),
                             if (isYour)
                               TextSpan(
-                                text: "_your".tr(),
+                                text: '_your'.tr(),
                               ),
                           ],
                         ),
@@ -241,7 +239,7 @@ class _PostcardLeaderboardViewState extends State<PostcardLeaderboardView> {
     if (leaderBoard == null) {
       return _loadingLeaderboard(context);
     }
-    const listKey = PageStorageKey("leaderboard");
+    const listKey = PageStorageKey('leaderboard');
     return SizedBox(
       child: Column(
         children: [

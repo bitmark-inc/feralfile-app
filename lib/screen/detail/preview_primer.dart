@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:after_layout/after_layout.dart';
@@ -9,9 +10,9 @@ import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_debounce/easy_debounce.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -25,9 +26,9 @@ class PreviewPrimerPage extends StatefulWidget {
   final AssetToken token;
 
   const PreviewPrimerPage({
-    Key? key,
     required this.token,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<PreviewPrimerPage> createState() => _PreviewPrimerPageState();
@@ -46,17 +47,17 @@ class _PreviewPrimerPageState extends State<PreviewPrimerPage>
     WidgetsBinding.instance.removeObserver(this);
     _detector?.stopListening();
     if (Platform.isAndroid) {
-      SystemChrome.setEnabledSystemUIMode(
+      unawaited(SystemChrome.setEnabledSystemUIMode(
         SystemUiMode.manual,
         overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom],
-      );
+      ));
     }
   }
 
   @override
   void initState() {
     super.initState();
-    WakelockPlus.enable();
+    unawaited(WakelockPlus.enable());
   }
 
   @override
@@ -66,10 +67,10 @@ class _PreviewPrimerPageState extends State<PreviewPrimerPage>
         setState(() {
           isFullScreen = false;
         });
-        SystemChrome.setEnabledSystemUIMode(
+        unawaited(SystemChrome.setEnabledSystemUIMode(
           SystemUiMode.manual,
           overlays: SystemUiOverlay.values,
-        );
+        ));
       },
     );
 
@@ -79,8 +80,10 @@ class _PreviewPrimerPageState extends State<PreviewPrimerPage>
   }
 
   Future _moveToInfo(AssetToken? assetToken) async {
-    if (assetToken == null) return;
-    WakelockPlus.disable();
+    if (assetToken == null) {
+      return;
+    }
+    unawaited(WakelockPlus.disable());
     Navigator.of(context).pop();
   }
 
@@ -88,7 +91,8 @@ class _PreviewPrimerPageState extends State<PreviewPrimerPage>
     setState(() {
       isFullScreen = true;
     });
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    unawaited(
+        SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky));
     final theme = Theme.of(context);
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -127,7 +131,7 @@ class _PreviewPrimerPageState extends State<PreviewPrimerPage>
                 leadingWidth: 0,
                 centerTitle: false,
                 title: GestureDetector(
-                  onTap: () => _moveToInfo(token),
+                  onTap: () => unawaited(_moveToInfo(token)),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -149,10 +153,10 @@ class _PreviewPrimerPageState extends State<PreviewPrimerPage>
                             if (artistName != null) {
                               return Row(
                                 children: [
-                                  const SizedBox(height: 4.0),
+                                  const SizedBox(height: 4),
                                   Expanded(
                                     child: Text(
-                                      "by".tr(args: [artistName]),
+                                      'by'.tr(args: [artistName]),
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
                                       style: theme.textTheme.ppMori400White14,
@@ -197,8 +201,8 @@ class _PreviewPrimerPageState extends State<PreviewPrimerPage>
                       URLRequest(url: Uri.tryParse(WEB3_PRIMER_URL)),
                   initialOptions: InAppWebViewGroupOptions(
                       crossPlatform: InAppWebViewOptions(
-                          userAgent: "user_agent"
-                              .tr(namedArgs: {"version": version}))),
+                          userAgent: 'user_agent'
+                              .tr(namedArgs: {'version': version}))),
                   onWebViewCreated: (controller) {
                     _controller = controller;
                   },
@@ -206,8 +210,9 @@ class _PreviewPrimerPageState extends State<PreviewPrimerPage>
                     EasyDebounce.debounce(
                       'screen_rotate',
                       const Duration(milliseconds: 100),
-                      () => _controller?.evaluateJavascript(
-                          source: "window.dispatchEvent(new Event('resize'));"),
+                      () => unawaited(_controller?.evaluateJavascript(
+                          source:
+                              "window.dispatchEvent(new Event('resize'));")),
                     );
                   },
                 ),
@@ -229,7 +234,7 @@ class _PreviewPrimerPageState extends State<PreviewPrimerPage>
                         GestureDetector(
                           onTap: () => onClickFullScreen(context),
                           child: Semantics(
-                            label: "fullscreen_icon",
+                            label: 'fullscreen_icon',
                             child: SvgPicture.asset(
                               'assets/images/fullscreen_icon.svg',
                             ),

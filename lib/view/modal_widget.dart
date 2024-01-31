@@ -6,7 +6,7 @@
 //
 
 import 'package:autonomy_flutter/util/au_icons.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 
 class ModalSheet extends StatelessWidget {

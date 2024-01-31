@@ -1,15 +1,15 @@
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
-import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
+import 'package:feralfile_app_theme/extensions/theme_extension/moma_sans.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 
 class PostcardDrawerItem extends StatefulWidget {
   final OptionItem item;
 
   const PostcardDrawerItem({
-    Key? key,
     required this.item,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<PostcardDrawerItem> createState() => _PostcardDrawerItemState();
@@ -83,8 +83,12 @@ class _PostcardDrawerItemState extends State<PostcardDrawerItem> {
     );
     return GestureDetector(
       onTap: () async {
-        if (item.isEnable != true) return;
-        if (isProcessing) return;
+        if (!item.isEnable) {
+          return;
+        }
+        if (isProcessing) {
+          return;
+        }
         setState(() {
           isProcessing = true;
         });
