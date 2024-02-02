@@ -128,7 +128,7 @@ dependencies:
     git:
       url: https://github.com/autonomy-system/feralfile-app-tv-proto-communication
       ref: e050458005e8eea9ef8988bdd1c3a1469a9572ff
-  flutter_branch_sdk: ^6.1.0
+  flutter_branch_sdk: ^7.0.2
   flutter_rating_bar: ^4.0.1
   multi_value_listenable_builder: ^0.0.2
   auto_size_text: ^3.0.0
