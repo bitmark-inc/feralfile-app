@@ -9,6 +9,8 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/environment.dart';
+import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/model/wc_ethereum_transaction.dart';
@@ -28,9 +30,6 @@ import 'package:autonomy_flutter/util/wc2_tezos_ext.dart';
 import 'package:collection/collection.dart';
 import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
 import 'package:web3dart/credentials.dart';
-
-import '../database/cloud_database.dart';
-import '../database/entity/connection.dart';
 
 class Wc2Service {
   static final Set<String> _supportedChains = {
@@ -86,7 +85,7 @@ class Wc2Service {
     this._accountService,
     this._cloudDB,
   ) {
-    init();
+    unawaited(init());
   }
 
   Future<void> init() async {
@@ -101,39 +100,41 @@ class Wc2Service {
   }
 
   void _registerEthRequest(String chainId) {
-    _wcClient.registerRequestHandler(
-        chainId: chainId,
-        method: 'personal_sign',
-        handler: _handleEthPersonalSign);
-    _wcClient.registerRequestHandler(
-        chainId: chainId, method: 'eth_sign', handler: _handleEthSign);
-    _wcClient.registerRequestHandler(
-        chainId: chainId,
-        method: 'eth_signTypedData',
-        handler: _handleEthSignType);
-    _wcClient.registerRequestHandler(
-        chainId: chainId,
-        method: 'eth_signTypedData_v4',
-        handler: _handleEthSignType);
-    _wcClient.registerRequestHandler(
-        chainId: chainId,
-        method: 'eth_sendTransaction',
-        handler: _handleEthSendTx);
-    _wcClient.registerRequestHandler(
-        chainId: chainId, method: 'au_sign', handler: _handleAuSignEth);
-    _wcClient.registerRequestHandler(
-        chainId: chainId,
-        method: 'au_sendTransaction',
-        handler: _handleAuSendEthTx);
+    _wcClient
+      ..registerRequestHandler(
+          chainId: chainId,
+          method: 'personal_sign',
+          handler: _handleEthPersonalSign)
+      ..registerRequestHandler(
+          chainId: chainId, method: 'eth_sign', handler: _handleEthSign)
+      ..registerRequestHandler(
+          chainId: chainId,
+          method: 'eth_signTypedData',
+          handler: _handleEthSignType)
+      ..registerRequestHandler(
+          chainId: chainId,
+          method: 'eth_signTypedData_v4',
+          handler: _handleEthSignType)
+      ..registerRequestHandler(
+          chainId: chainId,
+          method: 'eth_sendTransaction',
+          handler: _handleEthSendTx)
+      ..registerRequestHandler(
+          chainId: chainId, method: 'au_sign', handler: _handleAuSignEth)
+      ..registerRequestHandler(
+          chainId: chainId,
+          method: 'au_sendTransaction',
+          handler: _handleAuSendEthTx);
   }
 
   void _registerAutonomyRequest(String chainId) {
-    _wcClient..registerRequestHandler(
-        chainId: chainId, method: 'au_sign', handler: _handleAuSign)
-    ..registerRequestHandler(
-        chainId: chainId,
-        method: 'au_permissions',
-        handler: _handleAuPermissions);
+    _wcClient
+      ..registerRequestHandler(
+          chainId: chainId, method: 'au_sign', handler: _handleAuSign)
+      ..registerRequestHandler(
+          chainId: chainId,
+          method: 'au_permissions',
+          handler: _handleAuPermissions);
   }
 
   Future _handleAuPermissions(String topic, params) async {
@@ -225,9 +226,9 @@ class Wc2Service {
     }
 
     if (_tempApproveResponse != null) {
-      print('temp approve response $_tempApproveResponse');
+      log.info('temp approve response $_tempApproveResponse');
       final approveResponse = await _tempApproveResponse!.keys.toList().first;
-      print('approveResponse $approveResponse');
+      log.info('approveResponse $approveResponse');
       if (approveResponse.topic == topic) {
         return _tempApproveResponse!.values.toList().first;
       }
@@ -317,8 +318,6 @@ class Wc2Service {
       addPendingSession(topic);
     }
     _tempApproveResponse = null;
-
-    print('delete temp');
   }
 
   Future rejectSession(
@@ -354,16 +353,16 @@ class Wc2Service {
 
   //#region Events handling
 
-  void _onSessionProposal(SessionProposalEvent? proposal) async {
+  Future<void> _onSessionProposal(SessionProposalEvent? proposal) async {
     if (proposal == null) {
       return;
     }
-    log.info('[WC2Service] onSessionProposal: id = ${proposal.id}');
-
-    log.info(
-        '[WC2Service] onSessionProposal: topic = ${proposal.params.pairingTopic}');
-    log.info(
-        '[WC2Service] onSessionProposal: sessionProperties = ${proposal.params.sessionProperties}');
+    log
+      ..info('[WC2Service] onSessionProposal: id = ${proposal.id}')
+      ..info('[WC2Service] onSessionProposal: topic = '
+          '${proposal.params.pairingTopic}')
+      ..info('[WC2Service] onSessionProposal: sessionProperties ='
+          ' ${proposal.params.sessionProperties}');
     _timer?.cancel();
     final unsupportedChains = proposal.params.requiredNamespaces.keys
         .toSet()
@@ -390,8 +389,8 @@ class Wc2Service {
     final wc2Proposal = Wc2Proposal(proposal.id,
         proposer: proposal.params.proposer.metadata,
         requiredNamespaces: proposal.params.requiredNamespaces);
-    _navigationService.navigateTo(AppRouter.wc2ConnectPage,
-        arguments: wc2Proposal);
+    unawaited(_navigationService.navigateTo(AppRouter.wc2ConnectPage,
+        arguments: wc2Proposal));
   }
 
   Future<void> onSessionRequest(Wc2Request request) async {
@@ -417,10 +416,10 @@ class Wc2Service {
         }
         break;
       case 'au_permissions':
-        _navigationService.navigateTo(
+        unawaited(_navigationService.navigateTo(
           AppRouter.wc2PermissionPage,
           arguments: request,
-        );
+        ));
         break;
       case 'au_sendTransaction':
         final chain = request.params['chain'] as String;
@@ -431,10 +430,10 @@ class Wc2Service {
           case Wc2Chain.tezos:
             try {
               final beaconReq = request.toBeaconRequest();
-              _navigationService.navigateTo(
+              unawaited(_navigationService.navigateTo(
                 TBSendTransactionPage.tag,
                 arguments: beaconReq,
-              );
+              ));
             } catch (e) {
               await respondOnReject(request.topic, reason: '$e');
             }
@@ -455,7 +454,8 @@ class Wc2Service {
         break;
       case 'eth_signTypedData':
       case 'eth_signTypedData_v4':
-        //await _handleWC2EthereumSignRequest(request, WCSignType.TYPED_MESSAGE);
+        //await _handleWC2EthereumSignRequest
+        // (request, WCSignType.TYPED_MESSAGE);
         break;
       case 'eth_sign':
         //await _handleWC2EthereumSignRequest(request, WCSignType.MESSAGE);
@@ -472,7 +472,8 @@ class Wc2Service {
   //#endregion
   Future _handleWC2EthereumSignRequest(params, String topic,
       PairingMetadata proposer, WCSignType signType) async {
-    String address, message;
+    String address;
+    String message;
     if (signType == WCSignType.PERSONAL_MESSAGE) {
       address = params[1];
       message = params[0];
@@ -545,17 +546,16 @@ class Wc2Service {
 
   //#region Handle sign request
   Future _handleEthereumSignRequest(params, PairingMetadata proposer,
-      String topic, WCSignType signType) async {
-    return await _navigationService.navigateTo(WCSignMessagePage.tag,
-        arguments: WCSignMessagePageArgs(
-          topic,
-          proposer,
-          params['message'],
-          signType,
-          '',
-          0,
-        ));
-  }
+          String topic, WCSignType signType) async =>
+      await _navigationService.navigateTo(WCSignMessagePage.tag,
+          arguments: WCSignMessagePageArgs(
+            topic,
+            proposer,
+            params['message'],
+            signType,
+            '',
+            0,
+          ));
 
   Future _handleTezosSignRequest(Wc2Request request) async {
     final beaconReq = request.toBeaconRequest();
@@ -566,13 +566,12 @@ class Wc2Service {
   }
 
   Future _handleAutonomySignRequest(
-      params, String topic, PairingMetadata proposer) async {
-    return await _navigationService.navigateTo(
-      AUSignMessagePage.tag,
-      arguments:
-          Wc2RequestPayload(params: params, topic: topic, proposer: proposer),
-    );
-  }
+          params, String topic, PairingMetadata proposer) async =>
+      await _navigationService.navigateTo(
+        AUSignMessagePage.tag,
+        arguments:
+            Wc2RequestPayload(params: params, topic: topic, proposer: proposer),
+      );
 
   Future _handleAuEthSendTransactionRequest(
       params, PairingMetadata proposer, String topic) async {

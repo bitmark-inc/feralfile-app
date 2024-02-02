@@ -135,7 +135,6 @@ import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/view/transparent_router.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -723,8 +722,8 @@ class AppRouter {
       case AUSignMessagePage.tag:
         return CupertinoPageRoute(
           settings: settings,
-          builder: (context) =>
-              AUSignMessagePage(request: settings.arguments! as Wc2RequestPayload),
+          builder: (context) => AUSignMessagePage(
+              request: settings.arguments! as Wc2RequestPayload),
         );
       case TBSendTransactionPage.tag:
         return CupertinoPageRoute(

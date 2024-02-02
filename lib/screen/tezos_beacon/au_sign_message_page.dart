@@ -11,7 +11,6 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/local_auth_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
@@ -65,7 +64,9 @@ class _AUSignMessagePageState extends State<AUSignMessagePage> {
         reason:
             "No wallet found for address ${widget.request.params['address']}",
       );
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       Navigator.of(context).pop(false);
       return;
     }
@@ -101,9 +102,11 @@ class _AUSignMessagePageState extends State<AUSignMessagePage> {
         chain: chain,
         message: params.message,
       );
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       Navigator.of(context).pop(signature);
-      log.info("[Wc2RequestPage] _handleAuSignRequest: $signature");
+      log.info('[Wc2RequestPage] _handleAuSignRequest: $signature');
     } catch (e) {
       log.info('[Wc2RequestPage] _handleAuSignRequest $e');
     }

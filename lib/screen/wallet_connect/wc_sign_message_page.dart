@@ -9,12 +9,8 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/model/connection_request_args.dart';
-import 'package:autonomy_flutter/model/wc2_request.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/local_auth_service.dart';
-import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -63,9 +59,7 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
     final theme = Theme.of(context);
 
     return WillPopScope(
-      onWillPop: () async {
-        return true;
-      },
+      onWillPop: () async => true,
       child: Scaffold(
         appBar: getBackAppBar(
           context,
@@ -167,52 +161,54 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
   }
 
   Widget _signButton(
-      BuildContext pageContext, Uint8List message, String messageInUtf8) {
-    return Row(
-      children: [
-        Expanded(
-          child: PrimaryButton(
-            text: "sign".tr(),
-            onTap: () => withDebounce(() async {
-              final didAuthenticate =
-                  await LocalAuthenticationService.checkLocalAuth();
-              if (!didAuthenticate) {
-                return;
-              }
-              final args = widget.args;
-              final WalletIndex wallet;
-              wallet = WalletIndex(LibAukDart.getWallet(args.uuid), args.index);
-              final String signature;
+          BuildContext pageContext, Uint8List message, String messageInUtf8) =>
+      Row(
+        children: [
+          Expanded(
+            child: PrimaryButton(
+              text: 'sign'.tr(),
+              onTap: () => withDebounce(() async {
+                final didAuthenticate =
+                    await LocalAuthenticationService.checkLocalAuth();
+                if (!didAuthenticate) {
+                  return;
+                }
+                final args = widget.args;
+                final WalletIndex wallet;
+                wallet =
+                    WalletIndex(LibAukDart.getWallet(args.uuid), args.index);
+                final String signature;
 
-              switch (args.type) {
-                case WCSignType.PERSONAL_MESSAGE:
-                case WCSignType.MESSAGE:
-                  signature = await injector<EthereumService>()
-                      .signPersonalMessage(
-                          wallet.wallet, wallet.index, message);
-                  break;
-                case WCSignType.TYPED_MESSAGE:
-                  signature = await injector<EthereumService>()
-                      .signMessage(wallet.wallet, wallet.index, message);
-                  break;
-              }
+                switch (args.type) {
+                  case WCSignType.PERSONAL_MESSAGE:
+                  case WCSignType.MESSAGE:
+                    signature = await injector<EthereumService>()
+                        .signPersonalMessage(
+                            wallet.wallet, wallet.index, message);
+                    break;
+                  case WCSignType.TYPED_MESSAGE:
+                    signature = await injector<EthereumService>()
+                        .signMessage(wallet.wallet, wallet.index, message);
+                    break;
+                }
 
-              if (!mounted) return;
-              showInfoNotification(
-                const Key("signed"),
-                "signed".tr(),
-                frontWidget: SvgPicture.asset(
-                  "assets/images/checkbox_icon.svg",
-                  width: 24,
-                ),
-              );
-              Navigator.of(context).pop(signature);
-            }),
-          ),
-        )
-      ],
-    );
-  }
+                if (!mounted) {
+                  return;
+                }
+                showInfoNotification(
+                  const Key('signed'),
+                  'signed'.tr(),
+                  frontWidget: SvgPicture.asset(
+                    'assets/images/checkbox_icon.svg',
+                    width: 24,
+                  ),
+                );
+                Navigator.of(context).pop(signature);
+              }),
+            ),
+          )
+        ],
+      );
 }
 
 class WCSignMessagePageArgs {

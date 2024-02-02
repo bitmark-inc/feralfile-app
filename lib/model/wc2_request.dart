@@ -8,7 +8,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:walletconnect_flutter_v2/apis/core/pairing/utils/pairing_models.dart';
 
@@ -32,22 +31,22 @@ class Wc2Request {
   PairingMetadata? proposer;
 
   factory Wc2Request.fromJson(Map<String, dynamic> json) => Wc2Request(
-        id: json["id"] is int ? json["id"] : int.tryParse(json["id"]) ?? 0,
-        method: json["method"],
-        topic: json["topic"],
-        params: Platform.isIOS ? json["params"] : jsonDecode(json["params"]),
-        chainId: json["chainId"],
-        proposer: json["proposer"] != null
-            ? PairingMetadata.fromJson(json["proposer"])
+        id: json['id'] is int ? json['id'] : int.tryParse(json['id']) ?? 0,
+        method: json['method'],
+        topic: json['topic'],
+        params: Platform.isIOS ? json['params'] : jsonDecode(json['params']),
+        chainId: json['chainId'],
+        proposer: json['proposer'] != null
+            ? PairingMetadata.fromJson(json['proposer'])
             : null,
       );
 
   Map<String, dynamic> toJson() => {
-        "id": id,
-        "method": method,
-        "topic": topic,
-        "params": params,
-        "chainId": chainId,
+        'id': id,
+        'method': method,
+        'topic': topic,
+        'params': params,
+        'chainId': chainId,
       };
 }
 
@@ -64,16 +63,16 @@ class Wc2PermissionsRequestParams {
 
   factory Wc2PermissionsRequestParams.fromJson(Map<String, dynamic> json) =>
       Wc2PermissionsRequestParams(
-        message: json["message"],
+        message: json['message'],
         permissions: List<Wc2Permission>.from(
-            json["permissions"].map((x) => Wc2Permission.fromJson(x))),
-        account: json["account"],
+            json['permissions'].map((x) => Wc2Permission.fromJson(x))),
+        account: json['account'],
       );
 
   Map<String, dynamic> toJson() => {
-        "message": message,
-        "permissions": List<dynamic>.from(permissions.map((x) => x.toJson())),
-        "account": account,
+        'message': message,
+        'permissions': List<dynamic>.from(permissions.map((x) => x.toJson())),
+        'account': account,
       };
 }
 
@@ -89,15 +88,15 @@ class Wc2Permission {
   Wc2ChainsPermissionRequest request;
 
   factory Wc2Permission.fromJson(Map<String, dynamic> json) => Wc2Permission(
-        type: json["type"],
-        includeLinkedAccount: json["includeLinkedAccount"],
-        request: Wc2ChainsPermissionRequest.fromJson(json["request"]),
+        type: json['type'],
+        includeLinkedAccount: json['includeLinkedAccount'],
+        request: Wc2ChainsPermissionRequest.fromJson(json['request']),
       );
 
   Map<String, dynamic> toJson() => {
-        "type": type,
-        "includeLinkedAccount": includeLinkedAccount,
-        "request": request.toJson(),
+        'type': type,
+        'includeLinkedAccount': includeLinkedAccount,
+        'request': request.toJson(),
       };
 }
 
@@ -110,11 +109,11 @@ class Wc2ChainsPermissionRequest {
 
   factory Wc2ChainsPermissionRequest.fromJson(Map<String, dynamic> json) =>
       Wc2ChainsPermissionRequest(
-        chains: List<String>.from(json["chains"].map((x) => x)),
+        chains: List<String>.from(json['chains'].map((x) => x)),
       );
 
   Map<String, dynamic> toJson() => {
-        "chains": List<dynamic>.from(chains.map((x) => x)),
+        'chains': List<dynamic>.from(chains.map((x) => x)),
       };
 }
 
@@ -131,15 +130,15 @@ class Wc2SignRequestParams {
 
   factory Wc2SignRequestParams.fromJson(Map<String, dynamic> json) =>
       Wc2SignRequestParams(
-        chain: json["chain"],
-        address: json["address"],
-        message: json["message"],
+        chain: json['chain'],
+        address: json['address'],
+        message: json['message'],
       );
 
   Map<String, dynamic> toJson() => {
-        "chain": chain,
-        "address": address,
-        "message": message,
+        'chain': chain,
+        'address': address,
+        'message': message,
       };
 }
 
@@ -156,15 +155,15 @@ class Wc2SendRequestParams {
 
   factory Wc2SendRequestParams.fromJson(Map<String, dynamic> json) =>
       Wc2SendRequestParams(
-        chain: json["chain"],
-        address: json["address"],
-        transactions: json["transactions"],
+        chain: json['chain'],
+        address: json['address'],
+        transactions: json['transactions'],
       );
 
   Map<String, dynamic> toJson() => {
-        "chain": chain,
-        "address": address,
-        "transactions": transactions,
+        'chain': chain,
+        'address': address,
+        'transactions': transactions,
       };
 }
 
@@ -216,9 +215,9 @@ class Wc2ChainResult {
 
 @JsonSerializable()
 class Wc2Chain {
-  static const autonomy = "autonomy";
-  static const ethereum = "eip155";
-  static const tezos = "tezos";
+  static const autonomy = 'autonomy';
+  static const ethereum = 'eip155';
+  static const tezos = 'tezos';
 
   final String chain;
   final String address;

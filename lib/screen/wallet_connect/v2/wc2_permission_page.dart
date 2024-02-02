@@ -165,7 +165,7 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
     if (!mounted) {
       return;
     }
-    log.info("approve permission request: $response");
+    log.info('approve permission request: $response');
     Navigator.of(context).pop(response);
 
     showInfoNotification(
@@ -184,9 +184,6 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
   Widget _wcAppInfo(BuildContext context) {
     final theme = Theme.of(context);
     final proposer = widget.request.proposer;
-    if (proposer == null) {
-      return const SizedBox();
-    }
     final peerMeta = PairingMetadata(
       name: proposer.name,
       url: proposer.url,
@@ -235,9 +232,7 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
     final theme = Theme.of(context);
 
     return WillPopScope(
-      onWillPop: () async {
-        return false;
-      },
+      onWillPop: () async => false,
       child: Scaffold(
         appBar: getBackAppBar(
           context,
