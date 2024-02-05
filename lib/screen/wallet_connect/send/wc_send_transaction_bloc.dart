@@ -78,7 +78,7 @@ class WCSendTransactionBloc
       final balance =
           await _ethereumService.getBalance(await persona.getETHEip55Address());
       newState.balance = balance.getInWei;
-      emit(newState);
+      emit(newState.clone());
     });
 
     on<WCSendTransactionSendEvent>((event, emit) async {
