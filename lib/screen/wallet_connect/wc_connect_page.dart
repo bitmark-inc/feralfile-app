@@ -126,10 +126,6 @@ class _WCConnectPageState extends State<WCConnectPage>
   }
 
   Future<void> _reject() async {
-    // final wc2Proposal = widget.wc2Proposal;
-    // final wcConnectArgs = widget.wcConnectArgs;
-    // final beaconRequest = widget.beaconRequest;
-
     if (connectionRequest.isAutonomyConnect) {
       try {
         await injector<Wc2Service>().rejectSession(
@@ -181,7 +177,7 @@ class _WCConnectPageState extends State<WCConnectPage>
               walletAddresses.map((e) => e.address).join('||');
           await injector<Wc2Service>().approveSession(
             connectionRequest as Wc2Proposal,
-            accounts: [accountDid.substring("did:key:".length)],
+            accounts: [accountDid.substring('did:key:'.length)],
             connectionKey: account.uuid,
             accountNumber: accountNumber,
             isAuConnect: true,
@@ -253,12 +249,11 @@ class _WCConnectPageState extends State<WCConnectPage>
       return;
     }
     UIHelper.hideInfoDialog(context);
-
     if (memoryValues.scopedPersona != null) {
       Navigator.of(context).pop();
       return;
     }
-    ///
+
     final payload = PersonaConnectionsPayload(
       personaUUID: selectedPersona!.wallet.uuid,
       index: selectedPersona!.index,
@@ -266,7 +261,6 @@ class _WCConnectPageState extends State<WCConnectPage>
       type: payloadType,
       isBackHome: onBoarding,
     );
-
     unawaited(Navigator.of(context).pushReplacementNamed(
       AppRouter.personaConnectionsPage,
       arguments: payload,
@@ -349,35 +343,36 @@ class _WCConnectPageState extends State<WCConnectPage>
                               height: 12,
                             ),
                             Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: AppColor.auGrey,
-                                  borderRadius: BorderRadius.circular(5),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    ...grantPermissions.map(
-                                      (permission) => Row(
-                                        children: [
-                                          const SizedBox(
-                                            width: 6,
-                                          ),
-                                          Text('•',
-                                              style: theme
-                                                  .textTheme.ppMori400Black14),
-                                          const SizedBox(
-                                            width: 6,
-                                          ),
-                                          Text(permission,
-                                              style: theme
-                                                  .textTheme.ppMori400Black14),
-                                        ],
-                                      ),
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: AppColor.auGrey,
+                                borderRadius: BorderRadius.circular(5),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  ...grantPermissions.map(
+                                    (permission) => Row(
+                                      children: [
+                                        const SizedBox(
+                                          width: 6,
+                                        ),
+                                        Text('•',
+                                            style: theme
+                                                .textTheme.ppMori400Black14),
+                                        const SizedBox(
+                                          width: 6,
+                                        ),
+                                        Text(permission,
+                                            style: theme
+                                                .textTheme.ppMori400Black14),
+                                      ],
                                     ),
-                                  ],
-                                )),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ],
                         ),
                       ),
