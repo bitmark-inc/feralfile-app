@@ -169,6 +169,10 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
                 wallet, index, contractAddress, EtherAmount.zero(), data);
             fee = feeOptionValue.getFee(state.feeOption);
           } on RPCError catch (e) {
+            log.info('[SendArtworkBloc] RPCError: '
+                'errorCode: ${e.errorCode} '
+                'message: ${e.message}'
+                'data: ${e.data}');
             _navigationService.showErrorDialog(
                 ErrorEvent(e, 'estimation_failed'.tr(), e.errorMessage,
                     ErrorItemState.tryAgain), cancelAction: () {
@@ -178,6 +182,7 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
               add(event);
             });
           } catch (e) {
+            log.info('[SendArtworkBloc] Error: $e');
             _navigationService.showErrorDialog(
                 ErrorEvent(e, 'estimation_failed'.tr(), e.toString(),
                     ErrorItemState.tryAgain), cancelAction: () {

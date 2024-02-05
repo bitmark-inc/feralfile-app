@@ -50,6 +50,10 @@ class WCSendTransactionBloc
         newState.feeOptionValue = await _ethereumService.estimateFee(
             persona, event.index, event.address, event.amount, event.data);
       } on RPCError catch (e) {
+        log.info('WC Send tx bloc: RPCError: '
+            'errorCode: ${e.errorCode} '
+            'message: ${e.message}'
+            'data: ${e.data}');
         _navigationService.showErrorDialog(
             ErrorEvent(e, 'estimation_failed'.tr(), e.errorMessage,
                 ErrorItemState.tryAgain), cancelAction: () {
@@ -59,6 +63,7 @@ class WCSendTransactionBloc
           add(event);
         });
       } catch (e) {
+        log.info('WC Send tx bloc: Error: $e');
         _navigationService.showErrorDialog(
             ErrorEvent(e, 'estimation_failed'.tr(), e.toString(),
                 ErrorItemState.tryAgain), cancelAction: () {
