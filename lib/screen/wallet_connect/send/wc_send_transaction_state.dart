@@ -5,7 +5,6 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/currency_exchange.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/fee_util.dart';
@@ -62,7 +61,7 @@ class WCSendTransactionState {
   bool isError = false;
   FeeOption feeOption;
   FeeOptionValue? feeOptionValue;
-  CurrencyExchangeRate exchangeRate;
+  CurrencyExchangeRate? exchangeRate;
 
   WCSendTransactionState({
     this.fee,
@@ -71,7 +70,7 @@ class WCSendTransactionState {
     this.isError = false,
     this.feeOption = DEFAULT_FEE_OPTION,
     this.feeOptionValue,
-    this.exchangeRate = const CurrencyExchangeRate(eth: "1.0", xtz: "1.0"),
+    this.exchangeRate,
   });
 
   WCSendTransactionState clone() => WCSendTransactionState(

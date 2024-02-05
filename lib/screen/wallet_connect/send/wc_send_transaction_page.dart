@@ -118,11 +118,11 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                 state.fee != null ? state.fee! + amount.getInWei : null;
             final theme = Theme.of(context);
             final ethAmountText = '${ethFormatter.format(amount.getInWei)} ETH '
-                '(${state.exchangeRate.ethToUsd(amount.getInWei)} USD)';
+                '(${state.exchangeRate?.ethToUsd(amount.getInWei) ?? '-'} USD)';
             final ethTotalAmountText = total == null
                 ? '- ETH (- USD)'
                 : '${ethFormatter.format(total)} ETH'
-                    ' (${state.exchangeRate.ethToUsd(total)} USD)';
+                    ' (${state.exchangeRate?.ethToUsd(total) ?? '-'} USD)';
             return Stack(
               children: [
                 Container(
@@ -453,7 +453,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
     }
     final fee = state.feeOptionValue!.getFee(feeOption ?? state.feeOption);
     return '${ethFormatter.format(fee)} ETH '
-        '(${state.exchangeRate.ethToUsd(fee)} USD)';
+        '(${state.exchangeRate?.ethToUsd(fee) ?? '-'} USD)';
   }
 }
 
