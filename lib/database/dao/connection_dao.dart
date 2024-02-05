@@ -15,8 +15,9 @@ abstract class ConnectionDao {
   @Query('SELECT * FROM Connection')
   Future<List<Connection>> getConnections();
 
-  @Query(
-      'SELECT * FROM Connection WHERE connectionType NOT IN ("dappConnect", "dappConnect2", "walletConnect2", "beaconP2PPeer", "manuallyIndexerTokenID")')
+  @Query('SELECT * FROM Connection WHERE connectionType NOT IN '
+      '("dappConnect", "dappConnect2", "walletConnect2", "beaconP2PPeer", '
+      '"manuallyIndexerTokenID")')
   Future<List<Connection>> getLinkedAccounts();
 
   // getUpdatedLinkedAccounts:
@@ -25,7 +26,7 @@ abstract class ConnectionDao {
     final linkedAccounts = await getLinkedAccounts();
 
     final deprecatedConnections = linkedAccounts
-        .where((element) => element.connectionType != "manuallyAddress");
+        .where((element) => element.connectionType != 'manuallyAddress');
 
     if (deprecatedConnections.isNotEmpty) {
       await _migrateDeprecatedConnections(deprecatedConnections.toList());
@@ -35,20 +36,20 @@ abstract class ConnectionDao {
     return linkedAccounts;
   }
 
-  @Query(
-      'SELECT * FROM Connection WHERE connectionType IN ("dappConnect", "dappConnect2", "beaconP2PPeer")')
+  @Query('SELECT * FROM Connection WHERE connectionType IN '
+      '("dappConnect", "dappConnect2", "beaconP2PPeer")')
   Future<List<Connection>> getRelatedPersonaConnections();
 
-  @Query(
-      'SELECT * FROM Connection WHERE connectionType IN ("dappConnect2", "walletConnect2")')
+  @Query('SELECT * FROM Connection WHERE connectionType IN '
+      '("dappConnect2", "walletConnect2")')
   Future<List<Connection>> getWc2Connections();
 
-  @Query(
-      'SELECT * FROM Connection WHERE connectionType = :type ORDER BY createdAt DESC')
+  @Query('SELECT * FROM Connection WHERE connectionType = :type '
+      'ORDER BY createdAt DESC')
   Future<List<Connection>> getConnectionsByType(String type);
 
-  @Query(
-      'SELECT * FROM Connection WHERE accountNumber = :accountNumber COLLATE NOCASE')
+  @Query('SELECT * FROM Connection WHERE accountNumber = :accountNumber '
+      'COLLATE NOCASE')
   Future<List<Connection>> getConnectionsByAccountNumber(String accountNumber);
 
   @Insert(onConflict: OnConflictStrategy.replace)
@@ -69,8 +70,8 @@ abstract class ConnectionDao {
   @delete
   Future<void> deleteConnections(List<Connection> connections);
 
-  @Query(
-      'DELETE FROM Connection WHERE accountNumber = :accountNumber COLLATE NOCASE')
+  @Query('DELETE FROM Connection WHERE accountNumber = :accountNumber '
+      'COLLATE NOCASE')
   Future<void> deleteConnectionsByAccountNumber(String accountNumber);
 
   @Query('DELETE FROM Connection WHERE connectionType = :type')
@@ -86,7 +87,8 @@ abstract class ConnectionDao {
       switch (oldConnection.connectionType) {
         case 'ledger':
           final jsonData = json.decode(oldConnection.data);
-          // there is a typo in creating connections for ledger code: etheremAddress
+          // there is a typo in creating connections for ledger code:
+          // etheremAddress
           final etheremAddress = (jsonData['etheremAddress'] == null
                   ? []
                   : (jsonData['etheremAddress'] as List<dynamic>))
