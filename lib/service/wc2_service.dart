@@ -16,8 +16,6 @@ import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/model/wc_ethereum_transaction.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/au_sign_message_page.dart';
-import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.dart';
-import 'package:autonomy_flutter/screen/tezos_beacon/tb_sign_message_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
@@ -26,7 +24,6 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/wallet_connect_ext.dart';
 import 'package:autonomy_flutter/util/wc2_ext.dart';
-import 'package:autonomy_flutter/util/wc2_tezos_ext.dart';
 import 'package:collection/collection.dart';
 import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
 import 'package:web3dart/credentials.dart';
@@ -94,6 +91,9 @@ class Wc2Service {
       metadata: pairingMetadata,
     );
     _wcClient.onSessionProposal.subscribe(_onSessionProposal);
+    _wcClient.onSessionRequest.subscribe((request) {
+      log.info('[Wc2Service] Received request $request');
+    });
 
     _registerEthRequest('${Wc2Chain.ethereum}:${Environment.web3ChainId}');
     _registerFeralfileRequest(
@@ -134,16 +134,13 @@ class Wc2Service {
     );
   }
 
-  void _onRegister(String topic, params) {
-    log.info('[Wc2Service] Received request $topic $params');
-  }
-
   Future _handleAuPermissions(String topic, params) async {
     log.info('[Wc2Service] received autonomy-au_permissions request $params');
     final proposer = await _getWc2Request(topic, params);
     if (proposer == null) {
       throw const JsonRpcError(code: 301, message: 'proposer not found');
     }
+    await Future.delayed(const Duration(seconds: 1));
     final result = await _navigationService.navigateTo(
       AppRouter.wc2PermissionPage,
       arguments:
@@ -195,17 +192,7 @@ class Wc2Service {
     if (proposer == null) {
       throw const JsonRpcError(code: 301, message: 'proposer not found');
     }
-    await _handleEthSendTransactionRequest(params, proposer, topic);
-  }
-
-  Future _handleAuSignEth(String topic, params) async {
-    log.info('[Wc2Service] received eip155-au_sign request $params');
-    final proposer = await _getWc2Request(topic, params);
-    if (proposer == null) {
-      throw const JsonRpcError(code: 301, message: 'proposer not found');
-    }
-    return await _handleEthereumSignRequest(
-        params, proposer, topic, WCSignType.PERSONAL_MESSAGE);
+    return await _handleEthSendTransactionRequest(params, proposer, topic);
   }
 
   Future _handleAuSendEthTx(String topic, params) async {
@@ -331,6 +318,7 @@ class Wc2Service {
 
   Future respondOnApprove(String topic, String response) async {
     log.info('[Wc2Service] respondOnApprove topic $topic, response: $response');
+
     //await _wc2channel.respondOnApprove(topic, response);
   }
 
@@ -392,85 +380,6 @@ class Wc2Service {
         requiredNamespaces: proposal.params.requiredNamespaces);
     unawaited(_navigationService.navigateTo(AppRouter.wc2ConnectPage,
         arguments: wc2Proposal));
-  }
-
-  Future<void> _onSessionRequest(Wc2Request request) async {
-    final topic = request.topic;
-    final params = request.params;
-    final proposer = request.proposer;
-    if (proposer == null) {
-      log.info('[Wc2Service] Proposer not found for $topic');
-      await rejectSession(request.id, reason: 'Proposer not found');
-      return;
-    }
-    switch (request.method) {
-      case 'au_sign':
-        await _handleAuSign(topic, params);
-        switch (request.chainId.caip2Namespace) {
-          case Wc2Chain.ethereum:
-            await _handleAuSignEth(topic, params);
-            break;
-          case Wc2Chain.tezos:
-            await _handleTezosSignRequest(request);
-            break;
-          case Wc2Chain.autonomy:
-            await _handleAutonomySignRequest(params, topic, proposer);
-            break;
-          default:
-            log.info('[Wc2Service] Unsupported chain: ${request.method}');
-            await respondOnReject(
-              request.topic,
-              reason: 'Chain ${request.chainId} is not supported',
-            );
-        }
-        break;
-      case 'au_permissions':
-        await _handleAuPermissions(topic, params);
-        break;
-      case 'au_sendTransaction':
-        final chain = request.params['chain'] as String;
-        switch (chain.caip2Namespace) {
-          case Wc2Chain.ethereum:
-            await _handleAuSendEthTx(topic, params);
-            break;
-          case Wc2Chain.tezos:
-            try {
-              final beaconReq = request.toBeaconRequest();
-              await _navigationService.navigateTo(
-                TBSendTransactionPage.tag,
-                arguments: beaconReq,
-              );
-            } catch (e) {
-              await respondOnReject(request.topic, reason: '$e');
-            }
-            break;
-          default:
-            await respondOnReject(
-              request.topic,
-              reason: 'Chain $chain is not supported',
-            );
-        }
-        break;
-      case 'eth_sendTransaction':
-        // await _handleEthSendTx(topic, params);
-        break;
-      case 'personal_sign':
-        // await _handleEthPersonalSign(topic, params);
-        break;
-      case 'eth_signTypedData':
-      case 'eth_signTypedData_v4':
-        // await _handleEthSignType(topic, params);
-        break;
-      case 'eth_sign':
-        // await _handleEthSign(topic, params);
-        break;
-      default:
-        log.info('[Wc2Service] Unsupported method: ${request.method}');
-        await respondOnReject(
-          request.topic,
-          reason: 'Method ${request.method} is not supported',
-        );
-    }
   }
 
   //#endregion
@@ -539,34 +448,18 @@ class Wc2Service {
         walletIndex.index,
         topic: topic,
       );
-      return await _navigationService.navigateTo(
+      final result = await _navigationService.navigateTo(
         WCSendTransactionPage.tag,
         arguments: args,
       );
+      if (result is bool && !result) {
+        throw const JsonRpcError(code: 300, message: 'User rejected');
+      } else {
+        return result;
+      }
     } catch (e) {
       throw JsonRpcError.invalidParams(e.toString());
     }
-  }
-
-  //#region Handle sign request
-  Future _handleEthereumSignRequest(params, PairingMetadata proposer,
-          String topic, WCSignType signType) async =>
-      await _navigationService.navigateTo(WCSignMessagePage.tag,
-          arguments: WCSignMessagePageArgs(
-            topic,
-            proposer,
-            params['message'],
-            signType,
-            '',
-            0,
-          ));
-
-  Future _handleTezosSignRequest(Wc2Request request) async {
-    final beaconReq = request.toBeaconRequest();
-    await _navigationService.navigateTo(
-      TBSignMessagePage.tag,
-      arguments: beaconReq,
-    );
   }
 
   Future _handleAutonomySignRequest(
