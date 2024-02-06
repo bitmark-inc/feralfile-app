@@ -5,50 +5,9 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:json_annotation/json_annotation.dart';
-import 'package:walletconnect_flutter_v2/apis/core/pairing/utils/pairing_models.dart';
 
 part 'wc2_request.g.dart';
-
-class Wc2Request {
-  Wc2Request({
-    required this.id,
-    required this.method,
-    required this.topic,
-    required this.params,
-    required this.chainId,
-    required this.proposer,
-  });
-
-  int id;
-  String method;
-  String topic;
-  dynamic params;
-  String chainId;
-  PairingMetadata? proposer;
-
-  factory Wc2Request.fromJson(Map<String, dynamic> json) => Wc2Request(
-        id: json['id'] is int ? json['id'] : int.tryParse(json['id']) ?? 0,
-        method: json['method'],
-        topic: json['topic'],
-        params: Platform.isIOS ? json['params'] : jsonDecode(json['params']),
-        chainId: json['chainId'],
-        proposer: json['proposer'] != null
-            ? PairingMetadata.fromJson(json['proposer'])
-            : null,
-      );
-
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'method': method,
-        'topic': topic,
-        'params': params,
-        'chainId': chainId,
-      };
-}
 
 class Wc2PermissionsRequestParams {
   Wc2PermissionsRequestParams({
