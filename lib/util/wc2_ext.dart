@@ -3,9 +3,7 @@ import 'package:walletconnect_flutter_v2/apis/sign_api/models/session_models.dar
 
 extension Wc2Extension on String {
   // https://github.com/ChainAgnostic/CAIPs/blob/master/CAIPs/caip-2.md
-  String get caip2Namespace {
-    return split(":")[0];
-  }
+  String get caip2Namespace => split(':')[0];
 }
 
 extension NameSpaces on RequiredNamespace {
@@ -17,9 +15,9 @@ extension NameSpaces on RequiredNamespace {
         accounts: chains ?? [],
       );
     } else if (chains!.length == accounts.length) {
-      List<String> chainsAccount =[];
+      List<String> chainsAccount = [];
       for (int i = 0; i < chains!.length; i++) {
-        chainsAccount.add("${chains![i]}:${accounts[i]}");
+        chainsAccount.add('${chains![i]}:${accounts[i]}');
       }
       return Namespace(
         methods: methods,
@@ -30,7 +28,7 @@ extension NameSpaces on RequiredNamespace {
       return Namespace(
           methods: methods,
           events: events,
-          accounts: chains!.map((e) => "$e:${accounts[0]}").toList());
+          accounts: chains!.map((e) => '$e:${accounts[0]}').toList());
     }
   }
 }
