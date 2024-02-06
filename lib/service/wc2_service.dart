@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/model/wc_ethereum_transaction.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/au_sign_message_page.dart';
+import 'package:autonomy_flutter/screen/tezos_beacon/tb_sign_message_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
@@ -24,6 +25,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/wallet_connect_ext.dart';
 import 'package:autonomy_flutter/util/wc2_ext.dart';
+import 'package:autonomy_flutter/util/wc2_tezos_ext.dart';
 import 'package:collection/collection.dart';
 import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
 import 'package:web3dart/credentials.dart';
@@ -92,7 +94,7 @@ class Wc2Service {
     );
     _wcClient.onSessionProposal.subscribe(_onSessionProposal);
     _wcClient.onSessionRequest.subscribe((request) {
-      log.info('[Wc2Service] Received request $request');
+      log.info('[Wc2Service] Finish handle request $request');
     });
 
     _registerEthRequest('${Wc2Chain.ethereum}:${Environment.web3ChainId}');
@@ -155,11 +157,19 @@ class Wc2Service {
 
   Future _handleAuSign(String topic, params) async {
     log.info('[Wc2Service] received autonomy-au_sign request $params');
-    final proposer = await _getWc2Request(topic, params);
-    if (proposer == null) {
-      throw const JsonRpcError(code: 301, message: 'proposer not found');
+    final chain = (params['chain'] as String).caip2Namespace;
+    switch (chain) {
+      case Wc2Chain.ethereum:
+        return await _handleAuSignEth(topic, params);
+      case Wc2Chain.tezos:
+        return await _handleTezosSignRequest(topic, params);
+      case Wc2Chain.autonomy:
+        log.info('[Wc2Service] received autonomy-au_sign request $params');
+        return await _handleFeralfileSign(topic, params);
+      default:
+        log.warning('[Wc2Service] Chain not supported: $chain');
+        throw const JsonRpcError(code: 301, message: 'chain not supported');
     }
-    return await _handleAutonomySignRequest(topic, params, proposer);
   }
 
   Future _handleEthPersonalSign(String topic, params) async {
@@ -193,6 +203,25 @@ class Wc2Service {
       throw const JsonRpcError(code: 301, message: 'proposer not found');
     }
     return await _handleEthSendTransactionRequest(params, proposer, topic);
+  }
+
+  Future _handleAuSignEth(String topic, params) async {
+    log.info('[Wc2Service] received eip155-au_sign request $params');
+    final proposer = await _getWc2Request(topic, params);
+    if (proposer == null) {
+      throw const JsonRpcError(code: 301, message: 'proposer not found');
+    }
+    final result = await _handleWC2EthereumSignRequest(
+        params, topic, proposer, WCSignType.PERSONAL_MESSAGE);
+    return result;
+  }
+
+  Future _handleFeralfileSign(String topic, parmas) async {
+    final proposer = await _getWc2Request(topic, parmas);
+    if (proposer == null) {
+      throw const JsonRpcError(code: 301, message: 'proposer not found');
+    }
+    return await _handleAutonomySignRequest(parmas, topic, proposer);
   }
 
   Future _handleAuSendEthTx(String topic, params) async {
@@ -460,6 +489,23 @@ class Wc2Service {
     } catch (e) {
       throw JsonRpcError.invalidParams(e.toString());
     }
+  }
+
+  Future _handleTezosSignRequest(String topic, param) async {
+    final proposer = await _getWc2Request(topic, param);
+    if (proposer == null) {
+      throw const JsonRpcError(code: 301, message: 'proposer not found');
+    }
+    final beaconRquest = getBeaconRequest(
+      topic,
+      param,
+      proposer,
+      0,
+    );
+    await _navigationService.navigateTo(
+      TBSignMessagePage.tag,
+      arguments: beaconRquest,
+    );
   }
 
   Future _handleAutonomySignRequest(
