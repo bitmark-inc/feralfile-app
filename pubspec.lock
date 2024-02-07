@@ -465,6 +465,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.1.0"
+  downloads_path_provider_28:
+    dependency: "direct main"
+    description:
+      name: downloads_path_provider_28
+      sha256: fac9327c4eec7ac3cc52cb9bf2c1a18b5c74a1ab92a18c5c150f300a1225d5e8
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.2"
   easy_debounce:
     dependency: "direct main"
     description:

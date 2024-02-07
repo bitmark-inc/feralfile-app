@@ -62,6 +62,17 @@ abstract class FeralFileService {
   Future<List<Artwork>> getExhibitionArtworks(String exhibitionId);
 
   Future<List<Artwork>> getSeriesArtworks(String seriesId);
+
+  Future<String> getFeralfileActionMessage(
+      {required String address, required String action});
+
+  Future<String> getFeralfileArtworkDownloadUrl({
+    required String artworkId,
+    required String owner,
+    required String signature,
+  });
+
+  Future<Artwork> getArtwork(String artworkId);
 }
 
 class FeralFileServiceImpl extends FeralFileService {
@@ -276,5 +287,31 @@ class FeralFileServiceImpl extends FeralFileService {
         '${listArtwork.map((e) => e.id).toList()}',
       );
     return listArtwork;
+  }
+
+  @override
+  Future<String> getFeralfileActionMessage(
+      {required String address, required String action}) async {
+    final response = await _feralFileApi.getActionMessage({
+      'address': address,
+      'action': action,
+    });
+    return response.message;
+  }
+
+  @override
+  Future<String> getFeralfileArtworkDownloadUrl(
+      {required String artworkId,
+      required String owner,
+      required String signature}) async {
+    final FeralFileResponse<String> response =
+        await _feralFileApi.getDownloadUrl(artworkId, signature, owner);
+    return response.result;
+  }
+
+  @override
+  Future<Artwork> getArtwork(String artworkId) async {
+    final response = await _feralFileApi.getArtworks(artworkId);
+    return response.result;
   }
 }

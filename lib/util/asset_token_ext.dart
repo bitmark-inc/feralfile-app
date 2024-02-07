@@ -371,6 +371,8 @@ extension AssetTokenExtension on AssetToken {
 
   bool get shouldShowFeralfileRight =>
       isFeralfile && !isWedgwoodActivationToken;
+
+  bool get shouldShowDownloadArtwork => isFeralfile;
 }
 
 extension CompactedAssetTokenExtension on CompactedAssetToken {

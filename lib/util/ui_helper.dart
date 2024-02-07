@@ -1786,6 +1786,9 @@ class UIHelper {
   static Future<void> showPostcardSaved(BuildContext context) async =>
       await _showFileSaved(context, title: 'postcard'.tr());
 
+  static Future<void> showFeralfileArtworkSaved(BuildContext context) async =>
+      await _showFileSaved(context, title: 'artwork'.tr());
+
   static Future<void> _showFileSaved(BuildContext context,
       {required String title}) async {
     final options = [
@@ -1874,6 +1877,10 @@ class UIHelper {
 
   static Future<void> showPostcardSavedFailed(BuildContext context) async =>
       await _showFileSaveFailed(context, title: 'postcard'.tr());
+
+  static Future<void> showFeralfileArtworkSavedFailed(
+          BuildContext context) async =>
+      await _showFileSaveFailed(context, title: 'artwork'.tr());
 
   static Future<void> _showFileSaveFailed(BuildContext context,
           {required String title}) async =>
