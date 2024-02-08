@@ -8,7 +8,6 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/environment.dart';
@@ -23,7 +22,6 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
 import 'package:autonomy_flutter/screen/gallery/gallery_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_page.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/airdrop_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
@@ -32,7 +30,6 @@ import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/file_helper.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -50,7 +47,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
-import 'package:http/http.dart' as http;
 import 'package:json_annotation/json_annotation.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/provenance.dart';
@@ -79,6 +75,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   AssetToken? currentAsset;
   final metricClient = injector.get<MetricClientService>();
   final _airdropService = injector.get<AirdropService>();
+  final _feralfileService = injector.get<FeralFileService>();
 
   @override
   void initState() {
@@ -307,8 +304,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                 Semantics(
                   label: 'artworkDotIcon',
                   child: IconButton(
-                    onPressed: () =>
-                        unawaited(_showArtworkOptionsDialog(asset)),
+                    onPressed: () => unawaited(
+                        _showArtworkOptionsDialog(asset, state.isViewOnly)),
                     constraints: const BoxConstraints(
                       maxWidth: 44,
                       maxHeight: 44,
@@ -445,55 +442,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       .getTempStorageHiddenTokenIDs()
       .contains(token.id);
 
-  Future<File> _downloadFeralfileArtwork(
-    String url,
-  ) async {
-    final response = await http.get(Uri.parse(url));
-    final bytes = response.bodyBytes;
-    final header = response.headers;
-    final filename = header['x-amz-meta-filename'] ?? '';
-    final file = await FileHelper.saveFileToDownloadDir(bytes, filename);
-    return file;
-  }
-
-  Future<File?> _downloadArtwork(AssetToken assetToken) async {
-    try {
-      final artwork = await injector<FeralFileService>()
-          .getArtwork(assetToken.tokenId ?? '');
-      final message =
-          await injector<FeralFileService>().getFeralfileActionMessage(
-        address: assetToken.owner,
-        action: 'download series',
-      );
-      final ownerAddress = assetToken.owner;
-      final chain = assetToken.blockchain;
-      final account = await injector<AccountService>()
-          .getAccountByAddress(chain: chain, address: ownerAddress);
-      final signature =
-          await account.signMessage(chain: chain, message: message);
-      final url =
-          await injector<FeralFileService>().getFeralfileArtworkDownloadUrl(
-        artworkId: artwork.id,
-        signature: signature,
-        owner: ownerAddress,
-      );
-      await _downloadFeralfileArtwork(url);
-    } catch (e) {
-      if (mounted) {
-        unawaited(UIHelper.showFeralfileArtworkSavedFailed(context));
-      }
-    }
-
-    const _url =
-        'https://wetmarket-assets-testnet.s3.ap-northeast-1.amazonaws.com/artworks/0c81aae8-5060-4158-81d8-69242aaaf13d/1651131526/origin.mp4?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIARG2XGPJ66URHKXOF%2F20240207%2Fap-northeast-1%2Fs3%2Faws4_request&X-Amz-Date=20240207T101843Z&X-Amz-Expires=360000&X-Amz-SignedHeaders=host&response-content-disposition=attachment%3B%20filename%3D%22Video%2520art.mp4%22&X-Amz-Signature=3d0dcb88a4c27e5a0fa822219b9088bcec81562d7ecb0905e8ad714c7aea5698';
-    // 'https://wetmarket-assets-testnet.s3.ap-northeast-1.amazonaws.com/artworks/32d34de6-c413-426b-b370-025d90105e4d/1705314396/origin.zip?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIARG2XGPJ66URHKXOF%2F20240207%2Fap-northeast-1%2Fs3%2Faws4_request&X-Amz-Date=20240207T101643Z&X-Amz-Expires=360000&X-Amz-SignedHeaders=host&response-content-disposition=attachment%3B%20filename%3D%22Tesst%2520AH3.zip%22&X-Amz-Signature=2d3213c30bc60857f45576f7e23abea939be064ee7424a19af57a36b078de07c';
-    // 'https://wetmarket-assets-testnet.s3.ap-northeast-1.amazonaws.com/artworks/b695687e-d6ba-4992-a311-43885faa2d75/1704788689/origin/0?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIARG2XGPJ66URHKXOF%2F20240207%2Fap-northeast-1%2Fs3%2Faws4_request&X-Amz-Date=20240207T101745Z&X-Amz-Expires=360000&X-Amz-SignedHeaders=host&response-content-disposition=attachment%3B%20filename%3D%22Check%2520time...%2520nu93_artist%22&X-Amz-Signature=4d8ef9c409b7f4eb00b71dca9b766a10f7192e8d39e5b0410c5d71654816dfd1';
-    final file = await _downloadFeralfileArtwork(_url);
-
-    return file;
-  }
-
-  Future _showArtworkOptionsDialog(AssetToken asset) async {
+  Future _showArtworkOptionsDialog(AssetToken asset, bool isViewOnly) async {
     final owner = await asset.getOwnerWallet();
     final ownerWallet = owner?.first;
     final addressIndex = owner?.second;
@@ -505,17 +454,24 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     unawaited(UIHelper.showDrawerAction(
       context,
       options: [
-        if (asset.shouldShowDownloadArtwork)
+        if (asset.shouldShowDownloadArtwork && !isViewOnly)
           OptionItem(
             title: 'download_artwork'.tr(),
-            icon: SvgPicture.asset('assets/images/download.svg'),
+            icon: SvgPicture.asset('assets/images/download_artwork.svg'),
             onTap: () async {
-              await _downloadArtwork(asset);
-              if (!mounted) {
-                return;
+              try {
+                final file = null;
+                // await _feralfileService.downloadFeralfileArtwork(asset);
+                if (!mounted) {
+                  return;
+                }
+                Navigator.of(context).pop();
+                if (file != null || true) {
+                  unawaited(UIHelper.showFeralfileArtworkSaved(context));
+                }
+              } catch (e) {
+                unawaited(UIHelper.showFeralfileArtworkSavedFailed(context));
               }
-              Navigator.of(context).pop();
-              unawaited(UIHelper.showFeralfileArtworkSaved(context));
             },
           ),
         OptionItem(

@@ -8,6 +8,9 @@ abstract class RemoteConfigService {
   Future<void> loadConfigs();
 
   bool getBool(final ConfigGroup group, final ConfigKey key);
+
+  T? getConfig<T>(
+      final ConfigGroup group, final ConfigKey key, T? defaultValue);
 }
 
 class RemoteConfigServiceImpl implements RemoteConfigService {
@@ -35,7 +38,10 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
       'chat': true
     },
     'feature': {'download_stamp': true, 'download_postcard': true},
-    'postcard_action': {'wait_confirmed_to_send': false}
+    'postcard_action': {'wait_confirmed_to_send': false},
+    'feralfile_artwork_action': {
+      'allow_download_artwork_contracts': null,
+    }
   };
 
   static Map<String, dynamic>? _configs;
@@ -43,6 +49,7 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
   @override
   Future<void> loadConfigs() async {
     try {
+      throw 'Not implemented';
       final data = await _pubdocAPI.getConfigs();
       _configs = jsonDecode(data) as Map<String, dynamic>;
       log.info('RemoteConfigService: loadConfigs: $_configs');
@@ -62,6 +69,19 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
           false;
     }
   }
+
+  @override
+  T? getConfig<T>(
+      final ConfigGroup group, final ConfigKey key, T? defaultValue) {
+    if (_configs == null) {
+      unawaited(loadConfigs());
+      return _defaults[group.getString]![key.getString] as T? ?? defaultValue;
+    } else {
+      return _configs![group.getString]?[key.getString] as T? ??
+          _defaults[group.getString]?[key.getString] as T? ??
+          defaultValue;
+    }
+  }
 }
 
 enum ConfigGroup {
@@ -70,6 +90,7 @@ enum ConfigGroup {
   viewDetail,
   feature,
   postcardAction,
+  feralfileArtworkAction,
 }
 
 // ConfigGroup getString extension
@@ -86,6 +107,8 @@ extension ConfigGroupExtension on ConfigGroup {
         return 'feature';
       case ConfigGroup.postcardAction:
         return 'postcard_action';
+      case ConfigGroup.feralfileArtworkAction:
+        return 'feralfile_artwork_action';
     }
   }
 }
@@ -106,6 +129,7 @@ enum ConfigKey {
   downloadPostcard,
   chat,
   waitConfirmedToSend,
+  allowDownloadArtworkContracts,
 }
 
 // ConfigKey getString extension
@@ -142,6 +166,8 @@ extension ConfigKeyExtension on ConfigKey {
         return 'chat';
       case ConfigKey.waitConfirmedToSend:
         return 'wait_confirmed_to_send';
+      case ConfigKey.allowDownloadArtworkContracts:
+        return 'allow_download_artwork_contracts';
     }
   }
 }

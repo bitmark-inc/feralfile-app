@@ -372,7 +372,16 @@ extension AssetTokenExtension on AssetToken {
   bool get shouldShowFeralfileRight =>
       isFeralfile && !isWedgwoodActivationToken;
 
-  bool get shouldShowDownloadArtwork => isFeralfile;
+  bool get shouldShowDownloadArtwork {
+    final List<dynamic>? remoteConfigAllowDownloadArtwork =
+        injector<RemoteConfigService>().getConfig<List<dynamic>>(
+            ConfigGroup.feralfileArtworkAction,
+            ConfigKey.allowDownloadArtworkContracts,
+            null);
+    final res = isFeralfile &&
+        (remoteConfigAllowDownloadArtwork?.contains(contractAddress) ?? true);
+    return res;
+  }
 }
 
 extension CompactedAssetTokenExtension on CompactedAssetToken {
