@@ -23,7 +23,6 @@ import 'package:autonomy_flutter/util/file_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:collection/collection.dart';
-import 'package:http/http.dart' as http;
 import 'package:nft_collection/graphql/model/get_list_tokens.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/services/indexer_service.dart';
@@ -322,17 +321,6 @@ class FeralFileServiceImpl extends FeralFileService {
     return response.result;
   }
 
-  Future<File> _downloadFile(
-    String url,
-  ) async {
-    final response = await http.get(Uri.parse(url));
-    final bytes = response.bodyBytes;
-    final header = response.headers;
-    final filename = header['x-amz-meta-filename'] ?? '';
-    final file = await FileHelper.saveFileToDownloadDir(bytes, filename);
-    return file;
-  }
-
   @override
   Future<File?> downloadFeralfileArtwork(AssetToken assetToken) async {
     try {
@@ -359,7 +347,7 @@ class FeralFileServiceImpl extends FeralFileService {
         signature: signatureHex,
         owner: ownerAddress,
       );
-      final file = await _downloadFile(url);
+      final file = await FileHelper.downloadFile(url);
       return file;
     } catch (e) {
       log.info('Error downloading artwork: $e');

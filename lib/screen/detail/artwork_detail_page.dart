@@ -460,14 +460,16 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
             icon: SvgPicture.asset('assets/images/download_artwork.svg'),
             onTap: () async {
               try {
-                final file = null;
-                // await _feralfileService.downloadFeralfileArtwork(asset);
+                final file =
+                    await _feralfileService.downloadFeralfileArtwork(asset);
                 if (!mounted) {
                   return;
                 }
                 Navigator.of(context).pop();
-                if (file != null || true) {
+                if (file != null) {
                   unawaited(UIHelper.showFeralfileArtworkSaved(context));
+                } else {
+                  unawaited(UIHelper.showFeralfileArtworkSavedFailed(context));
                 }
               } catch (e) {
                 unawaited(UIHelper.showFeralfileArtworkSavedFailed(context));

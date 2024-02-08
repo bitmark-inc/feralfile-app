@@ -40,7 +40,7 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
     'feature': {'download_stamp': true, 'download_postcard': true},
     'postcard_action': {'wait_confirmed_to_send': false},
     'feralfile_artwork_action': {
-      'allow_download_artwork_contracts': null,
+      'allow_download_artwork_contracts': [],
     }
   };
 
@@ -49,7 +49,6 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
   @override
   Future<void> loadConfigs() async {
     try {
-      throw 'Not implemented';
       final data = await _pubdocAPI.getConfigs();
       _configs = jsonDecode(data) as Map<String, dynamic>;
       log.info('RemoteConfigService: loadConfigs: $_configs');
