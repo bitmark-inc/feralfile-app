@@ -69,7 +69,7 @@ abstract class FeralFileService {
   Future<List<Artwork>> getSeriesArtworks(String seriesId);
 
   Future<String> getFeralfileActionMessage(
-      {required String address, required String action});
+      {required String address, required FeralfileAction action});
 
   Future<String> getFeralfileArtworkDownloadUrl({
     required String artworkId,
@@ -298,10 +298,10 @@ class FeralFileServiceImpl extends FeralFileService {
 
   @override
   Future<String> getFeralfileActionMessage(
-      {required String address, required String action}) async {
+      {required String address, required FeralfileAction action}) async {
     final response = await _feralFileApi.getActionMessage({
       'address': address,
-      'action': action,
+      'action': action.action,
     });
     return response.message;
   }
@@ -341,7 +341,7 @@ class FeralFileServiceImpl extends FeralFileService {
       final message =
           await injector<FeralFileService>().getFeralfileActionMessage(
         address: assetToken.owner,
-        action: 'download series',
+        action: FeralfileAction.downloadSeries,
       );
       final ownerAddress = assetToken.owner;
       final chain = assetToken.blockchain;
@@ -364,6 +364,17 @@ class FeralFileServiceImpl extends FeralFileService {
     } catch (e) {
       log.info('Error downloading artwork: $e');
       rethrow;
+    }
+  }
+}
+
+enum FeralfileAction {
+  downloadSeries;
+
+  String get action {
+    switch (this) {
+      case FeralfileAction.downloadSeries:
+        return 'download series';
     }
   }
 }
