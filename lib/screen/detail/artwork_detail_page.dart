@@ -30,6 +30,7 @@ import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/file_helper.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -467,11 +468,14 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                 }
                 Navigator.of(context).pop();
                 if (file != null) {
-                  unawaited(UIHelper.showFeralfileArtworkSaved(context));
+                  await FileHelper.shareFile(file);
                 } else {
                   unawaited(UIHelper.showFeralfileArtworkSavedFailed(context));
                 }
               } catch (e) {
+                if (!mounted) {
+                  return;
+                }
                 unawaited(UIHelper.showFeralfileArtworkSavedFailed(context));
               }
             },
