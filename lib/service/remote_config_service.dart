@@ -9,8 +9,7 @@ abstract class RemoteConfigService {
 
   bool getBool(final ConfigGroup group, final ConfigKey key);
 
-  T? getConfig<T>(
-      final ConfigGroup group, final ConfigKey key, T? defaultValue);
+  T getConfig<T>(final ConfigGroup group, final ConfigKey key, T defaultValue);
 }
 
 class RemoteConfigServiceImpl implements RemoteConfigService {
@@ -71,14 +70,13 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
   }
 
   @override
-  T? getConfig<T>(
-      final ConfigGroup group, final ConfigKey key, T? defaultValue) {
+  T getConfig<T>(final ConfigGroup group, final ConfigKey key, T defaultValue) {
     if (_configs == null) {
       unawaited(loadConfigs());
-      return _defaults[group.getString]![key.getString] as T? ?? defaultValue;
+      return _defaults[group.getString]![key.getString] as T ?? defaultValue;
     } else {
       final res =
-          _configs![group.getString]?[key.getString] as T? ?? defaultValue;
+          _configs![group.getString]?[key.getString] as T ?? defaultValue;
       return res;
     }
   }

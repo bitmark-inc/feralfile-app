@@ -374,7 +374,7 @@ extension AssetTokenExtension on AssetToken {
 
   bool get shouldShowDownloadArtwork {
     final List<dynamic>? remoteConfigAllowDownloadArtwork =
-        injector<RemoteConfigService>().getConfig<List<dynamic>>(
+        injector<RemoteConfigService>().getConfig<List<dynamic>?>(
             ConfigGroup.feralfileArtworkAction,
             ConfigKey.allowDownloadArtworkContracts,
             null);
