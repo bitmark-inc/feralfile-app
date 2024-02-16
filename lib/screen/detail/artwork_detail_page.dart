@@ -468,7 +468,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                 }
                 Navigator.of(context).pop();
                 if (file != null) {
-                  await FileHelper.shareFile(file);
+                  await FileHelper.shareFile(file, deleteAfterShare: true);
                 } else {
                   unawaited(UIHelper.showFeralfileArtworkSavedFailed(context));
                 }

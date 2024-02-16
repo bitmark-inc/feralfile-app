@@ -25,7 +25,7 @@ class FileHelper {
     final dir = await getApplicationDocumentsDirectory();
     File file = File('${dir.path}/Downloads/$filename');
     if (!file.existsSync()) {
-      if (await Permission.storage.request().isGranted) {
+      if (Platform.isAndroid || await Permission.storage.request().isGranted) {
         await file.create(recursive: true);
       }
     }
