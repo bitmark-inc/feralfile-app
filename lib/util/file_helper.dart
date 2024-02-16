@@ -57,7 +57,11 @@ class FileHelper {
       onShareSuccess?.call();
     }
     if (deleteAfterShare) {
-      await file.delete();
+      try {
+        await file.delete();
+      } catch (_) {
+        // ignore when file is not found
+      }
     }
     return result;
   }

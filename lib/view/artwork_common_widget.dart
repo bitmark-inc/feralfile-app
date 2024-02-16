@@ -2147,11 +2147,17 @@ class _DrawerItemState extends State<DrawerItem> {
         ),
         child: Row(
           children: [
-            if (icon != null) SizedBox(width: 30, child: icon),
-            if (icon != null)
+            if (icon != null) ...[
+              SizedBox(
+                width: 30,
+                child: Center(
+                  child: icon,
+                ),
+              ),
               const SizedBox(
                 width: 34,
               ),
+            ],
             Text(
               item.title ?? '',
               style: titleStyle,

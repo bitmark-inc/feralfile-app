@@ -460,6 +460,22 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
           OptionItem(
             title: 'download_artwork'.tr(),
             icon: SvgPicture.asset('assets/images/download_artwork.svg'),
+            iconOnDisable: SvgPicture.asset(
+              'assets/images/download_artwork.svg',
+              colorFilter: const ColorFilter.mode(
+                AppColor.disabledColor,
+                BlendMode.srcIn,
+              ),
+            ),
+            iconOnProcessing: const SizedBox(
+              height: 20,
+              width: 20,
+              child: CircularProgressIndicator(
+                valueColor:
+                    AlwaysStoppedAnimation<Color>(AppColor.disabledColor),
+                strokeWidth: 1,
+              ),
+            ),
             onTap: () async {
               try {
                 final file =
@@ -478,7 +494,9 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                   return;
                 }
                 log.info('Download artwork failed: $e');
-                unawaited(UIHelper.showFeralfileArtworkSavedFailed(context));
+                if (e is DioException) {
+                  unawaited(UIHelper.showFeralfileArtworkSavedFailed(context));
+                }
               }
             },
           ),
