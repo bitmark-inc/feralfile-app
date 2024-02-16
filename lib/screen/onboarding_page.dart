@@ -51,8 +51,8 @@ class _OnboardingPageState extends State<OnboardingPage>
   late SwiperController _swiperController;
   late int _currentIndex;
 
-  final _onboardingLogo = Container(
-    key: const Key('onboarding_logo'),
+  final _onboardingLogo = Semantics(
+    label: 'onboarding_logo',
     child: SvgPicture.asset('assets/images/feral_file_onboarding.svg'),
   );
 
