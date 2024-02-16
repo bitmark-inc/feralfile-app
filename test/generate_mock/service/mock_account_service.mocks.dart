@@ -439,4 +439,13 @@ class MockAccountService extends _i1.Mock implements _i6.AccountService {
         returnValue: _i7.Future<void>.value(),
         returnValueForMissingStub: _i7.Future<void>.value(),
       ) as _i7.Future<void>);
+  @override
+  _i7.Future<List<_i5.Connection>> getAllViewOnlyAddresses() =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getAllViewOnlyAddresses,
+          [],
+        ),
+        returnValue: _i7.Future<List<_i5.Connection>>.value(<_i5.Connection>[]),
+      ) as _i7.Future<List<_i5.Connection>>);
 }
