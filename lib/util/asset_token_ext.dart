@@ -382,6 +382,20 @@ extension AssetTokenExtension on AssetToken {
         (remoteConfigAllowDownloadArtwork?.contains(contractAddress) ?? true);
     return res;
   }
+
+  Pair<String, String>? get irlTapLink {
+    switch (contractAddress) {
+      case '0x19da6876a149fE5a40c3496A21DBBeFdc9A3a636':
+        final index = edition + 1;
+        return Pair(
+          'tape_sound'.tr(),
+          '${Environment.feralFileAPIURL}/'
+          'artwork/yoko-ono-sound-piece/$index/record',
+        );
+      default:
+        return null;
+    }
+  }
 }
 
 extension CompactedAssetTokenExtension on CompactedAssetToken {
