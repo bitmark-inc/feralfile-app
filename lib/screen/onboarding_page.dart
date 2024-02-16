@@ -51,6 +51,11 @@ class _OnboardingPageState extends State<OnboardingPage>
   late SwiperController _swiperController;
   late int _currentIndex;
 
+  final _onboardingLogo = Container(
+    key: const Key('onboarding_logo'),
+    child: SvgPicture.asset('assets/images/feral_file_onboarding.svg'),
+  );
+
   @override
   void initState() {
     super.initState();
@@ -260,9 +265,7 @@ class _OnboardingPageState extends State<OnboardingPage>
                   Padding(
                     padding: const EdgeInsets.only(top: 15),
                     child: Center(
-                      child: SvgPicture.asset(
-                        'assets/images/feral_file_onboarding.svg',
-                      ),
+                      child: _onboardingLogo,
                     ),
                   ),
                   Positioned.fill(
@@ -327,7 +330,7 @@ class _OnboardingPageState extends State<OnboardingPage>
     ];
     final pages = [
       Center(
-        child: SvgPicture.asset('assets/images/feral_file_onboarding.svg'),
+        child: _onboardingLogo,
       ),
       _onboardingItem(
         context,
