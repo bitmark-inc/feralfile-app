@@ -8,6 +8,8 @@ abstract class RemoteConfigService {
   Future<void> loadConfigs();
 
   bool getBool(final ConfigGroup group, final ConfigKey key);
+
+  T getConfig<T>(final ConfigGroup group, final ConfigKey key, T defaultValue);
 }
 
 class RemoteConfigServiceImpl implements RemoteConfigService {
@@ -18,9 +20,10 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
 
   static const Map<String, dynamic> _defaults = <String, dynamic>{
     'merchandise': {
-      'enable': true,
-      'allow_view_only': true,
-      'must_complete': true
+      'enable': false,
+      'allow_view_only': false,
+      'must_complete': true,
+      'postcard_tokenId_regex': r'^[]$'
     },
     'pay_to_mint': {'enable': true, 'allow_view_only': true},
     'view_detail': {
@@ -35,7 +38,10 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
       'chat': true
     },
     'feature': {'download_stamp': true, 'download_postcard': true},
-    'postcard_action': {'wait_confirmed_to_send': false}
+    'postcard_action': {'wait_confirmed_to_send': false},
+    'feralfile_artwork_action': {
+      'allow_download_artwork_contracts': [],
+    }
   };
 
   static Map<String, dynamic>? _configs;
@@ -62,6 +68,18 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
           false;
     }
   }
+
+  @override
+  T getConfig<T>(final ConfigGroup group, final ConfigKey key, T defaultValue) {
+    if (_configs == null) {
+      unawaited(loadConfigs());
+      return _defaults[group.getString]![key.getString] as T ?? defaultValue;
+    } else {
+      final res =
+          _configs![group.getString]?[key.getString] as T ?? defaultValue;
+      return res;
+    }
+  }
 }
 
 enum ConfigGroup {
@@ -70,6 +88,7 @@ enum ConfigGroup {
   viewDetail,
   feature,
   postcardAction,
+  feralfileArtworkAction,
 }
 
 // ConfigGroup getString extension
@@ -86,6 +105,8 @@ extension ConfigGroupExtension on ConfigGroup {
         return 'feature';
       case ConfigGroup.postcardAction:
         return 'postcard_action';
+      case ConfigGroup.feralfileArtworkAction:
+        return 'feralfile_artwork_action';
     }
   }
 }
@@ -94,6 +115,7 @@ enum ConfigKey {
   enable,
   allowViewOnly,
   mustCompleted,
+  postcardTokenIdRegex,
   actionButton,
   leaderBoard,
   aboutMoma,
@@ -106,6 +128,7 @@ enum ConfigKey {
   downloadPostcard,
   chat,
   waitConfirmedToSend,
+  allowDownloadArtworkContracts,
 }
 
 // ConfigKey getString extension
@@ -118,6 +141,8 @@ extension ConfigKeyExtension on ConfigKey {
         return 'allow_view_only';
       case ConfigKey.mustCompleted:
         return 'must_complete';
+      case ConfigKey.postcardTokenIdRegex:
+        return 'postcard_tokenId_regex';
       case ConfigKey.actionButton:
         return 'action_button';
       case ConfigKey.leaderBoard:
@@ -142,6 +167,8 @@ extension ConfigKeyExtension on ConfigKey {
         return 'chat';
       case ConfigKey.waitConfirmedToSend:
         return 'wait_confirmed_to_send';
+      case ConfigKey.allowDownloadArtworkContracts:
+        return 'allow_download_artwork_contracts';
     }
   }
 }

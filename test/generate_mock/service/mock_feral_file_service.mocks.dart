@@ -65,6 +65,16 @@ class _FakeExhibition_3 extends _i1.SmartFake implements _i5.Exhibition {
         );
 }
 
+class _FakeArtwork_4 extends _i1.SmartFake implements _i4.Artwork {
+  _FakeArtwork_4(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
 /// A class which mocks [FeralFileService].
 ///
 /// See the documentation for Mockito's code generation for more information.
@@ -254,4 +264,43 @@ class MockFeralFileService extends _i1.Mock implements _i6.FeralFileService {
         ),
         returnValue: _i7.Future<List<_i4.Artwork>>.value(<_i4.Artwork>[]),
       ) as _i7.Future<List<_i4.Artwork>>);
+  @override
+  _i7.Future<String> getFeralfileActionMessage({
+    required String? address,
+    required String? action,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getFeralfileActionMessage,
+          [],
+          {
+            #address: address,
+            #action: action,
+          },
+        ),
+        returnValue: _i7.Future<String>.value(''),
+      ) as _i7.Future<String>);
+  @override
+  _i7.Future<String> getFeralfileArtworkDownloadUrl(String? artworkId) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getFeralfileArtworkDownloadUrl,
+          [artworkId],
+        ),
+        returnValue: _i7.Future<String>.value(''),
+      ) as _i7.Future<String>);
+  @override
+  _i7.Future<_i4.Artwork> getArtwork(String? artworkId) => (super.noSuchMethod(
+        Invocation.method(
+          #getArtwork,
+          [artworkId],
+        ),
+        returnValue: _i7.Future<_i4.Artwork>.value(_FakeArtwork_4(
+          this,
+          Invocation.method(
+            #getArtwork,
+            [artworkId],
+          ),
+        )),
+      ) as _i7.Future<_i4.Artwork>);
 }

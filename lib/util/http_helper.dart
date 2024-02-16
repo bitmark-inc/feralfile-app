@@ -15,21 +15,21 @@ class HttpHelper {
     final timestamp =
         (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
     final hexBody = (method == HttpMethod.GET || body is FormData)
-        ? ""
+        ? ''
         : bytesToHex(sha256
             .convert(body == null ? [] : utf8.encode(json.encode(body)))
             .bytes);
     final canonicalString = List<String>.of([
-      path.split("?").first,
+      path.split('?').first,
       hexBody,
       timestamp,
-    ]).join("|");
+    ]).join('|');
     final hmacSha256 = Hmac(sha256, utf8.encode(secretKey));
     final digest = hmacSha256.convert(utf8.encode(canonicalString));
     final sig = bytesToHex(digest.bytes);
     return {
-      "X-Api-Signature": sig,
-      "X-Api-Timestamp": timestamp,
+      'X-Api-Signature': sig,
+      'X-Api-Timestamp': timestamp,
     };
   }
 
@@ -45,7 +45,7 @@ class HttpHelper {
     final hmacHeader = _getHmac(HttpMethod.POST, path, body, secretKey);
     headers.addAll({
       ...hmacHeader,
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     });
 
     final response = await http.post(
@@ -67,7 +67,7 @@ class HttpHelper {
     final hmacHeader = _getHmac(HttpMethod.GET, path, null, secretKey);
     headers.addAll({
       ...hmacHeader,
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     });
 
     final response = await http.get(

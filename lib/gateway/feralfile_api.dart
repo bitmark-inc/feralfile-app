@@ -62,4 +62,46 @@ abstract class FeralFileApi {
     @Query('sortBy') String sortBy = 'index',
     @Query('sortOrder') String sortOrder = 'ASC',
   });
+
+  @POST('/api/web3/messages/action')
+  Future<ActionMessageResponse> getActionMessage(
+    @Body() Map<String, dynamic> body,
+  );
+
+  @GET('/api/artworks/{artworkId}/download-url')
+  Future<FeralFileResponse<String>> getDownloadUrl(
+    @Path('artworkId') String artworkId,
+    @Header('Web3Token') String web3Token,
+    @Header('X-FF-Signer') String signer,
+  );
+}
+
+class ActionMessageResponse {
+  String message;
+
+  ActionMessageResponse({required this.message});
+
+  factory ActionMessageResponse.fromJson(Map<String, dynamic> json) =>
+      ActionMessageResponse(
+        message: json['result']['message'] ?? '',
+      );
+
+  Map<String, dynamic> toJson() => {
+        'result': {'message': message},
+      };
+}
+
+class FeralFileResponse<T> {
+  T result;
+
+  FeralFileResponse({required this.result});
+
+  factory FeralFileResponse.fromJson(Map<String, dynamic> json) =>
+      FeralFileResponse(
+        result: json['result'],
+      );
+
+  Map<String, dynamic> toJson() => {
+        'result': result,
+      };
 }

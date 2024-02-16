@@ -24,11 +24,13 @@ import 'package:autonomy_flutter/screen/gallery/gallery_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_page.dart';
 import 'package:autonomy_flutter/service/airdrop_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/file_helper.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -74,6 +76,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   AssetToken? currentAsset;
   final metricClient = injector.get<MetricClientService>();
   final _airdropService = injector.get<AirdropService>();
+  final _feralfileService = injector.get<FeralFileService>();
 
   @override
   void initState() {
@@ -302,8 +305,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                 Semantics(
                   label: 'artworkDotIcon',
                   child: IconButton(
-                    onPressed: () =>
-                        unawaited(_showArtworkOptionsDialog(asset)),
+                    onPressed: () => unawaited(
+                        _showArtworkOptionsDialog(asset, state.isViewOnly)),
                     constraints: const BoxConstraints(
                       maxWidth: 44,
                       maxHeight: 44,
@@ -440,7 +443,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       .getTempStorageHiddenTokenIDs()
       .contains(token.id);
 
-  Future _showArtworkOptionsDialog(AssetToken asset) async {
+  Future _showArtworkOptionsDialog(AssetToken asset, bool isViewOnly) async {
     final owner = await asset.getOwnerWallet();
     final ownerWallet = owner?.first;
     final addressIndex = owner?.second;
@@ -452,6 +455,31 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     unawaited(UIHelper.showDrawerAction(
       context,
       options: [
+        if (asset.shouldShowDownloadArtwork && !isViewOnly)
+          OptionItem(
+            title: 'download_artwork'.tr(),
+            icon: SvgPicture.asset('assets/images/download_artwork.svg'),
+            onTap: () async {
+              try {
+                final file =
+                    await _feralfileService.downloadFeralfileArtwork(asset);
+                if (!mounted) {
+                  return;
+                }
+                Navigator.of(context).pop();
+                if (file != null) {
+                  await FileHelper.shareFile(file, deleteAfterShare: true);
+                } else {
+                  unawaited(UIHelper.showFeralfileArtworkSavedFailed(context));
+                }
+              } catch (e) {
+                if (!mounted) {
+                  return;
+                }
+                unawaited(UIHelper.showFeralfileArtworkSavedFailed(context));
+              }
+            },
+          ),
         OptionItem(
           title: isHidden ? 'unhide_aw'.tr() : 'hide_aw'.tr(),
           icon: const Icon(AuIcon.hidden_artwork),
