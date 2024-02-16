@@ -789,13 +789,8 @@ extension PostcardExtension on AssetToken {
 
   bool get enabledMerch {
     final remoteConfig = injector<RemoteConfigService>();
-    final postcardIdRegex = remoteConfig.getConfig<String>(
-        ConfigGroup.merchandise, ConfigKey.postcardTokenIdRegex, r'^[]$');
-    final isMatch = RegExp(postcardIdRegex).hasMatch(id);
-    final isEnable = (isCompleted ||
-            !remoteConfig.getBool(
-                ConfigGroup.merchandise, ConfigKey.mustCompleted)) &&
-        isMatch;
+    final isEnable = isCompleted ||
+        !remoteConfig.getBool(ConfigGroup.merchandise, ConfigKey.mustCompleted);
     return isEnable;
   }
 
