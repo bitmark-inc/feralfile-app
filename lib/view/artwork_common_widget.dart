@@ -2095,3 +2095,90 @@ class ArtworkDetailsHeader extends StatelessWidget {
     );
   }
 }
+
+class DrawerItem extends StatefulWidget {
+  final OptionItem item;
+
+  const DrawerItem({
+    required this.item,
+    super.key,
+  });
+
+  @override
+  State<DrawerItem> createState() => _DrawerItemState();
+}
+
+class _DrawerItemState extends State<DrawerItem> {
+  late bool isProcessing;
+
+  @override
+  void initState() {
+    isProcessing = false;
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final item = widget.item;
+    final defaultTextStyle = theme.textTheme.ppMori400Black14;
+    final defaultProcessingTextStyle =
+        defaultTextStyle.copyWith(color: AppColor.disabledColor);
+    final defaultDisabledTextStyle =
+        defaultTextStyle.copyWith(color: AppColor.disabledColor);
+    final icon = !item.isEnable
+        ? item.iconOnDisable
+        : isProcessing
+            ? (item.iconOnProcessing ?? item.icon)
+            : item.icon;
+    final titleStyle = !item.isEnable
+        ? (item.titleStyleOnDisable ?? defaultDisabledTextStyle)
+        : isProcessing
+            ? (item.titleStyleOnPrecessing ?? defaultProcessingTextStyle)
+            : (item.titleStyle ?? defaultTextStyle);
+
+    final child = Container(
+      color: Colors.transparent,
+      width: MediaQuery.of(context).size.width,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          vertical: 16,
+          horizontal: 13,
+        ),
+        child: Row(
+          children: [
+            if (icon != null) SizedBox(width: 30, child: icon),
+            if (icon != null)
+              const SizedBox(
+                width: 34,
+              ),
+            Text(
+              item.title ?? '',
+              style: titleStyle,
+            ),
+          ],
+        ),
+      ),
+    );
+    return GestureDetector(
+      onTap: () async {
+        if (!item.isEnable) {
+          return;
+        }
+        if (isProcessing) {
+          return;
+        }
+        setState(() {
+          isProcessing = true;
+        });
+        await item.onTap?.call();
+        if (mounted) {
+          setState(() {
+            isProcessing = false;
+          });
+        }
+      },
+      child: child,
+    );
+  }
+}

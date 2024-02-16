@@ -31,6 +31,7 @@ import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/file_helper.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -476,6 +477,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                 if (!mounted) {
                   return;
                 }
+                log.info('Download artwork failed: $e');
                 unawaited(UIHelper.showFeralfileArtworkSavedFailed(context));
               }
             },
