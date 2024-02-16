@@ -21,9 +21,10 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
 
   static const Map<String, dynamic> _defaults = <String, dynamic>{
     'merchandise': {
-      'enable': true,
-      'allow_view_only': true,
-      'must_complete': true
+      'enable': false,
+      'allow_view_only': false,
+      'must_complete': true,
+      'postcard_tokenId_regex': r'^[]$'
     },
     'pay_to_mint': {'enable': true, 'allow_view_only': true},
     'view_detail': {
@@ -116,6 +117,7 @@ enum ConfigKey {
   enable,
   allowViewOnly,
   mustCompleted,
+  postcardTokenIdRegex,
   actionButton,
   leaderBoard,
   aboutMoma,
@@ -141,6 +143,8 @@ extension ConfigKeyExtension on ConfigKey {
         return 'allow_view_only';
       case ConfigKey.mustCompleted:
         return 'must_complete';
+      case ConfigKey.postcardTokenIdRegex:
+        return 'postcard_tokenId_regex';
       case ConfigKey.actionButton:
         return 'action_button';
       case ConfigKey.leaderBoard:
