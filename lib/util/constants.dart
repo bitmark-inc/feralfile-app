@@ -8,7 +8,9 @@
 import 'dart:io';
 
 import 'package:autonomy_flutter/common/environment.dart';
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
+import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/util/eth_utils.dart';
 import 'package:autonomy_flutter/util/fee_util.dart';
 import 'package:autonomy_flutter/util/geolocation.dart';
@@ -233,6 +235,14 @@ const String POSTCARD_ONLINE_REQUEST_ID = 'moma-postcard-online';
 Future<bool> isAppCenterBuild() async {
   final PackageInfo info = await PackageInfo.fromPlatform();
   return info.packageName.contains('inhouse');
+}
+
+Future<bool> isSubscribedOrInhouse() async {
+  final result = await Future.wait([
+    isAppCenterBuild(),
+    injector.get<IAPService>().isSubscribed(),
+  ]);
+  return result.any((element) => true);
 }
 
 Future<bool> logoState() async {
