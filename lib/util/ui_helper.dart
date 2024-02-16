@@ -31,6 +31,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/moma_style_color.dart';
 import 'package:autonomy_flutter/util/notification_util.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_buttons.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -1332,7 +1333,7 @@ class UIHelper {
   }
 
   static Future<void> showDrawerAction(BuildContext context,
-      {List<OptionItem>? options}) async {
+      {required List<OptionItem> options}) async {
     final theme = Theme.of(context);
 
     await showModalBottomSheet<dynamic>(
@@ -1364,43 +1365,13 @@ class UIHelper {
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     itemBuilder: (BuildContext context, int index) {
-                      final child = Container(
-                        color: Colors.transparent,
-                        width: MediaQuery.of(context).size.width,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 16,
-                            horizontal: 13,
-                          ),
-                          child: Row(
-                            children: [
-                              if (options?[index].icon != null)
-                                SizedBox(
-                                    width: 30, child: options![index].icon),
-                              if (options?[index].icon != null)
-                                const SizedBox(
-                                  width: 34,
-                                ),
-                              Text(
-                                options?[index].title ?? '',
-                                style: options?[index].titleStyle ??
-                                    theme.textTheme.ppMori400Black14,
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                      if (options?[index].builder != null) {
-                        return options?[index]
-                            .builder!
-                            .call(context, options[index]);
+                      final option = options[index];
+                      if (option.builder != null) {
+                        return option.builder!.call(context, option);
                       }
-                      return GestureDetector(
-                        onTap: options?[index].onTap,
-                        child: child,
-                      );
+                      return DrawerItem(item: option);
                     },
-                    itemCount: options?.length ?? 0,
+                    itemCount: options.length,
                     separatorBuilder: (context, index) => Divider(
                       height: 1,
                       thickness: 1,

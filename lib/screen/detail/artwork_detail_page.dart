@@ -31,6 +31,7 @@ import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/file_helper.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -459,6 +460,22 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
           OptionItem(
             title: 'download_artwork'.tr(),
             icon: SvgPicture.asset('assets/images/download_artwork.svg'),
+            iconOnDisable: SvgPicture.asset(
+              'assets/images/download_artwork.svg',
+              colorFilter: const ColorFilter.mode(
+                AppColor.disabledColor,
+                BlendMode.srcIn,
+              ),
+            ),
+            iconOnProcessing: const SizedBox(
+              height: 20,
+              width: 20,
+              child: CircularProgressIndicator(
+                valueColor:
+                    AlwaysStoppedAnimation<Color>(AppColor.disabledColor),
+                strokeWidth: 1,
+              ),
+            ),
             onTap: () async {
               try {
                 final file =
@@ -476,7 +493,10 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                 if (!mounted) {
                   return;
                 }
-                unawaited(UIHelper.showFeralfileArtworkSavedFailed(context));
+                log.info('Download artwork failed: $e');
+                if (e is DioException) {
+                  unawaited(UIHelper.showFeralfileArtworkSavedFailed(context));
+                }
               }
             },
           ),
