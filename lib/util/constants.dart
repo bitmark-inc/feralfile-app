@@ -107,6 +107,10 @@ const MOMA_MEMENTO_CONTRACT_ADDRESSES_MAINNET = [
   'KT1RWFkvQPkhjxQQzg1ZvS2EKbprbkAdPRSc',
 ];
 
+const yokoOnoSoundPieceContractAddresses = [
+  '0x19da6876a149fE5a40c3496A21DBBeFdc9A3a636'
+];
+
 const wedgwoodActivationContractAddress =
     'KT1VNooU9Nrj6hB1SwTkCA5yFXJxjZQCtBRM';
 

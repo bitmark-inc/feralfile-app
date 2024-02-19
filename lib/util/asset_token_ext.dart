@@ -384,17 +384,19 @@ extension AssetTokenExtension on AssetToken {
   }
 
   Pair<String, String>? get irlTapLink {
-    switch (contractAddress) {
-      case '0x19da6876a149fE5a40c3496A21DBBeFdc9A3a636':
+    if (yokoOnoSoundPieceContractAddresses.contains(contractAddress)) {
+      final indexId = 'feralfile-$contractAddress-2-$edition';
+      if (asset?.indexID == indexId) {
         final index = edition + 1;
         return Pair(
           'tape_sound'.tr(),
           '${Environment.feralFileAPIURL}/'
-          'artwork/yoko-ono-sound-piece/$index/record',
+              'artwork/yoko-ono-sound-piece/$index/record',
         );
-      default:
-        return null;
+      }
     }
+
+    return null;
   }
 }
 
