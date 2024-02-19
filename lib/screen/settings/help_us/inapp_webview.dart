@@ -67,14 +67,18 @@ class _InAppWebViewPageState extends State<InAppWebViewPage> {
                   androidOnPermissionRequest:
                       (InAppWebViewController controller, String origin,
                           List<String> resources) async {
-                    await Permission.microphone.request();
-                    final status = await Permission.microphone.status;
-                    if (status.isPermanentlyDenied || status.isDenied) {
-                      return PermissionRequestResponse(resources: resources);
+                    if (resources
+                        .contains('android.webkit.resource.AUDIO_CAPTURE')) {
+                      await Permission.microphone.request();
+                      final status = await Permission.microphone.status;
+                      if (status.isPermanentlyDenied || status.isDenied) {
+                        return PermissionRequestResponse(resources: resources);
+                      }
+                      return PermissionRequestResponse(
+                          resources: resources,
+                          action: PermissionRequestResponseAction.GRANT);
                     }
-                    return PermissionRequestResponse(
-                        resources: resources,
-                        action: PermissionRequestResponseAction.GRANT);
+                    return PermissionRequestResponse(resources: resources);
                   },
                   onWebViewCreated: (controller) {
                     if (widget.payload.onWebViewCreated != null) {

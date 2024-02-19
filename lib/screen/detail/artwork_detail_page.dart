@@ -462,7 +462,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
         if (irlUrl != null)
           OptionItem(
             title: irlUrl.first,
-            icon: const SizedBox(),
+            icon: const Icon(AuIcon.microphone),
             onTap: () {
               unawaited(
                 Navigator.pushNamed(
