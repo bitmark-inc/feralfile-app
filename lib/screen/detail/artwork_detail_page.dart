@@ -459,7 +459,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     unawaited(UIHelper.showDrawerAction(
       context,
       options: [
-        if (irlUrl != null)
+        if (!isViewOnly && irlUrl != null)
           OptionItem(
             title: irlUrl.first,
             icon: const Icon(AuIcon.microphone),
