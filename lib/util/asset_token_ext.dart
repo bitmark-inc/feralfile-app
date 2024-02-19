@@ -384,7 +384,11 @@ extension AssetTokenExtension on AssetToken {
   }
 
   Pair<String, String>? get irlTapLink {
-    if (yokoOnoSoundPieceContractAddresses.contains(contractAddress)) {
+    final remoteConfig = injector<RemoteConfigService>();
+    final soundPieceContractAddresses = remoteConfig.getConfig<List<dynamic>>(
+        ConfigGroup.feralfileArtworkAction,
+        ConfigKey.soundPieceContractAddresses, []);
+    if (soundPieceContractAddresses.contains(contractAddress)) {
       final indexId = 'feralfile-$contractAddress-2-$edition';
       if (asset?.indexID == indexId) {
         final index = edition + 1;
