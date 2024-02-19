@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+// ignore_for_file: avoid_annotating_with_dynamic
+
 import 'dart:async';
 import 'dart:convert';
 
@@ -55,9 +57,9 @@ class Wc2Service {
     'au_sendTransaction',
   };
   static const PairingMetadata pairingMetadata = PairingMetadata(
-    name: 'Autonomy',
-    description: 'Autonomy Wallet',
-    url: 'https://autonomy.io',
+    name: 'Feral File',
+    description: 'Feral File Wallet',
+    url: 'https://app.feralfile.com',
     icons: [],
   );
 
@@ -75,9 +77,20 @@ class Wc2Service {
   late Web3Wallet _wcClient;
   String pendingUri = '';
 
-  Map<Future<ApproveResponse>, PairingMetadata>? _tempApproveResponse;
-
   Timer? _timer;
+
+  final List<ApproveResponse> _approvedSession = [];
+
+  void addApprovedSession(ApproveResponse response) {
+    _approvedSession.add(response);
+  }
+
+  void removeApprovedSession(String topic) {
+    _approvedSession.removeWhere((element) => element.topic == topic);
+  }
+
+  bool isApprovedSession(String topic) =>
+      _approvedSession.any((element) => element.topic == topic);
 
   Wc2Service(
     this._navigationService,
@@ -96,6 +109,9 @@ class Wc2Service {
     _wcClient.onSessionRequest.subscribe((request) {
       log.info('[Wc2Service] Finish handle request $request');
     });
+    _wcClient.onSessionRequest.subscribe((SessionRequestEvent? request) {
+      removeApprovedSession(request?.topic ?? '');
+    });
 
     _registerEthRequest('${Wc2Chain.ethereum}:${Environment.web3ChainId}');
     _registerFeralfileRequest(
@@ -103,7 +119,6 @@ class Wc2Service {
   }
 
   void _registerEthRequest(String chainId) {
-    // ignore: avoid_annotating_with_dynamic
     final Map<String, dynamic Function(String, dynamic)?> ethRequestHandlerMap =
         {
       'eth_sendTransaction': _handleEthSendTx,
@@ -115,12 +130,14 @@ class Wc2Service {
     log.info('[Wc2Service] Registering handlers for chainId: $chainId');
     ethRequestHandlerMap.forEach((method, handler) {
       _wcClient.registerRequestHandler(
-          chainId: chainId, method: method, handler: handler);
+          chainId: chainId,
+          method: method,
+          handler: (String topic, params) async =>
+              _wait4SessionApproveThenHandleRequest(topic, params, handler));
     });
   }
 
   void _registerFeralfileRequest(String chainId) {
-    // ignore: avoid_annotating_with_dynamic
     final Map<String, dynamic Function(String, dynamic)?>
         feralfileRequestHandlerMap = {
       'au_sign': _handleAuSign,
@@ -131,9 +148,26 @@ class Wc2Service {
     feralfileRequestHandlerMap.forEach(
       (method, handler) {
         _wcClient.registerRequestHandler(
-            chainId: chainId, method: method, handler: handler);
+            chainId: chainId,
+            method: method,
+            handler: (String topic, dynamic params) async =>
+                _wait4SessionApproveThenHandleRequest(topic, params, handler));
       },
     );
+  }
+
+  Future<void> _wait4SessionApproveThenHandleRequest(
+      String topic, params, dynamic Function(String, dynamic)? handler) async {
+    int counter = 0;
+    const MAX_COUNTER = 20;
+    do {
+      counter++;
+      log.info('[Wc2Service] waiting for user to approve');
+      await Future.delayed(const Duration(milliseconds: 500));
+    } while (!isApprovedSession(topic) || counter < MAX_COUNTER);
+    if (handler != null) {
+      return await handler(topic, params);
+    }
   }
 
   Future _handleAuPermissions(String topic, params) async {
@@ -142,7 +176,6 @@ class Wc2Service {
     if (proposer == null) {
       throw const JsonRpcError(code: 301, message: 'proposer not found');
     }
-    await Future.delayed(const Duration(seconds: 1));
     final result = await _navigationService.navigateTo(
       AppRouter.wc2PermissionPage,
       arguments:
@@ -241,35 +274,23 @@ class Wc2Service {
       final proposer = PairingMetadata.fromJson(jsonDecode(connection.data));
       return proposer;
     }
+    final pairingMetadata = _wcClient.sessions
+        .getAll()
+        .where((element) => element.topic == topic)
+        .firstOrNull
+        ?.peer
+        .metadata;
 
-    if (_tempApproveResponse != null) {
-      final approveResponse = await _tempApproveResponse!.keys.toList().first;
-      if (approveResponse.topic == topic) {
-        return _tempApproveResponse!.values.toList().first;
-      }
+    if (pairingMetadata != null) {
+      return pairingMetadata;
     }
 
     log.warning('[Wc2Service] proposer not found for $topic');
     return null;
   }
 
-  // These session are approved but addresses permission are not granted.
-  final List<String> _pendingSessions = [];
-
-  void addPendingSession(String id) {
-    _pendingSessions.add(id);
-  }
-
-  String? getFirstSession() {
-    if (_pendingSessions.isEmpty) {
-      return null;
-    }
-    return _pendingSessions.first;
-  }
-
-  void removePendingSession(String id) {
-    _pendingSessions.remove(id);
-  }
+  List<SessionRequest> getPendingRequests() =>
+      _wcClient.pendingRequests.getAll();
 
   Future connect(String uri, {Function? onTimeout}) async {
     if (uri.isAutonomyConnectUri) {
@@ -313,8 +334,8 @@ class Wc2Service {
       namespaces: proposal.requiredNamespaces
           .map((key, value) => MapEntry(key, value.toNameSpace(accounts))),
     );
-    _tempApproveResponse = {resF: proposal.proposer};
     final res = await resF;
+    await Future.delayed(const Duration(seconds: 10));
     final topic = res.topic;
     log.info('[Wc2Service] approveSession topic $topic');
 
@@ -329,10 +350,7 @@ class Wc2Service {
       createdAt: DateTime.now(),
     );
     await _cloudDB.connectionDao.insertConnection(connection);
-    if (isAuConnect) {
-      addPendingSession(topic);
-    }
-    _tempApproveResponse = null;
+    return res;
   }
 
   Future rejectSession(
@@ -347,8 +365,6 @@ class Wc2Service {
 
   Future respondOnApprove(String topic, String response) async {
     log.info('[Wc2Service] respondOnApprove topic $topic, response: $response');
-
-    //await _wc2channel.respondOnApprove(topic, response);
   }
 
   Future respondOnReject(
@@ -362,7 +378,8 @@ class Wc2Service {
 
   Future deletePairing({required String topic}) async {
     log.info('[Wc2Service] Delete pairing. Topic: $topic');
-    //return await _wc2channel.deletePairing(topic: topic);
+    await _wcClient.disconnectSession(
+        topic: topic, reason: Errors.getSdkError(Errors.USER_DISCONNECTED));
   }
 
   //#endregion
@@ -552,8 +569,6 @@ class Wc2Service {
   }
 //#endregion
 }
-
-//enum WCSignType { MESSAGE, PERSONAL_MESSAGE, TYPED_MESSAGE }
 
 class Wc2RequestPayload {
   dynamic params;

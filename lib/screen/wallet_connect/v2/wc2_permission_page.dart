@@ -150,7 +150,7 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
     final cloudDB = injector<CloudDatabase>();
     final connections = await cloudDB.connectionDao
         .getConnectionsByType(ConnectionType.walletConnect2.rawValue);
-    final pendingSession = wc2Service.getFirstSession();
+    final pendingSession = wc2Service.getPendingRequests().firstOrNull?.topic;
     if (pendingSession != null) {
       final connection = connections
           .firstWhereOrNull((element) => element.key.contains(pendingSession));
@@ -159,7 +159,6 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
         await cloudDB.connectionDao.updateConnection(
             connection.copyWith(accountNumber: accountNumber));
       }
-      wc2Service.removePendingSession(pendingSession);
     }
 
     if (!mounted) {
