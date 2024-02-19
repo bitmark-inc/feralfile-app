@@ -51,10 +51,13 @@ class ArtworkDetailBloc extends AuBloc<ArtworkDetailEvent, ArtworkDetailState> {
         final assetToken = await _indexerService.getNftTokens(request);
 
         if (assetToken.isNotEmpty) {
+          final isViewOnly = await assetToken.first.isViewOnly();
           emit(ArtworkDetailState(
-              assetToken: assetToken.first,
-              provenances: assetToken.first.provenance,
-              owners: owners));
+            assetToken: assetToken.first,
+            provenances: assetToken.first.provenance,
+            owners: owners,
+            isViewOnly: isViewOnly,
+          ));
         }
         return;
       }
@@ -62,11 +65,12 @@ class ArtworkDetailBloc extends AuBloc<ArtworkDetailEvent, ArtworkDetailState> {
           event.identity.id, event.identity.owner);
       final provenances =
           await _provenanceDao.findProvenanceByTokenID(event.identity.id);
+      final isViewOnly = await assetToken?.isViewOnly();
       emit(ArtworkDetailState(
         assetToken: assetToken,
         provenances: provenances,
         owners: owners,
-      ));
+      ).copyWith(isViewOnly: isViewOnly));
       if (assetToken != null &&
           assetToken.asset != null &&
           (assetToken.mimeType?.isEmpty ?? true)) {

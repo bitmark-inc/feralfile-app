@@ -5,6 +5,9 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/feralfile_api.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
@@ -16,6 +19,7 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
+import 'package:autonomy_flutter/util/file_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:collection/collection.dart';
@@ -62,6 +66,19 @@ abstract class FeralFileService {
   Future<List<Artwork>> getExhibitionArtworks(String exhibitionId);
 
   Future<List<Artwork>> getSeriesArtworks(String seriesId);
+
+  Future<String> getFeralfileActionMessage(
+      {required String address, required FeralfileAction action});
+
+  Future<String> getFeralfileArtworkDownloadUrl({
+    required String artworkId,
+    required String owner,
+    required String signature,
+  });
+
+  Future<Artwork> getArtwork(String artworkId);
+
+  Future<File?> downloadFeralfileArtwork(AssetToken assetToken);
 }
 
 class FeralFileServiceImpl extends FeralFileService {
@@ -276,5 +293,76 @@ class FeralFileServiceImpl extends FeralFileService {
         '${listArtwork.map((e) => e.id).toList()}',
       );
     return listArtwork;
+  }
+
+  @override
+  Future<String> getFeralfileActionMessage(
+      {required String address, required FeralfileAction action}) async {
+    final response = await _feralFileApi.getActionMessage({
+      'address': address,
+      'action': action.action,
+    });
+    return response.message;
+  }
+
+  @override
+  Future<String> getFeralfileArtworkDownloadUrl(
+      {required String artworkId,
+      required String owner,
+      required String signature}) async {
+    final FeralFileResponse<String> response =
+        await _feralFileApi.getDownloadUrl(artworkId, signature, owner);
+    return response.result;
+  }
+
+  @override
+  Future<Artwork> getArtwork(String artworkId) async {
+    final response = await _feralFileApi.getArtworks(artworkId);
+    return response.result;
+  }
+
+  @override
+  Future<File?> downloadFeralfileArtwork(AssetToken assetToken) async {
+    try {
+      final artwork = await injector<FeralFileService>()
+          .getArtwork(assetToken.tokenId ?? '');
+      final message =
+          await injector<FeralFileService>().getFeralfileActionMessage(
+        address: assetToken.owner,
+        action: FeralfileAction.downloadSeries,
+      );
+      final ownerAddress = assetToken.owner;
+      final chain = assetToken.blockchain;
+      final account = await injector<AccountService>()
+          .getAccountByAddress(chain: chain, address: ownerAddress);
+      final signature =
+          await account.signMessage(chain: chain, message: message);
+      final publicKey = await account.wallet.getTezosPublicKey();
+      final signatureString = '$message|$signature|$publicKey';
+      final signatureHex = base64.encode(utf8.encode(signatureString));
+
+      final url =
+          await injector<FeralFileService>().getFeralfileArtworkDownloadUrl(
+        artworkId: artwork.id,
+        signature: signatureHex,
+        owner: ownerAddress,
+      );
+      final file = await FileHelper.downloadFile(url);
+      return file;
+    } catch (e) {
+      log.info('Error downloading artwork: $e');
+      rethrow;
+    }
+  }
+}
+
+enum FeralfileAction {
+  downloadSeries;
+
+  String get action {
+    switch (this) {
+      case FeralfileAction.downloadSeries:
+        return 'download series';
+    }
   }
 }
