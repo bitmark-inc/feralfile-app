@@ -122,7 +122,9 @@ class Wc2Service {
     final Map<String, dynamic Function(String, dynamic)?> ethRequestHandlerMap =
         {
       'eth_sendTransaction': _handleEthSendTx,
-      'personal_sign': _handleEthPersonalSign,
+      'personal_sign': (String topic, params) async =>
+          _wait4SessionApproveThenHandleRequest(
+              topic, params, _handleEthPersonalSign),
       'eth_sign': _handleEthSign,
       'eth_signTypedData': _handleEthSignType,
       'eth_signTypedData_v4': _handleEthSignType,
@@ -130,10 +132,7 @@ class Wc2Service {
     log.info('[Wc2Service] Registering handlers for chainId: $chainId');
     ethRequestHandlerMap.forEach((method, handler) {
       _wcClient.registerRequestHandler(
-          chainId: chainId,
-          method: method,
-          handler: (String topic, params) async =>
-              _wait4SessionApproveThenHandleRequest(topic, params, handler));
+          chainId: chainId, method: method, handler: handler);
     });
   }
 
@@ -141,17 +140,16 @@ class Wc2Service {
     final Map<String, dynamic Function(String, dynamic)?>
         feralfileRequestHandlerMap = {
       'au_sign': _handleAuSign,
-      'au_permissions': _handleAuPermissions,
+      'au_permissions': (String topic, params) async =>
+          _wait4SessionApproveThenHandleRequest(
+              topic, params, _handleAuPermissions),
       'au_sendTransaction': _handleAuSendEthTx,
     };
     log.info('[Wc2Service] Registering handlers for chainId: $chainId');
     feralfileRequestHandlerMap.forEach(
       (method, handler) {
         _wcClient.registerRequestHandler(
-            chainId: chainId,
-            method: method,
-            handler: (String topic, dynamic params) async =>
-                _wait4SessionApproveThenHandleRequest(topic, params, handler));
+            chainId: chainId, method: method, handler: handler);
       },
     );
   }
@@ -159,12 +157,12 @@ class Wc2Service {
   Future<void> _wait4SessionApproveThenHandleRequest(
       String topic, params, dynamic Function(String, dynamic)? handler) async {
     int counter = 0;
-    const MAX_COUNTER = 20;
+    const maxCounter = 20;
     do {
       counter++;
       log.info('[Wc2Service] waiting for user to approve');
       await Future.delayed(const Duration(milliseconds: 500));
-    } while (!isApprovedSession(topic) || counter < MAX_COUNTER);
+    } while (!isApprovedSession(topic) || counter < maxCounter);
     if (handler != null) {
       return await handler(topic, params);
     }
@@ -335,7 +333,6 @@ class Wc2Service {
           .map((key, value) => MapEntry(key, value.toNameSpace(accounts))),
     );
     final res = await resF;
-    await Future.delayed(const Duration(seconds: 10));
     final topic = res.topic;
     log.info('[Wc2Service] approveSession topic $topic');
 
