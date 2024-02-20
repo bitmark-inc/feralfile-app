@@ -21,6 +21,7 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
 import 'package:autonomy_flutter/screen/gallery/gallery_page.dart';
+import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_page.dart';
 import 'package:autonomy_flutter/service/airdrop_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -307,8 +308,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                 Semantics(
                   label: 'artworkDotIcon',
                   child: IconButton(
-                    onPressed: () => unawaited(
-                        _showArtworkOptionsDialog(asset, state.isViewOnly)),
+                    onPressed: () => unawaited(_showArtworkOptionsDialog(
+                        context, asset, state.isViewOnly)),
                     constraints: const BoxConstraints(
                       maxWidth: 44,
                       maxHeight: 44,
@@ -445,10 +446,12 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       .getTempStorageHiddenTokenIDs()
       .contains(token.id);
 
-  Future _showArtworkOptionsDialog(AssetToken asset, bool isViewOnly) async {
+  Future _showArtworkOptionsDialog(
+      BuildContext context, AssetToken asset, bool isViewOnly) async {
     final owner = await asset.getOwnerWallet();
     final ownerWallet = owner?.first;
     final addressIndex = owner?.second;
+    final irlUrl = asset.irlTapLink;
 
     if (!mounted) {
       return;
@@ -457,7 +460,21 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     unawaited(UIHelper.showDrawerAction(
       context,
       options: [
-        if (asset.shouldShowDownloadArtwork && !isViewOnly || true)
+        if (!isViewOnly && irlUrl != null)
+          OptionItem(
+            title: irlUrl.first,
+            icon: const Icon(AuIcon.microphone),
+            onTap: () {
+              unawaited(
+                Navigator.pushNamed(
+                  context,
+                  AppRouter.irlWebView,
+                  arguments: IRLWebScreenPayload(irlUrl.second),
+                ),
+              );
+            },
+          ),
+        if (asset.shouldShowDownloadArtwork && !isViewOnly)
           OptionItem(
             title: 'download_artwork'.tr(),
             icon: SvgPicture.asset('assets/images/download_artwork.svg'),
@@ -510,6 +527,9 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                 if (!mounted) {
                   return;
                 }
+                setState(() {
+                  downloadProgress.value = 0;
+                });
                 log.info('Download artwork failed: $e');
                 if (e is DioException) {
                   unawaited(UIHelper.showFeralfileArtworkSavedFailed(context));
