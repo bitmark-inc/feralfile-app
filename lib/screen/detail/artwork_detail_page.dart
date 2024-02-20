@@ -487,22 +487,20 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
             ),
             iconOnProcessing: ValueListenableBuilder(
                 valueListenable: downloadProgress,
-                builder: (context, double value, child) {
-                  return SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      value: value <= 0 ? null : value,
-                      valueColor: value <= 0
-                          ? null
-                          : AlwaysStoppedAnimation<Color>(Colors.blue),
-                      backgroundColor:
-                          value <= 0 ? null : AppColor.disabledColor,
-                      color: AppColor.disabledColor,
-                      strokeWidth: 2,
-                    ),
-                  );
-                }),
+                builder: (context, double value, child) => SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        value: value <= 0 ? null : value,
+                        valueColor: value <= 0
+                            ? null
+                            : const AlwaysStoppedAnimation<Color>(Colors.blue),
+                        backgroundColor:
+                            value <= 0 ? null : AppColor.disabledColor,
+                        color: AppColor.disabledColor,
+                        strokeWidth: 2,
+                      ),
+                    )),
             onTap: () async {
               try {
                 final file = await _feralfileService.downloadFeralfileArtwork(

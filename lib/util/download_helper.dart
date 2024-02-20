@@ -80,7 +80,7 @@ class DownloadHelper {
         log.info('Downloaded part $i/$numParts');
       });
 
-      final batchSize = 10;
+      const batchSize = 10;
       final batches = <List<Future<void>>>[];
       List<Future<void>> batch = <Future<void>>[];
       for (final future in downloadFeatures) {
