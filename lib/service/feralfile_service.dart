@@ -347,7 +347,7 @@ class FeralFileServiceImpl extends FeralFileService {
         signature: signatureHex,
         owner: ownerAddress,
       );
-      final file = await FileHelper.downloadFile(url);
+      final file = await FileHelper.downloadFileMultipart(url);
       return file;
     } catch (e) {
       log.info('Error downloading artwork: $e');
