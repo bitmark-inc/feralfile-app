@@ -34,6 +34,11 @@ class DownloadHelper {
     }
   }
 
+  static int _getChunkSize(int fileSize) {
+    const int maxChunkSize = 1024 * 1024;
+    return fileSize > maxChunkSize ? maxChunkSize : fileSize;
+  }
+
   static Future<File?> fileChunkedDownload(String fullUrl,
       {Function(int received, int total)? onReceiveProgress}) async {
     log.info('Downloading file: $fullUrl');
@@ -49,7 +54,7 @@ class DownloadHelper {
     int received = 0;
 
     // Calculate the number of parts
-    const partSize = 5 * 1024 * 1024;
+    final partSize = _getChunkSize(fileSize);
 
     final int numParts = (fileSize / partSize).ceil();
     try {
@@ -84,6 +89,9 @@ class DownloadHelper {
           batches.add(batch);
           batch = <Future<void>>[];
         }
+      }
+      if (batch.isNotEmpty) {
+        batches.add(batch);
       }
       for (final batch in batches) {
         await Future.wait(batch);
