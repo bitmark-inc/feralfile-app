@@ -69,7 +69,7 @@ jobs:
       - name: Create env file
         run: |
           touch .env
-          ${{ inputs.testnet == true }} && echo "${{ secrets.DEV_ENV }}" >> .env || echo "${{ secrets.STAGING_ENV }}" >> .env
+          ${{ inputs.testnet == true }} && echo -e "${{ secrets.DEV_ENV }}" | sed 's/\\n/\n/g' >> .env || echo -e "${{ secrets.STAGING_ENV }}" | sed 's/\\n/\n/g' >> .env
           cat .env
 
       - name: Flutter doctor
