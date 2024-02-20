@@ -382,6 +382,26 @@ extension AssetTokenExtension on AssetToken {
         (remoteConfigAllowDownloadArtwork?.contains(contractAddress) ?? true);
     return res;
   }
+
+  Pair<String, String>? get irlTapLink {
+    final remoteConfig = injector<RemoteConfigService>();
+    final soundPieceContractAddresses = remoteConfig.getConfig<List<dynamic>>(
+        ConfigGroup.feralfileArtworkAction,
+        ConfigKey.soundPieceContractAddresses, []);
+    if (soundPieceContractAddresses.contains(contractAddress)) {
+      final indexId = 'feralfile-$contractAddress-2-$edition';
+      if (asset?.indexID == indexId) {
+        final index = edition + 1;
+        return Pair(
+          'tape_sound'.tr(),
+          '${Environment.feralFileAPIURL}/'
+          'artwork/yoko-ono-sound-piece/$index/record',
+        );
+      }
+    }
+
+    return null;
+  }
 }
 
 extension CompactedAssetTokenExtension on CompactedAssetToken {

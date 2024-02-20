@@ -41,7 +41,8 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
     'postcard_action': {'wait_confirmed_to_send': false},
     'feralfile_artwork_action': {
       'allow_download_artwork_contracts': [],
-    }
+      'sound_piece_contract_addresses': [],
+    },
   };
 
   static Map<String, dynamic>? _configs;
@@ -129,6 +130,7 @@ enum ConfigKey {
   chat,
   waitConfirmedToSend,
   allowDownloadArtworkContracts,
+  soundPieceContractAddresses,
 }
 
 // ConfigKey getString extension
@@ -169,6 +171,8 @@ extension ConfigKeyExtension on ConfigKey {
         return 'wait_confirmed_to_send';
       case ConfigKey.allowDownloadArtworkContracts:
         return 'allow_download_artwork_contracts';
+      case ConfigKey.soundPieceContractAddresses:
+        return 'sound_piece_contract_addresses';
     }
   }
 }

@@ -371,9 +371,10 @@ class DeeplinkServiceImpl extends DeeplinkService {
     if (!_configurationService.isDoneOnboarding()) {
       await injector<AccountService>().restoreIfNeeded();
     }
-    if (link.startsWith(IRL_DEEPLINK_PREFIX)) {
-      final urlDecode =
-          Uri.decodeFull(link.replaceFirst(IRL_DEEPLINK_PREFIX, ''));
+    final irlPrefix = IRL_DEEPLINK_PREFIXES
+        .firstWhereOrNull((element) => link.startsWith(element));
+    if (irlPrefix != null) {
+      final urlDecode = Uri.decodeFull(link.replaceFirst(irlPrefix, ''));
 
       final uri = Uri.tryParse(urlDecode);
       if (uri == null) {
