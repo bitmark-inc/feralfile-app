@@ -27,7 +27,7 @@ jobs:
           channel: stable
       - uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: "15.2"
+          xcode-version: "15.0"
 
       - name: Set env
         run: |
