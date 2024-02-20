@@ -72,6 +72,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     with AfterLayoutMixin<ArtworkDetailPage> {
   late ScrollController _scrollController;
   late bool withSharing;
+  ValueNotifier<double> downloadProgress = ValueNotifier(0);
 
   HashSet<String> _accountNumberHash = HashSet.identity();
   AssetToken? currentAsset;
@@ -456,7 +457,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     unawaited(UIHelper.showDrawerAction(
       context,
       options: [
-        if (asset.shouldShowDownloadArtwork && !isViewOnly)
+        if (asset.shouldShowDownloadArtwork && !isViewOnly || true)
           OptionItem(
             title: 'download_artwork'.tr(),
             icon: SvgPicture.asset('assets/images/download_artwork.svg'),
@@ -467,22 +468,38 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                 BlendMode.srcIn,
               ),
             ),
-            iconOnProcessing: const SizedBox(
-              height: 20,
-              width: 20,
-              child: CircularProgressIndicator(
-                valueColor:
-                    AlwaysStoppedAnimation<Color>(AppColor.disabledColor),
-                strokeWidth: 1,
-              ),
-            ),
+            iconOnProcessing: ValueListenableBuilder(
+                valueListenable: downloadProgress,
+                builder: (context, double value, child) {
+                  return SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      value: value <= 0 ? null : value,
+                      valueColor: value <= 0
+                          ? null
+                          : AlwaysStoppedAnimation<Color>(Colors.blue),
+                      backgroundColor:
+                          value <= 0 ? null : AppColor.disabledColor,
+                      color: AppColor.disabledColor,
+                      strokeWidth: 2,
+                    ),
+                  );
+                }),
             onTap: () async {
               try {
-                final file =
-                    await _feralfileService.downloadFeralfileArtwork(asset);
+                final file = await _feralfileService.downloadFeralfileArtwork(
+                    asset, onReceiveProgress: (received, total) {
+                  setState(() {
+                    downloadProgress.value = received / total;
+                  });
+                });
                 if (!mounted) {
                   return;
                 }
+                setState(() {
+                  downloadProgress.value = 0;
+                });
                 Navigator.of(context).pop();
                 if (file != null) {
                   await FileHelper.shareFile(file, deleteAfterShare: true);

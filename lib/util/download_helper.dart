@@ -34,7 +34,8 @@ class DownloadHelper {
     }
   }
 
-  static Future<File?> fileChunkedDownload(String fullUrl) async {
+  static Future<File?> fileChunkedDownload(String fullUrl,
+      {Function(int received, int total)? onReceiveProgress}) async {
     log.info('Downloading file: $fullUrl');
     final dir = await FileHelper.getDownloadDir();
     final savePath = '${dir.path}/Downloads/';
@@ -45,6 +46,7 @@ class DownloadHelper {
     final int fileSize = await _getFileSize(response.headers);
     final String fileName = await _getFileName(response.headers);
     final filePath = savePath + fileName;
+    int received = 0;
 
     // Calculate the number of parts
     const partSize = 5 * 1024 * 1024;
@@ -52,7 +54,7 @@ class DownloadHelper {
     final int numParts = (fileSize / partSize).ceil();
     try {
       // Perform multipart download
-      await Future.wait(List.generate(numParts, (i) => i).map((i) async {
+      final downloadFeatures = List.generate(numParts, (i) => i).map((i) async {
         final int start = i * partSize;
         final int end = (i + 1) * partSize - 1;
 
@@ -65,8 +67,27 @@ class DownloadHelper {
             },
           ),
         );
+        received += partSize;
+        if (onReceiveProgress != null) {
+          onReceiveProgress(received, fileSize);
+        }
+
         log.info('Downloaded part $i/$numParts');
-      }));
+      });
+
+      final batchSize = 10;
+      final batches = <List<Future<void>>>[];
+      List<Future<void>> batch = <Future<void>>[];
+      for (final future in downloadFeatures) {
+        batch.add(future);
+        if (batch.length == batchSize) {
+          batches.add(batch);
+          batch = <Future<void>>[];
+        }
+      }
+      for (final batch in batches) {
+        await Future.wait(batch);
+      }
 
       // Concatenate parts to create the final file
       final outputFile = File(filePath);
