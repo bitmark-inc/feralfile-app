@@ -280,6 +280,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
             systemOverlayStyle: systemUiOverlayDarkStyle,
             leadingWidth: 0,
             centerTitle: false,
+            backgroundColor: Colors.transparent,
             title: ArtworkDetailsHeader(
               title: asset.title ?? '',
               subTitle: subTitle,

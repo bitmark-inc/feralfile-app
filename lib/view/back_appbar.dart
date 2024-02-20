@@ -38,6 +38,7 @@ AppBar getBackAppBar(
         statusBarBrightness: isWhite ? Brightness.light : Brightness.dark),
     centerTitle: true,
     leadingWidth: 44,
+    scrolledUnderElevation: 0,
     leading: onBack != null
         ? Semantics(
             label: 'BACK',
@@ -118,6 +119,7 @@ AppBar getTitleEditAppBar(BuildContext context,
         statusBarBrightness: isWhite ? Brightness.light : Brightness.dark),
     centerTitle: true,
     leadingWidth: 44,
+    scrolledUnderElevation: 0,
     leading: hasBack
         ? Semantics(
             label: 'BACK',
@@ -198,6 +200,7 @@ AppBar getCloseAppBar(
     ),
     centerTitle: isTitleCenter,
     automaticallyImplyLeading: false,
+    scrolledUnderElevation: 0,
     title: Text(
       title,
       overflow: TextOverflow.ellipsis,
@@ -234,6 +237,7 @@ AppBar getDarkEmptyAppBar([Color? statusBarColor]) => AppBar(
       toolbarHeight: 0,
       shadowColor: Colors.transparent,
       elevation: 0,
+      scrolledUnderElevation: 0,
     );
 
 AppBar getLightEmptyAppBar([Color? statusBarColor]) => AppBar(
@@ -242,6 +246,7 @@ AppBar getLightEmptyAppBar([Color? statusBarColor]) => AppBar(
       toolbarHeight: 0,
       shadowColor: Colors.transparent,
       elevation: 0,
+      scrolledUnderElevation: 0,
     );
 
 SystemUiOverlayStyle _systemUiOverlayDarkStyle(Color? statusBarColor) =>
@@ -277,6 +282,7 @@ AppBar getDoneAppBar(
       statusBarBrightness: isWhite ? Brightness.light : Brightness.dark,
     ),
     elevation: 1,
+    scrolledUnderElevation: 0,
     shadowColor: Colors.transparent,
     leadingWidth: 80,
     leading: GestureDetector(
@@ -337,6 +343,7 @@ AppBar getCustomDoneAppBar(
     shadowColor: Colors.transparent,
     elevation: 1,
     leadingWidth: 80,
+    scrolledUnderElevation: 0,
     leading: GestureDetector(
       onTap: onCancel,
       child: Padding(
@@ -389,6 +396,7 @@ AppBar getFFAppBar(
       centerTitle: true,
       toolbarHeight: 66,
       leadingWidth: 44,
+      scrolledUnderElevation: 0,
       leading: onBack != null
           ? Semantics(
               label: 'BACK',
