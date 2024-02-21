@@ -380,13 +380,16 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
             overflow: TextOverflow.ellipsis,
           ),
         ),
-        GestureDetector(
-          onTap: onValueTap,
-          child: Text(
-            content,
-            style: theme.textTheme.ppMori400Black14.copyWith(
-                decoration:
-                    (onValueTap != null) ? TextDecoration.underline : null),
+        Expanded(
+          child: GestureDetector(
+            onTap: onValueTap,
+            child: Text(
+              content,
+              style: theme.textTheme.ppMori400Black14.copyWith(
+                  decoration:
+                      (onValueTap != null) ? TextDecoration.underline : null),
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         )
       ],

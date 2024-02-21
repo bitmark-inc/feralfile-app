@@ -117,7 +117,7 @@ class UIHelper {
     EdgeInsets? padding,
     EdgeInsets? paddingTitle,
   }) async {
-    log.info('[UIHelper] showInfoDialog: $title');
+    log.info('[UIHelper] showDialog: $title');
     currentDialogTitle = title;
     final theme = Theme.of(context);
 
@@ -569,7 +569,7 @@ class UIHelper {
     Function? onAction,
     Widget? descriptionWidget,
   }) async {
-    log.info('[UIHelper] showInfoDialog: $title, $description');
+    log.info('[UIHelper] showMessageAction: $title, $description');
     final theme = Theme.of(context);
 
     if (autoDismissAfter > 0) {
@@ -623,7 +623,7 @@ class UIHelper {
     Function? onAction,
     Widget? descriptionWidget,
   }) async {
-    log.info('[UIHelper] showInfoDialog: $title, $description');
+    log.info('[UIHelper] showMessageActionNew: $title, $description');
     final theme = Theme.of(context);
 
     if (autoDismissAfter > 0) {
