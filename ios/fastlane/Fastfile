@@ -100,7 +100,7 @@ platform :ios do
 			auth_token: ENV["SENTRY_AUTH"],
 			org_slug: 'bitmark-inc',
 			project_slug: 'autonomy-client-flutter',
-			dsym_path: './ipas/Runner-Inhouse.app.dSYM.zip'
+			dsym_path: './ipas/Runner Inhouse.app.dSYM.zip'
 		)
 
 		sentry_finalize_release(
