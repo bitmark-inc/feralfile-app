@@ -264,7 +264,7 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
 
   Future<JSResult?> _sendTransaction(List<dynamic> args) async {
     try {
-      log.info('[IRLWebScreen] signMessage: $args');
+      log.info('[IRLWebScreen] sendTransaction: $args');
       if (args.firstOrNull == null || args.firstOrNull is! Map) {
         return _logAndReturnJSResult(
           '_sendTransaction',
