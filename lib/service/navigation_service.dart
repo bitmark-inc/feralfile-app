@@ -276,8 +276,10 @@ class NavigationService {
                 .textTheme
                 .ppMori400White12
                 .copyWith(
-                    color: AppColor.auQuickSilver,
-                    decoration: TextDecoration.underline),
+                  color: AppColor.auQuickSilver,
+                  decoration: TextDecoration.underline,
+                  decorationColor: AppColor.auQuickSilver,
+                ),
           ),
         ),
         duration: const Duration(seconds: 15),

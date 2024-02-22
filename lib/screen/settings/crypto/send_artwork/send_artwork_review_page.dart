@@ -386,8 +386,10 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
             child: Text(
               content,
               style: theme.textTheme.ppMori400Black14.copyWith(
-                  decoration:
-                      (onValueTap != null) ? TextDecoration.underline : null),
+                decoration:
+                    (onValueTap != null) ? TextDecoration.underline : null,
+                decorationColor: AppColor.primaryBlack,
+              ),
               overflow: TextOverflow.ellipsis,
             ),
           ),
