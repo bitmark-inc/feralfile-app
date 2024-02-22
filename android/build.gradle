@@ -12,6 +12,9 @@ buildscript {
 
     dependencies {
         classpath 'com.android.tools.build:gradle:7.4.2'
+        // START: FlutterFire Configuration
+        classpath 'com.google.gms:google-services:4.3.15'
+        // END: FlutterFire Configuration
         classpath "org.jetbrains.kotlin:kotlin-serialization:$kotlin_version"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
@@ -26,7 +29,7 @@ allprojects {
             }
         }
         maven { url 'https://jitpack.io' }
-        maven { url "${project(':background_fetch').projectDir}/libs"}
+        maven { url "${project(':background_fetch').projectDir}/libs" }
     }
 }
 

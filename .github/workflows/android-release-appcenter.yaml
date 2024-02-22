@@ -48,6 +48,10 @@ jobs:
           ${{ inputs.testnet == true }} && echo -e "${{ secrets.DEV_ENV }}" | sed 's/\\n/\n/g' >> .env || echo -e "${{ secrets.STAGING_ENV }}" | sed 's/\\n/\n/g' >> .env
           cat .env
 
+      - name: Create android/app/google-services.json
+        run: |
+          touch android/app/google-services.json
+          echo ${{ secrets.GOOGLE_SERVICE_JSON }} >> android/app/google-services.json
       - name: Submoudles update
         run: git -c submodule.auto-test.update=none submodule update --init --recursive
       - run: flutter pub cache repair

@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:libauk_dart/libauk_dart.dart';
 
 class AuthService {
   final IAPApi _authApi;
@@ -32,12 +33,13 @@ class AuthService {
   Future<JWT> getAuthToken(
       {String? messageToSign,
       String? receiptData,
-      bool forceRefresh = false}) async {
+      bool forceRefresh = false,
+      WalletStorage? defaultAccount}) async {
     if (!forceRefresh && _jwt != null && _jwt!.isValid()) {
       return _jwt!;
     }
 
-    final account = await _accountService.getDefaultAccount();
+    final account = defaultAccount ?? await _accountService.getDefaultAccount();
 
     final message =
         messageToSign ?? DateTime.now().millisecondsSinceEpoch.toString();

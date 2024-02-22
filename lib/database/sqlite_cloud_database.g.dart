@@ -1,27 +1,27 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'cloud_database.dart';
+part of 'sqlite_cloud_database.dart';
 
 // **************************************************************************
 // FloorGenerator
 // **************************************************************************
 
 // ignore: avoid_classes_with_only_static_members
-class $FloorCloudDatabase {
+class $FloorSqliteCloudDatabase {
   /// Creates a database builder for a persistent database.
   /// Once a database is built, you should keep a reference to it and re-use it.
-  static _$CloudDatabaseBuilder databaseBuilder(String name) =>
-      _$CloudDatabaseBuilder(name);
+  static _$SqliteCloudDatabaseBuilder databaseBuilder(String name) =>
+      _$SqliteCloudDatabaseBuilder(name);
 
   /// Creates a database builder for an in memory database.
   /// Information stored in an in memory database disappears when the process is killed.
   /// Once a database is built, you should keep a reference to it and re-use it.
-  static _$CloudDatabaseBuilder inMemoryDatabaseBuilder() =>
-      _$CloudDatabaseBuilder(null);
+  static _$SqliteCloudDatabaseBuilder inMemoryDatabaseBuilder() =>
+      _$SqliteCloudDatabaseBuilder(null);
 }
 
-class _$CloudDatabaseBuilder {
-  _$CloudDatabaseBuilder(this.name);
+class _$SqliteCloudDatabaseBuilder {
+  _$SqliteCloudDatabaseBuilder(this.name);
 
   final String? name;
 
@@ -30,23 +30,23 @@ class _$CloudDatabaseBuilder {
   Callback? _callback;
 
   /// Adds migrations to the builder.
-  _$CloudDatabaseBuilder addMigrations(List<Migration> migrations) {
+  _$SqliteCloudDatabaseBuilder addMigrations(List<Migration> migrations) {
     _migrations.addAll(migrations);
     return this;
   }
 
   /// Adds a database [Callback] to the builder.
-  _$CloudDatabaseBuilder addCallback(Callback callback) {
+  _$SqliteCloudDatabaseBuilder addCallback(Callback callback) {
     _callback = callback;
     return this;
   }
 
   /// Creates the database and initializes it.
-  Future<CloudDatabase> build() async {
+  Future<SqliteCloudDatabase> build() async {
     final path = name != null
         ? await sqfliteDatabaseFactory.getDatabasePath(name!)
         : ':memory:';
-    final database = _$CloudDatabase();
+    final database = _$SqliteCloudDatabase();
     database.database = await database.open(
       path,
       _migrations,
@@ -56,8 +56,8 @@ class _$CloudDatabaseBuilder {
   }
 }
 
-class _$CloudDatabase extends CloudDatabase {
-  _$CloudDatabase([StreamController<String>? listener]) {
+class _$SqliteCloudDatabase extends SqliteCloudDatabase {
+  _$SqliteCloudDatabase([StreamController<String>? listener]) {
     changeListener = listener ?? StreamController<String>.broadcast();
   }
 

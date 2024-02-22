@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -12,8 +13,10 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/cloud_firestore_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:crypto/crypto.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:path_provider/path_provider.dart';
@@ -24,7 +27,13 @@ part 'settings_data_service.g.dart';
 abstract class SettingsDataService {
   Future backup();
 
+  Future firestoreBackup();
+
   Future restoreSettingsData();
+
+  Future restoreSettingsDataFromFirestore();
+
+  Future removeAll();
 }
 
 class SettingsDataServiceImpl implements SettingsDataService {
@@ -32,14 +41,17 @@ class SettingsDataServiceImpl implements SettingsDataService {
   final AccountService _accountService;
   final IAPApi _iapApi;
   final CloudDatabase _cloudDB;
+  final CloudFirestoreService _cloudFirestoreService;
+  final _collection = FirestoreCollection.settingsData;
 
-  var latestDataHash = '';
+  String latestDataHash = '';
 
   SettingsDataServiceImpl(
     this._configurationService,
     this._accountService,
     this._iapApi,
     this._cloudDB,
+    this._cloudFirestoreService,
   );
 
   final _requester =
@@ -48,31 +60,43 @@ class SettingsDataServiceImpl implements SettingsDataService {
   final _version = '1';
   var _numberOfCallingBackups = 0;
 
-  @override
-  Future backup() async {
-    log.info('[SettingsDataService][Start] backup');
+  Future<SettingsDataBackup> _getSettingsDataBackup() async {
     final addresses = await _accountService.getShowedAddresses();
-
-    _numberOfCallingBackups += 1;
-
     final hiddenMainnetTokenIDs =
         _configurationService.getTempStorageHiddenTokenIDs();
-
     final hiddenAddressesFromGallery =
         (await _cloudDB.addressDao.findAddressesWithHiddenStatus(true))
             .map((e) => e.address)
             .toList();
+    final hiddenLinkedAccountsFromGallery =
+        _configurationService.getLinkedAccountsHiddenInGallery();
+    final playlists = _configurationService.getPlayList();
 
-    final data = SettingsDataBackup(
+    return SettingsDataBackup(
       addresses: addresses,
       isAnalyticsEnabled: _configurationService.isAnalyticsEnabled(),
       hiddenMainnetTokenIDs: hiddenMainnetTokenIDs,
       hiddenTestnetTokenIDs: [],
       hiddenAddressesFromGallery: hiddenAddressesFromGallery,
-      hiddenLinkedAccountsFromGallery:
-          _configurationService.getLinkedAccountsHiddenInGallery(),
-      playlists: _configurationService.getPlayList(),
+      hiddenLinkedAccountsFromGallery: hiddenLinkedAccountsFromGallery,
+      playlists: playlists,
     );
+  }
+
+  CollectionReference<SettingsDataBackup> get _collectionRef =>
+      _cloudFirestoreService
+          .getCollection(_collection)
+          .withConverter<SettingsDataBackup>(
+              fromFirestore: (snapshot, _) =>
+                  SettingsDataBackup.fromJson(snapshot.data()!),
+              toFirestore: (data, _) => data.toJson());
+
+  @override
+  Future backup() async {
+    await firestoreBackup();
+    log.info('[SettingsDataService][Start] backup');
+
+    final data = await _getSettingsDataBackup();
 
     final dataBytes = utf8.encode(json.encode(data.toJson()));
     final dataHash = sha512.convert(dataBytes).toString();
@@ -92,14 +116,14 @@ class SettingsDataServiceImpl implements SettingsDataService {
             _requester, _filename, _version, backupFile);
         isSuccess = true;
       } catch (exception) {
-        Sentry.captureException(exception);
+        unawaited(Sentry.captureException(exception));
       }
     }
 
     latestDataHash = dataHash;
 
     if (_numberOfCallingBackups == 1) {
-      backupFile.delete();
+      unawaited(backupFile.delete());
     }
 
     _numberOfCallingBackups -= 1;
@@ -108,34 +132,55 @@ class SettingsDataServiceImpl implements SettingsDataService {
   }
 
   @override
+  Future firestoreBackup() async {
+    final data = await _getSettingsDataBackup();
+
+    await _collectionRef.doc(_collectionRef.id).set(data);
+  }
+
+  @override
   Future restoreSettingsData() async {
-    log.info('[SettingsDataService][Start] restoreSettingsData');
     try {
-      final response =
-          await _iapApi.getProfileData(_requester, _filename, _version);
-      final data = SettingsDataBackup.fromJson(json.decode(response));
-
-      _configurationService.setAnalyticEnabled(data.isAnalyticsEnabled);
-
-      await _configurationService.updateTempStorageHiddenTokenIDs(
-          data.hiddenMainnetTokenIDs, true,
-          override: true);
-
-      await Future.wait((data.hiddenAddressesFromGallery ?? [])
-          .map((e) => _cloudDB.addressDao.setAddressIsHidden(e, true)));
-
-      await _configurationService.setHideLinkedAccountInGallery(
-          data.hiddenLinkedAccountsFromGallery, true,
-          override: true);
-
-      await _configurationService.setPlayList(data.playlists, override: true);
-
-      log.info('[SettingsDataService][Done] restoreSettingsData');
+      await restoreSettingsDataFromFirestore();
+      return;
     } catch (exception, stacktrace) {
       await Sentry.captureException(exception, stackTrace: stacktrace);
       return;
     }
   }
+
+  @override
+  Future restoreSettingsDataFromFirestore() =>
+      _collectionRef.doc(_collectionRef.id).get().then((snapshot) async {
+        if (snapshot.exists) {
+          final data = snapshot.data()!;
+          await _configurationService
+              .setAnalyticEnabled(data.isAnalyticsEnabled);
+
+          await _configurationService.updateTempStorageHiddenTokenIDs(
+              data.hiddenMainnetTokenIDs, true,
+              override: true);
+
+          await Future.wait((data.hiddenAddressesFromGallery ?? [])
+              .map((e) => _cloudDB.addressDao.setAddressIsHidden(e, true)));
+
+          await _configurationService.setHideLinkedAccountInGallery(
+              data.hiddenLinkedAccountsFromGallery, true,
+              override: true);
+
+          await _configurationService.setPlayList(data.playlists,
+              override: true);
+        }
+      });
+
+  @override
+  Future removeAll() => _collectionRef.get().then((snapshot) {
+        final batch = _cloudFirestoreService.getBatch();
+        for (final doc in snapshot.docs) {
+          batch.delete(doc.reference);
+        }
+        return batch.commit();
+      });
 }
 
 @JsonSerializable()

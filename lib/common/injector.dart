@@ -12,6 +12,11 @@ import 'dart:math';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/database/dao/firestore_address_dao.dart';
+import 'package:autonomy_flutter/database/dao/firestore_audit_dao.dart';
+import 'package:autonomy_flutter/database/dao/firestore_connection_dao.dart';
+import 'package:autonomy_flutter/database/dao/firestore_persona_dao.dart';
+import 'package:autonomy_flutter/database/sqlite_cloud_database.dart';
 import 'package:autonomy_flutter/gateway/activation_api.dart';
 import 'package:autonomy_flutter/gateway/airdrop_api.dart';
 import 'package:autonomy_flutter/gateway/announcement_api.dart';
@@ -40,6 +45,7 @@ import 'package:autonomy_flutter/service/activation_service.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/airdrop_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
+import 'package:autonomy_flutter/service/auth_firebase_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
@@ -47,6 +53,7 @@ import 'package:autonomy_flutter/service/canvas_client_service.dart';
 import 'package:autonomy_flutter/service/chat_auth_service.dart';
 import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
+import 'package:autonomy_flutter/service/cloud_firestore_service.dart';
 import 'package:autonomy_flutter/service/cloud_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/currency_service.dart';
@@ -76,6 +83,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:autonomy_flutter/util/dio_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -127,7 +135,7 @@ Future<void> setup() async {
     migrateV17ToV18,
   ]).build();
 
-  final cloudDB = await $FloorCloudDatabase
+  final cloudDB = await $FloorSqliteCloudDatabase
       .databaseBuilder('cloud_database.db')
       .addMigrations([
     migrateCloudV1ToV2,
@@ -165,6 +173,22 @@ Future<void> setup() async {
       () => NftCollection.database.predefinedCollectionDao);
   injector.registerLazySingleton(() => cloudDB);
 
+  injector
+      .registerLazySingleton<AuthFirebaseService>(() => AuthFirebaseService());
+  injector.registerLazySingleton<CloudFirestoreService>(
+      () => CloudFirestoreService(FirebaseFirestore.instance, injector()));
+
+  injector.registerLazySingleton<FirestorePersonaDao>(
+      () => FirestorePersonaDaoImp(injector()));
+  injector.registerLazySingleton<FirestoreConnectionDao>(
+      () => FirestoreConnectionDaoImp(injector()));
+  injector.registerLazySingleton<FirestoreAuditDao>(
+      () => FirestoreAuditDaoImp(injector()));
+  injector.registerLazySingleton<FirestoreWalletAddressDao>(
+      () => FirestoreWalletAddressDaoImp(injector()));
+  injector.registerLazySingleton(
+      () => CloudDatabase(injector(), injector(), injector(), injector()));
+
   final authenticatedDio = Dio(); // Authenticated dio instance for AU servers
   authenticatedDio.interceptors.add(AutonomyAuthInterceptor());
   authenticatedDio.interceptors.add(LoggingInterceptor());
@@ -186,7 +210,7 @@ Future<void> setup() async {
   authenticatedDio.options = dioOptions;
 
   // Services
-  final auditService = AuditServiceImpl(cloudDB);
+  final auditService = AuditServiceImpl(injector());
 
   injector.registerSingleton<ConfigurationService>(
       ConfigurationServiceImpl(sharedPreferences));
@@ -201,7 +225,7 @@ Future<void> setup() async {
       () => MixPanelClientService(injector(), injector(), injector()));
   injector.registerLazySingleton<CacheManager>(() => AUImageCacheManage());
   injector.registerLazySingleton<AccountService>(() => AccountServiceImpl(
-        cloudDB,
+        injector(),
         injector(),
         injector(),
         auditService,
@@ -230,7 +254,7 @@ Future<void> setup() async {
       () => RemoteConfigServiceImpl(injector()));
   injector.registerLazySingleton(
       () => AuthService(injector(), injector(), injector()));
-  injector.registerLazySingleton(() => BackupService(injector()));
+  injector.registerLazySingleton(() => BackupService(injector(), injector()));
   injector
       .registerLazySingleton(() => TezosBeaconService(injector(), injector()));
 
@@ -248,6 +272,7 @@ Future<void> setup() async {
 
   injector
       .registerLazySingleton<SettingsDataService>(() => SettingsDataServiceImpl(
+            injector(),
             injector(),
             injector(),
             injector(),

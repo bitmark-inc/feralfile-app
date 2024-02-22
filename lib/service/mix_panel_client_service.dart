@@ -29,9 +29,10 @@ class MixPanelClientService {
   Future<void> initService() async {
     mixpanel = await Mixpanel.init(Environment.mixpanelKey,
         trackAutomaticEvents: true);
-    await initIfDefaultAccount();
-    mixpanel.setLoggingEnabled(false);
-    mixpanel.setUseIpAddressForGeolocation(true);
+    // await _initIfDefaultAccount();
+    mixpanel
+      ..setLoggingEnabled(false)
+      ..setUseIpAddressForGeolocation(true);
 
     mixpanel
         .getPeople()
@@ -39,7 +40,7 @@ class MixPanelClientService {
     mixpanel.getPeople().set(MixpanelProp.enableNotification,
         _configurationService.isNotificationEnabled() ?? false);
     mixpanel.registerSuperPropertiesOnce({
-      MixpanelProp.client: "Autonomy Wallet",
+      MixpanelProp.client: 'Autonomy Wallet',
     });
     configHiveBox = await Hive.openBox(MIXPANEL_HIVE_BOX);
   }
@@ -51,8 +52,7 @@ class MixPanelClientService {
       return;
     }
     final defaultDID = await defaultAccount.getAccountDID();
-    final hashedUserID =
-        '${sha256.convert(utf8.encode(defaultDID)).toString()}_test';
+    final hashedUserID = '${sha256.convert(utf8.encode(defaultDID))}_test';
     final distinctId = await mixpanel.getDistinctId();
     if (hashedUserID != distinctId) {
       mixpanel.alias(hashedUserID, distinctId);
@@ -70,7 +70,7 @@ class MixPanelClientService {
     mixpanel.reset();
   }
 
-  timerEvent(String name) {
+  void timerEvent(String name) {
     mixpanel.timeEvent(name.snakeToCapital());
   }
 
@@ -80,15 +80,15 @@ class MixPanelClientService {
     Map<String, dynamic> data = const {},
     Map<String, dynamic> hashedData = const {},
   }) async {
-    if (_configurationService.isAnalyticsEnabled() == false) {
+    if (!_configurationService.isAnalyticsEnabled()) {
       return;
     }
 
     // track with Mixpanel
     if (hashedData.isNotEmpty) {
       hashedData = hashedData.map((key, value) {
-        final salt = DateFormat("yyyy-MM-dd").format(DateTime.now()).toString();
-        final valueWithSalt = "$value$salt";
+        final salt = DateFormat('yyyy-MM-dd').format(DateTime.now());
+        final valueWithSalt = '$value$salt';
         return MapEntry(
             key, sha256.convert(utf8.encode(valueWithSalt)).toString());
       });
@@ -107,12 +107,13 @@ class MixPanelClientService {
 
   Future<void> sendData() async {
     try {
-      mixpanel.flush();
+      await mixpanel.flush();
     } catch (e) {
       log(e.toString());
     }
   }
 
+  // ignore: avoid_annotating_with_dynamic
   void setLabel(String prop, dynamic value) {
     mixpanel.getPeople().set(prop, value);
   }
@@ -158,10 +159,11 @@ class MixPanelClientService {
     }
   }
 
-  dynamic getConfig(String key, {dynamic defaultValue}) {
-    return configHiveBox.get(key, defaultValue: defaultValue);
-  }
+  // ignore: avoid_annotating_with_dynamic
+  dynamic getConfig(String key, {dynamic defaultValue}) =>
+      configHiveBox.get(key, defaultValue: defaultValue);
 
+  // ignore: avoid_annotating_with_dynamic
   Future<void> setConfig(String key, dynamic value) async {
     await configHiveBox.put(key, value);
   }

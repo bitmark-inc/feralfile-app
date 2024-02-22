@@ -64,8 +64,7 @@ Future<void> doneOnboarding(BuildContext context) async {
   unawaited(injector<IAPService>().restore());
   await injector<ConfigurationService>().setPendingSettings(true);
   await injector<ConfigurationService>().setDoneOnboarding(true);
-  unawaited(
-      injector<MetricClientService>().mixPanelClient.initIfDefaultAccount());
+  // injector<MetricClientService>().mixPanelClient.initIfDefaultAccount();
   await injector<NavigationService>()
       .navigateUntil(AppRouter.homePage, (route) => false);
 }

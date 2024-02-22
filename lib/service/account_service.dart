@@ -18,10 +18,10 @@ import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_state.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
+import 'package:autonomy_flutter/service/auth_firebase_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
@@ -45,6 +45,8 @@ import 'package:uuid/uuid.dart';
 
 abstract class AccountService {
   Future<WalletStorage> getDefaultAccount();
+
+  Future<Persona?> getDefaultPersona();
 
   Future<Persona> getOrCreateDefaultPersona();
 
@@ -116,8 +118,10 @@ class AccountServiceImpl extends AccountService {
   final AndroidBackupChannel _backupChannel = AndroidBackupChannel();
   final AuditService _auditService;
   final AutonomyService _autonomyService;
-  final BackupService _backupService;
   final AddressService _addressService;
+  final BackupService _backupService;
+  final AuthFirebaseService _authFirebaseService =
+      injector<AuthFirebaseService>();
 
   final _defaultAccountLock = Lock();
 
@@ -127,18 +131,35 @@ class AccountServiceImpl extends AccountService {
     this._configurationService,
     this._auditService,
     this._autonomyService,
-    this._backupService,
     this._addressService,
+    this._backupService,
   );
+
+  MigrationUtil get _migrationUtil => MigrationUtil(
+        _configurationService,
+        _cloudDB,
+        injector(),
+        _auditService,
+        injector(),
+        this,
+      );
 
   @override
   Future<Persona> createPersona(
-      {String name = '', bool isDefault = false}) async {
+      {String name = '', bool isDefault = false, String? words}) async {
     final uuid = const Uuid().v4();
     final walletStorage = LibAukDart.getWallet(uuid);
-    await walletStorage.createKey(name);
+    if (words != null) {
+      await walletStorage.importKey(
+          words, '', DateTime.now().microsecondsSinceEpoch);
+    } else {
+      await walletStorage.createKey(name);
+    }
     final persona = Persona.newPersona(
         uuid: uuid, defaultAccount: isDefault ? 1 : null, name: name);
+    if (!_authFirebaseService.isSignedIn) {
+      await _authFirebaseService.signInWithPersona(persona);
+    }
     await _cloudDB.personaDao.insertPersona(persona);
     await androidBackupKeys();
     await _auditService.auditPersonaAction('create', persona);
@@ -153,11 +174,13 @@ class AccountServiceImpl extends AccountService {
   @override
   Future<Persona> importPersona(String words,
       {WalletType walletType = WalletType.Autonomy}) async {
-    final personas = await _cloudDB.personaDao.getPersonas();
-    for (final persona in personas) {
-      final mnemonic = await persona.wallet().exportMnemonicWords();
-      if (mnemonic == words) {
-        return persona;
+    if (_authFirebaseService.isSignedIn) {
+      final personas = await _cloudDB.personaDao.getPersonas();
+      for (final persona in personas) {
+        final mnemonic = await persona.wallet().exportMnemonicWords();
+        if (mnemonic == words) {
+          return persona;
+        }
       }
     }
 
@@ -167,6 +190,9 @@ class AccountServiceImpl extends AccountService {
         words, '', DateTime.now().microsecondsSinceEpoch);
 
     final persona = Persona.newPersona(uuid: uuid);
+    if (!_authFirebaseService.isSignedIn) {
+      await _authFirebaseService.signInWithPersona(persona);
+    }
     await _cloudDB.personaDao.insertPersona(persona);
     await androidBackupKeys();
     await _auditService.auditPersonaAction('import', persona);
@@ -179,6 +205,45 @@ class AccountServiceImpl extends AccountService {
     return persona;
   }
 
+  Future<Persona?> _getDefaultPersonaFromKeychainAndroid() async {
+    if (!Platform.isAndroid) {
+      return null;
+    }
+
+    final accounts = await _backupChannel.restoreKeys();
+    if (accounts.isEmpty) {
+      return null;
+    }
+    for (var account in accounts) {
+      final backupVersion = await _backupService
+          .fetchBackupVersion(LibAukDart.getWallet(account.uuid));
+      if (backupVersion.isNotEmpty) {
+        return Persona.newPersona(
+          uuid: account.uuid,
+          name: account.name,
+          createdAt: DateTime.now(),
+          defaultAccount: 1,
+        );
+      }
+    }
+
+    return Persona.newPersona(
+      uuid: accounts.first.uuid,
+      name: accounts.first.name,
+      createdAt: DateTime.now(),
+      defaultAccount: 1,
+    );
+  }
+
+  Future<Persona?> getDefaultPersonaFromKeychain() async {
+    if (Platform.isAndroid) {
+      return _getDefaultPersonaFromKeychainAndroid();
+    } else if (Platform.isIOS) {
+      return _migrationUtil.getDefaultPersonaFromKeychainIOS();
+    }
+    return null;
+  }
+
   @override
   Future<WalletStorage> getDefaultAccount() async =>
       _defaultAccountLock.synchronized(() async => await _getDefaultAccount());
@@ -188,9 +253,14 @@ class AccountServiceImpl extends AccountService {
     var personas = await _cloudDB.personaDao.getDefaultPersonas();
 
     if (personas.isEmpty) {
-      await MigrationUtil(_configurationService, _cloudDB, this, injector(),
-              _auditService, _backupService)
-          .migrationFromKeychain();
+      await MigrationUtil(
+        _configurationService,
+        _cloudDB,
+        injector(),
+        _auditService,
+        injector(),
+        injector(),
+      ).migrationFromKeychain();
       await androidRestoreKeys();
 
       await Future.delayed(const Duration(seconds: 1));
@@ -244,32 +314,40 @@ class AccountServiceImpl extends AccountService {
   }
 
   @override
-  Future<Persona> getOrCreateDefaultPersona() async {
-    var personas = await _cloudDB.personaDao.getDefaultPersonas();
-
-    if (personas.isEmpty) {
-      await MigrationUtil(_configurationService, _cloudDB, this, injector(),
-              _auditService, _backupService)
-          .migrationFromKeychain();
-      await androidRestoreKeys();
-
-      await Future.delayed(const Duration(seconds: 1));
-      personas = await _cloudDB.personaDao.getDefaultPersonas();
-    }
-
-    final Persona defaultPersona;
-    if (personas.isEmpty) {
-      personas = await _cloudDB.personaDao.getPersonas();
-      if (personas.isNotEmpty) {
-        defaultPersona = personas.first..defaultAccount = 1;
-        await _cloudDB.personaDao.updatePersona(defaultPersona);
-      } else {
-        log.info('[AccountService] create default account');
-        defaultPersona = await createPersona(isDefault: true);
-      }
+  Future<Persona?> getDefaultPersona() async {
+    if (!_authFirebaseService.isSignedIn) {
+      final defaultPersona = await getDefaultPersonaFromKeychain();
+      return defaultPersona;
     } else {
-      defaultPersona = personas.first;
+      var personas = await _cloudDB.personaDao.getDefaultPersonas();
+
+      if (personas.isEmpty) {
+        await MigrationUtil(_configurationService, _cloudDB, injector(),
+                _auditService, _backupService, this)
+            .migrationFromKeychain();
+        await androidRestoreKeys();
+
+        await Future.delayed(const Duration(seconds: 1));
+        personas = await _cloudDB.personaDao.getDefaultPersonas();
+      }
+      Persona? defaultPersona;
+      if (personas.isEmpty) {
+        personas = await _cloudDB.personaDao.getPersonas();
+        if (personas.isNotEmpty) {
+          defaultPersona = personas.first..defaultAccount = 1;
+          await _cloudDB.personaDao.updatePersona(defaultPersona);
+        }
+      } else {
+        defaultPersona = personas.first;
+      }
+      return defaultPersona;
     }
+  }
+
+  @override
+  Future<Persona> getOrCreateDefaultPersona() async {
+    Persona? defaultPersona =
+        await getDefaultPersona() ?? await createPersona();
     return defaultPersona;
   }
 
@@ -415,7 +493,10 @@ class AccountServiceImpl extends AccountService {
     if (Platform.isAndroid) {
       final accounts = await _backupChannel.restoreKeys();
 
-      final personas = await _cloudDB.personaDao.getPersonas();
+      List<Persona> personas = [];
+      if (_authFirebaseService.isSignedIn) {
+        personas = await _cloudDB.personaDao.getPersonas();
+      }
       if (personas.length == accounts.length &&
           personas.every((element) =>
               accounts.map((e) => e.uuid).contains(element.uuid))) {
@@ -423,25 +504,27 @@ class AccountServiceImpl extends AccountService {
         return;
       }
 
+      List<Persona> restoredPersonas = [];
+
       //Import persona to database if needed
       for (var account in accounts) {
-        final existingAccount =
-            await _cloudDB.personaDao.findById(account.uuid);
-        if (existingAccount == null) {
-          final backupVersion = await _backupService
-              .fetchBackupVersion(LibAukDart.getWallet(account.uuid));
-          final defaultAccount = backupVersion.isNotEmpty ? 1 : null;
+        final backupVersion = await _backupService
+            .fetchBackupVersion(LibAukDart.getWallet(account.uuid));
+        final defaultAccount = backupVersion.isNotEmpty ? 1 : null;
 
-          final persona = Persona.newPersona(
-            uuid: account.uuid,
-            name: account.name,
-            createdAt: DateTime.now(),
-            defaultAccount: defaultAccount,
-          );
-          await _cloudDB.personaDao.insertPersona(persona);
-          await _auditService.auditPersonaAction(
-              '[androidRestoreKeys] insert', persona);
+        final persona = Persona.newPersona(
+          uuid: account.uuid,
+          name: account.name,
+          createdAt: DateTime.now(),
+          defaultAccount: defaultAccount,
+        );
+        if (defaultAccount == 1 && !_authFirebaseService.isSignedIn) {
+          await _authFirebaseService.signInWithPersona(persona);
         }
+        restoredPersonas.add(persona);
+        await _cloudDB.personaDao.insertPersona(persona);
+        await _auditService.auditPersonaAction(
+            '[androidRestoreKeys] insert', persona);
       }
 
       //Cleanup broken personas
@@ -684,33 +767,29 @@ class AccountServiceImpl extends AccountService {
     if (_configurationService.isDoneOnboarding()) {
       return;
     }
-
-    final iapService = injector<IAPService>();
-    final auditService = injector<AuditService>();
-    final migrationUtil = MigrationUtil(_configurationService, _cloudDB, this,
-        iapService, auditService, _backupService);
     await androidBackupKeys();
+    final migrationUtil = MigrationUtil(
+      _configurationService,
+      _cloudDB,
+      injector(),
+      _auditService,
+      injector(),
+      injector(),
+    );
     await migrationUtil.migrationFromKeychain();
     final personas = await _cloudDB.personaDao.getPersonas();
     final connections = await _cloudDB.connectionDao.getConnections();
     if (personas.isNotEmpty || connections.isNotEmpty) {
       unawaited(_configurationService.setOldUser());
-      final defaultAccount = await getDefaultAccount();
-      final backupVersion =
-          await _backupService.fetchBackupVersion(defaultAccount);
-      if (backupVersion.isNotEmpty) {
-        unawaited(
-            _backupService.restoreCloudDatabase(defaultAccount, backupVersion));
-        for (var persona in personas) {
-          if (persona.name != '') {
-            await persona.wallet().updateName(persona.name);
-          }
+      for (var persona in personas) {
+        if (persona.name != '') {
+          unawaited(persona.wallet().updateName(persona.name));
         }
         await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
         unawaited(_configurationService.setDoneOnboarding(true));
-        unawaited(injector<MetricClientService>()
-            .mixPanelClient
-            .initIfDefaultAccount());
+        // await injector<MetricClientService>()
+        //     .mixPanelClient
+        //     .initIfDefaultAccount();
         unawaited(injector<NavigationService>()
             .navigateTo(AppRouter.homePageNoTransition));
       }
@@ -719,9 +798,9 @@ class AccountServiceImpl extends AccountService {
       final persona = await createPersona();
       await persona.insertNextAddress(WalletType.Tezos);
       await persona.insertNextAddress(WalletType.Ethereum);
-      unawaited(injector<MetricClientService>()
-          .mixPanelClient
-          .initIfDefaultAccount());
+      // unawaited(injector<MetricClientService>()
+      //     .mixPanelClient
+      //     .initIfDefaultAccount());
       unawaited(injector<NavigationService>()
           .navigateTo(AppRouter.homePageNoTransition));
     }

@@ -7,14 +7,20 @@
 
 // ignore_for_file: unawaited_futures, type_annotate_public_apis
 
+// ignore_for_file: unawaited_futures
+// ignore_for_file: unreachable_from_main
+
 import 'dart:async';
 import 'dart:isolate';
 import 'dart:ui';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/firebase_options.dart';
 import 'package:autonomy_flutter/model/eth_pending_tx_amount.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/service/auth_firebase_service.dart';
+import 'package:autonomy_flutter/service/cloud_firestore_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
@@ -32,6 +38,7 @@ import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:floor/floor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -86,6 +93,10 @@ Future<void> runFeralFileApp() async {
   // feature/text_localization
   await EasyLocalization.ensureInitialized();
 
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
   FlutterNativeSplash.preserve(
       widgetsBinding: WidgetsFlutterBinding.ensureInitialized());
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
@@ -124,13 +135,14 @@ Future<void> _setupApp() async {
   await setup();
 
   await DeviceInfo.instance.init();
-
+  await injector<CloudFirestoreService>().initService();
+  await injector<AuthFirebaseService>().initService();
   final metricClient = injector.get<MetricClientService>();
   await metricClient.initService();
   await injector<RemoteConfigService>().loadConfigs();
 
   final countOpenApp = injector<ConfigurationService>().countOpenApp() ?? 0;
-  injector<ConfigurationService>().setCountOpenApp(countOpenApp + 1);
+  unawaited(injector<ConfigurationService>().setCountOpenApp(countOpenApp + 1));
   final packageInfo = await PackageInfo.fromPlatform();
   await injector<ConfigurationService>().setVersionInfo(packageInfo.version);
   final notificationService = injector<NotificationService>();
@@ -154,7 +166,7 @@ Future<void> _setupApp() async {
   Sentry.configureScope((scope) async {
     final deviceID = await getDeviceID();
     if (deviceID != null) {
-      scope.setUser(SentryUser(id: deviceID));
+      unawaited(scope.setUser(SentryUser(id: deviceID)));
     }
   });
   FlutterNativeSplash.remove();
@@ -209,7 +221,7 @@ class AutonomyApp extends StatelessWidget {
 final RouteObserver<ModalRoute<void>> routeObserver =
     CustomRouteObserver<ModalRoute<void>>();
 
-var memoryValues = MemoryValues(
+MemoryValues memoryValues = MemoryValues(
     branchDeeplinkData: ValueNotifier(null),
     deepLink: ValueNotifier(null),
     irlLink: ValueNotifier(null));
@@ -260,5 +272,3 @@ void downloadCallback(String id, int status, int progress) {
       IsolateNameServer.lookupPortByName('downloader_send_port');
   send?.send([id, status, progress]);
 }
-
-void imageError(Object exception, StackTrace? stackTrace) {}

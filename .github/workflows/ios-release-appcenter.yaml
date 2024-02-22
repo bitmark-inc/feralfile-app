@@ -57,6 +57,10 @@ jobs:
           ${{ inputs.testnet == true }} && echo -e "${{ secrets.DEV_ENV }}" | sed 's/\\n/\n/g' >> .env || echo -e "${{ secrets.STAGING_ENV }}" | sed 's/\\n/\n/g' >> .env
           cat .env
 
+      - name: Create ios/Runner/GoogleService-Info.plist
+        run: |
+          touch ios/Runner/GoogleService-Info.plist
+          echo ${{ secrets.GOOGLE_SERVICE_INFO_PLIST }} >> ios/Runner/GoogleService-Info.plist
       - name: Flutter doctor
         run: flutter doctor
       - name: Submoudles update

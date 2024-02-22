@@ -16,8 +16,10 @@ import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/settings/forget_exist/forget_exist_state.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/auth_firebase_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
+import 'package:autonomy_flutter/service/cloud_firestore_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/migration/migration_util.dart';
@@ -35,6 +37,8 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
   final AppDatabase _appDatabase;
   final NftCollectionDatabase _nftCollectionDatabase;
   final ConfigurationService _configurationService;
+  final CloudFirestoreService _cloudFirestoreService;
+  final AuthFirebaseService _authFirebaseService;
 
   ForgetExistBloc(
       this._authService,
@@ -44,7 +48,9 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
       this._cloudDatabase,
       this._appDatabase,
       this._nftCollectionDatabase,
-      this._configurationService)
+      this._configurationService,
+      this._cloudFirestoreService,
+      this._authFirebaseService)
       : super(ForgetExistState(false, null)) {
     on<UpdateCheckEvent>((event, emit) async {
       emit(ForgetExistState(event.isChecked, state.isProcessing));
@@ -68,6 +74,8 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
       }
 
       await _cloudDatabase.removeAll();
+      await _cloudFirestoreService.removeAll();
+      await _authFirebaseService.signOut();
       await _appDatabase.removeAll();
       await _nftCollectionDatabase.removeAll();
       await _configurationService.removeAll();

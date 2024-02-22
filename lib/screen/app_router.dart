@@ -283,9 +283,10 @@ class AppRouter {
                 injector(),
                 injector(),
                 injector(),
-                injector<CloudDatabase>(),
                 injector(),
-                injector<AuditService>(),
+                injector(),
+                injector(),
+                injector(),
                 injector(),
               ),
             ),
@@ -894,7 +895,10 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
-                  create: (_) => KeySyncBloc(injector(), injector()),
+                  create: (_) => KeySyncBloc(
+                    injector(),
+                    injector(),
+                  ),
                   child: const KeySyncPage(),
                 ));
 

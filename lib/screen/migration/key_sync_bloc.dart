@@ -28,44 +28,23 @@ class KeySyncBloc extends AuBloc<KeySyncEvent, KeySyncState> {
       emit(state.copyWith(
           isProcessing: true, isLocalSelectedTmp: state.isLocalSelected));
 
-      final accounts = await _cloudDatabase.personaDao.getDefaultPersonas();
-      if (accounts.length < 2) return;
-
-      final cloudWallet = accounts[1].wallet();
-
-      final cloudBackupVersion =
-          await _backupService.fetchBackupVersion(cloudWallet);
-
-      if (cloudBackupVersion.isNotEmpty) {
-        const tmpCloudDbName = 'tmp_cloud_database.db';
-        await _backupService.restoreCloudDatabase(
-            cloudWallet, cloudBackupVersion,
-            dbName: tmpCloudDbName);
-
-        final tmpCloudDb = await $FloorCloudDatabase
-            .databaseBuilder(tmpCloudDbName)
-            .addMigrations([
-          migrateCloudV1ToV2,
-          migrateCloudV2ToV3,
-          migrateCloudV3ToV4,
-          migrateCloudV4ToV5,
-          migrateCloudV5ToV6,
-          migrateCloudV6ToV7,
-          migrateCloudV7ToV8,
-        ]).build();
-
-        final connections = await tmpCloudDb.connectionDao.getConnections();
-        await _cloudDatabase.connectionDao.insertConnections(connections);
+      final defaultPersonaes =
+          await _cloudDatabase.personaDao.getDefaultPersonas();
+      if (defaultPersonaes.length < 2) {
+        return;
       }
+      final localDefaultPersona = defaultPersonaes[0];
+      final cloudDefaultPersona = defaultPersonaes[1];
+
+      final cloudWallet = cloudDefaultPersona.wallet();
+      final localWallet = localDefaultPersona.wallet();
 
       if (state.isLocalSelected) {
-        final cloudDefaultPersona = accounts[1];
         await _backupService.deleteAllProfiles(cloudWallet);
         cloudDefaultPersona.defaultAccount = null;
         await _cloudDatabase.personaDao.updatePersona(cloudDefaultPersona);
       } else {
-        final localDefaultPersona = accounts[0];
-        await _backupService.deleteAllProfiles(localDefaultPersona.wallet());
+        await _backupService.deleteAllProfiles(localWallet);
         localDefaultPersona.defaultAccount = null;
         await _cloudDatabase.personaDao.updatePersona(localDefaultPersona);
       }

@@ -8,7 +8,7 @@ on:
   # - develop
 jobs:
   build:
-    runs-on: [self-hosted, macOS, X64, ci-local-bmvn-macos]
+    runs-on: [ self-hosted, macOS, X64, ci-local-bmvn-macos ]
     steps:
       # Checkout code and get packages.
       - name: Checkout code
@@ -80,6 +80,10 @@ jobs:
 
           cat .env
 
+      - name: Create ios/Runner/GoogleService-Info.plist
+        run: |
+          touch ios/Runner/GoogleService-Info.plist
+          echo ${{ secrets.GOOGLE_SERVICE_INFO_PLIST }} >> ios/Runner/GoogleService-Info.plist
       - name: Submoudles update
         run: git submodule update --init --recursive
       - run: flutter pub cache repair

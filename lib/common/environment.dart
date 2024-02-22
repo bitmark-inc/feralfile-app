@@ -184,6 +184,11 @@ class Environment {
 
   static String get autonomyActivationURL =>
       dotenv.env['AUTONOMY_ACTIVATION_URL'] ?? '';
+
+  static String get firebaseIosKey => dotenv.env['FIREBASE_IOS_KEY'] ?? '';
+
+  static String get firebaseAndroidKey =>
+      dotenv.env['FIREBASE_ANDROID_KEY'] ?? '';
 }
 
 class Secret {

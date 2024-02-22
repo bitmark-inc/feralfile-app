@@ -22,10 +22,8 @@ import 'package:autonomy_flutter/screen/home/organize_home_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/airdrop_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
-import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service.dart';
 import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
@@ -667,7 +665,6 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   }
 
   void _handleBackground() {
-    unawaited(_cloudBackup());
     _metricClientService.useAppTimer?.cancel();
   }
 
@@ -739,16 +736,9 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     if (widget.payload.startedTab != _initialTab) {
       _onItemTapped(widget.payload.startedTab.index);
     }
-    _cloudBackup();
     final initialAction = _notificationService.initialAction;
     if (initialAction != null) {
       NotificationService.onActionReceivedMethod(initialAction);
     }
-  }
-
-  Future<void> _cloudBackup() async {
-    final accountService = injector<AccountService>();
-    final backup = injector<BackupService>();
-    await backup.backupCloudDatabase(await accountService.getDefaultAccount());
   }
 }
