@@ -31,6 +31,7 @@ class AuSecondaryButton extends StatelessWidget {
         child: ElevatedButton(
           style: ElevatedButton.styleFrom(
             backgroundColor: backgroundColor ?? Colors.transparent,
+            surfaceTintColor: Colors.transparent,
             elevation: 0,
             shape: RoundedRectangleBorder(
               side: BorderSide(color: borderColor ?? Colors.white),
@@ -63,6 +64,7 @@ class AuCustomButton extends StatelessWidget {
         child: ElevatedButton(
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColor.white,
+            surfaceTintColor: Colors.transparent,
             shadowColor: Colors.transparent,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(32),

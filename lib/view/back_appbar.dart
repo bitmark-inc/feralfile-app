@@ -26,6 +26,7 @@ AppBar getBackAppBar(
   bool withDivider = true,
   Color? backgroundColor,
   Color? statusBarColor,
+  Color? surfaceTintColor,
 }) {
   final theme = Theme.of(context);
 
@@ -85,6 +86,7 @@ AppBar getBackAppBar(
         const SizedBox(width: 36),
     ],
     backgroundColor: backgroundColor ?? Colors.transparent,
+    surfaceTintColor: surfaceTintColor ?? Colors.transparent,
     shadowColor: Colors.transparent,
     elevation: 0,
     bottom: withDivider
@@ -276,6 +278,7 @@ AppBar getDoneAppBar(
       statusBarIconBrightness: isWhite ? Brightness.dark : Brightness.light,
       statusBarBrightness: isWhite ? Brightness.light : Brightness.dark,
     ),
+    scrolledUnderElevation: 0,
     elevation: 1,
     shadowColor: Colors.transparent,
     leadingWidth: 80,
