@@ -236,10 +236,10 @@ class PostcardDetailBloc
         ConfigGroup.merchandise, ConfigKey.postcardTokenIdRegex, r'^[]$');
     final isMatch = RegExp(postcardIdRegex).hasMatch(asset.id);
     try {
-      return isMatch ||
+      return isMatch &&
           await _postcardService.isMerchandiseEnable(asset.tokenId ?? '');
     } catch (e) {
-      return isMatch;
+      return false;
     }
   }
 }

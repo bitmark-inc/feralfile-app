@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class InAppWebViewPage extends StatefulWidget {
@@ -61,8 +62,24 @@ class _InAppWebViewPageState extends State<InAppWebViewPage> {
                       URLRequest(url: Uri.tryParse(widget.payload.url)),
                   initialOptions: InAppWebViewGroupOptions(
                       crossPlatform: InAppWebViewOptions(
-                          userAgent: 'user_agent'
-                              .tr(namedArgs: {'version': version}))),
+                    userAgent: 'user_agent'.tr(namedArgs: {'version': version}),
+                  )),
+                  androidOnPermissionRequest:
+                      (InAppWebViewController controller, String origin,
+                          List<String> resources) async {
+                    if (resources
+                        .contains('android.webkit.resource.AUDIO_CAPTURE')) {
+                      await Permission.microphone.request();
+                      final status = await Permission.microphone.status;
+                      if (status.isPermanentlyDenied || status.isDenied) {
+                        return PermissionRequestResponse(resources: resources);
+                      }
+                      return PermissionRequestResponse(
+                          resources: resources,
+                          action: PermissionRequestResponseAction.GRANT);
+                    }
+                    return PermissionRequestResponse(resources: resources);
+                  },
                   onWebViewCreated: (controller) {
                     if (widget.payload.onWebViewCreated != null) {
                       widget.payload.onWebViewCreated!(controller);

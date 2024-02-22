@@ -4,6 +4,7 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i7;
+import 'dart:io' as _i9;
 
 import 'package:autonomy_flutter/model/ff_account.dart' as _i4;
 import 'package:autonomy_flutter/model/ff_exhibition.dart' as _i5;
@@ -12,6 +13,7 @@ import 'package:autonomy_flutter/model/otp.dart' as _i8;
 import 'package:autonomy_flutter/screen/claim/claim_token_page.dart' as _i3;
 import 'package:autonomy_flutter/service/feralfile_service.dart' as _i6;
 import 'package:mockito/mockito.dart' as _i1;
+import 'package:nft_collection/models/asset_token.dart' as _i10;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -267,7 +269,7 @@ class MockFeralFileService extends _i1.Mock implements _i6.FeralFileService {
   @override
   _i7.Future<String> getFeralfileActionMessage({
     required String? address,
-    required String? action,
+    required _i6.FeralfileAction? action,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -281,11 +283,20 @@ class MockFeralFileService extends _i1.Mock implements _i6.FeralFileService {
         returnValue: _i7.Future<String>.value(''),
       ) as _i7.Future<String>);
   @override
-  _i7.Future<String> getFeralfileArtworkDownloadUrl(String? artworkId) =>
+  _i7.Future<String> getFeralfileArtworkDownloadUrl({
+    required String? artworkId,
+    required String? owner,
+    required String? signature,
+  }) =>
       (super.noSuchMethod(
         Invocation.method(
           #getFeralfileArtworkDownloadUrl,
-          [artworkId],
+          [],
+          {
+            #artworkId: artworkId,
+            #owner: owner,
+            #signature: signature,
+          },
         ),
         returnValue: _i7.Future<String>.value(''),
       ) as _i7.Future<String>);
@@ -303,4 +314,13 @@ class MockFeralFileService extends _i1.Mock implements _i6.FeralFileService {
           ),
         )),
       ) as _i7.Future<_i4.Artwork>);
+  @override
+  _i7.Future<_i9.File?> downloadFeralfileArtwork(_i10.AssetToken? assetToken) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #downloadFeralfileArtwork,
+          [assetToken],
+        ),
+        returnValue: _i7.Future<_i9.File?>.value(),
+      ) as _i7.Future<_i9.File?>);
 }
