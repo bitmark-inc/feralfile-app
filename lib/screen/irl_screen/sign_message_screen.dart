@@ -146,7 +146,7 @@ class _IRLSignMessageScreenState extends State<IRLSignMessageScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final message = hexToBytes(widget.payload.payload);
+    final message = Uint8List.fromList(utf8.encode(widget.payload.payload));
     final Uint8List viewMessage = message.length > 6 &&
             message.sublist(0, 2).equals(Uint8List.fromList([5, 1]))
         ? message.sublist(6)
