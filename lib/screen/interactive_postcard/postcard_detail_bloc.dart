@@ -232,10 +232,12 @@ class PostcardDetailBloc
     if (!isShowConfig) {
       return false;
     }
+    final postcardIdRegex = _remoteConfig.getConfig<String>(
+        ConfigGroup.merchandise, ConfigKey.postcardTokenIdRegex, r'^[]$');
+    final isMatch = RegExp(postcardIdRegex).hasMatch(asset.id);
     try {
-      final enableMerch =
+      return isMatch &&
           await _postcardService.isMerchandiseEnable(asset.tokenId ?? '');
-      return enableMerch;
     } catch (e) {
       return false;
     }

@@ -1,8 +1,8 @@
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/service/canvas_client_service.dart';
-import 'package:autonomy_tv_proto/models/canvas_device.dart';
 import 'package:collection/collection.dart';
+import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 
 abstract class CanvasDeviceEvent {}
 

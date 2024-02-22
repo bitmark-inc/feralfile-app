@@ -31,8 +31,8 @@ import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/canvas_device_view.dart';
 import 'package:autonomy_flutter/view/cast_button.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -388,12 +388,14 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                                     focusNode: _focusNode,
                                     onTap: isCasting
                                         ? () {
-                                            Navigator.of(context).pushNamed(
-                                                AppRouter.keyboardControlPage,
-                                                arguments:
-                                                    KeyboardControlPagePayload(
-                                                        assetToken!,
-                                                        playingDevice));
+                                            unawaited(Navigator.of(context)
+                                                .pushNamed(
+                                                    AppRouter
+                                                        .keyboardControlPage,
+                                                    arguments:
+                                                        KeyboardControlPagePayload(
+                                                            assetToken!,
+                                                            playingDevice)));
                                           }
                                         : null,
                                   ),

@@ -24,10 +24,10 @@ import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:card_swiper/card_swiper.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -50,6 +50,11 @@ class _OnboardingPageState extends State<OnboardingPage>
 
   late SwiperController _swiperController;
   late int _currentIndex;
+
+  final _onboardingLogo = Semantics(
+    label: 'onboarding_logo',
+    child: SvgPicture.asset('assets/images/feral_file_onboarding.svg'),
+  );
 
   @override
   void initState() {
@@ -260,9 +265,7 @@ class _OnboardingPageState extends State<OnboardingPage>
                   Padding(
                     padding: const EdgeInsets.only(top: 15),
                     child: Center(
-                      child: SvgPicture.asset(
-                        'assets/images/feral_file_onboarding.svg',
-                      ),
+                      child: _onboardingLogo,
                     ),
                   ),
                   Positioned.fill(
@@ -327,7 +330,7 @@ class _OnboardingPageState extends State<OnboardingPage>
     ];
     final pages = [
       Center(
-        child: SvgPicture.asset('assets/images/feral_file_onboarding.svg'),
+        child: _onboardingLogo,
       ),
       _onboardingItem(
         context,

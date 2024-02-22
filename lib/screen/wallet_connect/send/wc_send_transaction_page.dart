@@ -23,8 +23,8 @@ import 'package:autonomy_flutter/view/au_radio_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -133,11 +133,11 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                 state.fee != null ? state.fee! + amount.getInWei : null;
             final theme = Theme.of(context);
             final ethAmountText = '${ethFormatter.format(amount.getInWei)} ETH '
-                '(${state.exchangeRate.ethToUsd(amount.getInWei)} USD)';
+                '(${state.exchangeRate?.ethToUsd(amount.getInWei) ?? '-'} USD)';
             final ethTotalAmountText = total == null
                 ? '- ETH (- USD)'
                 : '${ethFormatter.format(total)} ETH'
-                    ' (${state.exchangeRate.ethToUsd(total)} USD)';
+                    ' (${state.exchangeRate?.ethToUsd(total) ?? '-'} USD)';
             return Stack(
               children: [
                 Container(
@@ -471,7 +471,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
     }
     final fee = state.feeOptionValue!.getFee(feeOption ?? state.feeOption);
     return '${ethFormatter.format(fee)} ETH '
-        '(${state.exchangeRate.ethToUsd(fee)} USD)';
+        '(${state.exchangeRate?.ethToUsd(fee) ?? '-'} USD)';
   }
 }
 

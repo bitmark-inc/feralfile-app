@@ -31,6 +31,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/moma_style_color.dart';
 import 'package:autonomy_flutter/util/notification_util.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/au_button_clipper.dart';
 import 'package:autonomy_flutter/view/au_buttons.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -40,13 +41,13 @@ import 'package:autonomy_flutter/view/postcard_common_widget.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/slide_router.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
-import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
 import 'package:confetti/confetti.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:feralfile_app_theme/extensions/theme_extension/moma_sans.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -74,7 +75,8 @@ void nameContinue(BuildContext context) {
         route.settings.name == AppRouter.claimSelectAccountPage ||
         route.settings.name == AppRouter.wcConnectPage ||
         route.settings.name == AppRouter.homePage ||
-        route.settings.name == AppRouter.homePageNoTransition);
+        route.settings.name == AppRouter.homePageNoTransition ||
+        route.settings.name == AppRouter.walletPage);
   } else {
     unawaited(doneOnboarding(context));
   }
@@ -114,7 +116,7 @@ class UIHelper {
     EdgeInsets? padding,
     EdgeInsets? paddingTitle,
   }) async {
-    log.info('[UIHelper] showInfoDialog: $title');
+    log.info('[UIHelper] showDialog: $title');
     currentDialogTitle = title;
     final theme = Theme.of(context);
 
@@ -566,7 +568,7 @@ class UIHelper {
     Function? onAction,
     Widget? descriptionWidget,
   }) async {
-    log.info('[UIHelper] showInfoDialog: $title, $description');
+    log.info('[UIHelper] showMessageAction: $title, $description');
     final theme = Theme.of(context);
 
     if (autoDismissAfter > 0) {
@@ -620,7 +622,7 @@ class UIHelper {
     Function? onAction,
     Widget? descriptionWidget,
   }) async {
-    log.info('[UIHelper] showInfoDialog: $title, $description');
+    log.info('[UIHelper] showMessageActionNew: $title, $description');
     final theme = Theme.of(context);
 
     if (autoDismissAfter > 0) {
@@ -1330,7 +1332,7 @@ class UIHelper {
   }
 
   static Future<void> showDrawerAction(BuildContext context,
-      {List<OptionItem>? options}) async {
+      {required List<OptionItem> options}) async {
     final theme = Theme.of(context);
 
     await showModalBottomSheet<dynamic>(
@@ -1362,43 +1364,13 @@ class UIHelper {
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     itemBuilder: (BuildContext context, int index) {
-                      final child = Container(
-                        color: Colors.transparent,
-                        width: MediaQuery.of(context).size.width,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 16,
-                            horizontal: 13,
-                          ),
-                          child: Row(
-                            children: [
-                              if (options?[index].icon != null)
-                                SizedBox(
-                                    width: 30, child: options![index].icon),
-                              if (options?[index].icon != null)
-                                const SizedBox(
-                                  width: 34,
-                                ),
-                              Text(
-                                options?[index].title ?? '',
-                                style: options?[index].titleStyle ??
-                                    theme.textTheme.ppMori400Black14,
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                      if (options?[index].builder != null) {
-                        return options?[index]
-                            .builder!
-                            .call(context, options[index]);
+                      final option = options[index];
+                      if (option.builder != null) {
+                        return option.builder!.call(context, option);
                       }
-                      return GestureDetector(
-                        onTap: options?[index].onTap,
-                        child: child,
-                      );
+                      return DrawerItem(item: option);
                     },
-                    itemCount: options?.length ?? 0,
+                    itemCount: options.length,
                     separatorBuilder: (context, index) => Divider(
                       height: 1,
                       thickness: 1,
@@ -1784,6 +1756,9 @@ class UIHelper {
   static Future<void> showPostcardSaved(BuildContext context) async =>
       await _showFileSaved(context, title: 'postcard'.tr());
 
+  static Future<void> showFeralfileArtworkSaved(BuildContext context) async =>
+      await _showFileSaved(context, title: '_artwork'.tr());
+
   static Future<void> _showFileSaved(BuildContext context,
       {required String title}) async {
     final options = [
@@ -1872,6 +1847,10 @@ class UIHelper {
 
   static Future<void> showPostcardSavedFailed(BuildContext context) async =>
       await _showFileSaveFailed(context, title: 'postcard'.tr());
+
+  static Future<void> showFeralfileArtworkSavedFailed(
+          BuildContext context) async =>
+      await _showFileSaveFailed(context, title: '_artwork'.tr());
 
   static Future<void> _showFileSaveFailed(BuildContext context,
           {required String title}) async =>

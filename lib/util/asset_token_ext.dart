@@ -371,6 +371,37 @@ extension AssetTokenExtension on AssetToken {
 
   bool get shouldShowFeralfileRight =>
       isFeralfile && !isWedgwoodActivationToken;
+
+  bool get shouldShowDownloadArtwork {
+    final List<dynamic>? remoteConfigAllowDownloadArtwork =
+        injector<RemoteConfigService>().getConfig<List<dynamic>?>(
+            ConfigGroup.feralfileArtworkAction,
+            ConfigKey.allowDownloadArtworkContracts,
+            null);
+    final res = isFeralfile &&
+        (remoteConfigAllowDownloadArtwork?.contains(contractAddress) ?? true);
+    return res;
+  }
+
+  Pair<String, String>? get irlTapLink {
+    final remoteConfig = injector<RemoteConfigService>();
+    final soundPieceContractAddresses = remoteConfig.getConfig<List<dynamic>>(
+        ConfigGroup.feralfileArtworkAction,
+        ConfigKey.soundPieceContractAddresses, []);
+    if (soundPieceContractAddresses.contains(contractAddress)) {
+      final indexId = 'feralfile-$contractAddress-2-$edition';
+      if (asset?.indexID == indexId) {
+        final index = edition + 1;
+        return Pair(
+          'tape_sound'.tr(),
+          '${Environment.feralFileAPIURL}/'
+          'artwork/yoko-ono-sound-piece/$index/record',
+        );
+      }
+    }
+
+    return null;
+  }
 }
 
 extension CompactedAssetTokenExtension on CompactedAssetToken {
@@ -782,6 +813,9 @@ extension PostcardExtension on AssetToken {
         !remoteConfig.getBool(ConfigGroup.merchandise, ConfigKey.mustCompleted);
     return isEnable;
   }
+
+  bool get isTransferable =>
+      !tranferNotAllowContractAddresses.contains(contractAddress);
 }
 
 extension CompactedAssetTokenExt on List<CompactedAssetToken> {

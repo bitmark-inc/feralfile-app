@@ -70,8 +70,8 @@ platform :ios do
 			    compileBitcode: false,
 				method: "ad-hoc",
 				provisioningProfiles: {
-					"com.bitmark.autonomy-wallet.inhouse": "Autonomy Inhouse Adhoc",
-					"com.bitmark.autonomy-wallet.inhouse.notification": "Autonomy Inhouse Adhoc Notification",
+					"com.bitmark.autonomy-wallet.inhouse": "Autonomy Inhouse Adhoc New",
+					"com.bitmark.autonomy-wallet.inhouse.notification": "Autonomy Inhouse Adhoc Notification New",
 				},
 				iCloudContainerEnvironment: 'Production'
 			},
@@ -96,12 +96,12 @@ platform :ios do
 			app_identifier: app_identifier
 		)
 
-# 		sentry_upload_dsym(
-# 			auth_token: ENV["SENTRY_AUTH"],
-# 			org_slug: 'bitmark-inc',
-# 			project_slug: 'autonomy-client-flutter',
-# 			dsym_path: './ipas/Runner.app.dSYM.zip'
-# 		)
+		sentry_upload_dsym(
+			auth_token: ENV["SENTRY_AUTH"],
+			org_slug: 'bitmark-inc',
+			project_slug: 'autonomy-client-flutter',
+			dsym_path: './ipas/Runner Inhouse.app.dSYM.zip'
+		)
 
 		sentry_finalize_release(
 			auth_token: ENV["SENTRY_AUTH"],
@@ -134,8 +134,8 @@ platform :ios do
 			    compileBitcode: false,
 				method: "ad-hoc",
 				provisioningProfiles: {
-					"com.bitmark.autonomy-wallet.inhouse": "Autonomy Inhouse Adhoc",
-					"com.bitmark.autonomy-wallet.inhouse.notification": "Autonomy Inhouse Adhoc Notification",
+					"com.bitmark.autonomy-wallet.inhouse": "Autonomy Inhouse Adhoc New",
+					"com.bitmark.autonomy-wallet.inhouse.notification": "Autonomy Inhouse Adhoc Notification New",
 				},
 				iCloudContainerEnvironment: 'Production'
 			},
@@ -231,8 +231,8 @@ platform :ios do
 			export_options: {
 				method: "app-store",
 				provisioningProfiles: {
-					"com.bitmark.autonomywallet": "Autonomy Wallet Appstore",
-					"com.bitmark.autonomywallet.notification": "Autonomy Wallet Push Notification Appstore",
+					"com.bitmark.autonomywallet": "Autonomy_Wallet_Appstore",
+					"com.bitmark.autonomywallet.notification": "Autonomy_Wallet_Push_Notification_Appstore",
 				},
 				iCloudContainerEnvironment: 'Production'
 			},
@@ -244,7 +244,7 @@ platform :ios do
 			api_key: api_key,
 			app_version: ENV["APP_VERSION"],
 			build_number: next_build_number.to_s,
-			notify_external_testers: false
+			skip_submission: true,
 		)
 
 		sentry_create_release(
@@ -256,15 +256,15 @@ platform :ios do
 			app_identifier: app_identifier
 		)
 
-		sentry_set_commits(
-			auth_token: ENV["SENTRY_AUTH"],
-			org_slug: 'bitmark-inc',
-			project_slug: 'autonomy-client-flutter',
-			auto: true,
-			version: ENV["APP_VERSION"],
-			build: next_build_number.to_s,
-			app_identifier: app_identifier
-    	)
+# 		sentry_set_commits(
+# 			auth_token: ENV["SENTRY_AUTH"],
+# 			org_slug: 'bitmark-inc',
+# 			project_slug: 'autonomy-client-flutter',
+# 			auto: true,
+# 			version: ENV["APP_VERSION"],
+# 			build: next_build_number.to_s,
+# 			app_identifier: app_identifier
+#     	)
 
 		sentry_upload_dsym(
 			auth_token: ENV["SENTRY_AUTH"],
@@ -273,15 +273,15 @@ platform :ios do
 			dsym_path: './ipas/Runner.app.dSYM.zip'
 		)
 
-		sentry_create_deploy(
-			auth_token: ENV["SENTRY_AUTH"],
-			org_slug: 'bitmark-inc',
-			project_slug: 'autonomy-client-flutter',
-			started: dep_start,
-			finished: Time.now.to_i,
-			env: "Production",
-			version: ENV["APP_VERSION"],
-    	)
+# 		sentry_create_deploy(
+# 			auth_token: ENV["SENTRY_AUTH"],
+# 			org_slug: 'bitmark-inc',
+# 			project_slug: 'autonomy-client-flutter',
+# 			started: dep_start,
+# 			finished: Time.now.to_i,
+# 			env: "Production",
+# 			version: ENV["APP_VERSION"],
+#     	)
 
 		sentry_finalize_release(
 			auth_token: ENV["SENTRY_AUTH"],

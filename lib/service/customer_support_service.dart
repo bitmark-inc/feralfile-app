@@ -27,9 +27,9 @@ import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
@@ -182,7 +182,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
   @override
   Future draftMessage(DraftCustomerSupport draft) async {
     await _draftCustomerSupportDao.insertDraft(draft);
-    processMessages();
+    unawaited(processMessages());
   }
 
   @override
@@ -208,7 +208,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
           if (msg.type == CSMessageType.PostLogs.rawValue &&
               fileToRemove != null) {
             File file = File(fileToRemove.path);
-            file.delete();
+            unawaited(file.delete());
           }
         }
       }
@@ -262,7 +262,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
       }
 
       _isProcessingDraftMessages = false;
-      processMessages();
+      unawaited(processMessages());
       return;
     }
 
@@ -284,15 +284,15 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
       }
     } on FileSystemException catch (exception) {
       log.info('[CS-Service] can not find file in draftCustomerSupport');
-      Sentry.captureException(exception);
+      unawaited(Sentry.captureException(exception));
 
       // just delete draft because we can not do anything more
       await _draftCustomerSupportDao.deleteDraft(draftMsg);
-      removeErrorMessage(draftMsg.uuid);
+      unawaited(removeErrorMessage(draftMsg.uuid));
       _isProcessingDraftMessages = false;
       log.info(
           '[CS-Service][end] processMessages delete invalid draftMesssage');
-      processMessages();
+      unawaited(processMessages());
       return;
     }
 
@@ -331,18 +331,18 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
         log.info('[CS-Service][start] processMessages delete temp logs file');
         await Future.wait(data.attachments!.map((element) async {
           File file = File(element.path);
-          file.delete();
+          unawaited(file.delete());
         }));
       }
-      removeErrorMessage(draftMsg.uuid);
+      unawaited(removeErrorMessage(draftMsg.uuid));
     } catch (exception) {
       log.info('[CS-Service] not notify to user if there is any error');
-      Sentry.captureException(exception);
+      unawaited(Sentry.captureException(exception));
     }
     sendMessageFail(draftMsg.uuid);
     _isProcessingDraftMessages = false;
     log.info('[CS-Service][end] processMessages hasDraft');
-    processMessages();
+    unawaited(processMessages());
   }
 
   @override

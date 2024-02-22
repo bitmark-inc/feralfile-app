@@ -1,8 +1,8 @@
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -27,24 +27,25 @@ class ExhibitionDetailLastPage extends StatelessWidget {
                   color: AppColor.auGreyBackground,
                   borderRadius: BorderRadius.circular(25),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      TextButton(
-                        onPressed: startOver,
-                        child: Text(
+                child: GestureDetector(
+                  onTap: startOver,
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
                           'start_over'.tr(),
                           style: theme.textTheme.ppMori400White14,
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      SvgPicture.asset(
-                        'assets/images/start_over.svg',
-                      ),
-                    ],
+                        const SizedBox(width: 8),
+                        SvgPicture.asset(
+                          'assets/images/start_over.svg',
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

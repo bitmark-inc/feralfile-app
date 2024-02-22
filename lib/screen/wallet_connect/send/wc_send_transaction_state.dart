@@ -68,8 +68,8 @@ class WCSendTransactionRejectEvent extends WCSendTransactionEvent {
   WCSendTransactionRejectEvent(
     this.peerMeta,
     this.requestId, {
-    this.topic,
     required this.isWalletConnect2,
+    this.topic,
     this.isIRL = false,
   });
 }
@@ -81,7 +81,7 @@ class WCSendTransactionState {
   bool isError = false;
   FeeOption feeOption;
   FeeOptionValue? feeOptionValue;
-  CurrencyExchangeRate exchangeRate;
+  CurrencyExchangeRate? exchangeRate;
 
   WCSendTransactionState({
     this.fee,
@@ -90,7 +90,7 @@ class WCSendTransactionState {
     this.isError = false,
     this.feeOption = DEFAULT_FEE_OPTION,
     this.feeOptionValue,
-    this.exchangeRate = const CurrencyExchangeRate(eth: "1.0", xtz: "1.0"),
+    this.exchangeRate,
   });
 
   WCSendTransactionState clone() => WCSendTransactionState(

@@ -17,7 +17,6 @@ import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/screen/account/access_method_page.dart';
 import 'package:autonomy_flutter/screen/account/link_manually_page.dart';
 import 'package:autonomy_flutter/screen/account/recovery_phrase_page.dart';
-import 'package:autonomy_flutter/screen/account/select_account_page.dart';
 import 'package:autonomy_flutter/screen/account/test_artwork_screen.dart';
 import 'package:autonomy_flutter/screen/autonomy_security_page.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
@@ -42,6 +41,7 @@ import 'package:autonomy_flutter/screen/cloud/cloud_android_page.dart';
 import 'package:autonomy_flutter/screen/cloud/cloud_page.dart';
 import 'package:autonomy_flutter/screen/connection/connection_details_page.dart';
 import 'package:autonomy_flutter/screen/connection/persona_connections_page.dart';
+import 'package:autonomy_flutter/screen/customer_support/merchandise_order/merchandise_orders_page.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_customer_page.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_list_page.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
@@ -77,6 +77,7 @@ import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_blo
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_explain.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_get_location.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_select_account_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/prompt_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_bloc.dart';
@@ -103,7 +104,6 @@ import 'package:autonomy_flutter/screen/predefined_collection/predefined_collect
 import 'package:autonomy_flutter/screen/release_notes_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
-import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_select_account_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_bloc.dart';
@@ -175,6 +175,7 @@ class AppRouter {
   static const hiddenArtworksPage = 'hidden_artworks';
   static const supportCustomerPage = 'supportCustomerPage';
   static const supportListPage = 'supportListPage';
+  static const merchOrdersPage = 'merchOrderDetailPage';
   static const supportThreadPage = 'supportThreadPage';
   static const bugBountyPage = 'bugBountyPage';
   static const participateUserTestPage = 'participateUserTestPage';
@@ -201,7 +202,7 @@ class AppRouter {
   static const stampPreview = 'stamp_preview';
   static const claimEmptyPostCard = 'claim_empty_postcard';
   static const payToMintPostcard = 'pay_to_mint_postcard';
-  static const selectAddressScreen = 'select_address_screen';
+  static const postcardSelectAddressScreen = 'postcard_select_address_screen';
   static const receivePostcardPage = 'receive_postcard_page';
   static const receivePostcardSelectAccountPage =
       'receive_postcard_select_account_page';
@@ -801,6 +802,11 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings, builder: (context) => const SupportListPage());
 
+      case merchOrdersPage:
+        return CupertinoPageRoute(
+            settings: settings,
+            builder: (context) => const MerchandiseOrderPage());
+
       case TutorialVideo.tag:
         return CupertinoPageRoute(
             settings: settings,
@@ -943,17 +949,13 @@ class AppRouter {
                 ));
 
       case claimSelectAccountPage:
-        final args = settings.arguments! as SelectAccountPageArgs;
+        final payload = settings.arguments! as SelectAddressPagePayload;
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider.value(
                   value: accountsBloc,
                   child: SelectAccountPage(
-                    blockchain: args.blockchain,
-                    artwork: args.artwork,
-                    otp: args.otp,
-                    fromWebview: args.fromWebview,
-                    withViewOnly: args.withViewOnly,
+                    payload: payload,
                   ),
                 ));
 
@@ -1054,7 +1056,7 @@ class AppRouter {
               PayToMintPostcardScreen(claimRequest: claimRequest),
         );
 
-      case selectAddressScreen:
+      case postcardSelectAddressScreen:
         final arguments = settings.arguments! as Map;
         final blockchain = arguments['blockchain'] as String;
         final onConfirm = arguments['onConfirm'] as Future Function(String);
@@ -1065,7 +1067,7 @@ class AppRouter {
             providers: [
               BlocProvider.value(value: accountsBloc),
             ],
-            child: SelectAccountScreen(
+            child: PostcardSelectAddressScreen(
               blockchain: blockchain,
               onConfirm: onConfirm,
               withLinked: withLinked,
@@ -1087,23 +1089,6 @@ class AppRouter {
             child: ReceivePostCardPage(
               asset: args.asset,
               shareCode: args.shareCode,
-            ),
-          ),
-        );
-      case receivePostcardSelectAccountPage:
-        final args =
-            settings.arguments! as ReceivePostcardSelectAccountPageArgs;
-        return PageTransition(
-          settings: settings,
-          type: PageTransitionType.rightToLeft,
-          curve: Curves.easeIn,
-          duration: const Duration(milliseconds: 300),
-          reverseDuration: const Duration(milliseconds: 300),
-          child: BlocProvider.value(
-            value: accountsBloc,
-            child: ReceivePostcardSelectAccountPage(
-              blockchain: args.blockchain,
-              withLinked: args.withLinked,
             ),
           ),
         );

@@ -32,7 +32,10 @@ const RATING_MESSAGE_START = '### Customer support rating\n';
 const MUTE_RATING_MESSAGE = 'MUTE_RATING_MESSAGE';
 const STAR_RATING = '###STAR#RATING#';
 const KNOWN_BUGS_LINK = 'https://github.com/orgs/bitmark-inc/projects/16';
-const IRL_DEEPLINK_PREFIX = 'https://autonomy.io/apps/irl/';
+const IRL_DEEPLINK_PREFIXES = [
+  'https://autonomy.io/apps/irl/',
+  'https://app.feralfile.com/apps/irl/'
+];
 const AUTONOMY_CLIENT_GITHUB_LINK =
     'https://github.com/bitmark-inc/autonomy-client';
 const DEEP_LINKS = [
@@ -106,6 +109,20 @@ const MOMA_MEMENTO_CONTRACT_ADDRESSES_MAINNET = [
 
 const wedgwoodActivationContractAddress =
     'KT1VNooU9Nrj6hB1SwTkCA5yFXJxjZQCtBRM';
+
+const CASA_BATLLO_CONTRACT_ADDRESS_TESTNET =
+    'KT1LHMthpZWUyzgjtxu4ktD9kCbzEYQJBHGp';
+
+const CASA_BATLLO_CONTRACT_ADDRESS_MAINNET =
+    'KT19VkuK7tw22m4P36xRpPiMT4qzEw8YAN8A';
+
+String get casaBatlloContractAddress => Environment.appTestnetConfig
+    ? CASA_BATLLO_CONTRACT_ADDRESS_TESTNET
+    : CASA_BATLLO_CONTRACT_ADDRESS_MAINNET;
+
+List<String> tranferNotAllowContractAddresses = [
+  casaBatlloContractAddress,
+];
 
 List<String> get momaMementoContractAddresses {
   if (Environment.appTestnetConfig) {

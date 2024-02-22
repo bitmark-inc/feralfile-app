@@ -90,7 +90,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
   @override
   Future setup() async {
-    FlutterBranchSdk.initSession().listen((data) async {
+    await FlutterBranchSdk.init(enableLogging: true);
+    FlutterBranchSdk.listSession().listen((data) async {
       log.info('[DeeplinkService] _handleFeralFileDeeplink with Branch');
       log.info('[DeeplinkService] data: $data');
       if (data['+clicked_branch_link'] == true &&
@@ -106,7 +107,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
         await handleBranchDeeplinkData(data);
         handlingDeepLink = null;
       }
-    }, onError: (error) {
+    }, onError: (error, stacktrace) {
+      Sentry.captureException(error, stackTrace: stacktrace);
       log.warning('[DeeplinkService] InitBranchSession error: $error');
     });
 
@@ -326,7 +328,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
       return;
     }
     final address = await _navigationService.navigateTo(
-      AppRouter.selectAddressScreen,
+      AppRouter.postcardSelectAddressScreen,
       arguments: {
         'blockchain': 'Tezos',
         'onConfirm': (String address) async {
@@ -369,9 +371,10 @@ class DeeplinkServiceImpl extends DeeplinkService {
     if (!_configurationService.isDoneOnboarding()) {
       await injector<AccountService>().restoreIfNeeded();
     }
-    if (link.startsWith(IRL_DEEPLINK_PREFIX)) {
-      final urlDecode =
-          Uri.decodeFull(link.replaceFirst(IRL_DEEPLINK_PREFIX, ''));
+    final irlPrefix = IRL_DEEPLINK_PREFIXES
+        .firstWhereOrNull((element) => link.startsWith(element));
+    if (irlPrefix != null) {
+      final urlDecode = Uri.decodeFull(link.replaceFirst(irlPrefix, ''));
 
       final uri = Uri.tryParse(urlDecode);
       if (uri == null) {

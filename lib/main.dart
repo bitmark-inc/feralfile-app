@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+// ignore_for_file: unawaited_futures, type_annotate_public_apis
+
 // ignore_for_file: unawaited_futures
 // ignore_for_file: unreachable_from_main
 
@@ -34,8 +36,8 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:floor/floor.dart';
 import 'package:flutter/material.dart';
@@ -52,39 +54,23 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 void main() async {
   unawaited(runZonedGuarded(() async {
     await dotenv.load();
-
-    WidgetsFlutterBinding.ensureInitialized();
-    // feature/text_localization
-    await EasyLocalization.ensureInitialized();
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
+    await SentryFlutter.init(
+      (options) {
+        options
+          ..dsn = Environment.sentryDSN
+          ..enableAutoSessionTracking = true
+          ..tracesSampleRate = 0.25
+          ..attachStacktrace = true;
+      },
+      appRunner: () async {
+        try {
+          await runFeralFileApp();
+        } catch (e, stackTrace) {
+          await Sentry.captureException(e, stackTrace: stackTrace);
+          rethrow;
+        }
+      },
     );
-
-    FlutterNativeSplash.preserve(
-        widgetsBinding: WidgetsFlutterBinding.ensureInitialized());
-    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-
-    await FlutterDownloader.initialize();
-    await Hive.initFlutter();
-    _registerHiveAdapter();
-
-    FlutterDownloader.registerCallback(downloadCallback);
-    await AuFileService().setup();
-
-    OneSignal.shared.setLogLevel(OSLogLevel.error, OSLogLevel.none);
-    OneSignal.shared.setAppId(Environment.onesignalAppID);
-
-    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-      statusBarColor: AppColor.white,
-      statusBarIconBrightness: Brightness.dark,
-      statusBarBrightness: Brightness.light,
-    ));
-    FlutterError.onError = (FlutterErrorDetails details) {
-      FlutterError.presentError(details);
-      showErrorDialogFromException(details.exception,
-          stackTrace: details.stack, library: details.library);
-    };
-    await _setupApp();
   }, (Object error, StackTrace stackTrace) async {
     /// Check error is Database issue
     if (error.toString().contains('DatabaseException')) {
@@ -100,6 +86,43 @@ void main() async {
       showErrorDialogFromException(error, stackTrace: stackTrace);
     }
   }));
+}
+
+Future<void> runFeralFileApp() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // feature/text_localization
+  await EasyLocalization.ensureInitialized();
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  FlutterNativeSplash.preserve(
+      widgetsBinding: WidgetsFlutterBinding.ensureInitialized());
+  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+
+  await FlutterDownloader.initialize();
+  await Hive.initFlutter();
+  _registerHiveAdapter();
+
+  FlutterDownloader.registerCallback(downloadCallback);
+  await AuFileService().setup();
+
+  OneSignal.shared.setLogLevel(OSLogLevel.error, OSLogLevel.none);
+  OneSignal.shared.setAppId(Environment.onesignalAppID);
+
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarColor: AppColor.white,
+    statusBarIconBrightness: Brightness.dark,
+    statusBarBrightness: Brightness.light,
+  ));
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    showErrorDialogFromException(details.exception,
+        stackTrace: details.stack, library: details.library);
+  };
+
+  await _setupApp();
 }
 
 void _registerHiveAdapter() {
@@ -129,19 +152,15 @@ Future<void> _setupApp() async {
   final isPremium = await injector.get<IAPService>().isSubscribed();
   await injector<ConfigurationService>().setPremium(isPremium);
 
-  await SentryFlutter.init(
-    (options) {
-      options
-        ..dsn = Environment.sentryDSN
-        ..enableAutoSessionTracking = true
-        ..tracesSampleRate = 0.25
-        ..attachStacktrace = true;
-    },
-    appRunner: () => runApp(EasyLocalization(
-        supportedLocales: const [Locale('en', 'US')],
-        path: 'assets/translations',
-        fallbackLocale: const Locale('en', 'US'),
-        child: const OverlaySupport.global(child: AutonomyApp()))),
+  runApp(
+    EasyLocalization(
+      supportedLocales: const [Locale('en', 'US')],
+      path: 'assets/translations',
+      fallbackLocale: const Locale('en', 'US'),
+      child: const OverlaySupport.global(
+        child: AutonomyApp(),
+      ),
+    ),
   );
 
   Sentry.configureScope((scope) async {

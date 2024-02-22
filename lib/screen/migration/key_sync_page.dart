@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
+
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_bloc.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_state.dart';
@@ -16,8 +18,8 @@ import 'package:autonomy_flutter/view/au_radio_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -80,8 +82,8 @@ class KeySyncPage extends StatelessWidget {
                                 borderRadius:
                                     const BorderRadius.all(Radius.circular(5))),
                             child: GestureDetector(
-                              onTap: () async {
-                                await UIHelper.showDialog(
+                              onTap: () {
+                                unawaited(UIHelper.showDialog(
                                     context,
                                     'select_wallet_type'.tr(),
                                     SelectKeychainView(
@@ -97,7 +99,7 @@ class KeySyncPage extends StatelessWidget {
                                     padding: const EdgeInsets.symmetric(
                                         vertical: 32),
                                     paddingTitle: ResponsiveLayout
-                                        .pageHorizontalEdgeInsets);
+                                        .pageHorizontalEdgeInsets));
                               },
                               child: Container(
                                 color: Colors.transparent,
@@ -147,8 +149,8 @@ class KeySyncPage extends StatelessWidget {
                               ),
                               const SizedBox(height: 12),
                               TextButton(
-                                onPressed: () async => Navigator.of(context)
-                                    .pushNamed(AppRouter.autonomySecurityPage),
+                                onPressed: () => unawaited(Navigator.of(context)
+                                    .pushNamed(AppRouter.autonomySecurityPage)),
                                 style: TextButton.styleFrom(
                                   minimumSize: Size.zero,
                                   padding: EdgeInsets.zero,

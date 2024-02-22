@@ -25,10 +25,10 @@ import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/galery_thumbnail_item.dart';
 import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/search_bar.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -145,9 +145,10 @@ class CollectionProState extends State<CollectionPro>
                           [])
                       .map(
                         (e) {
-                          String name = identityMap[e.id] ?? e.name ?? e.id;
+                          String name = e.name ?? e.id;
                           if (name == e.id) {
-                            name = name.maskOnly(5);
+                            name = name.toIdentityOrMask(identityMap) ??
+                                name.maskOnly(5);
                           }
                           e.name = name;
                           return e;

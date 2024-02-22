@@ -129,7 +129,7 @@ class ClaimEmptyPostCardBloc
         address = addresses.first;
       } else {
         address = await navigationService.navigateTo(
-          AppRouter.selectAddressScreen,
+          AppRouter.postcardSelectAddressScreen,
           arguments: {
             'blockchain': 'Tezos',
             'onConfirm': (String address) async {

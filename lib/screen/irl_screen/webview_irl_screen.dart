@@ -157,6 +157,10 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
         final text = data['text'];
         final orderId = data['orderId'];
         final indexId = data['indexId'];
+
+        final configService = injector<ConfigurationService>();
+        unawaited(configService.setMerchandiseOrderIds([orderId]));
+
         final draft = DraftCustomerSupport(
           uuid: const Uuid().v4(),
           issueID: issueID,

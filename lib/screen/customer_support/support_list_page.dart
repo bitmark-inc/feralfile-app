@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/announcement_local.dart';
 import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
@@ -19,14 +21,14 @@ import 'package:autonomy_flutter/util/rand.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class SupportListPage extends StatefulWidget {
-  const SupportListPage({Key? key}) : super(key: key);
+  const SupportListPage({super.key});
 
   @override
   State<SupportListPage> createState() => _SupportListPageState();
@@ -40,7 +42,7 @@ class _SupportListPageState extends State<SupportListPage>
   void didChangeDependencies() {
     super.didChangeDependencies();
     routeObserver.subscribe(this, ModalRoute.of(context)!);
-    loadIssues();
+    unawaited(loadIssues());
     injector<CustomerSupportService>()
         .triggerReloadMessages
         .addListener(loadIssues);
@@ -48,7 +50,7 @@ class _SupportListPageState extends State<SupportListPage>
 
   @override
   void didPopNext() {
-    loadIssues();
+    unawaited(loadIssues());
     super.didPopNext();
   }
 
@@ -61,7 +63,7 @@ class _SupportListPageState extends State<SupportListPage>
         .removeListener(loadIssues);
   }
 
-  void loadIssues() async {
+  Future<void> loadIssues() async {
     final issues =
         await injector<CustomerSupportService>().getIssuesAndAnnouncement();
     if (mounted) {
@@ -72,16 +74,14 @@ class _SupportListPageState extends State<SupportListPage>
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: getBackAppBar(
-        context,
-        title: "support_history".tr(),
-        onBack: () => Navigator.of(context).pop(),
-      ),
-      body: _issuesWidget(),
-    );
-  }
+  Widget build(BuildContext context) => Scaffold(
+        appBar: getBackAppBar(
+          context,
+          title: 'support_history'.tr(),
+          onBack: () => Navigator.of(context).pop(),
+        ),
+        body: _issuesWidget(),
+      );
 
   Widget _issuesWidget() {
     final issues = _issues;
@@ -89,7 +89,9 @@ class _SupportListPageState extends State<SupportListPage>
       return const Center(child: CupertinoActivityIndicator());
     }
 
-    if (issues.isEmpty) return const SizedBox();
+    if (issues.isEmpty) {
+      return const SizedBox();
+    }
 
     return CustomScrollView(slivers: [
       SliverToBoxAdapter(
@@ -107,14 +109,14 @@ class _SupportListPageState extends State<SupportListPage>
                 final isRated = (lastMessage.contains(STAR_RATING) ||
                         lastMessage.contains(RATING_MESSAGE_START)) &&
                     issue.rating > 0;
-                bool hasDivider = (index < issues.length - 1);
+                bool hasDivider = index < issues.length - 1;
                 return Padding(
                   padding: EdgeInsets.symmetric(
                       horizontal: ResponsiveLayout.pageEdgeInsets.left),
                   child: GestureDetector(
                     behavior: HitTestBehavior.translucent,
                     child: _contentRow(issue, hasDivider),
-                    onTap: () => Navigator.of(context).pushNamed(
+                    onTap: () => unawaited(Navigator.of(context).pushNamed(
                       AppRouter.supportThreadPage,
                       arguments: DetailIssuePayload(
                         reportIssueType: issue.reportIssueType,
@@ -123,26 +125,26 @@ class _SupportListPageState extends State<SupportListPage>
                         isRated: isRated,
                         announcement: issue.announcement,
                       ),
-                    ),
+                    )),
                   ),
                 );
 
               case AnnouncementLocal:
                 final issue = chatThread as AnnouncementLocal;
-                bool hasDivider = (index < issues.length - 1);
+                bool hasDivider = index < issues.length - 1;
                 return Padding(
                   padding: EdgeInsets.symmetric(
                       horizontal: ResponsiveLayout.pageEdgeInsets.left),
                   child: GestureDetector(
                     behavior: HitTestBehavior.translucent,
                     child: _announcementRow(issue, hasDivider),
-                    onTap: () => Navigator.of(context).pushNamed(
+                    onTap: () => unawaited(Navigator.of(context).pushNamed(
                       AppRouter.supportThreadPage,
                       arguments: NewIssuePayload(
                         reportIssueType: ReportIssueType.Announcement,
                         announcement: issue,
                       ),
-                    ),
+                    )),
                   ),
                 );
               default:
@@ -199,23 +201,26 @@ class _SupportListPageState extends State<SupportListPage>
             style: theme.textTheme.ppMori400Black14,
           ),
         ),
-        hasDivider
-            ? addDivider()
-            : const SizedBox(
-                height: 32,
-              ),
+        if (hasDivider)
+          addDivider()
+        else
+          const SizedBox(
+            height: 32,
+          ),
       ],
     );
   }
 
   String getPreviewMessage(Issue issue) {
     final lastMessage = getLastMessage(issue);
-    if (issue.status == "closed") {
+    if (issue.status == 'closed') {
       if (lastMessage.contains(RATING_MESSAGE_START)) {
         return lastMessage.substring(RATING_MESSAGE_START.length);
       }
-      if (lastMessage.contains(STAR_RATING)) return "care_to_share".tr();
-      return "rate_issue".tr();
+      if (lastMessage.contains(STAR_RATING)) {
+        return 'care_to_share'.tr();
+      }
+      return 'rate_issue'.tr();
     }
     return lastMessage;
   }
@@ -242,27 +247,31 @@ class _SupportListPageState extends State<SupportListPage>
       lastMessage = Message(
         id: random.nextInt(100000),
         read: true,
-        from: "did:key:user",
+        from: 'did:key:user',
         message: draftData.text ?? '',
         attachments: attachments,
         timestamp: draft.createdAt,
       );
     }
 
-    if (lastMessage == null) return '';
+    if (lastMessage == null) {
+      return '';
+    }
 
     if (lastMessage.filteredMessage.isNotEmpty) {
       return lastMessage.filteredMessage;
     }
-    if (lastMessage.attachments.isEmpty) return "";
+    if (lastMessage.attachments.isEmpty) {
+      return '';
+    }
     final attachment = lastMessage.attachments.last;
     final attachmentTitle =
         ReceiveAttachment.extractSizeAndRealTitle(attachment.title)[1];
     if (attachment.contentType.contains('image')) {
-      return "image_sent"
+      return 'image_sent'
           .tr(args: [attachmentTitle]); //'Image sent: $attachmentTitle';
     } else {
-      return "file_sent"
+      return 'file_sent'
           .tr(args: [attachmentTitle]); //'File sent: $attachmentTitle';
     }
   }
@@ -314,21 +323,20 @@ class _SupportListPageState extends State<SupportListPage>
             style: theme.textTheme.ppMori400Black14,
           ),
         ),
-        hasDivider
-            ? addDivider()
-            : const SizedBox(
-                height: 32,
-              ),
+        if (hasDivider)
+          addDivider()
+        else
+          const SizedBox(
+            height: 32,
+          ),
       ],
     );
   }
 
-  Widget _unread() {
-    return Row(
-      children: [
-        const SizedBox(width: 8),
-        Padding(padding: const EdgeInsets.only(top: 4), child: redDotIcon())
-      ],
-    );
-  }
+  Widget _unread() => Row(
+        children: [
+          const SizedBox(width: 8),
+          Padding(padding: const EdgeInsets.only(top: 4), child: redDotIcon())
+        ],
+      );
 }

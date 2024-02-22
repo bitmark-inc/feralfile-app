@@ -45,11 +45,20 @@ class WCSendTransactionBloc
       final newState = state.clone();
       final exchangeRate = await _currencyService.getExchangeRates();
       newState.exchangeRate = exchangeRate;
-      emit(newState);
       try {
-        newState.feeOptionValue = await _ethereumService.estimateFee(
+        final estimatedFee = await _ethereumService.estimateFee(
             persona, event.index, event.address, event.amount, event.data);
+        final balance = await _ethereumService
+            .getBalance(await persona.getETHEip55Address(index: event.index));
+        newState
+          ..feeOptionValue = estimatedFee
+          ..fee = newState.feeOptionValue!.getFee(state.feeOption)
+          ..balance = balance.getInWei;
       } on RPCError catch (e) {
+        log.info('WC Send tx bloc: RPCError: '
+            'errorCode: ${e.errorCode} '
+            'message: ${e.message}'
+            'data: ${e.data}');
         _navigationService.showErrorDialog(
             ErrorEvent(e, 'estimation_failed'.tr(), e.errorMessage,
                 ErrorItemState.tryAgain), cancelAction: () {
@@ -59,6 +68,7 @@ class WCSendTransactionBloc
           add(event);
         });
       } catch (e) {
+        log.info('WC Send tx bloc: Error: $e');
         _navigationService.showErrorDialog(
             ErrorEvent(e, 'estimation_failed'.tr(), e.toString(),
                 ErrorItemState.tryAgain), cancelAction: () {
@@ -68,11 +78,6 @@ class WCSendTransactionBloc
           add(event);
         });
       }
-      newState.fee = newState.feeOptionValue!.getFee(state.feeOption);
-
-      final balance =
-          await _ethereumService.getBalance(await persona.getETHEip55Address());
-      newState.balance = balance.getInWei;
       emit(newState);
     });
 

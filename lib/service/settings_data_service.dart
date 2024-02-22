@@ -140,8 +140,13 @@ class SettingsDataServiceImpl implements SettingsDataService {
 
   @override
   Future restoreSettingsData() async {
-    await restoreSettingsDataFromFirestore();
-    return;
+    try {
+      await restoreSettingsDataFromFirestore();
+      return;
+    } catch (exception, stacktrace) {
+      await Sentry.captureException(exception, stackTrace: stacktrace);
+      return;
+    }
   }
 
   @override

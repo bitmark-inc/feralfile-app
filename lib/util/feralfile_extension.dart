@@ -32,7 +32,7 @@ extension FeralfileErrorExt on FeralfileError {
       case 3009:
         return 'Sorry, the tokens have been delivered to all fastest users.';
       case 3010:
-        return 'You have already accepted your gift edition.';
+        return 'just_once_desc'.tr();
       case 3013:
       case 3014:
         return 'The validity of the QR code has expired. '

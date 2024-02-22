@@ -5,9 +5,9 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
 import 'package:autonomy_flutter/util/moma_style_color.dart';
 import 'package:autonomy_flutter/util/postcard_extension.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
-import 'package:autonomy_theme/extensions/theme_extension/moma_sans.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:feralfile_app_theme/extensions/theme_extension/moma_sans.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:nft_collection/models/asset_token.dart';
 
@@ -16,10 +16,10 @@ class PostcardTravelInfo extends StatefulWidget {
   final List<TravelInfo> listTravelInfo;
 
   const PostcardTravelInfo({
-    Key? key,
     required this.assetToken,
     required this.listTravelInfo,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<PostcardTravelInfo> createState() => _PostcardTravelInfoState();
@@ -41,7 +41,7 @@ class _PostcardTravelInfoState extends State<PostcardTravelInfo> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "total_distance_traveled".tr(),
+          'total_distance_traveled'.tr(),
           style: theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
         ),
         Text(
@@ -53,28 +53,29 @@ class _PostcardTravelInfoState extends State<PostcardTravelInfo> {
         Row(
           children: [
             Text(
-              "postcard_progress".tr(),
+              'postcard_progress'.tr(),
               style: theme.textTheme.moMASans400Grey12,
             ),
             const Spacer(),
             Text(
-                "stamps_".tr(namedArgs: {
-                  "current": numberFormatter.format(currentStampNumber),
-                  "total": MAX_STAMP_IN_POSTCARD.toString(),
+                'stamps_'.tr(namedArgs: {
+                  'current': numberFormatter.format(currentStampNumber),
+                  'total': MAX_STAMP_IN_POSTCARD.toString(),
                 }),
                 style: theme.textTheme.moMASans400Grey12)
           ],
         ),
         Row(
           children: [
-            ...List.generate(MAX_STAMP_IN_POSTCARD, (index) {
-              return Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(1.0),
-                  child: _progressItem(context, index, currentStampNumber),
-                ),
-              );
-            }),
+            ...List.generate(
+                MAX_STAMP_IN_POSTCARD,
+                (index) => Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.all(1),
+                        child:
+                            _progressItem(context, index, currentStampNumber),
+                      ),
+                    )),
           ],
         ),
       ],

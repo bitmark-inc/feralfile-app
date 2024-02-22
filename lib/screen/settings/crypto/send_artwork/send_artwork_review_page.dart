@@ -27,8 +27,8 @@ import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:libauk_dart/libauk_dart.dart';
@@ -380,13 +380,16 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
             overflow: TextOverflow.ellipsis,
           ),
         ),
-        GestureDetector(
-          onTap: onValueTap,
-          child: Text(
-            content,
-            style: theme.textTheme.ppMori400Black14.copyWith(
-                decoration:
-                    (onValueTap != null) ? TextDecoration.underline : null),
+        Expanded(
+          child: GestureDetector(
+            onTap: onValueTap,
+            child: Text(
+              content,
+              style: theme.textTheme.ppMori400Black14.copyWith(
+                  decoration:
+                      (onValueTap != null) ? TextDecoration.underline : null),
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         )
       ],

@@ -29,12 +29,14 @@ class ArtworkDetailState {
   List<Provenance> provenances;
   Map<String, int> owners;
   String? airdropDeeplink;
+  bool isViewOnly;
 
   ArtworkDetailState({
     this.assetToken,
     required this.provenances,
     this.owners = const {},
     this.airdropDeeplink,
+    this.isViewOnly = true,
   });
 
   //copyWith
@@ -43,12 +45,14 @@ class ArtworkDetailState {
     List<Provenance>? provenances,
     Map<String, int>? owners,
     String? airdropDeeplink,
+    bool? isViewOnly,
   }) {
     return ArtworkDetailState(
       assetToken: assetToken ?? this.assetToken,
       provenances: provenances ?? this.provenances,
       owners: owners ?? this.owners,
       airdropDeeplink: airdropDeeplink ?? this.airdropDeeplink,
+      isViewOnly: isViewOnly ?? this.isViewOnly,
     );
   }
 }

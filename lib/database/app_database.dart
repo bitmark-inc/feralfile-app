@@ -14,7 +14,7 @@ import 'package:autonomy_flutter/database/dao/identity_dao.dart';
 import 'package:autonomy_flutter/database/entity/announcement_local.dart';
 import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
 import 'package:autonomy_flutter/database/entity/identity.dart';
-import 'package:autonomy_tv_proto/models/canvas_device.dart';
+import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:floor/floor.dart';
 import 'package:nft_collection/models/token.dart';
 import 'package:sqflite/sqflite.dart' as sqflite;

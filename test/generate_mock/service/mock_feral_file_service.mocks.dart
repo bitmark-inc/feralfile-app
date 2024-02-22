@@ -4,6 +4,7 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i7;
+import 'dart:io' as _i9;
 
 import 'package:autonomy_flutter/model/ff_account.dart' as _i4;
 import 'package:autonomy_flutter/model/ff_exhibition.dart' as _i5;
@@ -12,6 +13,7 @@ import 'package:autonomy_flutter/model/otp.dart' as _i8;
 import 'package:autonomy_flutter/screen/claim/claim_token_page.dart' as _i3;
 import 'package:autonomy_flutter/service/feralfile_service.dart' as _i6;
 import 'package:mockito/mockito.dart' as _i1;
+import 'package:nft_collection/models/asset_token.dart' as _i10;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -57,6 +59,16 @@ class _FakeFeralFileResaleInfo_2 extends _i1.SmartFake
 
 class _FakeExhibition_3 extends _i1.SmartFake implements _i5.Exhibition {
   _FakeExhibition_3(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeArtwork_4 extends _i1.SmartFake implements _i4.Artwork {
+  _FakeArtwork_4(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -254,4 +266,61 @@ class MockFeralFileService extends _i1.Mock implements _i6.FeralFileService {
         ),
         returnValue: _i7.Future<List<_i4.Artwork>>.value(<_i4.Artwork>[]),
       ) as _i7.Future<List<_i4.Artwork>>);
+  @override
+  _i7.Future<String> getFeralfileActionMessage({
+    required String? address,
+    required _i6.FeralfileAction? action,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getFeralfileActionMessage,
+          [],
+          {
+            #address: address,
+            #action: action,
+          },
+        ),
+        returnValue: _i7.Future<String>.value(''),
+      ) as _i7.Future<String>);
+  @override
+  _i7.Future<String> getFeralfileArtworkDownloadUrl({
+    required String? artworkId,
+    required String? owner,
+    required String? signature,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getFeralfileArtworkDownloadUrl,
+          [],
+          {
+            #artworkId: artworkId,
+            #owner: owner,
+            #signature: signature,
+          },
+        ),
+        returnValue: _i7.Future<String>.value(''),
+      ) as _i7.Future<String>);
+  @override
+  _i7.Future<_i4.Artwork> getArtwork(String? artworkId) => (super.noSuchMethod(
+        Invocation.method(
+          #getArtwork,
+          [artworkId],
+        ),
+        returnValue: _i7.Future<_i4.Artwork>.value(_FakeArtwork_4(
+          this,
+          Invocation.method(
+            #getArtwork,
+            [artworkId],
+          ),
+        )),
+      ) as _i7.Future<_i4.Artwork>);
+  @override
+  _i7.Future<_i9.File?> downloadFeralfileArtwork(_i10.AssetToken? assetToken) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #downloadFeralfileArtwork,
+          [assetToken],
+        ),
+        returnValue: _i7.Future<_i9.File?>.value(),
+      ) as _i7.Future<_i9.File?>);
 }

@@ -107,6 +107,8 @@ abstract class AccountService {
   Future<void> updateAddressPersona(WalletAddress walletAddress);
 
   Future<void> restoreIfNeeded({bool isCreateNew = true});
+
+  Future<List<Connection>> getAllViewOnlyAddresses();
 }
 
 class AccountServiceImpl extends AccountService {
@@ -395,9 +397,9 @@ class AccountServiceImpl extends AccountService {
   Future deleteLinkedAccount(Connection connection) async {
     await _cloudDB.connectionDao.deleteConnection(connection);
     final addressIndexes = connection.addressIndexes;
-    unawaited(Future.wait(addressIndexes.map((element) async {
+    await Future.wait(addressIndexes.map((element) async {
       await setHideLinkedAccountInGallery(element.address, false);
-    })));
+    }));
     await _addressService
         .deleteAddresses(addressIndexes.map((e) => e.address).toList());
     final metricClient = injector.get<MetricClientService>();
@@ -723,7 +725,7 @@ class AccountServiceImpl extends AccountService {
   @override
   Future<void> deleteAddressPersona(
       Persona persona, WalletAddress walletAddress) async {
-    unawaited(_cloudDB.addressDao.deleteAddress(walletAddress));
+    await _cloudDB.addressDao.deleteAddress(walletAddress);
     final metricClientService = injector<MetricClientService>();
     await _addressService.deleteAddresses([walletAddress.address]);
     switch (CryptoType.fromSource(walletAddress.cryptoType)) {
@@ -732,7 +734,7 @@ class AccountServiceImpl extends AccountService {
             .getConnectionsByType(ConnectionType.dappConnect2.rawValue);
         for (var connection in connections) {
           if (connection.accountNumber.contains(walletAddress.address)) {
-            unawaited(_cloudDB.connectionDao.deleteConnection(connection));
+            await _cloudDB.connectionDao.deleteConnection(connection);
             metricClientService.onRemoveConnection(connection);
           }
         }
@@ -745,7 +747,7 @@ class AccountServiceImpl extends AccountService {
           if (connection.beaconConnectConnection?.personaUuid == persona.uuid &&
               connection.beaconConnectConnection?.index ==
                   walletAddress.index) {
-            unawaited(_cloudDB.connectionDao.deleteConnection(connection));
+            await _cloudDB.connectionDao.deleteConnection(connection);
             metricClientService.onRemoveConnection(connection);
           }
         }
@@ -821,6 +823,12 @@ class AccountServiceImpl extends AccountService {
           (element) => _cloudDB.connectionDao.deleteConnection(element));
     }
     return result;
+  }
+
+  @override
+  Future<List<Connection>> getAllViewOnlyAddresses() {
+    final connections = _cloudDB.connectionDao.getLinkedAccounts();
+    return connections;
   }
 }
 

@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 
@@ -17,8 +18,8 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:open_settings/open_settings.dart';
@@ -27,7 +28,7 @@ import 'package:permission_handler/permission_handler.dart';
 class RecoveryPhrasePage extends StatefulWidget {
   final List<String> words;
 
-  const RecoveryPhrasePage({Key? key, required this.words}) : super(key: key);
+  const RecoveryPhrasePage({required this.words, super.key});
 
   @override
   State<RecoveryPhrasePage> createState() => _RecoveryPhrasePageState();
@@ -41,7 +42,7 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((context) {
-      _checkBackUpAvailable();
+      unawaited(_checkBackUpAvailable());
     });
   }
 
@@ -65,7 +66,7 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
     return Scaffold(
       appBar: getBackAppBar(
         context,
-        title: "your_recovery_phrase".tr(),
+        title: 'your_recovery_phrase'.tr(),
         onBack: () {
           Navigator.of(context).pop();
         },
@@ -87,9 +88,7 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
                         Table(
                           children: List.generate(
                             roundNumber,
-                            (index) {
-                              return _tableRow(context, index, roundNumber);
-                            },
+                            (index) => _tableRow(context, index, roundNumber),
                           ),
                           border: TableBorder.all(
                               color: AppColor.auLightGrey,
@@ -99,14 +98,13 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
                           Positioned.fill(
                             child: ClipRect(
                                 child: BackdropFilter(
-                              filter:
-                                  ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+                              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                               child: Center(
                                   child: ConstrainedBox(
                                 constraints: const BoxConstraints.tightFor(
                                     width: 168, height: 45),
                                 child: PrimaryButton(
-                                  text: "tap_to_reveal".tr(),
+                                  text: 'tap_to_reveal'.tr(),
                                   onTap: () async {
                                     final didAuthenticate =
                                         await LocalAuthenticationService
@@ -140,8 +138,8 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
   Widget _rowItem(BuildContext context, int index) {
     final theme = Theme.of(context);
     final isNull = index >= widget.words.length;
-    final word = isNull ? "" : widget.words[index];
-    NumberFormat formatter = NumberFormat("00");
+    final word = isNull ? '' : widget.words[index];
+    NumberFormat formatter = NumberFormat('00');
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
@@ -150,7 +148,7 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
           Container(
             width: 32,
             alignment: Alignment.centerRight,
-            child: Text(isNull ? "" : formatter.format(index + 1),
+            child: Text(isNull ? '' : formatter.format(index + 1),
                 style: theme.textTheme.ppMori400Grey14),
           ),
           const SizedBox(width: 16),
@@ -177,38 +175,35 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
               children: <TextSpan>[
                 TextSpan(
                   text: 'yrp_we’ve_safely'.tr(),
-                  //'We’ve safely and securely backed up your recovery phrase to your',
                 ),
-                Platform.isIOS
-                    ? TextSpan(
-                        text: 'icloud_keychain'.tr(),
-                        style: customLinkStyle,
-                        recognizer: TapGestureRecognizer()
-                          ..onTap = () => Navigator.of(context).pushNamed(
-                                  AppRouter.githubDocPage,
-                                  arguments: {
-                                    "prefix":
-                                        "/bitmark-inc/autonomy.io/main/apps/docs/",
-                                    "document": "security-ios.md",
-                                    "title": ""
-                                  }),
-                      )
-                    : TextSpan(
-                        text: 'android_block_store'.tr(),
-                        style: customLinkStyle,
-                        recognizer: TapGestureRecognizer()
-                          ..onTap = () => Navigator.of(context).pushNamed(
-                                  AppRouter.githubDocPage,
-                                  arguments: {
-                                    "prefix":
-                                        "/bitmark-inc/autonomy.io/main/apps/docs/",
-                                    "document": "security-android.md",
-                                    "title": ""
-                                  }),
-                      ),
+                if (Platform.isIOS)
+                  TextSpan(
+                    text: 'icloud_keychain'.tr(),
+                    style: customLinkStyle,
+                    recognizer: TapGestureRecognizer()
+                      ..onTap = () => unawaited(Navigator.of(context)
+                              .pushNamed(AppRouter.githubDocPage, arguments: {
+                            'prefix':
+                                '/bitmark-inc/autonomy.io/main/apps/docs/',
+                            'document': 'security-ios.md',
+                            'title': ''
+                          })),
+                  )
+                else
+                  TextSpan(
+                    text: 'android_block_store'.tr(),
+                    style: customLinkStyle,
+                    recognizer: TapGestureRecognizer()
+                      ..onTap = () => unawaited(Navigator.of(context)
+                              .pushNamed(AppRouter.githubDocPage, arguments: {
+                            'prefix':
+                                '/bitmark-inc/autonomy.io/main/apps/docs/',
+                            'document': 'security-android.md',
+                            'title': ''
+                          })),
+                  ),
                 TextSpan(
                   text: 'yrp_you_may_also'.tr(),
-                  //'. You may also back it up to use it in another BIP-39 standard wallet:',
                 ),
               ],
             ),
@@ -224,33 +219,32 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
             text: TextSpan(
               style: theme.textTheme.ppMori400Black14,
               children: <TextSpan>[
-                Platform.isIOS
-                    ? TextSpan(
-                        text: 'icloud_keychain'.tr(),
-                        style: customLinkStyle,
-                        recognizer: TapGestureRecognizer()
-                          ..onTap = () => Navigator.of(context).pushNamed(
-                                  AppRouter.githubDocPage,
-                                  arguments: {
-                                    "prefix":
-                                        "/bitmark-inc/autonomy.io/main/apps/docs/",
-                                    "document": "security-ios.md",
-                                    "title": ""
-                                  }),
-                      )
-                    : TextSpan(
-                        text: 'android_block_store'.tr(),
-                        style: customLinkStyle,
-                        recognizer: TapGestureRecognizer()
-                          ..onTap = () => Navigator.of(context).pushNamed(
-                                  AppRouter.githubDocPage,
-                                  arguments: {
-                                    "prefix":
-                                        "/bitmark-inc/autonomy.io/main/apps/docs/",
-                                    "document": "security-android.md",
-                                    "title": ""
-                                  }),
-                      ),
+                if (Platform.isIOS)
+                  TextSpan(
+                    text: 'icloud_keychain'.tr(),
+                    style: customLinkStyle,
+                    recognizer: TapGestureRecognizer()
+                      ..onTap = () => unawaited(Navigator.of(context)
+                              .pushNamed(AppRouter.githubDocPage, arguments: {
+                            'prefix':
+                                '/bitmark-inc/autonomy.io/main/apps/docs/',
+                            'document': 'security-ios.md',
+                            'title': ''
+                          })),
+                  )
+                else
+                  TextSpan(
+                    text: 'android_block_store'.tr(),
+                    style: customLinkStyle,
+                    recognizer: TapGestureRecognizer()
+                      ..onTap = () => unawaited(Navigator.of(context)
+                              .pushNamed(AppRouter.githubDocPage, arguments: {
+                            'prefix':
+                                '/bitmark-inc/autonomy.io/main/apps/docs/',
+                            'document': 'security-android.md',
+                            'title': ''
+                          })),
+                  ),
                 TextSpan(
                   text: '_is_'.tr(),
                 ),
@@ -282,8 +276,8 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
         const SizedBox(height: 30),
         Text(
             Platform.isAndroid
-                ? "recommend_google_cloud".tr()
-                : "recommend_icloud_key".tr(),
+                ? 'recommend_google_cloud'.tr()
+                : 'recommend_icloud_key'.tr(),
             style: theme.textTheme.ppMori700Black14),
       ],
     );
@@ -298,15 +292,15 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
         Expanded(
           child: Platform.isAndroid
               ? OutlineButton(
-                  text: "open_device_setting".tr(),
-                  onTap: () => OpenSettings.openAddAccountSetting(),
+                  text: 'open_device_setting'.tr(),
+                  onTap: () => unawaited(OpenSettings.openAddAccountSetting()),
                   color: AppColor.white,
                   borderColor: AppColor.primaryBlack,
                   textColor: AppColor.primaryBlack,
                 )
               : OutlineButton(
-                  onTap: () => openAppSettings(),
-                  text: "open_icloud_setting".tr(),
+                  onTap: () => unawaited(openAppSettings()),
+                  text: 'open_icloud_setting'.tr(),
                   color: AppColor.white,
                   borderColor: AppColor.primaryBlack,
                   textColor: AppColor.primaryBlack,
@@ -316,10 +310,9 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
     );
   }
 
-  TableRow _tableRow(BuildContext context, int index, int itemsEachCol) {
-    return TableRow(children: [
-      _rowItem(context, index),
-      _rowItem(context, index + itemsEachCol),
-    ]);
-  }
+  TableRow _tableRow(BuildContext context, int index, int itemsEachCol) =>
+      TableRow(children: [
+        _rowItem(context, index),
+        _rowItem(context, index + itemsEachCol),
+      ]);
 }

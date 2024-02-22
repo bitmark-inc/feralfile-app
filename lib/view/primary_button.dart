@@ -1,5 +1,5 @@
 import 'package:autonomy_flutter/util/debouce_util.dart';
-import 'package:autonomy_theme/autonomy_theme.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 
 class PrimaryButton extends StatelessWidget {
