@@ -536,7 +536,6 @@
 			buildConfigurationList = 76F328AD27D1EC1C00C3B9FA /* Build configuration list for PBXNativeTarget "Runner Inhouse" */;
 			buildPhases = (
 				19DDBD8479F372F22F19C915 /* [CP] Check Pods Manifest.lock */,
-				76F3289227D1EC1C00C3B9FA /* Run Script */,
 				76F3289327D1EC1C00C3B9FA /* Sources */,
 				76F3289D27D1EC1C00C3B9FA /* Frameworks */,
 				76F328A527D1EC1C00C3B9FA /* Resources */,
@@ -544,6 +543,7 @@
 				76F328AB27D1EC1C00C3B9FA /* Thin Binary */,
 				588939C3280525C200FE3313 /* Embed App Extensions */,
 				5302CE1970BB7A78C4F878A1 /* [CP] Embed Pods Frameworks */,
+				76F3289227D1EC1C00C3B9FA /* Run Script */,
 			);
 			buildRules = (
 			);
@@ -573,7 +573,6 @@
 			buildConfigurationList = 97C147051CF9000F007C117D /* Build configuration list for PBXNativeTarget "Runner" */;
 			buildPhases = (
 				29BCC4912ABD6C7F34D92828 /* [CP] Check Pods Manifest.lock */,
-				9740EEB61CF901F6004384FC /* Run Script */,
 				97C146EA1CF9000F007C117D /* Sources */,
 				97C146EB1CF9000F007C117D /* Frameworks */,
 				97C146EC1CF9000F007C117D /* Resources */,
@@ -581,6 +580,7 @@
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
 				FE698D0D002D57A6963D685A /* [CP] Embed Pods Frameworks */,
 				588939D828052E3E00FE3313 /* Embed App Extensions */,
+				9740EEB61CF901F6004384FC /* Run Script */,
 			);
 			buildRules = (
 			);
