@@ -121,8 +121,10 @@ class _ViewExistingAddressState extends State<ViewExistingAddress> {
                   await Navigator.of(context).pushNamed(ImportSeedsPage.tag);
                 },
                 child: Text('or_import_address'.tr(),
-                    style: theme.textTheme.ppMori400Black14
-                        .copyWith(decoration: TextDecoration.underline)),
+                    style: theme.textTheme.ppMori400Black14.copyWith(
+                      decoration: TextDecoration.underline,
+                      decorationColor: AppColor.primaryBlack,
+                    )),
               )
             ],
           ),

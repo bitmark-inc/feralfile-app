@@ -322,8 +322,10 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
             child: Text(
               content,
               style: theme.textTheme.ppMori400Black14.copyWith(
-                  decoration:
-                      (onValueTap != null) ? TextDecoration.underline : null),
+                decoration:
+                    (onValueTap != null) ? TextDecoration.underline : null,
+                decorationColor: AppColor.primaryBlack,
+              ),
             ),
           ),
         ),
@@ -378,6 +380,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
           child: Text('edit_priority'.tr(),
               style: theme.textTheme.ppMori400White14.copyWith(
                 decoration: TextDecoration.underline,
+                decorationColor: AppColor.white,
               )),
         ),
       ],

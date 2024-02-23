@@ -187,14 +187,18 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                           ),
                           Align(
                             alignment: Alignment.centerRight,
-                            child: IconButton(
-                              onPressed: () => Navigator.pop(context),
-                              padding: const EdgeInsets.all(5),
-                              constraints: const BoxConstraints(
-                                  maxHeight: 28, maxWidth: 28),
-                              icon: const Icon(
-                                AuIcon.close,
-                                size: 18,
+                            child: SizedBox(
+                              height: 28,
+                              width: 28,
+                              child: IconButton(
+                                onPressed: () => Navigator.pop(context),
+                                padding: const EdgeInsets.all(0),
+                                icon: const Icon(
+                                  AuIcon.close,
+                                  size: 18,
+                                  color: AppColor.primaryBlack,
+                                  weight: 2,
+                                ),
                               ),
                             ),
                           ),

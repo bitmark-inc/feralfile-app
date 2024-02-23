@@ -26,6 +26,7 @@ AppBar getBackAppBar(
   bool withDivider = true,
   Color? backgroundColor,
   Color? statusBarColor,
+  Color? surfaceTintColor,
 }) {
   final theme = Theme.of(context);
 
@@ -86,6 +87,7 @@ AppBar getBackAppBar(
         const SizedBox(width: 36),
     ],
     backgroundColor: backgroundColor ?? Colors.transparent,
+    surfaceTintColor: surfaceTintColor ?? Colors.transparent,
     shadowColor: Colors.transparent,
     elevation: 0,
     bottom: withDivider
@@ -344,6 +346,7 @@ AppBar getCustomDoneAppBar(
     elevation: 1,
     leadingWidth: 80,
     scrolledUnderElevation: 0,
+    surfaceTintColor: Colors.transparent,
     leading: GestureDetector(
       onTap: onCancel,
       child: Padding(

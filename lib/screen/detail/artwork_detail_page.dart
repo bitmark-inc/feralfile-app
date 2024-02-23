@@ -279,6 +279,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
           appBar: AppBar(
             systemOverlayStyle: systemUiOverlayDarkStyle,
             leadingWidth: 0,
+            leading: const SizedBox(),
             centerTitle: false,
             backgroundColor: Colors.transparent,
             title: ArtworkDetailsHeader(

@@ -617,8 +617,10 @@ class _SupportThreadPageState extends State<SupportThreadPage>
                       },
                       child: Text(
                         'retry'.tr(),
-                        style: theme.textTheme.ppMori400Black12
-                            .copyWith(decoration: TextDecoration.underline),
+                        style: theme.textTheme.ppMori400Black12.copyWith(
+                          decoration: TextDecoration.underline,
+                          decorationColor: AppColor.primaryBlack,
+                        ),
                       ),
                     ),
                     Text(
@@ -639,8 +641,10 @@ class _SupportThreadPageState extends State<SupportThreadPage>
                       },
                       child: Text(
                         'delete'.tr(),
-                        style: theme.textTheme.ppMori400Black12
-                            .copyWith(decoration: TextDecoration.underline),
+                        style: theme.textTheme.ppMori400Black12.copyWith(
+                          decoration: TextDecoration.underline,
+                          decorationColor: AppColor.primaryBlack,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 6),
