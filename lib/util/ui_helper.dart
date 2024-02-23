@@ -783,8 +783,6 @@ class UIHelper {
       BuildContext context, String? artworkId) async {
     final theme = Theme.of(context);
     final error = FeralfileError(5006, '');
-    unawaited(metricClient.addEvent(MixpanelEvent.acceptOwnershipFail,
-        data: {'message': error.dialogMessage, 'id': artworkId}));
     return UIHelper.showDialog(
       context,
       error.dialogTitle,
@@ -814,8 +812,6 @@ class UIHelper {
       BuildContext context, String? artworkId) async {
     final theme = Theme.of(context);
     final error = FeralfileError(3007, '');
-    unawaited(metricClient.addEvent(MixpanelEvent.acceptOwnershipFail,
-        data: {'message': error.dialogMessage, 'id': artworkId}));
     return UIHelper.showDialog(
       context,
       error.dialogTitle,
@@ -846,8 +842,6 @@ class UIHelper {
     required FFSeries series,
   }) async {
     final error = FeralfileError(3009, '');
-    unawaited(metricClient.addEvent(MixpanelEvent.acceptOwnershipFail,
-        data: {'message': error.dialogMessage, 'id': series.id}));
     return showErrorDialog(
       context,
       error.getDialogTitle(),
@@ -861,8 +855,6 @@ class UIHelper {
     required String id,
   }) async {
     final error = FeralfileError(3009, '');
-    unawaited(metricClient.addEvent(MixpanelEvent.acceptOwnershipFail,
-        data: {'message': error.dialogMessage, 'id': id}));
     return showErrorDialog(
       context,
       error.getDialogTitle(),
@@ -873,8 +865,6 @@ class UIHelper {
 
   static Future showOtpExpired(BuildContext context, String? artworkId) async {
     final error = FeralfileError(3013, '');
-    unawaited(metricClient.addEvent(MixpanelEvent.acceptOwnershipFail,
-        data: {'message': error.dialogMessage, 'id': artworkId}));
     return showErrorDialog(
       context,
       error.dialogTitle,
@@ -896,8 +886,6 @@ class UIHelper {
           ? ffError.getDialogMessage(series: series)
           : '${e.response?.data ?? e.message}';
 
-      unawaited(metricClient.addEvent(MixpanelEvent.acceptOwnershipFail,
-          data: {'message': message, 'id': series.id}));
       await showErrorDialog(
         context,
         ffError?.getDialogTitle() ?? 'error'.tr(),
@@ -917,15 +905,6 @@ class UIHelper {
     final message = 'all_gifts_claimed_desc'.tr();
     final dialogTitle = 'all_gifts_claimed'.tr();
 
-    unawaited(
-      metricClient.addEvent(
-        MixpanelEvent.acceptOwnershipFail,
-        data: {
-          'message': message,
-          'id': series.id,
-        },
-      ),
-    );
     await showErrorDialog(
       context,
       dialogTitle,
@@ -944,8 +923,6 @@ class UIHelper {
           ? ffError.dialogMessage
           : '${e.response?.data ?? e.message}';
 
-      unawaited(metricClient.addEvent(MixpanelEvent.acceptOwnershipFail,
-          data: {'message': message, 'id': id}));
       await showErrorDialog(
         context,
         ffError?.dialogMessage ?? 'error'.tr(),

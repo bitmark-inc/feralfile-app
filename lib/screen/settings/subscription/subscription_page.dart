@@ -14,8 +14,6 @@ import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart'
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
-import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -102,14 +100,10 @@ class _SubscriptionPageState extends State<SubscriptionPage>
     BuildContext context,
     UpgradeState state,
   ) {
-    final mixpanel = injector<MixPanelClientService>().mixpanel;
     final theme = Theme.of(context);
     IAPProductStatus status = state.status;
     switch (status) {
       case IAPProductStatus.completed:
-        mixpanel
-            .getPeople()
-            .set(MixpanelProp.subscription, SubscriptionStatus.subscried);
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -123,9 +117,6 @@ class _SubscriptionPageState extends State<SubscriptionPage>
           ],
         );
       case IAPProductStatus.trial:
-        mixpanel
-            .getPeople()
-            .set(MixpanelProp.subscription, SubscriptionStatus.trial);
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -150,9 +141,6 @@ class _SubscriptionPageState extends State<SubscriptionPage>
           child: const CupertinoActivityIndicator(),
         );
       case IAPProductStatus.expired:
-        mixpanel
-            .getPeople()
-            .set(MixpanelProp.subscription, SubscriptionStatus.expired);
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -165,9 +153,6 @@ class _SubscriptionPageState extends State<SubscriptionPage>
           ],
         );
       case IAPProductStatus.notPurchased:
-        mixpanel
-            .getPeople()
-            .set(MixpanelProp.subscription, SubscriptionStatus.free);
         return Column(
           children: [
             Text(

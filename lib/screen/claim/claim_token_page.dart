@@ -248,12 +248,6 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                       enabled: !_processing,
                       isProcessing: _processing,
                       onTap: () async {
-                        unawaited(metricClient.addEvent(
-                          MixpanelEvent.acceptOwnership,
-                          data: {
-                            'id': widget.payload.series.id,
-                          },
-                        ));
                         setState(() {
                           _processing = true;
                         });
@@ -355,12 +349,6 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
               enabled: !_processing,
               color: theme.colorScheme.primary,
               onTap: () {
-                unawaited(metricClient.addEvent(
-                  MixpanelEvent.declineOwnership,
-                  data: {
-                    'id': widget.payload.series.id,
-                  },
-                ));
                 memoryValues.branchDeeplinkData.value = null;
                 Navigator.of(context).pop(false);
               },
@@ -385,12 +373,6 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
           otp: widget.payload.otp,
         );
       }
-      unawaited(metricClient.addEvent(
-        MixpanelEvent.acceptOwnershipSuccess,
-        data: {
-          'id': widget.payload.series.id,
-        },
-      ));
       unawaited(configurationService.setAlreadyClaimedAirdrop(
           widget.payload.series.id, true));
       memoryValues.branchDeeplinkData.value = null;

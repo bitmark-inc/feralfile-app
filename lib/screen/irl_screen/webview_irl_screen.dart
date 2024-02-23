@@ -15,7 +15,6 @@ import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -43,7 +42,6 @@ class IRLWebScreen extends StatefulWidget {
 
 class _IRLWebScreenState extends State<IRLWebScreen> {
   InAppWebViewController? _controller;
-  final _metricClient = injector<MetricClientService>();
 
   Future<WalletIndex?> getAccountByAddress(
       {required String chain, required String address}) async {
@@ -60,12 +58,6 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
 
   JSResult _logAndReturnJSResult(String func, JSResult result) {
     log.info('[IRLWebScreen] $func: ${result.toJson()}');
-    unawaited(_metricClient.addEvent(MixpanelEvent.callIrlFunction, data: {
-      'function': func,
-      'error': result.errorMessage,
-      'result': result.result.toString(),
-      'url': widget.payload.url,
-    }));
     return result;
   }
 
@@ -413,10 +405,6 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
       handlerName: 'closeWebview',
       callback: (args) async {
         injector.get<NavigationService>().goBack();
-        unawaited(_metricClient.addEvent(MixpanelEvent.callIrlFunction, data: {
-          'function': IrlWebviewFunction.closeWebview,
-          'url': widget.payload.url,
-        }));
       },
     );
   }

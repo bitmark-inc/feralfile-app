@@ -80,7 +80,6 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
     setState(() {
       _isSending = true;
     });
-    unawaited(metricClient.addEvent(MixpanelEvent.confirmTransaction));
 
     final didAuthenticate = await LocalAuthenticationService.checkLocalAuth();
     if (!didAuthenticate) {
@@ -302,7 +301,6 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
             '(${_exchangeRate?.xtzToUsd(total)} USD)';
     return WillPopScope(
       onWillPop: () async {
-        unawaited(metricClient.addEvent(MixpanelEvent.backConfirmTransaction));
         if (wc2Topic != null) {
           unawaited(_wc2Service.respondOnReject(
             wc2Topic,
@@ -319,8 +317,6 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
           context,
           title: 'confirmation'.tr(),
           onBack: () {
-            unawaited(
-                metricClient.addEvent(MixpanelEvent.backConfirmTransaction));
             if (wc2Topic != null) {
               unawaited(_wc2Service.respondOnReject(
                 wc2Topic,

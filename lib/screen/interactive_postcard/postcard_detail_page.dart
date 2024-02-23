@@ -7,7 +7,6 @@
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:after_layout/after_layout.dart';
@@ -35,7 +34,6 @@ import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
@@ -109,7 +107,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
 
   HashSet<String> _accountNumberHash = HashSet.identity();
   AssetToken? currentAsset;
-  final _metricClient = injector.get<MetricClientService>();
   final _configurationService = injector<ConfigurationService>();
   final _postcardService = injector<PostcardService>();
   final _remoteConfig = injector<RemoteConfigService>();
@@ -136,11 +133,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   }
 
   @override
-  void afterFirstLayout(BuildContext context) {
-    _metricClient.timerEvent(
-      MixpanelEvent.stayInArtworkDetail,
-    );
-  }
+  void afterFirstLayout(BuildContext context) {}
 
   Future<void> _showSharingExpired(BuildContext context) async {
     await UIHelper.showPostcardDrawerAction(context, options: [
@@ -271,14 +264,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
 
   @override
   void dispose() {
-    final artworkId =
-        jsonEncode(widget.payload.identities[widget.payload.currentIndex]);
-    unawaited(_metricClient.addEvent(
-      MixpanelEvent.stayInArtworkDetail,
-      data: {
-        'id': artworkId,
-      },
-    ));
     _scrollController.dispose();
     timer?.cancel();
     unawaited(injector<ChatService>().dispose());

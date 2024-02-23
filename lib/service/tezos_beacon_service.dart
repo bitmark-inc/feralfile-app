@@ -8,9 +8,9 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
+import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/connection_supports.dart';
 import 'package:autonomy_flutter/model/p2p_peer.dart';
@@ -18,7 +18,6 @@ import 'package:autonomy_flutter/model/tezos_connection.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_sign_message_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
@@ -28,8 +27,6 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
-
-import '../main.dart';
 
 class TezosBeaconService implements BeaconHandler {
   final NavigationService _navigationService;
@@ -45,7 +42,7 @@ class TezosBeaconService implements BeaconHandler {
 
   TezosBeaconService(this._navigationService, this._cloudDB) {
     _beaconChannel = TezosBeaconChannel(handler: this);
-    _beaconChannel.connect();
+    unawaited(_beaconChannel.connect());
   }
 
   void _addedConnection() {
@@ -71,7 +68,7 @@ class TezosBeaconService implements BeaconHandler {
     if (_requestSignMessageForConnectionFlag) {
       _requestSignMessageForConnectionFlag = false;
       Future.delayed(const Duration(seconds: 3), () {
-        showInfoNotification(const Key("switchBack"), "you_all_set".tr());
+        showInfoNotification(const Key('switchBack'), 'you_all_set'.tr());
       });
     }
   }
@@ -94,7 +91,9 @@ class TezosBeaconService implements BeaconHandler {
         await Future.delayed(const Duration(seconds: 1));
       }
     } while (retryCount < maxRetries);
-    if (retryCount >= maxRetries) memoryValues.deepLink.value = null;
+    if (retryCount >= maxRetries) {
+      memoryValues.deepLink.value = null;
+    }
   }
 
   Future removePeer(P2PPeer peer) async {
@@ -115,82 +114,74 @@ class TezosBeaconService implements BeaconHandler {
         name: peer.name,
         data: json.encode(bcConnection),
         connectionType: ConnectionType.beaconP2PPeer.rawValue,
-        accountNumber: address ?? "",
+        accountNumber: address ?? '',
         createdAt: DateTime.now(),
       );
-      _cloudDB.connectionDao.insertConnection(connection);
+      unawaited(_cloudDB.connectionDao.insertConnection(connection));
       _addedConnection();
     }
   }
 
-  Future signResponse(String id, String? signature) {
-    if (signature != null) {
-      final metricClient = injector.get<MetricClientService>();
-      metricClient.addEvent(
-        MixpanelEvent.sign,
-        hashedData: {
-          "uuid": id,
-        },
-      );
-    }
-    return _beaconChannel.signResponse(id, signature);
-  }
+  Future signResponse(String id, String? signature) =>
+      _beaconChannel.signResponse(id, signature);
 
-  Future operationResponse(String id, String? txHash) {
-    return _beaconChannel.operationResponse(id, txHash);
-  }
+  Future operationResponse(String id, String? txHash) =>
+      _beaconChannel.operationResponse(id, txHash);
 
   @override
   void onRequest(BeaconRequest request) {
-    log.info("TezosBeaconService: onRequest");
+    log.info('TezosBeaconService: onRequest');
     _handlingRequests.add(request);
     if (_handlingRequests.length == 1) {
-      handleNextRequest();
+      unawaited(handleNextRequest());
     }
   }
 
   Future<void> handleNextRequest({bool isRemoved = false}) async {
-    log.info("TezosBeaconService: handleRequest");
+    log.info('TezosBeaconService: handleRequest');
     if (isRemoved && _handlingRequests.isNotEmpty) {
       _handlingRequests.removeAt(0);
     }
-    if (_handlingRequests.isEmpty) return;
+    if (_handlingRequests.isEmpty) {
+      return;
+    }
     final request = _handlingRequests.first;
-    if (request.type == "permission") {
+    if (request.type == 'permission') {
       _navigationService.hideInfoDialog();
       hideOverlay(NavigationService.contactingKey);
       _timer?.cancel();
-      _navigationService.navigateTo(WCConnectPage.tag, arguments: request);
-    } else if (request.type == "signPayload") {
+      unawaited(
+          _navigationService.navigateTo(WCConnectPage.tag, arguments: request));
+    } else if (request.type == 'signPayload') {
       _requestSignMessageForConnection();
       final result = await _navigationService.navigateTo(TBSignMessagePage.tag,
           arguments: request);
-      log.info("TezosBeaconService: handle permission Request result: $result");
+      log.info('TezosBeaconService: handle permission Request result: $result');
       if (result) {
         _showYouAllSet();
       }
       _clearConnectFlag();
-    } else if (request.type == "operation") {
-      _navigationService.navigateTo(TBSendTransactionPage.tag,
-          arguments: request);
+    } else if (request.type == 'operation') {
+      unawaited(_navigationService.navigateTo(TBSendTransactionPage.tag,
+          arguments: request));
     }
   }
 
   @override
   void onAbort() {
-    log.info("TezosBeaconService: onAbort");
+    log.info('TezosBeaconService: onAbort');
     UIHelper.hideInfoDialog(_navigationService.navigatorKey.currentContext!);
   }
 
   @override
   void onRequestedPermission(Peer peer) {
-    log.info("TezosBeaconService: ${peer.toJson()}");
-    UIHelper.showInfoDialog(
+    log.info('TezosBeaconService: ${peer.toJson()}');
+    unawaited(UIHelper.showInfoDialog(
       _navigationService.navigatorKey.currentContext!,
-      "link_requested".tr(),
-      "autonomy_has_sent".tr(args: [peer.name]),
+      'link_requested'.tr(),
+      'autonomy_has_sent'.tr(args: [peer.name]),
       isDismissible: true,
-    );
+    ));
     //"Autonomy has sent a request to ${peer.name} to link to your account."
     //   " Please open the wallet and authorize the request. ");
   }
@@ -199,7 +190,9 @@ class TezosBeaconService implements BeaconHandler {
     final existingConnections = await _cloudDB.connectionDao
         .getConnectionsByAccountNumber(accountNumber);
 
-    if (existingConnections.isEmpty) return null;
+    if (existingConnections.isEmpty) {
+      return null;
+    }
     return existingConnections.first;
   }
 
@@ -219,6 +212,6 @@ class TezosBeaconService implements BeaconHandler {
         .whereNotNull()
         .toList();
 
-    _beaconChannel.cleanup(ids);
+    unawaited(_beaconChannel.cleanup(ids));
   }
 }

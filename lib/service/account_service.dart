@@ -142,9 +142,6 @@ class AccountServiceImpl extends AccountService {
     await _cloudDB.personaDao.insertPersona(persona);
     await androidBackupKeys();
     await _auditService.auditPersonaAction('create', persona);
-    final metricClient = injector.get<MetricClientService>();
-    unawaited(metricClient.addEvent(MixpanelEvent.createFullAccount,
-        data: {'isDefault': isDefault}, hashedData: {'id': persona.uuid}));
     unawaited(_autonomyService.postLinkedAddresses());
     log.info('[AccountService] Created persona ${persona.uuid}}');
     return persona;
@@ -170,11 +167,6 @@ class AccountServiceImpl extends AccountService {
     await _cloudDB.personaDao.insertPersona(persona);
     await androidBackupKeys();
     await _auditService.auditPersonaAction('import', persona);
-    final metricClient = injector.get<MetricClientService>();
-    unawaited(
-        metricClient.addEvent(MixpanelEvent.importFullAccount, hashedData: {
-      'id': uuid,
-    }));
     log.info('[AccountService] imported persona ${persona.uuid}');
     return persona;
   }
@@ -292,7 +284,6 @@ class AccountServiceImpl extends AccountService {
         case 'beaconP2PPeer':
           if (persona.uuid == connection.beaconConnectConnection?.personaUuid) {
             await _cloudDB.connectionDao.deleteConnection(connection);
-            injector<MetricClientService>().onRemoveConnection(connection);
             final bcPeer = connection.beaconConnectConnection?.peer;
             if (bcPeer != null) {
               bcPeers.add(bcPeer);
@@ -324,9 +315,6 @@ class AccountServiceImpl extends AccountService {
     }));
     await _addressService
         .deleteAddresses(addressIndexes.map((e) => e.address).toList());
-    final metricClient = injector.get<MetricClientService>();
-    unawaited(metricClient.addEvent(MixpanelEvent.deleteLinkedAccount,
-        hashedData: {'address': connection.accountNumber}));
   }
 
   @override
@@ -384,9 +372,6 @@ class AccountServiceImpl extends AccountService {
         .setHideLinkedAccountInGallery([address], isEnabled);
     await _addressService.setIsHiddenAddresses([address], isEnabled);
     unawaited(injector<SettingsDataService>().backup());
-    final metricClient = injector.get<MetricClientService>();
-    unawaited(metricClient.addEvent(MixpanelEvent.hideLinkedAccount,
-        hashedData: {'address': address}));
   }
 
   @override
@@ -395,9 +380,6 @@ class AccountServiceImpl extends AccountService {
         .map((e) => _cloudDB.addressDao.setAddressIsHidden(e, isEnabled)));
     await _addressService.setIsHiddenAddresses(addresses, isEnabled);
     unawaited(injector<SettingsDataService>().backup());
-    final metricClient = injector.get<MetricClientService>();
-    unawaited(metricClient.addEvent(MixpanelEvent.hideAddresses,
-        hashedData: {'addresses': addresses.join('||')}));
   }
 
   @override
@@ -643,7 +625,6 @@ class AccountServiceImpl extends AccountService {
   Future<void> deleteAddressPersona(
       Persona persona, WalletAddress walletAddress) async {
     await _cloudDB.addressDao.deleteAddress(walletAddress);
-    final metricClientService = injector<MetricClientService>();
     await _addressService.deleteAddresses([walletAddress.address]);
     switch (CryptoType.fromSource(walletAddress.cryptoType)) {
       case CryptoType.ETH:
@@ -652,7 +633,6 @@ class AccountServiceImpl extends AccountService {
         for (var connection in connections) {
           if (connection.accountNumber.contains(walletAddress.address)) {
             await _cloudDB.connectionDao.deleteConnection(connection);
-            metricClientService.onRemoveConnection(connection);
           }
         }
         return;
@@ -665,7 +645,6 @@ class AccountServiceImpl extends AccountService {
               connection.beaconConnectConnection?.index ==
                   walletAddress.index) {
             await _cloudDB.connectionDao.deleteConnection(connection);
-            metricClientService.onRemoveConnection(connection);
           }
         }
         return;

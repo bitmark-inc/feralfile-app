@@ -23,7 +23,6 @@ import 'package:autonomy_flutter/screen/send_receive_postcard/request_response.d
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -125,7 +124,6 @@ class PostcardServiceImpl extends PostcardService {
   final ConfigurationService _configurationService;
   final AccountService _accountService;
   final TokensService _tokensService;
-  final MetricClientService _metricClientService;
   final ChatService _chatService;
 
   PostcardServiceImpl(
@@ -135,7 +133,6 @@ class PostcardServiceImpl extends PostcardService {
     this._configurationService,
     this._accountService,
     this._tokensService,
-    this._metricClientService,
     this._chatService,
   );
 
@@ -293,11 +290,6 @@ class PostcardServiceImpl extends PostcardService {
       final ok = result['metadataCID'] as String;
       final isStampSuccess = ok.isNotEmpty;
       if (isStampSuccess) {
-        unawaited(
-            _metricClientService.addEvent(MixpanelEvent.postcardStamp, data: {
-          'postcardId': tokenId,
-          'index': counter,
-        }));
         if (counter == MAX_STAMP_IN_POSTCARD) {
           try {
             unawaited(_chatService.sendPostcardCompleteMessage(
@@ -536,10 +528,6 @@ class PostcardServiceImpl extends PostcardService {
       location: [moMAGeoLocation.position.lat, moMAGeoLocation.position.lon],
     );
     final result = await claimEmptyPostcard(claimRequest);
-    unawaited(
-        _metricClientService.addEvent(MixpanelEvent.postcardClaimEmpty, data: {
-      'postcardId': result.tokenID,
-    }));
     final tokenID = 'tez-${result.contractAddress}-${result.tokenID}';
     final prompt = await getPrompt(result.tokenID ?? '');
     final postcardMetadata = PostcardMetadata(
