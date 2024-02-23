@@ -449,8 +449,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                 Navigator.pushNamed(
                   context,
                   AppRouter.irlWebView,
-                  arguments: IRLWebScreenPayload(
-                      '${irlUrl.second}?owner=${asset.owner}'),
+                  arguments: IRLWebScreenPayload(irlUrl.second),
                 ),
               );
             },
