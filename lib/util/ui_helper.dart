@@ -1322,6 +1322,7 @@ class UIHelper {
                   separatorBuilder: (context, index) => const Divider(
                     height: 1,
                     color: AppColor.primaryBlack,
+                    thickness: 0.25,
                   ),
                 )
               ],

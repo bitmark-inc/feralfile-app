@@ -346,6 +346,7 @@ AppBar getCustomDoneAppBar(
     elevation: 1,
     leadingWidth: 80,
     scrolledUnderElevation: 0,
+    surfaceTintColor: Colors.transparent,
     leading: GestureDetector(
       onTap: onCancel,
       child: Padding(
