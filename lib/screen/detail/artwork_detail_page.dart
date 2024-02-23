@@ -7,7 +7,6 @@
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:convert';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/environment.dart';
@@ -73,6 +72,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     with AfterLayoutMixin<ArtworkDetailPage> {
   late ScrollController _scrollController;
   late bool withSharing;
+  ValueNotifier<double> downloadProgress = ValueNotifier(0);
 
   HashSet<String> _accountNumberHash = HashSet.identity();
   AssetToken? currentAsset;
@@ -93,11 +93,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   }
 
   @override
-  void afterFirstLayout(BuildContext context) {
-    metricClient.timerEvent(
-      MixpanelEvent.stayInArtworkDetail,
-    );
-  }
+  void afterFirstLayout(BuildContext context) {}
 
   Future<void> _manualShare(
       String caption, String url, List<String> hashTags) async {
@@ -120,13 +116,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       } else {
         _manualShare(caption, url, hashTags);
       }
-    }));
-    unawaited(metricClient.addEvent(MixpanelEvent.share, data: {
-      'id': token.id,
-      'to': 'Twitter',
-      'caption': caption,
-      'title': token.title,
-      'artistID': token.artistID,
     }));
   }
 
@@ -182,7 +171,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   Future<void> _shareMemento(BuildContext context, AssetToken asset) async {
     final deeplink = await _airdropService.shareAirdrop(asset);
     if (deeplink == null) {
-      if (!mounted) {
+      if (!context.mounted) {
         return;
       }
       context
@@ -198,7 +187,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       await Share.share(shareMessage);
     } catch (e) {
       if (e is DioException) {
-        if (mounted) {
+        if (context.mounted) {
           unawaited(UIHelper.showSharePostcardFailed(context, e));
         }
       }
@@ -221,14 +210,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 
   @override
   void dispose() {
-    final artworkId =
-        jsonEncode(widget.payload.identities[widget.payload.currentIndex]);
-    unawaited(metricClient.addEvent(
-      MixpanelEvent.stayInArtworkDetail,
-      data: {
-        'id': artworkId,
-      },
-    ));
     _scrollController.dispose();
     super.dispose();
   }
@@ -454,7 +435,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     final addressIndex = owner?.second;
     final irlUrl = asset.irlTapLink;
 
-    if (!mounted) {
+    if (!context.mounted) {
       return;
     }
     final isHidden = _isHidden(asset);
@@ -486,22 +467,36 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                 BlendMode.srcIn,
               ),
             ),
-            iconOnProcessing: const SizedBox(
-              height: 20,
-              width: 20,
-              child: CircularProgressIndicator(
-                valueColor:
-                    AlwaysStoppedAnimation<Color>(AppColor.disabledColor),
-                strokeWidth: 1,
-              ),
-            ),
+            iconOnProcessing: ValueListenableBuilder(
+                valueListenable: downloadProgress,
+                builder: (context, double value, child) => SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        value: value <= 0 ? null : value,
+                        valueColor: value <= 0
+                            ? null
+                            : const AlwaysStoppedAnimation<Color>(Colors.blue),
+                        backgroundColor:
+                            value <= 0 ? null : AppColor.disabledColor,
+                        color: AppColor.disabledColor,
+                        strokeWidth: 2,
+                      ),
+                    )),
             onTap: () async {
               try {
-                final file =
-                    await _feralfileService.downloadFeralfileArtwork(asset);
-                if (!mounted) {
+                final file = await _feralfileService.downloadFeralfileArtwork(
+                    asset, onReceiveProgress: (received, total) {
+                  setState(() {
+                    downloadProgress.value = received / total;
+                  });
+                });
+                if (!context.mounted) {
                   return;
                 }
+                setState(() {
+                  downloadProgress.value = 0;
+                });
                 Navigator.of(context).pop();
                 if (file != null) {
                   await FileHelper.shareFile(file, deleteAfterShare: true);
@@ -509,9 +504,12 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                   unawaited(UIHelper.showFeralfileArtworkSavedFailed(context));
                 }
               } catch (e) {
-                if (!mounted) {
+                if (!context.mounted) {
                   return;
                 }
+                setState(() {
+                  downloadProgress.value = 0;
+                });
                 log.info('Download artwork failed: $e');
                 if (e is DioException) {
                   unawaited(UIHelper.showFeralfileArtworkSavedFailed(context));
@@ -527,7 +525,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                 .updateTempStorageHiddenTokenIDs([asset.id], !isHidden);
             unawaited(injector<SettingsDataService>().backup());
 
-            if (!mounted) {
+            if (!context.mounted) {
               return;
             }
             NftCollectionBloc.eventController.add(ReloadEvent());
@@ -568,7 +566,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                     .updateTempStorageHiddenTokenIDs([asset.id], false);
                 unawaited(injector<SettingsDataService>().backup());
               }
-              if (!mounted) {
+              if (!context.mounted) {
                 return;
               }
               setState(() {});
@@ -577,10 +575,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                   unawaited(Navigator.of(context)
                       .popAndPushNamed(AppRouter.homePage));
                 }
-                return;
-              }
-
-              if (!mounted) {
                 return;
               }
               unawaited(UIHelper.showMessageAction(

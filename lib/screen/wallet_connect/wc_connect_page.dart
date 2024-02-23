@@ -91,9 +91,7 @@ class _WCConnectPageState extends State<WCConnectPage>
   }
 
   @override
-  void afterFirstLayout(BuildContext context) {
-    metricClient.timerEvent(MixpanelEvent.backConnectMarket);
-  }
+  void afterFirstLayout(BuildContext context) {}
 
   @override
   void didChangeDependencies() {
@@ -189,14 +187,6 @@ class _WCConnectPageState extends State<WCConnectPage>
           payloadType = CryptoType.ETH;
           payloadAddress =
               await account.getETHEip55Address(index: selectedPersona!.index);
-          unawaited(metricClient.addEvent(
-            MixpanelEvent.connectExternal,
-            data: {
-              'method': 'autonomy_connect',
-              'name': connectionRequest.name,
-              'url': connectionRequest.url,
-            },
-          ));
         } else {
           final address = await injector<EthereumService>()
               .getETHAddress(selectedPersona!.wallet, selectedPersona!.index);
@@ -206,14 +196,6 @@ class _WCConnectPageState extends State<WCConnectPage>
             connectionKey: address,
             accountNumber: address,
           );
-          unawaited(metricClient.addEvent(
-            MixpanelEvent.connectExternal,
-            data: {
-              'method': 'wallet_connect',
-              'name': connectionRequest.name,
-              'url': connectionRequest.url,
-            },
-          ));
           payloadType = CryptoType.ETH;
           payloadAddress = address;
         }
@@ -233,21 +215,9 @@ class _WCConnectPageState extends State<WCConnectPage>
         );
         payloadAddress = address;
         payloadType = CryptoType.XTZ;
-        unawaited(metricClient.addEvent(
-          MixpanelEvent.connectExternal,
-          data: {
-            'method': 'tezos_beacon',
-            'name': (connectionRequest as BeaconRequest).appName ?? 'unknown',
-            'url':
-                (connectionRequest as BeaconRequest).sourceAddress ?? 'unknown',
-          },
-        ));
         break;
       default:
     }
-
-    metricClient.incrementPropertyLabel(
-        MixpanelProp.connectedToMarket(connectionRequest.name ?? 'unknown'), 1);
 
     if (!mounted) {
       return;
@@ -276,7 +246,6 @@ class _WCConnectPageState extends State<WCConnectPage>
   Future<void> _approveThenNotify({bool onBoarding = false}) async {
     await _approve(onBoarding: onBoarding);
 
-    unawaited(metricClient.addEvent(MixpanelEvent.connectMarketSuccess));
     if (!mounted) {
       return;
     }
@@ -302,7 +271,6 @@ class _WCConnectPageState extends State<WCConnectPage>
     final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
     return WillPopScope(
       onWillPop: () async {
-        unawaited(metricClient.addEvent(MixpanelEvent.backConnectMarket));
         unawaited(_reject());
         return true;
       },
@@ -311,7 +279,6 @@ class _WCConnectPageState extends State<WCConnectPage>
           context,
           title: 'connect'.tr(),
           onBack: () async {
-            unawaited(metricClient.addEvent(MixpanelEvent.backConnectMarket));
             await _reject();
             if (!mounted) {
               return;
@@ -519,8 +486,6 @@ class _WCConnectPageState extends State<WCConnectPage>
                 text: 'h_confirm'.tr(),
                 onTap: selectedPersona != null
                     ? () {
-                        unawaited(
-                            metricClient.addEvent(MixpanelEvent.connectMarket));
                         withDebounce(() => unawaited(_approveThenNotify()));
                       }
                     : null,
@@ -656,8 +621,6 @@ class _WCConnectPageState extends State<WCConnectPage>
                   child: PrimaryButton(
                     text: 'h_confirm'.tr(),
                     onTap: () {
-                      unawaited(
-                          metricClient.addEvent(MixpanelEvent.connectMarket));
                       withDebounce(() async => _createAccount(context));
                     },
                   ),

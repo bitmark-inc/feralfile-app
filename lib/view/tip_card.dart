@@ -1,8 +1,3 @@
-import 'dart:async';
-
-import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -28,7 +23,6 @@ class Tipcard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final metricClient = injector<MetricClientService>();
     final theme = Theme.of(context);
 
     return ValueListenableBuilder<bool>(
@@ -60,10 +54,6 @@ class Tipcard extends StatelessWidget {
                           if (onClosed != null) {
                             onClosed!();
                           }
-                          unawaited(metricClient
-                              .addEvent(MixpanelEvent.closeTipcard, data: {
-                            'title': titleText,
-                          }));
                           listener.value = false;
                         },
                       ),
@@ -80,10 +70,6 @@ class Tipcard extends StatelessWidget {
                         text: buttonText ?? 'close'.tr(),
                         onTap: () {
                           () {};
-                          unawaited(metricClient
-                              .addEvent(MixpanelEvent.pressTipcard, data: {
-                            'title': titleText,
-                          }));
                           listener.value = false;
                         }),
                   ]

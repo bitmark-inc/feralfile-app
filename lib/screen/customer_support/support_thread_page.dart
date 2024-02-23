@@ -24,7 +24,6 @@ import 'package:autonomy_flutter/service/airdrop_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/announcement_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
@@ -226,7 +225,6 @@ class _SupportThreadPageState extends State<SupportThreadPage>
     if (payload.announcement != null && payload.announcement!.unread) {
       unawaited(_customerSupportService
           .markAnnouncementAsRead(payload.announcement!.announcementContextId));
-      _callMixpanelReadAnnouncementEvent(payload.announcement!);
     }
   }
 
@@ -255,18 +253,6 @@ class _SupportThreadPageState extends State<SupportThreadPage>
     setState(() {
       _isFileAttached = true;
     });
-  }
-
-  void _callMixpanelReadAnnouncementEvent(AnnouncementLocal announcement) {
-    final metricClient = injector.get<MetricClientService>();
-    unawaited(metricClient.addEvent(
-      MixpanelEvent.readAnnouncement,
-      data: {
-        'id': announcement.announcementContextId,
-        'type': announcement.type,
-        'title': announcement.title,
-      },
-    ));
   }
 
   @override
@@ -774,9 +760,6 @@ class _SupportThreadPageState extends State<SupportThreadPage>
       return;
     }
     final issueDetails = await _customerSupportService.getDetails(_issueID!);
-    if (widget.payload.announcement != null && issueDetails.issue.unread > 0) {
-      _callMixpanelReadAnnouncementEvent(widget.payload.announcement!);
-    }
 
     final parsedMessages = (await Future.wait(
             issueDetails.messages.map((e) => _convertChatMessage(e, null))))
@@ -856,16 +839,7 @@ class _SupportThreadPageState extends State<SupportThreadPage>
 
       final payload = widget.payload;
       if (payload.announcement != null) {
-        final metricClient = injector.get<MetricClientService>();
         final announcement = payload.announcement!;
-        unawaited(metricClient.addEvent(
-          MixpanelEvent.replyAnnouncement,
-          data: {
-            'id': announcement.announcementContextId,
-            'type': announcement.type,
-            'title': announcement.title,
-          },
-        ));
         data.announcementId = announcement.announcementContextId;
       }
 

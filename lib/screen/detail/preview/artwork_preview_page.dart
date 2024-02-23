@@ -23,7 +23,6 @@ import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_wid
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -173,12 +172,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     if (assetToken == null) {
       return;
     }
-    unawaited(metricClient.addEvent(
-      MixpanelEvent.clickArtworkInfo,
-      data: {
-        'id': assetToken.id,
-      },
-    ));
     keyboardManagerKey.currentState?.hideKeyboard();
 
     final currentIndex = tokens.indexWhere((element) =>
@@ -204,12 +197,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 
   void onClickFullScreen(AssetToken? assetToken) {
     final theme = Theme.of(context);
-    unawaited(metricClient.addEvent(
-      MixpanelEvent.seeArtworkFullScreen,
-      data: {
-        'id': assetToken?.id,
-      },
-    ));
     _bloc.add(ChangeFullScreen(isFullscreen: true));
     unawaited(
         SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky));
@@ -388,14 +375,16 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                                     focusNode: _focusNode,
                                     onTap: isCasting
                                         ? () {
-                                            unawaited(Navigator.of(context)
-                                                .pushNamed(
-                                                    AppRouter
-                                                        .keyboardControlPage,
-                                                    arguments:
-                                                        KeyboardControlPagePayload(
-                                                            assetToken!,
-                                                            playingDevice)));
+                                            unawaited(
+                                              Navigator.of(context).pushNamed(
+                                                AppRouter.keyboardControlPage,
+                                                arguments:
+                                                    KeyboardControlPagePayload(
+                                                  assetToken!,
+                                                  playingDevice,
+                                                ),
+                                              ),
+                                            );
                                           }
                                         : null,
                                   ),

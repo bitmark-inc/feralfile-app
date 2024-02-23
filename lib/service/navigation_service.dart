@@ -7,7 +7,6 @@
 
 import 'dart:async';
 
-import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/model/otp.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -17,9 +16,7 @@ import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
 import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/feral_file_helper.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
@@ -257,9 +254,6 @@ class NavigationService {
   Future<void> showContactingDialog() async {
     if (navigatorKey.currentState?.mounted == true &&
         navigatorKey.currentContext != null) {
-      final metricClient = injector.get<MetricClientService>()
-        ..timerEvent(MixpanelEvent.cancelContact);
-
       bool dialogShowed = false;
       showInfoNotificationWithLink(
         contactingKey,
@@ -293,7 +287,6 @@ class NavigationService {
           waitTooLongDialog();
         }
       });
-      await metricClient.addEvent(MixpanelEvent.connectContactSuccess);
     }
   }
 
@@ -308,9 +301,6 @@ class NavigationService {
         isDismissible: true,
         autoDismissAfter: 20,
         onClose: () {
-          injector
-              .get<MetricClientService>()
-              .addEvent(MixpanelEvent.cancelContact);
           hideInfoDialog();
         },
       );

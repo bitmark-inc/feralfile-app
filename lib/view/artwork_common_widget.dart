@@ -529,12 +529,7 @@ class _BrokenTokenWidgetState extends State<BrokenTokenWidget>
   final metricClient = injector.get<MetricClientService>();
 
   @override
-  void afterFirstLayout(BuildContext context) {
-    unawaited(metricClient.addEvent(
-      MixpanelEvent.displayUnableLoadIPFS,
-      data: {'id': widget.token.id},
-    ));
-  }
+  void afterFirstLayout(BuildContext context) {}
 
   @override
   Widget build(BuildContext context) {
@@ -565,10 +560,6 @@ class _BrokenTokenWidgetState extends State<BrokenTokenWidget>
                 const Spacer(),
                 GestureDetector(
                   onTap: () {
-                    unawaited(metricClient.addEvent(
-                      MixpanelEvent.clickLoadIPFSAgain,
-                      data: {'id': widget.token.id},
-                    ));
                     context.read<RetryCubit>().refresh();
                   },
                   child: Text(
@@ -648,17 +639,10 @@ class _PreviewPlaceholderState extends State<PreviewPlaceholder>
   @override
   void dispose() {
     super.dispose();
-    unawaited(metricClient.addEvent(
-      MixpanelEvent.showLoadingArtwork,
-    ));
   }
 
   @override
-  void afterFirstLayout(BuildContext context) {
-    metricClient.timerEvent(
-      MixpanelEvent.showLoadingArtwork,
-    );
-  }
+  void afterFirstLayout(BuildContext context) {}
 
   @override
   Widget build(BuildContext context) {
@@ -1123,12 +1107,6 @@ Widget artworkDetailsMetadataSection(
             title: 'artist'.tr(),
             value: artistName,
             onTap: () async {
-              final metricClient = injector.get<MetricClientService>();
-
-              unawaited(metricClient.addEvent(MixpanelEvent.clickArtist, data: {
-                'id': assetToken.id,
-                'artistID': assetToken.artistID,
-              }));
               final uri = Uri.parse(
                   assetToken.artistURL?.split(' & ').firstOrNull ?? '');
               await launchUrl(uri, mode: LaunchMode.externalApplication);

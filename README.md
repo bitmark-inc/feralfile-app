@@ -1,5 +1,3 @@
-<img src="assets/images/3.0x/penrose.png?raw=true"/>
-
 # Autonomy: Digital Art Wallet
 _Collect, View & Discovery_
 
@@ -20,11 +18,13 @@ Autonomy is the world’s first and only digital art wallet. It gives you one ea
 ## Getting Started
 
 1. Install [Flutter](https://flutter.dev)
+2. Install Android SDK & Xcode (using `flutter doctor` to see all your tools and dependencies are fully installed).
 2. Clone the repo
 3. Initialize submodule by running; `git submodule update --init --recursive`
-4. Initialize the config file
-`cp .env.example .env`
-5. Run `flutter run`
+- If you don't want to clone the auto-test package, simply run: `git -c submodule.auto-test.update=none submodule update --init --recursive`
+4. Initialize the config file. `cp .env.example .env`
+- Contact with Feral File app development team for development env.
+5. Run `flutter run --flavor inhouse` to run Feral File app development on the connected device.
 
 A few resources to get you started if this is your first Flutter project:
 

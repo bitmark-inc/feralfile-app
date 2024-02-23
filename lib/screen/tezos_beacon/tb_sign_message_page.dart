@@ -136,10 +136,6 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
 
     final metricClient = injector.get<MetricClientService>();
 
-    unawaited(metricClient.addEvent(
-      'Sign In',
-      hashedData: {'uuid': widget.request.id},
-    ));
     Navigator.of(context).pop(true);
     showInfoNotification(
       const Key('signed'),

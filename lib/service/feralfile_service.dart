@@ -18,8 +18,8 @@ import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
+import 'package:autonomy_flutter/util/download_helper.dart';
 import 'package:autonomy_flutter/util/feralfile_extension.dart';
-import 'package:autonomy_flutter/util/file_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:collection/collection.dart';
@@ -78,7 +78,8 @@ abstract class FeralFileService {
 
   Future<Artwork> getArtwork(String artworkId);
 
-  Future<File?> downloadFeralfileArtwork(AssetToken assetToken);
+  Future<File?> downloadFeralfileArtwork(AssetToken assetToken,
+      {Function(int received, int total)? onReceiveProgress});
 }
 
 class FeralFileServiceImpl extends FeralFileService {
@@ -322,7 +323,8 @@ class FeralFileServiceImpl extends FeralFileService {
   }
 
   @override
-  Future<File?> downloadFeralfileArtwork(AssetToken assetToken) async {
+  Future<File?> downloadFeralfileArtwork(AssetToken assetToken,
+      {Function(int received, int total)? onReceiveProgress}) async {
     try {
       final artwork = await injector<FeralFileService>()
           .getArtwork(assetToken.tokenId ?? '');
@@ -347,7 +349,8 @@ class FeralFileServiceImpl extends FeralFileService {
         signature: signatureHex,
         owner: ownerAddress,
       );
-      final file = await FileHelper.downloadFile(url);
+      final file = DownloadHelper.fileChunkedDownload(url,
+          onReceiveProgress: onReceiveProgress);
       return file;
     } catch (e) {
       log.info('Error downloading artwork: $e');

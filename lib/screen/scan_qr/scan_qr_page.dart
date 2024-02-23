@@ -753,24 +753,6 @@ class QRScanViewState extends State<QRScanView>
     return false;
   }
 
-  void _addScanQREvent(
-      {required String link,
-      required String linkType,
-      required String prefix,
-      Map<dynamic, dynamic> addData = const {}}) {
-    final uri = Uri.parse(link);
-    final uriData = uri.queryParameters;
-    final data = {
-      'link': link,
-      'linkType': linkType,
-      'prefix': prefix,
-    }
-      ..addAll(uriData)
-      ..addAll(addData.map((key, value) => MapEntry(key, value.toString())));
-
-    unawaited(metricClient.addEvent(MixpanelEvent.scanQR, data: data));
-  }
-
   void _handleError(String data) {
     setState(() {
       isScanDataError = true;
@@ -802,8 +784,6 @@ class QRScanViewState extends State<QRScanView>
     }
     await Future.delayed(const Duration(seconds: 1));
 
-    _addScanQREvent(
-        link: code, linkType: LinkType.autonomyConnect, prefix: 'wc:');
     await injector<Wc2Service>().connect(code);
   }
 
@@ -820,8 +800,6 @@ class QRScanViewState extends State<QRScanView>
     }
     await Future.delayed(const Duration(seconds: 1));
 
-    _addScanQREvent(
-        link: code, linkType: LinkType.beaconConnect, prefix: 'tezos://');
     await Future.wait([
       injector<TezosBeaconService>().addPeer(code),
       injector<NavigationService>().showContactingDialog()
