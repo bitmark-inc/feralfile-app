@@ -283,8 +283,8 @@ AppBar getDoneAppBar(
       statusBarIconBrightness: isWhite ? Brightness.dark : Brightness.light,
       statusBarBrightness: isWhite ? Brightness.light : Brightness.dark,
     ),
-    scrolledUnderElevation: 0,
     elevation: 1,
+    scrolledUnderElevation: 0,
     shadowColor: Colors.transparent,
     leadingWidth: 80,
     leading: GestureDetector(
