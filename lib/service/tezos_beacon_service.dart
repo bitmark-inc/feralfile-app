@@ -8,7 +8,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/main.dart';
@@ -19,7 +18,6 @@ import 'package:autonomy_flutter/model/tezos_connection.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_sign_message_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
@@ -124,12 +122,8 @@ class TezosBeaconService implements BeaconHandler {
     }
   }
 
-  Future signResponse(String id, String? signature) {
-    if (signature != null) {
-      injector.get<MetricClientService>();
-    }
-    return _beaconChannel.signResponse(id, signature);
-  }
+  Future signResponse(String id, String? signature) =>
+      _beaconChannel.signResponse(id, signature);
 
   Future operationResponse(String id, String? txHash) =>
       _beaconChannel.operationResponse(id, txHash);

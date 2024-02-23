@@ -494,9 +494,6 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     final pullTime = DateTime.now().millisecondsSinceEpoch;
     await _configurationService.setAnnouncementLastPullTime(pullTime);
     for (var announcement in announcements) {
-      if (await _announcementDao
-              .getAnnouncement(announcement.announcementContextId) ==
-          null) {}
       await _announcementDao
           .insertAnnouncement(AnnouncementLocal.fromAnnouncement(announcement));
     }
