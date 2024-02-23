@@ -171,7 +171,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   Future<void> _shareMemento(BuildContext context, AssetToken asset) async {
     final deeplink = await _airdropService.shareAirdrop(asset);
     if (deeplink == null) {
-      if (!mounted) {
+      if (!context.mounted) {
         return;
       }
       context
@@ -187,7 +187,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       await Share.share(shareMessage);
     } catch (e) {
       if (e is DioException) {
-        if (mounted) {
+        if (context.mounted) {
           unawaited(UIHelper.showSharePostcardFailed(context, e));
         }
       }
@@ -433,7 +433,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     final addressIndex = owner?.second;
     final irlUrl = asset.irlTapLink;
 
-    if (!mounted) {
+    if (!context.mounted) {
       return;
     }
     final isHidden = _isHidden(asset);
@@ -489,7 +489,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                     downloadProgress.value = received / total;
                   });
                 });
-                if (!mounted) {
+                if (!context.mounted) {
                   return;
                 }
                 setState(() {
@@ -502,7 +502,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                   unawaited(UIHelper.showFeralfileArtworkSavedFailed(context));
                 }
               } catch (e) {
-                if (!mounted) {
+                if (!context.mounted) {
                   return;
                 }
                 setState(() {
@@ -523,7 +523,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                 .updateTempStorageHiddenTokenIDs([asset.id], !isHidden);
             unawaited(injector<SettingsDataService>().backup());
 
-            if (!mounted) {
+            if (!context.mounted) {
               return;
             }
             NftCollectionBloc.eventController.add(ReloadEvent());
@@ -564,7 +564,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                     .updateTempStorageHiddenTokenIDs([asset.id], false);
                 unawaited(injector<SettingsDataService>().backup());
               }
-              if (!mounted) {
+              if (!context.mounted) {
                 return;
               }
               setState(() {});
@@ -573,10 +573,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                   unawaited(Navigator.of(context)
                       .popAndPushNamed(AppRouter.homePage));
                 }
-                return;
-              }
-
-              if (!mounted) {
                 return;
               }
               unawaited(UIHelper.showMessageAction(
