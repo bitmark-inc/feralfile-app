@@ -8,6 +8,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/local_auth_service.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
+import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -146,12 +147,17 @@ class _IRLSignMessageScreenState extends State<IRLSignMessageScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final message = hexToBytes(widget.payload.payload);
-    final Uint8List viewMessage = message.length > 6 &&
-            message.sublist(0, 2).equals(Uint8List.fromList([5, 1]))
-        ? message.sublist(6)
-        : message;
-    final messageInUtf8 = utf8.decode(viewMessage, allowMalformed: true);
+    late String messageInUtf8;
+    if (widget.payload.payload.isHex) {
+      final message = hexToBytes(widget.payload.payload);
+      final Uint8List viewMessage = message.length > 6 &&
+          message.sublist(0, 2).equals(Uint8List.fromList([5, 1]))
+          ? message.sublist(6)
+          : message;
+      messageInUtf8 = utf8.decode(viewMessage, allowMalformed: true);
+    } else {
+      messageInUtf8 = widget.payload.payload;
+    }
 
     final theme = Theme.of(context);
 
