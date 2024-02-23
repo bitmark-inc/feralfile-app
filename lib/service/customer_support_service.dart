@@ -20,7 +20,6 @@ import 'package:autonomy_flutter/model/customer_support.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/device.dart';
@@ -494,20 +493,10 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
         lastPullTime: lastPullTime ?? 0);
     final pullTime = DateTime.now().millisecondsSinceEpoch;
     await _configurationService.setAnnouncementLastPullTime(pullTime);
-    final metricClient = injector.get<MetricClientService>();
     for (var announcement in announcements) {
       if (await _announcementDao
               .getAnnouncement(announcement.announcementContextId) ==
-          null) {
-        unawaited(metricClient.addEvent(
-          MixpanelEvent.receiveAnnouncement,
-          data: {
-            'id': announcement.announcementContextId,
-            'type': announcement.type,
-            'title': announcement.title,
-          },
-        ));
-      }
+          null) {}
       await _announcementDao
           .insertAnnouncement(AnnouncementLocal.fromAnnouncement(announcement));
     }

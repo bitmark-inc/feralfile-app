@@ -17,7 +17,6 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration/migration_util.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -131,8 +130,6 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
           emit(RouterState(onboardingStep: OnboardingStep.dashboard));
         }
         await migrationUtil.migrateIfNeeded();
-        unawaited(injector<MetricClientService>()
-            .addEvent(MixpanelEvent.restoreAccount));
       } catch (e, stacktrace) {
         await Sentry.captureException(e, stackTrace: stacktrace);
         rethrow;

@@ -7,7 +7,6 @@
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:convert';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/environment.dart';
@@ -94,11 +93,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   }
 
   @override
-  void afterFirstLayout(BuildContext context) {
-    metricClient.timerEvent(
-      MixpanelEvent.stayInArtworkDetail,
-    );
-  }
+  void afterFirstLayout(BuildContext context) {}
 
   Future<void> _manualShare(
       String caption, String url, List<String> hashTags) async {
@@ -121,13 +116,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       } else {
         _manualShare(caption, url, hashTags);
       }
-    }));
-    unawaited(metricClient.addEvent(MixpanelEvent.share, data: {
-      'id': token.id,
-      'to': 'Twitter',
-      'caption': caption,
-      'title': token.title,
-      'artistID': token.artistID,
     }));
   }
 
@@ -222,14 +210,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 
   @override
   void dispose() {
-    final artworkId =
-        jsonEncode(widget.payload.identities[widget.payload.currentIndex]);
-    unawaited(metricClient.addEvent(
-      MixpanelEvent.stayInArtworkDetail,
-      data: {
-        'id': artworkId,
-      },
-    ));
     _scrollController.dispose();
     super.dispose();
   }

@@ -498,90 +498,13 @@ class Constants {
   ];
 }
 
-class MixpanelEvent {
-  static const restoreAccount = 'restore_account';
-  static const cancelContact = 'cancel_contact';
-  static const connectContactSuccess = 'connect_contact_success';
-  static const backConnectMarket = 'back_connect_market';
-  static const connectMarket = 'connect_market';
-  static const connectMarketSuccess = 'connect_market_success';
-  static const backConfirmTransaction = 'back_confirm_transaction';
-  static const confirmTransaction = 'confirm_transaction';
-  static const clickArtist = 'click_artist';
-  static const stayInArtworkDetail = 'stay_in_artwork_detail';
-  static const clickArtworkInfo = 'click_artwork_info';
-  static const acceptOwnership = 'accept_ownership';
-  static const declineOwnership = 'decline_ownership';
-  static const displayUnableLoadIPFS = 'display_unable_load_IPFS';
-  static const clickLoadIPFSAgain = 'click_load_IPFS_again';
-  static const showLoadingArtwork = 'show_loading_artwork';
-  static const seeArtworkFullScreen = 'see_artwork_fullscreen';
-  static const viewArtwork = 'view_artwork';
-  static const deviceBackground = 'device_background';
-  static const signIn = 'Sign In';
-  static const sign = 'Sign';
-  static const purchased = 'Purchased';
-  static const trial = 'Trial';
-  static const hideLinkedAccount = 'hide_linked_account';
-  static const deleteFullAccount = 'delete_full_account';
-  static const deleteLinkedAccount = 'delete_linked_account';
-  static const importFullAccount = 'import_full_account';
-  static const createFullAccount = 'create_full_account';
-  static const connectExternal = 'connect_external';
-  static const subcription = 'Subcription';
-  static const addNFT = 'add_NFT';
-  static const enableNotification = 'enable_notification';
-  static const tabNotification = 'tab_notification';
-  static const createPlaylist = 'create_playlist';
-  static const undoCreatePlaylist = 'undo_create_playlist';
-  static const scanQR = 'scan_qr';
-  static const acceptOwnershipSuccess = 'accept_ownership_success';
-  static const acceptOwnershipFail = 'accept_ownership_fail';
-  static const share = 'share';
-  static const readAnnouncement = 'read_announcement';
-  static const replyAnnouncement = 'reply_announcement';
-  static const receiveAnnouncement = 'receive_announcement';
-  static const viewScreen = 'view_screen';
-  static const endViewScreen = 'end_view_screen';
-  static const showTipcard = 'show_tip_card';
-  static const closeTipcard = 'close_tip_card';
-  static const pressTipcard = 'press_tip_card';
-  static const tapLinkInTipCard = 'tap_link_in_tip_card';
-  static const hideAddresses = 'hide_addresses';
-  static const callIrlFunction = 'call_irl_function';
-  static const numberNft = 'number_nft';
-  static const numberUseAppInAWeek = 'number_use_app_in_a_week';
-  static const postcardStamp = 'postcard_stamp';
-  static const postcardClaimEmpty = 'postcard_claim_empty';
-}
+class MixpanelEvent {}
 
-class MixpanelEventProp {
-  static const time = 'Time';
-}
+class MixpanelEventProp {}
 
-class MixpanelProp {
-  static const enableNotification = 'enableNotification';
-  static const client = 'client';
-  static const didKey = 'didKey';
-  static const address = 'Address';
-  static const subscription = 'Subscription';
-  static const numberNft = 'Number NFT';
+class MixpanelProp {}
 
-  static String connectedToMarket(String name) => 'Connected to $name';
-}
-
-class MixpanelConfig {
-  static const countUseAutonomyInWeek = 'countUseAutonomyInWeek';
-  static const weekStartAt = 'weekStartAt';
-  static const numberNfts = 'numberNfts';
-}
-
-class SubscriptionStatus {
-  static const free = 'Free';
-  static const subscried = 'Subscried';
-  static const trial = 'Trial';
-  static const expired = 'Expired';
-}
+class MixpanelConfig {}
 
 class LinkType {
   static const local = 'Local Deep Link';

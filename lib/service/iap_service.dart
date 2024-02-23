@@ -16,8 +16,6 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/customer_support_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/foundation.dart';
@@ -74,7 +72,7 @@ class IAPServiceImpl implements IAPService {
   ValueNotifier<Map<String, DateTime>> trialExpireDates = ValueNotifier({});
 
   IAPServiceImpl(this._configurationService, this._authService) {
-    setup();
+    unawaited(setup());
   }
 
   String? _receiptData;
@@ -98,7 +96,7 @@ class IAPServiceImpl implements IAPService {
     _subscription = purchaseUpdated.listen((purchaseDetailsList) {
       _listenToPurchaseUpdated(purchaseDetailsList);
     }, onDone: () {
-      log.info("[IAPService] finish fetching iap tiers");
+      log.info('[IAPService] finish fetching iap tiers');
       _subscription.cancel();
     }, onError: (error) {
       log.severe(error);
@@ -133,39 +131,40 @@ class IAPServiceImpl implements IAPService {
   Future<bool> renewJWT() async {
     final receiptData = _configurationService.getIAPReceipt();
     if (receiptData == null) {
-      _configurationService.setIAPJWT(null);
+      unawaited(_configurationService.setIAPJWT(null));
       return false;
     }
 
     final jwt = await _verifyPurchase(receiptData);
     if (jwt == null || !jwt.isValid(withSubscription: true)) {
-      _configurationService.setIAPJWT(null);
+      unawaited(_configurationService.setIAPJWT(null));
       return false;
     }
-    _configurationService.setIAPJWT(jwt);
+    unawaited(_configurationService.setIAPJWT(jwt));
     return true;
   }
 
   @override
   Future<void> purchase(ProductDetails product) async {
-    if (await _inAppPurchase.isAvailable() == false) return;
+    if (!(await _inAppPurchase.isAvailable())) {
+      return;
+    }
     final purchaseParam = PurchaseParam(
       productDetails: product,
     );
 
-    log.info("[IAPService] purchase: ${product.id}");
+    log.info('[IAPService] purchase: ${product.id}');
 
     await _cleanupPendingTransactions();
 
-    log.info("[IAPService] buy non comsumable: ${product.id}");
+    log.info('[IAPService] buy non comsumable: ${product.id}');
     await _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
   }
 
   @override
   Future<void> restore() async {
-    log.info("[IAPService] restore purchases");
-    if (await _inAppPurchase.isAvailable() == false ||
-        await isAppCenterBuild()) {
+    log.info('[IAPService] restore purchases');
+    if (!(await _inAppPurchase.isAvailable()) || await isAppCenterBuild()) {
       return;
     }
     await _inAppPurchase.restorePurchases();
@@ -177,8 +176,8 @@ class IAPServiceImpl implements IAPService {
           receiptData: receiptData, forceRefresh: true);
       return jwt;
     } catch (error) {
-      log.info("[IAPService] error when verifying receipt", error);
-      _configurationService.setIAPReceipt(null);
+      log.info('[IAPService] error when verifying receipt', error);
+      unawaited(_configurationService.setIAPReceipt(null));
       return null;
     }
   }
@@ -186,14 +185,14 @@ class IAPServiceImpl implements IAPService {
   void _listenToPurchaseUpdated(List<PurchaseDetails> purchaseDetailsList) {
     if (purchaseDetailsList.isEmpty) {
       // Remove purchase status
-      _configurationService.setIAPReceipt(null);
-      _configurationService.setPremium(false);
+      unawaited(_configurationService.setIAPReceipt(null));
+      unawaited(_configurationService.setPremium(false));
       return;
     }
 
     purchaseDetailsList.forEach((PurchaseDetails purchaseDetails) async {
-      log.info("[IAPService] purchase: ${purchaseDetails.productID},"
-          " status: ${purchaseDetails.status.name}");
+      log.info('[IAPService] purchase: ${purchaseDetails.productID},'
+          ' status: ${purchaseDetails.status.name}');
 
       if (purchaseDetails.pendingCompletePurchase) {
         await _inAppPurchase.completePurchase(purchaseDetails);
@@ -217,59 +216,39 @@ class IAPServiceImpl implements IAPService {
             // Prevent duplicated events.
             return;
           }
-          final metricClient = injector.get<MetricClientService>();
           _receiptData = receiptData;
           final jwt = await _verifyPurchase(receiptData);
           final subscriptionStatus = jwt?.getSubscriptionStatus();
-          log.info("[IAPService] subscription: $subscriptionStatus");
-          log.info("[IAPService] verifying the receipt");
+          log
+            ..info('[IAPService] subscription: $subscriptionStatus')
+            ..info('[IAPService] verifying the receipt');
           if (subscriptionStatus?.isPremium == true) {
-            _configurationService.setIAPJWT(jwt);
+            unawaited(_configurationService.setIAPJWT(jwt));
             if (!_configurationService.isPremium()) {
-              _configurationService.setPremium(true);
+              unawaited(_configurationService.setPremium(true));
             }
             final status = subscriptionStatus!;
-            if (status.isTrial == true) {
+            if (status.isTrial) {
               purchases.value[purchaseDetails.productID] =
                   IAPProductStatus.trial;
-              metricClient.addEvent(
-                MixpanelEvent.trial,
-                data: {
-                  "productId": purchaseDetails.productID,
-                  "status": purchaseDetails.status.name,
-                },
-                hashedData: {
-                  "purchaseId": purchaseDetails.purchaseID,
-                },
-              );
               trialExpireDates.value[purchaseDetails.productID] =
                   status.expireDate;
             } else {
               purchases.value[purchaseDetails.productID] =
                   IAPProductStatus.completed;
               if (purchaseDetails.status == PurchaseStatus.purchased) {
-                injector<ConfigurationService>()
-                    .setSubscriptionTime(DateTime.now());
+                unawaited(injector<ConfigurationService>()
+                    .setSubscriptionTime(DateTime.now()));
               }
-              metricClient.addEvent(
-                MixpanelEvent.purchased,
-                data: {
-                  "productId": purchaseDetails.productID,
-                  "status": purchaseDetails.status.name,
-                },
-                hashedData: {
-                  "purchaseId": purchaseDetails.purchaseID,
-                },
-              );
             }
             purchases.notifyListeners();
           } else {
-            log.info("[IAPService] the receipt is invalid");
-            _configurationService.setPremium(false);
+            log.info('[IAPService] the receipt is invalid');
+            unawaited(_configurationService.setPremium(false));
             purchases.value[purchaseDetails.productID] =
                 IAPProductStatus.expired;
-            _configurationService.setIAPReceipt(null);
-            _cleanupPendingTransactions();
+            unawaited(_configurationService.setIAPReceipt(null));
+            unawaited(_cleanupPendingTransactions());
             purchases.notifyListeners();
             return;
           }
@@ -289,18 +268,17 @@ class IAPServiceImpl implements IAPService {
   Future _cleanupPendingTransactions() async {
     if (Platform.isIOS) {
       var transactions = await SKPaymentQueueWrapper().transactions();
-      log.info(
-          "[IAPService] cleaning up pending transactions: ${transactions.length}");
+      log.info('[IAPService] cleaning up pending transactions: '
+          '${transactions.length}');
 
       if (transactions.isNotEmpty) {
         for (var transaction in transactions) {
-          log.info(
-              "[IAPService] cleaning up transaction: ${transaction.toString()}");
-          SKPaymentQueueWrapper().finishTransaction(transaction);
+          log.info('[IAPService] cleaning up transaction: $transaction');
+          unawaited(SKPaymentQueueWrapper().finishTransaction(transaction));
         }
 
         await Future.delayed(const Duration(seconds: 3));
-        log.info("[IAPService] finish cleaning up");
+        log.info('[IAPService] finish cleaning up');
       }
     }
   }
@@ -308,13 +286,10 @@ class IAPServiceImpl implements IAPService {
 
 class PaymentQueueDelegate implements SKPaymentQueueDelegateWrapper {
   @override
-  bool shouldContinueTransaction(
-      SKPaymentTransactionWrapper transaction, SKStorefrontWrapper storefront) {
-    return true;
-  }
+  bool shouldContinueTransaction(SKPaymentTransactionWrapper transaction,
+          SKStorefrontWrapper storefront) =>
+      true;
 
   @override
-  bool shouldShowPriceConsent() {
-    return false;
-  }
+  bool shouldShowPriceConsent() => false;
 }
