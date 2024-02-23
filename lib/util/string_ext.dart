@@ -148,4 +148,12 @@ extension StringExtension on String {
   }
 
   String get hexToDecimal => BigInt.parse(this, radix: 16).toString();
+
+  bool get isHex {
+    String hexString = this;
+    if (hexString.startsWith('0x')) {
+      hexString = hexString.substring(2);
+    }
+    return RegExp(r'^[0-9a-fA-F]+$').hasMatch(hexString);
+  }
 }
