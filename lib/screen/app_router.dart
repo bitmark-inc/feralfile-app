@@ -1216,3 +1216,235 @@ class AppRouter {
     }
   }
 }
+
+String getPageName(String routeName) {
+  String pageName = routeName;
+  switch (routeName) {
+    case AppRouter.createPlayListPage:
+      pageName = 'Create Playlist Page';
+      break;
+    case AppRouter.viewPlayListPage:
+      pageName = 'View Playlist Page';
+      break;
+    case AppRouter.editPlayListPage:
+      pageName = 'Edit Playlist Page';
+      break;
+    case AppRouter.onboardingPage:
+      pageName = 'Onboarding Page';
+      break;
+    case AppRouter.notificationOnboardingPage:
+      pageName = 'Notification Onboarding Page';
+      break;
+    case AppRouter.homePage:
+      pageName = 'Home Page';
+      break;
+    case AppRouter.artworkPreviewPage:
+      pageName = 'Artwork Preview Page';
+      break;
+    case AppRouter.artworkDetailsPage:
+      pageName = 'Artwork Details Page';
+      break;
+    case AppRouter.claimedPostcardDetailsPage:
+      pageName = 'Claimed Postcard Details Page';
+      break;
+    case AppRouter.galleryPage:
+      pageName = 'Gallery Page';
+      break;
+    case AppRouter.settingsPage:
+      pageName = 'Settings Page';
+      break;
+    case AppRouter.personaConnectionsPage:
+      pageName = 'Persona Connections Page';
+      break;
+    case AppRouter.connectionDetailsPage:
+      pageName = 'Connection Details Page';
+      break;
+    case AppRouter.linkedAccountDetailsPage:
+      pageName = 'Linked Account Details Page';
+      break;
+    case AppRouter.walletDetailsPage:
+      pageName = 'Wallet Details Page';
+      break;
+    case AppRouter.linkedWalletDetailsPage:
+      pageName = 'Linked Wallet Details Page';
+      break;
+    case AppRouter.scanQRPage:
+      pageName = 'Scan QR Page';
+      break;
+    case AppRouter.globalReceivePage:
+      pageName = 'Global Receive Page';
+      break;
+    case AppRouter.recoveryPhrasePage:
+      pageName = 'Recovery Phrase Page';
+      break;
+    case AppRouter.wcConnectPage:
+      pageName = 'WC Connect Page';
+      break;
+    case AppRouter.cloudPage:
+      pageName = 'Cloud Page';
+      break;
+    case AppRouter.cloudAndroidPage:
+      pageName = 'Cloud Android Page';
+      break;
+    case AppRouter.linkManually:
+      pageName = 'Link Manually Page';
+      break;
+    case AppRouter.testArtwork:
+      pageName = 'Test Artwork Page';
+      break;
+    case AppRouter.autonomySecurityPage:
+      pageName = 'Autonomy Security Page';
+      break;
+    case AppRouter.unsafeWebWalletPage:
+      pageName = 'Unsafe Web Wallet Page';
+      break;
+    case AppRouter.releaseNotesPage:
+      pageName = 'Release Notes Page';
+      break;
+    case AppRouter.hiddenArtworksPage:
+      pageName = 'Hidden Artworks Page';
+      break;
+    case AppRouter.supportCustomerPage:
+      pageName = 'Support Customer Page';
+      break;
+    case AppRouter.supportListPage:
+      pageName = 'Support List Page';
+      break;
+    case AppRouter.merchOrdersPage:
+      pageName = 'Merch Orders Page';
+      break;
+    case AppRouter.supportThreadPage:
+      pageName = 'Support Thread Page';
+      break;
+    case AppRouter.bugBountyPage:
+      pageName = 'Bug Bounty Page';
+      break;
+    case AppRouter.participateUserTestPage:
+      pageName = 'Participate User Test Page';
+      break;
+    case AppRouter.keySyncPage:
+      pageName = 'Key Sync Page';
+      break;
+    case AppRouter.githubDocPage:
+      pageName = 'Github Doc Page';
+      break;
+    case AppRouter.sendArtworkPage:
+      pageName = 'Send Artwork Page';
+      break;
+    case AppRouter.sendArtworkReviewPage:
+      pageName = 'Send Artwork Review Page';
+      break;
+    case AppRouter.claimFeralfileTokenPage:
+      pageName = 'Claim Feralfile Token Page';
+      break;
+    case AppRouter.claimSelectAccountPage:
+      pageName = 'Claim Select Account Page';
+      break;
+    case AppRouter.airdropTokenDetailPage:
+      pageName = 'Airdrop Token Detail Page';
+      break;
+    case AppRouter.wc2ConnectPage:
+      pageName = 'WC2 Connect Page';
+      break;
+    case AppRouter.wc2PermissionPage:
+      pageName = 'WC2 Permission Page';
+      break;
+    case AppRouter.preferencesPage:
+      pageName = 'Preferences Page';
+      break;
+    case AppRouter.walletPage:
+      pageName = 'Wallet Page';
+      break;
+    case AppRouter.subscriptionPage:
+      pageName = 'Subscription Page';
+      break;
+    case AppRouter.dataManagementPage:
+      pageName = 'Data Management Page';
+      break;
+    case AppRouter.helpUsPage:
+      pageName = 'Help Us Page';
+      break;
+    case AppRouter.inappWebviewPage:
+      pageName = 'Inapp Webview Page';
+      break;
+    case AppRouter.postcardExplain:
+      pageName = 'Postcard Explain Page';
+      break;
+    case AppRouter.designStamp:
+      pageName = 'Design Stamp Page';
+      break;
+    case AppRouter.promptPage:
+      pageName = 'Prompt Page';
+      break;
+    case AppRouter.handSignaturePage:
+      pageName = 'Hand Signature Page';
+      break;
+    case AppRouter.stampPreview:
+      pageName = 'Stamp Preview Page';
+      break;
+    case AppRouter.claimEmptyPostCard:
+      pageName = 'Claim Empty Postcard Page';
+      break;
+    case AppRouter.payToMintPostcard:
+      pageName = 'Pay To Mint Postcard Page';
+      break;
+    case AppRouter.postcardSelectAddressScreen:
+      pageName = 'Postcard Select Address Screen';
+      break;
+    case AppRouter.receivePostcardPage:
+      pageName = 'Receive Postcard Page';
+      break;
+    case AppRouter.irlWebView:
+      pageName = 'IRL Web View';
+      break;
+    case AppRouter.irlSignMessage:
+      pageName = 'IRL Sign Message';
+      break;
+    case AppRouter.canvasHelpPage:
+      pageName = 'Canvas Help Page';
+      break;
+    case AppRouter.keyboardControlPage:
+      pageName = 'Keyboard Control Page';
+      break;
+    case AppRouter.touchPadPage:
+      pageName = 'Touch Pad Page';
+      break;
+    case AppRouter.claimAirdropPage:
+      pageName = 'Claim Airdrop Page';
+      break;
+    case AppRouter.activationTokenDetailPage:
+      pageName = 'Activation Token Detail Page';
+      break;
+    case AppRouter.claimActivationPage:
+      pageName = 'Claim Activation Page';
+      break;
+    case AppRouter.previewActivationClaimPage:
+      pageName = 'Preview Activation Claim Page';
+      break;
+    case AppRouter.postcardLeaderboardPage:
+      pageName = 'Postcard Leaderboard Page';
+      break;
+    case AppRouter.postcardLocationExplain:
+      pageName = 'Postcard Location Explain';
+      break;
+    case AppRouter.predefinedCollectionPage:
+      pageName = 'Predefined Collection Page';
+      break;
+    case AppRouter.addToCollectionPage:
+      pageName = 'Add To Collection Page';
+      break;
+    case AppRouter.exhibitionDetailPage:
+      pageName = 'Exhibition Detail Page';
+      break;
+    case AppRouter.ffArtworkPreviewPage:
+      pageName = 'FF Artwork Preview Page';
+      break;
+    case AppRouter.feralFileSeriesPage:
+      pageName = 'Feral File Series Page';
+      break;
+    case AppRouter.momaPostcardPage:
+      pageName = 'MoMA Postcard Page';
+      break;
+  }
+  return pageName;
+}

@@ -289,6 +289,16 @@ extension AssetTokenExtension on AssetToken {
 
   bool get isPostcard => contractAddress == Environment.postcardContractAddress;
 
+  String? get feralfileArtworkId {
+    if (!isFeralfile) {
+      return null;
+    }
+    final artworkID = ((swapped ?? false) && originTokenInfoId != null)
+        ? originTokenInfoId
+        : id.split('-').last;
+    return artworkID;
+  }
+
   // copyWith method
   AssetToken copyWith({
     String? id,

@@ -498,13 +498,30 @@ class Constants {
   ];
 }
 
-class MixpanelEvent {}
+class MixpanelEvent {
+  static const String visitPage = 'Visit Page';
+  static const String viewExhibition = 'View exhibition';
+  static const String viewArtwork = 'View artwork';
+}
 
 class MixpanelEventProp {}
 
-class MixpanelProp {}
+class MixpanelProp {
+  static const platform = 'platform';
+  static const tokenId = 'tokenId';
+  static const artworkId = 'artworkId';
+  static const exhibitionId = 'exhibitionId';
+  static const ownerAddress = 'ownerAddress';
+}
 
 class MixpanelConfig {}
+
+class MixpanelExtendScreen {
+  static const String collection = 'Collection';
+  static const String organization = 'Organization';
+  static const String exhibition = 'Exhibition';
+  static const String showMyCode = 'Show My Code';
+}
 
 class LinkType {
   static const local = 'Local Deep Link';

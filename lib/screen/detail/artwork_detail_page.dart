@@ -76,7 +76,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 
   HashSet<String> _accountNumberHash = HashSet.identity();
   AssetToken? currentAsset;
-  final metricClient = injector.get<MetricClientService>();
+  final _metricClient = injector.get<MetricClientService>();
   final _airdropService = injector.get<AirdropService>();
   final _feralfileService = injector.get<FeralFileService>();
 
@@ -171,7 +171,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   Future<void> _shareMemento(BuildContext context, AssetToken asset) async {
     final deeplink = await _airdropService.shareAirdrop(asset);
     if (deeplink == null) {
-      if (!mounted) {
+      if (!context.mounted) {
         return;
       }
       context
@@ -187,7 +187,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       await Share.share(shareMessage);
     } catch (e) {
       if (e is DioException) {
-        if (mounted) {
+        if (context.mounted) {
           unawaited(UIHelper.showSharePostcardFailed(context, e));
         }
       }
@@ -214,6 +214,16 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     super.dispose();
   }
 
+  void _sendViewArtworkEvent(AssetToken assetToken) {
+    final data = {
+      MixpanelProp.tokenId: assetToken.id,
+      MixpanelProp.ownerAddress: assetToken.owner,
+      if (assetToken.isFeralfile)
+        MixpanelProp.artworkId: assetToken.feralfileArtworkId,
+    };
+    unawaited(_metricClient.addEvent(MixpanelEvent.viewArtwork, data: data));
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -221,7 +231,13 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
         currentAsset?.medium == 'other' ||
         currentAsset?.medium == null;
     return BlocConsumer<ArtworkDetailBloc, ArtworkDetailState>(
-        listener: (context, state) {
+        listenWhen: (previous, current) {
+      if (previous.assetToken != current.assetToken &&
+          current.assetToken != null) {
+        _sendViewArtworkEvent(current.assetToken!);
+      }
+      return true;
+    }, listener: (context, state) {
       final identitiesList = state.provenances.map((e) => e.owner).toList();
       if (state.assetToken?.artistName != null &&
           state.assetToken!.artistName!.length > 20) {
@@ -433,7 +449,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     final addressIndex = owner?.second;
     final irlUrl = asset.irlTapLink;
 
-    if (!mounted) {
+    if (!context.mounted) {
       return;
     }
     final isHidden = _isHidden(asset);
@@ -489,7 +505,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                     downloadProgress.value = received / total;
                   });
                 });
-                if (!mounted) {
+                if (!context.mounted) {
                   return;
                 }
                 setState(() {
@@ -502,7 +518,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                   unawaited(UIHelper.showFeralfileArtworkSavedFailed(context));
                 }
               } catch (e) {
-                if (!mounted) {
+                if (!context.mounted) {
                   return;
                 }
                 setState(() {
@@ -523,7 +539,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                 .updateTempStorageHiddenTokenIDs([asset.id], !isHidden);
             unawaited(injector<SettingsDataService>().backup());
 
-            if (!mounted) {
+            if (!context.mounted) {
               return;
             }
             NftCollectionBloc.eventController.add(ReloadEvent());
@@ -564,7 +580,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                     .updateTempStorageHiddenTokenIDs([asset.id], false);
                 unawaited(injector<SettingsDataService>().backup());
               }
-              if (!mounted) {
+              if (!context.mounted) {
                 return;
               }
               setState(() {});
