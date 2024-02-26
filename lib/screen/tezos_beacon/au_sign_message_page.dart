@@ -31,7 +31,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 
 class AUSignMessagePage extends StatefulWidget {
-  static const String tag = 'au_sign_message';
   final Wc2Request request;
 
   const AUSignMessagePage({required this.request, super.key});

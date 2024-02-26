@@ -8,7 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 
 class TutorialVideo extends StatefulWidget {
-  static const String tag = 'tutorial_video_page';
   final TutorialVideosPayload payload;
 
   const TutorialVideo({required this.payload, super.key});

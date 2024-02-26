@@ -9,10 +9,10 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:autonomy_flutter/model/currency_exchange.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_state.dart';
-import 'package:autonomy_flutter/screen/settings/crypto/send_review_page.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
@@ -35,8 +35,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 
 class SendCryptoPage extends StatefulWidget {
-  static const String tag = 'send_crypto';
-
   final SendData data;
 
   const SendCryptoPage({required this.data, super.key});
@@ -144,7 +142,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                                     } else {
                                       dynamic address =
                                           await Navigator.of(context).pushNamed(
-                                              ScanQRPage.tag,
+                                              AppRouter.scanQRPage,
                                               arguments: type == CryptoType.XTZ
                                                   ? ScannerItem.XTZ_ADDRESS
                                                   : ScannerItem.ETH_ADDRESS);
@@ -311,7 +309,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                                           state.feeOption);
                                       final txPayload =
                                           await Navigator.of(context).pushNamed(
-                                              SendReviewPage.tag,
+                                              AppRouter.sendReviewPage,
                                               arguments: payload) as Map?;
                                       if (txPayload != null &&
                                           txPayload['hash'] != null &&

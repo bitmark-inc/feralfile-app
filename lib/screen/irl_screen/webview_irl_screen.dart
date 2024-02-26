@@ -10,7 +10,6 @@ import 'package:autonomy_flutter/model/wc_ethereum_transaction.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/irl_screen/sign_message_screen.dart';
 import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
-import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -321,7 +320,7 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
             );
 
             final txHash = await Navigator.of(context).pushNamed(
-              WCSendTransactionPage.tag,
+              AppRouter.wcSendTransactionPage,
               arguments: args,
             );
             if (txHash == null) {
@@ -352,7 +351,7 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
           );
           final txHash = mounted
               ? await Navigator.of(context).pushNamed(
-                  TBSendTransactionPage.tag,
+                  AppRouter.tbSendTransactionPage,
                   arguments: beaconRequest,
                 )
               : null;

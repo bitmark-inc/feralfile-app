@@ -269,7 +269,7 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
               final metadataFile = await _writeMetadata(
                   metadata: metadata, fileName: metadataFilename);
               unawaited(injector<NavigationService>().navigateTo(
-                  StampPreview.tag,
+                  AppRouter.stampPreview,
                   arguments: StampPreviewPayload(
                       imagePath: imageDataFile.path,
                       metadataPath: metadataFile.path,

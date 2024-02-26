@@ -35,7 +35,6 @@ import 'package:libauk_dart/libauk_dart.dart';
 import 'package:web3dart/crypto.dart';
 
 class TBSignMessagePage extends StatefulWidget {
-  static const String tag = 'tb_sign_message';
   final BeaconRequest request;
 
   const TBSignMessagePage({required this.request, super.key});
