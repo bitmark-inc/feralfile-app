@@ -5,13 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'dart:async';
-import 'dart:convert';
-
-import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/participate_user_test_page.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -28,20 +22,9 @@ class HelpUsPage extends StatefulWidget {
 }
 
 class _HelpUsPageState extends State<HelpUsPage> {
-  String? _calendarLink;
-
   @override
   void initState() {
     super.initState();
-    unawaited(_getCalendarLink());
-  }
-
-  Future<void> _getCalendarLink() async {
-    final data = await injector<PubdocAPI>().getUserTestConfigs();
-    final configs = jsonDecode(data) as Map<String, dynamic>;
-    setState(() {
-      _calendarLink = configs['calendar_link'];
-    });
   }
 
   @override
@@ -65,17 +48,6 @@ class _HelpUsPageState extends State<HelpUsPage> {
                     onTap: () async => Navigator.of(context)
                         .pushNamed(AppRouter.bugBountyPage)),
               ),
-              addOnlyDivider(),
-              if (_calendarLink != null && _calendarLink!.isNotEmpty)
-                Padding(
-                  padding: padding,
-                  child: TappableForwardRow(
-                      leftWidget: Text('p_user_test'.tr(),
-                          style: theme.textTheme.ppMori400Black16),
-                      onTap: () async => Navigator.of(context).pushNamed(
-                          AppRouter.participateUserTestPage,
-                          arguments: UserTestPayload(_calendarLink!))),
-                ),
             ]
                 // END HELP US IMPROVE
                 )
