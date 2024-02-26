@@ -11,7 +11,6 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 
 class NameAddressPersona extends StatefulWidget {
-  static const String tag = 'name_address_persona';
   final NameAddressPersonaPayload payload;
 
   const NameAddressPersona({required this.payload, super.key});

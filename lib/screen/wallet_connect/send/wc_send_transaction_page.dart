@@ -31,8 +31,6 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:web3dart/web3dart.dart';
 
 class WCSendTransactionPage extends StatefulWidget {
-  static const String tag = 'wc_send_transaction';
-
   final WCSendTransactionPageArgs args;
 
   const WCSendTransactionPage({required this.args, super.key});

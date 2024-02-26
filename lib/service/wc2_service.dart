@@ -16,9 +16,6 @@ import 'package:autonomy_flutter/model/wc2_pairing.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/model/wc_ethereum_transaction.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/tezos_beacon/au_sign_message_page.dart';
-import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.dart';
-import 'package:autonomy_flutter/screen/tezos_beacon/tb_sign_message_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
@@ -260,7 +257,7 @@ class Wc2Service extends Wc2Handler {
             try {
               final beaconReq = request.toBeaconRequest();
               unawaited(_navigationService.navigateTo(
-                TBSendTransactionPage.tag,
+                AppRouter.tbSendTransactionPage,
                 arguments: beaconReq,
               ));
             } catch (e) {
@@ -324,7 +321,7 @@ class Wc2Service extends Wc2Handler {
       chain: 'eip155',
       address: eip55address,
     );
-    await _navigationService.navigateTo(WCSignMessagePage.tag,
+    await _navigationService.navigateTo(AppRouter.wcSignMessagePage,
         arguments: WCSignMessagePageArgs(
           request.id,
           request.topic,
@@ -374,7 +371,7 @@ class Wc2Service extends Wc2Handler {
         isWalletConnect2: true,
       );
       unawaited(_navigationService.navigateTo(
-        WCSendTransactionPage.tag,
+        AppRouter.wcSendTransactionPage,
         arguments: args,
       ));
     } catch (e) {
@@ -385,7 +382,7 @@ class Wc2Service extends Wc2Handler {
   //#region Handle sign request
   Future _handleEthereumSignRequest(
       Wc2Request request, WCSignType signType) async {
-    await _navigationService.navigateTo(WCSignMessagePage.tag,
+    await _navigationService.navigateTo(AppRouter.wcSignMessagePage,
         arguments: WCSignMessagePageArgs(
           request.id,
           request.topic,
@@ -406,14 +403,14 @@ class Wc2Service extends Wc2Handler {
   Future _handleTezosSignRequest(Wc2Request request) async {
     final beaconReq = request.toBeaconRequest();
     await _navigationService.navigateTo(
-      TBSignMessagePage.tag,
+      AppRouter.tbSignMessagePage,
       arguments: beaconReq,
     );
   }
 
   Future _handleAutonomySignRequest(Wc2Request request) async {
     await _navigationService.navigateTo(
-      AUSignMessagePage.tag,
+      AppRouter.auSignMessagePage,
       arguments: request,
     );
   }
@@ -453,7 +450,7 @@ class Wc2Service extends Wc2Handler {
         isWalletConnect2: true,
       );
       unawaited(_navigationService.navigateTo(
-        WCSendTransactionPage.tag,
+        AppRouter.wcSendTransactionPage,
         arguments: args,
       ));
     } catch (e) {

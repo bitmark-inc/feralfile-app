@@ -9,6 +9,7 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/pair.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/global_receive/receive_detail_page.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
@@ -43,7 +44,7 @@ Widget accountWithConnectionItem(
                 blockchain: a.blockchain!,
                 account: a),
             onTap: () => unawaited(Navigator.of(context).pushNamed(
-                GlobalReceiveDetailPage.tag,
+                AppRouter.globalReceiveDetailPage,
                 arguments: GlobalReceivePayload(
                     address: a.accountNumber,
                     blockchain: a.blockchain!,

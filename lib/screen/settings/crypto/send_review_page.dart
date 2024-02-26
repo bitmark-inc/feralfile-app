@@ -31,8 +31,6 @@ import 'package:web3dart/credentials.dart';
 import 'package:web3dart/web3dart.dart';
 
 class SendReviewPage extends StatefulWidget {
-  static const String tag = 'send_review';
-
   final SendCryptoPayload payload;
 
   const SendReviewPage({required this.payload, super.key});

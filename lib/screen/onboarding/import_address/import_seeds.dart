@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/select_addresses.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -14,8 +15,6 @@ import 'package:flutter/services.dart';
 import 'package:sentry/sentry.dart';
 
 class ImportSeedsPage extends StatefulWidget {
-  static const String tag = 'import_seeds_page';
-
   const ImportSeedsPage({Key? key}) : super(key: key);
 
   @override
@@ -95,7 +94,7 @@ class _ImportSeedsPageState extends State<ImportSeedsPage> {
       final persona =
           await accountService.importPersona(_phraseTextController.text.trim());
       if (!mounted) return;
-      Navigator.of(context).pushNamed(SelectAddressesPage.tag,
+      Navigator.of(context).pushNamed(AppRouter.selectAddressesPage,
           arguments: SelectAddressesPayload(persona: persona));
 
       if (!mounted) return;

@@ -32,8 +32,6 @@ import 'package:libauk_dart/libauk_dart.dart';
 import 'package:web3dart/crypto.dart';
 
 class WCSignMessagePage extends StatefulWidget {
-  static const String tag = 'wc_sign_message';
-
   final WCSignMessagePageArgs args;
 
   const WCSignMessagePage({required this.args, super.key});

@@ -15,11 +15,7 @@ import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/connection_supports.dart';
 import 'package:autonomy_flutter/model/p2p_peer.dart';
 import 'package:autonomy_flutter/model/tezos_connection.dart';
-import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.dart';
-import 'package:autonomy_flutter/screen/tezos_beacon/tb_sign_message_page.dart';
-import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/screen/app_routerort 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
@@ -150,19 +146,19 @@ class TezosBeaconService implements BeaconHandler {
       _navigationService.hideInfoDialog();
       hideOverlay(NavigationService.contactingKey);
       _timer?.cancel();
-      unawaited(
-          _navigationService.navigateTo(WCConnectPage.tag, arguments: request));
+      unawaited(_navigationService.navigateTo(AppRouter.wcConnectPage,
+          arguments: request));
     } else if (request.type == 'signPayload') {
       _requestSignMessageForConnection();
-      final result = await _navigationService.navigateTo(TBSignMessagePage.tag,
-          arguments: request);
+      final result = await _navigationService
+          .navigateTo(AppRouter.tbSignMessagePage, arguments: request);
       log.info('TezosBeaconService: handle permission Request result: $result');
       if (result) {
         _showYouAllSet();
       }
       _clearConnectFlag();
     } else if (request.type == 'operation') {
-      unawaited(_navigationService.navigateTo(TBSendTransactionPage.tag,
+      unawaited(_navigationService.navigateTo(AppRouter.tbSendTransactionPage,
           arguments: request));
     }
   }

@@ -48,8 +48,6 @@ import 'package:flutter_svg/flutter_svg.dart';
  => use this page for both WalletConnect & TezosBeacon connect
 */
 class WCConnectPage extends StatefulWidget {
-  static const String tag = AppRouter.wcConnectPage;
-
   final ConnectionRequest connectionRequest;
 
   const WCConnectPage({

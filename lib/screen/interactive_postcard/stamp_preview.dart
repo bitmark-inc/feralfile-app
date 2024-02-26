@@ -31,7 +31,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nft_collection/models/asset_token.dart';
 
 class StampPreview extends StatefulWidget {
-  static const String tag = 'stamp_preview';
   final StampPreviewPayload payload;
   static const double cellSize = 20;
 

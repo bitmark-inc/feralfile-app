@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/chat_api.dart';
 import 'package:autonomy_flutter/model/chat_message.dart' as app;
 import 'package:autonomy_flutter/model/pair.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/chat/chat_bloc.dart';
 import 'package:autonomy_flutter/screen/chat/chat_state.dart';
 import 'package:autonomy_flutter/screen/chat/chat_thread_page.dart';
@@ -144,7 +145,7 @@ class _MessagePreviewState extends State<MessagePreview> {
             ),
             onTap: () async {
               await Navigator.of(context).pushNamed(
-                ChatThreadPage.tag,
+                AppRouter.chatThreadPage,
                 arguments: ChatThreadPagePayload(
                     token: _assetToken,
                     wallet: widget.payload.wallet,
