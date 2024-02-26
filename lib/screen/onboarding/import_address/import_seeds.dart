@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/select_addresses.dart';
@@ -94,8 +96,8 @@ class _ImportSeedsPageState extends State<ImportSeedsPage> {
       final persona =
           await accountService.importPersona(_phraseTextController.text.trim());
       if (!mounted) return;
-      Navigator.of(context).pushNamed(AppRouter.selectAddressesPage,
-          arguments: SelectAddressesPayload(persona: persona));
+      unawaited(Navigator.of(context).pushNamed(AppRouter.selectAddressesPage,
+          arguments: SelectAddressesPayload(persona: persona)));
 
       if (!mounted) return;
     } catch (exception) {
