@@ -35,12 +35,11 @@ class NameViewOnlyAddressPage extends StatefulWidget {
 class _NameViewOnlyAddressPageState extends State<NameViewOnlyAddressPage> {
   final TextEditingController _nameController = TextEditingController();
 
-  bool isSavingAliasDisabled = false;
-  bool canPop = false;
+  bool _isSavingAliasDisabled = false;
 
   void saveAliasButtonChangedState() {
     setState(() {
-      isSavingAliasDisabled = !isSavingAliasDisabled;
+      _isSavingAliasDisabled = !_isSavingAliasDisabled;
     });
   }
 
@@ -59,62 +58,59 @@ class _NameViewOnlyAddressPageState extends State<NameViewOnlyAddressPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return WillPopScope(
-      onWillPop: () async => canPop,
-      child: Scaffold(
-        appBar: getBackAppBar(context,
-            title: 'view_existing_address'.tr(),
-            onBack: () => Navigator.of(context).pop()),
-        body: Container(
-          margin: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      addTitleSpace(),
-                      Text(
-                        'aa_you_can_add'.tr(),
-                        style: theme.textTheme.ppMori400Black14,
-                      ),
-                      const SizedBox(height: 15),
-                      AuTextField(
-                          labelSemantics: 'enter_alias_link',
-                          title: '',
-                          placeholder: 'enter_alias'.tr(),
-                          controller: _nameController,
-                          onChanged: (valueChanged) {
-                            if (_nameController.text.trim().isEmpty !=
-                                isSavingAliasDisabled) {
-                              saveAliasButtonChangedState();
-                            }
-                          }),
-                    ],
-                  ),
+    return Scaffold(
+      appBar: getBackAppBar(context,
+          title: 'view_existing_address'.tr(),
+          onBack: () => Navigator.of(context).pop()),
+      body: Container(
+        margin: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    addTitleSpace(),
+                    Text(
+                      'aa_you_can_add'.tr(),
+                      style: theme.textTheme.ppMori400Black14,
+                    ),
+                    const SizedBox(height: 15),
+                    AuTextField(
+                        labelSemantics: 'enter_alias_link',
+                        title: '',
+                        placeholder: 'enter_alias'.tr(),
+                        controller: _nameController,
+                        onChanged: (valueChanged) {
+                          if (_nameController.text.trim().isEmpty !=
+                              _isSavingAliasDisabled) {
+                            saveAliasButtonChangedState();
+                          }
+                        }),
+                  ],
                 ),
               ),
-              Row(
-                children: [
-                  Expanded(
-                    child: PrimaryButton(
-                      text: 'continue'.tr(),
-                      onTap: isSavingAliasDisabled
-                          ? null
-                          : () {
-                              context.read<AccountsBloc>().add(
-                                  NameLinkedAccountEvent(
-                                      widget.connection, _nameController.text));
-                              _doneNaming();
-                            },
-                    ),
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: PrimaryButton(
+                    text: 'continue'.tr(),
+                    onTap: _isSavingAliasDisabled
+                        ? null
+                        : () {
+                            context.read<AccountsBloc>().add(
+                                NameLinkedAccountEvent(
+                                    widget.connection, _nameController.text));
+                            _doneNaming();
+                          },
                   ),
-                ],
-              ),
-            ],
-          ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
