@@ -160,8 +160,10 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
 
   Widget _getBackUpState(BuildContext context) {
     final theme = Theme.of(context);
-    final customLinkStyle = theme.textTheme.ppMori400Black14
-        .copyWith(decoration: TextDecoration.underline);
+    final customLinkStyle = theme.textTheme.ppMori400Black14.copyWith(
+      decoration: TextDecoration.underline,
+      decorationColor: AppColor.primaryBlack,
+    );
     if (_isBackUpAvailable == null) {
       return const SizedBox();
     }

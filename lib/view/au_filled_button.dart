@@ -41,6 +41,7 @@ class AuFilledButton extends StatelessWidget {
             backgroundColor: enabled ? color : color.withOpacity(0.6),
             disabledForegroundColor: color.withOpacity(0.38),
             disabledBackgroundColor: color.withOpacity(0.12),
+            surfaceTintColor: Colors.transparent,
             shadowColor: Colors.transparent,
             shape: const RoundedRectangleBorder(),
             splashFactory:
