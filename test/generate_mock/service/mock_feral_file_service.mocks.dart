@@ -315,11 +315,18 @@ class MockFeralFileService extends _i1.Mock implements _i6.FeralFileService {
         )),
       ) as _i7.Future<_i4.Artwork>);
   @override
-  _i7.Future<_i9.File?> downloadFeralfileArtwork(_i10.AssetToken? assetToken) =>
+  _i7.Future<_i9.File?> downloadFeralfileArtwork(
+    _i10.AssetToken? assetToken, {
+    dynamic Function(
+      int,
+      int,
+    )? onReceiveProgress,
+  }) =>
       (super.noSuchMethod(
         Invocation.method(
           #downloadFeralfileArtwork,
           [assetToken],
+          {#onReceiveProgress: onReceiveProgress},
         ),
         returnValue: _i7.Future<_i9.File?>.value(),
       ) as _i7.Future<_i9.File?>);
