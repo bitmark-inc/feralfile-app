@@ -203,7 +203,7 @@ class _SettingsPageState extends State<SettingsPage>
                       icon: const Icon(AuIcon.help_us),
                       onTap: () async {
                         await Navigator.of(context)
-                            .pushNamed(AppRouter.helpUsPage);
+                            .pushNamed(AppRouter.bugBountyPage);
                       },
                     ),
                     addOnlyDivider(),
