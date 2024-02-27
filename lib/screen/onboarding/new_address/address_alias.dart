@@ -13,7 +13,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class AddressAlias extends StatefulWidget {
-  static const String tag = 'address_alias';
   final AddressAliasPayload payload;
 
   const AddressAlias({required this.payload, super.key});
