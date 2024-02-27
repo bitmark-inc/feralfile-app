@@ -66,8 +66,8 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
     final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
     final divider = addDivider(height: 20);
 
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      onPopInvoked: (_) async {
         context.read<WCSendTransactionBloc>().add(
               WCSendTransactionRejectEvent(
                 widget.args.peerMeta,
@@ -77,7 +77,6 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                 isIRL: widget.args.isIRL,
               ),
             );
-        return true;
       },
       child: Scaffold(
         appBar: getBackAppBar(

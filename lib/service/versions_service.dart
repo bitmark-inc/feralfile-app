@@ -123,8 +123,8 @@ class VersionService {
     await UIHelper.showDialog(
       context,
       'update_required'.tr(),
-      WillPopScope(
-        onWillPop: () async => false,
+      PopScope(
+        canPop: false,
         child: Column(children: [
           Text('newer_version'.tr(), style: theme.textTheme.ppMori400White14),
           const SizedBox(height: 35),

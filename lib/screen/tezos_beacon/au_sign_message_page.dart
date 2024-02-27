@@ -133,10 +133,9 @@ class _AUSignMessagePageState extends State<AUSignMessagePage> {
 
     final theme = Theme.of(context);
 
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      onPopInvoked: (_) async {
         await _rejectRequest(reason: 'User reject');
-        return true;
       },
       child: Scaffold(
         appBar: getBackAppBar(

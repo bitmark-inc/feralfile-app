@@ -267,10 +267,9 @@ class _WCConnectPageState extends State<WCConnectPage>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      onPopInvoked: (_) async {
         unawaited(_reject());
-        return true;
       },
       child: Scaffold(
         appBar: getBackAppBar(
