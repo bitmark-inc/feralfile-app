@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
@@ -55,62 +56,75 @@ class _NameViewOnlyAddressPageState extends State<NameViewOnlyAddressPage> {
     super.dispose();
   }
 
+  Future<void> _deleteConnection(BuildContext context) async {
+    await injector<AccountService>().deleteLinkedAccount(widget.connection);
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Scaffold(
-      appBar: getBackAppBar(context,
-          title: 'view_existing_address'.tr(),
-          onBack: () => Navigator.of(context).pop()),
-      body: Container(
-        margin: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    addTitleSpace(),
-                    Text(
-                      'aa_you_can_add'.tr(),
-                      style: theme.textTheme.ppMori400Black14,
-                    ),
-                    const SizedBox(height: 15),
-                    AuTextField(
-                        labelSemantics: 'enter_alias_link',
-                        title: '',
-                        placeholder: 'enter_alias'.tr(),
-                        controller: _nameController,
-                        onChanged: (valueChanged) {
-                          if (_nameController.text.trim().isEmpty !=
-                              _isSavingAliasDisabled) {
-                            saveAliasButtonChangedState();
-                          }
-                        }),
-                  ],
-                ),
-              ),
-            ),
-            Row(
-              children: [
-                Expanded(
-                  child: PrimaryButton(
-                    text: 'continue'.tr(),
-                    onTap: _isSavingAliasDisabled
-                        ? null
-                        : () {
-                            context.read<AccountsBloc>().add(
-                                NameLinkedAccountEvent(
-                                    widget.connection, _nameController.text));
-                            _doneNaming();
-                          },
+    return PopScope(
+      onPopInvoked: (_) async {
+        await _deleteConnection(context);
+      },
+      child: Scaffold(
+        appBar: getBackAppBar(context, title: 'view_existing_address'.tr(),
+            onBack: () async {
+          await _deleteConnection(context);
+          if (context.mounted) {
+            Navigator.of(context).pop();
+          }
+        }),
+        body: Container(
+          margin: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      addTitleSpace(),
+                      Text(
+                        'aa_you_can_add'.tr(),
+                        style: theme.textTheme.ppMori400Black14,
+                      ),
+                      const SizedBox(height: 15),
+                      AuTextField(
+                          labelSemantics: 'enter_alias_link',
+                          title: '',
+                          placeholder: 'enter_alias'.tr(),
+                          controller: _nameController,
+                          onChanged: (valueChanged) {
+                            if (_nameController.text.trim().isEmpty !=
+                                _isSavingAliasDisabled) {
+                              saveAliasButtonChangedState();
+                            }
+                          }),
+                    ],
                   ),
                 ),
-              ],
-            ),
-          ],
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: PrimaryButton(
+                      text: 'continue'.tr(),
+                      onTap: _isSavingAliasDisabled
+                          ? null
+                          : () {
+                              context.read<AccountsBloc>().add(
+                                  NameLinkedAccountEvent(
+                                      widget.connection, _nameController.text));
+                              _doneNaming();
+                            },
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
