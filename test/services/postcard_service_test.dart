@@ -2,7 +2,6 @@ import 'package:autonomy_flutter/gateway/postcard_api.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -16,7 +15,6 @@ import '../generate_mock/service/mock_account_service.mocks.dart';
 import '../generate_mock/service/mock_chat_service.mocks.dart';
 import '../generate_mock/service/mock_configuration_service.mocks.dart';
 import '../generate_mock/service/mock_indexer_service.mocks.dart';
-import '../generate_mock/service/mock_metric_client_service.mocks.dart';
 import '../generate_mock/service/mock_tezos_service.mocks.dart';
 import '../generate_mock/service/mock_tokens_service.mocks.dart';
 import '../mock_data/postcard_api_mock.dart';
@@ -35,7 +33,6 @@ void main() async {
     late ConfigurationService mockConfigurationService;
     late AccountService mockAccountService;
     late TokensService mockTokensService;
-    late MetricClientService mockMetricClientService;
     late ChatService mockChatService;
     late PostcardService postcardService;
     setUp(() {
@@ -45,7 +42,6 @@ void main() async {
       mockConfigurationService = MockConfigurationService();
       mockAccountService = MockAccountService();
       mockTokensService = MockTokensService();
-      mockMetricClientService = MockMetricClientService();
       mockChatService = MockChatService();
       postcardService = PostcardServiceImpl(
           mockPostcardApi,
@@ -54,7 +50,6 @@ void main() async {
           mockConfigurationService,
           mockAccountService,
           mockTokensService,
-          mockMetricClientService,
           mockChatService);
       PostcardApiMock.setup(mockPostcardApi);
     });
