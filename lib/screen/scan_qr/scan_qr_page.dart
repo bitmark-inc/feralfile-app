@@ -12,7 +12,6 @@ import 'dart:io';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart'
     as accounts;
 import 'package:autonomy_flutter/screen/bloc/ethereum/ethereum_bloc.dart';
@@ -47,8 +46,6 @@ import 'package:synchronized/synchronized.dart';
 // ignore_for_file: constant_identifier_names
 
 class ScanQRPage extends StatefulWidget {
-  static const String tag = AppRouter.scanQRPage;
-
   final ScannerItem scannerItem;
   final Function? onHandleFinished;
 

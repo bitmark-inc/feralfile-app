@@ -9,9 +9,8 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/screen/account/access_method_page.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
-import 'package:autonomy_flutter/screen/onboarding/import_address/import_seeds.dart';
 import 'package:autonomy_flutter/screen/onboarding/new_address/address_alias.dart';
 import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_address.dart';
 import 'package:autonomy_flutter/screen/settings/connection/accounts_view.dart';
@@ -80,7 +79,7 @@ class _WalletPageState extends State<WalletPage>
           height: 24,
         ),
         onTap: () {
-          unawaited(Navigator.of(context).pushNamed(AddressAlias.tag,
+          unawaited(Navigator.of(context).pushNamed(AppRouter.addressAliasPage,
               arguments: AddressAliasPayload(WalletType.Autonomy)));
         },
       ),
@@ -91,7 +90,9 @@ class _WalletPageState extends State<WalletPage>
           height: 24,
         ),
         onTap: () {
-          unawaited(Navigator.of(context).popAndPushNamed(ImportSeedsPage.tag));
+          unawaited(Navigator.of(context).popAndPushNamed(
+            AppRouter.importSeedsPage,
+          ));
         },
       ),
       OptionItem(
@@ -104,7 +105,7 @@ class _WalletPageState extends State<WalletPage>
         ),
         onTap: () {
           unawaited(Navigator.of(context).popAndPushNamed(
-              ViewExistingAddress.tag,
+              AppRouter.viewExistingAddressPage,
               arguments: ViewExistingAddressPayload(false)));
         },
       ),
@@ -114,8 +115,8 @@ class _WalletPageState extends State<WalletPage>
           onTap: () async {
             final debug = await isAppCenterBuild();
             if (debug && mounted) {
-              unawaited(
-                  Navigator.of(context).popAndPushNamed(AccessMethodPage.tag));
+              unawaited(Navigator.of(context)
+                  .popAndPushNamed(AppRouter.accessMethodPage));
             }
           }),
     ];

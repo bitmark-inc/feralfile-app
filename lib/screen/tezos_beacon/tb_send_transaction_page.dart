@@ -42,8 +42,6 @@ import 'package:tezart/tezart.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class TBSendTransactionPage extends StatefulWidget {
-  static const String tag = 'tb_send_transaction';
-
   final BeaconRequest request;
 
   const TBSendTransactionPage({required this.request, super.key});

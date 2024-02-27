@@ -38,8 +38,6 @@ import 'package:nft_collection/models/asset_token.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SendArtworkPage extends StatefulWidget {
-  static const String tag = 'send_artwork';
-
   final SendArtworkPayload payload;
 
   const SendArtworkPage({required this.payload, super.key});
@@ -265,7 +263,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                                         } else {
                                           dynamic address = await Navigator.of(
                                                   context)
-                                              .pushNamed(ScanQRPage.tag,
+                                              .pushNamed(AppRouter.scanQRPage,
                                                   arguments: asset.blockchain ==
                                                           'ethereum'
                                                       ? ScannerItem.ETH_ADDRESS

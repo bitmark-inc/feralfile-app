@@ -179,7 +179,7 @@ class _CanvasDeviceViewState extends State<CanvasDeviceView> {
 
   Future<void> _addNewCanvas() async {
     dynamic device = await Navigator.of(context)
-        .pushNamed(ScanQRPage.tag, arguments: ScannerItem.CANVAS_DEVICE);
+        .pushNamed(AppRouter.scanQRPage, arguments: ScannerItem.CANVAS_DEVICE);
     if (!mounted) {
       return;
     }

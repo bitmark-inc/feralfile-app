@@ -28,8 +28,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 class AccessMethodPage extends StatefulWidget {
-  static const tag = 'access_method_page';
-
   const AccessMethodPage({super.key});
 
   @override

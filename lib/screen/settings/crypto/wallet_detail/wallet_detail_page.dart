@@ -638,7 +638,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
               ),
               onPressed: () async {
                 final payload = await Navigator.of(context).pushNamed(
-                    SendCryptoPage.tag,
+                    AppRouter.sendCryptoPage,
                     arguments: SendData(
                         LibAukDart.getWallet(widget.payload.persona.uuid),
                         widget.payload.type,
@@ -693,7 +693,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                     accountNumber: address,
                     createdAt: walletAddress.createdAt);
                 unawaited(Navigator.of(context).pushNamed(
-                    GlobalReceiveDetailPage.tag,
+                    AppRouter.globalReceiveDetailPage,
                     arguments: GlobalReceivePayload(
                         address: address,
                         blockchain: widget.payload.type.source,

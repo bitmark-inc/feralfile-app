@@ -229,7 +229,8 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
                   leftWidget: Text('tutorial_videos'.tr(),
                       style: theme.textTheme.ppMori400Black14),
                   onTap: () async {
-                    await Navigator.of(context).pushNamed(TutorialVideo.tag,
+                    await Navigator.of(context).pushNamed(
+                        AppRouter.tutorialVideoPage,
                         arguments:
                             TutorialVideosPayload(videos: snapshot.data!));
                   },

@@ -284,7 +284,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
       return;
     }
     await Navigator.of(context).pushNamed(
-      ChatThreadPage.tag,
+      AppRouter.chatThreadPage,
       arguments: ChatThreadPagePayload(
           token: asset,
           wallet: wallet,
