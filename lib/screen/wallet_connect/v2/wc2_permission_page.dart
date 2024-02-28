@@ -231,8 +231,9 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
     final theme = Theme.of(context);
 
     return PopScope(
+      canPop: false,
       onPopInvoked: (_) async {
-        await _reject();
+        Navigator.of(context).pop(false);
       },
       child: Scaffold(
         appBar: getBackAppBar(
