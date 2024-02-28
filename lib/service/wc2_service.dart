@@ -92,7 +92,7 @@ class Wc2Service {
   static const WalletConnectError _userRejectError =
       WalletConnectError(code: 5000, message: 'User rejected');
   static const WalletConnectError _proposalNotFound =
-      WalletConnectError(code: 5000, message: 'App can not found proposal');
+      WalletConnectError(code: 6000, message: 'App can not found proposal');
   static const WalletConnectError _chainNotSupported =
       WalletConnectError(code: 3005, message: 'Chain is not supported');
 
