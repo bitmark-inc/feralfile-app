@@ -18,9 +18,12 @@ class MetricClientService {
   final mixPanelClient = injector<MixPanelClientService>();
   bool isFinishInit = false;
 
+  Timer? useAppTimer;
+
   Future<void> initService() async {
     await mixPanelClient.initService();
     isFinishInit = true;
+    onUseAppForeground();
   }
 
   Future<void> addEvent(
@@ -47,6 +50,17 @@ class MetricClientService {
       ));
       unawaited(mixPanelClient.sendData());
     }
+  }
+
+  void onUseAppForeground() {
+    useAppTimer?.cancel();
+    useAppTimer = Timer(USE_APP_MIN_DURATION, () async {
+      await addEvent(MixpanelEvent.visitFeralfile, data: {});
+    });
+  }
+
+  void onUseAppBackground() {
+    useAppTimer?.cancel();
   }
 
   void timerEvent(String name) {

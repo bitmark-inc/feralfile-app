@@ -499,7 +499,7 @@ class CollectionHomePageState extends State<CollectionHomePage>
     final defaultAccounts = await cloudDatabase.personaDao.getDefaultPersonas();
 
     if (defaultAccounts.length >= 2) {
-      if (!mounted) {
+      if (!context.mounted) {
         return;
       }
       unawaited(Navigator.of(context).pushNamed(AppRouter.keySyncPage));

@@ -502,6 +502,7 @@ class MixpanelEvent {
   static const String visitPage = 'Visit Page';
   static const String viewExhibition = 'View exhibition';
   static const String viewArtwork = 'View artwork';
+  static const String visitFeralfile = 'Visit Feral File';
 }
 
 class MixpanelEventProp {}
@@ -550,7 +551,7 @@ class IrlWebviewFunction {
   static String closeWebview = '_closeWebview';
 }
 
-const Duration USE_APP_MIN_DURATION = Duration(seconds: 30);
+const Duration USE_APP_MIN_DURATION = Duration(seconds: 15);
 
 const chatPrivateBannerId = 'chat_private_banner_id';
 final chatPrivateBannerMessage = SystemMessage(
