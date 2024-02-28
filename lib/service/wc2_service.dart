@@ -17,8 +17,6 @@ import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/model/wc_ethereum_transaction.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/tezos_beacon/au_sign_message_page.dart';
-import 'package:autonomy_flutter/screen/tezos_beacon/tb_sign_message_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
@@ -189,18 +187,29 @@ class Wc2Service {
   Future _handleAuSign(String topic, params) async {
     log.info('[Wc2Service] received autonomy-au_sign request $params');
     final chain = (params['chain'] as String).caip2Namespace;
+    late dynamic result;
     switch (chain) {
       case Wc2Chain.ethereum:
-        return await _handleAuSignEth(topic, params);
+        result = await _handleAuSignEth(topic, params);
+        break;
       case Wc2Chain.tezos:
-        return await _handleTezosSignRequest(topic, params);
+        result =  await _handleTezosSignRequest(topic, params);
+        break;
       case Wc2Chain.autonomy:
         log.info('[Wc2Service] received autonomy-au_sign request $params');
-        return await _handleFeralfileSign(topic, params);
+        result =  await _handleFeralfileSign(topic, params);
+        break;
       default:
         log.warning('[Wc2Service] Chain not supported: $chain');
         throw const JsonRpcError(code: 301, message: 'chain not supported');
     }
+    if (result == null || result == false ) {
+      throw const JsonRpcError(code: 301, message: 'User reject');
+    }
+    if (result is JsonRpcError) {
+      throw result;
+    }
+    return result;
   }
 
   Future _handleEthPersonalSign(String topic, params) async {

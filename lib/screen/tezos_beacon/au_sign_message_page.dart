@@ -29,6 +29,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:walletconnect_flutter_v2/apis/core/pairing/utils/pairing_models.dart';
+import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
 
 class AUSignMessagePage extends StatefulWidget {
   final Wc2RequestPayload request;
@@ -77,10 +78,6 @@ class _AUSignMessagePageState extends State<AUSignMessagePage> {
     }
 
     if (currentWallet == null) {
-      await _rejectRequest(
-        reason:
-            "No wallet found for address ${widget.request.params['address']}",
-      );
       if (!mounted) {
         return;
       }
@@ -91,14 +88,6 @@ class _AUSignMessagePageState extends State<AUSignMessagePage> {
     setState(() {
       _currentPersona = currentWallet;
     });
-  }
-
-  Future _rejectRequest({String? reason}) async {
-    log.info('[AUSignMessagePage] _rejectRequest: $reason');
-    await injector<Wc2Service>().respondOnReject(
-      widget.request.topic,
-      reason: reason,
-    );
   }
 
   Future _handleAuSignRequest({required Wc2RequestPayload request}) async {
@@ -135,96 +124,86 @@ class _AUSignMessagePageState extends State<AUSignMessagePage> {
 
     final theme = Theme.of(context);
 
-    return PopScope(
-      onPopInvoked: (_) async {
-        await _rejectRequest(reason: 'User reject');
-      },
-      child: Scaffold(
-        appBar: getBackAppBar(
-          context,
-          onBack: () {
-            unawaited(_rejectRequest(reason: 'User reject'));
-            Navigator.of(context).pop();
-          },
-          title: 'signature_request'.tr(),
-        ),
-        body: Container(
-          margin: const EdgeInsets.only(bottom: 32),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      addTitleSpace(),
-                      Padding(
-                        padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-                        child: _wc2AppInfo(widget.request.proposer),
+    return Scaffold(
+      appBar: getBackAppBar(
+        context,
+        onBack: () {
+          Navigator.of(context).pop(false);
+        },
+        title: 'signature_request'.tr(),
+      ),
+      body: Container(
+        margin: const EdgeInsets.only(bottom: 32),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    addTitleSpace(),
+                    Padding(
+                      padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                      child: _wc2AppInfo(widget.request.proposer),
+                    ),
+                    const SizedBox(height: 60),
+                    addOnlyDivider(),
+                    const SizedBox(height: 30),
+                    Padding(
+                      padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                      child: Text(
+                        'message'.tr(),
+                        style: theme.textTheme.ppMori400Black14,
                       ),
-                      const SizedBox(height: 60),
-                      addOnlyDivider(),
-                      const SizedBox(height: 30),
-                      Padding(
-                        padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                    ),
+                    const SizedBox(height: 4),
+                    Padding(
+                      padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 20, horizontal: 22),
+                        decoration: BoxDecoration(
+                          color: AppColor.auLightGrey,
+                          borderRadius: BorderRadius.circular(5),
+                        ),
                         child: Text(
-                          'message'.tr(),
+                          viewMessage,
                           style: theme.textTheme.ppMori400Black14,
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Padding(
-                        padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 20, horizontal: 22),
-                          decoration: BoxDecoration(
-                            color: AppColor.auLightGrey,
-                            borderRadius: BorderRadius.circular(5),
-                          ),
-                          child: Text(
-                            viewMessage,
-                            style: theme.textTheme.ppMori400Black14,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Padding(
-                padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: PrimaryButton(
-                        text: 'sign'.tr(),
-                        onTap: _currentPersona != null
-                            ? () => withDebounce(() async {
-                                  unawaited(_handleAuSignRequest(
-                                      request: widget.request));
-                                  if (!mounted) {
-                                    return;
-                                  }
-                                  Navigator.of(context).pop();
-                                  showInfoNotification(
-                                    const Key('signed'),
-                                    'signed'.tr(),
-                                    frontWidget: SvgPicture.asset(
-                                      'assets/images/checkbox_icon.svg',
-                                      width: 24,
-                                    ),
-                                  );
-                                })
-                            : null,
-                      ),
-                    )
+                    ),
                   ],
                 ),
-              )
-            ],
-          ),
+              ),
+            ),
+            Padding(
+              padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: PrimaryButton(
+                      text: 'sign'.tr(),
+                      onTap: _currentPersona != null
+                          ? () => withDebounce(() async {
+                                unawaited(_handleAuSignRequest(
+                                    request: widget.request));
+                                showInfoNotification(
+                                  const Key('signed'),
+                                  'signed'.tr(),
+                                  frontWidget: SvgPicture.asset(
+                                    'assets/images/checkbox_icon.svg',
+                                    width: 24,
+                                  ),
+                                );
+                              })
+                          : null,
+                    ),
+                  )
+                ],
+              ),
+            )
+          ],
         ),
       ),
     );
