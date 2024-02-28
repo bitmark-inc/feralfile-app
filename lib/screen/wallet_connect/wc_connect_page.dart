@@ -271,17 +271,13 @@ class _WCConnectPageState extends State<WCConnectPage>
     final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
     return PopScope(
       onPopInvoked: (_) async {
-        unawaited(_reject());
+        await _reject();
       },
       child: Scaffold(
         appBar: getBackAppBar(
           context,
           title: 'connect'.tr(),
           onBack: () async {
-            await _reject();
-            if (!mounted) {
-              return;
-            }
             Navigator.pop(context);
           },
         ),

@@ -371,6 +371,7 @@ class Wc2Service {
     int id, {
     String? reason,
   }) async {
+    log.info('[Wc2Service] reject session');
     await _wcClient.rejectSession(
         id: id,
         reason: WalletConnectError(
