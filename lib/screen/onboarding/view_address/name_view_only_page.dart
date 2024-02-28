@@ -70,10 +70,7 @@ class _NameViewOnlyAddressPageState extends State<NameViewOnlyAddressPage> {
       child: Scaffold(
         appBar: getBackAppBar(context, title: 'view_existing_address'.tr(),
             onBack: () async {
-          await _deleteConnection(context);
-          if (context.mounted) {
-            Navigator.of(context).pop();
-          }
+              Navigator.of(context).pop();
         }),
         body: Container(
           margin: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
