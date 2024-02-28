@@ -58,8 +58,10 @@ class ExhibitionNoteView extends StatelessWidget {
               },
               child: Text(
                 'read_more'.tr(),
-                style: theme.textTheme.ppMori400White14
-                    .copyWith(decoration: TextDecoration.underline),
+                style: theme.textTheme.ppMori400White14.copyWith(
+                  decoration: TextDecoration.underline,
+                  decorationColor: AppColor.white,
+                ),
               ),
             ),
         ],

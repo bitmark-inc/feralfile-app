@@ -157,7 +157,10 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                         if (exhibition.curator != null)
                           RichText(
                               text: TextSpan(
-                                  style: theme.textTheme.ppMori400Grey14,
+                                  style: theme.textTheme.ppMori400Grey14
+                                      .copyWith(
+                                          decorationColor:
+                                              AppColor.disabledColor),
                                   children: [
                                 TextSpan(text: 'curated_by'.tr()),
                                 TextSpan(

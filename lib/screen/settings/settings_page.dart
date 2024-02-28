@@ -203,7 +203,7 @@ class _SettingsPageState extends State<SettingsPage>
                       icon: const Icon(AuIcon.help_us),
                       onTap: () async {
                         await Navigator.of(context)
-                            .pushNamed(AppRouter.helpUsPage);
+                            .pushNamed(AppRouter.bugBountyPage);
                       },
                     ),
                     addOnlyDivider(),
@@ -271,8 +271,10 @@ class _SettingsPageState extends State<SettingsPage>
           GestureDetector(
             child: Text(
               'eula'.tr(),
-              style: theme.textTheme.ppMori400Grey12
-                  .copyWith(decoration: TextDecoration.underline),
+              style: theme.textTheme.ppMori400Grey12.copyWith(
+                decoration: TextDecoration.underline,
+                decorationColor: AppColor.disabledColor,
+              ),
             ),
             onTap: () async => Navigator.of(context)
                 .pushNamed(AppRouter.githubDocPage, arguments: {
@@ -288,8 +290,10 @@ class _SettingsPageState extends State<SettingsPage>
           GestureDetector(
             child: Text(
               'privacy_policy'.tr(),
-              style: theme.textTheme.ppMori400Grey12
-                  .copyWith(decoration: TextDecoration.underline),
+              style: theme.textTheme.ppMori400Grey12.copyWith(
+                decoration: TextDecoration.underline,
+                decorationColor: AppColor.disabledColor,
+              ),
             ),
             onTap: () async => Navigator.of(context)
                 .pushNamed(AppRouter.githubDocPage, arguments: {

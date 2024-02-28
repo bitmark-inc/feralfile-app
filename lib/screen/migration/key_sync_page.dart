@@ -163,7 +163,9 @@ class KeySyncPage extends StatelessWidget {
                                           ? theme.textTheme.ppMori400Black14
                                           : theme.textTheme.ppMori400Black16)
                                       .copyWith(
-                                          decoration: TextDecoration.underline),
+                                    decoration: TextDecoration.underline,
+                                    decorationColor: AppColor.primaryBlack,
+                                  ),
                                 ),
                               ),
                             ],
