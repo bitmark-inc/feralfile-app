@@ -198,7 +198,7 @@ Future<void> setup() async {
   injector
       .registerLazySingleton<MetricClientService>(() => MetricClientService());
   injector.registerLazySingleton<MixPanelClientService>(
-      () => MixPanelClientService(injector(), injector(), injector()));
+      () => MixPanelClientService(injector(), injector()));
   injector.registerLazySingleton<CacheManager>(() => AUImageCacheManage());
   injector.registerLazySingleton<AccountService>(() => AccountServiceImpl(
         cloudDB,
@@ -299,8 +299,8 @@ Future<void> setup() async {
   injector.registerLazySingleton(
       () => Web3Client(Environment.web3RpcURL, injector()));
 
-  injector.registerLazySingleton<ClientTokenService>(() => ClientTokenService(
-      injector(), injector(), injector(), injector(), injector()));
+  injector.registerLazySingleton<ClientTokenService>(
+      () => ClientTokenService(injector(), injector(), injector(), injector()));
 
   final tezosNodeClientURL = Environment.appTestnetConfig
       ? Environment.tezosNodeClientTestnetURL
@@ -336,7 +336,6 @@ Future<void> setup() async {
 
   injector.registerLazySingleton<PostcardService>(
     () => PostcardServiceImpl(
-      injector(),
       injector(),
       injector(),
       injector(),

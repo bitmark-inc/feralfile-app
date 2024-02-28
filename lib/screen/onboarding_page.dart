@@ -439,7 +439,8 @@ class _OnboardingPageState extends State<OnboardingPage>
                   PrimaryButton(
                     text: 'get_started'.tr(),
                     onTap: () async {
-                      await Navigator.of(context).pushNamed(AddressAlias.tag,
+                      await Navigator.of(context).pushNamed(
+                          AppRouter.addressAliasPage,
                           arguments: AddressAliasPayload(WalletType.Autonomy));
                     },
                   ),
@@ -447,7 +448,7 @@ class _OnboardingPageState extends State<OnboardingPage>
                   TextButton(
                     onPressed: () async {
                       await Navigator.of(context).pushNamed(
-                          ViewExistingAddress.tag,
+                          AppRouter.viewExistingAddressPage,
                           arguments: ViewExistingAddressPayload(true));
                     },
                     child: Text(

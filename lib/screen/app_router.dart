@@ -44,7 +44,6 @@ import 'package:autonomy_flutter/screen/customer_support/merchandise_order/merch
 import 'package:autonomy_flutter/screen/customer_support/support_customer_page.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_list_page.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
-import 'package:autonomy_flutter/screen/customer_support/tutorial_videos_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_bloc.dart';
@@ -224,6 +223,22 @@ class AppRouter {
   static const ffArtworkPreviewPage = 'ff_artwork_preview_page';
   static const feralFileSeriesPage = 'feral_file_series_page';
   static const momaPostcardPage = 'moma_postcard_page';
+  static const tbSendTransactionPage = 'tb_send_transaction_page';
+  static const viewExistingAddressPage = 'view_existing_address_page';
+  static const sendCryptoPage = 'send_crypto_page';
+  static const sendReviewPage = 'send_review_page';
+  static const importSeedsPage = 'import_seeds_page';
+  static const selectAddressesPage = 'select_addresses_page';
+  static const nameAddressPersonaPage = 'name_address_persona_page';
+  static const addressAliasPage = 'address_alias_page';
+  static const tbSignMessagePage = 'tb_sign_message_page';
+  static const auSignMessagePage = 'au_sign_message_page';
+  static const globalReceiveDetailPage = 'global_receive_detail_page';
+  static const tutorialVideoPage = 'tutorial_video_page';
+  static const chatThreadPage = 'chat_thread_page';
+  static const accessMethodPage = 'access_method_page';
+  static const wcSignMessagePage = 'wc_sign_message_page';
+  static const wcSendTransactionPage = 'wc_send_transaction_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector(), injector());
@@ -350,7 +365,7 @@ class AppRouter {
                   ),
                 ));
 
-      case ChatThreadPage.tag:
+      case chatThreadPage:
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) => ChatThreadPage(
@@ -389,7 +404,7 @@ class AppRouter {
           child: PromptPage(payload: settings.arguments! as DesignStampPayload),
         );
 
-      case AccessMethodPage.tag:
+      case accessMethodPage:
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) => const AccessMethodPage(),
@@ -461,14 +476,14 @@ class AppRouter {
         }
         throw Exception('Invalid route: ${settings.name}');
 
-      case WCSignMessagePage.tag:
+      case wcSignMessagePage:
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) => WCSignMessagePage(
               args: settings.arguments! as WCSignMessagePageArgs),
         );
 
-      case WCSendTransactionPage.tag:
+      case wcSendTransactionPage:
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) => BlocProvider(
@@ -481,7 +496,7 @@ class AppRouter {
                 args: settings.arguments! as WCSendTransactionPageArgs),
           ),
         );
-      case ScanQRPage.tag:
+      case scanQRPage:
         return PageTransition(
             settings: settings,
             type: PageTransitionType.topToBottom,
@@ -514,7 +529,6 @@ class AppRouter {
                         injector<CloudDatabase>(),
                         injector(),
                         injector(),
-                        injector(),
                       ))
                     ],
                     child: PersonaConnectionsPage(
@@ -527,7 +541,6 @@ class AppRouter {
             builder: (context) => BlocProvider(
                 create: (_) => ConnectionsBloc(
                       injector<CloudDatabase>(),
-                      injector(),
                       injector(),
                       injector(),
                     ),
@@ -545,7 +558,6 @@ class AppRouter {
                     BlocProvider.value(
                         value: ConnectionsBloc(
                       injector<CloudDatabase>(),
-                      injector(),
                       injector(),
                       injector(),
                     )),
@@ -570,7 +582,7 @@ class AppRouter {
                       payload:
                           settings.arguments! as LinkedWalletDetailsPayload),
                 ));
-      case SendCryptoPage.tag:
+      case sendCryptoPage:
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
@@ -583,7 +595,7 @@ class AppRouter {
                       injector()),
                   child: SendCryptoPage(data: settings.arguments! as SendData),
                 ));
-      case SendReviewPage.tag:
+      case sendReviewPage:
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => SendReviewPage(
@@ -619,7 +631,7 @@ class AppRouter {
               ),
             ));
 
-      case ViewExistingAddress.tag:
+      case viewExistingAddressPage:
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
@@ -629,11 +641,11 @@ class AppRouter {
                     payload: settings.arguments! as ViewExistingAddressPayload,
                   ),
                 ));
-      case ImportSeedsPage.tag:
+      case importSeedsPage:
         return CupertinoPageRoute(
             settings: settings, builder: (context) => const ImportSeedsPage());
 
-      case SelectAddressesPage.tag:
+      case selectAddressesPage:
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
@@ -642,14 +654,14 @@ class AppRouter {
                       payload: settings.arguments! as SelectAddressesPayload),
                 ));
 
-      case NameAddressPersona.tag:
+      case nameAddressPersonaPage:
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => NameAddressPersona(
                   payload: settings.arguments! as NameAddressPersonaPayload,
                 ));
 
-      case AddressAlias.tag:
+      case addressAliasPage:
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
@@ -713,19 +725,19 @@ class AppRouter {
                 ],
                 child: ClaimedPostcardDetailPage(
                     key: payload.key, payload: payload)));
-      case TBSignMessagePage.tag:
+      case tbSignMessagePage:
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) =>
               TBSignMessagePage(request: settings.arguments! as BeaconRequest),
         );
-      case AUSignMessagePage.tag:
+      case auSignMessagePage:
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) => AUSignMessagePage(
               request: settings.arguments! as Wc2RequestPayload),
         );
-      case TBSendTransactionPage.tag:
+      case tbSendTransactionPage:
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) => TBSendTransactionPage(
@@ -765,7 +777,7 @@ class AppRouter {
                   BlocProvider.value(value: tezosBloc),
                 ], child: const GlobalReceivePage()));
 
-      case GlobalReceiveDetailPage.tag:
+      case globalReceiveDetailPage:
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => GlobalReceiveDetailPage(
@@ -804,13 +816,6 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => const MerchandiseOrderPage());
-
-      case TutorialVideo.tag:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => TutorialVideo(
-                  payload: settings.arguments! as TutorialVideosPayload,
-                ));
 
       case supportThreadPage:
         return CupertinoPageRoute(

@@ -96,11 +96,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
       log.info('[DeeplinkService] data: $data');
       if (data['+clicked_branch_link'] == true &&
           _deepLinkHandlingMap[data['~referring_link']] == null) {
-        unawaited(_addScanQREvent(
-            link: data['~referring_link'],
-            linkType: LinkType.undefined,
-            prefix: '',
-            addData: data));
         _deepLinkHandlingMap[data['~referring_link']] = true;
         unawaited(_deepLinkHandleClock(
             'Handle Branch Deep Link Data Time Out', data['source']));
@@ -157,38 +152,12 @@ class DeeplinkServiceImpl extends DeeplinkService {
     });
   }
 
-  Future _addScanQREvent(
-      {required String link,
-      required String linkType,
-      required String prefix,
-      Map<dynamic, dynamic> addData = const {}}) async {
-    final uri = Uri.parse(link);
-    final uriData = uri.queryParameters;
-    final data = {
-      'link': link,
-      'linkType': linkType,
-      'prefix': prefix,
-    };
-    data.addAll(uriData);
-    data.addAll(addData.map((key, value) => MapEntry(key, value.toString())));
-
-    unawaited(metricClient.addEvent(MixpanelEvent.scanQR, data: data));
-  }
-
   Future<bool> _handleLocalDeeplink(String link) async {
     log.info('[DeeplinkService] _handleLocalDeeplink');
     const deeplink = 'autonomy://';
 
     if (link.startsWith(deeplink)) {
       final data = link.replacePrefix(deeplink, '');
-
-      unawaited(metricClient.addEvent(MixpanelEvent.scanQR, data: {
-        'link': link,
-        'linkType': LinkType.local,
-        'prefix': deeplink,
-        'data': data
-      }));
-
       if (!_configurationService.isDoneOnboarding()) {
         // Local deeplink should only available after onboarding.
         return false;
@@ -258,8 +227,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
         wcPrefixes.firstWhereOrNull((prefix) => link.startsWith(prefix));
 
     if (callingWCPrefix != null) {
-      unawaited(_addScanQREvent(
-          link: link, linkType: LinkType.dAppConnect, prefix: callingWCPrefix));
       final wcUri = link.substring(callingWCPrefix.length);
       final decodedWcUri = Uri.decodeFull(wcUri);
       await _walletConnect2Service.connect(decodedWcUri);
@@ -269,8 +236,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
     final callingTBPrefix =
         tzPrefixes.firstWhereOrNull((prefix) => link.startsWith(prefix));
     if (callingTBPrefix != null) {
-      unawaited(_addScanQREvent(
-          link: link, linkType: LinkType.dAppConnect, prefix: callingTBPrefix));
       final tzUri = link.substring(callingTBPrefix.length);
       await _tezosBeaconService.addPeer(tzUri);
       return true;
@@ -280,10 +245,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
         .firstWhereOrNull((prefix) => link.startsWith(prefix));
     if (callingWCDeeplinkPrefix != null) {
       final wcLink = link.replaceFirst(callingWCDeeplinkPrefix, 'wc:');
-      unawaited(_addScanQREvent(
-          link: link,
-          linkType: LinkType.dAppConnect,
-          prefix: callingWCDeeplinkPrefix));
       await _walletConnect2Service.connect(wcLink);
       return true;
     }
@@ -291,10 +252,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
     final callingTBDeeplinkPrefix = tbDeeplinkPrefixes
         .firstWhereOrNull((prefix) => link.startsWith(prefix));
     if (callingTBDeeplinkPrefix != null) {
-      unawaited(_addScanQREvent(
-          link: link,
-          linkType: LinkType.dAppConnect,
-          prefix: callingTBDeeplinkPrefix));
       await _tezosBeaconService.addPeer(link);
       if (_configurationService.isDoneOnboarding()) {
         unawaited(_navigationService.showContactingDialog());
@@ -305,10 +262,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
     final callingPostcardPayToMintPrefix = postcardPayToMintPrefixes
         .firstWhereOrNull((prefix) => link.startsWith(prefix));
     if (callingPostcardPayToMintPrefix != null) {
-      unawaited(_addScanQREvent(
-          link: link,
-          linkType: LinkType.postcardPayToMint,
-          prefix: callingPostcardPayToMintPrefix));
       await _handlePayToMintDeepLink(link);
       return true;
     }
@@ -405,11 +358,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
         .firstWhereOrNull((prefix) => link.startsWith(prefix));
     if (callingBranchDeepLinkPrefix != null) {
       final response = await _branchApi.getParams(Environment.branchKey, link);
-      unawaited(_addScanQREvent(
-          link: link,
-          linkType: LinkType.branch,
-          prefix: callingBranchDeepLinkPrefix,
-          addData: response['data']));
       await handleBranchDeeplinkData(response['data']);
       return true;
     }

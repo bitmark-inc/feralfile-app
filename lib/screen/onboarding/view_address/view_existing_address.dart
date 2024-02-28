@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/onboarding/import_address/import_seeds.dart';
 import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_address_bloc.dart';
 import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_address_state.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
@@ -22,7 +21,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ViewExistingAddress extends StatefulWidget {
-  static const String tag = 'view_existing_address';
   final ViewExistingAddressPayload payload;
 
   const ViewExistingAddress({required this.payload, super.key});
@@ -92,7 +90,7 @@ class _ViewExistingAddressState extends State<ViewExistingAddress> {
                               return;
                             }
                             dynamic address = await Navigator.of(context)
-                                .pushNamed(ScanQRPage.tag,
+                                .pushNamed(AppRouter.scanQRPage,
                                     arguments: ScannerItem.ETH_ADDRESS);
                             if (address != null && address is String) {
                               address = address.replacePrefix('ethereum:', '');
@@ -118,11 +116,15 @@ class _ViewExistingAddressState extends State<ViewExistingAddress> {
               const SizedBox(height: 20),
               TextButton(
                 onPressed: () async {
-                  await Navigator.of(context).pushNamed(ImportSeedsPage.tag);
+                  await Navigator.of(context).pushNamed(
+                    AppRouter.importSeedsPage,
+                  );
                 },
                 child: Text('or_import_address'.tr(),
-                    style: theme.textTheme.ppMori400Black14
-                        .copyWith(decoration: TextDecoration.underline)),
+                    style: theme.textTheme.ppMori400Black14.copyWith(
+                      decoration: TextDecoration.underline,
+                      decorationColor: AppColor.primaryBlack,
+                    )),
               )
             ],
           ),

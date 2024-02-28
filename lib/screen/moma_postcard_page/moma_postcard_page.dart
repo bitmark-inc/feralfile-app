@@ -12,7 +12,6 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -181,10 +180,6 @@ class _MoMAPostcardPageState extends State<MoMAPostcardPage> {
                 unawaited(Navigator.of(context)
                     .pushNamed(pageName, ////need change to pageName
                         arguments: payload));
-
-                unawaited(injector<MetricClientService>().addEvent(
-                    MixpanelEvent.viewArtwork,
-                    data: {'id': asset.id}));
               },
             );
           },

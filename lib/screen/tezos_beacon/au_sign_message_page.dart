@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
+import 'package:autonomy_flutter/util/wc2_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -30,7 +31,6 @@ import 'package:libauk_dart/libauk_dart.dart';
 import 'package:walletconnect_flutter_v2/apis/core/pairing/utils/pairing_models.dart';
 
 class AUSignMessagePage extends StatefulWidget {
-  static const String tag = 'au_sign_message';
   final Wc2RequestPayload request;
 
   const AUSignMessagePage({required this.request, super.key});
@@ -49,14 +49,31 @@ class _AUSignMessagePageState extends State<AUSignMessagePage> {
   }
 
   Future fetchPersona() async {
-    final personas = await injector<CloudDatabase>().personaDao.getPersonas();
     WalletStorage? currentWallet;
-    for (final persona in personas) {
-      final addressDID = await persona.wallet().getAccountDID();
-      if (addressDID == widget.request.params['address']) {
-        currentWallet = persona.wallet();
+
+    final params = Wc2SignRequestParams.fromJson(widget.request.params);
+    final address = params.address;
+    final chain = params.chain;
+    switch (chain.caip2Namespace) {
+      case Wc2Chain.ethereum:
+      case Wc2Chain.tezos:
+        final walletAddress =
+            await injector<CloudDatabase>().addressDao.findByAddress(address);
+        if (walletAddress != null) {
+          currentWallet = LibAukDart.getWallet(walletAddress.uuid);
+        }
         break;
-      }
+      case Wc2Chain.autonomy:
+        final personas =
+            await injector<CloudDatabase>().personaDao.getPersonas();
+        for (final persona in personas) {
+          final addressDID = await persona.wallet().getAccountDID();
+          if (addressDID == address) {
+            currentWallet = persona.wallet();
+            break;
+          }
+        }
+        break;
     }
 
     if (currentWallet == null) {
@@ -118,10 +135,9 @@ class _AUSignMessagePageState extends State<AUSignMessagePage> {
 
     final theme = Theme.of(context);
 
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      onPopInvoked: (_) async {
         await _rejectRequest(reason: 'User reject');
-        return true;
       },
       child: Scaffold(
         appBar: getBackAppBar(

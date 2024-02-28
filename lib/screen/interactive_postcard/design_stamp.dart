@@ -20,7 +20,6 @@ import 'package:undo/undo.dart';
 import 'package:widgets_to_image/widgets_to_image.dart';
 
 class DesignStampPage extends StatefulWidget {
-  static const String tag = 'design_stamp_screen';
   final DesignStampPayload payload;
 
   const DesignStampPage({required this.payload, super.key});

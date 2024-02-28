@@ -12,7 +12,6 @@ import 'package:autonomy_flutter/model/wc_ethereum_transaction.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_bloc.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_state.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:autonomy_flutter/util/fee_util.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -32,8 +31,6 @@ import 'package:walletconnect_flutter_v2/apis/core/pairing/utils/pairing_models.
 import 'package:web3dart/web3dart.dart';
 
 class WCSendTransactionPage extends StatefulWidget {
-  static const String tag = 'wc_send_transaction';
-
   final WCSendTransactionPageArgs args;
 
   const WCSendTransactionPage({required this.args, super.key});
@@ -69,22 +66,17 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
     final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
     final divider = addDivider(height: 20);
 
-    return WillPopScope(
-      onWillPop: () async {
-        unawaited(metricClient.addEvent(MixpanelEvent.backConfirmTransaction));
-
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (_) async {
         Navigator.of(context).pop(false);
-        return false;
       },
       child: Scaffold(
         appBar: getBackAppBar(
           context,
           title: 'confirmation'.tr(),
           onBack: () {
-            unawaited(
-                metricClient.addEvent(MixpanelEvent.backConfirmTransaction));
             Navigator.of(context).pop(false);
-            return false;
           },
         ),
         body: BlocConsumer<WCSendTransactionBloc, WCSendTransactionState>(
@@ -227,9 +219,6 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                                         !state.isSending &&
                                         widget.args.transaction.to != null)
                                     ? () async {
-                                        unawaited(metricClient.addEvent(
-                                            MixpanelEvent.confirmTransaction));
-
                                         final to = EthereumAddress.fromHex(
                                             widget.args.transaction.to!);
 
@@ -304,8 +293,10 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
             child: Text(
               content,
               style: theme.textTheme.ppMori400Black14.copyWith(
-                  decoration:
-                      (onValueTap != null) ? TextDecoration.underline : null),
+                decoration:
+                    (onValueTap != null) ? TextDecoration.underline : null,
+                decorationColor: AppColor.primaryBlack,
+              ),
             ),
           ),
         ),
@@ -360,6 +351,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
           child: Text('edit_priority'.tr(),
               style: theme.textTheme.ppMori400White14.copyWith(
                 decoration: TextDecoration.underline,
+                decorationColor: AppColor.white,
               )),
         ),
       ],

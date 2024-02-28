@@ -10,12 +10,10 @@ import 'package:autonomy_flutter/model/wc_ethereum_transaction.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/irl_screen/sign_message_screen.dart';
 import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
-import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -44,7 +42,6 @@ class IRLWebScreen extends StatefulWidget {
 
 class _IRLWebScreenState extends State<IRLWebScreen> {
   InAppWebViewController? _controller;
-  final _metricClient = injector<MetricClientService>();
 
   Future<WalletIndex?> getAccountByAddress(
       {required String chain, required String address}) async {
@@ -61,12 +58,6 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
 
   JSResult _logAndReturnJSResult(String func, JSResult result) {
     log.info('[IRLWebScreen] $func: ${result.toJson()}');
-    unawaited(_metricClient.addEvent(MixpanelEvent.callIrlFunction, data: {
-      'function': func,
-      'error': result.errorMessage,
-      'result': result.result.toString(),
-      'url': widget.payload.url,
-    }));
     return result;
   }
 
@@ -265,7 +256,7 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
 
   Future<JSResult?> _sendTransaction(List<dynamic> args) async {
     try {
-      log.info('[IRLWebScreen] signMessage: $args');
+      log.info('[IRLWebScreen] sendTransaction: $args');
       if (args.firstOrNull == null || args.firstOrNull is! Map) {
         return _logAndReturnJSResult(
           '_sendTransaction',
@@ -324,7 +315,7 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
             );
 
             final txHash = await Navigator.of(context).pushNamed(
-              WCSendTransactionPage.tag,
+              AppRouter.wcSendTransactionPage,
               arguments: args,
             );
             if (txHash == null) {
@@ -355,7 +346,7 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
           );
           final txHash = mounted
               ? await Navigator.of(context).pushNamed(
-                  TBSendTransactionPage.tag,
+                  AppRouter.tbSendTransactionPage,
                   arguments: beaconRequest,
                 )
               : null;
@@ -408,10 +399,6 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
       handlerName: 'closeWebview',
       callback: (args) async {
         injector.get<NavigationService>().goBack();
-        unawaited(_metricClient.addEvent(MixpanelEvent.callIrlFunction, data: {
-          'function': IrlWebviewFunction.closeWebview,
-          'url': widget.payload.url,
-        }));
       },
     );
   }

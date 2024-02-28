@@ -42,8 +42,6 @@ import 'package:tezart/tezart.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class TBSendTransactionPage extends StatefulWidget {
-  static const String tag = 'tb_send_transaction';
-
   final BeaconRequest request;
 
   const TBSendTransactionPage({required this.request, super.key});
@@ -80,7 +78,6 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
     setState(() {
       _isSending = true;
     });
-    unawaited(metricClient.addEvent(MixpanelEvent.confirmTransaction));
 
     final didAuthenticate = await LocalAuthenticationService.checkLocalAuth();
     if (!didAuthenticate) {
@@ -300,9 +297,8 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
         ? '- XTZ (- USD)'
         : '${xtzFormatter.format(total)} XTZ '
             '(${_exchangeRate?.xtzToUsd(total)} USD)';
-    return WillPopScope(
-      onWillPop: () async {
-        unawaited(metricClient.addEvent(MixpanelEvent.backConfirmTransaction));
+    return PopScope(
+      onPopInvoked: (_) async {
         if (wc2Topic != null) {
           unawaited(_wc2Service.respondOnReject(
             wc2Topic,
@@ -312,15 +308,12 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
           unawaited(injector<TezosBeaconService>()
               .operationResponse(widget.request.id, null));
         }
-        return true;
       },
       child: Scaffold(
         appBar: getBackAppBar(
           context,
           title: 'confirmation'.tr(),
           onBack: () {
-            unawaited(
-                metricClient.addEvent(MixpanelEvent.backConfirmTransaction));
             if (wc2Topic != null) {
               unawaited(_wc2Service.respondOnReject(
                 wc2Topic,
@@ -526,8 +519,10 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
           child: Text(
             content,
             style: theme.textTheme.ppMori400Black14.copyWith(
-                decoration:
-                    (onValueTap != null) ? TextDecoration.underline : null),
+              decoration:
+                  (onValueTap != null) ? TextDecoration.underline : null,
+              decorationColor: AppColor.primaryBlack,
+            ),
           ),
         )
       ],
@@ -573,6 +568,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
           child: Text('edit_priority'.tr(),
               style: theme.textTheme.ppMori400White14.copyWith(
                 decoration: TextDecoration.underline,
+                decorationColor: AppColor.white,
               )),
         ),
       ],

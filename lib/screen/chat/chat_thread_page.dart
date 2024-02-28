@@ -39,7 +39,6 @@ import 'package:nft_collection/models/asset_token.dart';
 import 'package:uuid/uuid.dart';
 
 class ChatThreadPage extends StatefulWidget {
-  static const String tag = 'chat_thread_page';
   final ChatThreadPagePayload payload;
 
   const ChatThreadPage({required this.payload, super.key});

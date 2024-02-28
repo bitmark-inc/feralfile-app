@@ -29,8 +29,6 @@ import 'package:walletconnect_flutter_v2/apis/core/pairing/utils/pairing_models.
 import 'package:web3dart/crypto.dart';
 
 class WCSignMessagePage extends StatefulWidget {
-  static const String tag = 'wc_sign_message';
-
   final WCSignMessagePageArgs args;
 
   const WCSignMessagePage({required this.args, super.key});
@@ -58,8 +56,11 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
 
     final theme = Theme.of(context);
 
-    return WillPopScope(
-      onWillPop: () async => true,
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (_) async {
+        Navigator.of(context).pop(false);
+      },
       child: Scaffold(
         appBar: getBackAppBar(
           context,

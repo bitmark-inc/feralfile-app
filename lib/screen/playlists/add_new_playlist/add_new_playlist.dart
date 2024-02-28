@@ -9,7 +9,6 @@ import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playl
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist_state.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/token_ext.dart';
@@ -211,8 +210,6 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen>
                   },
             onCancel: () {
               Navigator.pop(context);
-              unawaited(injector<MetricClientService>()
-                  .addEvent(MixpanelEvent.undoCreatePlaylist));
             },
             bottom: PreferredSize(
               preferredSize: const Size.fromHeight(0.25),

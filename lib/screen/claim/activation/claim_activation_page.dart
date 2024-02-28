@@ -13,7 +13,6 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/activation_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -224,12 +223,6 @@ class _ClaimActivationPageState extends State<ClaimActivationPage> {
                       enabled: !_processing,
                       isProcessing: _processing,
                       onTap: () async {
-                        _metricClient.addEvent(
-                          MixpanelEvent.acceptOwnership,
-                          data: {
-                            'id': widget.payload.assetToken.id,
-                          },
-                        );
                         setState(() {
                           _processing = true;
                         });
@@ -302,12 +295,6 @@ class _ClaimActivationPageState extends State<ClaimActivationPage> {
               enabled: !_processing,
               color: theme.colorScheme.primary,
               onTap: () {
-                _metricClient.addEvent(
-                  MixpanelEvent.declineOwnership,
-                  data: {
-                    'id': widget.payload.assetToken.id,
-                  },
-                );
                 memoryValues.branchDeeplinkData.value = null;
                 Navigator.of(context).pop(false);
               },
@@ -332,12 +319,6 @@ class _ClaimActivationPageState extends State<ClaimActivationPage> {
           airdropTOTPPasscode: otp.code,
         ),
         assetToken: assetToken,
-      );
-      _metricClient.addEvent(
-        MixpanelEvent.acceptOwnershipSuccess,
-        data: {
-          'id': widget.payload.assetToken.id,
-        },
       );
     } catch (e) {
       setState(() {

@@ -241,12 +241,6 @@ class _ClaimAirdropPageState extends State<ClaimAirdropPage> {
                       enabled: !_processing,
                       isProcessing: _processing,
                       onTap: () async {
-                        unawaited(_metricClient.addEvent(
-                          MixpanelEvent.acceptOwnership,
-                          data: {
-                            'id': widget.payload.series.id,
-                          },
-                        ));
                         setState(() {
                           _processing = true;
                         });
@@ -347,12 +341,6 @@ class _ClaimAirdropPageState extends State<ClaimAirdropPage> {
               enabled: !_processing,
               color: theme.colorScheme.primary,
               onTap: () {
-                unawaited(_metricClient.addEvent(
-                  MixpanelEvent.declineOwnership,
-                  data: {
-                    'id': widget.payload.series.id,
-                  },
-                ));
                 memoryValues.branchDeeplinkData.value = null;
                 Navigator.of(context).pop(false);
               },
@@ -376,12 +364,6 @@ class _ClaimAirdropPageState extends State<ClaimAirdropPage> {
           shareCode: shareCode,
           seriesId: seriesId,
           receivingAddress: receiveAddress);
-      unawaited(_metricClient.addEvent(
-        MixpanelEvent.acceptOwnershipSuccess,
-        data: {
-          'id': widget.payload.series.id,
-        },
-      ));
       unawaited(_configService.setAlreadyClaimedAirdrop(seriesId, true));
     } catch (e) {
       setState(() {

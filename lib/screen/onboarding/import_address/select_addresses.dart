@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_state.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/name_address_persona.dart';
@@ -22,7 +23,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class SelectAddressesPage extends StatefulWidget {
-  static const String tag = 'select_addresses_page';
   final SelectAddressesPayload payload;
 
   const SelectAddressesPage({required this.payload, super.key});
@@ -187,7 +187,7 @@ class _SelectAddressesPageState extends State<SelectAddressesPage> {
                             return;
                           }
                           unawaited(Navigator.of(context).pushNamed(
-                              NameAddressPersona.tag,
+                              AppRouter.nameAddressPersonaPage,
                               arguments: NameAddressPersonaPayload(
                                   _selectedAddresses.first)));
                         }

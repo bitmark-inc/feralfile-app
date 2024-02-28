@@ -31,7 +31,6 @@ import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/notification_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
@@ -99,7 +98,6 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   final _configurationService = injector<ConfigurationService>();
   late Timer? _timer;
   final _clientTokenService = injector<ClientTokenService>();
-  final _metricClientService = injector<MetricClientService>();
   final _notificationService = injector<NotificationService>();
   final _playListService = injector<PlaylistService>();
   final _remoteConfig = injector<RemoteConfigService>();
@@ -380,7 +378,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
           height: iconSize,
           colorFilter: unselectedColorFilter,
         ),
-        label: '',
+        label: 'collection',
       ),
       FFNavigationBarItem(
         icon: SvgPicture.asset(
@@ -393,7 +391,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
           height: iconSize,
           colorFilter: unselectedColorFilter,
         ),
-        label: '',
+        label: 'organize',
       ),
       FFNavigationBarItem(
         icon: SvgPicture.asset(
@@ -406,7 +404,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
           height: iconSize,
           colorFilter: unselectedColorFilter,
         ),
-        label: '',
+        label: 'exhibitions',
       ),
       FFNavigationBarItem(
         icon: SvgPicture.asset(
@@ -419,7 +417,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
           height: iconSize,
           colorFilter: unselectedColorFilter,
         ),
-        label: '',
+        label: 'scan',
       ),
       FFNavigationBarItem(
         icon: ValueListenableBuilder<List<int>?>(
@@ -438,7 +436,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
           ),
         ),
         selectedColor: unselectedColor,
-        label: '',
+        label: 'menu',
       ),
     ];
     return FFNavigationBar(
@@ -526,10 +524,6 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     log.info("Tap to notification: ${notification.body ?? "empty"} "
         '\nAdditional data: ${notification.additionalData!}');
     final notificationType = notification.additionalData!['notification_type'];
-    unawaited(
-        _metricClientService.addEvent(MixpanelEvent.tabNotification, data: {
-      'type': notificationType,
-    }));
     switch (notificationType) {
       case 'gallery_new_nft':
         Navigator.of(context).popUntil((route) =>
@@ -668,7 +662,6 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
 
   void _handleBackground() {
     unawaited(_cloudBackup());
-    _metricClientService.useAppTimer?.cancel();
   }
 
   Future<void> _handleForeBackground(FGBGType event) async {
@@ -726,11 +719,6 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   Future<void> _handleForeground() async {
     await injector<CustomerSupportService>().fetchAnnouncement();
     unawaited(announcementNotificationIfNeed());
-    Timer? useAppTimer = _metricClientService.useAppTimer;
-    useAppTimer?.cancel();
-    useAppTimer = Timer(USE_APP_MIN_DURATION, () async {
-      await _metricClientService.onUseAppInForeground();
-    });
     await _remoteConfig.loadConfigs();
   }
 

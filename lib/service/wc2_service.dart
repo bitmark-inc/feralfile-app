@@ -447,15 +447,16 @@ class Wc2Service {
       chain: 'eip155',
       address: eip55address,
     );
-    final result = await _navigationService.navigateTo(WCSignMessagePage.tag,
-        arguments: WCSignMessagePageArgs(
-          topic,
-          proposer,
-          message,
-          signType,
-          wallet.wallet.uuid,
-          wallet.index,
-        ));
+    final result =
+        await _navigationService.navigateTo(AppRouter.wcSignMessagePage,
+            arguments: WCSignMessagePageArgs(
+              topic,
+              proposer,
+              message,
+              signType,
+              wallet.wallet.uuid,
+              wallet.index,
+            ));
     if (result is bool && !result) {
       throw const JsonRpcError(code: 300, message: 'User rejected');
     } else {
@@ -492,7 +493,7 @@ class Wc2Service {
         topic: topic,
       );
       final result = await _navigationService.navigateTo(
-        WCSendTransactionPage.tag,
+        AppRouter.wcSendTransactionPage,
         arguments: args,
       );
       if (result is bool && !result) {
@@ -517,7 +518,7 @@ class Wc2Service {
       0,
     );
     await _navigationService.navigateTo(
-      TBSignMessagePage.tag,
+      AppRouter.tbSignMessagePage,
       arguments: beaconRquest,
     );
   }
@@ -525,7 +526,7 @@ class Wc2Service {
   Future _handleAutonomySignRequest(
           params, String topic, PairingMetadata proposer) async =>
       await _navigationService.navigateTo(
-        AUSignMessagePage.tag,
+        AppRouter.auSignMessagePage,
         arguments:
             Wc2RequestPayload(params: params, topic: topic, proposer: proposer),
       );
@@ -557,7 +558,7 @@ class Wc2Service {
         topic: topic,
       );
       return await _navigationService.navigateTo(
-        WCSendTransactionPage.tag,
+        AppRouter.wcSendTransactionPage,
         arguments: args,
       );
     } catch (e) {

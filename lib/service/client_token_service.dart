@@ -1,9 +1,9 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/pending_token_service.dart';
-import 'package:autonomy_flutter/util/log.dart';
 import 'package:nft_collection/widgets/nft_collection_bloc.dart';
 import 'package:nft_collection/widgets/nft_collection_bloc_event.dart';
 
@@ -12,16 +12,14 @@ class ClientTokenService {
   final CloudDatabase _cloudDatabase;
   final PendingTokenService _pendingTokenService;
   final NftCollectionBloc _nftBloc;
-  final MetricClientService _metricClientService;
 
   ClientTokenService(this._accountService, this._cloudDatabase,
-      this._pendingTokenService, this._nftBloc, this._metricClientService);
+      this._pendingTokenService, this._nftBloc);
 
   NftCollectionBloc get nftBloc => _nftBloc;
 
-  Future<List<String>> getAddresses() async {
-    return await _accountService.getAllAddresses();
-  }
+  Future<List<String>> getAddresses() async =>
+      await _accountService.getAllAddresses();
 
   Future<List<String>> getManualTokenIds() async {
     final tokenIndexerIDs = (await _cloudDatabase.connectionDao
@@ -41,7 +39,7 @@ class ClientTokenService {
       await _nftBloc.addressService.addAddresses(addresses);
       await _nftBloc.addressService.setIsHiddenAddresses(
           hiddenAddresses.map((e) => e.address).toList(), true);
-      _nftBloc.prefs.setDidSyncAddress(true);
+      unawaited(_nftBloc.prefs.setDidSyncAddress(true));
     }
     final indexerIds = await getManualTokenIds();
 
@@ -52,18 +50,13 @@ class ClientTokenService {
     if (checkPendingToken) {
       final activeAddresses = await _accountService.getShowedAddresses();
       final pendingResults = await Future.wait(activeAddresses
-          .where((address) => address.startsWith("tz"))
+          .where((address) => address.startsWith('tz'))
           .map((address) => _pendingTokenService
               .checkPendingTezosTokens(address, maxRetries: 1)));
       if (pendingResults.any((e) => e.isNotEmpty)) {
         _nftBloc.add(UpdateTokensEvent(
             tokens: pendingResults.expand((e) => e).toList()));
       }
-    }
-    try {
-      await _metricClientService.refreshNumberNfts();
-    } catch (e) {
-      log.info("Mixpanel refreshNumberNfts error: $e");
     }
   }
 }

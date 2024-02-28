@@ -12,7 +12,6 @@ import 'dart:io';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart'
     as accounts;
 import 'package:autonomy_flutter/screen/bloc/ethereum/ethereum_bloc.dart';
@@ -47,8 +46,6 @@ import 'package:synchronized/synchronized.dart';
 // ignore_for_file: constant_identifier_names
 
 class ScanQRPage extends StatefulWidget {
-  static const String tag = AppRouter.scanQRPage;
-
   final ScannerItem scannerItem;
   final Function? onHandleFinished;
 
@@ -195,6 +192,7 @@ class ScanQRPageState extends State<ScanQRPage>
                         'show_my_code'.tr(),
                         style: theme.textTheme.ppMori400White14.copyWith(
                           decoration: TextDecoration.underline,
+                          decorationColor: AppColor.white,
                         ),
                       ),
                     )
@@ -752,24 +750,6 @@ class QRScanViewState extends State<QRScanView>
     return false;
   }
 
-  void _addScanQREvent(
-      {required String link,
-      required String linkType,
-      required String prefix,
-      Map<dynamic, dynamic> addData = const {}}) {
-    final uri = Uri.parse(link);
-    final uriData = uri.queryParameters;
-    final data = {
-      'link': link,
-      'linkType': linkType,
-      'prefix': prefix,
-    }
-      ..addAll(uriData)
-      ..addAll(addData.map((key, value) => MapEntry(key, value.toString())));
-
-    unawaited(metricClient.addEvent(MixpanelEvent.scanQR, data: data));
-  }
-
   void _handleError(String data) {
     setState(() {
       isScanDataError = true;
@@ -801,8 +781,6 @@ class QRScanViewState extends State<QRScanView>
     }
     await Future.delayed(const Duration(seconds: 1));
 
-    _addScanQREvent(
-        link: code, linkType: LinkType.autonomyConnect, prefix: 'wc:');
     await injector<Wc2Service>().connect(code);
   }
 
@@ -819,8 +797,6 @@ class QRScanViewState extends State<QRScanView>
     }
     await Future.delayed(const Duration(seconds: 1));
 
-    _addScanQREvent(
-        link: code, linkType: LinkType.beaconConnect, prefix: 'tezos://');
     await Future.wait([
       injector<TezosBeaconService>().addPeer(code),
       injector<NavigationService>().showContactingDialog()

@@ -5,14 +5,15 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
+
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/model/p2p_peer.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
-import "package:collection/collection.dart";
+import 'package:collection/collection.dart';
 
 part 'connections_state.dart';
 
@@ -20,7 +21,6 @@ class ConnectionsBloc extends AuBloc<ConnectionsEvent, ConnectionsState> {
   final CloudDatabase _cloudDB;
   final Wc2Service _wc2Service;
   final TezosBeaconService _tezosBeaconService;
-  final MetricClientService _metricClientService;
 
   Future<List<ConnectionItem>> _getWc2Connections(
       String address, ConnectionType type) async {
@@ -45,7 +45,6 @@ class ConnectionsBloc extends AuBloc<ConnectionsEvent, ConnectionsState> {
     this._cloudDB,
     this._wc2Service,
     this._tezosBeaconService,
-    this._metricClientService,
   ) : super(ConnectionsState()) {
     on<GetETHConnectionsEvent>((event, emit) async {
       emit(state.resetConnectionItems());
@@ -96,24 +95,25 @@ class ConnectionsBloc extends AuBloc<ConnectionsEvent, ConnectionsState> {
       Set<P2PPeer> bcPeers = {};
 
       for (var connection in event.connectionItem.connections) {
-        _cloudDB.connectionDao.deleteConnection(connection);
-        _metricClientService.onRemoveConnection(connection);
+        unawaited(_cloudDB.connectionDao.deleteConnection(connection));
         if ([
           ConnectionType.walletConnect2.rawValue,
           ConnectionType.dappConnect2.rawValue
         ].contains(connection.connectionType)) {
-          final topic = connection.key.split(":").lastOrNull;
+          final topic = connection.key.split(':').lastOrNull;
           if (topic != null) {
             await _wc2Service.deletePairing(topic: topic);
           }
         }
 
         final bcPeer = connection.beaconConnectConnection?.peer;
-        if (bcPeer != null) bcPeers.add(bcPeer);
+        if (bcPeer != null) {
+          bcPeers.add(bcPeer);
+        }
       }
 
       for (var peer in bcPeers) {
-        _tezosBeaconService.removePeer(peer);
+        unawaited(_tezosBeaconService.removePeer(peer));
       }
 
       state.connectionItems?.remove(event.connectionItem);

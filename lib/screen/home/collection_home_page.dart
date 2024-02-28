@@ -209,7 +209,6 @@ class CollectionHomePageState extends State<CollectionHomePage>
             hashedAddresses &&
         tokens.any((asset) =>
             asset.blockchain == Blockchain.TEZOS.name.toLowerCase())) {
-      unawaited(_metricClient.addEvent('collection_has_tezos'));
       unawaited(
           _configurationService.setSentTezosArtworkMetric(hashedAddresses));
     }
@@ -491,9 +490,6 @@ class CollectionHomePageState extends State<CollectionHomePage>
         unawaited(Navigator.of(context)
             .pushNamed(pageName, ////need change to pageName
                 arguments: payload));
-
-        unawaited(_metricClient
-            .addEvent(MixpanelEvent.viewArtwork, data: {'id': asset.id}));
       },
     );
   }
@@ -549,7 +545,6 @@ class CollectionHomePageState extends State<CollectionHomePage>
 
     unawaited(_clientTokenService.refreshTokens(checkPendingToken: true));
     unawaited(refreshNotification());
-    unawaited(_metricClient.addEvent('device_foreground'));
     unawaited(injector<VersionService>().checkForUpdate());
     // Reload token in Isolate
 
@@ -558,7 +553,6 @@ class CollectionHomePageState extends State<CollectionHomePage>
   }
 
   void _handleBackground() {
-    unawaited(_metricClient.addEvent(MixpanelEvent.deviceBackground));
     unawaited(_metricClient.sendAndClearMetrics());
     unawaited(FileLogger.shrinkLogFileIfNeeded());
   }

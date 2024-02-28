@@ -99,13 +99,8 @@ class _AccountsViewState extends State<AccountsView> {
                       ),
                     ),
                   ),
-                  Divider(
-                      height: 1,
-                      thickness: 1,
-                      color: (_editingAccountKey == null ||
-                              _editingAccountKey != account.key)
-                          ? null
-                          : theme.colorScheme.primary)
+                  const Divider(
+                      height: 1, thickness: 1, color: AppColor.auLightGrey)
                 ],
               ),
             ),
@@ -122,10 +117,12 @@ class _AccountsViewState extends State<AccountsView> {
       CustomSlidableAction(
         backgroundColor: AppColor.secondarySpanishGrey,
         foregroundColor: theme.colorScheme.secondary,
+        padding: EdgeInsets.zero,
         child: Semantics(
           label: '${account.key}_hide',
           child: SvgPicture.asset(
-              isHidden ? 'assets/images/unhide.svg' : 'assets/images/hide.svg'),
+            isHidden ? 'assets/images/unhide.svg' : 'assets/images/hide.svg',
+          ),
         ),
         onPressed: (_) {
           unawaited(account.setViewAccount(!isHidden));
@@ -135,6 +132,7 @@ class _AccountsViewState extends State<AccountsView> {
       CustomSlidableAction(
         backgroundColor: AppColor.auGreyBackground,
         foregroundColor: theme.colorScheme.secondary,
+        padding: EdgeInsets.zero,
         child: Semantics(
             label: '${account.name}_edit',
             child: SvgPicture.asset(
@@ -152,6 +150,7 @@ class _AccountsViewState extends State<AccountsView> {
       CustomSlidableAction(
         backgroundColor: Colors.red,
         foregroundColor: theme.colorScheme.secondary,
+        padding: EdgeInsets.zero,
         child: Semantics(
             label: '${account.name}_delete',
             child: SvgPicture.asset('assets/images/trash.svg')),
