@@ -193,17 +193,17 @@ class Wc2Service {
         result = await _handleAuSignEth(topic, params);
         break;
       case Wc2Chain.tezos:
-        result =  await _handleTezosSignRequest(topic, params);
+        result = await _handleTezosSignRequest(topic, params);
         break;
       case Wc2Chain.autonomy:
         log.info('[Wc2Service] received autonomy-au_sign request $params');
-        result =  await _handleFeralfileSign(topic, params);
+        result = await _handleFeralfileSign(topic, params);
         break;
       default:
         log.warning('[Wc2Service] Chain not supported: $chain');
         throw const JsonRpcError(code: 301, message: 'chain not supported');
     }
-    if (result == null || result == false ) {
+    if (result == null || result == false) {
       throw const JsonRpcError(code: 301, message: 'User reject');
     }
     if (result is JsonRpcError) {
@@ -270,7 +270,15 @@ class Wc2Service {
     if (proposer == null) {
       throw const JsonRpcError(code: 301, message: 'proposer not found');
     }
-    return await _handleAuEthSendTransactionRequest(params, proposer, topic);
+    final result =
+        await _handleAuEthSendTransactionRequest(params, proposer, topic);
+    if (result == null || result == false) {
+      throw const JsonRpcError(code: 301, message: 'User reject');
+    }
+    if (result is JsonRpcError) {
+      throw result;
+    }
+    return result;
   }
 
   Future<PairingMetadata?> _getWc2Request(String topic, params) async {
