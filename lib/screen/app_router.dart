@@ -93,7 +93,6 @@ import 'package:autonomy_flutter/screen/onboarding/view_address/name_view_only_p
 import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_address.dart';
 import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_address_bloc.dart';
 import 'package:autonomy_flutter/screen/onboarding_page.dart';
-import 'package:autonomy_flutter/screen/participate_user_test_page.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist.dart';
 import 'package:autonomy_flutter/screen/playlists/add_to_playlist/add_to_playlist.dart';
 import 'package:autonomy_flutter/screen/playlists/edit_playlist/edit_playlist.dart';
@@ -177,7 +176,6 @@ class AppRouter {
   static const merchOrdersPage = 'merchOrderDetailPage';
   static const supportThreadPage = 'supportThreadPage';
   static const bugBountyPage = 'bugBountyPage';
-  static const participateUserTestPage = 'participateUserTestPage';
   static const keySyncPage = 'key_sync_page';
   static const githubDocPage = 'github_doc_page';
   static const sendArtworkPage = 'send_artwork_page';
@@ -826,12 +824,6 @@ class AppRouter {
       case bugBountyPage:
         return CupertinoPageRoute(
             settings: settings, builder: (context) => const BugBountyPage());
-
-      case participateUserTestPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => ParticipateUserTestPage(
-                payload: settings.arguments! as UserTestPayload));
 
       case hiddenArtworksPage:
         return CupertinoPageRoute(
