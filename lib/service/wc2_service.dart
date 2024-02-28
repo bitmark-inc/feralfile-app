@@ -344,10 +344,14 @@ class Wc2Service {
       required String connectionKey,
       required String accountNumber,
       bool isAuConnect = false}) async {
+    final namespaces = proposal.requiredNamespaces
+        .map((key, value) => MapEntry(key, value.toNameSpace(accounts)));
+    proposal.optionalNamespaces.forEach((key, value) {
+      namespaces[key] = value.toNameSpace(accounts);
+    });
     final resF = _wcClient.approveSession(
       id: proposal.id,
-      namespaces: proposal.requiredNamespaces
-          .map((key, value) => MapEntry(key, value.toNameSpace(accounts))),
+      namespaces: namespaces,
     );
     final res = await resF;
     final topic = res.topic;
@@ -434,7 +438,8 @@ class Wc2Service {
     }
     final wc2Proposal = Wc2Proposal(proposal.id,
         proposer: proposal.params.proposer.metadata,
-        requiredNamespaces: proposal.params.requiredNamespaces);
+        requiredNamespaces: proposal.params.requiredNamespaces,
+        optionalNamespaces: proposal.params.optionalNamespaces);
     unawaited(_navigationService.navigateTo(AppRouter.wc2ConnectPage,
         arguments: wc2Proposal));
   }
