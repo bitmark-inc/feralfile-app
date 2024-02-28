@@ -405,7 +405,7 @@ extension AssetTokenExtension on AssetToken {
         return Pair(
           'tape_sound'.tr(),
           '${Environment.feralFileAPIURL}/'
-          'artwork/yoko-ono-sound-piece/$index/record',
+          'artwork/yoko-ono-sound-piece/$index/record?owner=$owner',
         );
       }
     }

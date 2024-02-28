@@ -246,17 +246,16 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      onPopInvoked: (_) async {
         await _reject();
-        return true;
       },
       child: Scaffold(
         appBar: getBackAppBar(
           context,
           onBack: () async {
             await _reject();
-            if (!mounted) {
+            if (!context.mounted) {
               return;
             }
             Navigator.pop(context);

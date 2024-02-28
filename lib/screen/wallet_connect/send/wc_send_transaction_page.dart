@@ -66,8 +66,8 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
     final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
     final divider = addDivider(height: 20);
 
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      onPopInvoked: (_) async {
         context.read<WCSendTransactionBloc>().add(
               WCSendTransactionRejectEvent(
                 widget.args.peerMeta,
@@ -77,7 +77,6 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                 isIRL: widget.args.isIRL,
               ),
             );
-        return true;
       },
       child: Scaffold(
         appBar: getBackAppBar(
@@ -312,8 +311,10 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
             child: Text(
               content,
               style: theme.textTheme.ppMori400Black14.copyWith(
-                  decoration:
-                      (onValueTap != null) ? TextDecoration.underline : null),
+                decoration:
+                    (onValueTap != null) ? TextDecoration.underline : null,
+                decorationColor: AppColor.primaryBlack,
+              ),
             ),
           ),
         ),
@@ -368,6 +369,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
           child: Text('edit_priority'.tr(),
               style: theme.textTheme.ppMori400White14.copyWith(
                 decoration: TextDecoration.underline,
+                decorationColor: AppColor.white,
               )),
         ),
       ],

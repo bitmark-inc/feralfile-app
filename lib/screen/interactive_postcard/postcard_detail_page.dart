@@ -477,6 +477,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                   statusBarIconBrightness: Brightness.dark,
                   statusBarBrightness: Brightness.light,
                 ),
+                scrolledUnderElevation: 0,
                 toolbarHeight: 70,
                 centerTitle: false,
                 title: Text(

@@ -22,8 +22,10 @@ class ExhibitionPreview extends StatelessWidget {
     final theme = Theme.of(context);
     final subTextStyle = theme.textTheme.ppMori400Grey12
         .copyWith(color: AppColor.feralFileMediumGrey);
-    final artistTextStyle = theme.textTheme.ppMori400White16
-        .copyWith(decoration: TextDecoration.underline);
+    final artistTextStyle = theme.textTheme.ppMori400White16.copyWith(
+      decoration: TextDecoration.underline,
+      decorationColor: Colors.white,
+    );
 
     return Container(
       padding: const EdgeInsets.only(left: 14, right: 14, bottom: 20),
@@ -45,7 +47,8 @@ class ExhibitionPreview extends StatelessWidget {
             Text('curator'.tr(), style: subTextStyle),
             const SizedBox(height: 3),
             GestureDetector(
-              child: Text(exhibition.curator!.alias, style: artistTextStyle),
+              child: Text(exhibition.curator!.alias,
+                  style: artistTextStyle.copyWith()),
               onTap: () async {
                 await _navigationService
                     .openFeralFileCuratorPage(exhibition.curator!.alias);

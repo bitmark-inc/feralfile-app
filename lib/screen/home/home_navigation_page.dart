@@ -380,7 +380,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
           height: iconSize,
           colorFilter: unselectedColorFilter,
         ),
-        label: '',
+        label: 'collection',
       ),
       FFNavigationBarItem(
         icon: SvgPicture.asset(
@@ -393,7 +393,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
           height: iconSize,
           colorFilter: unselectedColorFilter,
         ),
-        label: '',
+        label: 'organize',
       ),
       FFNavigationBarItem(
         icon: SvgPicture.asset(
@@ -406,7 +406,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
           height: iconSize,
           colorFilter: unselectedColorFilter,
         ),
-        label: '',
+        label: 'exhibitions',
       ),
       FFNavigationBarItem(
         icon: SvgPicture.asset(
@@ -419,7 +419,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
           height: iconSize,
           colorFilter: unselectedColorFilter,
         ),
-        label: '',
+        label: 'scan',
       ),
       FFNavigationBarItem(
         icon: ValueListenableBuilder<List<int>?>(
@@ -438,7 +438,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
           ),
         ),
         selectedColor: unselectedColor,
-        label: '',
+        label: 'menu',
       ),
     ];
     return FFNavigationBar(

@@ -13,7 +13,6 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/service/local_auth_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
@@ -129,11 +128,9 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
         .signMessage(_currentPersona!.wallet, _currentPersona!.index, message);
     await _approveRequest(signature: signature);
     log.info('[TBSignMessagePage] _sign: $signature');
-    if (!mounted) {
+    if (!context.mounted) {
       return;
     }
-
-    final metricClient = injector.get<MetricClientService>();
 
     Navigator.of(context).pop(true);
     showInfoNotification(
@@ -157,10 +154,9 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
 
     final theme = Theme.of(context);
 
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      onPopInvoked: (_) async {
         await _rejectRequest(reason: 'User reject');
-        return true;
       },
       child: Scaffold(
         appBar: getBackAppBar(

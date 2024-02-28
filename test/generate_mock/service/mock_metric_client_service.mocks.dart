@@ -5,7 +5,6 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i4;
 
-import 'package:autonomy_flutter/database/entity/connection.dart' as _i5;
 import 'package:autonomy_flutter/service/metric_client_service.dart' as _i3;
 import 'package:autonomy_flutter/service/mix_panel_client_service.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
@@ -42,14 +41,6 @@ class MockMetricClientService extends _i1.Mock
   }
 
   @override
-  set useAppTimer(_i4.Timer? _useAppTimer) => super.noSuchMethod(
-        Invocation.setter(
-          #useAppTimer,
-          _useAppTimer,
-        ),
-        returnValueForMissingStub: null,
-      );
-  @override
   _i2.MixPanelClientService get mixPanelClient => (super.noSuchMethod(
         Invocation.getter(#mixPanelClient),
         returnValue: _FakeMixPanelClientService_0(
@@ -80,39 +71,13 @@ class MockMetricClientService extends _i1.Mock
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
   @override
-  _i4.Future<void> refreshNumberNfts() => (super.noSuchMethod(
+  void timerEvent(String? name) => super.noSuchMethod(
         Invocation.method(
-          #refreshNumberNfts,
-          [],
-        ),
-        returnValue: _i4.Future<void>.value(),
-        returnValueForMissingStub: _i4.Future<void>.value(),
-      ) as _i4.Future<void>);
-  @override
-  _i4.Future<void> addEvent(
-    String? name, {
-    String? message,
-    Map<String, dynamic>? data = const {},
-    Map<String, dynamic>? hashedData = const {},
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #addEvent,
+          #timerEvent,
           [name],
-          {
-            #message: message,
-            #data: data,
-            #hashedData: hashedData,
-          },
         ),
-        returnValue: _i4.Future<void>.value(),
-        returnValueForMissingStub: _i4.Future<void>.value(),
-      ) as _i4.Future<void>);
-  @override
-  dynamic timerEvent(String? name) => super.noSuchMethod(Invocation.method(
-        #timerEvent,
-        [name],
-      ));
+        returnValueForMissingStub: null,
+      );
   @override
   _i4.Future<void> sendAndClearMetrics() => (super.noSuchMethod(
         Invocation.method(
@@ -156,45 +121,6 @@ class MockMetricClientService extends _i1.Mock
         returnValueForMissingStub: null,
       );
   @override
-  void incrementPropertyLabel(
-    String? prop,
-    double? value,
-  ) =>
-      super.noSuchMethod(
-        Invocation.method(
-          #incrementPropertyLabel,
-          [
-            prop,
-            value,
-          ],
-        ),
-        returnValueForMissingStub: null,
-      );
-  @override
-  void onAddConnection(_i5.Connection? connection) => super.noSuchMethod(
-        Invocation.method(
-          #onAddConnection,
-          [connection],
-        ),
-        returnValueForMissingStub: null,
-      );
-  @override
-  void onRemoveConnection(_i5.Connection? connection) => super.noSuchMethod(
-        Invocation.method(
-          #onRemoveConnection,
-          [connection],
-        ),
-        returnValueForMissingStub: null,
-      );
-  @override
-  void onRestore() => super.noSuchMethod(
-        Invocation.method(
-          #onRestore,
-          [],
-        ),
-        returnValueForMissingStub: null,
-      );
-  @override
   _i4.Future<void> initConfigIfNeed(Map<String, dynamic>? config) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -226,24 +152,6 @@ class MockMetricClientService extends _i1.Mock
             key,
             value,
           ],
-        ),
-        returnValue: _i4.Future<void>.value(),
-        returnValueForMissingStub: _i4.Future<void>.value(),
-      ) as _i4.Future<void>);
-  @override
-  _i4.Future<void> onOpenApp() => (super.noSuchMethod(
-        Invocation.method(
-          #onOpenApp,
-          [],
-        ),
-        returnValue: _i4.Future<void>.value(),
-        returnValueForMissingStub: _i4.Future<void>.value(),
-      ) as _i4.Future<void>);
-  @override
-  _i4.Future<void> onUseAppInForeground() => (super.noSuchMethod(
-        Invocation.method(
-          #onUseAppInForeground,
-          [],
         ),
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),

@@ -276,7 +276,9 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
           appBar: AppBar(
             systemOverlayStyle: systemUiOverlayDarkStyle,
             leadingWidth: 0,
+            leading: const SizedBox(),
             centerTitle: false,
+            backgroundColor: Colors.transparent,
             title: ArtworkDetailsHeader(
               title: asset.title ?? '',
               subTitle: subTitle,
@@ -589,10 +591,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                   unawaited(Navigator.of(context)
                       .popAndPushNamed(AppRouter.homePage));
                 }
-                return;
-              }
-
-              if (!mounted) {
                 return;
               }
               unawaited(UIHelper.showMessageAction(

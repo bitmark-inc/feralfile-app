@@ -4,6 +4,7 @@ buildscript {
         maven { url 'https://plugins.gradle.org/m2/' } // Gradle Plugin Portal
         google()  // Google's Maven repository
     }
+    ext.kotlin_version = '1.7.20'
     dependencies {
         // ...
         // OneSignal-Gradle-Plugin
@@ -12,17 +13,20 @@ buildscript {
     }
 }
 
+plugins {
+    id "com.android.application"
+    id "kotlin-android"
+    id "kotlinx-serialization"
+    id "com.google.gms.google-services"
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
 def localProperties = new Properties()
 def localPropertiesFile = rootProject.file('local.properties')
 if (localPropertiesFile.exists()) {
     localPropertiesFile.withReader('UTF-8') { reader ->
         localProperties.load(reader)
     }
-}
-
-def flutterRoot = localProperties.getProperty('flutter.sdk')
-if (flutterRoot == null) {
-    throw new GradleException("Flutter SDK not found. Define location with flutter.sdk in the local.properties file.")
 }
 
 def environment = System.getenv()
@@ -58,14 +62,6 @@ if (branchKeyTest == null) {
 }
 
 def branchTestMode = localProperties["branch.testMode"] ?: environment["BRANCH_IS_TEST"] ?: false
-
-apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
-apply plugin: 'kotlinx-serialization'
-apply plugin: 'com.google.gms.google-services'
-
-apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
-apply plugin: 'com.onesignal.androidsdk.onesignal-gradle-plugin'
 
 android {
     compileSdkVersion 34

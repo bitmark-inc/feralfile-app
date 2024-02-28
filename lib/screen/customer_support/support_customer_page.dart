@@ -8,11 +8,9 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
-import 'package:autonomy_flutter/screen/customer_support/tutorial_videos_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -113,7 +111,6 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
             addOnlyDivider(),
             _resourcesWidget(),
             _transactionHistoryTap(context, orderIds),
-            _videoTutorials(),
           ],
         ),
       ),
@@ -213,35 +210,5 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
         addOnlyDivider(),
       ],
     );
-  }
-
-  Widget _videoTutorials() {
-    final theme = Theme.of(context);
-    return FutureBuilder<List<VideoData>>(
-        // ignore: discarded_futures
-        future: injector<PubdocAPI>().getTutorialVideosFromGithub(),
-        builder: (context, snapshot) {
-          if (snapshot.hasData && snapshot.data!.isNotEmpty) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TappableForwardRow(
-                  leftWidget: Text('tutorial_videos'.tr(),
-                      style: theme.textTheme.ppMori400Black14),
-                  onTap: () async {
-                    await Navigator.of(context).pushNamed(
-                        AppRouter.tutorialVideoPage,
-                        arguments:
-                            TutorialVideosPayload(videos: snapshot.data!));
-                  },
-                  padding: ResponsiveLayout.tappableForwardRowEdgeInsets,
-                ),
-                addOnlyDivider(),
-              ],
-            );
-          } else {
-            return const SizedBox();
-          }
-        });
   }
 }

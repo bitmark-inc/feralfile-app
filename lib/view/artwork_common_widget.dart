@@ -931,6 +931,11 @@ Widget postcardDetailsMetadataSection(
   );
   const unexpandedCount = 1;
   final otherCount = artists.length - unexpandedCount;
+  final divider = Divider(
+    height: 32,
+    color: theme.auLightGrey,
+    thickness: 0.25,
+  );
   return SectionExpandedWidget(
     header: 'metadata'.tr(),
     headerStyle: theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
@@ -957,10 +962,7 @@ Widget postcardDetailsMetadataSection(
           ),
         ),
         if (artists.isNotEmpty) ...[
-          Divider(
-            height: 32,
-            color: theme.auLightGrey,
-          ),
+          divider,
           Padding(
             padding: padding,
             child: CustomMetaDataItem(
@@ -995,19 +997,13 @@ Widget postcardDetailsMetadataSection(
         if (!assetToken.fungible)
           Column(
             children: [
-              Divider(
-                height: 32,
-                color: theme.auLightGrey,
-              ),
+              divider,
               _getEditionNameRow(context, assetToken),
             ],
           )
         else
           const SizedBox(),
-        Divider(
-          height: 32,
-          color: theme.auLightGrey,
-        ),
+        divider,
         Padding(
           padding: padding,
           child: MetaDataItem(
@@ -1021,10 +1017,7 @@ Widget postcardDetailsMetadataSection(
                 .copyWith(color: MoMAColors.moMA5),
           ),
         ),
-        Divider(
-          height: 32,
-          color: theme.auLightGrey,
-        ),
+        divider,
         Padding(
           padding: padding,
           child: MetaDataItem(
@@ -1038,10 +1031,7 @@ Widget postcardDetailsMetadataSection(
                 .copyWith(color: MoMAColors.moMA5),
           ),
         ),
-        Divider(
-          height: 32,
-          color: theme.auLightGrey,
-        ),
+        divider,
         Padding(
           padding: padding,
           child: MetaDataItem(
@@ -1052,10 +1042,7 @@ Widget postcardDetailsMetadataSection(
           ),
         ),
         if (assetToken.mintedAt != null) ...[
-          Divider(
-            height: 32,
-            color: theme.auLightGrey,
-          ),
+          divider,
           Padding(
             padding: padding,
             child: MetaDataItem(
@@ -1069,7 +1056,7 @@ Widget postcardDetailsMetadataSection(
         if (assetToken.assetData != null && assetToken.assetData!.isNotEmpty)
           Column(
             children: [
-              const Divider(height: 32),
+              divider,
               Padding(
                 padding: padding,
                 child: MetaDataItem(
@@ -1096,6 +1083,11 @@ Widget artworkDetailsMetadataSection(
       ((assetToken.swapped ?? false) && assetToken.originTokenInfoId != null)
           ? assetToken.originTokenInfoId ?? ''
           : assetToken.id.split('-').last;
+  final divider = Divider(
+    height: 32,
+    color: theme.auLightGrey,
+    thickness: 0.25,
+  );
   return SectionExpandedWidget(
     header: 'metadata'.tr(),
     padding: const EdgeInsets.only(bottom: 23),
@@ -1107,10 +1099,7 @@ Widget artworkDetailsMetadataSection(
           value: assetToken.title ?? '',
         ),
         if (artistName != null) ...[
-          Divider(
-            height: 32,
-            color: theme.auLightGrey,
-          ),
+          divider,
           MetaDataItem(
             title: 'artist'.tr(),
             value: artistName,
@@ -1125,29 +1114,20 @@ Widget artworkDetailsMetadataSection(
         if (!assetToken.fungible)
           Column(
             children: [
-              Divider(
-                height: 32,
-                color: theme.auLightGrey,
-              ),
+              divider,
               _getEditionNameRow(context, assetToken),
             ],
           )
         else
           const SizedBox(),
-        Divider(
-          height: 32,
-          color: theme.auLightGrey,
-        ),
+        divider,
         MetaDataItem(
           title: 'token'.tr(),
           value: polishSource(assetToken.source ?? ''),
           tapLink: assetToken.isAirdrop ? null : assetToken.assetURL,
           forceSafariVC: true,
         ),
-        Divider(
-          height: 32,
-          color: theme.auLightGrey,
-        ),
+        divider,
         if (assetToken.source == 'feralfile' && artworkID.isNotEmpty)
           FutureBuilder<Exhibition?>(
             future: injector<FeralFileService>()
@@ -1182,19 +1162,13 @@ Widget artworkDetailsMetadataSection(
           tapLink: assetToken.getBlockchainUrl(),
           forceSafariVC: true,
         ),
-        Divider(
-          height: 32,
-          color: theme.auLightGrey,
-        ),
+        divider,
         MetaDataItem(
           title: 'medium'.tr(),
           value: assetToken.medium?.capitalize() ?? '',
         ),
         if (assetToken.mintedAt != null) ...[
-          Divider(
-            height: 32,
-            color: theme.auLightGrey,
-          ),
+          divider,
           MetaDataItem(
             title: 'date_minted'.tr(),
             value: assetToken.mintedAt != null
@@ -1214,7 +1188,9 @@ Widget artworkDetailsMetadataSection(
           )
         else
           const SizedBox(),
-        const Divider(height: 32),
+        const SizedBox(
+          height: 32,
+        ),
       ],
     ),
   );
@@ -1248,6 +1224,11 @@ Widget postcardOwnership(
   );
   const unexpandedCount = 1;
   final otherCount = owners.length - unexpandedCount;
+  final divider = Divider(
+    height: 40,
+    color: theme.auLightGrey,
+    thickness: 0.25,
+  );
   return SectionExpandedWidget(
     header: 'token_ownership'.tr(),
     headerStyle: theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
@@ -1272,10 +1253,7 @@ Widget postcardOwnership(
           ),
         ),
         const SizedBox(height: 32),
-        Divider(
-          height: 40,
-          color: theme.auLightGrey,
-        ),
+        divider,
         Padding(
           padding: padding,
           child: MetaDataItem(
@@ -1291,10 +1269,7 @@ Widget postcardOwnership(
         const SizedBox(
           height: 20,
         ),
-        Divider(
-          height: 40,
-          color: theme.auLightGrey,
-        ),
+        divider,
         Padding(
           padding: padding,
           child: CustomMetaDataItem(
@@ -1359,6 +1334,12 @@ Widget tokenOwnership(
     ownedTokens -= totalSentQuantity;
   }
 
+  final divider = Divider(
+    height: 32,
+    color: theme.auLightGrey,
+    thickness: 0.25,
+  );
+
   return SectionExpandedWidget(
     header: 'token_ownership'.tr(),
     padding: const EdgeInsets.only(bottom: 23),
@@ -1373,10 +1354,7 @@ Widget tokenOwnership(
             tapLink: assetToken.tokenURL,
             forceSafariVC: true,
           ),
-          Divider(
-            height: 32,
-            color: theme.auLightGrey,
-          ),
+          divider,
         ],
         MetaDataItem(
           title: 'token_holder'.tr(),
@@ -1385,10 +1363,7 @@ Widget tokenOwnership(
               addressURL(ownerAddress, CryptoType.fromAddress(ownerAddress)),
           forceSafariVC: true,
         ),
-        Divider(
-          height: 32,
-          color: theme.auLightGrey,
-        ),
+        divider,
         MetaDataItem(
           title: 'token_held'.tr(),
           value: ownedTokens.toString(),

@@ -59,13 +59,12 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
 
     final theme = Theme.of(context);
 
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      onPopInvoked: (_) async {
         await injector<Wc2Service>().respondOnReject(
           widget.args.topic,
           reason: 'User reject',
         );
-        return true;
       },
       child: Scaffold(
         appBar: getBackAppBar(
@@ -75,7 +74,7 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
               widget.args.topic,
               reason: 'User reject',
             );
-            if (!mounted) {
+            if (!context.mounted) {
               return;
             }
             Navigator.of(context).pop(false);
