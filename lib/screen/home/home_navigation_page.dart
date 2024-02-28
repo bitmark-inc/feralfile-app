@@ -131,6 +131,15 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         } else {
           await _scanQRPageKey.currentState?.pauseCamera();
         }
+        if (index != HomeNavigatorTab.menu.index &&
+            index != HomeNavigatorTab.scanQr.index) {
+          unawaited(_metricClientService.addEvent(
+            MixpanelEvent.visitPage,
+            data: {
+              MixpanelProp.title: HomeNavigatorTab.values[index].screenName,
+            },
+          ));
+        }
       }
       setState(() {
         _selectedIndex = index;
@@ -221,6 +230,12 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     _initialTab = HomeNavigatorTab.exhibition;
     _selectedIndex = _initialTab.index;
     _pageController = PageController(initialPage: _selectedIndex);
+    unawaited(_metricClientService.addEvent(
+      MixpanelEvent.visitPage,
+      data: {
+        MixpanelProp.title: HomeNavigatorTab.values[_selectedIndex].screenName,
+      },
+    ));
 
     unawaited(_clientTokenService.refreshTokens());
 

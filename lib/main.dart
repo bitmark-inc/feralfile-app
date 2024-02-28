@@ -251,7 +251,24 @@ enum HomeNavigatorTab {
   organization,
   exhibition,
   scanQr,
-  menu,
+  menu;
+
+  String get screenName => getPageName(routeName);
+
+  String get routeName {
+    switch (this) {
+      case HomeNavigatorTab.collection:
+        return AppRouter.collectionPage;
+      case HomeNavigatorTab.organization:
+        return AppRouter.organizePage;
+      case HomeNavigatorTab.exhibition:
+        return AppRouter.exhibitionsPage;
+      case HomeNavigatorTab.scanQr:
+        return AppRouter.scanQRPage;
+      case HomeNavigatorTab.menu:
+        return 'Menu';
+    }
+  }
 }
 
 @pragma('vm:entry-point')

@@ -232,11 +232,13 @@ class AppRouter {
   static const tbSignMessagePage = 'tb_sign_message_page';
   static const auSignMessagePage = 'au_sign_message_page';
   static const globalReceiveDetailPage = 'global_receive_detail_page';
-  static const tutorialVideoPage = 'tutorial_video_page';
   static const chatThreadPage = 'chat_thread_page';
   static const accessMethodPage = 'access_method_page';
   static const wcSignMessagePage = 'wc_sign_message_page';
   static const wcSendTransactionPage = 'wc_send_transaction_page';
+  static const collectionPage = 'collection_page';
+  static const organizePage = 'organize_page';
+  static const exhibitionsPage = 'exhibitions_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector(), injector());
@@ -1217,231 +1219,83 @@ class AppRouter {
   }
 }
 
+final screenNameMap = {
+  AppRouter.createPlayListPage: 'Create Playlist Page',
+  AppRouter.viewPlayListPage: 'View Playlist Page',
+  AppRouter.editPlayListPage: 'Edit Playlist Page',
+  AppRouter.onboardingPage: 'Onboarding Page',
+  AppRouter.notificationOnboardingPage: 'Notification Onboarding Page',
+  AppRouter.homePage: 'Home Page',
+  AppRouter.artworkPreviewPage: 'Artwork Preview Page',
+  AppRouter.artworkDetailsPage: 'Artwork Details Page',
+  AppRouter.claimedPostcardDetailsPage: 'Claimed Postcard Details Page',
+  AppRouter.galleryPage: 'Gallery Page',
+  AppRouter.settingsPage: 'Settings Page',
+  AppRouter.personaConnectionsPage: 'Persona Connections Page',
+  AppRouter.connectionDetailsPage: 'Connection Details Page',
+  AppRouter.linkedAccountDetailsPage: 'Linked Account Details Page',
+  AppRouter.walletDetailsPage: 'Wallet Details Page',
+  AppRouter.linkedWalletDetailsPage: 'Linked Wallet Details Page',
+  AppRouter.scanQRPage: 'Scan QR Page',
+  AppRouter.globalReceivePage: 'Global Receive Page',
+  AppRouter.recoveryPhrasePage: 'Recovery Phrase Page',
+  AppRouter.wcConnectPage: 'WC Connect Page',
+  AppRouter.cloudPage: 'Cloud Page',
+  AppRouter.cloudAndroidPage: 'Cloud Android Page',
+  AppRouter.linkManually: 'Link Manually Page',
+  AppRouter.testArtwork: 'Test Artwork Page',
+  AppRouter.autonomySecurityPage: 'Autonomy Security Page',
+  AppRouter.unsafeWebWalletPage: 'Unsafe Web Wallet Page',
+  AppRouter.releaseNotesPage: 'Release Notes Page',
+  AppRouter.hiddenArtworksPage: 'Hidden Artworks Page',
+  AppRouter.supportCustomerPage: 'Support Customer Page',
+  AppRouter.supportListPage: 'Support List Page',
+  AppRouter.merchOrdersPage: 'Merch Orders Page',
+  AppRouter.supportThreadPage: 'Support Thread Page',
+  AppRouter.bugBountyPage: 'Bug Bounty Page',
+  AppRouter.keySyncPage: 'Key Sync Page',
+  AppRouter.githubDocPage: 'Github Doc Page',
+  AppRouter.sendArtworkPage: 'Send Artwork Page',
+  AppRouter.sendArtworkReviewPage: 'Send Artwork Review Page',
+  AppRouter.claimFeralfileTokenPage: 'Claim Feralfile Token Page',
+  AppRouter.claimSelectAccountPage: 'Claim Select Account Page',
+  AppRouter.airdropTokenDetailPage: 'Airdrop Token Detail Page',
+  AppRouter.wc2ConnectPage: 'WC2 Connect Page',
+  AppRouter.wc2PermissionPage: 'WC2 Permission Page',
+  AppRouter.preferencesPage: 'Preferences Page',
+  AppRouter.walletPage: 'Wallet Page',
+  AppRouter.subscriptionPage: 'Subscription Page',
+  AppRouter.dataManagementPage: 'Data Management Page',
+  AppRouter.helpUsPage: 'Help Us Page',
+  AppRouter.inappWebviewPage: 'Inapp Webview Page',
+  AppRouter.postcardExplain: 'Postcard Explain Page',
+  AppRouter.designStamp: 'Design Stamp Page',
+  AppRouter.promptPage: 'Prompt Page',
+  AppRouter.handSignaturePage: 'Hand Signature Page',
+  AppRouter.stampPreview: 'Stamp Preview Page',
+  AppRouter.claimEmptyPostCard: 'Claim Empty Postcard Page',
+  AppRouter.payToMintPostcard: 'Pay To Mint Postcard Page',
+  AppRouter.postcardSelectAddressScreen: 'Postcard Select Address Page',
+  AppRouter.receivePostcardPage: 'Receive Postcard Page',
+  AppRouter.irlWebView: 'IRL Webview Page',
+  AppRouter.irlSignMessage: 'IRL Sign Message Page',
+  AppRouter.canvasHelpPage: 'Canvas Help Page',
+  AppRouter.keyboardControlPage: 'Keyboard Control Page',
+  AppRouter.touchPadPage: 'Touch Pad Page',
+  AppRouter.claimAirdropPage: 'Claim Airdrop Page',
+  AppRouter.activationTokenDetailPage: 'Activation Token Detail Page',
+  AppRouter.claimActivationPage: 'Claim Activation Page',
+  AppRouter.previewActivationClaimPage: 'Preview Activation Claim Page',
+  AppRouter.postcardLeaderboardPage: 'Postcard Leaderboard Page',
+  AppRouter.postcardLocationExplain: 'Postcard Location Explain Page',
+  AppRouter.predefinedCollectionPage: 'Predefined Collection Page',
+  AppRouter.addToCollectionPage: 'Add To Collection Page',
+  AppRouter.collectionPage: 'Collection Page',
+  AppRouter.exhibitionsPage: 'Exhibitions Page',
+  AppRouter.organizePage: 'Organize Page',
+};
+
 String getPageName(String routeName) {
   String pageName = routeName;
-  switch (routeName) {
-    case AppRouter.createPlayListPage:
-      pageName = 'Create Playlist Page';
-      break;
-    case AppRouter.viewPlayListPage:
-      pageName = 'View Playlist Page';
-      break;
-    case AppRouter.editPlayListPage:
-      pageName = 'Edit Playlist Page';
-      break;
-    case AppRouter.onboardingPage:
-      pageName = 'Onboarding Page';
-      break;
-    case AppRouter.notificationOnboardingPage:
-      pageName = 'Notification Onboarding Page';
-      break;
-    case AppRouter.homePage:
-      pageName = 'Home Page';
-      break;
-    case AppRouter.artworkPreviewPage:
-      pageName = 'Artwork Preview Page';
-      break;
-    case AppRouter.artworkDetailsPage:
-      pageName = 'Artwork Details Page';
-      break;
-    case AppRouter.claimedPostcardDetailsPage:
-      pageName = 'Claimed Postcard Details Page';
-      break;
-    case AppRouter.galleryPage:
-      pageName = 'Gallery Page';
-      break;
-    case AppRouter.settingsPage:
-      pageName = 'Settings Page';
-      break;
-    case AppRouter.personaConnectionsPage:
-      pageName = 'Persona Connections Page';
-      break;
-    case AppRouter.connectionDetailsPage:
-      pageName = 'Connection Details Page';
-      break;
-    case AppRouter.linkedAccountDetailsPage:
-      pageName = 'Linked Account Details Page';
-      break;
-    case AppRouter.walletDetailsPage:
-      pageName = 'Wallet Details Page';
-      break;
-    case AppRouter.linkedWalletDetailsPage:
-      pageName = 'Linked Wallet Details Page';
-      break;
-    case AppRouter.scanQRPage:
-      pageName = 'Scan QR Page';
-      break;
-    case AppRouter.globalReceivePage:
-      pageName = 'Global Receive Page';
-      break;
-    case AppRouter.recoveryPhrasePage:
-      pageName = 'Recovery Phrase Page';
-      break;
-    case AppRouter.wcConnectPage:
-      pageName = 'WC Connect Page';
-      break;
-    case AppRouter.cloudPage:
-      pageName = 'Cloud Page';
-      break;
-    case AppRouter.cloudAndroidPage:
-      pageName = 'Cloud Android Page';
-      break;
-    case AppRouter.linkManually:
-      pageName = 'Link Manually Page';
-      break;
-    case AppRouter.testArtwork:
-      pageName = 'Test Artwork Page';
-      break;
-    case AppRouter.autonomySecurityPage:
-      pageName = 'Autonomy Security Page';
-      break;
-    case AppRouter.unsafeWebWalletPage:
-      pageName = 'Unsafe Web Wallet Page';
-      break;
-    case AppRouter.releaseNotesPage:
-      pageName = 'Release Notes Page';
-      break;
-    case AppRouter.hiddenArtworksPage:
-      pageName = 'Hidden Artworks Page';
-      break;
-    case AppRouter.supportCustomerPage:
-      pageName = 'Support Customer Page';
-      break;
-    case AppRouter.supportListPage:
-      pageName = 'Support List Page';
-      break;
-    case AppRouter.merchOrdersPage:
-      pageName = 'Merch Orders Page';
-      break;
-    case AppRouter.supportThreadPage:
-      pageName = 'Support Thread Page';
-      break;
-    case AppRouter.bugBountyPage:
-      pageName = 'Bug Bounty Page';
-      break;
-    case AppRouter.keySyncPage:
-      pageName = 'Key Sync Page';
-      break;
-    case AppRouter.githubDocPage:
-      pageName = 'Github Doc Page';
-      break;
-    case AppRouter.sendArtworkPage:
-      pageName = 'Send Artwork Page';
-      break;
-    case AppRouter.sendArtworkReviewPage:
-      pageName = 'Send Artwork Review Page';
-      break;
-    case AppRouter.claimFeralfileTokenPage:
-      pageName = 'Claim Feralfile Token Page';
-      break;
-    case AppRouter.claimSelectAccountPage:
-      pageName = 'Claim Select Account Page';
-      break;
-    case AppRouter.airdropTokenDetailPage:
-      pageName = 'Airdrop Token Detail Page';
-      break;
-    case AppRouter.wc2ConnectPage:
-      pageName = 'WC2 Connect Page';
-      break;
-    case AppRouter.wc2PermissionPage:
-      pageName = 'WC2 Permission Page';
-      break;
-    case AppRouter.preferencesPage:
-      pageName = 'Preferences Page';
-      break;
-    case AppRouter.walletPage:
-      pageName = 'Wallet Page';
-      break;
-    case AppRouter.subscriptionPage:
-      pageName = 'Subscription Page';
-      break;
-    case AppRouter.dataManagementPage:
-      pageName = 'Data Management Page';
-      break;
-    case AppRouter.helpUsPage:
-      pageName = 'Help Us Page';
-      break;
-    case AppRouter.inappWebviewPage:
-      pageName = 'Inapp Webview Page';
-      break;
-    case AppRouter.postcardExplain:
-      pageName = 'Postcard Explain Page';
-      break;
-    case AppRouter.designStamp:
-      pageName = 'Design Stamp Page';
-      break;
-    case AppRouter.promptPage:
-      pageName = 'Prompt Page';
-      break;
-    case AppRouter.handSignaturePage:
-      pageName = 'Hand Signature Page';
-      break;
-    case AppRouter.stampPreview:
-      pageName = 'Stamp Preview Page';
-      break;
-    case AppRouter.claimEmptyPostCard:
-      pageName = 'Claim Empty Postcard Page';
-      break;
-    case AppRouter.payToMintPostcard:
-      pageName = 'Pay To Mint Postcard Page';
-      break;
-    case AppRouter.postcardSelectAddressScreen:
-      pageName = 'Postcard Select Address Screen';
-      break;
-    case AppRouter.receivePostcardPage:
-      pageName = 'Receive Postcard Page';
-      break;
-    case AppRouter.irlWebView:
-      pageName = 'IRL Web View';
-      break;
-    case AppRouter.irlSignMessage:
-      pageName = 'IRL Sign Message';
-      break;
-    case AppRouter.canvasHelpPage:
-      pageName = 'Canvas Help Page';
-      break;
-    case AppRouter.keyboardControlPage:
-      pageName = 'Keyboard Control Page';
-      break;
-    case AppRouter.touchPadPage:
-      pageName = 'Touch Pad Page';
-      break;
-    case AppRouter.claimAirdropPage:
-      pageName = 'Claim Airdrop Page';
-      break;
-    case AppRouter.activationTokenDetailPage:
-      pageName = 'Activation Token Detail Page';
-      break;
-    case AppRouter.claimActivationPage:
-      pageName = 'Claim Activation Page';
-      break;
-    case AppRouter.previewActivationClaimPage:
-      pageName = 'Preview Activation Claim Page';
-      break;
-    case AppRouter.postcardLeaderboardPage:
-      pageName = 'Postcard Leaderboard Page';
-      break;
-    case AppRouter.postcardLocationExplain:
-      pageName = 'Postcard Location Explain';
-      break;
-    case AppRouter.predefinedCollectionPage:
-      pageName = 'Predefined Collection Page';
-      break;
-    case AppRouter.addToCollectionPage:
-      pageName = 'Add To Collection Page';
-      break;
-    case AppRouter.exhibitionDetailPage:
-      pageName = 'Exhibition Detail Page';
-      break;
-    case AppRouter.ffArtworkPreviewPage:
-      pageName = 'FF Artwork Preview Page';
-      break;
-    case AppRouter.feralFileSeriesPage:
-      pageName = 'Feral File Series Page';
-      break;
-    case AppRouter.momaPostcardPage:
-      pageName = 'MoMA Postcard Page';
-      break;
-  }
-  return pageName;
+  return screenNameMap[routeName] ?? pageName;
 }

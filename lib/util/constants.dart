@@ -513,6 +513,7 @@ class MixpanelProp {
   static const artworkId = 'artworkId';
   static const exhibitionId = 'exhibitionId';
   static const ownerAddress = 'ownerAddress';
+  static const title = 'title';
 }
 
 class MixpanelConfig {}
