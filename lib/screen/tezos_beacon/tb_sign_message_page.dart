@@ -15,7 +15,6 @@ import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/service/local_auth_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
-import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -90,12 +89,7 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
 
   Future _rejectRequest({String? reason}) async {
     log.info('[TBSignMessagePage] _rejectRequest: $reason');
-    if (widget.request.wc2Topic != null) {
-      await injector<Wc2Service>().respondOnReject(
-        widget.request.wc2Topic!,
-        reason: reason,
-      );
-    } else {
+    if (widget.request.wc2Topic == null) {
       await injector<TezosBeaconService>().signResponse(
         widget.request.id,
         null,
@@ -157,7 +151,6 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
         appBar: getBackAppBar(
           context,
           onBack: () {
-            unawaited(_rejectRequest(reason: 'User reject'));
             Navigator.of(context).pop(false);
           },
           title: 'signature_request'.tr(),

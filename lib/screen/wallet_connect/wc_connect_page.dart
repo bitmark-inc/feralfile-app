@@ -239,7 +239,7 @@ class _WCConnectPageState extends State<WCConnectPage>
       arguments: payload,
     ));
     if (aproveResponse is ApproveResponse) {
-      injector<Wc2Service>().addApprovedSession(aproveResponse);
+      injector<Wc2Service>().addApprovedTopic([aproveResponse.topic]);
     }
   }
 

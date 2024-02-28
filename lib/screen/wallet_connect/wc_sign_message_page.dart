@@ -56,70 +56,64 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
 
     final theme = Theme.of(context);
 
-    return PopScope(
-      canPop: false,
-      onPopInvoked: (_) async {
-        Navigator.of(context).pop(false);
-      },
-      child: Scaffold(
-        appBar: getBackAppBar(
-          context,
-          onBack: () {
-            Navigator.of(context).pop(false);
-          },
-          title: 'signature_request'.tr(),
-        ),
-        body: Container(
-          margin: const EdgeInsets.only(bottom: 32),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      addTitleSpace(),
-                      Padding(
-                        padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-                        child: _wcAppInfo(widget.args.peerMeta),
+    return Scaffold(
+      appBar: getBackAppBar(
+        context,
+        onBack: () {
+          Navigator.of(context).pop(false);
+        },
+        title: 'signature_request'.tr(),
+      ),
+      body: Container(
+        margin: const EdgeInsets.only(bottom: 32),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    addTitleSpace(),
+                    Padding(
+                      padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                      child: _wcAppInfo(widget.args.peerMeta),
+                    ),
+                    const SizedBox(height: 60),
+                    addOnlyDivider(),
+                    const SizedBox(height: 30),
+                    Padding(
+                      padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                      child: Text(
+                        'message'.tr(),
+                        style: theme.textTheme.ppMori400Black14,
                       ),
-                      const SizedBox(height: 60),
-                      addOnlyDivider(),
-                      const SizedBox(height: 30),
-                      Padding(
-                        padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                    ),
+                    const SizedBox(height: 4),
+                    Padding(
+                      padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 20, horizontal: 22),
+                        decoration: BoxDecoration(
+                          color: AppColor.auLightGrey,
+                          borderRadius: BorderRadius.circular(5),
+                        ),
                         child: Text(
-                          'message'.tr(),
+                          messageInUtf8,
                           style: theme.textTheme.ppMori400Black14,
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Padding(
-                        padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 20, horizontal: 22),
-                          decoration: BoxDecoration(
-                            color: AppColor.auLightGrey,
-                            borderRadius: BorderRadius.circular(5),
-                          ),
-                          child: Text(
-                            messageInUtf8,
-                            style: theme.textTheme.ppMori400Black14,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-              Padding(
-                padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-                child: _signButton(context, message, messageInUtf8),
-              ),
-            ],
-          ),
+            ),
+            Padding(
+              padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+              child: _signButton(context, message, messageInUtf8),
+            ),
+          ],
         ),
       ),
     );
