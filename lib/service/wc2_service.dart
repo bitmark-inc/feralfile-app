@@ -369,10 +369,6 @@ class Wc2Service {
             code: 300, message: reason ?? 'Rejected by user'));
   }
 
-  Future respondOnApprove(String topic, String response) async {
-    log.info('[Wc2Service] respondOnApprove topic $topic, response: $response');
-  }
-
   Future respondOnReject(
     String topic, {
     String? reason,
@@ -526,7 +522,7 @@ class Wc2Service {
       proposer,
       0,
     );
-    await _navigationService.navigateTo(
+    return await _navigationService.navigateTo(
       AppRouter.tbSignMessagePage,
       arguments: beaconRquest,
     );

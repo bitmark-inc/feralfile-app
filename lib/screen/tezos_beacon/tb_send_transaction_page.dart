@@ -95,12 +95,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
           _currentWallet!.index,
           widget.request.operations!,
           baseOperationCustomFee: feeOption.tezosBaseOperationCustomFee);
-      if (wc2Topic != null) {
-        unawaited(_wc2Service.respondOnApprove(
-          wc2Topic,
-          txHash ?? '',
-        ));
-      } else {
+      if (wc2Topic == null) {
         unawaited(injector<TezosBeaconService>()
             .operationResponse(widget.request.id, txHash));
       }

@@ -105,12 +105,7 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
 
   Future _approveRequest({required String signature}) async {
     log.info('[TBSignMessagePage] _approveRequest');
-    if (widget.request.wc2Topic != null) {
-      await injector<Wc2Service>().respondOnApprove(
-        widget.request.wc2Topic!,
-        signature,
-      );
-    } else {
+    if (widget.request.wc2Topic == null) {
       final tezosService = injector<TezosBeaconService>();
       await tezosService.signResponse(
         widget.request.id,
@@ -132,7 +127,7 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
       return;
     }
 
-    Navigator.of(context).pop(true);
+    Navigator.of(context).pop(signature);
     showInfoNotification(
       const Key('signed'),
       'signed'.tr(),

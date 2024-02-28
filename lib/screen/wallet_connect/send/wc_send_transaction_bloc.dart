@@ -17,7 +17,6 @@ import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/local_auth_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/pending_token_service.dart';
-import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/rpc_error_extension.dart';
@@ -103,11 +102,6 @@ class WCSendTransactionBloc
         final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
         final signature = await _ethereumService.signPersonalMessage(
             persona, index, Uint8List.fromList(utf8.encode(timestamp)));
-
-        if (!event.isIRL) {
-          await injector<Wc2Service>()
-              .respondOnApprove(event.topic ?? '', txHash);
-        }
         log.info('[WCSendTransactionBloc][End] '
             'send transaction success, txHash: $txHash');
         unawaited(injector<PendingTokenService>()
