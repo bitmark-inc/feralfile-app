@@ -230,113 +230,107 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return PopScope(
-      canPop: false,
-      onPopInvoked: (_) async {
-        Navigator.of(context).pop(false);
-      },
-      child: Scaffold(
-        appBar: getBackAppBar(
-          context,
-          onBack: () {
-            Navigator.of(context).pop(false);
-          },
-          title: 'address_request'.tr(),
-        ),
-        body: Container(
-          margin: const EdgeInsets.only(bottom: 32),
-          child: Column(
-            children: [
-              Padding(
-                padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-                child: addTitleSpace(),
-              ),
-              Padding(
-                padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-                child: _wcAppInfo(context),
-              ),
-              const SizedBox(height: 32),
-              addDivider(height: 52),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: BlocConsumer<AccountsBloc, AccountsState>(
-                      listener: (context, state) {
-                    final categorizedAccounts = state.accounts ?? [];
+    return Scaffold(
+      appBar: getBackAppBar(
+        context,
+        onBack: () {
+          Navigator.of(context).pop(false);
+        },
+        title: 'address_request'.tr(),
+      ),
+      body: Container(
+        margin: const EdgeInsets.only(bottom: 32),
+        child: Column(
+          children: [
+            Padding(
+              padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+              child: addTitleSpace(),
+            ),
+            Padding(
+              padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+              child: _wcAppInfo(context),
+            ),
+            const SizedBox(height: 32),
+            addDivider(height: 52),
+            Expanded(
+              child: SingleChildScrollView(
+                child: BlocConsumer<AccountsBloc, AccountsState>(
+                    listener: (context, state) {
+                  final categorizedAccounts = state.accounts ?? [];
 
-                    if (state.accounts?.length == 2) {
-                      if (selectedAddresses.containsKey('eip155:1')) {
-                        selectedAddresses['eip155:1'] = categorizedAccounts
-                            .firstWhere((element) => element.isEth)
-                            .accountNumber;
-                      }
-                      if (selectedAddresses.containsKey('tezos')) {
-                        selectedAddresses['tezos'] = categorizedAccounts
-                            .firstWhere((element) => element.isTez)
-                            .accountNumber;
-                      }
+                  if (state.accounts?.length == 2) {
+                    if (selectedAddresses.containsKey('eip155:1')) {
+                      selectedAddresses['eip155:1'] = categorizedAccounts
+                          .firstWhere((element) => element.isEth)
+                          .accountNumber;
                     }
-                    setState(() {});
-                  }, builder: (context, state) {
-                    final accounts = state.accounts ?? [];
-                    if (accounts.isEmpty) {
-                      return const SizedBox();
+                    if (selectedAddresses.containsKey('tezos')) {
+                      selectedAddresses['tezos'] = categorizedAccounts
+                          .firstWhere((element) => element.isTez)
+                          .accountNumber;
                     }
+                  }
+                  setState(() {});
+                }, builder: (context, state) {
+                  final accounts = state.accounts ?? [];
+                  if (accounts.isEmpty) {
+                    return const SizedBox();
+                  }
 
-                    return Column(
-                      children: [
-                        Padding(
-                          padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-                          child: Text(
-                            _selectETHAddress && _selectXTZAddress
-                                ? 'select_tezo_and_eth_address'
-                                    .tr(args: ['1', '1'])
-                                : _selectETHAddress
-                                    ? 'select_eth_address'.tr(args: ['1'])
-                                    : _selectXTZAddress
-                                        ? 'select_tezos_address'.tr(args: ['1'])
-                                        : 'select_grand_access'.tr(),
-                            style: theme.textTheme.ppMori400Black16,
-                          ),
+                  return Column(
+                    children: [
+                      Padding(
+                        padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                        child: Text(
+                          _selectETHAddress && _selectXTZAddress
+                              ? 'select_tezo_and_eth_address'
+                                  .tr(args: ['1', '1'])
+                              : _selectETHAddress
+                                  ? 'select_eth_address'.tr(args: ['1'])
+                                  : _selectXTZAddress
+                                      ? 'select_tezos_address'.tr(args: ['1'])
+                                      : 'select_grand_access'.tr(),
+                          style: theme.textTheme.ppMori400Black16,
                         ),
-                        const SizedBox(height: 16),
-                        ListAccountConnect(
-                          accounts: accounts,
-                          onSelectEth: (value) {
-                            setState(() {
-                              selectedAddresses['eip155:1'] =
-                                  value.accountNumber;
-                            });
-                          },
-                          onSelectTez: (value) {
-                            setState(() {
-                              selectedAddresses['tezos'] = value.accountNumber;
-                            });
-                          },
-                          isAutoSelect: accounts.length == 2,
-                        ),
-                      ],
-                    );
-                  }),
-                ),
-              ),
-              Row(
-                children: [
-                  Expanded(
-                    child: Padding(
-                      padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-                      child: PrimaryButton(
-                        enabled: _isAccountSelected,
-                        text: 'h_confirm'.tr(),
-                        onTap: _isAccountSelected
-                            ? () => withDebounce(() => unawaited(_approve()))
-                            : null,
                       ),
+                      const SizedBox(height: 16),
+                      ListAccountConnect(
+                        accounts: accounts,
+                        onSelectEth: (value) {
+                          setState(() {
+                            selectedAddresses['eip155:1'] =
+                                value.accountNumber;
+                          });
+                        },
+                        onSelectTez: (value) {
+                          setState(() {
+                            selectedAddresses['tezos'] = value.accountNumber;
+                          });
+                        },
+                        isAutoSelect: accounts.length == 2,
+                      ),
+                    ],
+                  );
+                }),
+              ),
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                    child: PrimaryButton(
+                      enabled: _isAccountSelected,
+                      text: 'h_confirm'.tr(),
+                      onTap: _isAccountSelected
+                          ? () => withDebounce(() => unawaited(_approve()))
+                          : null,
                     ),
-                  )
-                ],
-              )
-            ],
-          ),
+                  ),
+                )
+              ],
+            )
+          ],
         ),
       ),
     );
