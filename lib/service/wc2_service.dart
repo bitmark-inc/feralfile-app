@@ -127,7 +127,10 @@ class Wc2Service {
     log.info('[Wc2Service] Registering handlers for chainId: $chainId');
     ethRequestHandlerMap.forEach((method, handler) {
       _wcClient.registerRequestHandler(
-          chainId: chainId, method: method, handler: handler);
+          chainId: chainId,
+          method: method,
+          handler: (String topic, params) async =>
+              _checkResultWrapper(topic, params, handler));
     });
   }
 
@@ -144,7 +147,10 @@ class Wc2Service {
     feralfileRequestHandlerMap.forEach(
       (method, handler) {
         _wcClient.registerRequestHandler(
-            chainId: chainId, method: method, handler: handler);
+            chainId: chainId,
+            method: method,
+            handler: (String topic, params) async =>
+                _checkResultWrapper(topic, params, handler));
       },
     );
   }
@@ -158,7 +164,14 @@ class Wc2Service {
       log.info('[Wc2Service] waiting for user to approve');
       await Future.delayed(const Duration(milliseconds: 500));
     } while (!isApprovedTopic(topic) || counter > maxCounter);
+    return await handler(topic, params);
+  }
 
+  Future<void> _checkResultWrapper(
+      String topic, params, dynamic Function(String, dynamic)? handler) async {
+    if (handler == null) {
+      return;
+    }
     final result = await handler(topic, params);
     if (result == null || result == false) {
       throw _userRejectError;
@@ -182,26 +195,18 @@ class Wc2Service {
   Future _handleAuSign(String topic, params) async {
     log.info('[Wc2Service] received autonomy-au_sign request $params');
     final chain = (params['chain'] as String).caip2Namespace;
-    late dynamic result;
     switch (chain) {
       case Wc2Chain.ethereum:
-        result = await _handleAuSignEth(topic, params);
-        break;
+        return await _handleAuSignEth(topic, params);
       case Wc2Chain.tezos:
-        result = await _handleTezosSignRequest(topic, params);
-        break;
+        return await _handleTezosSignRequest(topic, params);
       case Wc2Chain.autonomy:
         log.info('[Wc2Service] received autonomy-au_sign request $params');
-        result = await _handleFeralfileSign(topic, params);
-        break;
+        return await _handleFeralfileSign(topic, params);
       default:
         log.warning('[Wc2Service] Chain not supported: $chain');
         throw _chainNotSupported;
     }
-    if (result == null || result == false) {
-      throw _userRejectError;
-    }
-    return result;
   }
 
   Future _handleEthPersonalSign(String topic, params) async {
@@ -224,12 +229,8 @@ class Wc2Service {
     if (proposer == null) {
       throw _proposalNotFound;
     }
-    final result = await _handleWC2EthereumSignRequest(
+    return await _handleWC2EthereumSignRequest(
         params, topic, proposer, wcSignType);
-    if (result == null || result == false) {
-      throw _userRejectError;
-    }
-    return result;
   }
 
   Future _handleEthSendTx(String topic, params) async {
@@ -238,12 +239,7 @@ class Wc2Service {
     if (proposer == null) {
       throw _proposalNotFound;
     }
-    final result =
-        await _handleEthSendTransactionRequest(params, proposer, topic);
-    if (result == null || result == false) {
-      throw _userRejectError;
-    }
-    return result;
+    return await _handleEthSendTransactionRequest(params, proposer, topic);
   }
 
   Future _handleAuSignEth(String topic, params) async {
@@ -271,12 +267,7 @@ class Wc2Service {
     if (proposer == null) {
       throw _proposalNotFound;
     }
-    final result =
-        await _handleAuEthSendTransactionRequest(params, proposer, topic);
-    if (result == null || result == false) {
-      throw _userRejectError;
-    }
-    return result;
+    return await _handleAuEthSendTransactionRequest(params, proposer, topic);
   }
 
   Future<PairingMetadata?> _getWc2Request(String topic, params) async {
