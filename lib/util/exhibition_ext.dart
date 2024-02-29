@@ -63,6 +63,8 @@ extension ArtworkExt on Artwork {
 }
 
 String getFFUrl(String uri) {
-  if (uri.startsWith('http')) return uri;
+  if (uri.startsWith('http')) {
+    return uri;
+  }
   return '${Environment.feralFileAssetURL}/$uri';
 }

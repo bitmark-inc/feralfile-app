@@ -474,7 +474,7 @@ INFTRenderingWidget buildFeralfileRenderingWidget(
 }) {
   final renderingWidget = typesOfNFTRenderingWidget(mimeType)
     ..setRenderWidgetBuilder(RenderingWidgetBuilder(
-      previewURL: attempt == null ? previewURL : '${previewURL}?t=$attempt',
+      previewURL: attempt == null ? previewURL : '$previewURL?t=$attempt',
       thumbnailURL: thumbnailURL,
       loadingWidget: loadingWidget ?? previewPlaceholder(context),
       cacheManager: injector<CacheManager>(),
