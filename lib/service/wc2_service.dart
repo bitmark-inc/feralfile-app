@@ -338,9 +338,13 @@ class Wc2Service {
       required String connectionKey,
       required String accountNumber,
       bool isAuConnect = false}) async {
-    final namespaces = proposal.requiredNamespaces
-        .map((key, value) => MapEntry(key, value.toNameSpace(accounts)));
-    proposal.optionalNamespaces.forEach((key, value) {
+    final Map<String, RequiredNamespace> mergedNamespaces =
+        _mergeRequiredNameSpaces(
+      proposal.requiredNamespaces,
+      proposal.optionalNamespaces,
+    );
+    final Map<String, Namespace> namespaces = {};
+    mergedNamespaces.forEach((key, value) {
       namespaces[key] = value.toNameSpace(accounts);
     });
     final resF = _wcClient.approveSession(
@@ -371,6 +375,36 @@ class Wc2Service {
   }) async {
     log.info('[Wc2Service] reject session');
     await _wcClient.rejectSession(id: id, reason: _userRejectError);
+  }
+
+  Map<String, RequiredNamespace> _mergeRequiredNameSpaces(
+      Map<String, RequiredNamespace> a, Map<String, RequiredNamespace> b) {
+    Map<String, RequiredNamespace> merged = {};
+
+    // Merge maps from a
+    a.forEach((key, value) {
+      if (b.containsKey(key)) {
+        // Merge lists if key exists in both maps
+        merged[key] = RequiredNamespace(
+          chains: {...?b[key]?.chains, ...?value.chains}.toList(),
+          methods: {...?b[key]?.methods, ...value.methods}.toList(),
+          events: {...?b[key]?.events, ...value.events}.toList(),
+        );
+      } else {
+        // Add entry from a if it doesn't exist in b
+        merged[key] = value;
+      }
+    });
+
+    // Merge remaining entries from b
+    b.forEach((key, value) {
+      if (!merged.containsKey(key)) {
+        // Add entry from b if it doesn't exist in a
+        merged[key] = value;
+      }
+    });
+
+    return merged;
   }
 
   //#region Pairing
