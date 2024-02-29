@@ -298,17 +298,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
         : '${xtzFormatter.format(total)} XTZ '
             '(${_exchangeRate?.xtzToUsd(total)} USD)';
     return PopScope(
-      onPopInvoked: (_) async {
-        if (wc2Topic != null) {
-          unawaited(_wc2Service.respondOnReject(
-            wc2Topic,
-            reason: 'User reject',
-          ));
-        } else {
-          unawaited(injector<TezosBeaconService>()
-              .operationResponse(widget.request.id, null));
-        }
-      },
+      canPop: false,
       child: Scaffold(
         appBar: getBackAppBar(
           context,
