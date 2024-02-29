@@ -148,8 +148,7 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
                   Flexible(
                     flex: 3,
                     child: PostcardAsyncButton(
-                      enabled:
-                          !savingStamp && didDraw && resizedStamp != null,
+                      enabled: !savingStamp && didDraw && resizedStamp != null,
                       onTap: _handleSaveButtonPressed,
                       color: MoMAColors.moMA8,
                       text: 'continue'.tr(),
