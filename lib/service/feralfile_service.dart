@@ -539,8 +539,8 @@ class FeralFileServiceImpl extends FeralFileService {
 
   @override
   Future<List<FFSeries>> getListSeries(String exhibitionId) async {
-    final response =
-        await _feralFileApi.getListSeries(exhibitionID: exhibitionId);
+    final response = await _feralFileApi.getListSeries(
+        exhibitionID: exhibitionId, sortBy: 'displayIndex', sortOrder: 'ASC');
     return response.result;
   }
 }
