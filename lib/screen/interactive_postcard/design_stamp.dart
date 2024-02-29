@@ -199,7 +199,6 @@ class _DesignStampPageState extends State<DesignStampPage> {
                                               });
                                             }
                                           },
-                                    width: 52,
                                     color: AppColor.white,
                                     borderColor: AppColor.disabledColor,
                                     textColor: AppColor.disabledColor,

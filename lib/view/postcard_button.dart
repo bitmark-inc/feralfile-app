@@ -17,6 +17,7 @@ class PostcardButton extends StatelessWidget {
   final double? fontSize;
   final TextStyle? textStyle;
   final Widget? icon;
+  final double? heightForFontSize;
 
   const PostcardButton({
     super.key,
@@ -32,6 +33,7 @@ class PostcardButton extends StatelessWidget {
     this.fontSize,
     this.textStyle,
     this.icon,
+    this.heightForFontSize,
   });
 
   @override
@@ -84,6 +86,14 @@ class PostcardButton extends StatelessWidget {
                           color: enabled ? textColor : disabledTextColor,
                           fontSize: fontSize),
                 ),
+                // Button height depends on the text size, so we need to add a
+                // transparent text to keep the height consistent
+                if (heightForFontSize != null)
+                  Text(
+                    '',
+                    style: theme.textTheme.moMASans700Black18.copyWith(
+                        color: Colors.transparent, fontSize: heightForFontSize),
+                  ),
               ],
             ),
           ),
@@ -187,46 +197,43 @@ class PostcardOutlineButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return SizedBox(
-      width: width,
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: color ?? theme.auGreyBackground,
-          shadowColor: Colors.transparent,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            side: BorderSide(color: borderColor ?? Colors.white),
-            borderRadius: BorderRadius.circular(0),
-          ),
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color ?? theme.auGreyBackground,
+        shadowColor: Colors.transparent,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          side: BorderSide(color: borderColor ?? Colors.white),
+          borderRadius: BorderRadius.circular(0),
         ),
-        onPressed: enabled ? onTap : null,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 13),
-          child: Center(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (isProcessing)
-                  Container(
-                    height: 14,
-                    width: 14,
-                    margin: const EdgeInsets.only(right: 8),
-                    child: CircularProgressIndicator(
-                      color: theme.colorScheme.primary,
-                      backgroundColor: theme.colorScheme.surface,
-                      strokeWidth: 2,
-                    ),
-                  )
-                else
-                  const SizedBox(),
-                Text(
-                  text ?? '',
-                  style: theme.textTheme.moMASans400White14.copyWith(
-                      color: textColor ??
-                          (!enabled ? AppColor.disabledColor : null)),
-                ),
-              ],
-            ),
+      ),
+      onPressed: enabled ? onTap : null,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 13),
+        child: Center(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (isProcessing)
+                Container(
+                  height: 14,
+                  width: 14,
+                  margin: const EdgeInsets.only(right: 8),
+                  child: CircularProgressIndicator(
+                    color: theme.colorScheme.primary,
+                    backgroundColor: theme.colorScheme.surface,
+                    strokeWidth: 2,
+                  ),
+                )
+              else
+                const SizedBox(),
+              Text(
+                text ?? '',
+                style: theme.textTheme.moMASans400White14.copyWith(
+                    color: textColor ??
+                        (!enabled ? AppColor.disabledColor : null)),
+              ),
+            ],
           ),
         ),
       ),
@@ -259,41 +266,38 @@ class PostcardCustomOutlineButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return SizedBox(
-      width: width,
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: color ?? theme.auGreyBackground,
-          shadowColor: Colors.transparent,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            side: BorderSide(color: borderColor ?? Colors.white),
-            borderRadius: BorderRadius.circular(0),
-          ),
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color ?? theme.auGreyBackground,
+        shadowColor: Colors.transparent,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          side: BorderSide(color: borderColor ?? Colors.white),
+          borderRadius: BorderRadius.circular(0),
         ),
-        onPressed: enabled ? onTap : null,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 13),
-          child: Center(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (isProcessing)
-                  Container(
-                    height: 14,
-                    width: 14,
-                    margin: const EdgeInsets.only(right: 8),
-                    child: CircularProgressIndicator(
-                      color: theme.colorScheme.primary,
-                      backgroundColor: theme.colorScheme.surface,
-                      strokeWidth: 2,
-                    ),
-                  )
-                else
-                  const SizedBox(),
-                child,
-              ],
-            ),
+      ),
+      onPressed: enabled ? onTap : null,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 13),
+        child: Center(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (isProcessing)
+                Container(
+                  height: 14,
+                  width: 14,
+                  margin: const EdgeInsets.only(right: 8),
+                  child: CircularProgressIndicator(
+                    color: theme.colorScheme.primary,
+                    backgroundColor: theme.colorScheme.surface,
+                    strokeWidth: 2,
+                  ),
+                )
+              else
+                const SizedBox(),
+              child,
+            ],
           ),
         ),
       ),

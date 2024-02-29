@@ -7,6 +7,7 @@ import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/extensions/theme_extension/moma_sans.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class PromptPage extends StatefulWidget {
@@ -85,32 +86,29 @@ class _PromptPageState extends State<PromptPage> {
             const SizedBox(height: 10),
             Row(
               children: [
-                Flexible(
-                    flex: 4,
+                Expanded(
                     child: PostcardButton(
-                      text: 'save_prompt'.tr(),
-                      enabled: _isPromptValid,
-                      onTap: () async {
-                        final assetWithPrompt = widget.payload.asset
-                            .setAssetPrompt(
-                                Prompt.getUserPrompt(_controller.text.trim()));
-                        await Navigator.of(context).pushNamed(
-                            AppRouter.designStamp,
-                            arguments: DesignStampPayload(assetWithPrompt, true,
-                                widget.payload.shareCode));
-                      },
-                    )),
-                Flexible(
-                    child: PostcardButton(
+                  text: 'save_prompt'.tr(),
+                  enabled: _isPromptValid,
+                  onTap: () async {
+                    final assetWithPrompt = widget.payload.asset.setAssetPrompt(
+                        Prompt.getUserPrompt(_controller.text.trim()));
+                    await Navigator.of(context).pushNamed(AppRouter.designStamp,
+                        arguments: DesignStampPayload(
+                            assetWithPrompt, true, widget.payload.shareCode));
+                  },
+                )),
+                PostcardButton(
                   text: 'skip'.tr(),
                   color: backgroundColor,
                   textColor: AppColor.auQuickSilver,
                   textStyle: theme.textTheme.moMASans400Grey12,
+                  heightForFontSize: 18,
                   onTap: () async {
                     await Navigator.of(context).pushNamed(AppRouter.designStamp,
                         arguments: widget.payload);
                   },
-                )),
+                ),
               ],
             )
           ],
