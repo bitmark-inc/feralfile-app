@@ -1,6 +1,7 @@
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
+import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_state.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
@@ -14,9 +15,11 @@ class FeralFileSeriesBloc
       final result = await Future.wait([
         _feralFileService.getExhibition(event.exhibitionId),
         _feralFileService.getSeriesArtworks(event.seriesId),
+        _feralFileService.getSeries(event.seriesId),
       ]);
       final exhibition = result[0] as Exhibition;
       final artworks = result[1] as List<Artwork>;
+      final series = result[2] as FFSeries;
       final exhibitionDetail = ExhibitionDetail(
         exhibition: exhibition,
         artworks: artworks,
@@ -26,8 +29,7 @@ class FeralFileSeriesBloc
           .toList();
       emit(state.copyWith(
         exhibitionDetail: exhibitionDetail,
-        series: exhibition.series!
-            .firstWhere((element) => element.id == event.seriesId),
+        series: series,
         artworks: artworks,
         tokenIds: tokenIds,
       ));

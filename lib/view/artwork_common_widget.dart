@@ -458,6 +458,37 @@ INFTRenderingWidget buildRenderingWidget(
   return renderingWidget;
 }
 
+INFTRenderingWidget buildFeralfileRenderingWidget(
+  BuildContext context, {
+  required String mimeType,
+  required String previewURL,
+  required String thumbnailURL,
+  int? attempt,
+  String? overriddenHtml,
+  bool isMute = false,
+  Function({int? time, InAppWebViewController? webViewController})? onLoaded,
+  Function({int? time})? onDispose,
+  FocusNode? focusNode,
+  Widget? loadingWidget,
+  bool? isScrollable,
+}) {
+  final renderingWidget = typesOfNFTRenderingWidget(mimeType)
+    ..setRenderWidgetBuilder(RenderingWidgetBuilder(
+      previewURL: attempt == null ? previewURL : '$previewURL?t=$attempt',
+      thumbnailURL: thumbnailURL,
+      loadingWidget: loadingWidget ?? previewPlaceholder(context),
+      cacheManager: injector<CacheManager>(),
+      onLoaded: onLoaded,
+      onDispose: onDispose,
+      overriddenHtml: overriddenHtml,
+      skipViewport: isScrollable ?? false,
+      isMute: isMute,
+      focusNode: focusNode,
+    ));
+
+  return renderingWidget;
+}
+
 class RetryCubit extends Cubit<int> {
   RetryCubit() : super(0);
 
