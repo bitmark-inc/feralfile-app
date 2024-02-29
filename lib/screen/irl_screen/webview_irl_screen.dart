@@ -311,7 +311,6 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
               WCEthereumTransaction.fromJson(transaction),
               account.wallet.uuid,
               account.index,
-              isIRL: true,
             );
 
             final txHash = await Navigator.of(context).pushNamed(

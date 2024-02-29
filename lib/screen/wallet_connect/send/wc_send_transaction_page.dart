@@ -71,7 +71,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
         context,
         title: 'confirmation'.tr(),
         onBack: () {
-          Navigator.of(context).pop(false);
+          Navigator.of(context).pop();
         },
       ),
       body: BlocConsumer<WCSendTransactionBloc, WCSendTransactionState>(
@@ -224,7 +224,6 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                                               widget.args.uuid,
                                               widget.args.index,
                                               topic: widget.args.topic,
-                                              isIRL: widget.args.isIRL,
                                             ),
                                           );
                                     }
@@ -444,7 +443,6 @@ class WCSendTransactionPageArgs {
   final String uuid;
   final int index;
   final String? topic;
-  final bool isIRL;
 
   WCSendTransactionPageArgs(
     this.peerMeta,
@@ -452,6 +450,5 @@ class WCSendTransactionPageArgs {
     this.uuid,
     this.index, {
     this.topic,
-    this.isIRL = false,
   });
 }

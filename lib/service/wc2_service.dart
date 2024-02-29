@@ -167,7 +167,7 @@ class Wc2Service {
     return await handler(topic, params);
   }
 
-  Future<void> _checkResultWrapper(
+  Future<dynamic> _checkResultWrapper(
       String topic, params, dynamic Function(String, dynamic)? handler) async {
     if (handler == null) {
       return;

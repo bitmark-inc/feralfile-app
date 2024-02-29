@@ -32,7 +32,6 @@ class WCSendTransactionSendEvent extends WCSendTransactionEvent {
   final String? data;
   final String uuid;
   final int index;
-  final bool isIRL;
   final String? topic;
 
   WCSendTransactionSendEvent(
@@ -43,7 +42,6 @@ class WCSendTransactionSendEvent extends WCSendTransactionEvent {
     this.data,
     this.uuid,
     this.index, {
-    this.isIRL = false,
     this.topic,
   });
 }
