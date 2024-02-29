@@ -176,7 +176,6 @@ class PostcardOutlineButton extends StatelessWidget {
   final Function()? onTap;
   final Color? color;
   final String? text;
-  final double? width;
   final bool isProcessing;
   final bool enabled;
   final Color? textColor;
@@ -187,7 +186,6 @@ class PostcardOutlineButton extends StatelessWidget {
     this.onTap,
     this.color,
     this.text,
-    this.width,
     this.enabled = true,
     this.isProcessing = false,
     this.textColor,
