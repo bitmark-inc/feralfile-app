@@ -17,7 +17,7 @@ class PostcardButton extends StatelessWidget {
   final double? fontSize;
   final TextStyle? textStyle;
   final Widget? icon;
-  final double? heightForFontSize;
+  final double? height;
 
   const PostcardButton({
     super.key,
@@ -33,7 +33,7 @@ class PostcardButton extends StatelessWidget {
     this.fontSize,
     this.textStyle,
     this.icon,
-    this.heightForFontSize,
+    this.height,
   });
 
   @override
@@ -46,6 +46,7 @@ class PostcardButton extends StatelessWidget {
         : disabledColor ?? defaultDisabledColor; //theme.auLightGrey;
     return SizedBox(
       width: width,
+      height: height,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor: backgroundColor,
@@ -86,14 +87,6 @@ class PostcardButton extends StatelessWidget {
                           color: enabled ? textColor : disabledTextColor,
                           fontSize: fontSize),
                 ),
-                // Button height depends on the text size, so we need to add a
-                // transparent text to keep the height consistent
-                if (heightForFontSize != null)
-                  Text(
-                    '',
-                    style: theme.textTheme.moMASans700Black18.copyWith(
-                        color: Colors.transparent, fontSize: heightForFontSize),
-                  ),
               ],
             ),
           ),
