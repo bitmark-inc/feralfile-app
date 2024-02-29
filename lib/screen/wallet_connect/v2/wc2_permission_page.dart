@@ -298,8 +298,7 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
                         accounts: accounts,
                         onSelectEth: (value) {
                           setState(() {
-                            selectedAddresses['eip155:1'] =
-                                value.accountNumber;
+                            selectedAddresses['eip155:1'] = value.accountNumber;
                           });
                         },
                         onSelectTez: (value) {
