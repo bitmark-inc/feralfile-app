@@ -67,17 +67,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
     final divider = addDivider(height: 20);
 
     return PopScope(
-      onPopInvoked: (_) async {
-        context.read<WCSendTransactionBloc>().add(
-              WCSendTransactionRejectEvent(
-                widget.args.peerMeta,
-                widget.args.id,
-                isWalletConnect2: widget.args.isWalletConnect2,
-                topic: widget.args.topic,
-                isIRL: widget.args.isIRL,
-              ),
-            );
-      },
+      canPop: false,
       child: Scaffold(
         appBar: getBackAppBar(
           context,
@@ -92,6 +82,7 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                     isIRL: widget.args.isIRL,
                   ),
                 );
+            Navigator.of(context).pop();
           },
         ),
         body: BlocConsumer<WCSendTransactionBloc, WCSendTransactionState>(
