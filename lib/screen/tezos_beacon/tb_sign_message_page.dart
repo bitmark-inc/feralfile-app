@@ -148,7 +148,11 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
       child: Scaffold(
         appBar: getBackAppBar(
           context,
-          onBack: () {
+          onBack: () async {
+            await _rejectRequest(reason: 'User rejected');
+            if (!context.mounted) {
+              return;
+            }
             Navigator.of(context).pop(false);
           },
           title: 'signature_request'.tr(),
