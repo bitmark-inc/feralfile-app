@@ -23,7 +23,22 @@ abstract class FeralFileApi {
       @Path('exhibitionId') String exhibitionId);
 
   @GET('/api/series/{seriesId}')
-  Future<FFSeriesResponse> getSeries(@Path('seriesId') String seriesId);
+  Future<FFSeriesResponse> getSeries({
+    @Path('seriesId') required String seriesId,
+    @Query('includeFiles') bool includeFiles = true,
+    @Query('includeCollectibility') bool includeCollectibility = true,
+    @Query('includeUniqueFilePath') bool includeUniqueFilePath = true,
+    @Query('includeFirstArtwork') bool includeFirstArtwork = true,
+  });
+
+  @GET('/api/series')
+  Future<FFListSeriesResponse> getListSeries({
+    @Query('exhibitionID') required String exhibitionID,
+    @Query('sortBy') String? sortBy,
+    @Query('sortOrder') String? sortOrder,
+    @Query('includeArtist') bool includeArtist = true,
+    @Query('includeUniqueFilePath') bool includeUniqueFilePath = true,
+  });
 
   @POST('/api/series/{seriesId}/claim')
   Future<TokenClaimResponse> claimSeries(
@@ -88,6 +103,22 @@ class ActionMessageResponse {
 
   Map<String, dynamic> toJson() => {
         'result': {'message': message},
+      };
+}
+
+class FFListSeriesResponse {
+  List<FFSeries> result;
+
+  FFListSeriesResponse({required this.result});
+
+  factory FFListSeriesResponse.fromJson(Map<String, dynamic> json) =>
+      FFListSeriesResponse(
+        result:
+            (json['result'] as List).map((e) => FFSeries.fromJson(e)).toList(),
+      );
+
+  Map<String, dynamic> toJson() => {
+        'result': result,
       };
 }
 

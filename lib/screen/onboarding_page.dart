@@ -195,7 +195,7 @@ class _OnboardingPageState extends State<OnboardingPage>
     final theme = Theme.of(context);
 
     return Scaffold(
-        appBar: getDarkEmptyAppBar(),
+        appBar: getDarkEmptyAppBar(Colors.transparent),
         backgroundColor: AppColor.primaryBlack,
         body: BlocConsumer<RouterBloc, RouterState>(
           listener: (context, state) async {

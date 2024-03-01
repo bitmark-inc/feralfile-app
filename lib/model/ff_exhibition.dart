@@ -24,6 +24,7 @@ class Exhibition {
   final FFArtist? partner;
   final String type;
   final List<ExhibitionEvent>? resources;
+  final int status;
 
   Exhibition({
     required this.id,
@@ -35,6 +36,7 @@ class Exhibition {
     required this.note,
     required this.mintBlockchain,
     required this.type,
+    required this.status,
     this.coverURI,
     this.thumbnailCoverURI,
     this.artists,
@@ -75,6 +77,7 @@ class Exhibition {
         resources: (json['resources'] as List<dynamic>?)
             ?.map((e) => ExhibitionEvent.fromJson(e as Map<String, dynamic>))
             .toList(),
+        status: json['status'] as int,
       );
 
   Map<String, dynamic> toJson() => {
@@ -95,6 +98,7 @@ class Exhibition {
         'type': type,
         'curator': curator?.toJson(),
         'resources': resources?.map((e) => e.toJson()).toList(),
+        'status': status,
       };
 
   FFArtist? getArtist(FFSeries? series) {

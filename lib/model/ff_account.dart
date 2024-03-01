@@ -7,6 +7,7 @@
 
 import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:nft_rendering/nft_rendering.dart';
 
 part 'ff_account.g.dart';
 
@@ -359,4 +360,122 @@ class ArtworkSwap {
         'updatedAt': updatedAt.toIso8601String(),
         'expiredAt': expiredAt.toIso8601String(),
       };
+}
+
+class FileAssetMetadata {
+  final String urlOverwrite;
+
+  FileAssetMetadata({required this.urlOverwrite});
+
+  // from Json method
+  factory FileAssetMetadata.fromJson(Map<String, dynamic> json) =>
+      FileAssetMetadata(urlOverwrite: json['urlOverwrite']);
+
+  // to Json method
+  Map<String, dynamic> toJson() => {
+        'urlOverwrite': urlOverwrite,
+      };
+}
+
+class FileInfo {
+  final String? filename;
+  final String uri;
+  final String status;
+  final String? version;
+  final FileAssetMetadata? metadata;
+  final String? createdAt;
+  final String? updatedAt;
+
+  FileInfo({
+    required this.uri,
+    required this.status,
+    this.filename,
+    this.version,
+    this.metadata,
+    this.createdAt,
+    this.updatedAt,
+  });
+
+  // from Json method
+  factory FileInfo.fromJson(Map<String, dynamic> json) => FileInfo(
+        filename: json['filename'],
+        uri: json['uri'],
+        status: json['status'],
+        version: json['version'],
+        metadata: json['metadata'] == null || json['metadata'].isEmpty
+            ? null
+            : FileAssetMetadata.fromJson(json['metadata']),
+        createdAt: json['createdAt'],
+        updatedAt: json['updatedAt'],
+      );
+
+  // to Json method
+  Map<String, dynamic> toJson() => {
+        'filename': filename,
+        'uri': uri,
+        'status': status,
+        'version': version,
+        'metadata': metadata?.toJson(),
+        'createdAt': createdAt,
+        'updatedAt': updatedAt,
+      };
+}
+
+enum FeralfileMediumTypes {
+  unknown,
+  image,
+  video,
+  software,
+  pdf,
+  audio,
+  model,
+  animatedGif,
+  txt,
+  ;
+
+  static FeralfileMediumTypes fromString(String type) {
+    switch (type) {
+      case 'image':
+        return FeralfileMediumTypes.image;
+      case 'video':
+        return FeralfileMediumTypes.video;
+      case 'software':
+        return FeralfileMediumTypes.software;
+      case 'pdf':
+        return FeralfileMediumTypes.pdf;
+      case 'audio':
+        return FeralfileMediumTypes.audio;
+      case '3d':
+        return FeralfileMediumTypes.model;
+      case 'animated gif':
+        return FeralfileMediumTypes.animatedGif;
+      case 'txt':
+        return FeralfileMediumTypes.txt;
+      default:
+        return FeralfileMediumTypes.unknown;
+    }
+  }
+
+  String get toRenderingType {
+    switch (this) {
+      case FeralfileMediumTypes.image:
+        return RenderingType.image;
+      case FeralfileMediumTypes.video:
+        return RenderingType.video;
+      case FeralfileMediumTypes.software:
+        return RenderingType.webview;
+      case FeralfileMediumTypes.pdf:
+        return RenderingType.pdf;
+      case FeralfileMediumTypes.audio:
+        return RenderingType.audio;
+      case FeralfileMediumTypes.model:
+        return RenderingType.modelViewer;
+      case FeralfileMediumTypes.animatedGif:
+        return RenderingType.gif;
+      case FeralfileMediumTypes.txt:
+        return RenderingType.webview;
+      default:
+        return RenderingType.webview;
+    }
+  }
 }

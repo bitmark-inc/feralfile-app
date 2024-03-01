@@ -1,9 +1,8 @@
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
-import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
 import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_page.dart';
+import 'package:autonomy_flutter/view/feralfile_artwork_preview_widget.dart';
 import 'package:autonomy_flutter/view/series_title_view.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
@@ -19,9 +18,11 @@ class FeralFileArtworkPreview extends StatelessWidget {
     return Column(
       children: [
         Expanded(
-          child: ArtworkPreviewWidget(
-            identity: ArtworkIdentity(payload.tokenId, ''),
-            useIndexer: true,
+          child: FeralfileArtworkPreviewWidget(
+            payload: FeralFileArtworkPreviewWidgetPayload(
+              artwork: payload.artwork,
+              isMute: true,
+            ),
           ),
         ),
         const SizedBox(height: 20),
@@ -62,12 +63,10 @@ class FeralFileArtworkPreview extends StatelessWidget {
 }
 
 class FeralFileArtworkPreviewPayload {
-  final String tokenId;
   final FFSeries series;
   final Artwork artwork;
 
   const FeralFileArtworkPreviewPayload({
-    required this.tokenId,
     required this.series,
     required this.artwork,
   });
