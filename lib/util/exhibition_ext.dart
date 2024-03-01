@@ -1,6 +1,8 @@
 import 'package:autonomy_flutter/common/environment.dart';
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
+import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:collection/collection.dart';
 
@@ -60,6 +62,16 @@ extension ArtworkExt on Artwork {
   String get thumbnailURL => getFFUrl(thumbnailURI);
 
   String get previewURL => getFFUrl(previewURI);
+
+  bool get isScrollablePreviewURL {
+    final remoteConfigService = injector<RemoteConfigService>();
+    final scrollablePreviewURL = remoteConfigService.getConfig<List<String>?>(
+      ConfigGroup.feralfileArtworkAction,
+      ConfigKey.scrollablePreviewUrl,
+      [],
+    );
+    return scrollablePreviewURL?.contains(previewURL) ?? true;
+  }
 }
 
 String getFFUrl(String uri) {
