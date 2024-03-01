@@ -141,7 +141,7 @@ class Wc2Service {
       'au_permissions': (String topic, params) async =>
           _wait4SessionApproveThenHandleRequest(
               topic, params, _handleAuPermissions),
-      'au_sendTransaction': _handleAuSendEthTx,
+      'au_sendTransaction': _handleAuSendTx,
     };
     log.info('[Wc2Service] Registering handlers for chainId: $chainId');
     feralfileRequestHandlerMap.forEach(
@@ -261,13 +261,24 @@ class Wc2Service {
     return await _handleAutonomySignRequest(parmas, topic, proposer);
   }
 
-  Future _handleAuSendEthTx(String topic, params) async {
-    log.info('[Wc2Service] received eip155-au_sign request $params');
+  Future _handleAuSendTx(String topic, params) async {
+    log.info('[Wc2Service] received au_sendTransaction request $params');
     final proposer = await _getWc2Request(topic, params);
     if (proposer == null) {
       throw _proposalNotFound;
     }
-    return await _handleAuEthSendTransactionRequest(params, proposer, topic);
+    final chain = (params['chain'] as String).caip2Namespace;
+    switch (chain) {
+      case Wc2Chain.ethereum:
+        return await _handleAuEthSendTransactionRequest(
+            params, proposer, topic);
+      case Wc2Chain.tezos:
+        return await _handleAuTezSendTransactionRequest(
+            params, proposer, topic);
+      default:
+        log.warning('[Wc2Service] Chain not supported: $chain');
+        throw _chainNotSupported;
+    }
   }
 
   Future<PairingMetadata?> _getWc2Request(String topic, params) async {
@@ -542,7 +553,7 @@ class Wc2Service {
     if (proposer == null) {
       throw _proposalNotFound;
     }
-    final beaconRquest = getBeaconRequest(
+    final beaconRequest = getBeaconRequest(
       topic,
       param,
       proposer,
@@ -550,7 +561,7 @@ class Wc2Service {
     );
     return await _navigationService.navigateTo(
       AppRouter.tbSignMessagePage,
-      arguments: beaconRquest,
+      arguments: beaconRequest,
     );
   }
 
@@ -590,6 +601,24 @@ class Wc2Service {
       return await _navigationService.navigateTo(
         AppRouter.wcSendTransactionPage,
         arguments: args,
+      );
+    } catch (e) {
+      throw JsonRpcError.invalidParams(e.toString());
+    }
+  }
+
+  Future _handleAuTezSendTransactionRequest(
+      params, PairingMetadata proposer, String topic) async {
+    try {
+      final beaconRequest = getBeaconRequest(
+        topic,
+        params,
+        proposer,
+        0,
+      );
+      return await _navigationService.navigateTo(
+        AppRouter.tbSendTransactionPage,
+        arguments: beaconRequest,
       );
     } catch (e) {
       throw JsonRpcError.invalidParams(e.toString());
