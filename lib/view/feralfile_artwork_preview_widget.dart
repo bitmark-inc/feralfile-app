@@ -80,6 +80,7 @@ class _FeralfileArtworkPreviewWidgetState
   @override
   Widget build(BuildContext context) {
     final previewUrl = widget.payload.artwork.previewURL;
+    final thumbnailUrl = widget.payload.artwork.thumbnailURL;
     final feralfileMedium = FeralfileMediumTypes.fromString(
         widget.payload.artwork.series?.medium ?? '');
     final medium = feralfileMedium.toRenderingType;
@@ -95,9 +96,9 @@ class _FeralfileArtworkPreviewWidgetState
             context,
             attempt: attempt > 0 ? attempt : null,
             isMute: widget.payload.isMute,
-            mimeType: '',
+            mimeType: medium,
             previewURL: previewUrl,
-            thumbnailURL: '',
+            thumbnailURL: thumbnailUrl,
           );
 
           switch (medium) {
