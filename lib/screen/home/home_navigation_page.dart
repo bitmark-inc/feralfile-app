@@ -46,6 +46,7 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/homepage_navigation_bar.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -88,8 +89,8 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         RouteAware,
         WidgetsBindingObserver,
         AfterLayoutMixin<HomeNavigationPage> {
-  int _selectedIndex = 0;
-  late PageController _pageController;
+  late int _selectedIndex;
+  PageController? _pageController;
   late List<Widget> _pages;
   final GlobalKey<OrganizeHomePageState> _organizeHomePageKey = GlobalKey();
   final GlobalKey<CollectionHomePageState> _collectionHomePageKey = GlobalKey();
@@ -102,6 +103,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   final _playListService = injector<PlaylistService>();
   final _remoteConfig = injector<RemoteConfigService>();
   late HomeNavigatorTab _initialTab;
+  final nftBloc = injector<ClientTokenService>().nftBloc;
 
   StreamSubscription<FGBGType>? _fgbgSubscription;
 
@@ -133,7 +135,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       setState(() {
         _selectedIndex = index;
       });
-      _pageController.jumpToPage(_selectedIndex);
+      _pageController?.jumpToPage(_selectedIndex);
       if (index == HomeNavigatorTab.collection.index ||
           index == HomeNavigatorTab.organization.index) {
         unawaited(_clientTokenService.refreshTokens());
@@ -216,10 +218,23 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   void initState() {
     unawaited(injector<CustomerSupportService>().getIssuesAndAnnouncement());
     super.initState();
-    _initialTab = HomeNavigatorTab.exhibition;
+    _initialTab = widget.payload.startedTab;
     _selectedIndex = _initialTab.index;
-    _pageController = PageController(initialPage: _selectedIndex);
-
+    NftCollectionBloc.eventController.stream.listen((event) async {
+      switch (event.runtimeType) {
+        case ReloadEvent:
+        case GetTokensByOwnerEvent:
+        case UpdateTokensEvent:
+        case GetTokensBeforeByOwnerEvent:
+          nftBloc.add(event);
+          break;
+        default:
+      }
+    });
+    unawaited(
+        _clientTokenService.refreshTokens(syncAddresses: true).then((value) {
+      nftBloc.add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
+    }));
     unawaited(_clientTokenService.refreshTokens());
 
     _timer = Timer.periodic(const Duration(minutes: 1), (timer) {
@@ -272,12 +287,29 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     unawaited(_configurationService.setDidSyncArtists(true));
   }
 
+  Future refreshNotification() async {
+    await injector<CustomerSupportService>().getIssuesAndAnnouncement();
+  }
+
   @override
   Future<void> didPopNext() async {
     super.didPopNext();
     unawaited(injector<CustomerSupportService>().getIssuesAndAnnouncement());
     if (_selectedIndex == HomeNavigatorTab.scanQr.index) {
       await _scanQRPageKey.currentState?.resumeCamera();
+    }
+    unawaited(_clientTokenService.refreshTokens());
+    unawaited(refreshNotification());
+    final connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult == ConnectivityResult.mobile ||
+        connectivityResult == ConnectivityResult.wifi) {
+      Future.delayed(const Duration(milliseconds: 1000), () async {
+        if (!mounted) {
+          return;
+        }
+        nftBloc
+            .add(RequestIndexEvent(await _clientTokenService.getAddresses()));
+      });
     }
   }
 
@@ -322,7 +354,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
 
   @override
   void dispose() {
-    _pageController.dispose();
+    _pageController?.dispose();
     WidgetsBinding.instance.removeObserver(this);
     unawaited(_fgbgSubscription?.cancel());
     _timer?.cancel();
@@ -335,26 +367,61 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         body: SafeArea(
           top: false,
           bottom: false,
-          child: Stack(
-            children: [
-              PageView(
-                controller: _pageController,
-                physics: const NeverScrollableScrollPhysics(),
-                children: _pages,
-              ),
-              KeyboardVisibilityBuilder(
-                builder: (context, isKeyboardVisible) => isKeyboardVisible
-                    ? const SizedBox()
-                    : Positioned.fill(
-                        bottom: 40,
-                        child: Align(
-                          alignment: Alignment.bottomCenter,
-                          child: _buildBottomNavigationBar(context),
-                        ),
-                      ),
-              ),
-            ],
-          ),
+          child: BlocConsumer<NftCollectionBloc, NftCollectionBlocState>(
+              bloc: nftBloc,
+              listenWhen: (previous, current) =>
+                  _pageController == null ||
+                  previous.tokens.isEmpty && current.tokens.isNotEmpty ||
+                  previous.tokens.isNotEmpty && current.tokens.isEmpty,
+              listener: (context, state) {
+                if (state.tokens.isEmpty) {
+                  setState(() {
+                    _initialTab = widget.payload.startedTab;
+                  });
+                } else {
+                  setState(() {
+                    _initialTab = HomeNavigatorTab.collection;
+                  });
+                }
+              },
+              buildWhen: (previous, current) {
+                final shouldRebuild = _pageController == null;
+                if (shouldRebuild) {
+                  _selectedIndex = _initialTab.index;
+                  _pageController?.dispose();
+                  _pageController = _getPageController(_selectedIndex);
+                }
+                return shouldRebuild;
+              },
+              builder: (context, state) {
+                if (state.tokens.isEmpty) {
+                  if ([NftLoadingState.notRequested, NftLoadingState.loading]
+                      .contains(state.state)) {
+                    return Center(
+                        child: loadingIndicator(valueColor: AppColor.white));
+                  }
+                }
+                return Stack(
+                  children: [
+                    PageView(
+                      controller: _pageController,
+                      physics: const NeverScrollableScrollPhysics(),
+                      children: _pages,
+                    ),
+                    KeyboardVisibilityBuilder(
+                      builder: (context, isKeyboardVisible) => isKeyboardVisible
+                          ? const SizedBox()
+                          : Positioned.fill(
+                              bottom: 40,
+                              child: Align(
+                                alignment: Alignment.bottomCenter,
+                                child: _buildBottomNavigationBar(context),
+                              ),
+                            ),
+                    ),
+                  ],
+                );
+              }),
         ),
       );
 
@@ -515,6 +582,9 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     event.complete(null);
   }
 
+  PageController _getPageController(int initialIndex) =>
+      PageController(initialPage: initialIndex);
+
   Future<void> _handleNotificationClicked(OSNotification notification) async {
     if (notification.additionalData == null) {
       // Skip handling the notification without data
@@ -529,7 +599,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         Navigator.of(context).popUntil((route) =>
             route.settings.name == AppRouter.homePage ||
             route.settings.name == AppRouter.homePageNoTransition);
-        _pageController.jumpToPage(HomeNavigatorTab.collection.index);
+        _pageController?.jumpToPage(HomeNavigatorTab.collection.index);
         break;
 
       case 'customer_support_new_message':
@@ -561,7 +631,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         Navigator.of(context).popUntil((route) =>
             route.settings.name == AppRouter.homePage ||
             route.settings.name == AppRouter.homePageNoTransition);
-        _pageController.jumpToPage(HomeNavigatorTab.collection.index);
+        _pageController?.jumpToPage(HomeNavigatorTab.collection.index);
         break;
       case 'new_message':
         if (!_remoteConfig.getBool(ConfigGroup.viewDetail, ConfigKey.chat)) {
