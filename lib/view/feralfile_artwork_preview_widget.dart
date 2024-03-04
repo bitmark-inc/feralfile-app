@@ -11,10 +11,12 @@ import 'package:nft_rendering/nft_rendering.dart';
 class FeralFileArtworkPreviewWidgetPayload {
   final Artwork artwork;
   final bool isMute;
+  final bool isScrollable;
 
   FeralFileArtworkPreviewWidgetPayload({
     required this.artwork,
     required this.isMute,
+    this.isScrollable = false,
   });
 }
 
@@ -99,6 +101,7 @@ class _FeralfileArtworkPreviewWidgetState
             mimeType: medium,
             previewURL: previewUrl,
             thumbnailURL: thumbnailUrl,
+            isScrollable: widget.payload.isScrollable,
           );
 
           switch (medium) {

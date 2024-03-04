@@ -42,6 +42,7 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
     'feralfile_artwork_action': {
       'allow_download_artwork_contracts': [],
       'sound_piece_contract_addresses': [],
+      'scrollable_preview_url': [],
     },
   };
 
@@ -131,6 +132,7 @@ enum ConfigKey {
   waitConfirmedToSend,
   allowDownloadArtworkContracts,
   soundPieceContractAddresses,
+  scrollablePreviewUrl,
 }
 
 // ConfigKey getString extension
@@ -173,6 +175,8 @@ extension ConfigKeyExtension on ConfigKey {
         return 'allow_download_artwork_contracts';
       case ConfigKey.soundPieceContractAddresses:
         return 'sound_piece_contract_addresses';
+      case ConfigKey.scrollablePreviewUrl:
+        return 'scrollable_preview_url';
     }
   }
 }

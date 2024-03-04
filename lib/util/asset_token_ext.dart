@@ -208,6 +208,7 @@ extension AssetTokenExtension on AssetToken {
         return RenderingType.svg;
 
       case 'image/gif':
+      case 'image/vnd.mozilla.apng':
         return RenderingType.gif;
 
       case 'audio/aac':
