@@ -76,11 +76,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
     }
 
     final viewingArtworks = exhibitionDetail.representArtworks;
-
-    final tokenIds = viewingArtworks
-        .map((e) => exhibitionDetail.getArtworkTokenId(e)!)
-        .toList();
-    final itemCount = tokenIds.length + 3;
+    final itemCount = viewingArtworks.length + 3;
     return Stack(
       children: [
         PageView.builder(
@@ -117,7 +113,6 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
                   padding: const EdgeInsets.only(bottom: 40),
                   child: FeralFileArtworkPreview(
                     payload: FeralFileArtworkPreviewPayload(
-                      tokenId: tokenIds[seriesIndex],
                       artwork: viewingArtworks[seriesIndex],
                       series: series,
                     ),
@@ -203,7 +198,8 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
       getFFAppBar(
         buildContext,
         onBack: () => Navigator.pop(buildContext),
-        action: exhibitionDetail == null
+        action: exhibitionDetail == null ||
+                exhibitionDetail.exhibition.status != 4
             ? null
             : Padding(
                 padding: const EdgeInsets.only(right: 14, bottom: 10, top: 10),

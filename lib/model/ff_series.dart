@@ -2,6 +2,7 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/ff_user.dart';
+import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:collection/collection.dart';
 
 class FFSeries {
@@ -23,6 +24,13 @@ class FFSeries {
   final AirdropInfo? airdropInfo;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  final FileInfo? originalFile;
+  final FileInfo? previewFile;
+  final Artwork? artwork;
+  final String? externalSource;
+  final String? uniqueThumbnailPath;
+  final String? uniquePreviewPath;
+  final String? onchainID;
 
   FFSeries(
     this.id,
@@ -43,6 +51,13 @@ class FFSeries {
     this.displayIndex,
     this.featuringIndex,
     this.updatedAt,
+    this.originalFile,
+    this.previewFile,
+    this.artwork,
+    this.externalSource,
+    this.uniqueThumbnailPath,
+    this.uniquePreviewPath,
+    this.onchainID,
   );
 
   int get maxEdition => settings?.maxArtwork ?? -1;
@@ -86,6 +101,19 @@ class FFSeries {
         json['updatedAt'] == null
             ? null
             : DateTime.parse(json['updatedAt'] as String),
+        json['originalFile'] == null
+            ? null
+            : FileInfo.fromJson(json['originalFile'] as Map<String, dynamic>),
+        json['previewFile'] == null
+            ? null
+            : FileInfo.fromJson(json['previewFile'] as Map<String, dynamic>),
+        json['artwork'] == null
+            ? null
+            : Artwork.fromJson(json['artwork'] as Map<String, dynamic>),
+        json['externalSource'] as String?,
+        json['uniqueThumbnailPath'] as String?,
+        json['uniquePreviewPath'] as String?,
+        json['onchainID'] as String?,
       );
 
   Map<String, dynamic> toJson() => {
@@ -107,6 +135,13 @@ class FFSeries {
         'airdropInfo': airdropInfo,
         'createdAt': createdAt?.toIso8601String(),
         'updatedAt': updatedAt?.toIso8601String(),
+        'originalFile': originalFile?.toJson(),
+        'previewFile': previewFile?.toJson(),
+        'artwork': artwork?.toJson(),
+        'externalSource': externalSource,
+        'uniqueThumbnailPath': uniqueThumbnailPath,
+        'uniquePreviewPath': uniquePreviewPath,
+        'onchainID': onchainID,
       };
 }
 
@@ -130,18 +165,23 @@ class FFSeriesResponse {
 class FFSeriesSettings {
   final int maxArtwork;
   final String? saleModel;
+  ArtworkModel? artworkModel;
 
-  FFSeriesSettings(this.saleModel, this.maxArtwork);
+  FFSeriesSettings(this.saleModel, this.maxArtwork, {this.artworkModel});
 
   factory FFSeriesSettings.fromJson(Map<String, dynamic> json) =>
       FFSeriesSettings(
         json['saleModel'] as String?,
         json['maxArtwork'] as int,
+        artworkModel: json['artworkModel'] == null
+            ? null
+            : ArtworkModel.fromString(json['artworkModel'] as String),
       );
 
   Map<String, dynamic> toJson() => {
         'maxArtwork': maxArtwork,
         'saleModel': saleModel,
+        'artworkModel': artworkModel?.value,
       };
 
   bool get isAirdrop =>

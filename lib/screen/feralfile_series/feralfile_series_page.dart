@@ -5,7 +5,6 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artwork_preview_page.dart';
 import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_bloc.dart';
 import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_state.dart';
-import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/ff_artwork_thumbnail_view.dart';
 import 'package:autonomy_flutter/view/series_title_view.dart';
@@ -78,16 +77,12 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
               return FFArtworkThumbnailView(
                 artwork: artwork,
                 onTap: () async {
-                  final tokenId = exhibitionDetail?.getArtworkTokenId(artwork);
-                  if (tokenId != null) {
-                    await Navigator.of(context).pushNamed(
-                      AppRouter.ffArtworkPreviewPage,
-                      arguments: FeralFileArtworkPreviewPagePayload(
-                        tokenId: tokenId,
-                        artwork: artwork,
-                      ),
-                    );
-                  }
+                  await Navigator.of(context).pushNamed(
+                    AppRouter.ffArtworkPreviewPage,
+                    arguments: FeralFileArtworkPreviewPagePayload(
+                      artwork: artwork,
+                    ),
+                  );
                 },
               );
             },
