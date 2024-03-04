@@ -46,9 +46,20 @@ class _FeralFileApi implements FeralFileApi {
   }
 
   @override
-  Future<FFSeriesResponse> getSeries(String seriesId) async {
+  Future<FFSeriesResponse> getSeries({
+    required String seriesId,
+    bool includeFiles = true,
+    bool includeCollectibility = true,
+    bool includeUniqueFilePath = true,
+    bool includeFirstArtwork = true,
+  }) async {
     const _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'includeFiles': includeFiles,
+      r'includeCollectibility': includeCollectibility,
+      r'includeUniqueFilePath': includeUniqueFilePath,
+      r'includeFirstArtwork': includeFirstArtwork,
+    };
     final _headers = <String, dynamic>{};
     final Map<String, dynamic>? _data = null;
     final _result = await _dio
@@ -69,6 +80,46 @@ class _FeralFileApi implements FeralFileApi {
               baseUrl,
             ))));
     final value = FFSeriesResponse.fromJson(_result.data!);
+    return value;
+  }
+
+  @override
+  Future<FFListSeriesResponse> getListSeries({
+    required String exhibitionID,
+    String? sortBy,
+    String? sortOrder,
+    bool includeArtist = true,
+    bool includeUniqueFilePath = true,
+  }) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'exhibitionID': exhibitionID,
+      r'sortBy': sortBy,
+      r'sortOrder': sortOrder,
+      r'includeArtist': includeArtist,
+      r'includeUniqueFilePath': includeUniqueFilePath,
+    };
+    queryParameters.removeWhere((k, v) => v == null);
+    final _headers = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
+    final _result = await _dio.fetch<Map<String, dynamic>>(
+        _setStreamType<FFListSeriesResponse>(Options(
+      method: 'GET',
+      headers: _headers,
+      extra: _extra,
+    )
+            .compose(
+              _dio.options,
+              '/api/series',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(
+                baseUrl: _combineBaseUrls(
+              _dio.options.baseUrl,
+              baseUrl,
+            ))));
+    final value = FFListSeriesResponse.fromJson(_result.data!);
     return value;
   }
 

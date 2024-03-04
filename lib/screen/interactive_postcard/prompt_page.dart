@@ -21,6 +21,7 @@ class PromptPage extends StatefulWidget {
 class _PromptPageState extends State<PromptPage> {
   final TextEditingController _controller = TextEditingController();
   bool _isPromptValid = false;
+  static const double _buttonHeight = 48;
 
   @override
   Widget build(BuildContext context) {
@@ -85,32 +86,30 @@ class _PromptPageState extends State<PromptPage> {
             const SizedBox(height: 10),
             Row(
               children: [
-                Flexible(
-                    flex: 4,
+                Expanded(
                     child: PostcardButton(
-                      text: 'save_prompt'.tr(),
-                      enabled: _isPromptValid,
-                      onTap: () async {
-                        final assetWithPrompt = widget.payload.asset
-                            .setAssetPrompt(
-                                Prompt.getUserPrompt(_controller.text.trim()));
-                        await Navigator.of(context).pushNamed(
-                            AppRouter.designStamp,
-                            arguments: DesignStampPayload(assetWithPrompt, true,
-                                widget.payload.shareCode));
-                      },
-                    )),
-                Flexible(
-                    child: PostcardButton(
+                  text: 'save_prompt'.tr(),
+                  enabled: _isPromptValid,
+                  height: _buttonHeight,
+                  onTap: () async {
+                    final assetWithPrompt = widget.payload.asset.setAssetPrompt(
+                        Prompt.getUserPrompt(_controller.text.trim()));
+                    await Navigator.of(context).pushNamed(AppRouter.designStamp,
+                        arguments: DesignStampPayload(
+                            assetWithPrompt, true, widget.payload.shareCode));
+                  },
+                )),
+                PostcardButton(
                   text: 'skip'.tr(),
                   color: backgroundColor,
                   textColor: AppColor.auQuickSilver,
                   textStyle: theme.textTheme.moMASans400Grey12,
+                  height: _buttonHeight,
                   onTap: () async {
                     await Navigator.of(context).pushNamed(AppRouter.designStamp,
                         arguments: widget.payload);
                   },
-                )),
+                ),
               ],
             )
           ],
