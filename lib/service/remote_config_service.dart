@@ -77,8 +77,13 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
       unawaited(loadConfigs());
       return _defaults[group.getString]![key.getString] as T ?? defaultValue;
     } else {
-      final res =
-          _configs![group.getString]?[key.getString] as T ?? defaultValue;
+      final hasKey = (_configs![group.getString] as Map<String, dynamic>)
+          .keys
+          .contains(key.getString);
+      if (!hasKey) {
+        return defaultValue;
+      }
+      final res = _configs![group.getString]?[key.getString] as T;
       return res;
     }
   }

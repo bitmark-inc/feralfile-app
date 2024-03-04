@@ -21,7 +21,7 @@ class FeralFileArtworkPreview extends StatelessWidget {
           child: FeralfileArtworkPreviewWidget(
             payload: FeralFileArtworkPreviewWidgetPayload(
               artwork: payload.artwork,
-              isMute: true,
+              isMute: false,
             ),
           ),
         ),
