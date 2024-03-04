@@ -218,7 +218,6 @@ class MemoryValues {
   String? scopedPersona;
   String? viewingSupportThreadIssueID;
   DateTime? inForegroundAt;
-  bool inGalleryView;
   ValueNotifier<Map<dynamic, dynamic>?> branchDeeplinkData;
   ValueNotifier<String?> deepLink;
   ValueNotifier<String?> irlLink;
@@ -232,7 +231,6 @@ class MemoryValues {
     this.scopedPersona,
     this.viewingSupportThreadIssueID,
     this.inForegroundAt,
-    this.inGalleryView = true,
   });
 
   MemoryValues copyWith({
