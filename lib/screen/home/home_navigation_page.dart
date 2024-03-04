@@ -133,12 +133,19 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         }
         if (index != HomeNavigatorTab.menu.index &&
             index != HomeNavigatorTab.scanQr.index) {
-          unawaited(_metricClientService.addEvent(
-            MixpanelEvent.visitPage,
-            data: {
-              MixpanelProp.title: HomeNavigatorTab.values[index].screenName,
-            },
-          ));
+          unawaited(
+            _metricClientService.addEvent(
+              MixpanelEvent.visitPage,
+              data: {
+                MixpanelProp.title:
+                    HomeNavigatorTab.values[_selectedIndex].screenName,
+              },
+            ).then(
+              (_) => _metricClientService.timerEvent(
+                MixpanelEvent.visitPage,
+              ),
+            ),
+          );
         }
       }
       setState(() {
@@ -230,12 +237,9 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     _initialTab = HomeNavigatorTab.exhibition;
     _selectedIndex = _initialTab.index;
     _pageController = PageController(initialPage: _selectedIndex);
-    unawaited(_metricClientService.addEvent(
+    _metricClientService.timerEvent(
       MixpanelEvent.visitPage,
-      data: {
-        MixpanelProp.title: HomeNavigatorTab.values[_selectedIndex].screenName,
-      },
-    ));
+    );
 
     unawaited(_clientTokenService.refreshTokens());
 
@@ -296,6 +300,9 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     if (_selectedIndex == HomeNavigatorTab.scanQr.index) {
       await _scanQRPageKey.currentState?.resumeCamera();
     }
+    _metricClientService.timerEvent(
+      MixpanelEvent.visitPage,
+    );
   }
 
   Future<void> _showRemoveCustomerSupport() async {
@@ -679,7 +686,6 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
 
   void _handleBackground() {
     unawaited(_cloudBackup());
-    _metricClientService.onUseAppBackground();
   }
 
   Future<void> _handleForeBackground(FGBGType event) async {
@@ -735,7 +741,6 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   }
 
   Future<void> _handleForeground() async {
-    _metricClientService.onUseAppForeground();
     await injector<CustomerSupportService>().fetchAnnouncement();
     unawaited(announcementNotificationIfNeed());
     await _remoteConfig.loadConfigs();

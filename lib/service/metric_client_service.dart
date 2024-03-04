@@ -3,11 +3,11 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/route_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -18,12 +18,9 @@ class MetricClientService {
   final mixPanelClient = injector<MixPanelClientService>();
   bool isFinishInit = false;
 
-  Timer? useAppTimer;
-
   Future<void> initService() async {
     await mixPanelClient.initService();
     isFinishInit = true;
-    onUseAppForeground();
   }
 
   Future<void> addEvent(
@@ -52,17 +49,6 @@ class MetricClientService {
     }
   }
 
-  void onUseAppForeground() {
-    useAppTimer?.cancel();
-    useAppTimer = Timer(USE_APP_MIN_DURATION, () async {
-      await addEvent(MixpanelEvent.visitFeralfile, data: {});
-    });
-  }
-
-  void onUseAppBackground() {
-    useAppTimer?.cancel();
-  }
-
   void timerEvent(String name) {
     if (isFinishInit) {
       mixPanelClient.timerEvent(name.snakeToCapital());
@@ -80,23 +66,19 @@ class MetricClientService {
   }
 
   Future<void> trackStartScreen(Route<dynamic> route) async {
-    final routeName = route.settings.name;
-    if (routeName == null) {
-      return;
+    if (!route.isIgnoreForVisitPageEvent) {
+      timerEvent(MixpanelEvent.visitPage);
     }
-    final screenName = getPageName(routeName);
-    final routeDataString = route.settings.arguments;
-    Map<String, dynamic> data = {
-      'routeData': routeDataString,
-    };
-    // try {
-    //   data = json.decode(routeDataString);
-    // } catch (_) {}
-    data.addAll({'title': screenName});
-    await addEvent(MixpanelEvent.visitPage, data: data);
   }
 
-  Future<void> trackEndScreen(Route<dynamic> route) async {}
+  Future<void> trackEndScreen(Route<dynamic> route) async {
+    if (route.isIgnoreForVisitPageEvent) {
+      return;
+    }
+    final screenName = route.metricTitle;
+    Map<String, dynamic> data = route.metricData..addAll({'title': screenName});
+    await addEvent(MixpanelEvent.visitPage, data: data);
+  }
 
   void setLabel(String prop, dynamic value) {
     if (isFinishInit) {

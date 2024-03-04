@@ -9,6 +9,7 @@ import 'dart:io';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/util/eth_utils.dart';
 import 'package:autonomy_flutter/util/fee_util.dart';
 import 'package:autonomy_flutter/util/geolocation.dart';
@@ -499,10 +500,9 @@ class Constants {
 }
 
 class MixpanelEvent {
-  static const String visitPage = 'Visit Page';
+  static const String visitPage = 'Visit page';
   static const String viewExhibition = 'View exhibition';
   static const String viewArtwork = 'View artwork';
-  static const String visitFeralfile = 'Visit Feral File';
 }
 
 class MixpanelEventProp {}
@@ -514,6 +514,18 @@ class MixpanelProp {
   static const exhibitionId = 'exhibitionId';
   static const ownerAddress = 'ownerAddress';
   static const title = 'title';
+  static const playlistId = 'playlistId';
+  static const address = 'address';
+  static const type = 'type';
+  static const url = 'url';
+  static const message = 'message';
+  static const section = 'section';
+  static const recipientAddress = 'recipientAddress';
+  static const seriesId = 'seriesId';
+  static const method = 'method';
+  static const activationId = 'activationId';
+  static const isOnboarding = 'isOnboarding';
+  static const id = 'id';
 }
 
 class MixpanelConfig {}
@@ -524,6 +536,11 @@ class MixpanelExtendScreen {
   static const String exhibition = 'Exhibition';
   static const String showMyCode = 'Show My Code';
 }
+
+const List<String> metricVisitPageIgnoreScreen = [
+  AppRouter.homePage,
+  AppRouter.homePageNoTransition,
+];
 
 class LinkType {
   static const local = 'Local Deep Link';

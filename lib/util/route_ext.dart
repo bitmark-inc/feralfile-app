@@ -1,0 +1,543 @@
+import 'package:autonomy_flutter/model/connection_request_args.dart';
+import 'package:autonomy_flutter/model/ff_series.dart';
+import 'package:autonomy_flutter/model/play_list_model.dart';
+import 'package:autonomy_flutter/model/postcard_claim.dart';
+import 'package:autonomy_flutter/model/wc2_request.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/bloc/connections/connections_bloc.dart';
+import 'package:autonomy_flutter/screen/chat/chat_thread_page.dart';
+import 'package:autonomy_flutter/screen/claim/activation/claim_activation_page.dart';
+import 'package:autonomy_flutter/screen/claim/airdrop/claim_airdrop_page.dart';
+import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
+import 'package:autonomy_flutter/screen/claim/select_account_page.dart';
+import 'package:autonomy_flutter/screen/cloud/cloud_android_page.dart';
+import 'package:autonomy_flutter/screen/cloud/cloud_page.dart';
+import 'package:autonomy_flutter/screen/connection/persona_connections_page.dart';
+import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
+import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
+import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
+import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artwork_preview_page.dart';
+import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_page.dart';
+import 'package:autonomy_flutter/screen/gallery/gallery_page.dart';
+import 'package:autonomy_flutter/screen/global_receive/receive_detail_page.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/hand_signature_page.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/postcard_explain.dart';
+import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
+import 'package:autonomy_flutter/screen/irl_screen/sign_message_screen.dart';
+import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
+import 'package:autonomy_flutter/screen/onboarding/import_address/name_address_persona.dart';
+import 'package:autonomy_flutter/screen/onboarding/new_address/address_alias.dart';
+import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_address.dart';
+import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
+import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
+import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
+import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_page.dart';
+import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_page.dart';
+import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_review_page.dart';
+import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/linked_wallet_detail_page.dart';
+import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
+import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
+import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
+import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
+import 'package:autonomy_flutter/util/constants.dart';
+import 'package:flutter/material.dart';
+import 'package:nft_collection/models/models.dart';
+
+extension RouteExt on Route {
+  String get metricTitle {
+    final routeName = settings.name;
+    if (routeName == null) {
+      return 'Unknown';
+    }
+    return getPageName(routeName);
+  }
+
+  bool get isIgnoreForVisitPageEvent =>
+      metricVisitPageIgnoreScreen.contains(settings.name);
+
+  Map<String, dynamic> get metricData {
+    Map<String, dynamic> data = {};
+    final routeName = settings.name;
+    switch (routeName) {
+      case AppRouter.viewPlayListPage:
+        final payload = settings.arguments! as ViewPlaylistScreenPayload;
+        data = {MixpanelProp.playlistId: payload.playListModel?.id};
+        break;
+      case AppRouter.editPlayListPage:
+        final payload = settings.arguments! as ViewPlaylistScreenPayload;
+        data = {
+          MixpanelProp.playlistId: payload.playListModel?.id,
+        };
+        break;
+      case AppRouter.artworkPreviewPage:
+        final payload = settings.arguments! as ArtworkDetailPayload;
+        data = {
+          MixpanelProp.tokenId: payload.identities[payload.currentIndex].id,
+          MixpanelProp.ownerAddress:
+              payload.identities[payload.currentIndex].owner,
+        };
+        break;
+      case AppRouter.artworkDetailsPage:
+        final payload = settings.arguments! as ArtworkDetailPayload;
+        data = {
+          MixpanelProp.tokenId: payload.identities[payload.currentIndex].id,
+          MixpanelProp.ownerAddress:
+              payload.identities[payload.currentIndex].owner,
+        };
+        break;
+      case AppRouter.claimedPostcardDetailsPage:
+        final payload = settings.arguments! as PostcardDetailPagePayload;
+        data = {
+          MixpanelProp.tokenId: payload.identities[payload.currentIndex].id,
+          MixpanelProp.ownerAddress:
+              payload.identities[payload.currentIndex].owner,
+        };
+        break;
+      case AppRouter.galleryPage:
+        final payload = settings.arguments! as GalleryPagePayload;
+        data = {
+          MixpanelProp.address: payload.address,
+        };
+        break;
+      case AppRouter.personaConnectionsPage:
+        final payload = settings.arguments! as PersonaConnectionsPayload;
+        data = {
+          MixpanelProp.address: payload.address,
+          MixpanelProp.type: payload.type,
+        };
+        break;
+      case AppRouter.connectionDetailsPage:
+        final payload = settings.arguments! as ConnectionItem;
+        data = {
+          MixpanelProp.title: payload.representative.name,
+          MixpanelProp.type: payload.representative.connectionType,
+        };
+        break;
+      case AppRouter.walletDetailsPage:
+        final payload = settings.arguments! as WalletDetailsPayload;
+        data = {
+          MixpanelProp.type: payload.type,
+          MixpanelProp.address: payload.walletAddress.address
+        };
+        break;
+      case AppRouter.linkedWalletDetailsPage:
+        final payload = settings.arguments! as LinkedWalletDetailsPayload;
+        data = {
+          MixpanelProp.type: payload.type,
+          MixpanelProp.address: payload.connection.name
+        };
+        break;
+      case AppRouter.scanQRPage:
+        final payload = settings.arguments! as ScannerItem;
+        data = {
+          MixpanelProp.type: payload.name,
+        };
+        break;
+      case AppRouter.globalReceivePage:
+        final payload = settings.arguments! as GlobalReceivePayload;
+        data = {
+          MixpanelProp.address: payload.address,
+          MixpanelProp.type: payload.blockchain,
+        };
+        break;
+      case AppRouter.wcConnectPage:
+        final payload = settings.arguments! as ConnectionRequest;
+        data = {
+          MixpanelProp.title: payload.name,
+          MixpanelProp.url: payload.url,
+        };
+        break;
+      case AppRouter.cloudPage:
+        final payload = settings.arguments! as CloudPagePayload;
+        data = {
+          MixpanelProp.section: payload.section,
+        };
+        break;
+      case AppRouter.cloudAndroidPage:
+        final payload = settings.arguments! as CloudAndroidPagePayload;
+        data = {
+          MixpanelProp.section: payload.isEncryptionAvailable,
+        };
+        break;
+      case AppRouter.releaseNotesPage:
+        final payload = settings.arguments! as String;
+        data = {
+          MixpanelProp.message: payload,
+        };
+        break;
+      case AppRouter.supportThreadPage:
+        final payload = settings.arguments! as SupportThreadPayload;
+        data = {
+          MixpanelProp.title: payload.announcement?.title,
+          MixpanelProp.type: payload.announcement?.type,
+          MixpanelProp.message: payload.announcement?.body,
+        };
+        break;
+      case AppRouter.githubDocPage:
+        final payload = settings.arguments! as Map<String, String>;
+        data = payload;
+        break;
+      case AppRouter.sendArtworkPage:
+        final payload = settings.arguments! as SendArtworkPayload;
+        data = {
+          MixpanelProp.tokenId: payload.asset.id,
+          MixpanelProp.ownerAddress: payload.asset.owner,
+        };
+        break;
+      case AppRouter.sendArtworkReviewPage:
+        final payload = settings.arguments! as SendArtworkReviewPayload;
+        data = {
+          MixpanelProp.tokenId: payload.assetToken.id,
+          MixpanelProp.ownerAddress: payload.assetToken.owner,
+          MixpanelProp.recipientAddress: payload.address,
+        };
+        break;
+      case AppRouter.claimFeralfileTokenPage:
+        final payload = settings.arguments! as ClaimTokenPagePayload;
+        data = {
+          MixpanelProp.seriesId: payload.series.id,
+        };
+        break;
+      case AppRouter.claimSelectAccountPage:
+        final payload = settings.arguments! as SelectAddressPagePayload;
+        data = {
+          MixpanelProp.type: payload.blockchain,
+        };
+        break;
+      case AppRouter.airdropTokenDetailPage:
+        final payload = settings.arguments! as FFSeries;
+        data = {
+          MixpanelProp.seriesId: payload.id,
+        };
+        break;
+      case AppRouter.wc2ConnectPage:
+        final payload = settings.arguments! as Wc2Proposal;
+        data = {
+          MixpanelProp.title: payload.name,
+          MixpanelProp.url: payload.url,
+        };
+        break;
+      case AppRouter.wc2PermissionPage:
+        final payload = settings.arguments! as Wc2Request;
+        data = {
+          MixpanelProp.title: payload.proposer?.name,
+          MixpanelProp.url: payload.proposer?.url,
+          MixpanelProp.method: payload.method
+        };
+        break;
+      case AppRouter.inappWebviewPage:
+        final payload = settings.arguments! as InAppWebViewPayload;
+        data = {
+          MixpanelProp.url: payload.url,
+        };
+        break;
+      case AppRouter.postcardExplain:
+        final payload = settings.arguments! as PostcardExplainPayload;
+        data = {
+          MixpanelProp.tokenId: payload.asset.id,
+          MixpanelProp.ownerAddress: payload.asset.owner
+        };
+        break;
+      case AppRouter.designStamp:
+      case AppRouter.promptPage:
+        final payload = settings.arguments! as DesignStampPayload;
+        data = {
+          MixpanelProp.tokenId: payload.asset.id,
+          MixpanelProp.ownerAddress: payload.asset.owner,
+        };
+        break;
+      case AppRouter.handSignaturePage:
+        final payload = settings.arguments! as HandSignaturePayload;
+        data = {
+          MixpanelProp.tokenId: payload.asset.id,
+          MixpanelProp.ownerAddress: payload.asset.owner,
+        };
+        break;
+      case AppRouter.stampPreview:
+        final payload = settings.arguments! as StampPreviewPayload;
+        data = {
+          MixpanelProp.tokenId: payload.asset.id,
+          MixpanelProp.ownerAddress: payload.asset.owner,
+        };
+        break;
+      case AppRouter.claimEmptyPostCard:
+        final payload = settings.arguments! as RequestPostcardResponse;
+        data = {
+          MixpanelProp.tokenId: payload.tokenId,
+          MixpanelProp.url: payload.previewURL,
+        };
+        break;
+      case AppRouter.payToMintPostcard:
+        final payload = settings.arguments! as PayToMintRequest;
+        data = {
+          MixpanelProp.tokenId: payload.tokenId,
+          MixpanelProp.url: payload.previewURL,
+          MixpanelProp.address: payload.address,
+        };
+        break;
+      case AppRouter.postcardSelectAddressScreen:
+        final payload = settings.arguments! as Map<String, dynamic>;
+        data = payload;
+        break;
+      case AppRouter.receivePostcardPage:
+        final payload = settings.arguments! as ReceivePostcardPageArgs;
+        data = {
+          MixpanelProp.tokenId: payload.asset.id,
+          MixpanelProp.url: payload.asset.previewURL,
+          MixpanelProp.ownerAddress: payload.asset.owner,
+        };
+        break;
+      case AppRouter.irlWebView:
+        final payload = settings.arguments! as IRLWebScreenPayload;
+        data = {
+          MixpanelProp.url: payload.url,
+        };
+        break;
+      case AppRouter.irlSignMessage:
+        final payload = settings.arguments! as IRLSignMessagePayload;
+        data = {
+          MixpanelProp.type: payload.chain,
+          MixpanelProp.address: payload.sourceAddress,
+        };
+        break;
+      case AppRouter.claimAirdropPage:
+        final payload = settings.arguments! as ClaimAirdropPagePayload;
+        data = {
+          MixpanelProp.seriesId: payload.series.id,
+        };
+        break;
+      case AppRouter.activationTokenDetailPage:
+        final payload = settings.arguments! as AssetToken;
+        data = {
+          MixpanelProp.tokenId: payload.id,
+          MixpanelProp.ownerAddress: payload.owner,
+        };
+        break;
+      case AppRouter.claimActivationPage:
+        final payload = settings.arguments! as ClaimActivationPagePayload;
+        data = {
+          MixpanelProp.tokenId: payload.assetToken.id,
+          MixpanelProp.ownerAddress: payload.assetToken.owner,
+          MixpanelProp.activationId: payload.activationID,
+        };
+        break;
+      case AppRouter.previewActivationClaimPage:
+        final payload = settings.arguments! as AssetToken;
+        data = {
+          MixpanelProp.tokenId: payload.id,
+          MixpanelProp.ownerAddress: payload.owner,
+        };
+        break;
+      case AppRouter.postcardLocationExplain:
+        final payload = settings.arguments! as PostcardExplainPayload;
+        data = {
+          MixpanelProp.tokenId: payload.asset.id,
+          MixpanelProp.ownerAddress: payload.asset.owner,
+        };
+        break;
+      case AppRouter.addToCollectionPage:
+        final payload = settings.arguments! as PlayListModel;
+        data = {
+          MixpanelProp.playlistId: payload.id,
+        };
+        break;
+      case AppRouter.exhibitionDetailPage:
+        final payload = settings.arguments! as ExhibitionDetailPayload;
+        data = {
+          MixpanelProp.exhibitionId: payload.exhibitions[payload.index].id,
+        };
+        break;
+      case AppRouter.ffArtworkPreviewPage:
+        final payload =
+            settings.arguments! as FeralFileArtworkPreviewPagePayload;
+        data = {
+          MixpanelProp.artworkId: payload.artwork.id,
+          MixpanelProp.seriesId: payload.artwork.seriesID,
+        };
+        break;
+      case AppRouter.feralFileSeriesPage:
+        final payload = settings.arguments! as FeralFileSeriesPagePayload;
+        data = {
+          MixpanelProp.seriesId: payload.seriesId,
+          MixpanelProp.exhibitionId: payload.exhibitionId,
+        };
+        break;
+      case AppRouter.tbSendTransactionPage:
+        final payload = settings.arguments! as BeaconRequest;
+        data = {
+          MixpanelProp.type: payload.type,
+          MixpanelProp.address: payload.sourceAddress,
+          MixpanelProp.title: payload.name,
+          MixpanelProp.url: payload.url,
+        };
+        break;
+      case AppRouter.viewExistingAddressPage:
+        final payload = settings.arguments! as ViewExistingAddressPayload;
+        data = {
+          MixpanelProp.isOnboarding: payload.isOnboarding,
+        };
+        break;
+      case AppRouter.sendCryptoPage:
+        final payload = settings.arguments! as SendData;
+        data = {
+          MixpanelProp.type: payload.type,
+          MixpanelProp.address: payload.address,
+        };
+        break;
+      case AppRouter.sendReviewPage:
+        final payload = settings.arguments! as SendCryptoPayload;
+        data = {
+          MixpanelProp.type: payload.type,
+          MixpanelProp.address: payload.address,
+        };
+        break;
+      case AppRouter.nameAddressPersonaPage:
+        final payload = settings.arguments! as NameAddressPersonaPayload;
+        data = {
+          MixpanelProp.address: payload.addressInfo.address,
+        };
+        break;
+      case AppRouter.addressAliasPage:
+        final payload = settings.arguments! as AddressAliasPayload;
+        data = {
+          MixpanelProp.address: payload.walletType.name,
+        };
+        break;
+      case AppRouter.tbSignMessagePage:
+        final payload = settings.arguments! as BeaconRequest;
+        data = {
+          MixpanelProp.type: payload.type,
+          MixpanelProp.address: payload.sourceAddress,
+          MixpanelProp.title: payload.name,
+          MixpanelProp.url: payload.url,
+        };
+        break;
+      case AppRouter.auSignMessagePage:
+        final payload = settings.arguments! as Wc2Request;
+        data = {
+          MixpanelProp.type: payload.method,
+          MixpanelProp.title: payload.proposer?.name,
+          MixpanelProp.url: payload.proposer?.url,
+        };
+        break;
+      case AppRouter.globalReceiveDetailPage:
+        final payload = settings.arguments! as GlobalReceivePayload;
+        data = {
+          MixpanelProp.address: payload.address,
+          MixpanelProp.type: payload.blockchain,
+        };
+        break;
+      case AppRouter.chatThreadPage:
+        final payload = settings.arguments! as ChatThreadPagePayload;
+        data = {
+          MixpanelProp.title: payload.name,
+          MixpanelProp.address: payload.address,
+          MixpanelProp.tokenId: payload.token.id,
+        };
+        break;
+      case AppRouter.wcSignMessagePage:
+        final payload = settings.arguments! as WCSignMessagePageArgs;
+        data = {
+          MixpanelProp.type: payload.type,
+          MixpanelProp.message: payload.message,
+          MixpanelProp.title: payload.peerMeta.name,
+          MixpanelProp.url: payload.peerMeta.url,
+          MixpanelProp.address: payload.wc2Params?.address,
+        };
+        break;
+      case AppRouter.wcSendTransactionPage:
+        final payload = settings.arguments! as WCSendTransactionPageArgs;
+        data = {
+          MixpanelProp.title: payload.peerMeta.name,
+          MixpanelProp.url: payload.peerMeta.url,
+          MixpanelProp.address: payload.transaction.from,
+          MixpanelProp.recipientAddress: payload.transaction.to,
+        };
+        break;
+      default:
+        break;
+    }
+    return data;
+  }
+}
+
+final screenNameMap = {
+  AppRouter.createPlayListPage: 'Create Playlist',
+  AppRouter.viewPlayListPage: 'View Playlist',
+  AppRouter.editPlayListPage: 'Edit Playlist',
+  AppRouter.onboardingPage: 'Onboarding',
+  AppRouter.notificationOnboardingPage: 'Notification Onboarding',
+  AppRouter.artworkPreviewPage: 'Artwork Preview',
+  AppRouter.artworkDetailsPage: 'Artwork Details',
+  AppRouter.claimedPostcardDetailsPage: 'Claimed Postcard Details',
+  AppRouter.galleryPage: 'Gallery',
+  AppRouter.settingsPage: 'Settings',
+  AppRouter.personaConnectionsPage: 'Persona Connections',
+  AppRouter.connectionDetailsPage: 'Connection Details',
+  AppRouter.walletDetailsPage: 'Wallet Details',
+  AppRouter.linkedWalletDetailsPage: 'Linked Wallet Details',
+  AppRouter.scanQRPage: 'Scan QR',
+  AppRouter.globalReceivePage: 'Global Receive',
+  AppRouter.recoveryPhrasePage: 'Recovery Phrase',
+  AppRouter.wcConnectPage: 'WC Connect',
+  AppRouter.cloudPage: 'Cloud',
+  AppRouter.cloudAndroidPage: 'Cloud Android',
+  AppRouter.linkManually: 'Link Manually',
+  AppRouter.testArtwork: 'Test Artwork',
+  AppRouter.autonomySecurityPage: 'Autonomy Security',
+  AppRouter.unsafeWebWalletPage: 'Unsafe Web Wallet',
+  AppRouter.releaseNotesPage: 'Release Notes',
+  AppRouter.hiddenArtworksPage: 'Hidden Artworks',
+  AppRouter.supportCustomerPage: 'Support Customer',
+  AppRouter.supportListPage: 'Support List',
+  AppRouter.merchOrdersPage: 'Merch Orders',
+  AppRouter.supportThreadPage: 'Support Thread',
+  AppRouter.bugBountyPage: 'Bug Bounty',
+  AppRouter.keySyncPage: 'Key Sync',
+  AppRouter.githubDocPage: 'Github Doc',
+  AppRouter.sendArtworkPage: 'Send Artwork',
+  AppRouter.sendArtworkReviewPage: 'Send Artwork Review',
+  AppRouter.claimFeralfileTokenPage: 'Claim Feralfile Token',
+  AppRouter.claimSelectAccountPage: 'Claim Select Account',
+  AppRouter.airdropTokenDetailPage: 'Airdrop Token Detail',
+  AppRouter.wc2ConnectPage: 'WC2 Connect',
+  AppRouter.wc2PermissionPage: 'WC2 Permission',
+  AppRouter.preferencesPage: 'Preferences',
+  AppRouter.walletPage: 'Wallet',
+  AppRouter.subscriptionPage: 'Subscription',
+  AppRouter.dataManagementPage: 'Data Management',
+  AppRouter.helpUsPage: 'Help Us',
+  AppRouter.inappWebviewPage: 'Inapp Webview',
+  AppRouter.postcardExplain: 'Postcard Explain',
+  AppRouter.designStamp: 'Design Stamp',
+  AppRouter.promptPage: 'Prompt',
+  AppRouter.handSignaturePage: 'Hand Signature',
+  AppRouter.stampPreview: 'Stamp Preview',
+  AppRouter.claimEmptyPostCard: 'Claim Empty Postcard',
+  AppRouter.payToMintPostcard: 'Pay To Mint Postcard',
+  AppRouter.postcardSelectAddressScreen: 'Postcard Select Address',
+  AppRouter.receivePostcardPage: 'Receive Postcard',
+  AppRouter.irlWebView: 'IRL Webview',
+  AppRouter.irlSignMessage: 'IRL Sign Message',
+  AppRouter.canvasHelpPage: 'Canvas Help',
+  AppRouter.keyboardControlPage: 'Keyboard Control',
+  AppRouter.touchPadPage: 'Touch Pad',
+  AppRouter.claimAirdropPage: 'Claim Airdrop',
+  AppRouter.activationTokenDetailPage: 'Activation Token Detail',
+  AppRouter.claimActivationPage: 'Claim Activation',
+  AppRouter.previewActivationClaimPage: 'Preview Activation Claim',
+  AppRouter.postcardLeaderboardPage: 'Postcard Leaderboard',
+  AppRouter.postcardLocationExplain: 'Postcard Location Explain',
+  AppRouter.predefinedCollectionPage: 'Predefined Collection',
+  AppRouter.addToCollectionPage: 'Add To Collection',
+  AppRouter.collectionPage: 'Collection',
+  AppRouter.exhibitionsPage: 'Exhibitions',
+  AppRouter.organizePage: 'Organize',
+};
+
+String getPageName(String routeName) {
+  String pageName = routeName;
+  return screenNameMap[routeName] ?? pageName;
+}

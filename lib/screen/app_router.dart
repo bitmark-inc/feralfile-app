@@ -156,7 +156,6 @@ class AppRouter {
   static const settingsPage = 'settings';
   static const personaConnectionsPage = 'persona_connections';
   static const connectionDetailsPage = 'connection_details';
-  static const linkedAccountDetailsPage = 'linked_account_details';
   static const walletDetailsPage = 'wallet_detail';
   static const linkedWalletDetailsPage = 'linked_wallet_detail';
   static const scanQRPage = 'qr_scanner';
@@ -194,18 +193,14 @@ class AppRouter {
   static const postcardExplain = 'postcard_explain_screen';
   static const designStamp = 'design_stamp_screen';
   static const promptPage = 'prompt_page';
-  static const choosePromptPage = 'choose_prompt_page';
   static const handSignaturePage = 'hand_signature_page';
   static const stampPreview = 'stamp_preview';
   static const claimEmptyPostCard = 'claim_empty_postcard';
   static const payToMintPostcard = 'pay_to_mint_postcard';
   static const postcardSelectAddressScreen = 'postcard_select_address_screen';
   static const receivePostcardPage = 'receive_postcard_page';
-  static const receivePostcardSelectAccountPage =
-      'receive_postcard_select_account_page';
   static const irlWebView = 'irl_web_claim';
   static const irlSignMessage = 'irl_sign_message';
-  static const postcardConfirmingPage = 'postcard_confirming_page';
   static const canvasHelpPage = 'canvas_help_page';
   static const keyboardControlPage = 'keyboard_control_page';
   static const touchPadPage = 'touch_pad_page';
@@ -1217,85 +1212,4 @@ class AppRouter {
         throw Exception('Invalid route: ${settings.name}');
     }
   }
-}
-
-final screenNameMap = {
-  AppRouter.createPlayListPage: 'Create Playlist Page',
-  AppRouter.viewPlayListPage: 'View Playlist Page',
-  AppRouter.editPlayListPage: 'Edit Playlist Page',
-  AppRouter.onboardingPage: 'Onboarding Page',
-  AppRouter.notificationOnboardingPage: 'Notification Onboarding Page',
-  AppRouter.homePage: 'Home Page',
-  AppRouter.artworkPreviewPage: 'Artwork Preview Page',
-  AppRouter.artworkDetailsPage: 'Artwork Details Page',
-  AppRouter.claimedPostcardDetailsPage: 'Claimed Postcard Details Page',
-  AppRouter.galleryPage: 'Gallery Page',
-  AppRouter.settingsPage: 'Settings Page',
-  AppRouter.personaConnectionsPage: 'Persona Connections Page',
-  AppRouter.connectionDetailsPage: 'Connection Details Page',
-  AppRouter.linkedAccountDetailsPage: 'Linked Account Details Page',
-  AppRouter.walletDetailsPage: 'Wallet Details Page',
-  AppRouter.linkedWalletDetailsPage: 'Linked Wallet Details Page',
-  AppRouter.scanQRPage: 'Scan QR Page',
-  AppRouter.globalReceivePage: 'Global Receive Page',
-  AppRouter.recoveryPhrasePage: 'Recovery Phrase Page',
-  AppRouter.wcConnectPage: 'WC Connect Page',
-  AppRouter.cloudPage: 'Cloud Page',
-  AppRouter.cloudAndroidPage: 'Cloud Android Page',
-  AppRouter.linkManually: 'Link Manually Page',
-  AppRouter.testArtwork: 'Test Artwork Page',
-  AppRouter.autonomySecurityPage: 'Autonomy Security Page',
-  AppRouter.unsafeWebWalletPage: 'Unsafe Web Wallet Page',
-  AppRouter.releaseNotesPage: 'Release Notes Page',
-  AppRouter.hiddenArtworksPage: 'Hidden Artworks Page',
-  AppRouter.supportCustomerPage: 'Support Customer Page',
-  AppRouter.supportListPage: 'Support List Page',
-  AppRouter.merchOrdersPage: 'Merch Orders Page',
-  AppRouter.supportThreadPage: 'Support Thread Page',
-  AppRouter.bugBountyPage: 'Bug Bounty Page',
-  AppRouter.keySyncPage: 'Key Sync Page',
-  AppRouter.githubDocPage: 'Github Doc Page',
-  AppRouter.sendArtworkPage: 'Send Artwork Page',
-  AppRouter.sendArtworkReviewPage: 'Send Artwork Review Page',
-  AppRouter.claimFeralfileTokenPage: 'Claim Feralfile Token Page',
-  AppRouter.claimSelectAccountPage: 'Claim Select Account Page',
-  AppRouter.airdropTokenDetailPage: 'Airdrop Token Detail Page',
-  AppRouter.wc2ConnectPage: 'WC2 Connect Page',
-  AppRouter.wc2PermissionPage: 'WC2 Permission Page',
-  AppRouter.preferencesPage: 'Preferences Page',
-  AppRouter.walletPage: 'Wallet Page',
-  AppRouter.subscriptionPage: 'Subscription Page',
-  AppRouter.dataManagementPage: 'Data Management Page',
-  AppRouter.helpUsPage: 'Help Us Page',
-  AppRouter.inappWebviewPage: 'Inapp Webview Page',
-  AppRouter.postcardExplain: 'Postcard Explain Page',
-  AppRouter.designStamp: 'Design Stamp Page',
-  AppRouter.promptPage: 'Prompt Page',
-  AppRouter.handSignaturePage: 'Hand Signature Page',
-  AppRouter.stampPreview: 'Stamp Preview Page',
-  AppRouter.claimEmptyPostCard: 'Claim Empty Postcard Page',
-  AppRouter.payToMintPostcard: 'Pay To Mint Postcard Page',
-  AppRouter.postcardSelectAddressScreen: 'Postcard Select Address Page',
-  AppRouter.receivePostcardPage: 'Receive Postcard Page',
-  AppRouter.irlWebView: 'IRL Webview Page',
-  AppRouter.irlSignMessage: 'IRL Sign Message Page',
-  AppRouter.canvasHelpPage: 'Canvas Help Page',
-  AppRouter.keyboardControlPage: 'Keyboard Control Page',
-  AppRouter.touchPadPage: 'Touch Pad Page',
-  AppRouter.claimAirdropPage: 'Claim Airdrop Page',
-  AppRouter.activationTokenDetailPage: 'Activation Token Detail Page',
-  AppRouter.claimActivationPage: 'Claim Activation Page',
-  AppRouter.previewActivationClaimPage: 'Preview Activation Claim Page',
-  AppRouter.postcardLeaderboardPage: 'Postcard Leaderboard Page',
-  AppRouter.postcardLocationExplain: 'Postcard Location Explain Page',
-  AppRouter.predefinedCollectionPage: 'Predefined Collection Page',
-  AppRouter.addToCollectionPage: 'Add To Collection Page',
-  AppRouter.collectionPage: 'Collection Page',
-  AppRouter.exhibitionsPage: 'Exhibitions Page',
-  AppRouter.organizePage: 'Organize Page',
-};
-
-String getPageName(String routeName) {
-  String pageName = routeName;
-  return screenNameMap[routeName] ?? pageName;
 }

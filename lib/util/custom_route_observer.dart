@@ -9,15 +9,28 @@ class CustomRouteObserver<R extends Route<dynamic>> extends RouteObserver<R> {
 
   @override
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    unawaited(_metricClient.trackStartScreen(route));
+    if (previousRoute != null) {
+      unawaited(
+        _metricClient.trackEndScreen(previousRoute).then(
+              (value) => _metricClient.trackStartScreen(route),
+            ),
+      );
+    }
     super.didPush(route, previousRoute);
   }
 
   @override
   void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    if (previousRoute != null) {
-      unawaited(_metricClient.trackStartScreen(previousRoute));
-    }
+    unawaited(
+      _metricClient.trackEndScreen(route).then(
+        (value) {
+          if (previousRoute != null) {
+            _metricClient.trackStartScreen(previousRoute);
+          }
+        },
+      ),
+    );
+
     super.didPop(route, previousRoute);
   }
 }
