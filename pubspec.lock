@@ -869,14 +869,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.6.17"
-  flutter_native_splash:
-    dependency: "direct main"
-    description:
-      name: flutter_native_splash
-      sha256: d93394f22f73e810bda59e11ebe83329c5511d6460b6b7509c4e1f3c92d6d625
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.3.5"
   flutter_parsed_text:
     dependency: transitive
     description:
@@ -2650,14 +2642,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.3.1"
-  universal_io:
-    dependency: transitive
-    description:
-      name: universal_io
-      sha256: "1722b2dcc462b4b2f3ee7d188dad008b6eb4c40bbd03a3de451d82c78bba9aad"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.2.2"
   uri:
     dependency: "direct main"
     description:

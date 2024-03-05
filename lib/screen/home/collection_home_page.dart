@@ -41,7 +41,6 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -86,26 +85,8 @@ class CollectionHomePageState extends State<CollectionHomePage>
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
     _controller = ScrollController()..addListener(_scrollListenerToLoadMore);
     unawaited(_configurationService.setAutoShowPostcard(true));
-    NftCollectionBloc.eventController.stream.listen((event) async {
-      switch (event.runtimeType) {
-        case ReloadEvent:
-        case GetTokensByOwnerEvent:
-        case UpdateTokensEvent:
-        case GetTokensBeforeByOwnerEvent:
-          nftBloc.add(event);
-          break;
-        default:
-      }
-    });
-    unawaited(
-        _clientTokenService.refreshTokens(syncAddresses: true).then((value) {
-      nftBloc.add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
-    }));
-
     context.read<HomeBloc>().add(CheckReviewAppEvent());
-
     unawaited(injector<IAPService>().setup());
-    memoryValues.inGalleryView = true;
   }
 
   void _scrollListenerToLoadMore() {
@@ -149,26 +130,6 @@ class CollectionHomePageState extends State<CollectionHomePage>
   @override
   Future<void> didPopNext() async {
     super.didPopNext();
-    final connectivityResult = await Connectivity().checkConnectivity();
-    unawaited(_clientTokenService.refreshTokens());
-    unawaited(refreshNotification());
-    if (connectivityResult == ConnectivityResult.mobile ||
-        connectivityResult == ConnectivityResult.wifi) {
-      Future.delayed(const Duration(milliseconds: 1000), () async {
-        if (!mounted) {
-          return;
-        }
-        nftBloc
-            .add(RequestIndexEvent(await _clientTokenService.getAddresses()));
-      });
-    }
-    memoryValues.inGalleryView = true;
-  }
-
-  @override
-  void didPushNext() {
-    memoryValues.inGalleryView = false;
-    super.didPushNext();
   }
 
   Future<void> _onTokensUpdate(List<CompactedAssetToken> tokens) async {
@@ -512,10 +473,6 @@ class CollectionHomePageState extends State<CollectionHomePage>
         curve: Curves.fastOutSlowIn));
   }
 
-  Future refreshNotification() async {
-    await injector<CustomerSupportService>().getIssuesAndAnnouncement();
-  }
-
   Future<void> _handleForeBackground(FGBGType event) async {
     switch (event) {
       case FGBGType.foreground:
@@ -544,7 +501,6 @@ class CollectionHomePageState extends State<CollectionHomePage>
     }
 
     unawaited(_clientTokenService.refreshTokens(checkPendingToken: true));
-    unawaited(refreshNotification());
     unawaited(injector<VersionService>().checkForUpdate());
     // Reload token in Isolate
 

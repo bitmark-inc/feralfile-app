@@ -38,7 +38,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
-import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:overlay_support/overlay_support.dart';
@@ -87,8 +86,6 @@ Future<void> runFeralFileApp() async {
   // feature/text_localization
   await EasyLocalization.ensureInitialized();
 
-  FlutterNativeSplash.preserve(
-      widgetsBinding: WidgetsFlutterBinding.ensureInitialized());
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
   await FlutterDownloader.initialize();
@@ -158,7 +155,6 @@ Future<void> _setupApp() async {
       scope.setUser(SentryUser(id: deviceID));
     }
   });
-  FlutterNativeSplash.remove();
 
   //safe delay to wait for onboarding finished
   Future.delayed(const Duration(seconds: 2), () async {
@@ -219,7 +215,6 @@ class MemoryValues {
   String? scopedPersona;
   String? viewingSupportThreadIssueID;
   DateTime? inForegroundAt;
-  bool inGalleryView;
   ValueNotifier<Map<dynamic, dynamic>?> branchDeeplinkData;
   ValueNotifier<String?> deepLink;
   ValueNotifier<String?> irlLink;
@@ -233,7 +228,6 @@ class MemoryValues {
     this.scopedPersona,
     this.viewingSupportThreadIssueID,
     this.inForegroundAt,
-    this.inGalleryView = true,
   });
 
   MemoryValues copyWith({
