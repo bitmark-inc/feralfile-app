@@ -85,6 +85,8 @@ class ScanQRPageState extends State<ScanQRPage>
   final _metricClientService = injector<MetricClientService>();
   late List<Widget> _pages;
 
+  TabController get tabController => _tabController;
+
   @override
   void initState() {
     super.initState();
@@ -140,8 +142,9 @@ class ScanQRPageState extends State<ScanQRPage>
       return;
     }
     unawaited(_metricClientService.addEvent(MixpanelEvent.visitPage, data: {
-      MixpanelProp.title: QRScanTab.values[controller.index].screenName,
+      MixpanelProp.title: QRScanTab.values[controller.previousIndex].screenName,
     }));
+    _metricClientService.timerEvent(MixpanelEvent.visitPage);
   }
 
   Future<void> pauseCamera() async {

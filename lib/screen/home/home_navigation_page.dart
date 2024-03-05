@@ -131,20 +131,21 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         } else {
           await _scanQRPageKey.currentState?.pauseCamera();
         }
-        if (index != HomeNavigatorTab.menu.index &&
-            index != HomeNavigatorTab.scanQr.index) {
-          unawaited(
-            _metricClientService.addEvent(
-              MixpanelEvent.visitPage,
-              data: {
-                MixpanelProp.title:
-                    HomeNavigatorTab.values[_selectedIndex].screenName,
-              },
-            ).then(
-              (_) => _metricClientService.timerEvent(
-                MixpanelEvent.visitPage,
-              ),
-            ),
+        if (_selectedIndex != HomeNavigatorTab.menu.index) {
+          final title = (_selectedIndex == HomeNavigatorTab.scanQr.index)
+              ? QRScanTab
+                  .values[_scanQRPageKey.currentState?.tabController.index ??
+                      QRScanTab.scan.index]
+                  .screenName
+              : HomeNavigatorTab.values[_selectedIndex].screenName;
+          unawaited(_metricClientService.addEvent(
+            MixpanelEvent.visitPage,
+            data: {
+              MixpanelProp.title: title,
+            },
+          ));
+          _metricClientService.timerEvent(
+            MixpanelEvent.visitPage,
           );
         }
       }
@@ -162,6 +163,13 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       }
     } else {
       final currentIndex = _selectedIndex;
+      unawaited(_metricClientService.addEvent(
+        MixpanelEvent.visitPage,
+        data: {
+          MixpanelProp.title:
+              HomeNavigatorTab.values[_selectedIndex].screenName,
+        },
+      ));
       setState(() {
         _selectedIndex = index;
       });
@@ -303,6 +311,22 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     _metricClientService.timerEvent(
       MixpanelEvent.visitPage,
     );
+  }
+
+  @override
+  Future<void> didPushNext() async {
+    super.didPushNext();
+    if (_selectedIndex != HomeNavigatorTab.menu.index) {
+      unawaited(
+        _metricClientService.addEvent(
+          MixpanelEvent.visitPage,
+          data: {
+            MixpanelProp.title:
+                HomeNavigatorTab.values[_selectedIndex].screenName,
+          },
+        ),
+      );
+    }
   }
 
   Future<void> _showRemoveCustomerSupport() async {
