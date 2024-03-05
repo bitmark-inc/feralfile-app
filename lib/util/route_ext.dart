@@ -49,7 +49,7 @@ extension RouteExt on Route {
   String get metricTitle {
     final routeName = settings.name;
     if (routeName == null) {
-      return 'Unknown';
+      return 'Unknown $runtimeType';
     }
     return getPageName(routeName);
   }
