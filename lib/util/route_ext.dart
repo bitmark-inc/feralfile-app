@@ -45,17 +45,20 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:nft_collection/models/models.dart';
 
+const unknownMetricTitle = 'Unknown';
+
 extension RouteExt on Route {
   String get metricTitle {
     final routeName = settings.name;
     if (routeName == null) {
-      return 'Unknown $runtimeType';
+      return unknownMetricTitle;
     }
     return getPageName(routeName);
   }
 
   bool get isIgnoreForVisitPageEvent =>
-      metricVisitPageIgnoreScreen.contains(settings.name);
+      metricVisitPageIgnoreScreen.contains(settings.name) ||
+      metricTitle == unknownMetricTitle;
 
   Map<String, dynamic> get metricData {
     Map<String, dynamic> data = {};
@@ -535,6 +538,20 @@ final screenNameMap = {
   AppRouter.collectionPage: 'Collection',
   AppRouter.exhibitionsPage: 'Exhibitions',
   AppRouter.organizePage: 'Organize',
+  AppRouter.addressAliasPage: 'Address Alias',
+  AppRouter.nameAddressPersonaPage: 'Name Address Persona',
+  AppRouter.viewExistingAddressPage: 'View Existing Address',
+  AppRouter.sendCryptoPage: 'Send Crypto',
+  AppRouter.sendReviewPage: 'Send Review',
+  AppRouter.tbSignMessagePage: 'TB Sign Message',
+  AppRouter.auSignMessagePage: 'AU Sign Message',
+  AppRouter.globalReceiveDetailPage: 'Global Receive Detail',
+  AppRouter.chatThreadPage: 'Chat Thread',
+  AppRouter.wcSignMessagePage: 'WC Sign Message',
+  AppRouter.wcSendTransactionPage: 'WC Send Transaction',
+  AppRouter.tbSendTransactionPage: 'TB Send Transaction',
+  AppRouter.feralFileSeriesPage: 'Feral File Series',
+  AppRouter.ffArtworkPreviewPage: 'FF Artwork Preview',
 };
 
 String getPageName(String routeName) {
