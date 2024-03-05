@@ -421,13 +421,13 @@ class CollectionProState extends State<CollectionPro>
           height: 44,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
-            color: AppColor.auLightGrey,
+            color: AppColor.auGreyBackground,
           ),
           child: SvgPicture.asset(
             MediumCategoryExt.icon(predefinedCollection.id),
             width: 22,
             colorFilter:
-                const ColorFilter.mode(AppColor.primaryBlack, BlendMode.srcIn),
+                const ColorFilter.mode(AppColor.white, BlendMode.srcIn),
           ),
         );
       case PredefinedCollectionType.artist:

@@ -854,8 +854,8 @@ class SectionExpandedWidget extends StatefulWidget {
   final EdgeInsets? headerPadding;
   final Widget? child;
   final Widget? iconOnExpanded;
-  final Widget? iconOnUnExpaneded;
-  final bool withDivicer;
+  final Widget? iconOnUnExpanded;
+  final bool withDivider;
   final EdgeInsets padding;
 
   const SectionExpandedWidget(
@@ -865,8 +865,8 @@ class SectionExpandedWidget extends StatefulWidget {
       this.headerPadding,
       this.child,
       this.iconOnExpanded,
-      this.iconOnUnExpaneded,
-      this.withDivicer = true,
+      this.iconOnUnExpanded,
+      this.withDivider = true,
       this.padding = const EdgeInsets.all(0)});
 
   @override
@@ -892,9 +892,9 @@ class _SectionExpandedWidgetState extends State<SectionExpandedWidget> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (widget.withDivicer)
-                Divider(
-                  color: theme.colorScheme.secondary,
+              if (widget.withDivider)
+                const Divider(
+                  color: Color.fromRGBO(255, 255, 255, 0.3),
                   thickness: 1,
                 ),
               GestureDetector(
@@ -922,7 +922,7 @@ class _SectionExpandedWidgetState extends State<SectionExpandedWidget> {
                                 child: defaultIcon,
                               )
                         else
-                          widget.iconOnUnExpaneded ??
+                          widget.iconOnUnExpanded ??
                               RotatedBox(
                                 quarterTurns: 1,
                                 child: defaultIcon,
@@ -974,12 +974,12 @@ Widget postcardDetailsMetadataSection(
     header: 'metadata'.tr(),
     headerStyle: theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
     headerPadding: padding,
-    withDivicer: false,
+    withDivider: false,
     iconOnExpanded: RotatedBox(
       quarterTurns: 1,
       child: icon,
     ),
-    iconOnUnExpaneded: RotatedBox(
+    iconOnUnExpanded: RotatedBox(
       quarterTurns: 2,
       child: icon,
     ),
@@ -1267,12 +1267,12 @@ Widget postcardOwnership(
     header: 'token_ownership'.tr(),
     headerStyle: theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
     headerPadding: padding,
-    withDivicer: false,
+    withDivider: false,
     iconOnExpanded: RotatedBox(
       quarterTurns: 1,
       child: icon,
     ),
-    iconOnUnExpaneded: RotatedBox(
+    iconOnUnExpanded: RotatedBox(
       quarterTurns: 2,
       child: icon,
     ),
@@ -1663,7 +1663,12 @@ Widget artworkDetailsProvenanceSectionNotEmpty(
                           : null,
                       forceSafariVC: true,
                     ),
-                    const Divider(height: 32),
+                    if (el != provenances.last)
+                      const Divider(
+                        height: 32,
+                        color: AppColor.auLightGrey,
+                        thickness: 0.25,
+                      ),
                   ],
                 );
               })
@@ -1713,12 +1718,12 @@ class _PostcardRightsViewState extends State<PostcardRightsView> {
               headerStyle:
                   theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
               headerPadding: const EdgeInsets.only(left: 15, right: 15),
-              withDivicer: false,
+              withDivider: false,
               iconOnExpanded: RotatedBox(
                 quarterTurns: 1,
                 child: icon,
               ),
-              iconOnUnExpaneded: RotatedBox(
+              iconOnUnExpanded: RotatedBox(
                 quarterTurns: 2,
                 child: icon,
               ),
