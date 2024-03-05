@@ -221,7 +221,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       if (assetToken.isFeralfile)
         MixpanelProp.artworkId: assetToken.feralfileArtworkId,
     };
-    unawaited(_metricClient.addEvent(MixpanelEvent.viewArtwork, data: data));
+    _metricClient.addEvent(MixpanelEvent.viewArtwork, data: data);
   }
 
   @override

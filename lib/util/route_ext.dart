@@ -58,7 +58,7 @@ extension RouteExt on Route {
 
   bool get isIgnoreForVisitPageEvent =>
       metricVisitPageIgnoreScreen.contains(settings.name) ||
-      metricTitle == unknownMetricTitle;
+          metricTitle == unknownMetricTitle;
 
   Map<String, dynamic> get metricData {
     Map<String, dynamic> data = {};
@@ -79,7 +79,7 @@ extension RouteExt on Route {
         data = {
           MixpanelProp.tokenId: payload.identities[payload.currentIndex].id,
           MixpanelProp.ownerAddress:
-              payload.identities[payload.currentIndex].owner,
+          payload.identities[payload.currentIndex].owner,
         };
         break;
       case AppRouter.artworkDetailsPage:
@@ -87,7 +87,7 @@ extension RouteExt on Route {
         data = {
           MixpanelProp.tokenId: payload.identities[payload.currentIndex].id,
           MixpanelProp.ownerAddress:
-              payload.identities[payload.currentIndex].owner,
+          payload.identities[payload.currentIndex].owner,
         };
         break;
       case AppRouter.claimedPostcardDetailsPage:
@@ -95,7 +95,7 @@ extension RouteExt on Route {
         data = {
           MixpanelProp.tokenId: payload.identities[payload.currentIndex].id,
           MixpanelProp.ownerAddress:
-              payload.identities[payload.currentIndex].owner,
+          payload.identities[payload.currentIndex].owner,
         };
         break;
       case AppRouter.galleryPage:
@@ -354,7 +354,7 @@ extension RouteExt on Route {
         break;
       case AppRouter.ffArtworkPreviewPage:
         final payload =
-            settings.arguments! as FeralFileArtworkPreviewPagePayload;
+        settings.arguments! as FeralFileArtworkPreviewPagePayload;
         data = {
           MixpanelProp.artworkId: payload.artwork.id,
           MixpanelProp.seriesId: payload.artwork.seriesID,
@@ -488,7 +488,7 @@ final screenNameMap = {
   AppRouter.cloudPage: 'Cloud',
   AppRouter.cloudAndroidPage: 'Cloud Android',
   AppRouter.linkManually: 'Link Manually',
-  AppRouter.autonomySecurityPage: 'Autonomy Security',
+  AppRouter.autonomySecurityPage: 'Feral File Security',
   AppRouter.unsafeWebWalletPage: 'Unsafe Web Wallet',
   AppRouter.releaseNotesPage: 'Release Notes',
   AppRouter.hiddenArtworksPage: 'Hidden Artworks',
@@ -535,7 +535,7 @@ final screenNameMap = {
   AppRouter.predefinedCollectionPage: 'Predefined Collection',
   AppRouter.addToCollectionPage: 'Add To Collection',
   AppRouter.collectionPage: 'Collection',
-  AppRouter.exhibitionsPage: 'Exhibitions',
+  AppRouter.exhibitionsPage: 'Explore Exhibitions',
   AppRouter.organizePage: 'Organize',
   AppRouter.addressAliasPage: 'Address Alias',
   AppRouter.nameAddressPersonaPage: 'Name Address Persona',
@@ -549,7 +549,7 @@ final screenNameMap = {
   AppRouter.wcSignMessagePage: 'WC Sign Message',
   AppRouter.wcSendTransactionPage: 'WC Send Transaction',
   AppRouter.tbSendTransactionPage: 'TB Send Transaction',
-  AppRouter.feralFileSeriesPage: 'Feral File Series',
+  AppRouter.feralFileSeriesPage: 'Series Detail',
   AppRouter.ffArtworkPreviewPage: 'Feral File Artwork Preview',
 };
 

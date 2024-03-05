@@ -141,9 +141,9 @@ class ScanQRPageState extends State<ScanQRPage>
     if (controller.indexIsChanging) {
       return;
     }
-    unawaited(_metricClientService.addEvent(MixpanelEvent.visitPage, data: {
+    _metricClientService.addEvent(MixpanelEvent.visitPage, data: {
       MixpanelProp.title: QRScanTab.values[controller.previousIndex].screenName,
-    }));
+    });
     _metricClientService.timerEvent(MixpanelEvent.visitPage);
   }
 

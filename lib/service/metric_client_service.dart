@@ -23,12 +23,12 @@ class MetricClientService {
     isFinishInit = true;
   }
 
-  Future<void> addEvent(
+  void addEvent(
     String name, {
     String? message,
     Map<String, dynamic> data = const {},
     Map<String, dynamic> hashedData = const {},
-  }) async {
+  }) {
     final configurationService = injector.get<ConfigurationService>();
 
     if (!configurationService.isAnalyticsEnabled()) {
@@ -77,7 +77,7 @@ class MetricClientService {
     }
     final screenName = route.metricTitle;
     Map<String, dynamic> data = route.metricData..addAll({'title': screenName});
-    await addEvent(MixpanelEvent.visitPage, data: data);
+    addEvent(MixpanelEvent.visitPage, data: data);
   }
 
   void setLabel(String prop, dynamic value) {
