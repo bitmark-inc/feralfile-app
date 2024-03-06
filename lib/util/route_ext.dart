@@ -548,7 +548,7 @@ final screenNameMap = {
   AppRouter.postcardLeaderboardPage: 'Postcard Leaderboard',
   AppRouter.postcardLocationExplain: 'Postcard Location Explain',
   AppRouter.predefinedCollectionPage: 'Predefined Collection',
-  AppRouter.addToCollectionPage: 'Add To Collection',
+  AppRouter.addToCollectionPage: 'Add To Playlist',
   AppRouter.collectionPage: 'Collection',
   AppRouter.exhibitionsPage: 'Explore Exhibitions',
   AppRouter.organizePage: 'Organize',
