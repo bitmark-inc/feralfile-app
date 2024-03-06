@@ -58,7 +58,7 @@ extension RouteExt on Route {
 
   bool get isIgnoreForVisitPageEvent =>
       metricVisitPageIgnoreScreen.contains(settings.name) ||
-          metricTitle == unknownMetricTitle;
+      metricTitle == unknownMetricTitle;
 
   Map<String, dynamic> get metricData {
     Map<String, dynamic> data = {};
@@ -69,9 +69,9 @@ extension RouteExt on Route {
         data = {MixpanelProp.playlistId: payload.playListModel?.id};
         break;
       case AppRouter.editPlayListPage:
-        final payload = settings.arguments! as ViewPlaylistScreenPayload;
+        final payload = settings.arguments! as PlayListModel;
         data = {
-          MixpanelProp.playlistId: payload.playListModel?.id,
+          MixpanelProp.playlistId: payload.id,
         };
         break;
       case AppRouter.artworkPreviewPage:
@@ -79,7 +79,7 @@ extension RouteExt on Route {
         data = {
           MixpanelProp.tokenId: payload.identities[payload.currentIndex].id,
           MixpanelProp.ownerAddress:
-          payload.identities[payload.currentIndex].owner,
+              payload.identities[payload.currentIndex].owner,
         };
         break;
       case AppRouter.artworkDetailsPage:
@@ -87,7 +87,7 @@ extension RouteExt on Route {
         data = {
           MixpanelProp.tokenId: payload.identities[payload.currentIndex].id,
           MixpanelProp.ownerAddress:
-          payload.identities[payload.currentIndex].owner,
+              payload.identities[payload.currentIndex].owner,
         };
         break;
       case AppRouter.claimedPostcardDetailsPage:
@@ -95,7 +95,7 @@ extension RouteExt on Route {
         data = {
           MixpanelProp.tokenId: payload.identities[payload.currentIndex].id,
           MixpanelProp.ownerAddress:
-          payload.identities[payload.currentIndex].owner,
+              payload.identities[payload.currentIndex].owner,
         };
         break;
       case AppRouter.galleryPage:
@@ -108,7 +108,7 @@ extension RouteExt on Route {
         final payload = settings.arguments! as PersonaConnectionsPayload;
         data = {
           MixpanelProp.address: payload.address,
-          MixpanelProp.type: payload.type,
+          MixpanelProp.type: payload.type.code,
         };
         break;
       case AppRouter.connectionDetailsPage:
@@ -121,14 +121,14 @@ extension RouteExt on Route {
       case AppRouter.walletDetailsPage:
         final payload = settings.arguments! as WalletDetailsPayload;
         data = {
-          MixpanelProp.type: payload.type,
+          MixpanelProp.type: payload.type.code,
           MixpanelProp.address: payload.walletAddress.address
         };
         break;
       case AppRouter.linkedWalletDetailsPage:
         final payload = settings.arguments! as LinkedWalletDetailsPayload;
         data = {
-          MixpanelProp.type: payload.type,
+          MixpanelProp.type: payload.type.code,
           MixpanelProp.address: payload.connection.name
         };
         break;
@@ -179,8 +179,7 @@ extension RouteExt on Route {
         };
         break;
       case AppRouter.githubDocPage:
-        final payload = settings.arguments! as Map<String, String>;
-        data = payload;
+        data = {};
         break;
       case AppRouter.sendArtworkPage:
         final payload = settings.arguments! as SendArtworkPayload;
@@ -354,7 +353,7 @@ extension RouteExt on Route {
         break;
       case AppRouter.ffArtworkPreviewPage:
         final payload =
-        settings.arguments! as FeralFileArtworkPreviewPagePayload;
+            settings.arguments! as FeralFileArtworkPreviewPagePayload;
         data = {
           MixpanelProp.artworkId: payload.artwork.id,
           MixpanelProp.seriesId: payload.artwork.seriesID,
@@ -385,14 +384,14 @@ extension RouteExt on Route {
       case AppRouter.sendCryptoPage:
         final payload = settings.arguments! as SendData;
         data = {
-          MixpanelProp.type: payload.type,
+          MixpanelProp.type: payload.type.code,
           MixpanelProp.address: payload.address,
         };
         break;
       case AppRouter.sendReviewPage:
         final payload = settings.arguments! as SendCryptoPayload;
         data = {
-          MixpanelProp.type: payload.type,
+          MixpanelProp.type: payload.type.code,
           MixpanelProp.address: payload.address,
         };
         break;
@@ -486,7 +485,7 @@ final screenNameMap = {
   AppRouter.recoveryPhrasePage: 'Recovery Phrase',
   AppRouter.wcConnectPage: 'WC Connect',
   AppRouter.cloudPage: 'Cloud',
-  AppRouter.cloudAndroidPage: 'Cloud Android',
+  AppRouter.cloudAndroidPage: 'Cloud',
   AppRouter.linkManually: 'Link Manually',
   AppRouter.autonomySecurityPage: 'Feral File Security',
   AppRouter.unsafeWebWalletPage: 'Unsafe Web Wallet',
@@ -542,12 +541,14 @@ final screenNameMap = {
   AppRouter.viewExistingAddressPage: 'View Existing Address',
   AppRouter.sendCryptoPage: 'Send Crypto',
   AppRouter.sendReviewPage: 'Send Review',
+  AppRouter.importSeedsPage: 'Import Seeds',
   AppRouter.tbSignMessagePage: 'TB Sign Message',
   AppRouter.auSignMessagePage: 'AU Sign Message',
   AppRouter.globalReceiveDetailPage: 'Global Receive Detail',
   AppRouter.chatThreadPage: 'Chat Thread',
   AppRouter.wcSignMessagePage: 'WC Sign Message',
   AppRouter.wcSendTransactionPage: 'WC Send Transaction',
+  AppRouter.momaPostcardPage: 'Moma Postcards',
   AppRouter.tbSendTransactionPage: 'TB Send Transaction',
   AppRouter.feralFileSeriesPage: 'Series Detail',
   AppRouter.ffArtworkPreviewPage: 'Feral File Artwork Preview',
