@@ -389,21 +389,17 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
 
   Widget _erc20Tag(BuildContext context) {
     final theme = Theme.of(context);
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.transparent,
-          shadowColor: Colors.transparent,
-          surfaceTintColor: Colors.transparent,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          side: const BorderSide(
-            color: AppColor.auQuickSilver,
-          ),
-          alignment: Alignment.center,
-          padding: const EdgeInsets.symmetric(horizontal: 15)),
-      onPressed: () {},
-      child: Text('ERC-20', style: theme.textTheme.ppMori400Grey14),
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColor.auQuickSilver,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        child: Text('ERC-20', style: theme.textTheme.ppMori400Grey14),
+      ),
     );
   }
 
