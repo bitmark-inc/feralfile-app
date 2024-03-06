@@ -892,11 +892,7 @@ class _SectionExpandedWidgetState extends State<SectionExpandedWidget> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (widget.withDivider)
-                const Divider(
-                  color: Color.fromRGBO(255, 255, 255, 0.3),
-                  thickness: 1,
-                ),
+              if (widget.withDivider) artworkSectionDivider,
               GestureDetector(
                 onTap: () {
                   setState(() {
@@ -1117,11 +1113,7 @@ Widget artworkDetailsMetadataSection(
       ((assetToken.swapped ?? false) && assetToken.originTokenInfoId != null)
           ? assetToken.originTokenInfoId ?? ''
           : assetToken.id.split('-').last;
-  final divider = Divider(
-    height: 32,
-    color: theme.auLightGrey,
-    thickness: 0.25,
-  );
+  const divider = artworkDataDivider;
   return SectionExpandedWidget(
     header: 'metadata'.tr(),
     padding: const EdgeInsets.only(bottom: 23),
@@ -1347,8 +1339,6 @@ Widget postcardOwnership(
 
 Widget tokenOwnership(
     BuildContext context, AssetToken assetToken, String alias) {
-  final theme = Theme.of(context);
-
   final sentTokens = injector<ConfigurationService>().getRecentlySentToken();
   final expiredTime = DateTime.now().subtract(SENT_ARTWORK_HIDE_TIME);
 
@@ -1368,11 +1358,7 @@ Widget tokenOwnership(
     ownedTokens -= totalSentQuantity;
   }
 
-  final divider = Divider(
-    height: 32,
-    color: theme.auLightGrey,
-    thickness: 0.25,
-  );
+  const divider = artworkDataDivider;
 
   return SectionExpandedWidget(
     header: 'token_ownership'.tr(),
@@ -1663,12 +1649,7 @@ Widget artworkDetailsProvenanceSectionNotEmpty(
                           : null,
                       forceSafariVC: true,
                     ),
-                    if (el != provenances.last)
-                      const Divider(
-                        height: 32,
-                        color: AppColor.auLightGrey,
-                        thickness: 0.25,
-                      ),
+                    if (el != provenances.last) artworkDataDivider,
                   ],
                 );
               })
