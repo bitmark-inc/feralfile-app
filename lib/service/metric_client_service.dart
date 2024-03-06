@@ -3,9 +3,11 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/route_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -101,5 +103,23 @@ class MetricClientService {
 
   Future<void> setConfig(String key, dynamic value) async {
     await mixPanelClient.setConfig(key, value);
+  }
+
+  void onBackground() {
+    final route = CustomRouteObserver.currentRoute;
+    if (route?.settings.name == AppRouter.homePage) {
+      homePageKey.currentState?.sendVisitPageEvent();
+    } else if (route?.settings.name == AppRouter.homePageNoTransition) {
+      homePageNoTransactionKey.currentState?.sendVisitPageEvent();
+    } else if (route != null) {
+      unawaited(trackEndScreen(route));
+    }
+  }
+
+  void onForeground() {
+    final route = CustomRouteObserver.currentRoute;
+    if (route != null) {
+      unawaited(trackStartScreen(route));
+    }
   }
 }

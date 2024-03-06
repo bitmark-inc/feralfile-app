@@ -142,6 +142,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:page_transition/page_transition.dart';
 
+GlobalKey<HomeNavigationPageState> homePageKey = GlobalKey();
+GlobalKey<HomeNavigationPageState> homePageNoTransactionKey = GlobalKey();
+
 class AppRouter {
   static const createPlayListPage = 'createPlayList';
   static const viewPlayListPage = 'viewPlayList';
@@ -340,6 +343,7 @@ class AppRouter {
                     ),
                   ],
                   child: HomeNavigationPage(
+                      key: homePageNoTransactionKey,
                       payload: HomeNavigationPagePayload(
                           fromOnboarding: true,
                           startedTab: payload?.startedTab)),
@@ -362,6 +366,7 @@ class AppRouter {
                     ),
                   ],
                   child: HomeNavigationPage(
+                    key: homePageKey,
                     payload: HomeNavigationPagePayload(
                         startedTab: payload?.startedTab),
                   ),

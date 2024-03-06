@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 
 class CustomRouteObserver<R extends Route<dynamic>> extends RouteObserver<R> {
   final _metricClient = injector<MetricClientService>();
+  static Route<dynamic>? currentRoute;
 
   @override
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
@@ -19,6 +20,7 @@ class CustomRouteObserver<R extends Route<dynamic>> extends RouteObserver<R> {
         ),
       );
     }
+    currentRoute = route;
     super.didPush(route, previousRoute);
   }
 
@@ -33,7 +35,19 @@ class CustomRouteObserver<R extends Route<dynamic>> extends RouteObserver<R> {
         },
       ),
     );
-
+    currentRoute = previousRoute;
     super.didPop(route, previousRoute);
+  }
+
+  @override
+  void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
+    if (oldRoute != null) {
+      unawaited(_metricClient.trackEndScreen(oldRoute));
+    }
+    if (newRoute != null) {
+      unawaited(_metricClient.trackStartScreen(newRoute));
+    }
+    currentRoute = newRoute;
+    super.didReplace(newRoute: newRoute, oldRoute: oldRoute);
   }
 }

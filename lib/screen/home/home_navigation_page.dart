@@ -82,10 +82,10 @@ class HomeNavigationPage extends StatefulWidget {
   });
 
   @override
-  State<HomeNavigationPage> createState() => _HomeNavigationPageState();
+  State<HomeNavigationPage> createState() => HomeNavigationPageState();
 }
 
-class _HomeNavigationPageState extends State<HomeNavigationPage>
+class HomeNavigationPageState extends State<HomeNavigationPage>
     with
         RouteAware,
         WidgetsBindingObserver,
@@ -115,6 +115,27 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
     routeObserver.subscribe(this, ModalRoute.of(context)!);
   }
 
+  void sendVisitPageEvent() {
+    if (_selectedIndex != HomeNavigatorTab.menu.index) {
+      final title = (_selectedIndex == HomeNavigatorTab.scanQr.index)
+          ? QRScanTab
+              .values[_scanQRPageKey.currentState?.tabController.index ??
+                  QRScanTab.scan.index]
+              .screenName
+          : HomeNavigatorTab.values[_selectedIndex].screenName;
+      _metricClientService
+        ..addEvent(
+          MixpanelEvent.visitPage,
+          data: {
+            MixpanelProp.title: title,
+          },
+        )
+        ..timerEvent(
+          MixpanelEvent.visitPage,
+        );
+    }
+  }
+
   Future<void> _onItemTapped(int index) async {
     if (index < _pages.length) {
       if (_selectedIndex == index) {
@@ -133,24 +154,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         } else {
           await _scanQRPageKey.currentState?.pauseCamera();
         }
-        if (_selectedIndex != HomeNavigatorTab.menu.index) {
-          final title = (_selectedIndex == HomeNavigatorTab.scanQr.index)
-              ? QRScanTab
-                  .values[_scanQRPageKey.currentState?.tabController.index ??
-                      QRScanTab.scan.index]
-                  .screenName
-              : HomeNavigatorTab.values[_selectedIndex].screenName;
-          _metricClientService
-            ..addEvent(
-              MixpanelEvent.visitPage,
-              data: {
-                MixpanelProp.title: title,
-              },
-            )
-            ..timerEvent(
-              MixpanelEvent.visitPage,
-            );
-        }
+        sendVisitPageEvent();
       }
       setState(() {
         _selectedIndex = index;
@@ -776,6 +780,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
 
   void _handleBackground() {
     unawaited(_cloudBackup());
+    _metricClientService.onBackground();
   }
 
   Future<void> _handleForeBackground(FGBGType event) async {
@@ -831,6 +836,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   }
 
   Future<void> _handleForeground() async {
+    _metricClientService.onForeground();
     await injector<CustomerSupportService>().fetchAnnouncement();
     unawaited(announcementNotificationIfNeed());
     await _remoteConfig.loadConfigs();
