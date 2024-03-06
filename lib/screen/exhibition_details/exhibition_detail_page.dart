@@ -5,10 +5,10 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/play_control_model.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_state.dart';
-import 'package:autonomy_flutter/screen/exhibition_note/exhibition_note_page.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
@@ -171,13 +171,10 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
                 exhibition: exhibition,
                 width: width,
                 onReadMore: () async {
-                  await Navigator.push(
+                  await Navigator.pushNamed(
                     context,
-                    MaterialPageRoute(
-                      builder: (context) => ExhibitionNotePage(
-                        exhibition: exhibition,
-                      ),
-                    ),
+                    AppRouter.exhibitionNotePage,
+                    arguments: exhibition,
                   );
                 },
               ),

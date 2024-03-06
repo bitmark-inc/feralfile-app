@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/model/connection_request_args.dart';
+import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
@@ -145,7 +146,7 @@ extension RouteExt on Route {
           MixpanelProp.type: payload.blockchain,
         };
         break;
-      case AppRouter.wcConnectPage:
+      case AppRouter.tbConnectPage:
         final payload = settings.arguments! as ConnectionRequest;
         data = {
           MixpanelProp.title: payload.name,
@@ -280,8 +281,7 @@ extension RouteExt on Route {
         };
         break;
       case AppRouter.postcardSelectAddressScreen:
-        final payload = settings.arguments! as Map<String, dynamic>;
-        data = payload;
+        data = {};
         break;
       case AppRouter.receivePostcardPage:
         final payload = settings.arguments! as ReceivePostcardPageArgs;
@@ -323,13 +323,6 @@ extension RouteExt on Route {
           MixpanelProp.tokenId: payload.assetToken.id,
           MixpanelProp.ownerAddress: payload.assetToken.owner,
           MixpanelProp.activationId: payload.activationID,
-        };
-        break;
-      case AppRouter.previewActivationClaimPage:
-        final payload = settings.arguments! as AssetToken;
-        data = {
-          MixpanelProp.tokenId: payload.id,
-          MixpanelProp.ownerAddress: payload.owner,
         };
         break;
       case AppRouter.postcardLocationExplain:
@@ -458,6 +451,31 @@ extension RouteExt on Route {
           MixpanelProp.recipientAddress: payload.transaction.to,
         };
         break;
+      case AppRouter.autonomyAirdropTokenPreviewPage:
+        final payload = settings.arguments! as FFSeries;
+        data = {
+          MixpanelProp.seriesId: payload.id,
+        };
+        break;
+      case AppRouter.exhibitionNotePage:
+        final payload = settings.arguments! as Exhibition;
+        data = {
+          MixpanelProp.exhibitionId: payload.id,
+        };
+        break;
+      case AppRouter.activationTokenPreviewPage:
+        final payload = settings.arguments! as AssetToken;
+        data = {
+          MixpanelProp.tokenId: payload.id,
+          MixpanelProp.ownerAddress: payload.owner,
+        };
+        break;
+      case AppRouter.feralfileAirdropTokenPreviewPage:
+        final payload = settings.arguments! as FFSeries;
+        data = {
+          MixpanelProp.seriesId: payload.id,
+        };
+        break;
       default:
         break;
     }
@@ -483,12 +501,11 @@ final screenNameMap = {
   AppRouter.scanQRPage: 'Scan QR',
   AppRouter.globalReceivePage: 'Global Receive',
   AppRouter.recoveryPhrasePage: 'Recovery Phrase',
-  AppRouter.wcConnectPage: 'WC Connect',
+  AppRouter.tbConnectPage: 'TB Connect',
   AppRouter.cloudPage: 'Cloud',
   AppRouter.cloudAndroidPage: 'Cloud',
   AppRouter.linkManually: 'Link Manually',
   AppRouter.autonomySecurityPage: 'Feral File Security',
-  AppRouter.unsafeWebWalletPage: 'Unsafe Web Wallet',
   AppRouter.releaseNotesPage: 'Release Notes',
   AppRouter.hiddenArtworksPage: 'Hidden Artworks',
   AppRouter.supportCustomerPage: 'Support Customer',
@@ -528,7 +545,6 @@ final screenNameMap = {
   AppRouter.claimAirdropPage: 'Claim Airdrop',
   AppRouter.activationTokenDetailPage: 'Activation Token Detail',
   AppRouter.claimActivationPage: 'Claim Activation',
-  AppRouter.previewActivationClaimPage: 'Preview Activation Claim',
   AppRouter.postcardLeaderboardPage: 'Postcard Leaderboard',
   AppRouter.postcardLocationExplain: 'Postcard Location Explain',
   AppRouter.predefinedCollectionPage: 'Predefined Collection',
@@ -548,10 +564,16 @@ final screenNameMap = {
   AppRouter.chatThreadPage: 'Chat Thread',
   AppRouter.wcSignMessagePage: 'WC Sign Message',
   AppRouter.wcSendTransactionPage: 'WC Send Transaction',
-  AppRouter.momaPostcardPage: 'Moma Postcards',
+  AppRouter.momaPostcardPage: 'MoMA Postcards',
   AppRouter.tbSendTransactionPage: 'TB Send Transaction',
   AppRouter.feralFileSeriesPage: 'Series Detail',
   AppRouter.ffArtworkPreviewPage: 'Feral File Artwork Preview',
+  AppRouter.exhibitionDetailPage: 'Exhibition Detail',
+  AppRouter.autonomyAirdropTokenPreviewPage: 'Autonomy Airdrop Token Preview',
+  AppRouter.exhibitionNotePage: 'Exhibition Note',
+  AppRouter.activationTokenPreviewPage: 'Activation Token Preview',
+  AppRouter.feralfileAirdropTokenPreviewPage:
+      'Feral File Airdrop Token Preview',
 };
 
 String getPageName(String routeName) {

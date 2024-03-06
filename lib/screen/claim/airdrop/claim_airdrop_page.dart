@@ -6,7 +6,6 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
-import 'package:autonomy_flutter/screen/claim/preview_token_claim.dart';
 import 'package:autonomy_flutter/screen/claim/select_account_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
@@ -151,13 +150,10 @@ class _ClaimAirdropPageState extends State<ClaimAirdropPage> {
                           ),
                         ),
                         onTap: () async {
-                          await Navigator.push(
+                          await Navigator.pushNamed(
                             context,
-                            MaterialPageRoute(
-                              builder: (context) => PreviewTokenClaim(
-                                series: widget.payload.series,
-                              ),
-                            ),
+                            AppRouter.autonomyAirdropTokenPreviewPage,
+                            arguments: widget.payload.series,
                           );
                         },
                       ),
@@ -180,13 +176,10 @@ class _ClaimAirdropPageState extends State<ClaimAirdropPage> {
                                     maxLines: 2,
                                   ),
                                   onTap: () async {
-                                    await Navigator.push(
+                                    await Navigator.pushNamed(
                                       context,
-                                      MaterialPageRoute(
-                                        builder: (context) => PreviewTokenClaim(
-                                          series: widget.payload.series,
-                                        ),
-                                      ),
+                                      AppRouter.autonomyAirdropTokenPreviewPage,
+                                      arguments: widget.payload.series,
                                     );
                                   },
                                 ),

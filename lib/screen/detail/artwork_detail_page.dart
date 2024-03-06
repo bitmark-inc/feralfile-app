@@ -25,7 +25,6 @@ import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwor
 import 'package:autonomy_flutter/service/airdrop_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
@@ -76,7 +75,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 
   HashSet<String> _accountNumberHash = HashSet.identity();
   AssetToken? currentAsset;
-  final _metricClient = injector.get<MetricClientService>();
   final _airdropService = injector.get<AirdropService>();
   final _feralfileService = injector.get<FeralFileService>();
 
@@ -214,16 +212,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     super.dispose();
   }
 
-  void _sendViewArtworkEvent(AssetToken assetToken) {
-    final data = {
-      MixpanelProp.tokenId: assetToken.id,
-      MixpanelProp.ownerAddress: assetToken.owner,
-      if (assetToken.isFeralfile)
-        MixpanelProp.artworkId: assetToken.feralfileArtworkId,
-    };
-    _metricClient.addEvent(MixpanelEvent.viewArtwork, data: data);
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -231,13 +219,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
         currentAsset?.medium == 'other' ||
         currentAsset?.medium == null;
     return BlocConsumer<ArtworkDetailBloc, ArtworkDetailState>(
-        listenWhen: (previous, current) {
-      if (previous.assetToken != current.assetToken &&
-          current.assetToken != null) {
-        _sendViewArtworkEvent(current.assetToken!);
-      }
-      return true;
-    }, listener: (context, state) {
+        listener: (context, state) {
       final identitiesList = state.provenances.map((e) => e.owner).toList();
       if (state.assetToken?.artistName != null &&
           state.assetToken!.artistName!.length > 20) {
