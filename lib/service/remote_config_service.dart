@@ -83,8 +83,8 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
       if (!hasKey) {
         return defaultValue;
       }
-      final res = _configs![group.getString]?[key.getString] as T;
-      return res;
+      final res = _configs![group.getString]?[key.getString];
+      return res != null ? res as T : defaultValue;
     }
   }
 }

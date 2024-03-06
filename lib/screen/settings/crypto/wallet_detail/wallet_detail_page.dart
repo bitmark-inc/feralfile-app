@@ -596,7 +596,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
         onTap: () async {
           final words =
               await widget.payload.persona.wallet().exportMnemonicWords();
-          if (!mounted) {
+          if (!context.mounted) {
             return;
           }
           unawaited(Navigator.of(context).pushNamed(
@@ -644,7 +644,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                   return;
                 }
 
-                if (!mounted) {
+                if (!context.mounted) {
                   return;
                 }
                 unawaited(UIHelper.showMessageAction(
