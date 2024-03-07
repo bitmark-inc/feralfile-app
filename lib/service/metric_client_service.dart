@@ -19,6 +19,7 @@ class MetricClientService {
 
   final mixPanelClient = injector<MixPanelClientService>();
   bool isFinishInit = false;
+  Timer? _timer;
 
   Future<void> initService() async {
     await mixPanelClient.initService();
@@ -106,20 +107,28 @@ class MetricClientService {
   }
 
   void onBackground() {
-    final route = CustomRouteObserver.currentRoute;
-    if (route?.settings.name == AppRouter.homePage) {
-      homePageKey.currentState?.sendVisitPageEvent();
-    } else if (route?.settings.name == AppRouter.homePageNoTransition) {
-      homePageNoTransactionKey.currentState?.sendVisitPageEvent();
-    } else if (route != null) {
-      unawaited(trackEndScreen(route));
-    }
+    _timer?.cancel();
+    const duration = Duration(seconds: 60);
+    _timer = Timer(duration, () {
+      final route = CustomRouteObserver.currentRoute;
+      if (route?.settings.name == AppRouter.homePage) {
+        homePageKey.currentState?.sendVisitPageEvent();
+      } else if (route?.settings.name == AppRouter.homePageNoTransition) {
+        homePageNoTransactionKey.currentState?.sendVisitPageEvent();
+      } else if (route != null) {
+        unawaited(trackEndScreen(route));
+      }
+    });
   }
 
   void onForeground() {
-    final route = CustomRouteObserver.currentRoute;
-    if (route != null) {
-      unawaited(trackStartScreen(route));
+    if (_timer?.isActive ?? false) {
+      _timer?.cancel();
+    } else {
+      final route = CustomRouteObserver.currentRoute;
+      if (route != null) {
+        unawaited(trackStartScreen(route));
+      }
     }
   }
 }
