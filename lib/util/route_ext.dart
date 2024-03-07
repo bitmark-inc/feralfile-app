@@ -435,7 +435,7 @@ extension RouteExt on Route {
       case AppRouter.wcSignMessagePage:
         final payload = settings.arguments! as WCSignMessagePageArgs;
         data = {
-          MixpanelProp.type: payload.type,
+          MixpanelProp.type: payload.type.name,
           MixpanelProp.message: payload.message,
           MixpanelProp.title: payload.peerMeta.name,
           MixpanelProp.url: payload.peerMeta.url,
@@ -574,6 +574,7 @@ final screenNameMap = {
   AppRouter.activationTokenPreviewPage: 'Activation Token Preview',
   AppRouter.feralfileAirdropTokenPreviewPage:
       'Feral File Airdrop Token Preview',
+  AppRouter.previewPrimerPage: 'Preview Primer',
 };
 
 String getPageName(String routeName) {
