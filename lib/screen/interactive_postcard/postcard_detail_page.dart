@@ -365,6 +365,10 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           current.isViewOnly == false) {
         unawaited(_youDidIt(context, current.assetToken!));
       }
+      if (previous.assetToken != current.assetToken &&
+          current.assetToken != null) {
+        unawaited(current.assetToken?.sendViewArtworkEvent());
+      }
       return true;
     }, listener: (context, state) async {
       final identitiesList = state.provenances.map((e) => e.owner).toList();

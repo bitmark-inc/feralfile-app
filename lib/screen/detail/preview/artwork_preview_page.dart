@@ -20,12 +20,9 @@ import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_state.dar
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/keyboard_control_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
-import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
-import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -67,7 +64,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   ShakeDetector? _detector;
   final keyboardManagerKey = GlobalKey<KeyboardManagerWidgetState>();
   final _focusNode = FocusNode();
-  final _metricClient = injector.get<MetricClientService>();
 
   INFTRenderingWidget? _renderingWidget;
 
@@ -241,29 +237,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
       isDismissible: true,
     );
     unawaited(_fetchDevice(assetToken?.id ?? ''));
-  }
-
-  Future<void> _sendViewArtworkEvent(AssetToken assetToken) async {
-    String tokenId = assetToken.id;
-    if (assetToken.isFeralfile) {
-      try {
-        final artworkId = assetToken.feralfileArtworkId;
-        if (artworkId != null && artworkId.isNotEmpty) {
-          final artwork =
-              await injector<FeralFileService>().getArtwork(artworkId);
-          tokenId = artwork.metricTokenId;
-        }
-      } catch (e, stackTrace) {
-        await Sentry.captureException(
-          e,
-          stackTrace: stackTrace,
-        );
-      }
-    }
-    final data = {
-      MixpanelProp.tokenId: tokenId,
-    };
-    _metricClient.addEvent(MixpanelEvent.viewArtwork, data: data);
   }
 
   @override
@@ -459,7 +432,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
           assetToken = state.assetToken;
         }
         if (assetToken != null) {
-          unawaited(_sendViewArtworkEvent(assetToken));
+          unawaited(assetToken.sendViewArtworkEvent());
         }
         final identitiesList = [
           assetToken?.artistName ?? '',
