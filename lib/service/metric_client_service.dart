@@ -69,9 +69,7 @@ class MetricClientService {
   }
 
   Future<void> trackStartScreen(Route<dynamic> route) async {
-    if (!route.isIgnoreForVisitPageEvent) {
-      timerEvent(MixpanelEvent.visitPage);
-    }
+    timerEvent(MixpanelEvent.visitPage);
   }
 
   Future<void> trackEndScreen(Route<dynamic> route) async {
