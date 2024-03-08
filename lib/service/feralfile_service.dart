@@ -428,7 +428,7 @@ class FeralFileServiceImpl extends FeralFileService {
     final maxArtworks = series.maxEdition;
     for (var i = 0; i < maxArtworks; i++) {
       final previewURI = await _getPreviewURI(series, i, exhibition);
-      final artworkId = await getFeralfileTokenId(
+      final artworkId = getFeralfileTokenId(
         seriesOnchainID: series.onchainID ?? '',
         exhibitionID: series.exhibitionID,
         artworkIndex: i,

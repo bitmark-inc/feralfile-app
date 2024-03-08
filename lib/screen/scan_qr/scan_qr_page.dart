@@ -141,10 +141,12 @@ class ScanQRPageState extends State<ScanQRPage>
     if (controller.indexIsChanging) {
       return;
     }
-    _metricClientService.addEvent(MixpanelEvent.visitPage, data: {
-      MixpanelProp.title: QRScanTab.values[controller.previousIndex].screenName,
-    });
-    _metricClientService.timerEvent(MixpanelEvent.visitPage);
+    _metricClientService
+      ..addEvent(MixpanelEvent.visitPage, data: {
+        MixpanelProp.title:
+            QRScanTab.values[controller.previousIndex].screenName,
+      })
+      ..timerEvent(MixpanelEvent.visitPage);
   }
 
   Future<void> pauseCamera() async {
