@@ -851,8 +851,8 @@ class SectionExpandedWidget extends StatefulWidget {
   final EdgeInsets? headerPadding;
   final Widget? child;
   final Widget? iconOnExpanded;
-  final Widget? iconOnUnExpaneded;
-  final bool withDivicer;
+  final Widget? iconOnUnExpanded;
+  final bool withDivider;
   final EdgeInsets padding;
 
   const SectionExpandedWidget(
@@ -862,8 +862,8 @@ class SectionExpandedWidget extends StatefulWidget {
       this.headerPadding,
       this.child,
       this.iconOnExpanded,
-      this.iconOnUnExpaneded,
-      this.withDivicer = true,
+      this.iconOnUnExpanded,
+      this.withDivider = true,
       this.padding = const EdgeInsets.all(0)});
 
   @override
@@ -889,11 +889,7 @@ class _SectionExpandedWidgetState extends State<SectionExpandedWidget> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (widget.withDivicer)
-                Divider(
-                  color: theme.colorScheme.secondary,
-                  thickness: 1,
-                ),
+              if (widget.withDivider) artworkSectionDivider,
               GestureDetector(
                 onTap: () {
                   setState(() {
@@ -919,7 +915,7 @@ class _SectionExpandedWidgetState extends State<SectionExpandedWidget> {
                                 child: defaultIcon,
                               )
                         else
-                          widget.iconOnUnExpaneded ??
+                          widget.iconOnUnExpanded ??
                               RotatedBox(
                                 quarterTurns: 1,
                                 child: defaultIcon,
@@ -971,12 +967,12 @@ Widget postcardDetailsMetadataSection(
     header: 'metadata'.tr(),
     headerStyle: theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
     headerPadding: padding,
-    withDivicer: false,
+    withDivider: false,
     iconOnExpanded: RotatedBox(
       quarterTurns: 1,
       child: icon,
     ),
-    iconOnUnExpaneded: RotatedBox(
+    iconOnUnExpanded: RotatedBox(
       quarterTurns: 2,
       child: icon,
     ),
@@ -1114,11 +1110,7 @@ Widget artworkDetailsMetadataSection(
       ((assetToken.swapped ?? false) && assetToken.originTokenInfoId != null)
           ? assetToken.originTokenInfoId ?? ''
           : assetToken.id.split('-').last;
-  final divider = Divider(
-    height: 32,
-    color: theme.auLightGrey,
-    thickness: 0.25,
-  );
+  const divider = artworkDataDivider;
   return SectionExpandedWidget(
     header: 'metadata'.tr(),
     padding: const EdgeInsets.only(bottom: 23),
@@ -1264,12 +1256,12 @@ Widget postcardOwnership(
     header: 'token_ownership'.tr(),
     headerStyle: theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
     headerPadding: padding,
-    withDivicer: false,
+    withDivider: false,
     iconOnExpanded: RotatedBox(
       quarterTurns: 1,
       child: icon,
     ),
-    iconOnUnExpaneded: RotatedBox(
+    iconOnUnExpanded: RotatedBox(
       quarterTurns: 2,
       child: icon,
     ),
@@ -1344,8 +1336,6 @@ Widget postcardOwnership(
 
 Widget tokenOwnership(
     BuildContext context, AssetToken assetToken, String alias) {
-  final theme = Theme.of(context);
-
   final sentTokens = injector<ConfigurationService>().getRecentlySentToken();
   final expiredTime = DateTime.now().subtract(SENT_ARTWORK_HIDE_TIME);
 
@@ -1365,11 +1355,7 @@ Widget tokenOwnership(
     ownedTokens -= totalSentQuantity;
   }
 
-  final divider = Divider(
-    height: 32,
-    color: theme.auLightGrey,
-    thickness: 0.25,
-  );
+  const divider = artworkDataDivider;
 
   return SectionExpandedWidget(
     header: 'token_ownership'.tr(),
@@ -1660,7 +1646,7 @@ Widget artworkDetailsProvenanceSectionNotEmpty(
                           : null,
                       forceSafariVC: true,
                     ),
-                    const Divider(height: 32),
+                    if (el != provenances.last) artworkDataDivider,
                   ],
                 );
               })
@@ -1710,12 +1696,12 @@ class _PostcardRightsViewState extends State<PostcardRightsView> {
               headerStyle:
                   theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
               headerPadding: const EdgeInsets.only(left: 15, right: 15),
-              withDivicer: false,
+              withDivider: false,
               iconOnExpanded: RotatedBox(
                 quarterTurns: 1,
                 child: icon,
               ),
-              iconOnUnExpaneded: RotatedBox(
+              iconOnUnExpanded: RotatedBox(
                 quarterTurns: 2,
                 child: icon,
               ),

@@ -347,6 +347,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                 ],
               ),
             ),
+            leadingWidth: editable ? 90 : 55,
             titleSpacing: 0,
             backgroundColor: theme.colorScheme.background,
             automaticallyImplyLeading: false,

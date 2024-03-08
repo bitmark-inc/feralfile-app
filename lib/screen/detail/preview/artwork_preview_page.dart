@@ -270,6 +270,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                   backgroundColor: theme.colorScheme.primary,
                   leadingWidth: 0,
                   centerTitle: false,
+                  automaticallyImplyLeading: false,
                   title: GestureDetector(
                       onTap: () async => _moveToInfo(assetToken),
                       child: ArtworkDetailsHeader(
@@ -366,10 +367,12 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                                   width: 20,
                                 ),
                                 Visibility(
-                                  visible: assetToken?.medium == 'software' ||
-                                      assetToken?.medium == 'other' ||
-                                      (assetToken?.medium?.isEmpty ?? true) ||
-                                      isCasting,
+                                  visible: (assetToken?.medium == 'software' ||
+                                          assetToken?.medium == 'other' ||
+                                          (assetToken?.medium?.isEmpty ??
+                                              true) ||
+                                          isCasting) &&
+                                      assetToken?.isPostcard != true,
                                   child: KeyboardManagerWidget(
                                     key: keyboardManagerKey,
                                     focusNode: _focusNode,
@@ -386,7 +389,10 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                                               ),
                                             );
                                           }
-                                        : null,
+                                        : () {
+                                            FocusScope.of(context)
+                                                .requestFocus(_focusNode);
+                                          },
                                   ),
                                 ),
                                 const SizedBox(

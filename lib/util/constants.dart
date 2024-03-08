@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/util/fee_util.dart';
 import 'package:autonomy_flutter/util/geolocation.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -132,6 +133,18 @@ List<String> get momaMementoContractAddresses {
     return MOMA_MEMENTO_CONTRACT_ADDRESSES_MAINNET;
   }
 }
+
+const artworkDataDivider = Divider(
+  height: 32,
+  color: Color.fromRGBO(255, 255, 255, 0.3),
+  thickness: 1,
+);
+
+const artworkSectionDivider = Divider(
+  height: 32,
+  color: AppColor.white,
+  thickness: 1,
+);
 
 const MOMA_MEMENTO_6_CLAIM_ID = 'memento6';
 

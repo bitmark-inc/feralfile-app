@@ -48,7 +48,7 @@ class _FeralFileArtworkPreviewPageState
               child: FeralfileArtworkPreviewWidget(
                 payload: FeralFileArtworkPreviewWidgetPayload(
                   artwork: widget.payload.artwork,
-                  isMute: true,
+                  isMute: false,
                   isScrollable: widget.payload.artwork.isScrollablePreviewURL,
                 ),
               ),
