@@ -59,26 +59,26 @@ class _InAppWebViewPageState extends State<InAppWebViewPage> {
               children: [
                 InAppWebView(
                   initialUrlRequest:
-                      URLRequest(url: Uri.tryParse(widget.payload.url)),
-                  initialOptions: InAppWebViewGroupOptions(
-                      crossPlatform: InAppWebViewOptions(
+                      URLRequest(url: WebUri(widget.payload.url)),
+                  initialSettings: InAppWebViewSettings(
                     userAgent: 'user_agent'.tr(namedArgs: {'version': version}),
-                  )),
-                  androidOnPermissionRequest:
-                      (InAppWebViewController controller, String origin,
-                          List<String> resources) async {
-                    if (resources
-                        .contains('android.webkit.resource.AUDIO_CAPTURE')) {
+                  ),
+                  onPermissionRequest: (InAppWebViewController controller,
+                      permissionRequest) async {
+                    if (permissionRequest.resources
+                        .contains(PermissionResourceType.MICROPHONE)) {
                       await Permission.microphone.request();
                       final status = await Permission.microphone.status;
                       if (status.isPermanentlyDenied || status.isDenied) {
-                        return PermissionRequestResponse(resources: resources);
+                        return PermissionResponse(
+                            resources: permissionRequest.resources);
                       }
-                      return PermissionRequestResponse(
-                          resources: resources,
-                          action: PermissionRequestResponseAction.GRANT);
+                      return PermissionResponse(
+                          resources: permissionRequest.resources,
+                          action: PermissionResponseAction.GRANT);
                     }
-                    return PermissionRequestResponse(resources: resources);
+                    return PermissionResponse(
+                        resources: permissionRequest.resources);
                   },
                   onWebViewCreated: (controller) {
                     if (widget.payload.onWebViewCreated != null) {

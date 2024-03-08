@@ -197,12 +197,10 @@ class _PreviewPrimerPageState extends State<PreviewPrimerPage>
             children: [
               Expanded(
                 child: InAppWebView(
-                  initialUrlRequest:
-                      URLRequest(url: Uri.tryParse(WEB3_PRIMER_URL)),
-                  initialOptions: InAppWebViewGroupOptions(
-                      crossPlatform: InAppWebViewOptions(
-                          userAgent: 'user_agent'
-                              .tr(namedArgs: {'version': version}))),
+                  initialUrlRequest: URLRequest(url: WebUri(WEB3_PRIMER_URL)),
+                  initialSettings: InAppWebViewSettings(
+                    userAgent: 'user_agent'.tr(namedArgs: {'version': version}),
+                  ),
                   onWebViewCreated: (controller) {
                     _controller = controller;
                   },
