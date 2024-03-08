@@ -74,8 +74,6 @@ class CanvasClientService {
   Future<bool> _connectToDevice(CanvasDevice device) async {
     final stub = _getStub(device);
     try {
-      final index =
-          _viewingDevices.indexWhere((element) => element.ip == device.ip);
       final request = ConnectRequest()
         ..device = (DeviceInfo()
           ..deviceId = _deviceId
@@ -86,15 +84,17 @@ class CanvasClientService {
         options: _callOptions,
       );
       log.info('CanvasClientService received: ${response.ok}');
+      final index =
+          _viewingDevices.indexWhere((element) => element.ip == device.ip);
       if (response.ok) {
         log.info('CanvasClientService: Connected to device');
         device.isConnecting = true;
-        await _db.canvasDeviceDao.insertCanvasDevice(device);
         if (index == -1) {
           _viewingDevices.add(device);
         } else {
           _viewingDevices[index].isConnecting = true;
         }
+        await _db.canvasDeviceDao.insertCanvasDevice(device);
         return true;
       } else {
         log.info('CanvasClientService: Failed to connect to device');
@@ -147,7 +147,6 @@ class CanvasClientService {
 
   Future<void> syncDevices() async {
     final devices = await getAllDevices();
-    _viewingDevices.clear();
     final List<CanvasDevice> devicesToAdd = [];
     await Future.forEach<CanvasDevice>(devices, (device) async {
       final status = await checkDeviceStatus(device);
@@ -173,6 +172,7 @@ class CanvasClientService {
       }
     });
     _viewingDevices
+      ..clear()
       ..addAll(devicesToAdd)
       ..unique((element) => element.ip);
     log.info(
