@@ -9,6 +9,7 @@ import 'dart:io';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
+import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/util/eth_utils.dart';
 import 'package:autonomy_flutter/util/fee_util.dart';
 import 'package:autonomy_flutter/util/geolocation.dart';
@@ -510,6 +511,11 @@ class Constants {
     'https://link.autonomy.io',
   ];
 }
+
+Map<String, String> specifiedSeriesTitle = {
+  'faa810f7-7b75-4c02-bf8a-b7447a89c921':
+      ExtendedArtworkModel.interactiveInstruction.title,
+};
 
 class MixpanelEvent {}
 
