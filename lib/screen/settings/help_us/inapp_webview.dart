@@ -4,10 +4,10 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -40,13 +40,7 @@ class _InAppWebViewPageState extends State<InAppWebViewPage> {
     final theme = Theme.of(context);
     final version = _configurationService.getVersionInfo();
     return Scaffold(
-      appBar: AppBar(
-        toolbarHeight: 0,
-        systemOverlayStyle: SystemUiOverlayStyle(
-          statusBarColor: widget.payload.backgroundColor ?? Colors.transparent,
-          systemNavigationBarDividerColor: Colors.transparent,
-        ),
-      ),
+      appBar: getDarkEmptyAppBar(Colors.black),
       backgroundColor: widget.payload.backgroundColor ?? theme.primaryColor,
       body: Column(
         children: [
