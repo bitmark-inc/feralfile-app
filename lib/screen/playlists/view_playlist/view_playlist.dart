@@ -587,7 +587,7 @@ enum SortOrder {
       case SortOrder.newest:
         return b.lastActivityTime.compareTo(a.lastActivityTime);
       case SortOrder.manual:
-        return 1;
+        return -1;
     }
   }
 }
