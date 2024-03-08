@@ -23,7 +23,7 @@ extension ExhibitionExt on Exhibition {
   String? get getSeriesArtworkModelText {
     const sep = ', ';
     final specifiedSeriesArtworkModelTitle =
-        injector<RemoteConfigService>().getConfig<Map<String, String>>(
+        injector<RemoteConfigService>().getConfig<Map<String, dynamic>>(
       ConfigGroup.exhibition,
       ConfigKey.specifiedSeriesArtworkModelTitle,
       specifiedSeriesTitle,
