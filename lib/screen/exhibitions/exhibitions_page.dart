@@ -180,12 +180,9 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                                 ? 'group_exhibition'.tr()
                                 : 'solo_exhibition'.tr(),
                             style: theme.textTheme.ppMori400Grey14),
-                        Text(
-                            '_works'.tr(args: [
-                              exhibitionDetail.artworks?.length.toString() ??
-                                  '-'
-                            ]),
-                            style: theme.textTheme.ppMori400Grey14),
+                        if (exhibition.getSeriesArtworkModelText != null)
+                          Text(exhibition.getSeriesArtworkModelText!,
+                              style: theme.textTheme.ppMori400Grey14),
                       ],
                     ),
                   )

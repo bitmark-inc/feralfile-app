@@ -108,6 +108,47 @@ class Exhibition {
 
   String getThumbnailURL() =>
       '${Environment.feralFileAssetURL}/$thumbnailCoverURI';
+
+  Exhibition copyWith({
+    String? id,
+    String? title,
+    String? slug,
+    DateTime? exhibitionStartAt,
+    String? noteTitle,
+    String? noteBrief,
+    String? note,
+    String? coverURI,
+    String? thumbnailCoverURI,
+    String? mintBlockchain,
+    FFCurator? curator,
+    List<FFArtist>? artists,
+    List<FFSeries>? series,
+    List<FFContract>? contracts,
+    FFArtist? partner,
+    String? type,
+    List<ExhibitionEvent>? resources,
+    int? status,
+  }) =>
+      Exhibition(
+        id: id ?? this.id,
+        title: title ?? this.title,
+        slug: slug ?? this.slug,
+        exhibitionStartAt: exhibitionStartAt ?? this.exhibitionStartAt,
+        noteTitle: noteTitle ?? this.noteTitle,
+        noteBrief: noteBrief ?? this.noteBrief,
+        note: note ?? this.note,
+        coverURI: coverURI ?? this.coverURI,
+        thumbnailCoverURI: thumbnailCoverURI ?? this.thumbnailCoverURI,
+        mintBlockchain: mintBlockchain ?? this.mintBlockchain,
+        curator: curator ?? this.curator,
+        artists: artists ?? this.artists,
+        series: series ?? this.series,
+        contracts: contracts ?? this.contracts,
+        partner: partner ?? this.partner,
+        type: type ?? this.type,
+        resources: resources ?? this.resources,
+        status: status ?? this.status,
+      );
 }
 
 class ExhibitionResponse {
@@ -142,6 +183,15 @@ class ExhibitionDetail {
   List<Artwork>? artworks;
 
   ExhibitionDetail({required this.exhibition, this.artworks});
+
+  ExhibitionDetail copyWith({
+    Exhibition? exhibition,
+    List<Artwork>? artworks,
+  }) =>
+      ExhibitionDetail(
+        exhibition: exhibition ?? this.exhibition,
+        artworks: artworks ?? this.artworks,
+      );
 }
 
 class ExhibitionEvent {
