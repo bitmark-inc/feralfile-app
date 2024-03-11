@@ -48,6 +48,28 @@ enum ArtworkModel {
     }
   }
 
+  String get title {
+    switch (this) {
+      case ArtworkModel.multiUnique:
+        return 'series';
+      case ArtworkModel.single:
+        return 'single';
+      case ArtworkModel.multi:
+        return 'edition';
+    }
+  }
+
+  String get pluralTitle {
+    switch (this) {
+      case ArtworkModel.multiUnique:
+        return 'series';
+      case ArtworkModel.single:
+        return 'singles';
+      case ArtworkModel.multi:
+        return 'editions';
+    }
+  }
+
   static ArtworkModel? fromString(String value) {
     switch (value) {
       case 'multi':
@@ -58,6 +80,34 @@ enum ArtworkModel {
         return ArtworkModel.multiUnique;
       default:
         return null;
+    }
+  }
+}
+
+enum ExtendedArtworkModel {
+  interactiveInstruction,
+  ;
+
+  String get title {
+    switch (this) {
+      case ExtendedArtworkModel.interactiveInstruction:
+        return 'interactive instruction';
+    }
+  }
+
+  String get pluralTitle {
+    switch (this) {
+      case ExtendedArtworkModel.interactiveInstruction:
+        return 'interactive instructions';
+    }
+  }
+
+  static ExtendedArtworkModel fromTitle(String title) {
+    switch (title) {
+      case 'interactive instruction':
+        return ExtendedArtworkModel.interactiveInstruction;
+      default:
+        return ExtendedArtworkModel.interactiveInstruction;
     }
   }
 }
@@ -110,6 +160,7 @@ abstract class FeralFileService {
     int limit = 8,
     int offset = 0,
     bool withArtworks = false,
+    bool withSeries = false,
   });
 
   Future<Exhibition> getFeaturedExhibition();
@@ -289,6 +340,7 @@ class FeralFileServiceImpl extends FeralFileService {
     int limit = 8,
     int offset = 0,
     bool withArtworks = false,
+    bool withSeries = false,
   }) async {
     final exhibitions = await _feralFileApi.getAllExhibitions(
         sortBy: sortBy, sortOrder: sortOrder, limit: limit, offset: offset);
@@ -307,6 +359,17 @@ class FeralFileServiceImpl extends FeralFileService {
         }));
       } catch (e) {
         log.info('[FeralFileService] Get artworks failed $e');
+      }
+    }
+    if (withSeries) {
+      try {
+        await Future.wait(listExhibitionDetail.mapIndexed((index, e) async {
+          final series = await getListSeries(e.exhibition.id);
+          listExhibitionDetail[index] =
+              e.copyWith(exhibition: e.exhibition.copyWith(series: series));
+        }));
+      } catch (e) {
+        log.info('[FeralFileService] Get series failed $e');
       }
     }
     return listExhibitionDetail;

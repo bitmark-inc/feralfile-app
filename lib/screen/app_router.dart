@@ -1030,9 +1030,13 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings, builder: (context) => const HelpUsPage());
       case inappWebviewPage:
-        return CupertinoPageRoute(
+        return PageTransition(
             settings: settings,
-            builder: (context) => InAppWebViewPage(
+            type: PageTransitionType.rightToLeft,
+            curve: Curves.easeIn,
+            duration: const Duration(milliseconds: 300),
+            reverseDuration: const Duration(milliseconds: 300),
+            child: InAppWebViewPage(
                 payload: settings.arguments! as InAppWebViewPayload));
       case claimEmptyPostCard:
         final claimRequest = settings.arguments! as RequestPostcardResponse;

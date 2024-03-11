@@ -77,9 +77,10 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
       unawaited(loadConfigs());
       return _defaults[group.getString]![key.getString] as T ?? defaultValue;
     } else {
-      final hasKey = (_configs![group.getString] as Map<String, dynamic>)
-          .keys
-          .contains(key.getString);
+      final hasKey = (_configs?.keys.contains(group.getString) ?? false) &&
+          (_configs![group.getString] as Map<String, dynamic>)
+              .keys
+              .contains(key.getString);
       if (!hasKey) {
         return defaultValue;
       }
@@ -96,6 +97,7 @@ enum ConfigGroup {
   feature,
   postcardAction,
   feralfileArtworkAction,
+  exhibition,
 }
 
 // ConfigGroup getString extension
@@ -114,6 +116,8 @@ extension ConfigGroupExtension on ConfigGroup {
         return 'postcard_action';
       case ConfigGroup.feralfileArtworkAction:
         return 'feralfile_artwork_action';
+      case ConfigGroup.exhibition:
+        return 'exhibition';
     }
   }
 }
@@ -138,6 +142,7 @@ enum ConfigKey {
   allowDownloadArtworkContracts,
   soundPieceContractAddresses,
   scrollablePreviewUrl,
+  specifiedSeriesArtworkModelTitle,
 }
 
 // ConfigKey getString extension
@@ -182,6 +187,8 @@ extension ConfigKeyExtension on ConfigKey {
         return 'sound_piece_contract_addresses';
       case ConfigKey.scrollablePreviewUrl:
         return 'scrollable_preview_url';
+      case ConfigKey.specifiedSeriesArtworkModelTitle:
+        return 'specified_series_artwork_model_title';
     }
   }
 }
