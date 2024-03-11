@@ -195,6 +195,15 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
             },
           ),
           OptionItem(
+            title: 'projects'.tr(),
+            icon: const Icon(
+              AuIcon.bookOutlined,
+            ),
+            onTap: () {
+              Navigator.of(context).popAndPushNamed(AppRouter.projectsList);
+            },
+          ),
+          OptionItem(
             title: 'addresses'.tr(),
             icon: const Icon(
               AuIcon.wallet,

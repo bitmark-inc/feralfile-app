@@ -29,6 +29,10 @@ import 'package:uuid/uuid.dart';
 //ignore_for_file: constant_identifier_names
 
 abstract class ConfigurationService {
+  Future<void> setRecordOwners(List<String> owners, {bool override = false});
+
+  List<String> getRecordOwners();
+
   Future<void> setHasMerchandiseSupport(String indexId,
       {bool value = true, bool isOverride = false});
 
@@ -273,6 +277,7 @@ abstract class ConfigurationService {
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
+  static const String keyRecordOwners = 'yoko_ono_record_owners';
   static const String KEY_HAS_MERCHANDISE_SUPPORT_INDEX_ID =
       'has_merchandise_support';
   static const String KEY_POSTCARD_CHAT_CONFIG = 'postcard_chat_config';
@@ -1210,6 +1215,21 @@ class ConfigurationServiceImpl implements ConfigurationService {
             ..addAll(ids);
       await _preferences.setStringList(
           KEY_MERCHANDISE_ORDER_IDS, currentIds.toSet().toList());
+    }
+  }
+
+  @override
+  List<String> getRecordOwners() =>
+      _preferences.getStringList(keyRecordOwners) ?? [];
+
+  @override
+  Future<void> setRecordOwners(List<String> owners,
+      {bool override = false}) async {
+    if (override) {
+      await _preferences.setStringList(keyRecordOwners, owners);
+    } else {
+      final currentOwners = getRecordOwners()..addAll(owners);
+      await _preferences.setStringList(keyRecordOwners, currentOwners.toList());
     }
   }
 }
