@@ -144,6 +144,8 @@ extension ArtworkExt on Artwork {
     );
     return scrollablePreviewURL?.contains(previewURL) ?? true;
   }
+
+  String get metricTokenId => '${seriesID}_$id';
 }
 
 String getFFUrl(String uri) {

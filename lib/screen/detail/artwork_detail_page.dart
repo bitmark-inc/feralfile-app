@@ -25,7 +25,6 @@ import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwor
 import 'package:autonomy_flutter/service/airdrop_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
@@ -76,7 +75,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 
   HashSet<String> _accountNumberHash = HashSet.identity();
   AssetToken? currentAsset;
-  final metricClient = injector.get<MetricClientService>();
   final _airdropService = injector.get<AirdropService>();
   final _feralfileService = injector.get<FeralFileService>();
 
@@ -221,7 +219,13 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
         currentAsset?.medium == 'other' ||
         currentAsset?.medium == null;
     return BlocConsumer<ArtworkDetailBloc, ArtworkDetailState>(
-        listener: (context, state) {
+        listenWhen: (previous, current) {
+      if (previous.assetToken != current.assetToken &&
+          current.assetToken != null) {
+        unawaited(current.assetToken?.sendViewArtworkEvent());
+      }
+      return true;
+    }, listener: (context, state) {
       final identitiesList = state.provenances.map((e) => e.owner).toList();
       if (state.assetToken?.artistName != null &&
           state.assetToken!.artistName!.length > 20) {

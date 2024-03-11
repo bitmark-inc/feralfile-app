@@ -31,6 +31,7 @@ import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/notification_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
@@ -81,10 +82,10 @@ class HomeNavigationPage extends StatefulWidget {
   });
 
   @override
-  State<HomeNavigationPage> createState() => _HomeNavigationPageState();
+  State<HomeNavigationPage> createState() => HomeNavigationPageState();
 }
 
-class _HomeNavigationPageState extends State<HomeNavigationPage>
+class HomeNavigationPageState extends State<HomeNavigationPage>
     with
         RouteAware,
         WidgetsBindingObserver,
@@ -102,6 +103,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   final _notificationService = injector<NotificationService>();
   final _playListService = injector<PlaylistService>();
   final _remoteConfig = injector<RemoteConfigService>();
+  final _metricClientService = injector<MetricClientService>();
   late HomeNavigatorTab _initialTab;
   final nftBloc = injector<ClientTokenService>().nftBloc;
 
@@ -111,6 +113,27 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   void didChangeDependencies() {
     super.didChangeDependencies();
     routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  void sendVisitPageEvent() {
+    if (_selectedIndex != HomeNavigatorTab.menu.index) {
+      final title = (_selectedIndex == HomeNavigatorTab.scanQr.index)
+          ? QRScanTab
+              .values[_scanQRPageKey.currentState?.tabController.index ??
+                  QRScanTab.scan.index]
+              .screenName
+          : HomeNavigatorTab.values[_selectedIndex].screenName;
+      _metricClientService
+        ..addEvent(
+          MixpanelEvent.visitPage,
+          data: {
+            MixpanelProp.title: title,
+          },
+        )
+        ..timerEvent(
+          MixpanelEvent.visitPage,
+        );
+    }
   }
 
   Future<void> _onItemTapped(int index) async {
@@ -131,6 +154,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         } else {
           await _scanQRPageKey.currentState?.pauseCamera();
         }
+        sendVisitPageEvent();
       }
       setState(() {
         _selectedIndex = index;
@@ -146,6 +170,13 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
       }
     } else {
       final currentIndex = _selectedIndex;
+      _metricClientService.addEvent(
+        MixpanelEvent.visitPage,
+        data: {
+          MixpanelProp.title:
+              HomeNavigatorTab.values[_selectedIndex].screenName,
+        },
+      );
       setState(() {
         _selectedIndex = index;
       });
@@ -310,6 +341,23 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
         nftBloc
             .add(RequestIndexEvent(await _clientTokenService.getAddresses()));
       });
+    }
+    _metricClientService.timerEvent(
+      MixpanelEvent.visitPage,
+    );
+  }
+
+  @override
+  Future<void> didPushNext() async {
+    super.didPushNext();
+    if (_selectedIndex != HomeNavigatorTab.menu.index) {
+      _metricClientService.addEvent(
+        MixpanelEvent.visitPage,
+        data: {
+          MixpanelProp.title:
+              HomeNavigatorTab.values[_selectedIndex].screenName,
+        },
+      );
     }
   }
 
@@ -732,6 +780,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
 
   void _handleBackground() {
     unawaited(_cloudBackup());
+    _metricClientService.onBackground();
   }
 
   Future<void> _handleForeBackground(FGBGType event) async {
@@ -787,6 +836,7 @@ class _HomeNavigationPageState extends State<HomeNavigationPage>
   }
 
   Future<void> _handleForeground() async {
+    _metricClientService.onForeground();
     await injector<CustomerSupportService>().fetchAnnouncement();
     unawaited(announcementNotificationIfNeed());
     await _remoteConfig.loadConfigs();

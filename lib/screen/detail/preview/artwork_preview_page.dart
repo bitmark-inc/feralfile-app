@@ -403,6 +403,9 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
         if (state is ArtworkPreviewLoadedState) {
           assetToken = state.assetToken;
         }
+        if (assetToken != null) {
+          unawaited(assetToken.sendViewArtworkEvent());
+        }
         final identitiesList = [
           assetToken?.artistName ?? '',
         ];

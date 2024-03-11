@@ -410,10 +410,10 @@ class FeralFileServiceImpl extends FeralFileService {
     return listArtworks;
   }
 
-  Future<String> previewArtCustomTokenID(
+  String getFeralfileTokenId(
       {required String seriesOnchainID,
       required String exhibitionID,
-      required int artworkIndex}) async {
+      required int artworkIndex}) {
     final BigInt si = BigInt.parse(seriesOnchainID);
     final BigInt msi = si * BigInt.from(1000000) + BigInt.from(artworkIndex);
     final String part1 = exhibitionID.replaceAll('-', '');
@@ -421,6 +421,17 @@ class FeralFileServiceImpl extends FeralFileService {
     final String p = part1 + part2;
     final BigInt tokenIDBigInt = BigInt.parse('0x$p');
     final String tokenID = tokenIDBigInt.toString();
+    return tokenID;
+  }
+
+  Future<String> previewArtCustomTokenID(
+      {required String seriesOnchainID,
+      required String exhibitionID,
+      required int artworkIndex}) async {
+    final String tokenID = getFeralfileTokenId(
+        seriesOnchainID: seriesOnchainID,
+        exhibitionID: exhibitionID,
+        artworkIndex: artworkIndex);
     final Uint8List tokenIDBytes = utf8.encode(tokenID);
     final String tokenIDHash = sha256.convert(tokenIDBytes).toString();
     return '&token_id=$tokenID&token_id_hash=0x$tokenIDHash';
@@ -480,9 +491,14 @@ class FeralFileServiceImpl extends FeralFileService {
     final maxArtworks = series.maxEdition;
     for (var i = 0; i < maxArtworks; i++) {
       final previewURI = await _getPreviewURI(series, i, exhibition);
+      final artworkId = getFeralfileTokenId(
+        seriesOnchainID: series.onchainID ?? '',
+        exhibitionID: series.exhibitionID,
+        artworkIndex: i,
+      );
       final thumbnailURI = _getThumbnailURI(series, i);
       final fakeArtwork = Artwork(
-        '${series.id}_$i',
+        artworkId,
         series.id,
         i,
         '#${i + 1}',

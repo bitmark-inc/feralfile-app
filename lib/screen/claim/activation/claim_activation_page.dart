@@ -6,7 +6,6 @@ import 'package:autonomy_flutter/gateway/activation_api.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/otp.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/claim/activation/preview_activation_claim.dart';
 import 'package:autonomy_flutter/screen/claim/select_account_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
@@ -161,14 +160,10 @@ class _ClaimActivationPageState extends State<ClaimActivationPage> {
                                     maxLines: 2,
                                   ),
                                   onTap: () {
-                                    Navigator.push(
+                                    Navigator.pushNamed(
                                       context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            PreviewActivationTokenPage(
-                                          assetToken: widget.payload.assetToken,
-                                        ),
-                                      ),
+                                      AppRouter.activationTokenPreviewPage,
+                                      arguments: widget.payload.assetToken,
                                     );
                                   },
                                 ),
