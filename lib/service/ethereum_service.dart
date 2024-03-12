@@ -373,40 +373,49 @@ class EthereumServiceImpl extends EthereumService {
   @override
   Future<List<String>> getPublicRecordOwners(
       BigInt startIndex, BigInt count) async {
-    final List<String> result = [];
+    try {
+      log.info('[EthereumService] getPublicRecordOwners '
+          '- startIndex: $startIndex - count: $count');
+      final List<String> result = [];
+      final config = _remoteConfigService.getConfig<Map<String, dynamic>>(
+          ConfigGroup.exhibition, ConfigKey.yokoOnoPublic, {});
 
-    final contractJson =
-        await rootBundle.loadString('assets/data-owner-abi.json');
-    final ownerDataContractAddress = EthereumAddress.fromHex(
-        _remoteConfigService.getConfig(
-            ConfigGroup.exhibition, ConfigKey.ownerDataContract, ''));
-    final contract = DeployedContract(
-        ContractAbi.fromJson(contractJson, 'OwnerData'),
-        ownerDataContractAddress);
-    ContractFunction getFunction() => contract.function('get');
+      final contractJson =
+          await rootBundle.loadString('assets/data-owner-abi.json');
+      final ownerDataContractAddress =
+          EthereumAddress.fromHex(config['owner_data_contract']);
+      final contract = DeployedContract(
+          ContractAbi.fromJson(contractJson, 'OwnerData'),
+          ownerDataContractAddress);
+      ContractFunction getFunction() => contract.function('get');
 
-    final exhibitionContract = EthereumAddress.fromHex(
-        _remoteConfigService.getConfig(
-            ConfigGroup.exhibition, ConfigKey.momaExhibitionContract, ''));
+      final exhibitionContract =
+          EthereumAddress.fromHex(config['moma_exhibition_contract']);
 
-    final owners = await _web3Client
-        .call(contract: contract, function: getFunction(), params: [
-      exhibitionContract,
-      BigInt.parse(_remoteConfigService.getConfig(
-          ConfigGroup.exhibition, ConfigKey.publicTokenId, '')),
-      startIndex,
-      count,
-    ]);
-    for (var ownerData in owners[0]) {
-      final hash = ownerData[1];
-      if (hash == null || hash.isEmpty) {
-        result.add('');
-        continue;
+      final owners = await _web3Client
+          .call(contract: contract, function: getFunction(), params: [
+        exhibitionContract,
+        BigInt.parse(config['public_token_id']),
+        startIndex,
+        count,
+      ]);
+      for (var ownerData in owners[0]) {
+        final hash = ownerData[1];
+        if (hash == null || hash.isEmpty) {
+          result.add('');
+          continue;
+        }
+        final EthereumAddress owner = ownerData[0];
+        result.add(owner.hexEip55);
       }
-      final EthereumAddress owner = ownerData[0];
-      result.add(owner.hexEip55);
+      log.info(
+          '[EthereumService] getPublicRecordOwners - result: ${result.length}');
+      return result;
+    } catch (e) {
+      log.info(
+          '[EthereumService] getPublicRecordOwners failed - fallback RPC $e');
+      return [];
     }
-    return result;
   }
 
   @override

@@ -1,3 +1,5 @@
+import 'package:autonomy_flutter/model/tap_navigate.dart';
+
 abstract class ProjectsEvent {}
 
 class GetProjectsEvent extends ProjectsEvent {}
@@ -5,19 +7,19 @@ class GetProjectsEvent extends ProjectsEvent {}
 class ProjectsState {
   final bool loading;
 
-  final bool showYokoOno;
+  final List<TapNavigate> projects;
 
   ProjectsState({
     this.loading = true,
-    this.showYokoOno = false,
+    this.projects = const [],
   });
 
   ProjectsState copyWith({
     bool? loading,
-    bool? showYokoOno,
+    List<TapNavigate>? projects,
   }) =>
       ProjectsState(
         loading: loading ?? this.loading,
-        showYokoOno: showYokoOno ?? this.showYokoOno,
+        projects: projects ?? this.projects,
       );
 }

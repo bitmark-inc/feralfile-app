@@ -273,6 +273,7 @@ class AppRouter {
       injector(),
       injector(),
       injector(),
+      injector(),
     );
 
     switch (settings.name) {

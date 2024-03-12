@@ -48,13 +48,16 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
       'specified_series_artwork_model_title': {
         'faa810f7-7b75-4c02-bf8a-b7447a89c921': 'interactive instruction'
       },
-      'owner_data_contract': '0xcE6B8E357aaf9EC3A5ACD2F47364586BCF54Afef',
-      'moma_exhibition_contract': '0xf31725F011cEB81D4cc313349a5942C31ed0AAe5',
-      'public_token_id': '1878818250871676369035922701317177438642275461',
-      'public_version_preview':
-          'previews/d15cc1f3-c2f1-4b9c-837d-7c131583bf40/1710123470/index.html',
-      'public_version_thumbnail':
-          'thumbnails/d15cc1f3-c2f1-4b9c-837d-7c131583bf40/1710123327'
+      'yoko_ono_public': {
+        'owner_data_contract': '0xcE6B8E357aaf9EC3A5ACD2F47364586BCF54Afef',
+        'moma_exhibition_contract':
+            '0xf31725F011cEB81D4cc313349a5942C31ed0AAe5',
+        'public_token_id': '1878818250871676369035922701317177438642275461',
+        'public_version_preview':
+            'previews/d15cc1f3-c2f1-4b9c-837d-7c131583bf40/1710123470/index.html',
+        'public_version_thumbnail':
+            'thumbnails/d15cc1f3-c2f1-4b9c-837d-7c131583bf40/1710123327'
+      }
     },
   };
 
@@ -155,11 +158,7 @@ enum ConfigKey {
   soundPieceContractAddresses,
   scrollablePreviewUrl,
   specifiedSeriesArtworkModelTitle,
-  ownerDataContract,
-  momaExhibitionContract,
-  publicTokenId,
-  publicVersionPreview,
-  publicVersionThumbnail,
+  yokoOnoPublic,
 }
 
 // ConfigKey getString extension
@@ -206,16 +205,8 @@ extension ConfigKeyExtension on ConfigKey {
         return 'scrollable_preview_url';
       case ConfigKey.specifiedSeriesArtworkModelTitle:
         return 'specified_series_artwork_model_title';
-      case ConfigKey.ownerDataContract:
-        return 'owner_data_contract';
-      case ConfigKey.momaExhibitionContract:
-        return 'moma_exhibition_contract';
-      case ConfigKey.publicTokenId:
-        return 'public_token_id';
-      case ConfigKey.publicVersionPreview:
-        return 'public_version_preview';
-      case ConfigKey.publicVersionThumbnail:
-        return 'public_version_thumbnail';
+      case ConfigKey.yokoOnoPublic:
+        return 'yoko_ono_public';
     }
   }
 }

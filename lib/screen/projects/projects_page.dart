@@ -1,11 +1,6 @@
 import 'package:after_layout/after_layout.dart';
-import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/model/ff_account.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artwork_preview_page.dart';
 import 'package:autonomy_flutter/screen/projects/projects_bloc.dart';
 import 'package:autonomy_flutter/screen/projects/projects_state.dart';
-import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -40,13 +35,14 @@ class _ProjectsPageState extends State<ProjectsPage>
           }
           final padding = EdgeInsets.fromLTRB(
               ResponsiveLayout.padding, 40, ResponsiveLayout.padding, 32);
-          if (state.showYokoOno) {
-            return _projectsList(context, state);
+
+          if (state.projects.isEmpty) {
+            return Padding(
+                padding: padding,
+                child: Text('no_project_found'.tr(),
+                    style: Theme.of(context).textTheme.ppMori400Black14));
           }
-          return Padding(
-              padding: padding,
-              child: Text('no_project_found'.tr(),
-                  style: Theme.of(context).textTheme.ppMori400Black14));
+          return _projectsList(context, state);
         },
       ));
 
@@ -55,29 +51,18 @@ class _ProjectsPageState extends State<ProjectsPage>
     return Column(
       children: [
         addTitleSpace(),
-        if (state.showYokoOno)
-          TappableForwardRow(
-              padding:
-                  EdgeInsets.symmetric(horizontal: ResponsiveLayout.padding),
-              leftWidget: Text(
-                'yoko_ono_public_version'.tr(),
-                style: theme.textTheme.ppMori400Black14,
-              ),
-              onTap: () async {
-                final config = injector<RemoteConfigService>();
-                final artwork = Artwork.createFake(
-                    config.getConfig(ConfigGroup.exhibition,
-                        ConfigKey.publicVersionThumbnail, ''),
-                    config.getConfig(ConfigGroup.exhibition,
-                        ConfigKey.publicVersionPreview, ''),
-                    'software');
-                await Navigator.of(context).pushNamed(
-                  AppRouter.ffArtworkPreviewPage,
-                  arguments: FeralFileArtworkPreviewPagePayload(
-                    artwork: artwork,
-                  ),
-                );
-              })
+        ...state.projects.map((e) => TappableForwardRow(
+            padding: EdgeInsets.symmetric(horizontal: ResponsiveLayout.padding),
+            leftWidget: Text(
+              e.title,
+              style: theme.textTheme.ppMori400Black14,
+            ),
+            onTap: () async {
+              await Navigator.of(context).pushNamed(
+                e.route,
+                arguments: e.arguments,
+              );
+            }))
       ],
     );
   }
