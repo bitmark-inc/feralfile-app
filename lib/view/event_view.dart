@@ -31,9 +31,8 @@ class ExhibitionEventView extends StatelessWidget {
         ? exhibitionEvent.links!.values.first
         : null;
     final watchMoreUrl = mediaVideoUrl ?? eventLink;
-
     return Padding(
-      padding: const EdgeInsets.only(right: 14),
+      padding: const EdgeInsets.only(right: 14, bottom: 10),
       child: Container(
         width: width,
         padding: const EdgeInsets.all(14),
@@ -75,6 +74,15 @@ class ExhibitionEventView extends StatelessWidget {
                 HtmlWidget(
                   exhibitionEvent.description!,
                   textStyle: theme.textTheme.ppMori400White14,
+                  customStylesBuilder: (element) {
+                    if (element.localName == 'a') {
+                      return {
+                        'color': 'white',
+                        'text-decoration-color': 'white'
+                      };
+                    }
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 20),
               ],
@@ -93,6 +101,7 @@ class ExhibitionEventView extends StatelessWidget {
                     ),
                   ),
                 ),
+              const SizedBox(height: 20),
             ],
           ),
         ),
