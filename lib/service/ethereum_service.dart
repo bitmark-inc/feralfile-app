@@ -437,14 +437,15 @@ class EthereumServiceImpl extends EthereumService {
       final blockInfo = await _web3Client.getBlockInformation();
       return blockInfo.baseFeePerGas!.getInWei;
     } catch (e) {
-      return BigInt.from(15000000000);
+      log.info('[EthereumService] getBaseFee failed - fallback RPC $e');
+      return BigInt.from(40000000000);
     }
   }
 
   @override
   Future<FeeOptionValue> getFeeOptionValue() async {
     final baseFee = await _getBaseFee();
-    final buffer = BigInt.from(baseFee / BigInt.from(10));
+    final buffer = BigInt.from(baseFee / BigInt.from(8));
     return FeeOptionValue(
         baseFee + buffer + FeeOption.LOW.getEthereumPriorityFee,
         baseFee + buffer + FeeOption.MEDIUM.getEthereumPriorityFee,
