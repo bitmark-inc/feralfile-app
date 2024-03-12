@@ -32,7 +32,7 @@ class ExhibitionEventView extends StatelessWidget {
         : null;
     final watchMoreUrl = mediaVideoUrl ?? eventLink;
     return Padding(
-      padding: const EdgeInsets.only(right: 14, bottom: 10),
+      padding: const EdgeInsets.only(right: 14),
       child: Container(
         width: width,
         padding: const EdgeInsets.all(14),
@@ -101,7 +101,6 @@ class ExhibitionEventView extends StatelessWidget {
                     ),
                   ),
                 ),
-              const SizedBox(height: 20),
             ],
           ),
         ),
