@@ -277,9 +277,12 @@ class AppRouter {
 
     switch (settings.name) {
       case projectsList:
-        return CupertinoPageRoute(
+        return PageTransition(
+          type: PageTransitionType.fade,
+          curve: Curves.easeIn,
+          duration: const Duration(milliseconds: 250),
           settings: settings,
-          builder: (context) => BlocProvider(
+          child: BlocProvider(
             create: (_) => projectBloc,
             child: const ProjectsPage(),
           ),
