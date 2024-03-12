@@ -44,6 +44,21 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
       'sound_piece_contract_addresses': [],
       'scrollable_preview_url': [],
     },
+    'exhibition': {
+      'specified_series_artwork_model_title': {
+        'faa810f7-7b75-4c02-bf8a-b7447a89c921': 'interactive instruction'
+      },
+      'yoko_ono_public': {
+        'owner_data_contract': '0xcE6B8E357aaf9EC3A5ACD2F47364586BCF54Afef',
+        'moma_exhibition_contract':
+            '0xf31725F011cEB81D4cc313349a5942C31ed0AAe5',
+        'public_token_id': '1878818250871676369035922701317177438642275461',
+        'public_version_preview':
+            'previews/d15cc1f3-c2f1-4b9c-837d-7c131583bf40/1710123470/index.html',
+        'public_version_thumbnail':
+            'thumbnails/d15cc1f3-c2f1-4b9c-837d-7c131583bf40/1710123327'
+      }
+    },
   };
 
   static Map<String, dynamic>? _configs;
@@ -143,6 +158,7 @@ enum ConfigKey {
   soundPieceContractAddresses,
   scrollablePreviewUrl,
   specifiedSeriesArtworkModelTitle,
+  yokoOnoPublic,
 }
 
 // ConfigKey getString extension
@@ -189,6 +205,8 @@ extension ConfigKeyExtension on ConfigKey {
         return 'scrollable_preview_url';
       case ConfigKey.specifiedSeriesArtworkModelTitle:
         return 'specified_series_artwork_model_title';
+      case ConfigKey.yokoOnoPublic:
+        return 'yoko_ono_public';
     }
   }
 }

@@ -102,6 +102,8 @@ import 'package:autonomy_flutter/screen/playlists/add_to_playlist/add_to_playlis
 import 'package:autonomy_flutter/screen/playlists/edit_playlist/edit_playlist.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
 import 'package:autonomy_flutter/screen/predefined_collection/predefined_collection_screen.dart';
+import 'package:autonomy_flutter/screen/projects/projects_bloc.dart';
+import 'package:autonomy_flutter/screen/projects/projects_page.dart';
 import 'package:autonomy_flutter/screen/release_notes_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
@@ -244,6 +246,7 @@ class AppRouter {
   static const activationTokenPreviewPage = 'activation_token_preview_page';
   static const feralfileAirdropTokenPreviewPage =
       'feralfile_airdrop_token_preview_page';
+  static const projectsList = 'projects_list';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector(), injector());
@@ -266,8 +269,25 @@ class AppRouter {
       injector(),
       injector(),
     );
+    final projectBloc = ProjectsBloc(
+      injector(),
+      injector(),
+      injector(),
+      injector(),
+    );
 
     switch (settings.name) {
+      case projectsList:
+        return PageTransition(
+          type: PageTransitionType.fade,
+          curve: Curves.easeIn,
+          duration: const Duration(milliseconds: 250),
+          settings: settings,
+          child: BlocProvider(
+            create: (_) => projectBloc,
+            child: const ProjectsPage(),
+          ),
+        );
       case viewPlayListPage:
         return CupertinoPageRoute(
           settings: settings,

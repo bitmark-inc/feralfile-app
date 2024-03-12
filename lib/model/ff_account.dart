@@ -273,6 +273,56 @@ class Artwork {
       _$ArtworkFromJson(json);
 
   Map<String, dynamic> toJson() => _$ArtworkToJson(this);
+
+  static Artwork createFake(
+          String thumbNailURI, String previewURI, String medium) =>
+      Artwork(
+        'id',
+        'seriesID',
+        0,
+        'name',
+        'category',
+        'ownerAccountID',
+        false,
+        false,
+        'blockchainStatus',
+        false,
+        thumbNailURI,
+        previewURI,
+        {},
+        DateTime.now(),
+        DateTime.now(),
+        DateTime.now(),
+        false,
+        FFSeries(
+          'id',
+          'artistID',
+          'assetID',
+          'title',
+          'slug',
+          medium,
+          'description',
+          'thumbnailURI',
+          'exhibitionID',
+          {},
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+        ),
+        null,
+      );
 }
 
 class ArtworkSwap {
