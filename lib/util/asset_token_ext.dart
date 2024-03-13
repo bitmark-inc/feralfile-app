@@ -399,19 +399,20 @@ extension AssetTokenExtension on AssetToken {
 
   Pair<String, String>? get irlTapLink {
     final remoteConfig = injector<RemoteConfigService>();
-    final soundPieceContractAddresses = remoteConfig.getConfig<List<dynamic>>(
+    final yokoOnoContractAddresses = remoteConfig.getConfig<List<dynamic>>(
         ConfigGroup.feralfileArtworkAction,
         ConfigKey.soundPieceContractAddresses, []);
-    if (soundPieceContractAddresses.contains(contractAddress)) {
-      final indexId = 'feralfile-$contractAddress-2-$edition';
-      if (asset?.indexID == indexId) {
-        final index = edition + 1;
-        return Pair(
-          'tape_sound'.tr(),
-          '${Environment.feralFileAPIURL}/'
-          'artwork/yoko-ono-sound-piece/$index/record?owner=$owner',
-        );
-      }
+    final yokoOnoPrivateTokenIds = remoteConfig.getConfig<List<dynamic>>(
+        ConfigGroup.feralfileArtworkAction,
+        ConfigKey.yokoOnoPrivateTokenIds, []);
+    if (yokoOnoContractAddresses.contains(contractAddress) &&
+        yokoOnoPrivateTokenIds.contains(tokenId)) {
+      final index = edition + 1;
+      return Pair(
+        'tape_sound'.tr(),
+        '${Environment.feralFileAPIURL}/'
+        'artwork/yoko-ono-sound-piece/$index/record?owner=$owner',
+      );
     }
 
     return null;

@@ -159,6 +159,7 @@ enum ConfigKey {
   scrollablePreviewUrl,
   specifiedSeriesArtworkModelTitle,
   yokoOnoPublic,
+  yokoOnoPrivateTokenIds,
 }
 
 // ConfigKey getString extension
@@ -207,6 +208,8 @@ extension ConfigKeyExtension on ConfigKey {
         return 'specified_series_artwork_model_title';
       case ConfigKey.yokoOnoPublic:
         return 'yoko_ono_public';
+      case ConfigKey.yokoOnoPrivateTokenIds:
+        return 'yoko_ono_private_token_ids';
     }
   }
 }
