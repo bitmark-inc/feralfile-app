@@ -168,7 +168,8 @@ abstract class FeralFileService {
   Future<List<Artwork>> getExhibitionArtworks(String exhibitionId,
       {bool withSeries = false});
 
-  Future<List<Artwork>> getSeriesArtworks(String seriesId);
+  Future<List<Artwork>> getSeriesArtworks(String seriesId,
+      {bool withSeries = false});
 
   Future<String> getFeralfileActionMessage(
       {required String address, required FeralfileAction action});
@@ -548,12 +549,16 @@ class FeralFileServiceImpl extends FeralFileService {
   }
 
   @override
-  Future<List<Artwork>> getSeriesArtworks(String seriesId) async {
+  Future<List<Artwork>> getSeriesArtworks(String seriesId,
+      {bool withSeries = false}) async {
     final artworks = await _feralFileApi.getListArtworks(seriesId: seriesId);
     List<Artwork> listArtwork = artworks.result;
     if (listArtwork.isEmpty) {
       final series = await getSeries(seriesId);
       listArtwork = await _fakeSeriesArtworks(series, series.exhibition!);
+    } else if (withSeries) {
+      final series = await getSeries(seriesId);
+      listArtwork = listArtwork.map((e) => e.copyWith(series: series)).toList();
     }
     log
       ..info(
