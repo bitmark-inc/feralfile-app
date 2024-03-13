@@ -102,12 +102,12 @@ enum ExtendedArtworkModel {
     }
   }
 
-  static ExtendedArtworkModel fromTitle(String title) {
+  static ExtendedArtworkModel? fromTitle(String title) {
     switch (title) {
       case 'interactive instruction':
         return ExtendedArtworkModel.interactiveInstruction;
       default:
-        return ExtendedArtworkModel.interactiveInstruction;
+        return null;
     }
   }
 }
