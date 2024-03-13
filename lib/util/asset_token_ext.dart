@@ -403,7 +403,7 @@ extension AssetTokenExtension on AssetToken {
         ConfigGroup.feralfileArtworkAction,
         ConfigKey.soundPieceContractAddresses, []);
     if (soundPieceContractAddresses.contains(contractAddress)) {
-      final indexId = 'feralfile-$contractAddress-2-$edition';
+      final indexId = 'feralfile-$contractAddress-1-$edition';
       if (asset?.indexID == indexId) {
         final index = edition + 1;
         return Pair(
