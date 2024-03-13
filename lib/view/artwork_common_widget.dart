@@ -1166,10 +1166,7 @@ Widget artworkDetailsMetadataSection(
                       tapLink: feralFileExhibitionUrl(snapshot.data!.slug),
                       forceSafariVC: true,
                     ),
-                    Divider(
-                      height: 32,
-                      color: theme.auLightGrey,
-                    ),
+                    divider,
                   ],
                 );
               } else {
