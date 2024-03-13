@@ -74,7 +74,8 @@ extension ExhibitionExt on Exhibition {
 
     currentSpecifiedSeriesArtworkModelTitleMap.forEach((key, value) {
       final model = ExtendedArtworkModel.fromTitle(key);
-      final modelTitle = value.length == 1 ? model.title : model.pluralTitle;
+      final modelTitle =
+          (value.length == 1 ? model?.title : model?.pluralTitle) ?? key;
       text += '${value.length} $modelTitle$sep';
     });
     final res = text.substring(0, text.length - 2);
