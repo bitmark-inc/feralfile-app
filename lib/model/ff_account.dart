@@ -274,6 +274,50 @@ class Artwork {
 
   Map<String, dynamic> toJson() => _$ArtworkToJson(this);
 
+  // copyWith method
+  Artwork copyWith({
+    String? id,
+    String? seriesID,
+    int? index,
+    String? name,
+    String? category,
+    String? ownerAccountID,
+    bool? virgin,
+    bool? burned,
+    String? blockchainStatus,
+    bool? isExternal,
+    String? thumbnailURI,
+    String? previewURI,
+    Map<String, dynamic>? metadata,
+    DateTime? mintedAt,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    bool? isArchived,
+    FFSeries? series,
+    ArtworkSwap? swap,
+  }) =>
+      Artwork(
+        id ?? this.id,
+        seriesID ?? this.seriesID,
+        index ?? this.index,
+        name ?? this.name,
+        category ?? this.category,
+        ownerAccountID ?? this.ownerAccountID,
+        virgin ?? this.virgin,
+        burned ?? this.burned,
+        blockchainStatus ?? this.blockchainStatus,
+        isExternal ?? this.isExternal,
+        thumbnailURI ?? this.thumbnailURI,
+        previewURI ?? this.previewURI,
+        metadata ?? this.metadata,
+        mintedAt ?? this.mintedAt,
+        createdAt ?? this.createdAt,
+        updatedAt ?? this.updatedAt,
+        isArchived ?? this.isArchived,
+        series ?? this.series,
+        swap ?? this.swap,
+      );
+
   static Artwork createFake(
           String thumbNailURI, String previewURI, String medium) =>
       Artwork(
