@@ -165,7 +165,8 @@ abstract class FeralFileService {
 
   Future<Exhibition> getFeaturedExhibition();
 
-  Future<List<Artwork>> getExhibitionArtworks(String exhibitionId);
+  Future<List<Artwork>> getExhibitionArtworks(String exhibitionId,
+      {bool withSeries = false});
 
   Future<List<Artwork>> getSeriesArtworks(String seriesId);
 
@@ -354,7 +355,8 @@ class FeralFileServiceImpl extends FeralFileService {
     if (withArtworks) {
       try {
         await Future.wait(listExhibitionDetail.map((e) async {
-          final artworks = await getExhibitionArtworks(e.exhibition.id);
+          final artworks =
+              await getExhibitionArtworks(e.exhibition.id, withSeries: true);
           e.artworks = artworks;
         }));
       } catch (e) {
@@ -381,11 +383,11 @@ class FeralFileServiceImpl extends FeralFileService {
     return featuredExhibition.result;
   }
 
-  Future<List<Artwork>> _getExhibitionArtworkByDirectApi(
-      String exhibitionId) async {
+  Future<List<Artwork>> _getExhibitionArtworkByDirectApi(String exhibitionId,
+      {bool withSeries = false}) async {
     final artworks =
         await _feralFileApi.getListArtworks(exhibitionId: exhibitionId);
-    final listArtwork = artworks.result;
+    List<Artwork> listArtwork = artworks.result;
     log
       ..info(
         '[FeralFileService] [_getExhibitionByDirectApi] '
@@ -396,6 +398,14 @@ class FeralFileServiceImpl extends FeralFileService {
         'Get exhibition artworks: '
         '${listArtwork.map((e) => e.id).toList()}',
       );
+    if (withSeries) {
+      final listSeries = await getListSeries(exhibitionId);
+      final seriesMap =
+          Map.fromEntries(listSeries.map((e) => MapEntry(e.id, e)));
+      listArtwork = listArtwork
+          .map((e) => e.copyWith(series: seriesMap[e.seriesID]))
+          .toList();
+    }
     return listArtwork;
   }
 
@@ -524,9 +534,11 @@ class FeralFileServiceImpl extends FeralFileService {
   }
 
   @override
-  Future<List<Artwork>> getExhibitionArtworks(String exhibitionId) async {
+  Future<List<Artwork>> getExhibitionArtworks(String exhibitionId,
+      {bool withSeries = false}) async {
     List<Artwork> listArtworks = [];
-    listArtworks = await _getExhibitionArtworkByDirectApi(exhibitionId);
+    listArtworks = await _getExhibitionArtworkByDirectApi(exhibitionId,
+        withSeries: withSeries);
     if (listArtworks.isNotEmpty) {
       return listArtworks;
     } else {
