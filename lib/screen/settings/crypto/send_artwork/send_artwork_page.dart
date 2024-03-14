@@ -250,9 +250,12 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                                     controller: _addressController,
                                     isError: state.isAddressError,
                                     suffix: IconButton(
-                                      icon: Icon(state.isScanQR
-                                          ? AuIcon.scan
-                                          : AuIcon.close),
+                                      icon: Icon(
+                                        state.isScanQR
+                                            ? AuIcon.scan
+                                            : AuIcon.close,
+                                        color: AppColor.secondaryDimGrey,
+                                      ),
                                       onPressed: () async {
                                         if (_addressController
                                             .text.isNotEmpty) {

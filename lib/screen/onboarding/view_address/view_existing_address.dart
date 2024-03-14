@@ -80,9 +80,12 @@ class _ViewExistingAddressState extends State<ViewExistingAddress> {
                         controller: _controller,
                         isError: state.isError,
                         suffix: IconButton(
-                          icon: Icon(_controller.text.isEmpty
-                              ? AuIcon.scan
-                              : AuIcon.close),
+                          icon: Icon(
+                            _controller.text.isEmpty
+                                ? AuIcon.scan
+                                : AuIcon.close,
+                            color: AppColor.secondaryDimGrey,
+                          ),
                           onPressed: () async {
                             if (_controller.text.isNotEmpty) {
                               _controller.clear();
