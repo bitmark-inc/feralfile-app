@@ -1337,6 +1337,7 @@ class UIHelper {
                       icon: const Icon(
                         AuIcon.close,
                         size: 18,
+                        color: AppColor.secondaryDimGrey,
                       ),
                     ),
                   ),

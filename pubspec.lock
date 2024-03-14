@@ -550,8 +550,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "75b30a8f41124dd1afaaf05201e21e0268a723b5"
-      resolved-ref: "75b30a8f41124dd1afaaf05201e21e0268a723b5"
+      ref: feb58026dc94c46be74eb4407f41e56b775c2127
+      resolved-ref: feb58026dc94c46be74eb4407f41e56b775c2127
       url: "https://github.com/bitmark-inc/feralfile-app-client-shared-theme"
     source: git
     version: "0.0.1+20"
