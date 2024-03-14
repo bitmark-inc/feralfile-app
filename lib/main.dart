@@ -137,7 +137,7 @@ Future<void> _setupApp() async {
   await disableLandscapeMode();
   final isPremium = await injector.get<IAPService>().isSubscribed();
   await injector<ConfigurationService>().setPremium(isPremium);
-
+  unawaited(injector<MetricClientService>().trackStartScreen());
   runApp(
     EasyLocalization(
       supportedLocales: const [Locale('en', 'US')],

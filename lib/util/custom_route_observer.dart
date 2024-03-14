@@ -15,7 +15,7 @@ class CustomRouteObserver<R extends Route<dynamic>> extends RouteObserver<R> {
       unawaited(
         _metricClient.trackEndScreen(previousRoute).then(
           (value) {
-            _metricClient.trackStartScreen(route);
+            _metricClient.trackStartScreen(route: route);
           },
         ),
       );
@@ -30,7 +30,7 @@ class CustomRouteObserver<R extends Route<dynamic>> extends RouteObserver<R> {
       _metricClient.trackEndScreen(route).then(
         (value) {
           if (previousRoute != null) {
-            _metricClient.trackStartScreen(previousRoute);
+            _metricClient.trackStartScreen(route: previousRoute);
           }
         },
       ),
@@ -45,7 +45,7 @@ class CustomRouteObserver<R extends Route<dynamic>> extends RouteObserver<R> {
       unawaited(_metricClient.trackEndScreen(oldRoute));
     }
     if (newRoute != null) {
-      unawaited(_metricClient.trackStartScreen(newRoute));
+      unawaited(_metricClient.trackStartScreen(route: newRoute));
     }
     currentRoute = newRoute;
     super.didReplace(newRoute: newRoute, oldRoute: oldRoute);

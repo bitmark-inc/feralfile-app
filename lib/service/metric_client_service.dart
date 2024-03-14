@@ -68,7 +68,7 @@ class MetricClientService {
     }
   }
 
-  Future<void> trackStartScreen(Route<dynamic> route) async {
+  Future<void> trackStartScreen({Route<dynamic>? route}) async {
     timerEvent(MixpanelEvent.visitPage);
   }
 
@@ -125,7 +125,7 @@ class MetricClientService {
     } else {
       final route = CustomRouteObserver.currentRoute;
       if (route != null) {
-        unawaited(trackStartScreen(route));
+        unawaited(trackStartScreen(route: route));
       }
     }
   }
