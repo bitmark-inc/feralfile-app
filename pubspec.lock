@@ -598,8 +598,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "75b30a8f41124dd1afaaf05201e21e0268a723b5"
-      resolved-ref: "75b30a8f41124dd1afaaf05201e21e0268a723b5"
+      ref: feb58026dc94c46be74eb4407f41e56b775c2127
+      resolved-ref: feb58026dc94c46be74eb4407f41e56b775c2127
       url: "https://github.com/bitmark-inc/feralfile-app-client-shared-theme"
     source: git
     version: "0.0.1+20"
@@ -917,14 +917,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.6.17"
-  flutter_native_splash:
-    dependency: "direct main"
-    description:
-      name: flutter_native_splash
-      sha256: d93394f22f73e810bda59e11ebe83329c5511d6460b6b7509c4e1f3c92d6d625
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.3.5"
   flutter_parsed_text:
     dependency: transitive
     description:

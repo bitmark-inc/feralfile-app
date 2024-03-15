@@ -347,6 +347,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                 ],
               ),
             ),
+            leadingWidth: editable ? 90 : 55,
             titleSpacing: 0,
             backgroundColor: theme.colorScheme.background,
             automaticallyImplyLeading: false,
@@ -586,7 +587,7 @@ enum SortOrder {
       case SortOrder.newest:
         return b.lastActivityTime.compareTo(a.lastActivityTime);
       case SortOrder.manual:
-        return 1;
+        return -1;
     }
   }
 }

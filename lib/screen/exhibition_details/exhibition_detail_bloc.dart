@@ -15,7 +15,8 @@ class ExhibitionDetailBloc
     on<GetExhibitionDetailEvent>((event, emit) async {
       final result = await Future.wait([
         _feralFileService.getExhibition(event.exhibitionId),
-        _feralFileService.getExhibitionArtworks(event.exhibitionId)
+        _feralFileService.getExhibitionArtworks(event.exhibitionId,
+            withSeries: true)
       ]);
       final exhibitionDetail = ExhibitionDetail(
           exhibition: result[0] as Exhibition,

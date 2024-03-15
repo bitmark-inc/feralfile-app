@@ -1,10 +1,16 @@
+import 'dart:async';
+
+import 'package:after_layout/after_layout.dart';
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/play_control_model.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_state.dart';
-import 'package:autonomy_flutter/screen/exhibition_note/exhibition_note_page.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -30,9 +36,11 @@ class ExhibitionDetailPage extends StatefulWidget {
   State<ExhibitionDetailPage> createState() => _ExhibitionDetailPageState();
 }
 
-class _ExhibitionDetailPageState extends State<ExhibitionDetailPage> {
+class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
+    with AfterLayoutMixin {
   late final ExhibitionDetailBloc _exBloc;
   late final CanvasDeviceBloc _canvasDeviceBloc;
+  final _metricClientService = injector<MetricClientService>();
 
   late final PageController _controller;
   int _currentIndex = 0;
@@ -163,13 +171,10 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage> {
                 exhibition: exhibition,
                 width: width,
                 onReadMore: () async {
-                  await Navigator.push(
+                  await Navigator.pushNamed(
                     context,
-                    MaterialPageRoute(
-                      builder: (context) => ExhibitionNotePage(
-                        exhibition: exhibition,
-                      ),
-                    ),
+                    AppRouter.exhibitionNotePage,
+                    arguments: exhibition,
                   );
                 },
               ),
@@ -242,6 +247,17 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage> {
   Future<void> _fetchDevice(String exhibitionId) async {
     _canvasDeviceBloc
         .add(CanvasDeviceGetDevicesEvent(exhibitionId, syncAll: false));
+  }
+
+  @override
+  FutureOr<void> afterFirstLayout(BuildContext context) {
+    _metricClientService.addEvent(
+      MixpanelEvent.viewExhibition,
+      data: {
+        MixpanelProp.exhibitionId:
+            widget.payload.exhibitions[widget.payload.index].id,
+      },
+    );
   }
 }
 

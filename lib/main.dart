@@ -27,6 +27,7 @@ import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/route_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart';
@@ -37,7 +38,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
-import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:overlay_support/overlay_support.dart';
@@ -86,8 +86,6 @@ Future<void> runFeralFileApp() async {
   // feature/text_localization
   await EasyLocalization.ensureInitialized();
 
-  FlutterNativeSplash.preserve(
-      widgetsBinding: WidgetsFlutterBinding.ensureInitialized());
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
   await FlutterDownloader.initialize();
@@ -157,7 +155,6 @@ Future<void> _setupApp() async {
       scope.setUser(SentryUser(id: deviceID));
     }
   });
-  FlutterNativeSplash.remove();
 
   //safe delay to wait for onboarding finished
   Future.delayed(const Duration(seconds: 2), () async {
@@ -218,7 +215,6 @@ class MemoryValues {
   String? scopedPersona;
   String? viewingSupportThreadIssueID;
   DateTime? inForegroundAt;
-  bool inGalleryView;
   ValueNotifier<Map<dynamic, dynamic>?> branchDeeplinkData;
   ValueNotifier<String?> deepLink;
   ValueNotifier<String?> irlLink;
@@ -232,7 +228,6 @@ class MemoryValues {
     this.scopedPersona,
     this.viewingSupportThreadIssueID,
     this.inForegroundAt,
-    this.inGalleryView = true,
   });
 
   MemoryValues copyWith({
@@ -251,7 +246,24 @@ enum HomeNavigatorTab {
   organization,
   exhibition,
   scanQr,
-  menu,
+  menu;
+
+  String get screenName => getPageName(routeName);
+
+  String get routeName {
+    switch (this) {
+      case HomeNavigatorTab.collection:
+        return AppRouter.collectionPage;
+      case HomeNavigatorTab.organization:
+        return AppRouter.organizePage;
+      case HomeNavigatorTab.exhibition:
+        return AppRouter.exhibitionsPage;
+      case HomeNavigatorTab.scanQr:
+        return AppRouter.scanQRPage;
+      case HomeNavigatorTab.menu:
+        return 'Menu';
+    }
+  }
 }
 
 @pragma('vm:entry-point')
