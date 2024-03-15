@@ -827,11 +827,11 @@ packages:
     dependency: transitive
     description:
       path: "."
-      ref: "1.0.1"
-      resolved-ref: "243bc696c8b8348db9730eed7b160d80c1e4af1c"
+      ref: "65f1aba648425aa410c6965f89f50f0120049a50"
+      resolved-ref: "65f1aba648425aa410c6965f89f50f0120049a50"
       url: "https://github.com/autonomy-system/flutter_inline_webview_macos"
     source: git
-    version: "0.0.4"
+    version: "0.0.7"
   flutter_keyboard_visibility:
     dependency: "direct main"
     description:
@@ -1815,8 +1815,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "492be7d49f3e0d728ec588dc29355f9e41197002"
-      resolved-ref: "492be7d49f3e0d728ec588dc29355f9e41197002"
+      ref: "8dd2652a663d0755175fe9a1d6b36ecafcf62bbb"
+      resolved-ref: "8dd2652a663d0755175fe9a1d6b36ecafcf62bbb"
       url: "https://github.com/autonomy-system/nft-rendering.git"
     source: git
     version: "1.0.9"
