@@ -149,9 +149,8 @@ class BackupService {
             outputPath: dbFilePath,
           );
         } catch (e) {
-          log.warning(
-              '[BackupService] Cloud database decrypted failed,'
-                  ' fallback to legacy method');
+          log.warning('[BackupService] Cloud database decrypted failed,'
+              ' fallback to legacy method');
           await account.decryptFile(
             inputPath: tempFilePath,
             outputPath: dbFilePath,
@@ -180,7 +179,8 @@ class BackupService {
         await tempFile.delete();
         await File(dbFilePath).delete();
         log.info(
-            '[BackupService] Cloud database is restored $backUpVersion to $version');
+            '[BackupService] Cloud database is restored $backUpVersion to '
+                '$version');
         return;
       } catch (e) {
         log.info('[BackupService] Failed to restore Cloud Database $e');
