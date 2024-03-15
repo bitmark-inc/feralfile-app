@@ -342,6 +342,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                   ),
                   Icon(
                     AuIcon.chevron,
+                    color: AppColor.secondaryDimGrey,
                     size: 18,
                   ),
                 ],
