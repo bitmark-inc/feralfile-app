@@ -575,6 +575,7 @@ final screenNameMap = {
   AppRouter.feralfileAirdropTokenPreviewPage:
       'Feral File Airdrop Token Preview',
   AppRouter.previewPrimerPage: 'Preview Primer',
+  AppRouter.projectsList: 'Projects',
 };
 
 String getPageName(String routeName) {
