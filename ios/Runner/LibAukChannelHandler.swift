@@ -591,9 +591,10 @@ class LibAukChannelHandler {
         let uuid: String = args["uuid"] as! String
         let inputPath: String = args["inputPath"] as! String
         let outputPath: String = args["outputPath"] as! String
+        let usingLegacy: Bool = args["usingLegacy"] as? Bool ?? false
 
         LibAuk.shared.storage(for: UUID(uuidString: uuid)!)
-            .decryptFile(inputPath: inputPath, outputPath: outputPath)
+            .decryptFile(inputPath: inputPath, outputPath: outputPath, usingLegacy: usingLegacy)
             .sink(receiveCompletion: { (completion) in
                 if let error = completion.error {
                     result(ErrorHandler.handle(error: error))
