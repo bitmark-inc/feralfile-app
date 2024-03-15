@@ -11,7 +11,6 @@ import 'dart:io';
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/model/play_control_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
@@ -68,21 +67,14 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   INFTRenderingWidget? _renderingWidget;
 
   List<ArtworkIdentity> tokens = [];
-  Timer? _timer;
   late int initialPage;
 
   final metricClient = injector.get<MetricClientService>();
-
-  PlayControlModel? playControl;
 
   @override
   void initState() {
     tokens = List.from(widget.payload.identities);
     final initialTokenID = tokens[widget.payload.currentIndex];
-    playControl = widget.payload.playControl;
-    if (playControl?.isShuffle ?? false) {
-      tokens.shuffle();
-    }
     initialPage = tokens.indexOf(initialTokenID);
 
     controller = PageController(initialPage: initialPage);
@@ -94,31 +86,11 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     super.initState();
   }
 
-  void setTimer({int? time}) {
-    _timer?.cancel();
-    if (playControl != null) {
-      final defaultDuration =
-          playControl!.timer == 0 ? time ?? 10 : playControl!.timer;
-      _timer = Timer.periodic(Duration(seconds: defaultDuration), (timer) {
-        if (!(_timer?.isActive ?? false)) {
-          return;
-        }
-        if (controller.page?.toInt() == tokens.length - 1) {
-          controller.jumpTo(0);
-        } else {
-          unawaited(controller.nextPage(
-              duration: const Duration(microseconds: 1), curve: Curves.linear));
-        }
-      });
-    }
-  }
-
   @override
   void dispose() {
     _focusNode.dispose();
     unawaited(disableLandscapeMode());
     unawaited(WakelockPlus.disable());
-    _timer?.cancel();
     routeObserver.unsubscribe(this);
     WidgetsBinding.instance.removeObserver(this);
     _detector?.stopListening();
@@ -128,7 +100,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
         overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom],
       ));
     }
-    controller.dispose();
     unawaited(Sentry.getSpan()?.finish(status: const SpanStatus.ok()));
     super.dispose();
   }
@@ -145,7 +116,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   void didPopNext() {
     unawaited(enableLandscapeMode());
     unawaited(WakelockPlus.enable());
-    setTimer();
     _renderingWidget?.didPopNext();
     super.didPopNext();
   }
@@ -184,7 +154,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     unawaited(disableLandscapeMode());
 
     unawaited(WakelockPlus.disable());
-    _timer?.cancel();
 
     unawaited(Navigator.of(context).pushNamed(
       AppRouter.artworkDetailsPage,
@@ -307,7 +276,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                   child: PageView.builder(
                     physics: const NeverScrollableScrollPhysics(),
                     onPageChanged: (value) {
-                      _timer?.cancel();
                       final currentId = tokens[value];
                       _bloc.add(ArtworkPreviewGetAssetTokenEvent(currentId,
                           useIndexer: widget.payload.useIndexer));
@@ -335,9 +303,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                           identity: tokens[index],
                           onLoaded: (
                               {InAppWebViewController? webViewController,
-                              int? time}) {
-                            setTimer(time: time);
-                          },
+                              int? time}) {},
                           focusNode: _focusNode,
                           useIndexer: widget.payload.useIndexer,
                         );
@@ -436,6 +402,9 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
         AssetToken? assetToken;
         if (state is ArtworkPreviewLoadedState) {
           assetToken = state.assetToken;
+        }
+        if (assetToken != null) {
+          unawaited(assetToken.sendViewArtworkEvent());
         }
         final identitiesList = [
           assetToken?.artistName ?? '',

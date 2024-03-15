@@ -82,7 +82,6 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
                     isIRL: widget.args.isIRL,
                   ),
                 );
-            Navigator.of(context).pop();
           },
         ),
         body: BlocConsumer<WCSendTransactionBloc, WCSendTransactionState>(

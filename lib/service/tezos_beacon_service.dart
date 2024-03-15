@@ -148,7 +148,7 @@ class TezosBeaconService implements BeaconHandler {
       _navigationService.hideInfoDialog();
       hideOverlay(NavigationService.contactingKey);
       _timer?.cancel();
-      unawaited(_navigationService.navigateTo(AppRouter.wcConnectPage,
+      unawaited(_navigationService.navigateTo(AppRouter.tbConnectPage,
           arguments: request));
     } else if (request.type == 'signPayload') {
       _requestSignMessageForConnection();

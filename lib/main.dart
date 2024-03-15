@@ -27,6 +27,7 @@ import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/route_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart';
@@ -245,7 +246,24 @@ enum HomeNavigatorTab {
   organization,
   exhibition,
   scanQr,
-  menu,
+  menu;
+
+  String get screenName => getPageName(routeName);
+
+  String get routeName {
+    switch (this) {
+      case HomeNavigatorTab.collection:
+        return AppRouter.collectionPage;
+      case HomeNavigatorTab.organization:
+        return AppRouter.organizePage;
+      case HomeNavigatorTab.exhibition:
+        return AppRouter.exhibitionsPage;
+      case HomeNavigatorTab.scanQr:
+        return AppRouter.scanQRPage;
+      case HomeNavigatorTab.menu:
+        return 'Menu';
+    }
+  }
 }
 
 @pragma('vm:entry-point')

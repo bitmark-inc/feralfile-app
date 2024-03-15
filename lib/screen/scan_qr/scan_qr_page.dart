@@ -12,6 +12,7 @@ import 'dart:io';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart'
     as accounts;
 import 'package:autonomy_flutter/screen/bloc/ethereum/ethereum_bloc.dart';
@@ -27,6 +28,7 @@ import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/route_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -45,6 +47,23 @@ import 'package:synchronized/synchronized.dart';
 
 // ignore_for_file: constant_identifier_names
 
+enum QRScanTab {
+  scan,
+  showMyCode,
+  ;
+
+  String get routerName {
+    switch (this) {
+      case scan:
+        return AppRouter.scanQRPage;
+      case showMyCode:
+        return AppRouter.globalReceivePage;
+    }
+  }
+
+  String get screenName => getPageName(routerName);
+}
+
 class ScanQRPage extends StatefulWidget {
   final ScannerItem scannerItem;
   final Function? onHandleFinished;
@@ -61,21 +80,73 @@ class ScanQRPage extends StatefulWidget {
 class ScanQRPageState extends State<ScanQRPage>
     with RouteAware, TickerProviderStateMixin {
   late TabController _tabController;
-  late bool _shouldPop;
+  late bool _isGlobal;
   final GlobalKey<QRScanViewState> _qrScanViewKey = GlobalKey();
+  final _metricClientService = injector<MetricClientService>();
+  late List<Widget> _pages;
+
+  TabController get tabController => _tabController;
 
   @override
   void initState() {
     super.initState();
-    _shouldPop = !(widget.scannerItem == ScannerItem.GLOBAL);
+    _isGlobal = (widget.scannerItem == ScannerItem.GLOBAL);
     //There is a conflict with lib qr_code_scanner on Android.
     if (Platform.isIOS) {
       unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.leanBack));
     }
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: _isGlobal ? 2 : 1, vsync: this);
     _tabController.addListener(() {
       setState(() {});
+      _addMetricListener(_tabController);
     });
+    _pages = [
+      QRScanView(
+        key: _qrScanViewKey,
+        scannerItem: widget.scannerItem,
+        onHandleFinished: widget.onHandleFinished,
+      ),
+      MultiBlocProvider(
+        providers: [
+          BlocProvider(
+              create: (_) => accounts.AccountsBloc(injector(), injector())),
+          BlocProvider(
+            create: (_) => PersonaBloc(
+              injector<CloudDatabase>(),
+              injector(),
+              injector<AuditService>(),
+            ),
+          ),
+          BlocProvider(create: (_) => EthereumBloc(injector(), injector())),
+          BlocProvider(
+            create: (_) => TezosBloc(injector(), injector()),
+          ),
+        ],
+        child: GlobalReceivePage(
+          onClose: () {
+            setState(
+              () {
+                _tabController.animateTo(QRScanTab.scan.index,
+                    duration: const Duration(milliseconds: 300));
+                unawaited(resumeCamera());
+              },
+            );
+          },
+        ),
+      ),
+    ];
+  }
+
+  void _addMetricListener(TabController controller) {
+    if (controller.indexIsChanging) {
+      return;
+    }
+    _metricClientService
+      ..addEvent(MixpanelEvent.visitPage, data: {
+        MixpanelProp.title:
+            QRScanTab.values[controller.previousIndex].screenName,
+      })
+      ..timerEvent(MixpanelEvent.visitPage);
   }
 
   Future<void> pauseCamera() async {
@@ -84,7 +155,7 @@ class ScanQRPageState extends State<ScanQRPage>
   }
 
   Future<void> resumeCamera() async {
-    if (_tabController.index == 0) {
+    if (_tabController.index == QRScanTab.scan.index) {
       await _qrScanViewKey.currentState?.resumeCamera();
     }
   }
@@ -101,13 +172,14 @@ class ScanQRPageState extends State<ScanQRPage>
         bottom: false,
         child: Scaffold(
           extendBodyBehindAppBar: true,
-          appBar: _tabController.index == 0
+          appBar: _tabController.index == QRScanTab.scan.index
               ? getDarkEmptyAppBar(Colors.transparent)
               : getLightEmptyAppBar(),
           body: Stack(
             children: <Widget>[
               _content(context),
-              if (_tabController.index == 0) _header(context),
+              if (_tabController.index == QRScanTab.scan.index)
+                _header(context),
             ],
           ),
         ),
@@ -127,43 +199,7 @@ class ScanQRPageState extends State<ScanQRPage>
           child: TabBarView(
             controller: _tabController,
             physics: const NeverScrollableScrollPhysics(),
-            children: [
-              QRScanView(
-                key: _qrScanViewKey,
-                scannerItem: widget.scannerItem,
-                onHandleFinished: widget.onHandleFinished,
-              ),
-              MultiBlocProvider(
-                providers: [
-                  BlocProvider(
-                      create: (_) =>
-                          accounts.AccountsBloc(injector(), injector())),
-                  BlocProvider(
-                    create: (_) => PersonaBloc(
-                      injector<CloudDatabase>(),
-                      injector(),
-                      injector<AuditService>(),
-                    ),
-                  ),
-                  BlocProvider(
-                      create: (_) => EthereumBloc(injector(), injector())),
-                  BlocProvider(
-                    create: (_) => TezosBloc(injector(), injector()),
-                  ),
-                ],
-                child: GlobalReceivePage(
-                  onClose: () {
-                    setState(
-                      () {
-                        _tabController.animateTo(0,
-                            duration: const Duration(milliseconds: 300));
-                        unawaited(resumeCamera());
-                      },
-                    );
-                  },
-                ),
-              ),
-            ],
+            children: _pages.sublist(0, _tabController.length),
           ),
         ),
       ],
@@ -178,32 +214,35 @@ class ScanQRPageState extends State<ScanQRPage>
         Padding(
           padding: EdgeInsets.only(top: MediaQuery.of(context).viewPadding.top),
           child: HeaderView(
-              title: 'scan'.tr(),
-              action: widget.scannerItem == ScannerItem.GLOBAL
-                  ? GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          unawaited(pauseCamera());
-                          _tabController.animateTo(1,
-                              duration: const Duration(milliseconds: 300));
-                        });
-                      },
-                      child: Text(
-                        'show_my_code'.tr(),
-                        style: theme.textTheme.ppMori400White14.copyWith(
-                          decoration: TextDecoration.underline,
-                          decorationColor: AppColor.white,
-                        ),
+            title: 'scan'.tr(),
+            action: _isGlobal
+                ? GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        unawaited(pauseCamera());
+                        _tabController.animateTo(QRScanTab.showMyCode.index,
+                            duration: const Duration(milliseconds: 300));
+                      });
+                    },
+                    child: Text(
+                      'show_my_code'.tr(),
+                      style: theme.textTheme.ppMori400White14.copyWith(
+                        decoration: TextDecoration.underline,
+                        decorationColor: AppColor.white,
                       ),
-                    )
-                  : GestureDetector(
-                      onTap: () {
-                        if (_shouldPop) {
-                          Navigator.pop(context);
-                        }
-                      },
-                      child: closeIcon(color: AppColor.white),
-                    )),
+                    ),
+                  )
+                : GestureDetector(
+                    onTap: () {
+                      if (!_isGlobal) {
+                        Navigator.pop(context);
+                      }
+                    },
+                    child: closeIcon(
+                      color: AppColor.white,
+                    ),
+                  ),
+          ),
         ),
       ],
     );

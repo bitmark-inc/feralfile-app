@@ -7,7 +7,6 @@ import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/model/otp.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/claim/preview_token_claim.dart';
 import 'package:autonomy_flutter/screen/claim/select_account_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/home/home_navigation_page.dart';
@@ -158,13 +157,10 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                           ),
                         ),
                         onTap: () async {
-                          await Navigator.push(
+                          await Navigator.pushNamed(
                             context,
-                            MaterialPageRoute(
-                              builder: (context) => PreviewTokenClaim(
-                                series: widget.payload.series,
-                              ),
-                            ),
+                            AppRouter.feralfileAirdropTokenPreviewPage,
+                            arguments: widget.payload.series,
                           );
                         },
                       ),
@@ -187,13 +183,11 @@ class _ClaimTokenPageState extends State<ClaimTokenPage> {
                                     maxLines: 2,
                                   ),
                                   onTap: () async {
-                                    await Navigator.push(
+                                    await Navigator.pushNamed(
                                       context,
-                                      MaterialPageRoute(
-                                        builder: (context) => PreviewTokenClaim(
-                                          series: widget.payload.series,
-                                        ),
-                                      ),
+                                      AppRouter
+                                          .feralfileAirdropTokenPreviewPage,
+                                      arguments: widget.payload.series,
                                     );
                                   },
                                 ),

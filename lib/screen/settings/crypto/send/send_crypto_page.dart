@@ -129,9 +129,10 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                                 isError: state.isAddressError,
                                 controller: _addressController,
                                 suffix: IconButton(
-                                  icon: Icon(state.isScanQR
-                                      ? AuIcon.scan
-                                      : AuIcon.close),
+                                  icon: Icon(
+                                    state.isScanQR ? AuIcon.scan : AuIcon.close,
+                                    color: AppColor.secondaryDimGrey,
+                                  ),
                                   onPressed: () async {
                                     if (_addressController.text.isNotEmpty) {
                                       _addressController.text = '';

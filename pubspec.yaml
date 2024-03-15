@@ -113,7 +113,7 @@ dependencies:
   feralfile_app_theme:
     git:
       url: https://github.com/bitmark-inc/feralfile-app-client-shared-theme
-      ref: 75b30a8f41124dd1afaaf05201e21e0268a723b5
+      ref: feb58026dc94c46be74eb4407f41e56b775c2127
   marqueer: ^1.2.0
   markdown: ^7.1.1
   easy_localization: ^3.0.1
@@ -199,6 +199,7 @@ flutter:
     - assets/erc20-abi.json
     - assets/erc721-abi.json
     - assets/erc1155-abi.json
+    - assets/data-owner-abi.json
     - assets/images/
     - assets/translations/
     - assets/videos/

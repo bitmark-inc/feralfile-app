@@ -47,7 +47,9 @@ class NavigationService {
   Future<dynamic>? navigateTo(String routeName, {Object? arguments}) {
     log.info('NavigationService.navigateTo: $routeName');
 
-    if (routeName == AppRouter.wcConnectPage && _isWCConnectInShow) {
+    if ((routeName == AppRouter.tbConnectPage ||
+            routeName == AppRouter.wc2ConnectPage) &&
+        _isWCConnectInShow) {
       log.info('[NavigationService] skip because WCConnectPage is in showing');
       return null;
     }
@@ -64,7 +66,9 @@ class NavigationService {
   Future<dynamic>? popAndPushNamed(String routeName, {Object? arguments}) {
     log.info('NavigationService.popAndPushNamed: $routeName');
 
-    if (routeName == AppRouter.wcConnectPage && _isWCConnectInShow) {
+    if ((routeName == AppRouter.wc2ConnectPage ||
+            routeName == AppRouter.tbConnectPage) &&
+        _isWCConnectInShow) {
       log.info(
           // ignore: lines_longer_than_80_chars
           '[NavigationService] skip popAndPushNamed because WCConnectPage is in showing');
@@ -96,7 +100,9 @@ class NavigationService {
   }) {
     log.info('NavigationService.navigateTo: $routeName');
 
-    if (routeName == AppRouter.wcConnectPage && _isWCConnectInShow) {
+    if ((routeName == AppRouter.tbConnectPage ||
+            routeName == AppRouter.wc2ConnectPage) &&
+        _isWCConnectInShow) {
       log.info('[NavigationService] skip because WCConnectPage is in showing');
       return null;
     }

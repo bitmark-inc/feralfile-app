@@ -21,11 +21,11 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:autonomy_flutter/util/wc2_ext.dart';
+import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/select_address.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:tezart/tezart.dart';
 import 'package:uuid/uuid.dart';
@@ -417,17 +417,8 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(
-          systemOverlayStyle: SystemUiOverlayStyle(
-            statusBarColor: widget.payload.statusBarColor ?? Colors.white,
-            statusBarIconBrightness: Brightness.dark,
-            statusBarBrightness: Brightness.light,
-          ),
-          backgroundColor: Colors.white,
-          toolbarHeight: 0,
-          shadowColor: Colors.transparent,
-          elevation: 0,
-        ),
+        appBar:
+            getDarkEmptyAppBar(widget.payload.statusBarColor ?? Colors.black),
         body: SafeArea(
           bottom: false,
           child: Column(

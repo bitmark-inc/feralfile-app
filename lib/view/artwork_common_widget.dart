@@ -761,10 +761,7 @@ Widget debugInfoWidget(BuildContext context, AssetToken? token) {
 }
 
 Widget artworkDetailsRightSection(BuildContext context, AssetToken assetToken) {
-  final artworkID =
-      ((assetToken.swapped ?? false) && assetToken.originTokenInfoId != null)
-          ? assetToken.originTokenInfoId
-          : assetToken.id.split('-').last;
+  final artworkID = assetToken.feralfileArtworkId;
   if (assetToken.shouldShowFeralfileRight) {
     return ArtworkRightsView(
       contract: FFContract('', '', assetToken.contractAddress ?? ''),
@@ -1169,10 +1166,7 @@ Widget artworkDetailsMetadataSection(
                       tapLink: feralFileExhibitionUrl(snapshot.data!.slug),
                       forceSafariVC: true,
                     ),
-                    Divider(
-                      height: 32,
-                      color: theme.auLightGrey,
-                    ),
+                    divider,
                   ],
                 );
               } else {
