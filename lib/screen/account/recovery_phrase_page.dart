@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/cloud_service.dart';
 import 'package:autonomy_flutter/service/local_auth_service.dart';
+import 'package:autonomy_flutter/util/secure_screen_channel.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -41,9 +42,16 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
   @override
   void initState() {
     super.initState();
+    SecureScreenChannel.setSecureFlag(true);
     WidgetsBinding.instance.addPostFrameCallback((context) {
       unawaited(_checkBackUpAvailable());
     });
+  }
+
+  @override
+  void dispose() {
+    SecureScreenChannel.setSecureFlag(false);
+    super.dispose();
   }
 
   Future<void> _checkBackUpAvailable() async {

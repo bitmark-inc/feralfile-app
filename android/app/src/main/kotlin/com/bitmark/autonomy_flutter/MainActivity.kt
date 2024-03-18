@@ -16,11 +16,13 @@ import androidx.biometric.BiometricManager
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
+import android.view.WindowManager.LayoutParams
 
 class MainActivity : FlutterFragmentActivity() {
     companion object {
         var isAuthenticate: Boolean = false
         private const val CHANNEL = "migration_util"
+        private val secureScreenChannel = "secure_screen_channel"
     }
 
     var flutterSharedPreferences: SharedPreferences? = null
@@ -43,6 +45,19 @@ class MainActivity : FlutterFragmentActivity() {
         BackupDartPlugin().createChannels(flutterEngine, applicationContext)
         TezosBeaconDartPlugin().createChannels(flutterEngine)
         flutterEngine.plugins.add(Wc2ConnectPlugin(this.application))
+
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            secureScreenChannel
+        ).setMethodCallHandler { call, result ->
+            if (call.method == "setSecureFlag") {
+                val secure = call.argument<Boolean>("secure") ?: false
+                setSecureFlag(secure)
+                result.success(null)
+            } else {
+                result.notImplemented()
+            }
+        }
     }
 
     private fun getExistingUuids(): String {
@@ -50,6 +65,14 @@ class MainActivity : FlutterFragmentActivity() {
             BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE
         )
         return sharedPreferences.getString("persona_uuids", "") ?: ""
+    }
+
+    private fun setSecureFlag(secure: Boolean) {
+        if (secure) {
+            window.addFlags(LayoutParams.FLAG_SECURE)
+        } else {
+            window.clearFlags(LayoutParams.FLAG_SECURE)
+        }
     }
 
     override fun onResume() {
