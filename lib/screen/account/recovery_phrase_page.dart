@@ -119,9 +119,11 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
                                     Future.delayed(
                                       const Duration(seconds: 60),
                                       () {
-                                        setState(() {
-                                          _isShow = !_isShow;
-                                        });
+                                        if (mounted) {
+                                          setState(() {
+                                            _isShow = !_isShow;
+                                          });
+                                        }
                                       },
                                     );
                                   },
