@@ -12,8 +12,10 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sentry/sentry.dart';
 
 class ImportSeedsPage extends StatefulWidget {
@@ -27,6 +29,7 @@ class _ImportSeedsPageState extends State<ImportSeedsPage> {
   bool isError = false;
   final TextEditingController _phraseTextController = TextEditingController();
   bool _isSubmissionEnabled = false;
+  bool _obscureText = true;
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -51,7 +54,7 @@ class _ImportSeedsPageState extends State<ImportSeedsPage> {
                       AuTextField(
                         labelSemantics: 'enter_seed',
                         title: '',
-                        obscureText: true,
+                        obscureText: _obscureText,
                         placeholder: 'enter_recovery_phrase'.tr(),
                         hintMaxLines: 2,
                         controller: _phraseTextController,
@@ -64,6 +67,20 @@ class _ImportSeedsPageState extends State<ImportSeedsPage> {
                             isError = false;
                           });
                         },
+                        suffix: IconButton(
+                          icon: SvgPicture.asset(
+                            _obscureText
+                                ? 'assets/images/unhide.svg'
+                                : 'assets/images/hide.svg',
+                            colorFilter: const ColorFilter.mode(
+                                AppColor.secondaryDimGrey, BlendMode.srcIn),
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _obscureText = !_obscureText;
+                            });
+                          },
+                        ),
                       ),
                     ],
                   ),
