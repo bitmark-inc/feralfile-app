@@ -24,6 +24,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration/migration_util.dart';
 import 'package:autonomy_flutter/util/notification_util.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:nft_collection/database/nft_collection_database.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -72,6 +73,8 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
       await _appDatabase.removeAll();
       await _nftCollectionDatabase.removeAll();
       await _configurationService.removeAll();
+      await injector<CacheManager>().emptyCache();
+      await DefaultCacheManager().emptyCache();
       await FileLogger.clear();
       await SentryBreadcrumbLogger.clear();
 
