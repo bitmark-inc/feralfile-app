@@ -20,6 +20,7 @@ import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration/migration_util.dart';
 import 'package:autonomy_flutter/util/notification_util.dart';
 import 'package:flutter/material.dart';
@@ -71,6 +72,8 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
       await _appDatabase.removeAll();
       await _nftCollectionDatabase.removeAll();
       await _configurationService.removeAll();
+      await FileLogger.clear();
+      await SentryBreadcrumbLogger.clear();
 
       _authService.reset();
       unawaited(injector<MetricClientService>().mixPanelClient.reset());
