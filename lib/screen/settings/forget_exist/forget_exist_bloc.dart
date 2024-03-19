@@ -19,10 +19,13 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/keychain_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration/migration_util.dart';
 import 'package:autonomy_flutter/util/notification_util.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:nft_collection/database/nft_collection_database.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -52,7 +55,6 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
 
     on<ConfirmForgetExistEvent>((event, emit) async {
       emit(ForgetExistState(state.isChecked, true));
-
       unawaited(deregisterPushNotification());
       await _autonomyService.clearLinkedAddresses();
       PackageInfo packageInfo = await PackageInfo.fromPlatform();
@@ -71,6 +73,12 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
       await _appDatabase.removeAll();
       await _nftCollectionDatabase.removeAll();
       await _configurationService.removeAll();
+      await injector<CacheManager>().emptyCache();
+      await DefaultCacheManager().emptyCache();
+      await injector<KeychainService>().clearKeychainItems();
+
+      await FileLogger.clear();
+      await SentryBreadcrumbLogger.clear();
 
       _authService.reset();
       unawaited(injector<MetricClientService>().mixPanelClient.reset());

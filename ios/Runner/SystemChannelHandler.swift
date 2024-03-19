@@ -44,6 +44,45 @@ class SystemChannelHandler: NSObject {
         let personaUUIDs = scanKeychainPersonaUUIDs()
         result(personaUUIDs)
     }
+    
+    func removeKeychainItems(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args = call.arguments as! [String: Any]
+        let account = args["account"] as? String
+        let service = args["service"] as? String
+        let secClass = args["secClass"] as! CFTypeRef
+        removeKeychainItems(account: account, service: service, secClass: secClass)
+        result(nil)
+    }
+    
+    private func removeKeychainItems(account: String? = nil, service: String? = nil, secClass: CFTypeRef = kSecClassGenericPassword) {
+        var query: [String: Any] = [
+            kSecClass as String: secClass,
+            kSecReturnData as String: kCFBooleanTrue,
+            kSecReturnAttributes as String : kCFBooleanTrue,
+        ]
+        
+        if let account = account {
+            query[kSecAttrAccount as String] = account
+        }
+        
+        if let service = service {
+            query[kSecAttrService as String] = service
+        }
+        
+        let status = SecItemDelete(query as CFDictionary)
+        
+        if status == errSecSuccess {
+            logger.info("Keychain item(s) removed successfully.")
+        } else if status == errSecItemNotFound {
+            logger.info("Keychain item(s) not found.")
+        } else {
+            if let error: String = SecCopyErrorMessageString(status, nil) as String? {
+                logger.error(error)
+                    }
+
+            logger.error("Error removing keychain item(s): \(status)")
+        }
+    }
 
     func scanKeychainPersonaUUIDs() -> [String] {
         var personaUUIDs = [String]()

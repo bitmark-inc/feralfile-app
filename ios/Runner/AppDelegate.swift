@@ -110,6 +110,19 @@ import Starscream
             }
         })
         
+        let keychainChannel = FlutterMethodChannel(name: "keychain",
+                                                  binaryMessenger: controller.binaryMessenger)
+        
+        keychainChannel.setMethodCallHandler({(call: FlutterMethodCall, result: @escaping FlutterResult) -> Void in
+            switch call.method {
+            case "removeKeychainItems":
+                SystemChannelHandler.shared.removeKeychainItems(call: call, result: result)
+            default:
+                result(FlutterMethodNotImplemented)
+            }
+        })
+        
+        
         let migrationChannel = FlutterMethodChannel(name: "migration_util",
                                                     binaryMessenger: controller.binaryMessenger)
         migrationChannel.setMethodCallHandler({(call: FlutterMethodCall, result: @escaping FlutterResult) -> Void in
