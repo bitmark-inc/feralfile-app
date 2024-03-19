@@ -19,6 +19,7 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/keychain_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration/migration_util.dart';
@@ -54,7 +55,6 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
 
     on<ConfirmForgetExistEvent>((event, emit) async {
       emit(ForgetExistState(state.isChecked, true));
-
       unawaited(deregisterPushNotification());
       await _autonomyService.clearLinkedAddresses();
       PackageInfo packageInfo = await PackageInfo.fromPlatform();
@@ -75,6 +75,7 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
       await _configurationService.removeAll();
       await injector<CacheManager>().emptyCache();
       await DefaultCacheManager().emptyCache();
+      await injector<KeychainService>().removeKeychainItems();
       await FileLogger.clear();
       await SentryBreadcrumbLogger.clear();
 
