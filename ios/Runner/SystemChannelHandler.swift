@@ -80,8 +80,6 @@ class SystemChannelHandler: NSObject {
             query[kSecAttrService as String] = service
         }
         
-        print("[scanKeychainItems] account: \(account), service: \(service)")
-        print("[scanKeychainItems] query: \(query)")
 
         var dataTypeRef: AnyObject?
         let lastResultCode = withUnsafeMutablePointer(to: &dataTypeRef) {
