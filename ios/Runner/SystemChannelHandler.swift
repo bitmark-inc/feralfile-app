@@ -45,62 +45,16 @@ class SystemChannelHandler: NSObject {
         result(personaUUIDs)
     }
     
-    func getAllKeychainItems(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        let args = call.arguments as! [String: Any]
-        let account = args["account"] as? String
-        let service = args["service"] as? String
-        let items = scanKeychainItems(account: account, service: service)
-        result(items)
-    }
-    
     func removeKeychainItems(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let args = call.arguments as! [String: Any]
         let account = args["account"] as? String
         let service = args["service"] as? String
         let secClass = args["secClass"] as! CFTypeRef
-        _removeKeychainItems(account: account, service: service, secClass: secClass)
+        removeKeychainItems(account: account, service: service, secClass: secClass)
         result(nil)
     }
     
-    
-    func scanKeychainItems(account: String? = nil, service: String? = nil) -> [String] {
-        var keychainItems = [String]()
-        var query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecReturnData as String: kCFBooleanTrue,
-            kSecReturnAttributes as String : kCFBooleanTrue,
-            kSecMatchLimit as String: kSecMatchLimitAll,
-        ]
-        
-        if let account = account {
-            query[kSecAttrAccount as String] = account
-        }
-        
-        if let service = service {
-            query[kSecAttrService as String] = service
-        }
-        
-
-        var dataTypeRef: AnyObject?
-        let lastResultCode = withUnsafeMutablePointer(to: &dataTypeRef) {
-            SecItemCopyMatching(query as CFDictionary, UnsafeMutablePointer($0))
-        }
-
-        if lastResultCode == noErr {
-            guard let array = dataTypeRef as? Array<Dictionary<String, Any>> else {
-                return []
-            }
-
-            for item in array {
-                if let key = item[kSecAttrAccount as String] as? String{
-                    keychainItems.append(key)
-                }
-            }
-        }
-        return keychainItems
-    }
-    
-    func _removeKeychainItems(account: String? = nil, service: String? = nil, secClass: CFTypeRef = kSecClassGenericPassword) {
+    private func removeKeychainItems(account: String? = nil, service: String? = nil, secClass: CFTypeRef = kSecClassGenericPassword) {
         var query: [String: Any] = [
             kSecClass as String: secClass,
             kSecReturnData as String: kCFBooleanTrue,

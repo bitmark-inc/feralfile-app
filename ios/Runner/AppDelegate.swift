@@ -115,8 +115,6 @@ import Starscream
         
         keychainChannel.setMethodCallHandler({(call: FlutterMethodCall, result: @escaping FlutterResult) -> Void in
             switch call.method {
-            case "getAllKeychainItems":
-                SystemChannelHandler.shared.getAllKeychainItems(call: call, result: result)
             case "removeKeychainItems":
                 SystemChannelHandler.shared.removeKeychainItems(call: call, result: result)
             default:

@@ -56,7 +56,6 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
     on<ConfirmForgetExistEvent>((event, emit) async {
       emit(ForgetExistState(state.isChecked, true));
       unawaited(deregisterPushNotification());
-      final res = await injector<KeychainService>().getAllKeychainItems();
       await _autonomyService.clearLinkedAddresses();
       PackageInfo packageInfo = await PackageInfo.fromPlatform();
       String? deviceId = await MigrationUtil.getBackupDeviceID();

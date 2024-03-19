@@ -26,17 +26,6 @@ class KeychainService {
     );
   }
 
-  Future<dynamic> getAllKeychainItems(
-      {String? account, String? service}) async {
-    if (Platform.isIOS) {
-      return await _channel.invokeMethod('getAllKeychainItems', {
-        'account': account,
-        'service': service,
-      });
-    }
-    return [];
-  }
-
   Future<void> removeKeychainItems(
       {required KeychainSecClass secClass, String? account, String? service}) {
     if (Platform.isIOS) {
