@@ -12,12 +12,14 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sentry/sentry.dart';
 
 class ImportSeedsPage extends StatefulWidget {
-  const ImportSeedsPage({Key? key}) : super(key: key);
+  const ImportSeedsPage({super.key});
 
   @override
   State<ImportSeedsPage> createState() => _ImportSeedsPageState();
@@ -27,37 +29,39 @@ class _ImportSeedsPageState extends State<ImportSeedsPage> {
   bool isError = false;
   final TextEditingController _phraseTextController = TextEditingController();
   bool _isSubmissionEnabled = false;
+  bool _obscureText = true;
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: getBackAppBar(
-        context,
-        title: "import_address".tr(),
-        onBack: () {
-          Navigator.of(context).pop();
-        },
-      ),
-      body: Padding(
-        padding: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    addTitleSpace(),
-                    SizedBox(
-                      height: 160,
-                      child: AuTextField(
-                        labelSemantics: "enter_seed",
-                        title: "",
-                        placeholder: "enter_recovery_phrase".tr(),
-                        //"Enter recovery phrase with each word separated by a space",
-                        maxLines: null,
-                        hintMaxLines: 3,
+  Widget build(BuildContext context) => Scaffold(
+        appBar: getBackAppBar(
+          context,
+          title: 'import_address'.tr(),
+          onBack: () {
+            Navigator.of(context).pop();
+          },
+        ),
+        body: Padding(
+          padding: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      addTitleSpace(),
+                      Text(
+                        'input_your_mnemonic'.tr(),
+                        style: Theme.of(context).textTheme.ppMori400Black14,
+                      ),
+                      const SizedBox(height: 5),
+                      AuTextField(
+                        labelSemantics: 'enter_seed',
+                        title: '',
+                        obscureText: _obscureText,
+                        placeholder: 'enter_recovery_phrase'.tr(),
+                        hintMaxLines: 1,
                         controller: _phraseTextController,
                         isError: isError,
                         onChanged: (value) {
@@ -68,23 +72,35 @@ class _ImportSeedsPageState extends State<ImportSeedsPage> {
                             isError = false;
                           });
                         },
+                        suffix: IconButton(
+                          icon: SvgPicture.asset(
+                            _obscureText
+                                ? 'assets/images/unhide.svg'
+                                : 'assets/images/hide.svg',
+                            colorFilter: const ColorFilter.mode(
+                                AppColor.primaryBlack, BlendMode.srcIn),
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _obscureText = !_obscureText;
+                            });
+                          },
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 20),
-            PrimaryAsyncButton(
-              text: "continue".tr(),
-              enabled: _isSubmissionEnabled && !isError,
-              onTap: () => _import(),
-            ),
-          ],
+              const SizedBox(height: 20),
+              PrimaryAsyncButton(
+                text: 'continue'.tr(),
+                enabled: _isSubmissionEnabled && !isError,
+                onTap: () async => _import(),
+              ),
+            ],
+          ),
         ),
-      ),
-    );
-  }
+      );
 
   Future<void> _import() async {
     try {
@@ -95,16 +111,20 @@ class _ImportSeedsPageState extends State<ImportSeedsPage> {
 
       final persona =
           await accountService.importPersona(_phraseTextController.text.trim());
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       unawaited(Navigator.of(context).pushNamed(AppRouter.selectAddressesPage,
           arguments: SelectAddressesPayload(persona: persona)));
 
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
     } catch (exception) {
-      log.info("Import wallet fails ${exception.toString()}");
+      log.info('Import wallet fails $exception');
       if (!(exception is PlatformException &&
-          exception.code == "importKey error")) {
-        Sentry.captureException(exception);
+          exception.code == 'importKey error')) {
+        unawaited(Sentry.captureException(exception));
       }
       UIHelper.hideInfoDialog(context);
       setState(() {
