@@ -12,20 +12,55 @@ import 'package:flutter/services.dart';
 class KeychainService {
   static const MethodChannel _channel = MethodChannel('keychain');
 
-  Future<dynamic> getAllKeychainItems() async {
-    if (Platform.isIOS) {
-      return await _channel.invokeMethod('getAllKeychainItems');
-    }
-    return [];
+  Future<void> clearKeychainItems() async {
+    final secClasses = [
+      KeychainSecClass.kSecClassGenericPassword,
+      KeychainSecClass.kSecClassKey
+    ];
+    await Future.wait(
+      secClasses.map(
+        (secClass) => removeKeychainItems(
+          secClass: secClass,
+        ),
+      ),
+    );
   }
 
-  Future<void> removeKeychainItems({String? account, String? service}) {
+  Future<dynamic> getAllKeychainItems(
+      {String? account, String? service}) async {
     if (Platform.isIOS) {
-      return _channel.invokeMethod('removeKeychainItems', {
+      return await _channel.invokeMethod('getAllKeychainItems', {
         'account': account,
         'service': service,
       });
     }
+    return [];
+  }
+
+  Future<void> removeKeychainItems(
+      {required KeychainSecClass secClass, String? account, String? service}) {
+    if (Platform.isIOS) {
+      return _channel.invokeMethod('removeKeychainItems', {
+        'account': account,
+        'service': service,
+        'secClass': secClass.value,
+      });
+    }
     return Future.value();
+  }
+}
+
+enum KeychainSecClass {
+  kSecClassGenericPassword,
+  kSecClassKey,
+  ;
+
+  String get value {
+    switch (this) {
+      case KeychainSecClass.kSecClassGenericPassword:
+        return 'genp';
+      case KeychainSecClass.kSecClassKey:
+        return 'keys';
+    }
   }
 }
