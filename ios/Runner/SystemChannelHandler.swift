@@ -72,15 +72,15 @@ class SystemChannelHandler: NSObject {
         let status = SecItemDelete(query as CFDictionary)
         
         if status == errSecSuccess {
-            print("Keychain item(s) removed successfully.")
+            logger.info("Keychain item(s) removed successfully.")
         } else if status == errSecItemNotFound {
-            print("Keychain item(s) not found.")
+            logger.info("Keychain item(s) not found.")
         } else {
             if let error: String = SecCopyErrorMessageString(status, nil) as String? {
-                        print(error)
+                logger.error(error)
                     }
 
-            print("Error removing keychain item(s): \(status)")
+            logger.error("Error removing keychain item(s): \(status)")
         }
     }
 
