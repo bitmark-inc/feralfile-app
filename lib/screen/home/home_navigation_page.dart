@@ -187,8 +187,8 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
             title: 'moma_postcard'.tr(),
             icon: SvgPicture.asset(
               'assets/images/icon_3d.svg',
-              colorFilter: const ColorFilter.mode(
-                  AppColor.white, BlendMode.srcIn), // white
+              colorFilter:
+                  const ColorFilter.mode(AppColor.white, BlendMode.srcIn),
             ),
             onTap: () {
               Navigator.of(context).popAndPushNamed(AppRouter.momaPostcardPage);
@@ -196,8 +196,10 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
           ),
           OptionItem(
             title: 'projects'.tr(),
-            icon: const Icon(
-              AuIcon.bookOutlined,
+            icon: SvgPicture.asset(
+              'assets/images/project_icon.svg',
+              colorFilter:
+                  const ColorFilter.mode(AppColor.white, BlendMode.srcIn),
             ),
             onTap: () {
               Navigator.of(context).popAndPushNamed(AppRouter.projectsList);
