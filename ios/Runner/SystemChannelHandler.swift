@@ -44,6 +44,88 @@ class SystemChannelHandler: NSObject {
         let personaUUIDs = scanKeychainPersonaUUIDs()
         result(personaUUIDs)
     }
+    
+    func getAllKeychainItems(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args = call.arguments as! [String: Any]
+
+        let account = args["account"] as? String
+        let service = args["service"] as? String
+        let items = scanKeychainItems()
+        result(items)
+    }
+    
+    func removeKeychainItems(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args = call.arguments as! [String: Any]
+
+        let account = args["account"] as? String
+        let service = args["service"] as? String
+        _removeKeychainItems(account: account, service: service)
+        result(nil)
+    }
+    
+    
+    func scanKeychainItems(account: String? = nil, service: String? = nil) -> [String] {
+        var keychainItems = [String]()
+        let query: NSDictionary = [
+            kSecClass: kSecClassGenericPassword,
+            kSecReturnData: kCFBooleanTrue,
+            kSecReturnAttributes as String : kCFBooleanTrue,
+            kSecMatchLimit as String: kSecMatchLimitAll,
+        ]
+        
+        if let account = account {
+            query[kSecAttrAccount as String] = account
+        }
+        
+        if let service = service {
+            query[kSecAttrService as String] = service
+        }
+
+        var dataTypeRef: AnyObject?
+        let lastResultCode = withUnsafeMutablePointer(to: &dataTypeRef) {
+            SecItemCopyMatching(query as CFDictionary, UnsafeMutablePointer($0))
+        }
+
+        if lastResultCode == noErr {
+            guard let array = dataTypeRef as? Array<Dictionary<String, Any>> else {
+                return []
+            }
+
+            for item in array {
+                if let key = item[kSecAttrAccount as String] as? String{
+                    keychainItems.append(key)
+                }
+            }
+        }
+        return keychainItems
+    }
+    
+    func _removeKeychainItems(account: String? = nil, service: String? = nil) {
+        var query: NSDictionary = [
+            kSecClass: kSecClassGenericPassword,
+            kSecReturnData: kCFBooleanTrue,
+            kSecReturnAttributes as String : kCFBooleanTrue,
+            kSecMatchLimit as String: kSecMatchLimitAll,
+        ]
+        
+        if let account = account {
+            query[kSecAttrAccount as String] = account
+        }
+        
+        if let service = service {
+            query[kSecAttrService as String] = service
+        }
+        
+        let status = SecItemDelete(query as CFDictionary)
+        
+        if status == errSecSuccess {
+            print("Keychain item(s) removed successfully.")
+        } else if status == errSecItemNotFound {
+            print("Keychain item(s) not found.")
+        } else {
+            print("Error removing keychain item(s): \(status)")
+        }
+    }
 
     func scanKeychainPersonaUUIDs() -> [String] {
         var personaUUIDs = [String]()
