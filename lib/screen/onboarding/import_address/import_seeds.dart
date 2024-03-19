@@ -35,7 +35,7 @@ class _ImportSeedsPageState extends State<ImportSeedsPage> {
   Widget build(BuildContext context) => Scaffold(
         appBar: getBackAppBar(
           context,
-          title: 'import_seeds'.tr(),
+          title: 'import_address'.tr(),
           onBack: () {
             Navigator.of(context).pop();
           },
@@ -51,12 +51,17 @@ class _ImportSeedsPageState extends State<ImportSeedsPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       addTitleSpace(),
+                      Text(
+                        'input_your_mnemonic'.tr(),
+                        style: Theme.of(context).textTheme.ppMori400Black14,
+                      ),
+                      const SizedBox(height: 5),
                       AuTextField(
                         labelSemantics: 'enter_seed',
                         title: '',
                         obscureText: _obscureText,
                         placeholder: 'enter_recovery_phrase'.tr(),
-                        hintMaxLines: 2,
+                        hintMaxLines: 1,
                         controller: _phraseTextController,
                         isError: isError,
                         onChanged: (value) {
@@ -73,7 +78,7 @@ class _ImportSeedsPageState extends State<ImportSeedsPage> {
                                 ? 'assets/images/unhide.svg'
                                 : 'assets/images/hide.svg',
                             colorFilter: const ColorFilter.mode(
-                                AppColor.secondaryDimGrey, BlendMode.srcIn),
+                                AppColor.primaryBlack, BlendMode.srcIn),
                           ),
                           onPressed: () {
                             setState(() {
