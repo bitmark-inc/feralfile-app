@@ -47,28 +47,27 @@ class SystemChannelHandler: NSObject {
     
     func getAllKeychainItems(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let args = call.arguments as! [String: Any]
-
         let account = args["account"] as? String
         let service = args["service"] as? String
-        let items = scanKeychainItems()
+        let items = scanKeychainItems(account: account, service: service)
         result(items)
     }
     
     func removeKeychainItems(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let args = call.arguments as! [String: Any]
-
         let account = args["account"] as? String
         let service = args["service"] as? String
-        _removeKeychainItems(account: account, service: service)
+        let secClass = args["secClass"] as! CFTypeRef
+        _removeKeychainItems(account: account, service: service, secClass: secClass)
         result(nil)
     }
     
     
     func scanKeychainItems(account: String? = nil, service: String? = nil) -> [String] {
         var keychainItems = [String]()
-        let query: NSDictionary = [
-            kSecClass: kSecClassGenericPassword,
-            kSecReturnData: kCFBooleanTrue,
+        var query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecReturnData as String: kCFBooleanTrue,
             kSecReturnAttributes as String : kCFBooleanTrue,
             kSecMatchLimit as String: kSecMatchLimitAll,
         ]
@@ -80,6 +79,9 @@ class SystemChannelHandler: NSObject {
         if let service = service {
             query[kSecAttrService as String] = service
         }
+        
+        print("[scanKeychainItems] account: \(account), service: \(service)")
+        print("[scanKeychainItems] query: \(query)")
 
         var dataTypeRef: AnyObject?
         let lastResultCode = withUnsafeMutablePointer(to: &dataTypeRef) {
@@ -100,12 +102,11 @@ class SystemChannelHandler: NSObject {
         return keychainItems
     }
     
-    func _removeKeychainItems(account: String? = nil, service: String? = nil) {
-        var query: NSDictionary = [
-            kSecClass: kSecClassGenericPassword,
-            kSecReturnData: kCFBooleanTrue,
+    func _removeKeychainItems(account: String? = nil, service: String? = nil, secClass: CFTypeRef = kSecClassGenericPassword) {
+        var query: [String: Any] = [
+            kSecClass as String: secClass,
+            kSecReturnData as String: kCFBooleanTrue,
             kSecReturnAttributes as String : kCFBooleanTrue,
-            kSecMatchLimit as String: kSecMatchLimitAll,
         ]
         
         if let account = account {
@@ -123,6 +124,10 @@ class SystemChannelHandler: NSObject {
         } else if status == errSecItemNotFound {
             print("Keychain item(s) not found.")
         } else {
+            if let error: String = SecCopyErrorMessageString(status, nil) as String? {
+                        print(error)
+                    }
+
             print("Error removing keychain item(s): \(status)")
         }
     }
