@@ -46,7 +46,9 @@ class Wc2Service {
     'eth_sign',
     'eth_signTypedData',
     'eth_signTypedData_v4',
-    'eth_signTransaction'
+    'eth_signTransaction',
+    'wallet_addEthereumChain',
+    'wallet_switchEthereumChain',
   };
 
   static const PairingMetadata pairingMetadata = PairingMetadata(
@@ -105,9 +107,10 @@ class Wc2Service {
     _wcClient.onSessionRequest.subscribe((request) {
       log.info('[Wc2Service] Finish handle request $request');
     });
-    _wcClient.onSessionRequest.subscribe((SessionRequestEvent? request) {});
 
     _registerEthRequest('${Wc2Chain.ethereum}:${Environment.web3ChainId}');
+    _registerEthRequest('${Wc2Chain.ethereum}:5');
+
     _registerFeralfileRequest(
         '${Wc2Chain.autonomy}:${Environment.appTestnetConfig ? 1 : 0}');
     addApprovedTopic(await _getAllConnectionKey());
@@ -123,6 +126,16 @@ class Wc2Service {
       'eth_sign': _handleEthSign,
       'eth_signTypedData': _handleEthSignType,
       'eth_signTypedData_v4': _handleEthSignType,
+      'wallet_addEthereumChain': (String topic, params) async {
+        log.info(
+            '[Wc2Service] received wallet_addEthereumChain request $params');
+        return true;
+      },
+      'wallet_switchEthereumChain': (String topic, params) async {
+        log.info(
+            '[Wc2Service] received wallet_switchEthereumChain request $params');
+        return true;
+      }
     };
     log.info('[Wc2Service] Registering handlers for chainId: $chainId');
     ethRequestHandlerMap.forEach((method, handler) {
