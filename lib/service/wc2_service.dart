@@ -13,11 +13,13 @@ import 'dart:convert';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
+import 'package:autonomy_flutter/model/add_ethereum_chain.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/model/wc_ethereum_transaction.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
+import 'package:autonomy_flutter/screen/wallet_connect/v2/add_ethereum_chain_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -48,7 +50,6 @@ class Wc2Service {
     'eth_signTypedData_v4',
     'eth_signTransaction',
     'wallet_addEthereumChain',
-    'wallet_switchEthereumChain',
   };
 
   static const PairingMetadata pairingMetadata = PairingMetadata(
@@ -126,16 +127,7 @@ class Wc2Service {
       'eth_sign': _handleEthSign,
       'eth_signTypedData': _handleEthSignType,
       'eth_signTypedData_v4': _handleEthSignType,
-      'wallet_addEthereumChain': (String topic, params) async {
-        log.info(
-            '[Wc2Service] received wallet_addEthereumChain request $params');
-        return true;
-      },
-      'wallet_switchEthereumChain': (String topic, params) async {
-        log.info(
-            '[Wc2Service] received wallet_switchEthereumChain request $params');
-        return true;
-      }
+      'wallet_addEthereumChain': _handleAddEthereumChain,
     };
     log.info('[Wc2Service] Registering handlers for chainId: $chainId');
     ethRequestHandlerMap.forEach((method, handler) {
@@ -190,6 +182,21 @@ class Wc2Service {
       throw _userRejectError;
     }
     return result;
+  }
+
+  Future<dynamic> _handleAddEthereumChain(String topic, params) async {
+    log.info('[Wc2Service] received wallet_addEthereumChain request $params');
+    late final AddEthereumChainParameter addEthereumChainParam;
+    try {
+      addEthereumChainParam = AddEthereumChainParameter.fromJson(params.first);
+      if (!addEthereumChainParam.isValid) {
+        throw JsonRpcError.invalidParams('Invalid addEthereumChain params');
+      }
+
+      return true;
+    } catch (e) {
+      throw JsonRpcError.invalidParams(e.toString());
+    }
   }
 
   Future _handleAuPermissions(String topic, params) async {

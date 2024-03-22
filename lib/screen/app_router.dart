@@ -131,6 +131,7 @@ import 'package:autonomy_flutter/screen/tezos_beacon/tb_sign_message_page.dart';
 import 'package:autonomy_flutter/screen/wallet/wallet_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_bloc.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
+import 'package:autonomy_flutter/screen/wallet_connect/v2/add_ethereum_chain_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/v2/wc2_permission_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
@@ -247,6 +248,7 @@ class AppRouter {
   static const feralfileAirdropTokenPreviewPage =
       'feralfile_airdrop_token_preview_page';
   static const projectsList = 'projects_list';
+  static const addEthereumChainPage = 'add_ethereum_chain_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector(), injector());
@@ -277,6 +279,13 @@ class AppRouter {
     );
 
     switch (settings.name) {
+      case addEthereumChainPage:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) => AddEthereumChainPage(
+            payload: settings.arguments! as AddEthereumChainPagePayload,
+          ),
+        );
       case projectsList:
         return PageTransition(
           type: PageTransitionType.fade,
