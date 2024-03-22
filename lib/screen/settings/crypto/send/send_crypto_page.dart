@@ -128,6 +128,7 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                                 placeholder: 'paste_or_scan_address'.tr(),
                                 isError: state.isAddressError,
                                 controller: _addressController,
+                                enableSuggestions: false,
                                 suffix: IconButton(
                                   icon: Icon(state.isScanQR
                                       ? AuIcon.scan

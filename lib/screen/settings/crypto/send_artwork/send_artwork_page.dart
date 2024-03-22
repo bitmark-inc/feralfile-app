@@ -249,6 +249,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                                     placeholder: 'paste_or_scan_address'.tr(),
                                     controller: _addressController,
                                     isError: state.isAddressError,
+                                    enableSuggestions: false,
                                     suffix: IconButton(
                                       icon: Icon(state.isScanQR
                                           ? AuIcon.scan
@@ -274,7 +275,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                                             address = address.replacePrefix(
                                                 'ethereum:', '');
                                             _addressController.text = address;
-                                            if (!mounted) {
+                                            if (!context.mounted) {
                                               return;
                                             }
                                             context.read<SendArtworkBloc>().add(
