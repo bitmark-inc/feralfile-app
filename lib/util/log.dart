@@ -113,6 +113,11 @@ class SentryBreadcrumbLogger {
       // do not send api breadcrumb here.
       return;
     }
+    if (record.level == Level.FINE ||
+        record.level == Level.FINER ||
+        record.level == Level.FINEST) {
+      return;
+    }
     String? type;
     SentryLevel? level;
     if (record.level == Level.WARNING) {
