@@ -86,7 +86,7 @@ jobs:
       # Encrypt secrets before use
       - name: Encrypt Secrets
         run: |
-          ./encrypt_secrets.sh
+          ./.github/workflows/encrypt_secrets.sh
 
       - run: flutter build apk --flavor inhouse
       - run: mv build/app/outputs/flutter-apk/app-inhouse-release.apk build/app/outputs/flutter-apk/app-inhouse-release-${{ env.NAME_SUFFIX }}.apk
