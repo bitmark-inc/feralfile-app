@@ -143,7 +143,7 @@ class AccountServiceImpl extends AccountService {
     await androidBackupKeys();
     await _auditService.auditPersonaAction('create', persona);
     unawaited(_autonomyService.postLinkedAddresses());
-    log.info('[AccountService] Created persona ${persona.uuid}}');
+    log.fine('[AccountService] Created persona ${persona.uuid}}');
     return persona;
   }
 
@@ -167,7 +167,7 @@ class AccountServiceImpl extends AccountService {
     await _cloudDB.personaDao.insertPersona(persona);
     await androidBackupKeys();
     await _auditService.auditPersonaAction('import', persona);
-    log.info('[AccountService] imported persona ${persona.uuid}');
+    log.fine('[AccountService] imported persona ${persona.uuid}');
     return persona;
   }
 
@@ -267,7 +267,7 @@ class AccountServiceImpl extends AccountService {
 
   @override
   Future deletePersona(Persona persona) async {
-    log.info('[AccountService] deletePersona start - ${persona.uuid}');
+    log.fine('[AccountService] deletePersona start - ${persona.uuid}');
     await _cloudDB.personaDao.deletePersona(persona);
     await _auditService.auditPersonaAction('delete', persona);
 
@@ -303,7 +303,7 @@ class AccountServiceImpl extends AccountService {
       unawaited(Sentry.captureException(exception));
     }
 
-    log.info('[AccountService] deletePersona finished - ${persona.uuid}');
+    log.fine('[AccountService] deletePersona finished - ${persona.uuid}');
   }
 
   @override
@@ -480,7 +480,7 @@ class AccountServiceImpl extends AccountService {
 
     addresses.addAll(linkedAccounts.expand((e) => e.accountNumbers));
     if (logHiddenAddress) {
-      log.info(
+      log.fine(
           '[Account Service] all addresses (persona ${addressPersona.length}): '
           '${addresses.join(", ")}');
       final hiddenAddresses = addressPersona
@@ -488,7 +488,7 @@ class AccountServiceImpl extends AccountService {
           .map((e) => e.address.maskOnly(5))
           .toList()
         ..addAll(_configurationService.getLinkedAccountsHiddenInGallery());
-      log.info(
+      log.fine(
           "[Account Service] hidden addresses: ${hiddenAddresses.join(", ")}");
     }
 

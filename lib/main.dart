@@ -62,15 +62,6 @@ void main() async {
               return null;
             }
             return event;
-          }
-          ..beforeBreadcrumb = (Breadcrumb? breadcrumb, {dynamic hint}) {
-            if (breadcrumb != null &&
-                breadcrumb.data != null &&
-                breadcrumb.category == 'http' &&
-                breadcrumb.data!.containsKey('url')) {
-              breadcrumb.data!['url'] = 'Filtered';
-            }
-            return breadcrumb;
           };
       },
       appRunner: () async {
