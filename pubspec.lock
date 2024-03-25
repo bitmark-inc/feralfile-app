@@ -2581,8 +2581,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "6780ff6374a254a2787a5bcfd850fc46f40351b6"
-      resolved-ref: "6780ff6374a254a2787a5bcfd850fc46f40351b6"
+      ref: "7534512ff7c874251e5b1e1a426f5822a3837b51"
+      resolved-ref: "7534512ff7c874251e5b1e1a426f5822a3837b51"
       url: "https://github.com/autonomy-system/tezart.git"
     source: git
     version: "2.0.4"
