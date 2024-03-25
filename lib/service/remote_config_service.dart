@@ -52,7 +52,7 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
     try {
       final data = await _pubdocAPI.getConfigs();
       _configs = jsonDecode(data) as Map<String, dynamic>;
-      log.info('RemoteConfigService: loadConfigs: $_configs');
+      log.fine('RemoteConfigService: loadConfigs: $_configs');
     } catch (e) {
       log.warning('RemoteConfigService: loadConfigs: $e');
     }
