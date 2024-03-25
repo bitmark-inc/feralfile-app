@@ -6,6 +6,7 @@
 //
 
 // ignore_for_file: unawaited_futures, type_annotate_public_apis
+// ignore_for_file: avoid_annotating_with_dynamic
 
 import 'dart:async';
 import 'dart:isolate';
@@ -53,7 +54,24 @@ void main() async {
           ..dsn = Environment.sentryDSN
           ..enableAutoSessionTracking = true
           ..tracesSampleRate = 0.25
-          ..attachStacktrace = true;
+          ..attachStacktrace = true
+          ..beforeSend = (SentryEvent event, {dynamic hint}) {
+            // Avoid sending events with "level": "debug"
+            if (event.level == SentryLevel.debug) {
+              // Return null to drop the event
+              return null;
+            }
+            return event;
+          }
+          ..beforeBreadcrumb = (Breadcrumb? breadcrumb, {dynamic hint}) {
+            if (breadcrumb != null &&
+                breadcrumb.data != null &&
+                breadcrumb.category == 'http' &&
+                breadcrumb.data!.containsKey('url')) {
+              breadcrumb.data!['url'] = 'Filtered';
+            }
+            return breadcrumb;
+          };
       },
       appRunner: () async {
         try {
