@@ -25,6 +25,7 @@ import Starscream
     
     var cancelBag = Set<AnyCancellable>()
     var authenticationVC = BiometricAuthenticationViewController()
+    var splashScreenVC: SplashViewController? = SplashViewController()
     
     override func application(
         _ application: UIApplication,
@@ -122,6 +123,16 @@ import Starscream
             }
         })
         
+        let secureScreenChannel = FlutterMethodChannel(name: "secure_screen_channel",
+                                                   binaryMessenger: controller.binaryMessenger)
+        secureScreenChannel.setMethodCallHandler({(call: FlutterMethodCall, result: @escaping FlutterResult) -> Void in
+            switch call.method {
+            case "setSecureFlag":
+                SecureChannelHandler.shared.setSecureFlag(call: call, result: result)
+            default:
+                result(FlutterMethodNotImplemented)
+            }
+        })
         
         let migrationChannel = FlutterMethodChannel(name: "migration_util",
                                                     binaryMessenger: controller.binaryMessenger)
@@ -249,11 +260,34 @@ import Starscream
         if UserDefaults.standard.bool(forKey: "flutter.device_passcode") == true {
             authenticationVC.authentication()
         }
+        // Remove splash screen when entering foreground
+        removeSplashScreen()
     }
     
     override func applicationDidEnterBackground(_ application: UIApplication) {
         if UserDefaults.standard.bool(forKey: "flutter.device_passcode") == true {
             showAuthenticationOverlay()
+        }
+        // Show splash screen when entering background
+        if SecureChannelHandler.shouldShowSplash {
+            showSplashScreen()
+        }
+    }
+    
+    
+    private func showSplashScreen() {
+        if splashScreenVC == nil {
+            splashScreenVC = SplashViewController()
+            splashScreenVC?.modalPresentationStyle = .overFullScreen
+            window?.rootViewController?.present(splashScreenVC!, animated: false, completion: nil)
+        }
+    }
+        
+    private func removeSplashScreen() {
+        if let splashVC = splashScreenVC {
+            splashVC.dismiss(animated: false, completion: {
+                self.splashScreenVC = nil
+            })
         }
     }
     
