@@ -26,6 +26,7 @@ class AuTextField extends StatelessWidget {
   final bool isDark;
   final bool widePadding;
   final bool obscureText;
+  final bool enableSuggestions;
 
   const AuTextField({
     required this.title,
@@ -45,6 +46,7 @@ class AuTextField extends StatelessWidget {
     this.isDark = false,
     this.widePadding = false,
     this.obscureText = false,
+    this.enableSuggestions = true,
   });
 
   @override
@@ -123,6 +125,7 @@ class AuTextField extends StatelessWidget {
         focusNode: focusNode,
         maxLines: maxLines,
         obscureText: obscureText,
+        enableSuggestions: enableSuggestions,
         decoration: InputDecoration(
           contentPadding: const EdgeInsets.fromLTRB(0, 3, 0, 0),
           isDense: true,

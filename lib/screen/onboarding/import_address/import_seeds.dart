@@ -59,6 +59,7 @@ class _ImportSeedsPageState extends State<ImportSeedsPage> {
                       AuTextField(
                         labelSemantics: 'enter_seed',
                         title: '',
+                        enableSuggestions: false,
                         obscureText: _obscureText,
                         placeholder: 'enter_recovery_phrase'.tr(),
                         hintMaxLines: 1,
