@@ -146,11 +146,17 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
   @override
   Widget build(BuildContext context) {
     final message = hexToBytes(widget.request.payload!);
-    final Uint8List viewMessage = message.length > 6 &&
+    final Uint8List trimmedMessage = message.length > 6 &&
             message.sublist(0, 2).equals(Uint8List.fromList([5, 1]))
         ? message.sublist(6)
         : message;
-    final messageInUtf8 = utf8.decode(viewMessage, allowMalformed: true);
+
+    String viewingMessage;
+    try {
+      viewingMessage = utf8.decode(trimmedMessage, allowMalformed: false);
+    } catch (_) {
+      viewingMessage = '0x${widget.request.payload}';
+    }
 
     final theme = Theme.of(context);
 
@@ -203,7 +209,7 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
                             borderRadius: BorderRadius.circular(5),
                           ),
                           child: Text(
-                            messageInUtf8,
+                            viewingMessage,
                             style: theme.textTheme.ppMori400Black14,
                           ),
                         ),

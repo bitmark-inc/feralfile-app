@@ -43,17 +43,21 @@ class WCSignMessagePage extends StatefulWidget {
 class _WCSignMessagePageState extends State<WCSignMessagePage> {
   @override
   Widget build(BuildContext context) {
-    String messageInUtf8;
+    String viewingMessage;
     Uint8List message;
     switch (widget.args.type) {
       case WCSignType.MESSAGE:
       case WCSignType.PERSONAL_MESSAGE:
         message = hexToBytes(widget.args.message);
-        messageInUtf8 = utf8.decode(message, allowMalformed: true);
+        try {
+          viewingMessage = utf8.decode(message, allowMalformed: false);
+        } catch (_) {
+          viewingMessage = '0x${widget.args.message}';
+        }
         break;
       case WCSignType.TYPED_MESSAGE:
         message = TypedDataUtil.typedDataV4(jsonData: widget.args.message);
-        messageInUtf8 = widget.args.message;
+        viewingMessage = widget.args.message;
         break;
     }
 
@@ -117,7 +121,7 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
                             borderRadius: BorderRadius.circular(5),
                           ),
                           child: Text(
-                            messageInUtf8,
+                            viewingMessage,
                             style: theme.textTheme.ppMori400Black14,
                           ),
                         ),
@@ -128,7 +132,7 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
               ),
               Padding(
                 padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-                child: _signButton(context, message, messageInUtf8),
+                child: _signButton(context, message, viewingMessage),
               ),
             ],
           ),

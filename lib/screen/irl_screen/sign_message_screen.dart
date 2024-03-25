@@ -147,16 +147,20 @@ class _IRLSignMessageScreenState extends State<IRLSignMessageScreen> {
 
   @override
   Widget build(BuildContext context) {
-    late String messageInUtf8;
+    late String viewingMessage;
     if (widget.payload.payload.isHex) {
       final message = hexToBytes(widget.payload.payload);
-      final Uint8List viewMessage = message.length > 6 &&
+      final Uint8List trimmedMessage = message.length > 6 &&
           message.sublist(0, 2).equals(Uint8List.fromList([5, 1]))
           ? message.sublist(6)
           : message;
-      messageInUtf8 = utf8.decode(viewMessage, allowMalformed: true);
+      try {
+        viewingMessage = utf8.decode(trimmedMessage, allowMalformed: false);
+      } catch (_) {
+        viewingMessage = '0x${widget.payload.payload}';
+      }
     } else {
-      messageInUtf8 = widget.payload.payload;
+      viewingMessage = widget.payload.payload;
     }
 
     final theme = Theme.of(context);
@@ -205,7 +209,7 @@ class _IRLSignMessageScreenState extends State<IRLSignMessageScreen> {
                           borderRadius: BorderRadius.circular(5),
                         ),
                         child: Text(
-                          messageInUtf8,
+                          viewingMessage,
                           style: theme.textTheme.ppMori400Black14,
                         ),
                       ),
