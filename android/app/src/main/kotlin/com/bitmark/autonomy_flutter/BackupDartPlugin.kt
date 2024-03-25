@@ -47,6 +47,7 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler {
             "isEndToEndEncryptionAvailable" -> isEndToEndEncryptionAvailable(result)
             "backupKeys" -> backupKeys(call, result)
             "restoreKeys" -> restoreKeys(call, result)
+            "deleteKeys" -> deleteKeys(call, result)
             else -> {
                 result.notImplemented()
             }
@@ -166,6 +167,21 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler {
             .addOnFailureListener {
                 //Block store not available
                 result.error("restoreKey error", it.message, it)
+            }
+    }
+
+
+    private fun deleteKeys(call: MethodCall, result: MethodChannel.Result) {
+        // store empty bytes to blockstore
+        val storeBytesDataBuilder = StoreBytesData.Builder()
+            .setBytes("".toByteArray(Charsets.UTF_8))
+        client.storeBytes(storeBytesDataBuilder.build())
+            .addOnSuccessListener {
+                result.success("")
+            }
+            .addOnFailureListener { e ->
+                Log.e("BackupDartPlugin", e.message ?: "")
+                result.error("deleteKeys error", e.message, e)
             }
     }
 }

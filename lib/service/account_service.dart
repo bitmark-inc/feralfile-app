@@ -57,6 +57,8 @@ abstract class AccountService {
 
   Future androidBackupKeys();
 
+  Future deleteAllKeys();
+
   Future<List<Connection>> removeDoubleViewOnly(List<String> addresses);
 
   Future<bool?> isAndroidEndToEndEncryptionAvailable();
@@ -389,6 +391,13 @@ class AccountServiceImpl extends AccountService {
       final uuids = accounts.map((e) => e.uuid).toList();
 
       await _backupChannel.backupKeys(uuids);
+    }
+  }
+
+  @override
+  Future deleteAllKeys() async {
+    if (Platform.isAndroid) {
+      await _backupChannel.deleteAllKeys();
     }
   }
 
