@@ -240,6 +240,10 @@ import Starscream
         
         return super.application(application, didFinishLaunchingWithOptions: launchOptions)
     }
+
+    override func application(_ application: UIApplication, shouldAllowExtensionPointIdentifier extensionPointIdentifier: UIApplication.ExtensionPointIdentifier) -> Bool {
+        return extensionPointIdentifier != .keyboard
+    }
     
     override func applicationWillEnterForeground(_ application: UIApplication) {
         if UserDefaults.standard.bool(forKey: "flutter.device_passcode") == true {
