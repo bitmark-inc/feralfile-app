@@ -17,11 +17,9 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.reactivex.Completable
-import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
 import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import java.util.*
 
 class BackupDartPlugin : MethodChannel.MethodCallHandler {
@@ -174,7 +172,7 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler {
     private fun deleteKeys(call: MethodCall, result: MethodChannel.Result) {
         // store empty bytes to blockstore
         val storeBytesDataBuilder = StoreBytesData.Builder()
-            .setBytes("".toByteArray(Charsets.UTF_8))
+            .setBytes(ByteArray(0))
         client.storeBytes(storeBytesDataBuilder.build())
             .addOnSuccessListener {
                 result.success("")
