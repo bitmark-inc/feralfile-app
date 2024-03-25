@@ -17,11 +17,9 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.reactivex.Completable
-import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
 import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import java.util.*
 
 class BackupDartPlugin : MethodChannel.MethodCallHandler {
@@ -47,6 +45,7 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler {
             "isEndToEndEncryptionAvailable" -> isEndToEndEncryptionAvailable(result)
             "backupKeys" -> backupKeys(call, result)
             "restoreKeys" -> restoreKeys(call, result)
+            "deleteKeys" -> deleteKeys(call, result)
             else -> {
                 result.notImplemented()
             }
@@ -166,6 +165,21 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler {
             .addOnFailureListener {
                 //Block store not available
                 result.error("restoreKey error", it.message, it)
+            }
+    }
+
+
+    private fun deleteKeys(call: MethodCall, result: MethodChannel.Result) {
+        // store empty bytes to blockstore
+        val storeBytesDataBuilder = StoreBytesData.Builder()
+            .setBytes(ByteArray(0))
+        client.storeBytes(storeBytesDataBuilder.build())
+            .addOnSuccessListener {
+                result.success("")
+            }
+            .addOnFailureListener { e ->
+                Log.e("BackupDartPlugin", e.message ?: "")
+                result.error("deleteKeys error", e.message, e)
             }
     }
 }

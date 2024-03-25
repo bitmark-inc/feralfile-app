@@ -76,6 +76,7 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
       await injector<CacheManager>().emptyCache();
       await DefaultCacheManager().emptyCache();
       await injector<KeychainService>().clearKeychainItems();
+      await injector<AccountService>().deleteAllKeys();
 
       await FileLogger.clear();
       await SentryBreadcrumbLogger.clear();

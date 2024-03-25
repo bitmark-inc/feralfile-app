@@ -38,6 +38,14 @@ class AndroidBackupChannel {
       return [];
     }
   }
+
+  Future deleteAllKeys() async {
+    try {
+      await _channel.invokeMethod('deleteKeys', {});
+    } catch (e) {
+      log.warning("Android cloud backup error", e);
+    }
+  }
 }
 
 class BackupData {
