@@ -269,7 +269,7 @@ import Starscream
             showAuthenticationOverlay()
         }
         // Show splash screen when entering background
-        if SecureChannelHandler.shouldShowSplash {
+        if SecureChannelHandler.shared.shouldShowSplash {
             showSplashScreen()
         }
     }

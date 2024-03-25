@@ -12,14 +12,13 @@ import Combine
 class SecureChannelHandler: NSObject {
 
     static let shared = SecureChannelHandler()
-    static var shouldShowSplash = true
-    private var cancelBag = Set<AnyCancellable>()
+    var shouldShowSplash = true
 
     func setSecureFlag(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let args = call.arguments as! NSDictionary
         let secure = args["secure"] as! Bool
         // Set the shouldShowSplash flag based on the 'secure' parameter
-        SecureChannelHandler.shouldShowSplash = secure
+        shouldShowSplash = secure
         result(nil)
 
     }
