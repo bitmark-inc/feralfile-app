@@ -54,3 +54,5 @@ app.*.map.json
 .env
 .env.development
 .env.production
+
+secrets.g.dart
