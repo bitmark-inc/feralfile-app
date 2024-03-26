@@ -13,7 +13,6 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
@@ -35,9 +34,10 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
 
 class Wc2RequestPage extends StatefulWidget {
-  final Wc2Request request;
+  final Wc2RequestPayload request;
 
   const Wc2RequestPage({required this.request, super.key});
 
@@ -98,18 +98,6 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
     injector<NavigationService>().setIsWCConnectInShow(false);
   }
 
-  Future _reject() async {
-    log.info('[Wc2RequestPage] Reject request.');
-    try {
-      await injector<Wc2Service>().respondOnReject(
-        widget.request.topic,
-        reason: 'User reject',
-      );
-    } catch (e) {
-      log.info('[Wc2RequestPage] Reject request error. $e');
-    }
-  }
-
   Future<String> _handleAuPermissionRequest({
     required Wc2PermissionsRequestParams params,
   }) async {
@@ -159,11 +147,10 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
     final response = await _handleAuPermissionRequest(
       params: params,
     );
-    await wc2Service.respondOnApprove(widget.request.topic, response);
     final cloudDB = injector<CloudDatabase>();
     final connections = await cloudDB.connectionDao
         .getConnectionsByType(ConnectionType.walletConnect2.rawValue);
-    final pendingSession = wc2Service.getFirstSession();
+    final pendingSession = wc2Service.getPendingRequests().firstOrNull?.topic;
     if (pendingSession != null) {
       final connection = connections
           .firstWhereOrNull((element) => element.key.contains(pendingSession));
@@ -172,13 +159,13 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
         await cloudDB.connectionDao.updateConnection(
             connection.copyWith(accountNumber: accountNumber));
       }
-      wc2Service.removePendingSession(pendingSession);
     }
 
     if (!mounted) {
       return;
     }
-    Navigator.of(context).pop();
+    log.info('approve permission request: $response');
+    Navigator.of(context).pop(response);
 
     showInfoNotification(
       const Key('signed'),
@@ -196,10 +183,7 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
   Widget _wcAppInfo(BuildContext context) {
     final theme = Theme.of(context);
     final proposer = widget.request.proposer;
-    if (proposer == null) {
-      return const SizedBox();
-    }
-    final peerMeta = AppMetadata(
+    final peerMeta = PairingMetadata(
       name: proposer.name,
       url: proposer.url,
       description: proposer.description,
@@ -246,116 +230,106 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return PopScope(
-      onPopInvoked: (_) async {
-        await _reject();
-      },
-      child: Scaffold(
-        appBar: getBackAppBar(
-          context,
-          onBack: () async {
-            await _reject();
-            if (!context.mounted) {
-              return;
-            }
-            Navigator.pop(context);
-          },
-          title: 'address_request'.tr(),
-        ),
-        body: Container(
-          margin: const EdgeInsets.only(bottom: 32),
-          child: Column(
-            children: [
-              Padding(
-                padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-                child: addTitleSpace(),
-              ),
-              Padding(
-                padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-                child: _wcAppInfo(context),
-              ),
-              const SizedBox(height: 32),
-              addDivider(height: 52),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: BlocConsumer<AccountsBloc, AccountsState>(
-                      listener: (context, state) {
-                    final categorizedAccounts = state.accounts ?? [];
+    return Scaffold(
+      appBar: getBackAppBar(
+        context,
+        onBack: () {
+          Navigator.of(context).pop(false);
+        },
+        title: 'address_request'.tr(),
+      ),
+      body: Container(
+        margin: const EdgeInsets.only(bottom: 32),
+        child: Column(
+          children: [
+            Padding(
+              padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+              child: addTitleSpace(),
+            ),
+            Padding(
+              padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+              child: _wcAppInfo(context),
+            ),
+            const SizedBox(height: 32),
+            addDivider(height: 52),
+            Expanded(
+              child: SingleChildScrollView(
+                child: BlocConsumer<AccountsBloc, AccountsState>(
+                    listener: (context, state) {
+                  final categorizedAccounts = state.accounts ?? [];
 
-                    if (state.accounts?.length == 2) {
-                      if (selectedAddresses.containsKey('eip155:1')) {
-                        selectedAddresses['eip155:1'] = categorizedAccounts
-                            .firstWhere((element) => element.isEth)
-                            .accountNumber;
-                      }
-                      if (selectedAddresses.containsKey('tezos')) {
-                        selectedAddresses['tezos'] = categorizedAccounts
-                            .firstWhere((element) => element.isTez)
-                            .accountNumber;
-                      }
+                  if (state.accounts?.length == 2) {
+                    if (selectedAddresses.containsKey('eip155:1')) {
+                      selectedAddresses['eip155:1'] = categorizedAccounts
+                          .firstWhere((element) => element.isEth)
+                          .accountNumber;
                     }
-                    setState(() {});
-                  }, builder: (context, state) {
-                    final accounts = state.accounts ?? [];
-                    if (accounts.isEmpty) {
-                      return const SizedBox();
+                    if (selectedAddresses.containsKey('tezos')) {
+                      selectedAddresses['tezos'] = categorizedAccounts
+                          .firstWhere((element) => element.isTez)
+                          .accountNumber;
                     }
+                  }
+                  setState(() {});
+                }, builder: (context, state) {
+                  final accounts = state.accounts ?? [];
+                  if (accounts.isEmpty) {
+                    return const SizedBox();
+                  }
 
-                    return Column(
-                      children: [
-                        Padding(
-                          padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-                          child: Text(
-                            _selectETHAddress && _selectXTZAddress
-                                ? 'select_tezo_and_eth_address'
-                                    .tr(args: ['1', '1'])
-                                : _selectETHAddress
-                                    ? 'select_eth_address'.tr(args: ['1'])
-                                    : _selectXTZAddress
-                                        ? 'select_tezos_address'.tr(args: ['1'])
-                                        : 'select_grand_access'.tr(),
-                            style: theme.textTheme.ppMori400Black16,
-                          ),
+                  return Column(
+                    children: [
+                      Padding(
+                        padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                        child: Text(
+                          _selectETHAddress && _selectXTZAddress
+                              ? 'select_tezo_and_eth_address'
+                                  .tr(args: ['1', '1'])
+                              : _selectETHAddress
+                                  ? 'select_eth_address'.tr(args: ['1'])
+                                  : _selectXTZAddress
+                                      ? 'select_tezos_address'.tr(args: ['1'])
+                                      : 'select_grand_access'.tr(),
+                          style: theme.textTheme.ppMori400Black16,
                         ),
-                        const SizedBox(height: 16),
-                        ListAccountConnect(
-                          accounts: accounts,
-                          onSelectEth: (value) {
-                            setState(() {
-                              selectedAddresses['eip155:1'] =
-                                  value.accountNumber;
-                            });
-                          },
-                          onSelectTez: (value) {
-                            setState(() {
-                              selectedAddresses['tezos'] = value.accountNumber;
-                            });
-                          },
-                          isAutoSelect: accounts.length == 2,
-                        ),
-                      ],
-                    );
-                  }),
-                ),
-              ),
-              Row(
-                children: [
-                  Expanded(
-                    child: Padding(
-                      padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-                      child: PrimaryButton(
-                        enabled: _isAccountSelected,
-                        text: 'h_confirm'.tr(),
-                        onTap: _isAccountSelected
-                            ? () => withDebounce(() => unawaited(_approve()))
-                            : null,
                       ),
+                      const SizedBox(height: 16),
+                      ListAccountConnect(
+                        accounts: accounts,
+                        onSelectEth: (value) {
+                          setState(() {
+                            selectedAddresses['eip155:1'] = value.accountNumber;
+                          });
+                        },
+                        onSelectTez: (value) {
+                          setState(() {
+                            selectedAddresses['tezos'] = value.accountNumber;
+                          });
+                        },
+                        isAutoSelect: accounts.length == 2,
+                      ),
+                    ],
+                  );
+                }),
+              ),
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                    child: PrimaryButton(
+                      enabled: _isAccountSelected,
+                      text: 'h_confirm'.tr(),
+                      onTap: _isAccountSelected
+                          ? () => withDebounce(() => unawaited(_approve()))
+                          : null,
                     ),
-                  )
-                ],
-              )
-            ],
-          ),
+                  ),
+                )
+              ],
+            )
+          ],
         ),
       ),
     );

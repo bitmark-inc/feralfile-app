@@ -14,7 +14,6 @@ import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
-import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/screen/account/access_method_page.dart';
 import 'package:autonomy_flutter/screen/account/link_manually_page.dart';
 import 'package:autonomy_flutter/screen/account/recovery_phrase_page.dart';
@@ -137,6 +136,7 @@ import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/view/transparent_router.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -518,7 +518,6 @@ class AppRouter {
               injector(),
               injector(),
               injector(),
-              injector(),
             ),
             child: WCSendTransactionPage(
                 args: settings.arguments! as WCSendTransactionPageArgs),
@@ -762,8 +761,8 @@ class AppRouter {
       case auSignMessagePage:
         return CupertinoPageRoute(
           settings: settings,
-          builder: (context) =>
-              AUSignMessagePage(request: settings.arguments! as Wc2Request),
+          builder: (context) => AUSignMessagePage(
+              request: settings.arguments! as Wc2RequestPayload),
         );
       case tbSendTransactionPage:
         return CupertinoPageRoute(
@@ -1009,7 +1008,7 @@ class AppRouter {
                       ),
                     ],
                     child: Wc2RequestPage(
-                        request: settings.arguments! as Wc2Request)));
+                        request: settings.arguments! as Wc2RequestPayload)));
 
       case walletPage:
         return CupertinoPageRoute(

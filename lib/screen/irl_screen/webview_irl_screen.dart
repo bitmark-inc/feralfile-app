@@ -29,6 +29,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:tezart/tezart.dart';
 import 'package:uuid/uuid.dart';
+import 'package:walletconnect_flutter_v2/apis/core/pairing/utils/pairing_models.dart';
 
 class IRLWebScreen extends StatefulWidget {
   final IRLWebScreenPayload payload;
@@ -305,18 +306,11 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
             }
 
             final args = WCSendTransactionPageArgs(
-              1,
-              AppMetadata.fromJson(argument.metadata ??
-                  {
-                    'name': '',
-                    'url': '',
-                    'icons': [''],
-                    'description': '',
-                  }),
+              const PairingMetadata(
+                  name: '', description: '', url: '', icons: []),
               WCEthereumTransaction.fromJson(transaction),
               account.wallet.uuid,
               account.index,
-              isIRL: true,
             );
 
             final txHash = await Navigator.of(context).pushNamed(

@@ -40,12 +40,14 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:walletconnect_flutter_v2/apis/sign_api/models/sign_client_models.dart';
 
 /*
  Because WalletConnect & TezosBeacon are using same logic:
  - select persona 
  - suggest to generate persona
  => use this page for both WalletConnect & TezosBeacon connect
+import 'package:flutter_svg/flutter_svgconnect
 */
 class WCConnectPage extends StatefulWidget {
   final ConnectionRequest connectionRequest;
@@ -122,10 +124,6 @@ class _WCConnectPageState extends State<WCConnectPage>
   }
 
   Future<void> _reject() async {
-    // final wc2Proposal = widget.wc2Proposal;
-    // final wcConnectArgs = widget.wcConnectArgs;
-    // final beaconRequest = widget.beaconRequest;
-
     if (connectionRequest.isAutonomyConnect) {
       try {
         await injector<Wc2Service>().rejectSession(
@@ -161,6 +159,8 @@ class _WCConnectPageState extends State<WCConnectPage>
       return;
     }
 
+    dynamic aproveResponse;
+
     unawaited(
         UIHelper.showLoadingScreen(context, text: 'connecting_wallet'.tr()));
     late String payloadAddress;
@@ -175,9 +175,9 @@ class _WCConnectPageState extends State<WCConnectPage>
               .findByWalletID(account.uuid);
           final accountNumber =
               walletAddresses.map((e) => e.address).join('||');
-          await injector<Wc2Service>().approveSession(
+          aproveResponse = await injector<Wc2Service>().approveSession(
             connectionRequest as Wc2Proposal,
-            account: accountDid.substring('did:key:'.length),
+            accounts: [accountDid.substring('did:key:'.length)],
             connectionKey: account.uuid,
             accountNumber: accountNumber,
             isAuConnect: true,
@@ -188,9 +188,9 @@ class _WCConnectPageState extends State<WCConnectPage>
         } else {
           final address = await injector<EthereumService>()
               .getETHAddress(selectedPersona!.wallet, selectedPersona!.index);
-          await injector<Wc2Service>().approveSession(
+          aproveResponse = await injector<Wc2Service>().approveSession(
             connectionRequest as Wc2Proposal,
-            account: address,
+            accounts: [address],
             connectionKey: address,
             accountNumber: address,
           );
@@ -204,7 +204,8 @@ class _WCConnectPageState extends State<WCConnectPage>
         final index = selectedPersona!.index;
         final publicKey = await wallet.getTezosPublicKey(index: index);
         final address = wallet.getTezosAddressFromPubKey(publicKey);
-        await injector<TezosBeaconService>().permissionResponse(
+        aproveResponse =
+            await injector<TezosBeaconService>().permissionResponse(
           wallet.uuid,
           index,
           (connectionRequest as BeaconRequest).id,
@@ -221,7 +222,6 @@ class _WCConnectPageState extends State<WCConnectPage>
       return;
     }
     UIHelper.hideInfoDialog(context);
-
     if (memoryValues.scopedPersona != null) {
       Navigator.of(context).pop();
       return;
@@ -234,11 +234,13 @@ class _WCConnectPageState extends State<WCConnectPage>
       type: payloadType,
       isBackHome: onBoarding,
     );
-
     unawaited(Navigator.of(context).pushReplacementNamed(
       AppRouter.personaConnectionsPage,
       arguments: payload,
     ));
+    if (aproveResponse is ApproveResponse) {
+      injector<Wc2Service>().addApprovedTopic([aproveResponse.topic]);
+    }
   }
 
   Future<void> _approveThenNotify({bool onBoarding = false}) async {
@@ -275,7 +277,7 @@ class _WCConnectPageState extends State<WCConnectPage>
           title: 'connect'.tr(),
           onBack: () async {
             await _reject();
-            if (!mounted) {
+            if (!context.mounted) {
               return;
             }
             Navigator.pop(context);
@@ -311,35 +313,36 @@ class _WCConnectPageState extends State<WCConnectPage>
                               height: 12,
                             ),
                             Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: AppColor.auGrey,
-                                  borderRadius: BorderRadius.circular(5),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    ...grantPermissions.map(
-                                      (permission) => Row(
-                                        children: [
-                                          const SizedBox(
-                                            width: 6,
-                                          ),
-                                          Text('•',
-                                              style: theme
-                                                  .textTheme.ppMori400Black14),
-                                          const SizedBox(
-                                            width: 6,
-                                          ),
-                                          Text(permission,
-                                              style: theme
-                                                  .textTheme.ppMori400Black14),
-                                        ],
-                                      ),
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: AppColor.auGrey,
+                                borderRadius: BorderRadius.circular(5),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  ...grantPermissions.map(
+                                    (permission) => Row(
+                                      children: [
+                                        const SizedBox(
+                                          width: 6,
+                                        ),
+                                        Text('•',
+                                            style: theme
+                                                .textTheme.ppMori400Black14),
+                                        const SizedBox(
+                                          width: 6,
+                                        ),
+                                        Text(permission,
+                                            style: theme
+                                                .textTheme.ppMori400Black14),
+                                      ],
                                     ),
-                                  ],
-                                )),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ],
                         ),
                       ),

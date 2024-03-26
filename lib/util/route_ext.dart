@@ -3,7 +3,6 @@ import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
-import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/connections/connections_bloc.dart';
 import 'package:autonomy_flutter/screen/chat/chat_thread_page.dart';
@@ -42,6 +41,7 @@ import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_det
 import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
+import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:nft_collection/models/models.dart';
@@ -223,11 +223,10 @@ extension RouteExt on Route {
         };
         break;
       case AppRouter.wc2PermissionPage:
-        final payload = settings.arguments! as Wc2Request;
+        final payload = settings.arguments! as Wc2RequestPayload;
         data = {
-          MixpanelProp.title: payload.proposer?.name,
-          MixpanelProp.url: payload.proposer?.url,
-          MixpanelProp.method: payload.method
+          MixpanelProp.title: payload.proposer.name,
+          MixpanelProp.url: payload.proposer.url,
         };
         break;
       case AppRouter.inappWebviewPage:
@@ -410,11 +409,10 @@ extension RouteExt on Route {
         };
         break;
       case AppRouter.auSignMessagePage:
-        final payload = settings.arguments! as Wc2Request;
+        final payload = settings.arguments! as Wc2RequestPayload;
         data = {
-          MixpanelProp.type: payload.method,
-          MixpanelProp.title: payload.proposer?.name,
-          MixpanelProp.url: payload.proposer?.url,
+          MixpanelProp.title: payload.proposer.name,
+          MixpanelProp.url: payload.proposer.url,
         };
         break;
       case AppRouter.globalReceiveDetailPage:
@@ -439,7 +437,6 @@ extension RouteExt on Route {
           MixpanelProp.message: payload.message,
           MixpanelProp.title: payload.peerMeta.name,
           MixpanelProp.url: payload.peerMeta.url,
-          MixpanelProp.address: payload.wc2Params?.address,
         };
         break;
       case AppRouter.wcSendTransactionPage:

@@ -354,6 +354,19 @@ class _$ConnectionDao extends ConnectionDao {
   }
 
   @override
+  Future<List<Connection>> getWc2Connections() async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM Connection WHERE connectionType IN (\"dappConnect2\",\ "walletConnect2\")',
+        mapper: (Map<String, Object?> row) => Connection(
+            key: row['key'] as String,
+            name: row['name'] as String,
+            data: row['data'] as String,
+            connectionType: row['connectionType'] as String,
+            accountNumber: row['accountNumber'] as String,
+            createdAt: _dateTimeConverter.decode(row['createdAt'] as int)));
+  }
+
+  @override
   Future<List<Connection>> getConnectionsByType(String type) async {
     return _queryAdapter.queryList(
         'SELECT * FROM Connection WHERE connectionType = ?1 ORDER BY createdAt DESC',
