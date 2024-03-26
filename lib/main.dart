@@ -50,6 +50,8 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 
 void main() async {
   unawaited(runZonedGuarded(() async {
+    final json = await getSecretEnv();
+    cachedSecretEnv = jsonDecode(json);
     await dotenv.load();
     await SentryFlutter.init(
       (options) {
@@ -97,9 +99,6 @@ Future<void> runFeralFileApp() async {
   WidgetsFlutterBinding.ensureInitialized();
   // feature/text_localization
   await EasyLocalization.ensureInitialized();
-
-  final json = await getSecretEnv();
-  cachedSecretEnv = jsonDecode(json);
 
   FlutterNativeSplash.preserve(
       widgetsBinding: WidgetsFlutterBinding.ensureInitialized());

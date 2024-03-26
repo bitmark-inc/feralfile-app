@@ -76,14 +76,14 @@ class Environment {
   static String get feralFileAPIMainnetURL =>
       dotenv.env['FERAL_FILE_API_MAINNET_URL'] ?? '';
 
-  static String get feralFileSecretKeyMainnet =>
-      dotenv.env['FERAL_FILE_SECRET_KEY_MAINNET'] ?? '';
-
   static String get feralFileAPITestnetURL =>
       dotenv.env['FERAL_FILE_API_TESTNET_URL'] ?? '';
 
   static String get feralFileAssetURLTestnet =>
       dotenv.env['FERAL_FILE_ASSET_URL_TESTNET'] ?? '';
+
+  static String get feralFileAssetURLMainnet =>
+      dotenv.env['FERAL_FILE_ASSET_URL_MAINNET'] ?? '';
 
   static String get extensionSupportMainnetURL =>
       dotenv.env['EXTENSION_SUPPORT_MAINNET_URL'] ?? '';
@@ -178,8 +178,8 @@ class Environment {
   static String get feralFileSecretKeyTestnet =>
       cachedSecretEnv['FERAL_FILE_SECRET_KEY_TESTNET'] ?? '';
 
-  static String get feralFileAssetURLMainnet =>
-      cachedSecretEnv['FERAL_FILE_ASSET_URL_MAINNET'] ?? '';
+  static String get feralFileSecretKeyMainnet =>
+      cachedSecretEnv['FERAL_FILE_SECRET_KEY_MAINNET'] ?? '';
 
   static String get web3RpcMainnetURL =>
       cachedSecretEnv['WEB3_RPC_MAINNET_URL'] ?? '';
