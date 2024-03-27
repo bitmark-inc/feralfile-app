@@ -50,15 +50,19 @@ import 'package:uuid/uuid.dart';
 
 abstract class SupportThreadPayload {
   AnnouncementLocal? get announcement;
+  String? get defaultMessage;
 }
 
 class NewIssuePayload extends SupportThreadPayload {
   final String reportIssueType;
   @override
   final AnnouncementLocal? announcement;
+  @override
+  final String? defaultMessage;
 
   NewIssuePayload({
     required this.reportIssueType,
+    this.defaultMessage,
     this.announcement,
   });
 }
@@ -70,10 +74,13 @@ class DetailIssuePayload extends SupportThreadPayload {
   final bool isRated;
   @override
   final AnnouncementLocal? announcement;
+  @override
+  final String? defaultMessage;
 
   DetailIssuePayload(
       {required this.reportIssueType,
       required this.issueID,
+      this.defaultMessage,
       this.status = '',
       this.isRated = false,
       this.announcement});
@@ -84,10 +91,13 @@ class ExceptionErrorPayload extends SupportThreadPayload {
   final String metadata;
   @override
   final AnnouncementLocal? announcement;
+  @override
+  final String? defaultMessage;
 
   ExceptionErrorPayload({
     required this.sentryID,
     required this.metadata,
+    this.defaultMessage,
     this.announcement,
   });
 }
@@ -178,7 +188,8 @@ class _SupportThreadPageState extends State<SupportThreadPage>
     final payload = widget.payload;
     if (payload is NewIssuePayload) {
       _reportIssueType = payload.reportIssueType;
-      if (_reportIssueType == ReportIssueType.Bug) {
+      if (_reportIssueType == ReportIssueType.Bug &&
+          (payload.defaultMessage?.isEmpty ?? true)) {
         Future.delayed(const Duration(milliseconds: 300), () {
           _askForAttachCrashLog(context, onConfirm: (attachCrashLog) {
             if (attachCrashLog) {
@@ -434,18 +445,22 @@ class _SupportThreadPageState extends State<SupportThreadPage>
   }
 
   InputOptions _inputOption() => InputOptions(
-      sendButtonVisibilityMode: SendButtonVisibilityMode.always,
-      onTextChanged: (text) {
-        if (_sendIcon == 'assets/images/sendMessageFilled.svg' &&
-                text.trim() == '' ||
-            _sendIcon == 'assets/images/sendMessage.svg' && text.trim() != '') {
-          setState(() {
-            _sendIcon = text.trim() != ''
-                ? 'assets/images/sendMessageFilled.svg'
-                : 'assets/images/sendMessage.svg';
-          });
-        }
-      });
+        sendButtonVisibilityMode: SendButtonVisibilityMode.always,
+        onTextChanged: (text) {
+          if (_sendIcon == 'assets/images/sendMessageFilled.svg' &&
+                  text.trim() == '' ||
+              _sendIcon == 'assets/images/sendMessage.svg' &&
+                  text.trim() != '') {
+            setState(() {
+              _sendIcon = text.trim() != ''
+                  ? 'assets/images/sendMessageFilled.svg'
+                  : 'assets/images/sendMessage.svg';
+            });
+          }
+        },
+        textEditingController:
+            TextEditingController(text: widget.payload.defaultMessage),
+      );
 
   Widget debugLogView() {
     if (_debugLog == null) {

@@ -64,6 +64,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
   late FeeOption _selectedPriority;
   final xtzFormatter = XtzAmountFormatter();
   final ethFormatter = EthAmountFormatter();
+  late AppMetadata? appMetadata;
 
   @override
   void dispose() {
@@ -156,6 +157,11 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
     unawaited(fetchPersona());
     feeOption = DEFAULT_FEE_OPTION;
     _selectedPriority = feeOption;
+    appMetadata = AppMetadata(
+        icons: [widget.request.icon ?? ''],
+        name: widget.request.name ?? '',
+        url: widget.request.url ?? '',
+        description: '');
   }
 
   Future<void> _getExchangeRate() async {
@@ -313,6 +319,8 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
         appBar: getBackAppBar(
           context,
           title: 'confirmation'.tr(),
+          action: () => unawaited(
+              UIHelper.showAppReportBottomSheet(context, appMetadata)),
           onBack: () {
             if (wc2Topic != null) {
               unawaited(_wc2Service.respondOnReject(
