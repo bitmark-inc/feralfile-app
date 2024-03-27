@@ -14,10 +14,6 @@ import KukaiCoreSwift
 import Combine
 import flutter_downloader
 //import Sentry
-import WalletConnectPairing
-import WalletConnectSign
-import WalletConnectRelay
-import WalletConnectNetworking
 import Starscream
 
 @UIApplicationMain
@@ -167,45 +163,6 @@ import Starscream
             }
         })
         beaconEventChannel.setStreamHandler(BeaconChannelHandler.shared)
-        
-
-        let metadata = AppMetadata(
-            name: "Feral File",
-            description: "Feral File Wallet",
-            url: "https://autonomy.io",
-            icons: [])
-        
-        Networking.configure(projectId: "33abc0fd433c7a6e1cc198273e4a7d6e", socketFactory: SocketFactory())
-        Pair.configure(metadata: metadata)
-        // try? Sign.instance.cleanup()
-
-        let wc2Channel = FlutterMethodChannel(name: "wallet_connect_v2",
-                                              binaryMessenger: controller.binaryMessenger)
-        let wc2EventChannel = FlutterEventChannel(name: "wallet_connect_v2/event", binaryMessenger: controller.binaryMessenger)
-
-        wc2Channel.setMethodCallHandler({(call: FlutterMethodCall, result: @escaping FlutterResult) -> Void in
-            switch call.method {
-            case "pairClient":
-                WC2ChannelHandler.shared.pairClient(call: call, result: result)
-            case "approve":
-                WC2ChannelHandler.shared.approve(call: call, result: result)
-            case "reject":
-                WC2ChannelHandler.shared.reject(call: call, result: result)
-            case "respondOnApprove":
-                WC2ChannelHandler.shared.respondOnApprove(call: call, result: result)
-            case "respondOnReject":
-                WC2ChannelHandler.shared.respondOnReject(call: call, result: result)
-            case "getPairings":
-                WC2ChannelHandler.shared.getPairings(call: call, result: result)
-            case "deletePairing":
-                WC2ChannelHandler.shared.deletePairing(call: call, result: result)
-            case "cleanup":
-                WC2ChannelHandler.shared.cleanupSessions(call: call, result: result)
-            default:
-                result(FlutterMethodNotImplemented)
-            }
-        })
-        wc2EventChannel.setStreamHandler(WC2ChannelHandler.shared)
 
 
         let cloudEventChannel = FlutterEventChannel(name: "cloud/event", binaryMessenger: controller.binaryMessenger)
@@ -261,13 +218,5 @@ extension AppDelegate {
         } completion: { [weak self] _ in
             self?.authenticationVC.view.removeFromSuperview()
         }
-    }
-}
-
-extension WebSocket: WebSocketConnecting { }
-
-struct SocketFactory: WebSocketFactory {
-    func create(with url: URL) -> WebSocketConnecting {
-        return WebSocket(url: url)
     }
 }

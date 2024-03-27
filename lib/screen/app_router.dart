@@ -14,7 +14,6 @@ import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
-import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/screen/account/access_method_page.dart';
 import 'package:autonomy_flutter/screen/account/link_manually_page.dart';
 import 'package:autonomy_flutter/screen/account/recovery_phrase_page.dart';
@@ -132,11 +131,13 @@ import 'package:autonomy_flutter/screen/tezos_beacon/tb_sign_message_page.dart';
 import 'package:autonomy_flutter/screen/wallet/wallet_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_bloc.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
+import 'package:autonomy_flutter/screen/wallet_connect/v2/add_ethereum_chain_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/v2/wc2_permission_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/view/transparent_router.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -247,6 +248,7 @@ class AppRouter {
   static const feralfileAirdropTokenPreviewPage =
       'feralfile_airdrop_token_preview_page';
   static const projectsList = 'projects_list';
+  static const addEthereumChainPage = 'add_ethereum_chain_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector(), injector());
@@ -277,6 +279,13 @@ class AppRouter {
     );
 
     switch (settings.name) {
+      case addEthereumChainPage:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) => AddEthereumChainPage(
+            payload: settings.arguments! as AddEthereumChainPagePayload,
+          ),
+        );
       case projectsList:
         return PageTransition(
           type: PageTransitionType.fade,
@@ -515,7 +524,6 @@ class AppRouter {
           settings: settings,
           builder: (context) => BlocProvider(
             create: (_) => WCSendTransactionBloc(
-              injector(),
               injector(),
               injector(),
               injector(),
@@ -762,8 +770,8 @@ class AppRouter {
       case auSignMessagePage:
         return CupertinoPageRoute(
           settings: settings,
-          builder: (context) =>
-              AUSignMessagePage(request: settings.arguments! as Wc2Request),
+          builder: (context) => AUSignMessagePage(
+              request: settings.arguments! as Wc2RequestPayload),
         );
       case tbSendTransactionPage:
         return CupertinoPageRoute(
@@ -1009,7 +1017,7 @@ class AppRouter {
                       ),
                     ],
                     child: Wc2RequestPage(
-                        request: settings.arguments! as Wc2Request)));
+                        request: settings.arguments! as Wc2RequestPayload)));
 
       case walletPage:
         return CupertinoPageRoute(

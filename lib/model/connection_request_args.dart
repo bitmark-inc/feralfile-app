@@ -7,6 +7,7 @@
 
 import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:tezart/tezart.dart';
+import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
 
 abstract class ConnectionRequest {
   bool get isWalletConnect2 => false;
@@ -15,7 +16,7 @@ abstract class ConnectionRequest {
 
   bool get isBeaconConnect => false;
 
-  String get id;
+  dynamic get id;
 
   String? get name;
 
@@ -83,16 +84,17 @@ class Wc2Proposal extends ConnectionRequest {
     return proposalChains.contains(Wc2Chain.autonomy);
   }
 
-  AppMetadata proposer;
-  Map<String, Wc2Namespace> requiredNamespaces;
-  Map<String, Wc2Namespace> optionalNamespaces;
+  PairingMetadata proposer;
+  Map<String, RequiredNamespace> requiredNamespaces;
+  Map<String, RequiredNamespace> optionalNamespaces;
 
-  Map<String, Wc2Namespace> get allNamespaces =>
+  Map<String, RequiredNamespace> get allNamespaces =>
       {...requiredNamespaces, ...optionalNamespaces};
-  final String _id;
+
+  final int _id;
 
   @override
-  String get id => _id;
+  int get id => _id;
 
   @override
   String? get name => proposer.name;
