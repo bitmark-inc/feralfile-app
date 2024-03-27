@@ -52,6 +52,12 @@ jobs:
         run: git -c submodule.auto-test.update=none submodule update --init --recursive
       - run: flutter pub cache repair
       - run: flutter pub get
+
+      # Encrypt secrets before use
+      - name: Encrypt Secrets
+        run: |
+          ./encrypt_secrets.sh ${{ secrets.ENTROPY }}
+
       - run: flutter build apk --flavor inhouse
       - run: mv build/app/outputs/flutter-apk/app-inhouse-release.apk build/app/outputs/flutter-apk/app-inhouse-release-${{ env.NAME_SUFFIX }}.apk
       - name: Distribute apk to App Center
