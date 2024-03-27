@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -23,8 +24,8 @@ class PostcardViewWidget extends StatefulWidget {
   final bool withPreviewStamp;
 
   const PostcardViewWidget({
-    super.key,
     required this.assetToken,
+    super.key,
     this.imagePath,
     this.jsonPath,
     this.zoomIndex,
@@ -50,30 +51,33 @@ class _PostcardViewWidgetState extends State<PostcardViewWidget> {
 
   void _zoomIntoStamp({required int index, Color color = Colors.black}) {
     log.info(
-        "[Postcard] zoom into stamp $index, ${color.value.toRadixString(16)}");
+        '[Postcard] zoom into stamp $index, ${color.value.toRadixString(16)}');
     final hexColor = color.value.toRadixString(16).substring(2);
-    _controller?.evaluateJavascript(
+    unawaited(_controller?.evaluateJavascript(
       source: "zoomInStamp('$index', \"#$hexColor\")",
-    );
+    ));
   }
 
   void _getNewStamp(String base64Image, String base64Json, int index) {
-    log.info("[Postcard] getNewStamp");
-    _controller?.evaluateJavascript(
+    log.info('[Postcard] getNewStamp');
+    unawaited(_controller?.evaluateJavascript(
       source: "getNewStamp('$base64Image', '$base64Json')",
-    );
-    log.info("[Postcard] getNewStamp");
-    log.info("[Postcard] $index");
-    log.info(base64Json);
-    log.info("[Postcard] base64Image ${base64Image.runtimeType}");
-    _controller?.evaluateJavascript(
+    ));
+    log
+      ..info('[Postcard] getNewStamp')
+      ..info('[Postcard] $index')
+      ..info(base64Json)
+      ..info('[Postcard] base64Image ${base64Image.runtimeType}');
+    unawaited(_controller?.evaluateJavascript(
       source: "getNewStamp($index, '$base64Image', '$base64Json')",
-    );
+    ));
   }
 
-  _convertFileToBase64() async {
-    log.info("[Postcard] add stamp ${widget.imagePath}, ${widget.jsonPath}");
-    if (widget.imagePath == null || widget.jsonPath == null) return;
+  Future<void> _convertFileToBase64() async {
+    log.info('[Postcard] add stamp ${widget.imagePath}, ${widget.jsonPath}');
+    if (widget.imagePath == null || widget.jsonPath == null) {
+      return;
+    }
     final image = await File(widget.imagePath!).readAsBytes();
     final json = await File(widget.jsonPath!).readAsBytes();
 
@@ -85,15 +89,15 @@ class _PostcardViewWidgetState extends State<PostcardViewWidget> {
     }
   }
 
-  _addPreviewStamp() async {
+  Future<void> _addPreviewStamp() async {
     final Map<String, dynamic> metadata = {
-      "address": "",
-      "claimAddress": "",
-      "stampedAt": "",
+      'address': '',
+      'claimAddress': '',
+      'stampedAt': '',
     };
     final base64Json = base64Encode(utf8.encode(jsonEncode(metadata)));
     final data =
-        await PlatformAssetBundle().load("assets/images/pink_stamp.png");
+        await PlatformAssetBundle().load('assets/images/pink_stamp.png');
     final image =
         data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
     final base64Image = base64Encode(image);
@@ -108,17 +112,16 @@ class _PostcardViewWidgetState extends State<PostcardViewWidget> {
       alignment: Alignment.center,
       children: [
         InAppWebView(
-          initialOptions: InAppWebViewGroupOptions(
-              crossPlatform: InAppWebViewOptions(
-                  userAgent: "user_agent"
-                      .tr(namedArgs: {"version": version.toString()}))),
+          initialSettings: InAppWebViewSettings(
+            userAgent: 'user_agent'.tr(namedArgs: {'version': version}),
+          ),
           onWebViewCreated: (controller) {
             _controller = controller;
           },
           onConsoleMessage: (InAppWebViewController controller,
               ConsoleMessage consoleMessage) async {
-            log.info(
-                "[Postcard] Software artwork console log: ${consoleMessage.message}");
+            log.info('[Postcard] Software artwork console log: '
+                '${consoleMessage.message}');
             if (consoleMessage.message == POSTCARD_SOFTWARE_FULL_LOAD_MESSAGE) {
               await _convertFileToBase64();
               if (widget.withPreviewStamp) {
@@ -136,7 +139,7 @@ class _PostcardViewWidgetState extends State<PostcardViewWidget> {
             }
           },
           initialUrlRequest: URLRequest(
-            url: Uri.parse(widget.assetToken.getPreviewUrl() ?? ""),
+            url: WebUri(widget.assetToken.getPreviewUrl() ?? ''),
           ),
         ),
         if (isLoading)
@@ -147,7 +150,7 @@ class _PostcardViewWidgetState extends State<PostcardViewWidget> {
             color: widget.backgroundColor,
             child: Center(
               child: GifView.asset(
-                "assets/images/loading_white_tran.gif",
+                'assets/images/loading_white_tran.gif',
                 height: 52,
                 frameRate: 12,
               ),
@@ -165,22 +168,20 @@ class PostcardRatio extends StatelessWidget {
   final double? ratio;
 
   const PostcardRatio(
-      {super.key,
-      required this.assetToken,
+      {required this.assetToken,
+      super.key,
       this.imagePath,
       this.jsonPath,
       this.ratio});
 
   @override
-  Widget build(BuildContext context) {
-    return AspectRatio(
-      aspectRatio: ratio ?? postcardAspectRatio,
-      child: PostcardViewWidget(
-        key: key,
-        assetToken: assetToken,
-        imagePath: imagePath,
-        jsonPath: jsonPath,
-      ),
-    );
-  }
+  Widget build(BuildContext context) => AspectRatio(
+        aspectRatio: ratio ?? postcardAspectRatio,
+        child: PostcardViewWidget(
+          key: key,
+          assetToken: assetToken,
+          imagePath: imagePath,
+          jsonPath: jsonPath,
+        ),
+      );
 }
