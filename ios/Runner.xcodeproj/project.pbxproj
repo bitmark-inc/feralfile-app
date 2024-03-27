@@ -30,6 +30,8 @@
 		630DA1EF27DB616E00586F70 /* Keychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 630DA1ED27DB5A4600586F70 /* Keychain.swift */; };
 		63114AB62BB3C6F000F6CF52 /* SplashScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63114AB52BB3C6F000F6CF52 /* SplashScreen.swift */; };
 		63114AB72BB3C6F000F6CF52 /* SplashScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63114AB52BB3C6F000F6CF52 /* SplashScreen.swift */; };
+		63114AB92BB3C8BC00F6CF52 /* SecureChannelHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63114AB82BB3C8BC00F6CF52 /* SecureChannelHandler.swift */; };
+		63114ABA2BB3C8BC00F6CF52 /* SecureChannelHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63114AB82BB3C8BC00F6CF52 /* SecureChannelHandler.swift */; };
 		632FC2F627B4F51E00336DCE /* BeaconConnectService+Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632FC2F527B4F51E00336DCE /* BeaconConnectService+Helpers.swift */; };
 		636F522227E0A064006A9101 /* BeaconConnectService+PostMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764F859827D7348000B67672 /* BeaconConnectService+PostMessage.swift */; };
 		636F522327E0A06C006A9101 /* ErrorHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 764F859D27D9E19400B67672 /* ErrorHandler.swift */; };
@@ -196,6 +198,7 @@
 		58A4B4F527E33A8B001F30D2 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
 		630DA1ED27DB5A4600586F70 /* Keychain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keychain.swift; sourceTree = "<group>"; };
 		63114AB52BB3C6F000F6CF52 /* SplashScreen.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SplashScreen.swift; sourceTree = "<group>"; };
+		63114AB82BB3C8BC00F6CF52 /* SecureChannelHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SecureChannelHandler.swift; sourceTree = "<group>"; };
 		632FC2F527B4F51E00336DCE /* BeaconConnectService+Helpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BeaconConnectService+Helpers.swift"; sourceTree = "<group>"; };
 		637862A128B483CA00DBA925 /* WalletConnectService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletConnectService.swift; sourceTree = "<group>"; };
 		637862B128B4D90E00DBA925 /* WC2ChannelHanler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WC2ChannelHanler.swift; sourceTree = "<group>"; };
@@ -492,6 +495,7 @@
 				630DA1ED27DB5A4600586F70 /* Keychain.swift */,
 				58958D68283F6C2100D698AD /* BiometricAuthentication.swift */,
 				63114AB52BB3C6F000F6CF52 /* SplashScreen.swift */,
+				63114AB82BB3C8BC00F6CF52 /* SecureChannelHandler.swift */,
 			);
 			path = Runner;
 			sourceTree = "<group>";
@@ -928,6 +932,7 @@
 				76F3289C27D1EC1C00C3B9FA /* GeneratedPluginRegistrant.m in Sources */,
 				E990C0EE2A26F412007CAE7A /* LocaleHandler.swift in Sources */,
 				764F859C27D810EB00B67672 /* Result+Helpers.swift in Sources */,
+				63114ABA2BB3C8BC00F6CF52 /* SecureChannelHandler.swift in Sources */,
 				637862B028B4A91500DBA925 /* WalletConnectService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -957,6 +962,7 @@
 				768E7EE927C770D000585D12 /* SystemChannelHandler.swift in Sources */,
 				E990C0ED2A26F412007CAE7A /* LocaleHandler.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
+				63114AB92BB3C8BC00F6CF52 /* SecureChannelHandler.swift in Sources */,
 				637862A228B483CB00DBA925 /* WalletConnectService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
