@@ -311,7 +311,7 @@ class _WCConnectPageState extends State<WCConnectPage>
                                   child: Text(
                                     'warning_suspicious_dapp_detected_title'
                                         .tr(),
-                                    style: theme.textTheme.ppMori700Black16,
+                                    style: theme.textTheme.ppMori700Black14,
                                   ),
                                 ),
                                 const SizedBox(
@@ -432,14 +432,14 @@ class _WCConnectPageState extends State<WCConnectPage>
           children: [
             Text(
               'warning_suspicious_dapp_detected_title'.tr(),
-              style: theme.textTheme.ppMori700Black16,
+              style: theme.textTheme.ppMori700Black14,
             ),
             const SizedBox(
               height: 15,
             ),
             Text(
               'warning_suspicious_dapp_detected_content'.tr(),
-              style: theme.textTheme.ppMori400Black16,
+              style: theme.textTheme.ppMori400Black14,
             ),
           ],
         ),
