@@ -6,38 +6,42 @@ if ! command -v dart &> /dev/null; then
     exit 1
 fi
 
-if [ "$#" -lt 2 ]; then
-    echo "Usage: ./run_random_string.sh <secret_env> <entropy_string>"
+if [ "$#" -lt 1 ]; then
+    echo "Usage: ./run_random_string.sh <entropy_string>"
     exit 1
 fi
-secret_env="$1"
-entropy_string="$2"
-echo "Running Encrypt script with the entropy: $entropy_string"
 
+echo "Running Encrypt script with the entropy"
 
-# Create an empty JSON object
+# Check if .env file exists
+if [ ! -f .env.secret ]; then
+    echo ".env.secret file not found."
+    exit 1
+fi
+
+# Initialize an empty JSON object
 json_object="{"
 
-# Iterate through the keys to be included
-for key in "${keys_to_include[@]}"; do
-    # Retrieve the value of the secret key
-    value=$(echo "$secret_env" | grep -o "\"$key\":\"[^\"]*\"" | cut -d '"' -f 4)
+# Read each line from the .env.secret file
+while IFS= read -r line; do
+    # Extract key and value from the line
+    key=$(echo "$line" | cut -d '=' -f 1)
+    value=$(echo "$line" | cut -d '=' -f 2-)
 
     # Add key-value pair to the JSON object
-    if [ -n "$value" ]; then
-        json_object+="\"$key\":\"$value\", "
-    else
-        echo "Key '$key' not found in the secret value."
-    fi
-done
+    json_object+="\"$key\":\"$value\", "
+
+done < .env.secret
 
 # Remove the trailing comma and space from the JSON object
 json_object="${json_object%, *} }"
 
+#
+> .env.secret
+
+
 
 # Delete the secrets from the .env file
-
-
 # Check if .env file exists
 if [ -f .env ]; then
     # Define the keys to be removed
@@ -63,18 +67,18 @@ if [ -f .env ]; then
             echo "Key '$key' not found in .env file."
         fi
     done
-    echo ".env file not found."
+    echo "Remove secrets in .env file successfully."
 fi
 
 
 # Run the Dart script with the provided argument and capture its output
-encrypted_text=$(dart encrypt.dart "$json_object" "$entropy_string")
+encrypted_text=$(dart lib/encrypt_env/encrypt.dart "$json_object" "$1")
 
 # Extract elements from the array
 IFS=' ' read -r text nonceLength macLength <<< "$encrypted_text"
 
 # Create the secrets.g.dart file
-cat <<EOF > lib/secrets.g.dart
+cat <<EOF > lib/encrypt_env/secrets.g.dart
 import 'dart:convert';
 import 'dart:math';
 
@@ -88,7 +92,7 @@ const _macLength = $macLength;
 
 String _generateKeyFromEntropy(int length) {
   ///===========================================================================
-  var entropy = '$entropy_string';
+  var entropy = '$1';
   ///===========================================================================
   final random = Random(entropy.hashCode); // Use entropy's hash code as seed
   final entropyLength = entropy.length;
@@ -112,4 +116,4 @@ Future<String> getSecretEnv() async {
 }
 EOF
 
-echo "secrets.g.dart created successfully."
+echo "lib/encrypt_env/secrets.g.dart created successfully."

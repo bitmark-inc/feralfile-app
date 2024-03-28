@@ -72,6 +72,12 @@ jobs:
           ${{ inputs.testnet == true }} && echo -e "${{ secrets.DEV_ENV }}" | sed 's/\\n/\n/g' >> .env || echo -e "${{ secrets.STAGING_ENV }}" | sed 's/\\n/\n/g' >> .env
           cat .env
 
+      - name: Create env secret file
+        run: |
+          touch .env.secret
+          ${{ inputs.testnet == true }} && echo -e "${{ secrets.DEV_ENV_SECRET }}" | sed 's/\\n/\n/g' >> .env.secret || echo -e "${{ secrets.STAGING_ENV_SECRET }}" | sed 's/\\n/\n/g' >> .env.secret
+          cat .env
+
       - name: Flutter doctor
         run: flutter doctor
       - name: Submoudles update

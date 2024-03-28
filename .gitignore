@@ -54,5 +54,6 @@ app.*.map.json
 .env
 .env.development
 .env.production
+.env.secret
 
-secrets.g.dart
+lib/encrypt_env/secrets.g.dart

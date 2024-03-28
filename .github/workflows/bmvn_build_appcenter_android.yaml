@@ -78,6 +78,12 @@ jobs:
           ${{ inputs.testnet == true }} && echo -e "${{ secrets.DEV_ENV }}" | sed 's/\\n/\n/g' >> .env || echo -e "${{ secrets.STAGING_ENV }}" | sed 's/\\n/\n/g' >> .env
           cat .env
 
+      - name: Create env secret file
+        run: |
+          touch .env.secret
+          ${{ inputs.testnet == true }} && echo -e "${{ secrets.DEV_ENV_SECRET }}" | sed 's/\\n/\n/g' >> .env.secret || echo -e "${{ secrets.STAGING_ENV_SECRET }}" | sed 's/\\n/\n/g' >> .env.secret
+          cat .env
+
       - name: Submoudles update
         run: git -c submodule.auto-test.update=none submodule update --init --recursive
       - run: flutter pub cache repair
@@ -86,12 +92,7 @@ jobs:
       # Encrypt secrets before use
       - name: Encrypt Secrets
         run: |
-          if [ "${{ inputs.testnet }}" == "true" ]; then
-            secret_value="${{ secrets.DEV_ENV_SECRET }}"
-          else
-            secret_value="${{ secrets.STAGING_ENV_SECRET }}"
-          fi
-          ./encrypt_secrets.sh "$secret_value" ${{ secrets.ENTROPY }}
+          ./encrypt_secrets.sh ${{ secrets.ENTROPY }}
 
       - run: flutter build apk --flavor inhouse
       - run: mv build/app/outputs/flutter-apk/app-inhouse-release.apk build/app/outputs/flutter-apk/app-inhouse-release-${{ env.NAME_SUFFIX }}.apk

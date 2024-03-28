@@ -5,7 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/secrets.dart';
+import 'package:autonomy_flutter/encrypt_env/secrets.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class Environment {
