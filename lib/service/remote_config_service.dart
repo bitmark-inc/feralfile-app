@@ -43,6 +43,9 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
       'allow_download_artwork_contracts': [],
       'sound_piece_contract_addresses': [],
     },
+    'in_app_webview': {
+      'uri_scheme_white_list': ['https'],
+    }
   };
 
   static Map<String, dynamic>? _configs;
@@ -90,6 +93,7 @@ enum ConfigGroup {
   feature,
   postcardAction,
   feralfileArtworkAction,
+  inAppWebView,
 }
 
 // ConfigGroup getString extension
@@ -108,6 +112,8 @@ extension ConfigGroupExtension on ConfigGroup {
         return 'postcard_action';
       case ConfigGroup.feralfileArtworkAction:
         return 'feralfile_artwork_action';
+      case ConfigGroup.inAppWebView:
+        return 'in_app_webview';
     }
   }
 }
@@ -131,6 +137,7 @@ enum ConfigKey {
   waitConfirmedToSend,
   allowDownloadArtworkContracts,
   soundPieceContractAddresses,
+  uriSchemeWhiteList,
 }
 
 // ConfigKey getString extension
@@ -173,6 +180,8 @@ extension ConfigKeyExtension on ConfigKey {
         return 'allow_download_artwork_contracts';
       case ConfigKey.soundPieceContractAddresses:
         return 'sound_piece_contract_addresses';
+      case ConfigKey.uriSchemeWhiteList:
+        return 'uri_scheme_white_list';
     }
   }
 }
