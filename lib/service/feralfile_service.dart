@@ -17,6 +17,7 @@ import 'package:autonomy_flutter/model/otp.dart';
 import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/download_helper.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
@@ -151,6 +152,8 @@ abstract class FeralFileService {
   Future<FeralFileResaleInfo> getResaleInfo(String exhibitionID);
 
   Future<String?> getPartnerFullName(String exhibitionId);
+
+  String? getCuratorFullName(String exhibitionId);
 
   Future<Exhibition> getExhibition(String id);
 
@@ -327,6 +330,14 @@ class FeralFileServiceImpl extends FeralFileService {
   Future<String?> getPartnerFullName(String exhibitionId) async {
     final exhibition = await _feralFileApi.getExhibition(exhibitionId);
     return exhibition.result.partner?.fullName;
+  }
+
+  @override
+  String? getCuratorFullName(String exhibitionId) {
+    if (exhibitionId == SOUND_MACHINES_EXHIBITION_ID) {
+      return 'MoMA';
+    }
+    return null;
   }
 
   @override

@@ -70,6 +70,8 @@ const MOMA_MEMENTO_EXHIBITION_IDS = [
   '3ee3e8a4-90dd-4843-8ec3-858e6bea1965'
 ];
 
+const SOUND_MACHINES_EXHIBITION_ID = 'f3787e42-eaca-4005-aba1-ffa5b7c9c481';
+
 const POSTCARD_IPFS_PREFIX_TEST = 'https://ipfs.test.bitmark.com/ipfs';
 const POSTCARD_IPFS_PREFIX_PROD = 'https://ipfs.bitmark.com/ipfs';
 
