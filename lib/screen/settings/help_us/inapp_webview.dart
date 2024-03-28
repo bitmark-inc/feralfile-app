@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -61,9 +62,12 @@ class _InAppWebViewPageState extends State<InAppWebViewPage> {
                   initialUrlRequest:
                       URLRequest(url: Uri.tryParse(widget.payload.url)),
                   initialOptions: InAppWebViewGroupOptions(
-                      crossPlatform: InAppWebViewOptions(
-                    userAgent: 'user_agent'.tr(namedArgs: {'version': version}),
-                  )),
+                    crossPlatform: InAppWebViewOptions(
+                      userAgent:
+                          'user_agent'.tr(namedArgs: {'version': version}),
+                      useShouldOverrideUrlLoading: true,
+                    ),
+                  ),
                   androidOnPermissionRequest:
                       (InAppWebViewController controller, String origin,
                           List<String> resources) async {
@@ -97,6 +101,23 @@ class _InAppWebViewPageState extends State<InAppWebViewPage> {
                     setState(() {
                       isLoading = false;
                     });
+                  },
+                  shouldOverrideUrlLoading:
+                      (controller, navigationAction) async {
+                    var uri = navigationAction.request.url!;
+                    final List<dynamic> remoteConfigUriSchemeWhitelist =
+                        injector<RemoteConfigService>()
+                            .getConfig<List<dynamic>>(ConfigGroup.inAppWebView,
+                                ConfigKey.uriSchemeWhiteList, []);
+                    if (remoteConfigUriSchemeWhitelist.isEmpty) {
+                      return NavigationActionPolicy.CANCEL;
+                    }
+
+                    if (remoteConfigUriSchemeWhitelist.contains(uri.scheme)) {
+                      return NavigationActionPolicy.ALLOW;
+                    }
+
+                    return NavigationActionPolicy.CANCEL;
                   },
                 ),
                 if (isLoading)
