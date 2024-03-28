@@ -86,7 +86,12 @@ jobs:
       # Encrypt secrets before use
       - name: Encrypt Secrets
         run: |
-          ./encrypt_secrets.sh ${{ secrets.ENTROPY }}
+          if [ "${{ inputs.testnet }}" == "true" ]; then
+            secret_value="${{ secrets.DEV_ENV_SECRET }}"
+          else
+            secret_value="${{ secrets.STAGING_ENV_SECRET }}"
+          fi
+          ./encrypt_secrets.sh "$secret_value" ${{ secrets.ENTROPY }}
 
       - run: flutter build apk --flavor inhouse
       - run: mv build/app/outputs/flutter-apk/app-inhouse-release.apk build/app/outputs/flutter-apk/app-inhouse-release-${{ env.NAME_SUFFIX }}.apk
