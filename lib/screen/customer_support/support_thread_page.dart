@@ -129,6 +129,7 @@ class _SupportThreadPageState extends State<SupportThreadPage>
   bool _isRated = false;
   bool _isFileAttached = false;
   Pair<String, List<int>>? _debugLog;
+  late TextEditingController _textEditingController;
 
   late Object _forceAccountsViewRedraw;
   var _sendIcon = 'assets/images/sendMessage.svg';
@@ -219,6 +220,9 @@ class _SupportThreadPageState extends State<SupportThreadPage>
       });
     }
 
+    _textEditingController =
+        TextEditingController(text: widget.payload.defaultMessage);
+
     memoryValues.viewingSupportThreadIssueID = _issueID;
     _forceAccountsViewRedraw = Object();
     super.initState();
@@ -272,6 +276,7 @@ class _SupportThreadPageState extends State<SupportThreadPage>
         .removeListener(_loadIssueDetails);
     _customerSupportService.customerSupportUpdate
         .removeListener(_loadCustomerSupportUpdates);
+    _textEditingController.dispose();
 
     memoryValues.viewingSupportThreadIssueID = null;
     super.dispose();
@@ -458,8 +463,7 @@ class _SupportThreadPageState extends State<SupportThreadPage>
             });
           }
         },
-        textEditingController:
-            TextEditingController(text: widget.payload.defaultMessage),
+        textEditingController: _textEditingController,
       );
 
   Widget debugLogView() {
