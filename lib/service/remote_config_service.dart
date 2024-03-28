@@ -43,6 +43,9 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
       'allow_download_artwork_contracts': [],
       'sound_piece_contract_addresses': [],
     },
+    'dApp_urls': {
+      'deny_dApp_list': [],
+    }
   };
 
   static Map<String, dynamic>? _configs;
@@ -76,9 +79,11 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
       unawaited(loadConfigs());
       return _defaults[group.getString]![key.getString] as T ?? defaultValue;
     } else {
-      final res =
-          _configs![group.getString]?[key.getString] as T ?? defaultValue;
-      return res;
+      final res = _configs![group.getString]?[key.getString];
+      if (res != null) {
+        return res as T;
+      }
+      return defaultValue;
     }
   }
 }
@@ -90,6 +95,7 @@ enum ConfigGroup {
   feature,
   postcardAction,
   feralfileArtworkAction,
+  dAppUrls,
 }
 
 // ConfigGroup getString extension
@@ -108,6 +114,8 @@ extension ConfigGroupExtension on ConfigGroup {
         return 'postcard_action';
       case ConfigGroup.feralfileArtworkAction:
         return 'feralfile_artwork_action';
+      case ConfigGroup.dAppUrls:
+        return 'dApp_urls';
     }
   }
 }
@@ -131,6 +139,7 @@ enum ConfigKey {
   waitConfirmedToSend,
   allowDownloadArtworkContracts,
   soundPieceContractAddresses,
+  denyDAppList,
 }
 
 // ConfigKey getString extension
@@ -173,6 +182,8 @@ extension ConfigKeyExtension on ConfigKey {
         return 'allow_download_artwork_contracts';
       case ConfigKey.soundPieceContractAddresses:
         return 'sound_piece_contract_addresses';
+      case ConfigKey.denyDAppList:
+        return 'deny_dApp_list';
     }
   }
 }
