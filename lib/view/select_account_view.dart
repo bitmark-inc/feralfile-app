@@ -12,15 +12,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 class SelectAccount extends StatefulWidget {
   final ConnectionRequest connectionRequest;
-  final Function(bool)? createPersonaChanged;
-  final Function(WalletIndex?, bool?)? onSelectPersona;
+  final Function(WalletIndex?)? onSelectPersona;
   final Function(List<Account>)? onCategorizedAccountsChanged;
   const SelectAccount(
       {required this.connectionRequest,
       super.key,
       this.onSelectPersona,
-      this.onCategorizedAccountsChanged,
-      this.createPersonaChanged});
+      this.onCategorizedAccountsChanged});
 
   @override
   State<SelectAccount> createState() => _SelectAccountState();
@@ -62,19 +60,18 @@ class _SelectAccountState extends State<SelectAccount> with RouteAware {
             final persona =
                 await injector<AccountService>().getOrCreateDefaultPersona();
             selectedPersona = WalletIndex(persona.wallet(), 0);
-            widget.onSelectPersona?.call(selectedPersona, false);
+            widget.onSelectPersona?.call(selectedPersona);
           }
           if (!mounted) {
             return;
           }
-          if (stateCategorizedAccounts == null ||
-              stateCategorizedAccounts.isEmpty) {
-            widget.createPersonaChanged?.call(true);
-            return;
-          }
           categorizedAccounts = stateCategorizedAccounts;
           widget.onCategorizedAccountsChanged?.call(categorizedAccounts!);
+          if (categorizedAccounts?.isEmpty ?? true) {
+            return;
+          }
           await _autoSelectDefault(categorizedAccounts);
+
           if (mounted) {
             setState(() {});
           }
@@ -100,13 +97,13 @@ class _SelectAccountState extends State<SelectAccount> with RouteAware {
     if (ethAccounts.length == 1) {
       selectedPersona = WalletIndex(persona.wallet(),
           (await persona.getEthWalletAddresses()).first.index);
-      widget.onSelectPersona?.call(selectedPersona, false);
+      widget.onSelectPersona?.call(selectedPersona);
     }
 
     if (xtzAccounts.length == 1) {
       selectedPersona = WalletIndex(persona.wallet(),
           (await persona.getTezWalletAddresses()).first.index);
-      widget.onSelectPersona?.call(selectedPersona, false);
+      widget.onSelectPersona?.call(selectedPersona);
     }
   }
 
@@ -150,12 +147,12 @@ class _SelectAccountState extends State<SelectAccount> with RouteAware {
           onSelectEth: (value) {
             int index = value.walletAddress?.index ?? 0;
             selectedPersona = WalletIndex(value.persona!.wallet(), index);
-            widget.onSelectPersona?.call(selectedPersona, true);
+            widget.onSelectPersona?.call(selectedPersona);
           },
           onSelectTez: (value) {
             int index = value.walletAddress?.index ?? 0;
             selectedPersona = WalletIndex(value.persona!.wallet(), index);
-            widget.onSelectPersona?.call(selectedPersona, true);
+            widget.onSelectPersona?.call(selectedPersona);
           },
           isAutoSelect: accounts.length == 1,
         ),
