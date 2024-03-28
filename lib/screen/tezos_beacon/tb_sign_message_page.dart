@@ -20,6 +20,7 @@ import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -44,10 +45,16 @@ class TBSignMessagePage extends StatefulWidget {
 
 class _TBSignMessagePageState extends State<TBSignMessagePage> {
   WalletIndex? _currentPersona;
+  late AppMetadata? appMetadata;
 
   @override
   void initState() {
     super.initState();
+    appMetadata = AppMetadata(
+        icons: [widget.request.icon ?? ''],
+        name: widget.request.name ?? '',
+        url: widget.request.url ?? '',
+        description: '');
     unawaited(fetchPersona());
   }
 
@@ -167,6 +174,8 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
       child: Scaffold(
         appBar: getBackAppBar(
           context,
+          action: () => unawaited(
+              UIHelper.showAppReportBottomSheet(context, appMetadata)),
           onBack: () {
             unawaited(_rejectRequest(reason: 'User reject'));
             Navigator.of(context).pop(false);

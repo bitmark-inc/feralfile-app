@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -18,6 +19,7 @@ import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -73,6 +75,8 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
       child: Scaffold(
         appBar: getBackAppBar(
           context,
+          action: () => unawaited(
+              UIHelper.showAppReportBottomSheet(context, widget.args.peerMeta)),
           onBack: () async {
             await injector<Wc2Service>().respondOnReject(
               widget.args.topic,

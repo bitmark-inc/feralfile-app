@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/wc2_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -140,6 +141,8 @@ class _AUSignMessagePageState extends State<AUSignMessagePage> {
       child: Scaffold(
         appBar: getBackAppBar(
           context,
+          action: () => unawaited(UIHelper.showAppReportBottomSheet(
+              context, widget.request.proposer)),
           onBack: () {
             unawaited(_rejectRequest(reason: 'User reject'));
             Navigator.of(context).pop();
