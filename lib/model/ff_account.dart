@@ -6,6 +6,7 @@
 //
 
 import 'package:autonomy_flutter/model/ff_series.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:nft_rendering/nft_rendering.dart';
 
@@ -212,6 +213,47 @@ class FeralFileResaleInfo {
       _$FeralFileResaleInfoFromJson(json);
 
   Map<String, dynamic> toJson() => _$FeralFileResaleInfoToJson(this);
+
+  double getRoyalty(RoyaltyType type) {
+    switch (type) {
+      case RoyaltyType.artist:
+        return artist;
+      case RoyaltyType.collector:
+        return seller;
+      case RoyaltyType.curator:
+        return curator;
+      case RoyaltyType.partner:
+        return partner;
+      case RoyaltyType.platform:
+        return platform;
+    }
+  }
+
+  String getRoyaltySetting(Map<RoyaltyType, String> nameMapper) {
+    final royaltyType = [
+      RoyaltyType.artist,
+      RoyaltyType.platform,
+      RoyaltyType.curator,
+      RoyaltyType.partner,
+    ];
+    String res = '';
+    const sep = ', ';
+    const andSep = ' and ';
+    for (var type in royaltyType) {
+      final value = getRoyalty(type) * 100;
+      if (value > 0) {
+        final name = nameMapper[type] ?? type.defaultName;
+        res += '$name $value%$sep';
+      }
+    }
+    res = res.substring(0, res.length - sep.length);
+    // replace last comma with 'and'
+    final lastSep = res.lastIndexOf(sep);
+    if (lastSep != -1) {
+      res = res.replaceRange(lastSep, lastSep + 1, andSep);
+    }
+    return res;
+  }
 }
 
 @JsonSerializable()
@@ -570,6 +612,30 @@ enum FeralfileMediumTypes {
         return RenderingType.webview;
       default:
         return RenderingType.webview;
+    }
+  }
+}
+
+enum RoyaltyType {
+  artist,
+  collector,
+  curator,
+  partner,
+  platform,
+  ;
+
+  String get defaultName {
+    switch (this) {
+      case RoyaltyType.artist:
+        return 'the_artist_must_be_paid'.tr();
+      case RoyaltyType.collector:
+        return 'collector';
+      case RoyaltyType.curator:
+        return 'curator';
+      case RoyaltyType.partner:
+        return 'partner';
+      case RoyaltyType.platform:
+        return 'platform';
     }
   }
 }
