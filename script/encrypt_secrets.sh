@@ -63,8 +63,6 @@ if [ -f .env ]; then
         # Check if the key exists in the .env file
         if grep -q "^$key=" .env; then
             sed -i '' "s/^$key=.*/$key=/" .env
-        else
-            echo "Key '$key' not found in .env file."
         fi
     done
     echo "Remove secrets in .env file successfully."
@@ -72,7 +70,7 @@ fi
 
 
 # Run the Dart script with the provided argument and capture its output
-encrypted_text=$(dart lib/encrypt_env/encrypt.dart "$json_object" "$1")
+encrypted_text=$(dart script/encrypt.dart "$json_object" "$1")
 
 # Extract elements from the array
 IFS=' ' read -r text nonceLength macLength <<< "$encrypted_text"

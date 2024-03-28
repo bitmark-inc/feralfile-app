@@ -26,7 +26,7 @@ Autonomy is the world’s first and only digital art wallet. It gives you one ea
 - Contact with Feral File app development team for development env. 
 5. Initialize the secret config file. `cp .env.secret.example .env.secret`
 - There are credentials information. You may need to provide your own credentials.Contact with Feral File app development team for consultation.
-6. Run ./encrypt_secrets.sh <-entropy-> to generate the encrypted secrets file.
+6. Run ./script/encrypt_secrets.sh <-entropy-> to generate the encrypted secrets file.
 - <-entropy-> is a random string. You can type a random string like akhrdsgl4893tynk3iu4y8hf
 - After running the script, you will see a file named lib/encrypt_env/secrets.g.dart, and your .env.secret file will be empty.
 - You only need to run this script again when you want to update .env.secret.
