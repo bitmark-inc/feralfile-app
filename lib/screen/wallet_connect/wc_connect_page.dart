@@ -364,20 +364,21 @@ class _WCConnectPageState extends State<WCConnectPage>
                           connectionRequest: connectionRequest,
                           onSelectPersona: (
                             persona,
-                            isSetState,
                           ) {
-                            selectedPersona = persona;
-                            if (isSetState ?? false) {
-                              setState(() {});
+                            if (mounted) {
+                              setState(() {
+                                selectedPersona = persona;
+                              });
                             }
                           },
                           onCategorizedAccountsChanged: (accounts) {
-                            categorizedAccounts = accounts;
-                          },
-                          createPersonaChanged: (value) {
-                            setState(() {
-                              createPersona = value;
-                            });
+                            if (mounted) {
+                              setState(() {
+                                categorizedAccounts = accounts;
+                                createPersona =
+                                    categorizedAccounts?.isEmpty ?? true;
+                              });
+                            }
                           },
                         )
                       ],
