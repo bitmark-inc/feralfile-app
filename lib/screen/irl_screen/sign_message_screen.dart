@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/local_auth_service.dart';
@@ -10,6 +11,7 @@ import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -100,10 +102,14 @@ class IRLSignMessageScreen extends StatefulWidget {
 
 class _IRLSignMessageScreenState extends State<IRLSignMessageScreen> {
   WalletIndex? _currentWallet;
+  late AppMetadata? appMetadata;
 
   @override
   void initState() {
     super.initState();
+    appMetadata = widget.payload.metadata != null
+        ? AppMetadata.fromJson(widget.payload.metadata!)
+        : null;
     unawaited(getWallet());
   }
 
@@ -151,7 +157,7 @@ class _IRLSignMessageScreenState extends State<IRLSignMessageScreen> {
     if (widget.payload.payload.isHex) {
       final message = hexToBytes(widget.payload.payload);
       final Uint8List trimmedMessage = message.length > 6 &&
-          message.sublist(0, 2).equals(Uint8List.fromList([5, 1]))
+              message.sublist(0, 2).equals(Uint8List.fromList([5, 1]))
           ? message.sublist(6)
           : message;
       try {
@@ -168,6 +174,8 @@ class _IRLSignMessageScreenState extends State<IRLSignMessageScreen> {
     return Scaffold(
       appBar: getBackAppBar(
         context,
+        action: () =>
+            unawaited(UIHelper.showAppReportBottomSheet(context, appMetadata)),
         onBack: () {
           Navigator.of(context).pop();
         },
