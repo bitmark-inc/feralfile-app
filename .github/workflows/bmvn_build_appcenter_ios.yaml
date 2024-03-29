@@ -105,7 +105,7 @@ jobs:
       # Encrypt secrets before use
       - name: Encrypt Secrets
         run: |
-          ./encrypt_secrets.sh ${{ secrets.ENTROPY }}
+          ./script/encrypt_secrets.sh ${{ secrets.ENTROPY }}
 
       - uses: mathieu-bour/setup-sentry-cli@main
 
