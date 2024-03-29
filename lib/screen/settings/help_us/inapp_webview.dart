@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -30,9 +31,35 @@ class _InAppWebViewPageState extends State<InAppWebViewPage> {
 
   @override
   void initState() {
+    super.initState();
     title = Uri.parse(widget.payload.url).host;
     isLoading = false;
-    super.initState();
+  }
+
+  @override
+  void dispose() {
+    unawaited(clearCache());
+
+    super.dispose();
+  }
+
+  Future<void> clearCache() async {
+    WebStorageManager webStorageManager = WebStorageManager.instance();
+
+    if (Platform.isAndroid) {
+      // if current platform is Android, delete all data.
+      await webStorageManager.android.deleteAllData();
+    } else if (Platform.isIOS) {
+      // if current platform is iOS, delete all data
+      var records = await webStorageManager.ios
+          .fetchDataRecords(dataTypes: IOSWKWebsiteDataType.values);
+      var recordsToDelete = <IOSWKWebsiteDataRecord>[];
+      for (var record in records) {
+        recordsToDelete.add(record);
+      }
+      await webStorageManager.ios.removeDataFor(
+          dataTypes: IOSWKWebsiteDataType.values, dataRecords: recordsToDelete);
+    }
   }
 
   @override
