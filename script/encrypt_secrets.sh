@@ -36,39 +36,6 @@ done < .env.secret
 # Remove the trailing comma and space from the JSON object
 json_object="${json_object%, *} }"
 
-#
-> .env.secret
-
-
-
-# Delete the secrets from the .env file
-# Check if .env file exists
-if [ -f .env ]; then
-    # Define the keys to be removed
-    keys_to_remove=(
-      "FERAL_FILE_SECRET_KEY_TESTNET"
-      "FERAL_FILE_SECRET_KEY_MAINNET"
-      "CHAT_SERVER_HMAC_KEY"
-      "AU_CLAIM_SECRET_KEY"
-      "MIXPANEL_KEY"
-      "METRIC_SECRET_KEY"
-      "BRANCH_KEY"
-      "SENTRY_DSN"
-      "ONESIGNAL_APP_ID"
-      "METRIC_ENDPOINT"
-      "WEB3_RPC_MAINNET_URL"
-      )
-    # Iterate through the keys to be removed
-    for key in "${keys_to_remove[@]}"; do
-        # Check if the key exists in the .env file
-        if grep -q "^$key=" .env; then
-            sed -i '' "s/^$key=.*/$key=/" .env
-        fi
-    done
-    echo "Remove secrets in .env file successfully."
-fi
-
-
 # Run the Dart script with the provided argument and capture its output
 encrypted_text=$(dart script/encrypt.dart "$json_object" "$1")
 
