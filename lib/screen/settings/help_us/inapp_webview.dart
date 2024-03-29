@@ -51,12 +51,9 @@ class _InAppWebViewPageState extends State<InAppWebViewPage> {
       await webStorageManager.android.deleteAllData();
     } else if (Platform.isIOS) {
       // if current platform is iOS, delete all data
-      var records = await webStorageManager.ios
+      final records = await webStorageManager.ios
           .fetchDataRecords(dataTypes: IOSWKWebsiteDataType.values);
-      var recordsToDelete = <IOSWKWebsiteDataRecord>[];
-      for (var record in records) {
-        recordsToDelete.add(record);
-      }
+      final recordsToDelete = <IOSWKWebsiteDataRecord>[...records];
       await webStorageManager.ios.removeDataFor(
           dataTypes: IOSWKWebsiteDataType.values, dataRecords: recordsToDelete);
     }
