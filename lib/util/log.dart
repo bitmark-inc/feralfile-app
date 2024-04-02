@@ -122,25 +122,25 @@ class FileLogger {
 
     filteredLog = filteredLog.replaceAllMapped(combinedRegex, (match) {
       if (match[1] != null) {
-        return '"message":"***"';
+        return '"message":"REDACTED_MESSAGE"';
       }
       if (match[2] != null) {
-        return '"Authorization: Bearer ***"';
+        return '"Authorization: Bearer REDACTED_AUTH_TOKEN"';
       }
       if (match[3] != null) {
-        return '"X-Api-Signature: ***"';
+        return '"X-Api-Signature: REDACTED_X_API_SIGNATURE"';
       }
       if (match[4] != null) {
-        return 'signature: ***';
+        return 'signature: REDACTED_SIGNATURE';
       }
       if (match[5] != null) {
-        return 'location: [***,***]';
+        return 'location: REDACTED_LOCATION';
       }
       if (match[6] != null) {
-        return r'\"signature\":\"***\"';
+        return r'\"signature\":\"REDACTED_SIGNATURE\"';
       }
       if (match[7] != null) {
-        return r'\"location\":[***,***]';
+        return r'\"location\":REDACTED_LOCATION';
       }
       return '';
     });
