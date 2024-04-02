@@ -62,7 +62,7 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
       final isAndroidEndToEndEncryptionAvailable =
           await injector<AccountService>()
               .isAndroidEndToEndEncryptionAvailable();
-      _isBackUpAvailable = isAndroidEndToEndEncryptionAvailable != null;
+      _isBackUpAvailable = isAndroidEndToEndEncryptionAvailable ?? false;
     }
     setState(() {});
   }
@@ -142,6 +142,7 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
                       ],
                     ),
                     _recommend(context),
+                    const SizedBox(height: 30),
                   ],
                 ),
               ),
@@ -185,10 +186,23 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
     if (_isBackUpAvailable == null) {
       return const SizedBox();
     }
-    if (_isBackUpAvailable!) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'SRP_is_crucial'.tr(),
+          style: theme.textTheme.ppMori400Black14,
+        ),
+        const SizedBox(height: 12),
+        Text(
+          'as_a_non_custodial_wallet'.tr(),
+          style: theme.textTheme.ppMori400Black14,
+        ),
+        const SizedBox(height: 12),
+        Text('remember_if_you_lose_your_SRP'.tr(),
+            style: theme.textTheme.ppMori700Black14),
+        const SizedBox(height: 12),
+        if (_isBackUpAvailable == true) ...[
           RichText(
             text: TextSpan(
               style: theme.textTheme.ppMori400Black14,
@@ -228,13 +242,7 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
               ],
             ),
           ),
-          const SizedBox(height: 30),
-        ],
-      );
-    } else {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        ] else ...[
           RichText(
             text: TextSpan(
               style: theme.textTheme.ppMori400Black14,
@@ -279,10 +287,10 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
               ],
             ),
           ),
-          const SizedBox(height: 40),
         ],
-      );
-    }
+        const SizedBox(height: 30),
+      ],
+    );
   }
 
   Widget _recommend(BuildContext context) {
