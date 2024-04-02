@@ -94,7 +94,10 @@ class FileLogger {
   static File get logFile => _logFile;
 
   static Future log(LogRecord record) async {
-    final text = '$record\n';
+    var text = '$record\n';
+
+    text = _filterLog(text);
+
     debugPrint(text);
     return _lock.synchronized(() async {
       await _logFile.writeAsString('${record.time}: $text',
@@ -104,6 +107,45 @@ class FileLogger {
 
   static Future<void> clear() async {
     await _logFile.writeAsString('');
+  }
+
+  static String _filterLog(String logText) {
+    String filteredLog = logText;
+
+    RegExp combinedRegex = RegExp('("message":".*?")|'
+        '("Authorization: Bearer .*?")|'
+        '("X-Api-Signature: .*?")|'
+        r'(signature: [^,\}]*)|'
+        r'(location: \[.*?,.*?\])|'
+        r'(\\"signature\\":\\".*?\\")|'
+        r'(\\"location\\":\[.*?,.*?\])');
+
+    filteredLog = filteredLog.replaceAllMapped(combinedRegex, (match) {
+      if (match[1] != null) {
+        return '"message":"***"';
+      }
+      if (match[2] != null) {
+        return '"Authorization: Bearer ***"';
+      }
+      if (match[3] != null) {
+        return '"X-Api-Signature: ***"';
+      }
+      if (match[4] != null) {
+        return 'signature: ***';
+      }
+      if (match[5] != null) {
+        return 'location: [***,***]';
+      }
+      if (match[6] != null) {
+        return r'\"signature\":\"***\"';
+      }
+      if (match[7] != null) {
+        return r'\"location\":[***,***]';
+      }
+      return '';
+    });
+
+    return filteredLog;
   }
 }
 
