@@ -6,10 +6,10 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -65,13 +65,7 @@ class _InAppWebViewPageState extends State<InAppWebViewPage> {
     final theme = Theme.of(context);
     final version = _configurationService.getVersionInfo();
     return Scaffold(
-      appBar: AppBar(
-        toolbarHeight: 0,
-        systemOverlayStyle: SystemUiOverlayStyle(
-          statusBarColor: widget.payload.backgroundColor ?? Colors.transparent,
-          systemNavigationBarDividerColor: Colors.transparent,
-        ),
-      ),
+      appBar: getDarkEmptyAppBar(Colors.black),
       backgroundColor: widget.payload.backgroundColor ?? theme.primaryColor,
       body: Column(
         children: [
@@ -84,29 +78,26 @@ class _InAppWebViewPageState extends State<InAppWebViewPage> {
               children: [
                 InAppWebView(
                   initialUrlRequest:
-                      URLRequest(url: Uri.tryParse(widget.payload.url)),
-                  initialOptions: InAppWebViewGroupOptions(
-                    crossPlatform: InAppWebViewOptions(
-                      userAgent:
-                          'user_agent'.tr(namedArgs: {'version': version}),
-                      useShouldOverrideUrlLoading: true,
-                    ),
+                      URLRequest(url: WebUri(widget.payload.url)),
+                  initialSettings: InAppWebViewSettings(
+                    userAgent: 'user_agent'.tr(namedArgs: {'version': version}),
                   ),
-                  androidOnPermissionRequest:
-                      (InAppWebViewController controller, String origin,
-                          List<String> resources) async {
-                    if (resources
-                        .contains('android.webkit.resource.AUDIO_CAPTURE')) {
+                  onPermissionRequest: (InAppWebViewController controller,
+                      permissionRequest) async {
+                    if (permissionRequest.resources
+                        .contains(PermissionResourceType.MICROPHONE)) {
                       await Permission.microphone.request();
                       final status = await Permission.microphone.status;
                       if (status.isPermanentlyDenied || status.isDenied) {
-                        return PermissionRequestResponse(resources: resources);
+                        return PermissionResponse(
+                            resources: permissionRequest.resources);
                       }
-                      return PermissionRequestResponse(
-                          resources: resources,
-                          action: PermissionRequestResponseAction.GRANT);
+                      return PermissionResponse(
+                          resources: permissionRequest.resources,
+                          action: PermissionResponseAction.GRANT);
                     }
-                    return PermissionRequestResponse(resources: resources);
+                    return PermissionResponse(
+                        resources: permissionRequest.resources);
                   },
                   onWebViewCreated: (controller) {
                     if (widget.payload.onWebViewCreated != null) {

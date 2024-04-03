@@ -24,6 +24,7 @@ class Exhibition {
   final FFArtist? partner;
   final String type;
   final List<ExhibitionEvent>? resources;
+  final int status;
 
   Exhibition({
     required this.id,
@@ -35,6 +36,7 @@ class Exhibition {
     required this.note,
     required this.mintBlockchain,
     required this.type,
+    required this.status,
     this.coverURI,
     this.thumbnailCoverURI,
     this.artists,
@@ -75,6 +77,7 @@ class Exhibition {
         resources: (json['resources'] as List<dynamic>?)
             ?.map((e) => ExhibitionEvent.fromJson(e as Map<String, dynamic>))
             .toList(),
+        status: json['status'] as int,
       );
 
   Map<String, dynamic> toJson() => {
@@ -95,6 +98,7 @@ class Exhibition {
         'type': type,
         'curator': curator?.toJson(),
         'resources': resources?.map((e) => e.toJson()).toList(),
+        'status': status,
       };
 
   FFArtist? getArtist(FFSeries? series) {
@@ -104,6 +108,47 @@ class Exhibition {
 
   String getThumbnailURL() =>
       '${Environment.feralFileAssetURL}/$thumbnailCoverURI';
+
+  Exhibition copyWith({
+    String? id,
+    String? title,
+    String? slug,
+    DateTime? exhibitionStartAt,
+    String? noteTitle,
+    String? noteBrief,
+    String? note,
+    String? coverURI,
+    String? thumbnailCoverURI,
+    String? mintBlockchain,
+    FFCurator? curator,
+    List<FFArtist>? artists,
+    List<FFSeries>? series,
+    List<FFContract>? contracts,
+    FFArtist? partner,
+    String? type,
+    List<ExhibitionEvent>? resources,
+    int? status,
+  }) =>
+      Exhibition(
+        id: id ?? this.id,
+        title: title ?? this.title,
+        slug: slug ?? this.slug,
+        exhibitionStartAt: exhibitionStartAt ?? this.exhibitionStartAt,
+        noteTitle: noteTitle ?? this.noteTitle,
+        noteBrief: noteBrief ?? this.noteBrief,
+        note: note ?? this.note,
+        coverURI: coverURI ?? this.coverURI,
+        thumbnailCoverURI: thumbnailCoverURI ?? this.thumbnailCoverURI,
+        mintBlockchain: mintBlockchain ?? this.mintBlockchain,
+        curator: curator ?? this.curator,
+        artists: artists ?? this.artists,
+        series: series ?? this.series,
+        contracts: contracts ?? this.contracts,
+        partner: partner ?? this.partner,
+        type: type ?? this.type,
+        resources: resources ?? this.resources,
+        status: status ?? this.status,
+      );
 }
 
 class ExhibitionResponse {
@@ -138,6 +183,15 @@ class ExhibitionDetail {
   List<Artwork>? artworks;
 
   ExhibitionDetail({required this.exhibition, this.artworks});
+
+  ExhibitionDetail copyWith({
+    Exhibition? exhibition,
+    List<Artwork>? artworks,
+  }) =>
+      ExhibitionDetail(
+        exhibition: exhibition ?? this.exhibition,
+        artworks: artworks ?? this.artworks,
+      );
 }
 
 class ExhibitionEvent {

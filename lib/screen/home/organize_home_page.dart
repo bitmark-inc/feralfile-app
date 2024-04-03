@@ -80,7 +80,6 @@ class OrganizeHomePageState extends State<OrganizeHomePage>
     context.read<HomeBloc>().add(CheckReviewAppEvent());
 
     unawaited(injector<IAPService>().setup());
-    memoryValues.inGalleryView = true;
   }
 
   @override

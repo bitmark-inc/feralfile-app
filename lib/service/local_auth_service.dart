@@ -17,10 +17,10 @@ class LocalAuthenticationService {
       bool didAuthenticate = false;
       try {
         didAuthenticate = await localAuth.authenticate(
-          localizedReason: "authen_for_autonomy".tr(),
+          localizedReason: 'authen_for_autonomy'.tr(),
         );
       } catch (e) {
-        log.info(e);
+        log.info('authenticate error $e');
       }
       return didAuthenticate;
     }

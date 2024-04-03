@@ -458,6 +458,37 @@ INFTRenderingWidget buildRenderingWidget(
   return renderingWidget;
 }
 
+INFTRenderingWidget buildFeralfileRenderingWidget(
+  BuildContext context, {
+  required String mimeType,
+  required String previewURL,
+  required String thumbnailURL,
+  int? attempt,
+  String? overriddenHtml,
+  bool isMute = false,
+  Function({int? time, InAppWebViewController? webViewController})? onLoaded,
+  Function({int? time})? onDispose,
+  FocusNode? focusNode,
+  Widget? loadingWidget,
+  bool? isScrollable,
+}) {
+  final renderingWidget = typesOfNFTRenderingWidget(mimeType)
+    ..setRenderWidgetBuilder(RenderingWidgetBuilder(
+      previewURL: attempt == null ? previewURL : '$previewURL?t=$attempt',
+      thumbnailURL: thumbnailURL,
+      loadingWidget: loadingWidget ?? previewPlaceholder(context),
+      cacheManager: injector<CacheManager>(),
+      onLoaded: onLoaded,
+      onDispose: onDispose,
+      overriddenHtml: overriddenHtml,
+      skipViewport: isScrollable ?? false,
+      isMute: isMute,
+      focusNode: focusNode,
+    ));
+
+  return renderingWidget;
+}
+
 class RetryCubit extends Cubit<int> {
   RetryCubit() : super(0);
 
@@ -730,10 +761,7 @@ Widget debugInfoWidget(BuildContext context, AssetToken? token) {
 }
 
 Widget artworkDetailsRightSection(BuildContext context, AssetToken assetToken) {
-  final artworkID =
-      ((assetToken.swapped ?? false) && assetToken.originTokenInfoId != null)
-          ? assetToken.originTokenInfoId
-          : assetToken.id.split('-').last;
+  final artworkID = assetToken.feralfileArtworkId;
   if (assetToken.shouldShowFeralfileRight) {
     return ArtworkRightsView(
       contract: FFContract('', '', assetToken.contractAddress ?? ''),
@@ -823,8 +851,8 @@ class SectionExpandedWidget extends StatefulWidget {
   final EdgeInsets? headerPadding;
   final Widget? child;
   final Widget? iconOnExpanded;
-  final Widget? iconOnUnExpaneded;
-  final bool withDivicer;
+  final Widget? iconOnUnExpanded;
+  final bool withDivider;
   final EdgeInsets padding;
 
   const SectionExpandedWidget(
@@ -834,8 +862,8 @@ class SectionExpandedWidget extends StatefulWidget {
       this.headerPadding,
       this.child,
       this.iconOnExpanded,
-      this.iconOnUnExpaneded,
-      this.withDivicer = true,
+      this.iconOnUnExpanded,
+      this.withDivider = true,
       this.padding = const EdgeInsets.all(0)});
 
   @override
@@ -861,11 +889,7 @@ class _SectionExpandedWidgetState extends State<SectionExpandedWidget> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (widget.withDivicer)
-                Divider(
-                  color: theme.colorScheme.secondary,
-                  thickness: 1,
-                ),
+              if (widget.withDivider) artworkSectionDivider,
               GestureDetector(
                 onTap: () {
                   setState(() {
@@ -891,7 +915,7 @@ class _SectionExpandedWidgetState extends State<SectionExpandedWidget> {
                                 child: defaultIcon,
                               )
                         else
-                          widget.iconOnUnExpaneded ??
+                          widget.iconOnUnExpanded ??
                               RotatedBox(
                                 quarterTurns: 1,
                                 child: defaultIcon,
@@ -943,12 +967,12 @@ Widget postcardDetailsMetadataSection(
     header: 'metadata'.tr(),
     headerStyle: theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
     headerPadding: padding,
-    withDivicer: false,
+    withDivider: false,
     iconOnExpanded: RotatedBox(
       quarterTurns: 1,
       child: icon,
     ),
-    iconOnUnExpaneded: RotatedBox(
+    iconOnUnExpanded: RotatedBox(
       quarterTurns: 2,
       child: icon,
     ),
@@ -1086,11 +1110,7 @@ Widget artworkDetailsMetadataSection(
       ((assetToken.swapped ?? false) && assetToken.originTokenInfoId != null)
           ? assetToken.originTokenInfoId ?? ''
           : assetToken.id.split('-').last;
-  final divider = Divider(
-    height: 32,
-    color: theme.auLightGrey,
-    thickness: 0.25,
-  );
+  const divider = artworkDataDivider;
   return SectionExpandedWidget(
     header: 'metadata'.tr(),
     padding: const EdgeInsets.only(bottom: 23),
@@ -1146,10 +1166,7 @@ Widget artworkDetailsMetadataSection(
                       tapLink: feralFileExhibitionUrl(snapshot.data!.slug),
                       forceSafariVC: true,
                     ),
-                    Divider(
-                      height: 32,
-                      color: theme.auLightGrey,
-                    ),
+                    divider,
                   ],
                 );
               } else {
@@ -1236,12 +1253,12 @@ Widget postcardOwnership(
     header: 'token_ownership'.tr(),
     headerStyle: theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
     headerPadding: padding,
-    withDivicer: false,
+    withDivider: false,
     iconOnExpanded: RotatedBox(
       quarterTurns: 1,
       child: icon,
     ),
-    iconOnUnExpaneded: RotatedBox(
+    iconOnUnExpanded: RotatedBox(
       quarterTurns: 2,
       child: icon,
     ),
@@ -1316,8 +1333,6 @@ Widget postcardOwnership(
 
 Widget tokenOwnership(
     BuildContext context, AssetToken assetToken, String alias) {
-  final theme = Theme.of(context);
-
   final sentTokens = injector<ConfigurationService>().getRecentlySentToken();
   final expiredTime = DateTime.now().subtract(SENT_ARTWORK_HIDE_TIME);
 
@@ -1337,11 +1352,7 @@ Widget tokenOwnership(
     ownedTokens -= totalSentQuantity;
   }
 
-  final divider = Divider(
-    height: 32,
-    color: theme.auLightGrey,
-    thickness: 0.25,
-  );
+  const divider = artworkDataDivider;
 
   return SectionExpandedWidget(
     header: 'token_ownership'.tr(),
@@ -1632,7 +1643,7 @@ Widget artworkDetailsProvenanceSectionNotEmpty(
                           : null,
                       forceSafariVC: true,
                     ),
-                    const Divider(height: 32),
+                    if (el != provenances.last) artworkDataDivider,
                   ],
                 );
               })
@@ -1682,12 +1693,12 @@ class _PostcardRightsViewState extends State<PostcardRightsView> {
               headerStyle:
                   theme.textTheme.moMASans700Black16.copyWith(fontSize: 18),
               headerPadding: const EdgeInsets.only(left: 15, right: 15),
-              withDivicer: false,
+              withDivider: false,
               iconOnExpanded: RotatedBox(
                 quarterTurns: 1,
                 child: icon,
               ),
-              iconOnUnExpaneded: RotatedBox(
+              iconOnUnExpanded: RotatedBox(
                 quarterTurns: 2,
                 child: icon,
               ),

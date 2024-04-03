@@ -3,7 +3,6 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/local_auth_service.dart';
@@ -23,6 +22,7 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:walletconnect_flutter_v2/apis/core/pairing/utils/pairing_models.dart';
 import 'package:web3dart/crypto.dart';
 
 class IRLSignMessagePayload {
@@ -102,13 +102,13 @@ class IRLSignMessageScreen extends StatefulWidget {
 
 class _IRLSignMessageScreenState extends State<IRLSignMessageScreen> {
   WalletIndex? _currentWallet;
-  late AppMetadata? appMetadata;
+  late PairingMetadata? appMetadata;
 
   @override
   void initState() {
     super.initState();
     appMetadata = widget.payload.metadata != null
-        ? AppMetadata.fromJson(widget.payload.metadata!)
+        ? PairingMetadata.fromJson(widget.payload.metadata!)
         : null;
     unawaited(getWallet());
   }

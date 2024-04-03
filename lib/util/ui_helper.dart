@@ -56,6 +56,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:walletconnect_flutter_v2/apis/core/pairing/utils/pairing_models.dart';
 
 enum ActionState { notRequested, loading, error, done }
 
@@ -76,7 +77,8 @@ void nameContinue(BuildContext context) {
   if (injector<ConfigurationService>().isDoneOnboarding()) {
     Navigator.of(context).popUntil((route) =>
         route.settings.name == AppRouter.claimSelectAccountPage ||
-        route.settings.name == AppRouter.wcConnectPage ||
+        route.settings.name == AppRouter.tbConnectPage ||
+        route.settings.name == AppRouter.wc2ConnectPage ||
         route.settings.name == AppRouter.homePage ||
         route.settings.name == AppRouter.homePageNoTransition ||
         route.settings.name == AppRouter.walletPage);
@@ -937,7 +939,7 @@ class UIHelper {
   }
 
   static Future showAppReportBottomSheet(
-      BuildContext context, AppMetadata? metadata) {
+      BuildContext context, PairingMetadata? metadata) {
     String buildReportMessage() => 'suspicious_app_report'.tr(namedArgs: {
           'name': metadata?.name ?? '',
           'url': metadata?.url ?? '',
@@ -1377,6 +1379,7 @@ class UIHelper {
                       icon: const Icon(
                         AuIcon.close,
                         size: 18,
+                        color: AppColor.secondaryDimGrey,
                       ),
                     ),
                   ),
