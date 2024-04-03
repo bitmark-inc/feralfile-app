@@ -17,6 +17,7 @@ import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import android.view.WindowManager.LayoutParams
+import android.os.Build
 
 class MainActivity : FlutterFragmentActivity() {
     companion object {
@@ -57,6 +58,10 @@ class MainActivity : FlutterFragmentActivity() {
             } else {
                 result.notImplemented()
             }
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            window.setHideOverlayWindows(true)
         }
     }
 

@@ -9,11 +9,14 @@
 // ignore_for_file: avoid_annotating_with_dynamic
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:isolate';
 import 'dart:ui';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/encrypt_env/secrets.dart';
+import 'package:autonomy_flutter/encrypt_env/secrets.g.dart';
 import 'package:autonomy_flutter/model/eth_pending_tx_amount.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -47,6 +50,8 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 
 void main() async {
   unawaited(runZonedGuarded(() async {
+    final json = await getSecretEnv();
+    cachedSecretEnv = jsonDecode(json);
     await dotenv.load();
     await SentryFlutter.init(
       (options) {

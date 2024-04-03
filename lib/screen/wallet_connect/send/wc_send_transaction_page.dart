@@ -82,6 +82,8 @@ class _WCSendTransactionPageState extends State<WCSendTransactionPage> {
         appBar: getBackAppBar(
           context,
           title: 'confirmation'.tr(),
+          action: () => unawaited(
+              UIHelper.showAppReportBottomSheet(context, widget.args.peerMeta)),
           onBack: () {
             context.read<WCSendTransactionBloc>().add(
                   WCSendTransactionRejectEvent(
