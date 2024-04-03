@@ -16,13 +16,37 @@ class LibAukChannelHandler {
     
     static let shared = LibAukChannelHandler()
     private var cancelBag = Set<AnyCancellable>()
+    
+    // Specify the key under which the biometric data is stored
+    private let biometricEnableFlagKey = "biometricEnableFlag"
+
+    
+    private func isBiometricTurnedOn() -> Bool {
+        // Retrieve the biometric data from Keychain
+        if let biometricData = Keychain().getData(biometricEnableFlagKey) {
+            // Check the value of the biometric data
+            return biometricData == Data([1])
+        } else {
+            // If biometric data is not found in Keychain, consider it turned off
+            return false
+        }
+    }
+    
+    private func setBiometric(isEnable: Bool) {
+        // Convert the isEnable flag to Data
+        let biometricData = isEnable ? Data([1]) : Data([0])
+
+        // Save the biometric data to Keychain
+        Keychain().set(biometricData, forKey: biometricEnableFlagKey)
+    }
 
     func createKey(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let args: NSDictionary = call.arguments as! NSDictionary
         let uuid: String = args["uuid"] as! String
         let name: String = (args["name"] as? String) ?? ""
+        let isBioMetricTurnedOn = isBiometricTurnedOn()
         
-        LibAuk.shared.storage(for: UUID(uuidString: uuid)!).createKey(name: name)
+        LibAuk.shared.storage(for: UUID(uuidString: uuid)!).createKey(name: name, isPrivate: isBioMetricTurnedOn)
             .sink(receiveCompletion: { (completion) in
                 if let error = completion.error {
                     result(ErrorHandler.handle(error: error))
@@ -45,9 +69,10 @@ class LibAukChannelHandler {
         
         let date = dateInMili != nil ? Date(timeIntervalSince1970: dateInMili!) : nil
         let wordsArray = words.components(separatedBy: " ")
+        let isBioMetricTurnedOn = isBiometricTurnedOn()
         
         LibAuk.shared.storage(for: UUID(uuidString: uuid)!)
-            .importKey(words: wordsArray, name: name, creationDate:date)
+            .importKey(words: wordsArray, name: name, creationDate:date, isPrivate: isBioMetricTurnedOn)
             .sink(receiveCompletion: { (completion) in
                 if let error = completion.error {
                     result(ErrorHandler.handle(error: error))
@@ -57,25 +82,6 @@ class LibAukChannelHandler {
                 result([
                     "error": 0,
                     "msg": "importKey success",
-                ])
-            })
-            .store(in: &cancelBag)
-    }
-    
-    func updateName(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        let args: NSDictionary = call.arguments as! NSDictionary
-        let uuid: String = args["uuid"] as! String
-        let name: String = (args["name"] as? String) ?? ""
-
-        LibAuk.shared.storage(for: UUID(uuidString: uuid)!).updateName(name: name)
-            .sink(receiveCompletion: { (completion) in
-                if let error = completion.error {
-                    result(ErrorHandler.handle(error: error))
-                }
-            }, receiveValue: { _ in
-                result([
-                    "error": 0,
-                    "msg": "updateName success",
                 ])
             })
             .store(in: &cancelBag)
@@ -442,23 +448,23 @@ class LibAukChannelHandler {
             .store(in: &cancelBag)
     }
     
-    func getTezosPublicKey(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        let args: NSDictionary = call.arguments as! NSDictionary
-        let uuid: String = args["uuid"] as! String
-
-        LibAuk.shared.storage(for: UUID(uuidString: uuid)!).getTezosPublicKey()
-            .sink(receiveCompletion: { (completion) in
-                if let error = completion.error {
-                    result(ErrorHandler.handle(error: error))
-                }
-            }, receiveValue: { publicKey in
-                result([
-                    "error": 0,
-                    "data": publicKey,
-                ])
-            })
-            .store(in: &cancelBag)
-    }
+//    func getTezosPublicKey(call: FlutterMethodCall, result: @escaping FlutterResult) {
+//        let args: NSDictionary = call.arguments as! NSDictionary
+//        let uuid: String = args["uuid"] as! String
+//
+//        LibAuk.shared.storage(for: UUID(uuidString: uuid)!).getTezosPublicKey()
+//            .sink(receiveCompletion: { (completion) in
+//                if let error = completion.error {
+//                    result(ErrorHandler.handle(error: error))
+//                }
+//            }, receiveValue: { publicKey in
+//                result([
+//                    "error": 0,
+//                    "data": publicKey,
+//                ])
+//            })
+//            .store(in: &cancelBag)
+//    }
     
     func getTezosPublicKeyWithIndex(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let args: NSDictionary = call.arguments as! NSDictionary
@@ -626,6 +632,68 @@ class LibAukChannelHandler {
             })
             .store(in: &cancelBag)
 
+    }
+    
+    func toggleBiometric(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args: NSDictionary = call.arguments as! NSDictionary
+        let isBiometricEnable = args["isEnable"] as! Bool
+        let keychainItems = Keychain().getAllKeychainItem()
+        self.setBiometric(isEnable: isBiometricEnable)
+        
+        var seedItems: [UUID: Seed] = [:] // Dictionary to store personaUUID: Seed pairs
+        
+        if let items = keychainItems {
+            for item in items {
+                if let data = item[kSecValueData as String] as? Data,
+                   let seedUR = String(data: data, encoding: .utf8) {
+                    // Assuming Seed is a custom type and Seed initializer is available
+                    if let seed = try? Seed(urString: seedUR) {
+                        // Extract personaUUID from key and add to dictionary
+                        if let key = item[kSecAttrAccount as String] as? String, key.contains("seed") {
+                            let personaUUIDString = key.replacingOccurrences(of: "persona.", with: "")
+                                                         .replacingOccurrences(of: "_seed", with: "")
+                            if let personaUUID = UUID(uuidString: personaUUIDString) {
+                                seedItems[personaUUID] = seed
+                                let storage = LibAuk.shared.storage(for: personaUUID)
+                                storage.setSeed(seed: seed, isPrivate: isBiometricEnable).sink { (completion) in
+                                    // TODO
+                                } receiveValue: { _ in
+                                    // TODO
+                                }.store(in: &cancelBag)
+
+                            }
+                        }
+                    } else {
+                        // Handle error when parsing Seed
+                        print("Failed to parse Seed from: \(seedUR)")
+                    }
+                } else {
+                    // Handle error when decoding data to UTF-8 string
+                    print("Failed to decode data to UTF-8 string: \(item)")
+                }
+            }
+        }
+        
+        result(["error": 0,
+                "data": true,
+        ])
+    }
+    
+    func isBiometricTurnedOn(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        // Retrieve the biometric data from Keychain
+        if let biometricData = Keychain().getData(biometricEnableFlagKey) {
+            // Check the value of the biometric data
+            result([
+                "error": 0,
+                "data": biometricData == Data([1])
+            ])
+        } else {
+            // If biometric data is not found in Keychain, consider it turned off
+            result([
+                "error": 0,
+                "data": false
+            ])
+        }
     }
     
 }

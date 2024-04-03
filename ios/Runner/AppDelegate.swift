@@ -46,8 +46,8 @@ import Starscream
                 LibAukChannelHandler.shared.importKey(call: call, result: result)
             case "getName":
                 LibAukChannelHandler.shared.getName(call: call, result: result)
-            case "updateName":
-                LibAukChannelHandler.shared.updateName(call: call, result: result)
+//            case "updateName":
+//                LibAukChannelHandler.shared.updateName(call: call, result: result)
             case "getAccountDID":
                 LibAukChannelHandler.shared.getAccountDID(call: call, result: result)
             case "getAccountDIDSignature":
@@ -80,8 +80,8 @@ import Starscream
                 LibAukChannelHandler.shared.encryptFile(call: call, result: result)
             case "decryptFile":
                 LibAukChannelHandler.shared.decryptFile(call: call, result: result)
-            case "getTezosPublicKey":
-                LibAukChannelHandler.shared.getTezosPublicKey(call: call, result: result)
+//            case "getTezosPublicKey":
+//                LibAukChannelHandler.shared.getTezosPublicKey(call: call, result: result)
             case "tezosSignMessage":
                 LibAukChannelHandler.shared.tezosSign(call: call, result: result)
             case "tezosSignTransaction":
@@ -94,6 +94,10 @@ import Starscream
                 LibAukChannelHandler.shared.tezosSignTransactionWithIndex(call: call, result: result)
             case "removeKeys":
                 LibAukChannelHandler.shared.removeKeys(call: call, result: result)
+            case "toggleBiometric":
+                LibAukChannelHandler.shared.toggleBiometric(call: call, result: result)
+            case "isBiometricEnabled":
+                LibAukChannelHandler.shared.isBiometricTurnedOn(call: call, result: result)
             default:
                 result(FlutterMethodNotImplemented)
             }

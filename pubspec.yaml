@@ -70,7 +70,7 @@ dependencies:
   libauk_dart:
     git:
       url: https://github.com/autonomy-system/libauk-dart.git
-      ref: 7c3d715d5a0ef3afed15c0a1e54c20f1b68133c3
+      ref: ac5c26280376f4ad00d2f79038d64db6e8eec2c7
   local_auth: ^2.1.0
   logging: ^1.2.0
   measured_size: ^1.0.0

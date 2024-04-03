@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import LibAuk
 
 class Keychain {
     
@@ -74,5 +75,49 @@ class Keychain {
             return true
         }
 
+    }
+    
+    func getAllKeychainItem() -> [Dictionary<String, Any>]? {
+        //        let syncAttr = isSync ? kCFBooleanTrue : kCFBooleanFalse
+        //        let context = AccessControl.shared.context
+        let query = [
+            kSecClass as String: kSecClassGenericPassword,
+            //            kSecAttrSynchronizable as String: syncAttr!,
+            //            kSecAttrAccount as String: buildKeyAttr(prefix: prefix, key: key),
+            kSecReturnData as String: kCFBooleanTrue!,
+            kSecReturnAttributes as String : kCFBooleanTrue,
+            //            kSecAttrAccessGroup as String: LibAuk.shared.keyChainGroup,
+            //            kSecAttrAccessible as String: AccessControl.shared.accessible,
+            kSecMatchLimit as String: kSecMatchLimitAll,
+            //            kSecUseAuthenticationContext as String: context,
+        ] as [String: Any]
+        
+        var dataTypeRef: CFTypeRef?
+        let status = SecItemCopyMatching(query as CFDictionary, &dataTypeRef)
+        
+        if status == noErr {
+            guard let array = dataTypeRef as? Array<Dictionary<String, Any>> else {
+                return []
+            }
+            
+            for item in array {
+                if let key = item[kSecAttrAccount as String] as? String, key.contains("seed") {
+                    let personaUUIDString = key.replacingOccurrences(of: "persona.", with: "")
+                        .replacingOccurrences(of: "_seed", with: "")
+                    
+                    guard let personaUUID = UUID(uuidString: personaUUIDString) else {
+                        continue
+                    }
+                    let data = item[kSecValueData as String]
+                    let  a = personaUUID
+                    
+                }
+            }
+            return array
+        }
+        else {
+            print("Error \(status)")
+        }
+        return nil
     }
 }
