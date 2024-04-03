@@ -120,7 +120,8 @@ class FileLogger {
         r'(\\"signature\\":\\".*?\\")|'
         r'(\\"location\\":\[.*?,.*?\])|'
         r'(0x[A-Fa-f0-9]{64}[\s\W])|'
-        r'(0x[A-Fa-f0-9]{128,144}[\s\W])|');
+        r'(0x[A-Fa-f0-9]{128,144}[\s\W])|'
+        r'(eyJ[A-Za-z0-9-_]+\.eyJ[A-Za-z0-9-_]+\.[A-Za-z0-9-_.+/]*)');
 
     filteredLog = filteredLog.replaceAllMapped(combinedRegex, (match) {
       if (match[1] != null) {
@@ -146,6 +147,9 @@ class FileLogger {
       }
       if (match[8] != null || match[9] != null) {
         return 'REDACTED_SIGNATURE';
+      }
+      if (match[10] != null) {
+        return 'REDACTED_JWT_TOKEN';
       }
       return '';
     });
