@@ -22,11 +22,11 @@ import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_state.dart';
-import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/util/address_utils.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/feral_file_custom_tab.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -67,6 +67,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
   final TextEditingController _renameController = TextEditingController();
   final FocusNode _renameFocusNode = FocusNode();
   final usdcFormatter = USDCAmountFormatter();
+  final _browser = FeralFileBrowser();
 
   @override
   void initState() {
@@ -573,12 +574,8 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
           'show_history'.tr(),
           style: theme.textTheme.ppMori400Black14,
         ),
-        onTap: () {
-          unawaited(Navigator.of(context).pushNamed(
-            AppRouter.inappWebviewPage,
-            arguments:
-                InAppWebViewPayload(addressURL(address, widget.payload.type)),
-          ));
+        onTap: () async {
+          await _browser.openUrl(addressURL(address, widget.payload.type));
         },
       ),
     ]);
