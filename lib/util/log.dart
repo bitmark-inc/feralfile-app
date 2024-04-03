@@ -118,7 +118,9 @@ class FileLogger {
         r'(signature: [^,\}]*)|'
         r'(location: \[.*?,.*?\])|'
         r'(\\"signature\\":\\".*?\\")|'
-        r'(\\"location\\":\[.*?,.*?\])');
+        r'(\\"location\\":\[.*?,.*?\])|'
+        r'(0x[A-Fa-f0-9]{64}[\s\W])|'
+        r'(0x[A-Fa-f0-9]{128,144}[\s\W])|');
 
     filteredLog = filteredLog.replaceAllMapped(combinedRegex, (match) {
       if (match[1] != null) {
@@ -141,6 +143,9 @@ class FileLogger {
       }
       if (match[7] != null) {
         return r'\"location\":REDACTED_LOCATION';
+      }
+      if (match[8] != null || match[9] != null) {
+        return 'REDACTED_SIGNATURE';
       }
       return '';
     });
