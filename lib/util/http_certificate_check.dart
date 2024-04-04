@@ -10,7 +10,7 @@ Future<String?> _fetchCertificate(Uri url) async {
   try {
     // Create an HttpClient to make a request and get the certificate
     final client = HttpClient();
-    final request = await client.getUrl(url);
+    final request = await client.headUrl(url);
     final response = await request.close();
 
     // Extract the certificate
