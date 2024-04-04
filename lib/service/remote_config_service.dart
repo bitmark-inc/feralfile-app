@@ -61,6 +61,7 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
     },
     'in_app_webview': {
       'uri_scheme_white_list': ['https'],
+      'allowed_fingerprints': [],
     },
     'dApp_urls': {
       'deny_dApp_list': [],
@@ -174,6 +175,7 @@ enum ConfigKey {
   yokoOnoPrivateTokenIds,
   uriSchemeWhiteList,
   denyDAppList,
+  allowedFingerprints,
 }
 
 // ConfigKey getString extension
@@ -228,6 +230,8 @@ extension ConfigKeyExtension on ConfigKey {
         return 'uri_scheme_white_list';
       case ConfigKey.denyDAppList:
         return 'deny_dApp_list';
+      case ConfigKey.allowedFingerprints:
+        return 'allowed_fingerprints';
     }
   }
 }
