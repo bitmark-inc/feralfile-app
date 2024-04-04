@@ -1,10 +1,10 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -46,18 +46,7 @@ class _InAppWebViewPageState extends State<InAppWebViewPage> {
 
   Future<void> clearCache() async {
     WebStorageManager webStorageManager = WebStorageManager.instance();
-
-    if (Platform.isAndroid) {
-      // if current platform is Android, delete all data.
-      await webStorageManager.android.deleteAllData();
-    } else if (Platform.isIOS) {
-      // if current platform is iOS, delete all data
-      final records = await webStorageManager.ios
-          .fetchDataRecords(dataTypes: IOSWKWebsiteDataType.values);
-      final recordsToDelete = <IOSWKWebsiteDataRecord>[...records];
-      await webStorageManager.ios.removeDataFor(
-          dataTypes: IOSWKWebsiteDataType.values, dataRecords: recordsToDelete);
-    }
+    await webStorageManager.deleteAllData();
   }
 
   @override
@@ -80,7 +69,10 @@ class _InAppWebViewPageState extends State<InAppWebViewPage> {
                   initialUrlRequest:
                       URLRequest(url: WebUri(widget.payload.url)),
                   initialSettings: InAppWebViewSettings(
-                    userAgent: 'user_agent'.tr(namedArgs: {'version': version}),
+                    userAgent: 'user_agent'.tr(
+                      namedArgs: {'version': version},
+                    ),
+                    useShouldOverrideUrlLoading: true,
                   ),
                   onPermissionRequest: (InAppWebViewController controller,
                       permissionRequest) async {
@@ -119,6 +111,7 @@ class _InAppWebViewPageState extends State<InAppWebViewPage> {
                   },
                   shouldOverrideUrlLoading:
                       (controller, navigationAction) async {
+                    log.info('shouldOverrideUrlLoading');
                     var uri = navigationAction.request.url!;
                     final List<dynamic> remoteConfigUriSchemeWhitelist =
                         injector<RemoteConfigService>()
