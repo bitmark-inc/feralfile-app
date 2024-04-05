@@ -65,9 +65,10 @@ abstract class AccountService {
 
   Future androidRestoreKeys();
 
-  Future<Persona> createPersona({String name = '', bool isDefault = false});
+  Future<Persona> createPersona(
+      {String name = '', String password, bool isDefault = false});
 
-  Future<Persona> importPersona(String words,
+  Future<Persona> importPersona(String words, String password,
       {WalletType walletType = WalletType.Autonomy});
 
   Future<Connection> nameLinkedAccount(Connection connection, String name);
@@ -135,10 +136,10 @@ class AccountServiceImpl extends AccountService {
 
   @override
   Future<Persona> createPersona(
-      {String name = '', bool isDefault = false}) async {
+      {String name = '', String password = '', bool isDefault = false}) async {
     final uuid = const Uuid().v4();
     final walletStorage = LibAukDart.getWallet(uuid);
-    await walletStorage.createKey(name);
+    await walletStorage.createKey(password, name);
     final persona = Persona.newPersona(
         uuid: uuid, defaultAccount: isDefault ? 1 : null, name: name);
     await _cloudDB.personaDao.insertPersona(persona);
@@ -150,7 +151,7 @@ class AccountServiceImpl extends AccountService {
   }
 
   @override
-  Future<Persona> importPersona(String words,
+  Future<Persona> importPersona(String words, String password,
       {WalletType walletType = WalletType.Autonomy}) async {
     final personas = await _cloudDB.personaDao.getPersonas();
     for (final persona in personas) {
@@ -163,7 +164,7 @@ class AccountServiceImpl extends AccountService {
     final uuid = const Uuid().v4();
     final walletStorage = LibAukDart.getWallet(uuid);
     await walletStorage.importKey(
-        words, '', DateTime.now().microsecondsSinceEpoch);
+        words, password, '', DateTime.now().microsecondsSinceEpoch);
 
     final persona = Persona.newPersona(uuid: uuid);
     await _cloudDB.personaDao.insertPersona(persona);
