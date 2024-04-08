@@ -235,8 +235,8 @@ import Logging
             "attachments": [
                 [
                     "data": fileData,
-                    "title": "Emergency log"
-                    "path": ""
+                    "title": "Emergency log",
+                    "path": "",
                     "contentType": ""
                 ]
             ],
