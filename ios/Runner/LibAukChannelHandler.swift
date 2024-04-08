@@ -182,7 +182,7 @@ class LibAukChannelHandler {
             .store(in: &cancelBag)
     }
     
-    func signPersonalMessage(call: FlutterMethodCall, result: @escaping FlutterResult) {
+    func ethSignPersonalMessage(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let args: NSDictionary = call.arguments as! NSDictionary
         let uuid: String = args["uuid"] as! String
         let message = args["message"] as! FlutterStandardTypedData
@@ -203,7 +203,7 @@ class LibAukChannelHandler {
             .store(in: &cancelBag)
     }
     
-    func signPersonalMessageWithIndex(call: FlutterMethodCall, result: @escaping FlutterResult) {
+    func ethSignPersonalMessageWithIndex(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let args: NSDictionary = call.arguments as! NSDictionary
         let uuid: String = args["uuid"] as! String
         let message = args["message"] as! FlutterStandardTypedData
@@ -225,7 +225,7 @@ class LibAukChannelHandler {
             .store(in: &cancelBag)
     }
     
-    func signMessageWithIndex(call: FlutterMethodCall, result: @escaping FlutterResult) {
+    func ethSignMessageWithIndex(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let args: NSDictionary = call.arguments as! NSDictionary
         let uuid: String = args["uuid"] as! String
         let message = args["message"] as! FlutterStandardTypedData
@@ -247,7 +247,7 @@ class LibAukChannelHandler {
             .store(in: &cancelBag)
     }
     
-    func signMessage(call: FlutterMethodCall, result: @escaping FlutterResult) {
+    func ethSignMessage(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let args: NSDictionary = call.arguments as! NSDictionary
         let uuid: String = args["uuid"] as! String
         let message = args["message"] as! FlutterStandardTypedData
@@ -268,7 +268,7 @@ class LibAukChannelHandler {
             .store(in: &cancelBag)
     }
     
-    func signTransaction(call: FlutterMethodCall, result: @escaping FlutterResult) {
+    func ethSignTransaction(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let args: NSDictionary = call.arguments as! NSDictionary
         let uuid: String = args["uuid"] as! String
         let nonce: String = args["nonce"] as? String ?? "0"
@@ -305,7 +305,7 @@ class LibAukChannelHandler {
             .store(in: &cancelBag)
     }
     
-    func signTransactionWithIndex(call: FlutterMethodCall, result: @escaping FlutterResult) {
+    func ethSignTransactionWithIndex(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let args: NSDictionary = call.arguments as! NSDictionary
         let uuid: String = args["uuid"] as! String
         let nonce: String = args["nonce"] as? String ?? "0"
@@ -343,7 +343,7 @@ class LibAukChannelHandler {
             .store(in: &cancelBag)
     }
     
-    func signTransaction1559(call: FlutterMethodCall, result: @escaping FlutterResult) {
+    func ethSignTransaction1559(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let args: NSDictionary = call.arguments as! NSDictionary
         let uuid: String = args["uuid"] as! String
         let nonce: String = args["nonce"] as? String ?? "0"
@@ -383,7 +383,7 @@ class LibAukChannelHandler {
             .store(in: &cancelBag)
     }
     
-    func signTransaction1559WithIndex(call: FlutterMethodCall, result: @escaping FlutterResult) {
+    func ethSignTransaction1559WithIndex(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let args: NSDictionary = call.arguments as! NSDictionary
         let uuid: String = args["uuid"] as! String
         let nonce: String = args["nonce"] as? String ?? "0"

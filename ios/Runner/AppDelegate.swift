@@ -54,25 +54,25 @@ import Starscream
             case "getETHAddress":
                 LibAukChannelHandler.shared.getETHAddress(call: call, result: result)
             case "ethSignPersonalMessage":
-                LibAukChannelHandler.shared.signPersonalMessage(call: call, result: result)
+                LibAukChannelHandler.shared.ethSignPersonalMessage(call: call, result: result)
             case "ethSignMessage":
-                LibAukChannelHandler.shared.signMessage(call: call, result: result)
+                LibAukChannelHandler.shared.ethSignMessage(call: call, result: result)
             case "getETHAddressWithIndex":
                 LibAukChannelHandler.shared.getETHAddressWithIndex(call: call, result: result)
             case "ethSignPersonalMessageWithIndex":
-                LibAukChannelHandler.shared.signPersonalMessageWithIndex(call: call, result: result)
+                LibAukChannelHandler.shared.ethSignPersonalMessageWithIndex(call: call, result: result)
             case "ethSignMessageWithIndex":
-                LibAukChannelHandler.shared.signMessageWithIndex(call: call, result: result)
+                LibAukChannelHandler.shared.ethSignMessageWithIndex(call: call, result: result)
             case "exportMnemonicWords":
                 LibAukChannelHandler.shared.exportMnemonicWords(call: call, result: result)
             case "ethSignTransaction":
-                LibAukChannelHandler.shared.signTransaction(call: call, result: result)
+                LibAukChannelHandler.shared.ethSignTransaction(call: call, result: result)
             case "ethSignTransaction1559":
-                LibAukChannelHandler.shared.signTransaction1559(call: call, result: result)
+                LibAukChannelHandler.shared.ethSignTransaction1559(call: call, result: result)
             case "ethSignTransactionWithIndex":
-                LibAukChannelHandler.shared.signTransactionWithIndex(call: call, result: result)
+                LibAukChannelHandler.shared.ethSignTransactionWithIndex(call: call, result: result)
             case "ethSignTransaction1559WithIndex":
-                LibAukChannelHandler.shared.signTransaction1559WithIndex(call: call, result: result)
+                LibAukChannelHandler.shared.ethSignTransaction1559WithIndex(call: call, result: result)
             case "encryptFile":
                 LibAukChannelHandler.shared.encryptFile(call: call, result: result)
             case "decryptFile":
