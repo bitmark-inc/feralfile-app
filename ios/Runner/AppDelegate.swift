@@ -214,7 +214,7 @@ import Logging
         let session = URLSession(configuration: config)
 
         // Create the request body
-        guard let url = URL(string: "https://support.test.autonomy.io/v1/issues/") else {
+        guard let url = URL(string: Constant.isInhouse ? "https://support.test.autonomy.io/v1/issues/" : "https://support.autonomy.io/v1/issues/") else {
             return
         }
 

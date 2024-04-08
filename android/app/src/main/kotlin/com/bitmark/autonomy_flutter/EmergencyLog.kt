@@ -31,6 +31,12 @@ class EmergencyLog : Activity() {
         val requestBody = buildRequestBody(file)
 
         // Build the request
+        val url = if (BuildConfig.FLAVOR.contains("inhouse")) {
+            "https://support.test.autonomy.io/v1/issues/"
+        } else {
+            "https://support.autonomy.io/v1/issues/"
+        }
+
         val request = Request.Builder()
             .url("https://support.test.autonomy.io/v1/issues/")
             .post(requestBody)
