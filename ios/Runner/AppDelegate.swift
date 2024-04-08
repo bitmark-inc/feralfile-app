@@ -187,10 +187,10 @@ import Logging
     
     override func application(_ application: UIApplication, continue userActivity: NSUserActivity, restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
         logger.info("feralfile deeplink")
-            if userActivity.activityType == NSUserActivityTypeBrowsingWeb, let url = userActivity.webpageURL {
-                handleDeepLink(url)
-            }
-            return false
+        if userActivity.activityType == NSUserActivityTypeBrowsingWeb, let url = userActivity.webpageURL {
+            handleDeepLink(url)
+        }
+        return false
     }
     
     private func handleDeepLink(_ url: URL) {
