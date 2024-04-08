@@ -69,7 +69,7 @@ class EmergencyLog : Activity() {
             "attachments" to attachments,
             "title" to "Emergency log",
             "message" to "message",
-            "tags" to listOf("bug", "android"),
+            "tags" to listOf("emergency", "android"),
             "announcement_context_id" to ""
         )
 

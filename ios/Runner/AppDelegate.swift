@@ -236,11 +236,13 @@ import Logging
                 [
                     "data": fileData,
                     "title": "Emergency log"
+                    "path": ""
+                    "contentType": ""
                 ]
             ],
             "title": "Emergency log",
             "message": "Emergency log",
-            "tags": ["bug", "iOS"]
+            "tags": ["emergency", "iOS"]
         ]
 
             // Convert the request body to JSON data
