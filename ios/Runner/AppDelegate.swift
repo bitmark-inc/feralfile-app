@@ -15,6 +15,7 @@ import Combine
 import flutter_downloader
 //import Sentry
 import Starscream
+import Logging
 
 @UIApplicationMain
 @objc class AppDelegate: FlutterAppDelegate {
@@ -163,8 +164,7 @@ import Starscream
             }
         })
         beaconEventChannel.setStreamHandler(BeaconChannelHandler.shared)
-
-
+        
         let cloudEventChannel = FlutterEventChannel(name: "cloud/event", binaryMessenger: controller.binaryMessenger)
         cloudEventChannel.setStreamHandler(CloudChannelHandler.shared)
 
@@ -183,6 +183,108 @@ import Starscream
         }
         
         return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+    }
+    
+    override func application(_ application: UIApplication, continue userActivity: NSUserActivity, restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
+        logger.info("feralfile deeplink")
+            if userActivity.activityType == NSUserActivityTypeBrowsingWeb, let url = userActivity.webpageURL {
+                handleDeepLink(url)
+            }
+            return false
+    }
+    
+    private func handleDeepLink(_ url: URL) {
+        logger.info("handle feralfile deeplink")
+        guard url.scheme == "feralfile" else {
+            return
+        }
+            
+            // Check the host and path to determine the action
+        if url.host == "emergency-logs" {
+            logger.info("emergency-logs")
+            let token = url.lastPathComponent
+            uploadLogFile(uploadURL: Logger.appLogURL,token: token)
+        }
+    }
+    
+    func uploadLogFile(uploadURL: URL , token: String) {
+        // Create a URLSession configuration
+        logger.info("upload log file")
+        let config = URLSessionConfiguration.default
+        let session = URLSession(configuration: config)
+
+        // Create the request body
+        guard let url = URL(string: "https://support.test.autonomy.io/v1/issues/") else {
+            return
+        }
+
+        var request = URLRequest(url: url)        
+        request.httpMethod = "POST"
+
+        // Set the authorization header
+        request.setValue("Emergency \(token)", forHTTPHeaderField: "Authorization")
+        
+        
+        let fileData = base64EncodedFile(fileURL: uploadURL)
+        
+        if (fileData == nil) {
+            return
+        }
+            // Construct the request body
+        let requestBody: [String: Any] = [
+            "attachments": [
+                [
+                    "data": fileData,
+                    "title": "Emergency log"
+                ]
+            ],
+            "title": "Emergency log",
+            "message": "Emergency log",
+            "tags": ["bug", "iOS"]
+        ]
+
+            // Convert the request body to JSON data
+        guard let jsonData = try? JSONSerialization.data(withJSONObject: requestBody) else {
+            print("Failed to encode request body")
+            return
+        }
+
+            // Set the request body
+        request.httpBody = jsonData
+
+            // Create a data task to perform the request
+        let task = session.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("Error: \(error)")
+                return
+            }
+
+            guard let httpResponse = response as? HTTPURLResponse else {
+                print("Invalid response")
+                return
+            }
+
+            print("Response status: \(httpResponse.statusCode)")
+
+            if let data = data {
+                    // Handle the response data if needed
+                print("Response data: \(String(data: data, encoding: .utf8) ?? "")")
+            }
+        }
+
+        // Start the data task
+        task.resume()
+    }
+    
+    func base64EncodedFile(fileURL: URL) -> String? {
+        // Read file contents
+        guard let data = try? Data(contentsOf: fileURL) else {
+            return nil
+        }
+
+        // Encode to base64
+        let base64String = data.base64EncodedString()
+        return base64String
     }
     
     override func applicationWillEnterForeground(_ application: UIApplication) {
