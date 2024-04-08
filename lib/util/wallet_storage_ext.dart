@@ -82,6 +82,16 @@ extension WalletIndexExtension on WalletIndex {
     throw Exception("Unsupported chain $chain");
   }
 
+  Future<String> getPublicKey({required String chain}) async {
+    switch (chain.caip2Namespace) {
+      case Wc2Chain.ethereum:
+        return await wallet.getTezosPublicKey(index: index);
+      case Wc2Chain.tezos:
+        return await wallet.getEthPublicKey(index: index);
+    }
+    throw Exception("Unsupported chain $chain");
+  }
+
   Future<Wc2Chain?> signPermissionRequest({
     required String chain,
     required String message,

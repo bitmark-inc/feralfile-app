@@ -608,14 +608,16 @@ class FeralFileServiceImpl extends FeralFileService {
         address: assetToken.owner,
         action: FeralfileAction.downloadSeries,
       );
+      const messagePrefix = 'Download artwork:';
+      final message2Sign = '$messagePrefix$message';
       final ownerAddress = assetToken.owner;
       final chain = assetToken.blockchain;
       final account = await injector<AccountService>()
           .getAccountByAddress(chain: chain, address: ownerAddress);
       final signature =
-          await account.signMessage(chain: chain, message: message);
-      final publicKey = await account.wallet.getTezosPublicKey();
-      final signatureString = '$message|$signature|$publicKey';
+          await account.signMessage(chain: chain, message: message2Sign);
+      final publicKey = await account.getPublicKey(chain: chain);
+      final signatureString = '$message2Sign|$signature|$publicKey';
       final signatureHex = base64.encode(utf8.encode(signatureString));
 
       final url =
