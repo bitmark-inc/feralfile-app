@@ -38,7 +38,7 @@ class EmergencyLog : Activity() {
         }
 
         val request = Request.Builder()
-            .url("https://support.test.autonomy.io/v1/issues/")
+            .url(url)
             .post(requestBody)
             .header("Authorization", "Emergency $token")
             .build()
