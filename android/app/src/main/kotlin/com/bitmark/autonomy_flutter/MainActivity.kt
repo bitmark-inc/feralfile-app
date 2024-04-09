@@ -11,13 +11,15 @@ import android.app.KeyguardManager
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.os.Build
+import android.view.WindowManager.LayoutParams
+import android.widget.Toast
 import androidx.annotation.NonNull
 import androidx.biometric.BiometricManager
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
-import android.view.WindowManager.LayoutParams
-import android.os.Build
+import java.io.File
 
 class MainActivity : FlutterFragmentActivity() {
     companion object {
@@ -31,6 +33,17 @@ class MainActivity : FlutterFragmentActivity() {
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         FileLogger.init(applicationContext)
+        val hasTracerPid = hasTracerPid()
+        if (BuildConfig.ENABLE_DEBUGGER_DETECTION && hasTracerPid) {
+            Toast.makeText(
+                this,
+                "Debugging detected. Please try again without any debugging tools.",
+                Toast.LENGTH_SHORT
+            )
+                .show()
+            finish()
+            return
+        }
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
             CHANNEL
@@ -102,5 +115,27 @@ class MainActivity : FlutterFragmentActivity() {
     override fun onPause() {
         super.onPause()
         isAuthenticate = false
+    }
+
+    private fun hasTracerPid(): Boolean {
+        val tracerpid = "TracerPid"
+        try {
+            val file = File("/proc/self/status")
+            val lines = file.readLines()
+            for (line in lines) {
+                if (line.length > tracerpid.length) {
+                    if (line.substring(0, tracerpid.length).equals(tracerpid, ignoreCase = true)) {
+                        val pid = line.substring(tracerpid.length + 1).trim().toInt()
+                        if (pid > 0) {
+                            return true
+                        }
+                        break
+                    }
+                }
+            }
+        } catch (exception: Exception) {
+            println(exception)
+        }
+        return false
     }
 }
