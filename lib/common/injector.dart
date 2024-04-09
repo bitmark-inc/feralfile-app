@@ -141,8 +141,8 @@ Future<void> setup() async {
 
   final BaseOptions dioOptions = BaseOptions(
     followRedirects: true,
-    connectTimeout: const Duration(seconds: 10),
-    receiveTimeout: const Duration(seconds: 10),
+    connectTimeout: const Duration(seconds: 3),
+    receiveTimeout: const Duration(seconds: 3),
   );
   final dio = baseDio(dioOptions);
 
