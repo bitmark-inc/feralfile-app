@@ -7,6 +7,7 @@ import 'dart:async' as _i4;
 
 import 'package:autonomy_flutter/service/metric_client_service.dart' as _i3;
 import 'package:autonomy_flutter/service/mix_panel_client_service.dart' as _i2;
+import 'package:flutter/material.dart' as _i5;
 import 'package:mockito/mockito.dart' as _i1;
 
 // ignore_for_file: type=lint
@@ -71,6 +72,25 @@ class MockMetricClientService extends _i1.Mock
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
   @override
+  void addEvent(
+    String? name, {
+    String? message,
+    Map<String, dynamic>? data = const {},
+    Map<String, dynamic>? hashedData = const {},
+  }) =>
+      super.noSuchMethod(
+        Invocation.method(
+          #addEvent,
+          [name],
+          {
+            #message: message,
+            #data: data,
+            #hashedData: hashedData,
+          },
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
   void timerEvent(String? name) => super.noSuchMethod(
         Invocation.method(
           #timerEvent,
@@ -88,19 +108,21 @@ class MockMetricClientService extends _i1.Mock
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
   @override
-  _i4.Future<void> trackStartScreen(String? screen) => (super.noSuchMethod(
+  _i4.Future<void> trackStartScreen(_i5.Route<dynamic>? route) =>
+      (super.noSuchMethod(
         Invocation.method(
           #trackStartScreen,
-          [screen],
+          [route],
         ),
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
   @override
-  _i4.Future<void> trackEndScreen(String? screen) => (super.noSuchMethod(
+  _i4.Future<void> trackEndScreen(_i5.Route<dynamic>? route) =>
+      (super.noSuchMethod(
         Invocation.method(
           #trackEndScreen,
-          [screen],
+          [route],
         ),
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),
@@ -113,6 +135,21 @@ class MockMetricClientService extends _i1.Mock
       super.noSuchMethod(
         Invocation.method(
           #setLabel,
+          [
+            prop,
+            value,
+          ],
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  void incrementPropertyLabel(
+    String? prop,
+    double? value,
+  ) =>
+      super.noSuchMethod(
+        Invocation.method(
+          #incrementPropertyLabel,
           [
             prop,
             value,
@@ -156,4 +193,20 @@ class MockMetricClientService extends _i1.Mock
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
+  @override
+  void onBackground() => super.noSuchMethod(
+        Invocation.method(
+          #onBackground,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
+  void onForeground() => super.noSuchMethod(
+        Invocation.method(
+          #onForeground,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
 }
