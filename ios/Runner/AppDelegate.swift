@@ -15,6 +15,7 @@ import Combine
 import flutter_downloader
 //import Sentry
 import Starscream
+import IOSSecuritySuite
 
 @UIApplicationMain
 @objc class AppDelegate: FlutterAppDelegate {
@@ -27,6 +28,12 @@ import Starscream
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            if IOSSecuritySuite.amIJailbroken() {
+                // If jailbreak is detected, notify the user and terminate the app
+                self.showAlertAndExit()
+            }
+        }
         
         LibAuk.create(keyChainGroup: Constant.keychainGroup)
         
@@ -230,6 +237,23 @@ import Starscream
             showSplashScreen()
         }
     }
+    
+    func showAlertAndExit() {
+            let alert = UIAlertController(title: "Jailbreak Detected",
+                                          message: "This app cannot run on jailbroken devices.",
+                                          preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { _ in
+                // Dismiss the alert and exit the app
+                exit(0)
+            }))
+            
+            // Get the root view controller to present the alert
+            if let rootViewController = UIApplication.shared.keyWindow?.rootViewController {
+                rootViewController.present(alert, animated: true, completion: nil)
+                
+            }
+        
+        }
     
     
     private func showSplashScreen() {
