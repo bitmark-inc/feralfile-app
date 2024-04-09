@@ -28,6 +28,11 @@ import IOSSecuritySuite
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
+        
+        if !Constant.isInhouse {
+            IOSSecuritySuite.denyDebugger()
+        }
+        
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             if IOSSecuritySuite.amIJailbroken() {
                 // If jailbreak is detected, notify the user and terminate the app
