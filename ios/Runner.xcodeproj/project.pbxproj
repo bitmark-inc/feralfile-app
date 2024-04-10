@@ -91,6 +91,8 @@
 		C577A25E2C1FF997DB2CF183 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A451CD8AF50E41359BCF628F /* Pods_Runner.framework */; };
 		E990C0ED2A26F412007CAE7A /* LocaleHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = E990C0EC2A26F412007CAE7A /* LocaleHandler.swift */; };
 		E990C0EE2A26F412007CAE7A /* LocaleHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = E990C0EC2A26F412007CAE7A /* LocaleHandler.swift */; };
+		E9C46BD42BC52C7B00DD0A78 /* IOSSecuritySuite in Frameworks */ = {isa = PBXBuildFile; productRef = E9C46BD32BC52C7B00DD0A78 /* IOSSecuritySuite */; };
+		E9C46BD62BC52CE300DD0A78 /* IOSSecuritySuite in Frameworks */ = {isa = PBXBuildFile; productRef = E9C46BD52BC52CE300DD0A78 /* IOSSecuritySuite */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -282,6 +284,7 @@
 				76AA1D4D280787D800E21A83 /* BeaconBlockchainSubstrate in Frameworks */,
 				76F328A127D1EC1C00C3B9FA /* BeaconTransportP2PMatrix in Frameworks */,
 				76F328A227D1EC1C00C3B9FA /* BeaconClientWallet in Frameworks */,
+				E9C46BD42BC52C7B00DD0A78 /* IOSSecuritySuite in Frameworks */,
 				76F328A327D1EC1C00C3B9FA /* BeaconCore in Frameworks */,
 				0EDFF85CFE28DAB66E69D254 /* Pods_Runner_Inhouse.framework in Frameworks */,
 			);
@@ -301,6 +304,7 @@
 				63D4B0F828B7180C0014B2C0 /* Starscream in Frameworks */,
 				766DF4622849FCD700731ADE /* Logging in Frameworks */,
 				63F1664F27B2509F00451AAA /* BeaconCore in Frameworks */,
+				E9C46BD62BC52CE300DD0A78 /* IOSSecuritySuite in Frameworks */,
 				C577A25E2C1FF997DB2CF183 /* Pods_Runner.framework in Frameworks */,
 				1F16F41836304671E2A6E53A /* Pods_Runner.framework in Frameworks */,
 			);
@@ -540,6 +544,7 @@
 				76AA1D4C280787D800E21A83 /* BeaconBlockchainSubstrate */,
 				766DF4632849FCEF00731ADE /* Logging */,
 				63D4B0F928B7181B0014B2C0 /* Starscream */,
+				E9C46BD32BC52C7B00DD0A78 /* IOSSecuritySuite */,
 			);
 			productName = Runner;
 			productReference = 76F328B127D1EC1C00C3B9FA /* Runner Inhouse.app */;
@@ -574,6 +579,7 @@
 				76AA1D4A2806E79000E21A83 /* BeaconBlockchainSubstrate */,
 				766DF4612849FCD700731ADE /* Logging */,
 				63D4B0F728B7180C0014B2C0 /* Starscream */,
+				E9C46BD52BC52CE300DD0A78 /* IOSSecuritySuite */,
 			);
 			productName = Runner;
 			productReference = 97C146EE1CF9000F007C117D /* Runner.app */;
@@ -615,6 +621,7 @@
 				63F1664927B2509F00451AAA /* XCRemoteSwiftPackageReference "beacon-ios-sdk" */,
 				766DF4602849FCD700731ADE /* XCRemoteSwiftPackageReference "swift-log" */,
 				63D4B0F628B7180C0014B2C0 /* XCRemoteSwiftPackageReference "Starscream" */,
+				E99407432BC51F85007BF600 /* XCRemoteSwiftPackageReference "IOSSecuritySuite" */,
 			);
 			productRefGroup = 97C146EF1CF9000F007C117D /* Products */;
 			projectDirPath = "";
@@ -2086,6 +2093,14 @@
 				revision = d83c03a6d9850c0d3daa8402acad1934f4427a0e;
 			};
 		};
+		E99407432BC51F85007BF600 /* XCRemoteSwiftPackageReference "IOSSecuritySuite" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/securing/IOSSecuritySuite.git";
+			requirement = {
+				kind = exactVersion;
+				version = 2.0.1;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -2168,6 +2183,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 76F3288D27D1EC1C00C3B9FA /* XCRemoteSwiftPackageReference "beacon-ios-sdk" */;
 			productName = BeaconTransportP2PMatrix;
+		};
+		E9C46BD32BC52C7B00DD0A78 /* IOSSecuritySuite */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E99407432BC51F85007BF600 /* XCRemoteSwiftPackageReference "IOSSecuritySuite" */;
+			productName = IOSSecuritySuite;
+		};
+		E9C46BD52BC52CE300DD0A78 /* IOSSecuritySuite */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E99407432BC51F85007BF600 /* XCRemoteSwiftPackageReference "IOSSecuritySuite" */;
+			productName = IOSSecuritySuite;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

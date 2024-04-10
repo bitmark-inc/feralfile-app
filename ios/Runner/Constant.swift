@@ -15,6 +15,14 @@ struct Constant {
         return "Feral File";
         #endif
     }
+    
+    static var isInhouse: Bool {
+        #if INHOUSE
+        return true;
+        #else
+        return false;
+        #endif
+    }
 
     static var keychainGroup: String = {
         #if INHOUSE
