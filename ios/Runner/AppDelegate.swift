@@ -15,6 +15,7 @@ import Combine
 import flutter_downloader
 //import Sentry
 import Starscream
+import Logging
 
 @UIApplicationMain
 @objc class AppDelegate: FlutterAppDelegate {
@@ -163,8 +164,7 @@ import Starscream
             }
         })
         beaconEventChannel.setStreamHandler(BeaconChannelHandler.shared)
-
-
+        
         let cloudEventChannel = FlutterEventChannel(name: "cloud/event", binaryMessenger: controller.binaryMessenger)
         cloudEventChannel.setStreamHandler(CloudChannelHandler.shared)
 
@@ -183,6 +183,114 @@ import Starscream
         }
         
         return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+    }
+    
+    override func application(_ application: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
+        logger.info("handle deeplink")
+        if url.scheme == "feralfile" {
+
+            handleEmergencyLog(url)
+        }
+        return super.application(application, open: url, options: options)
+    }
+    
+    private func handleEmergencyLog(_ url: URL) {
+        logger.info("handle feralfile deeplink")
+            
+        if url.host == "emergency-logs" {
+            logger.info("emergency-logs")
+            let token = url.lastPathComponent
+            uploadLogFile(uploadURL: Logger.appLogURL,token: token)
+        }
+    }
+    
+    func uploadLogFile(uploadURL: URL , token: String) {
+        // Create a URLSession configuration
+        logger.info("upload log file")
+        let config = URLSessionConfiguration.default
+        let session = URLSession(configuration: config)
+
+        let endpoint = Constant.isInhouse ? "https://support.test.autonomy.io/v1/issues/" : "https://support.autonomy.io/v1/issues/"
+        // Create the request body
+        guard let url = URL(string: endpoint) else {
+            return
+        }
+
+        var request = URLRequest(url: url)        
+        request.httpMethod = "POST"
+
+        // Set the authorization header
+        request.setValue("Emergency \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        
+        let fileData = base64EncodedFile(fileURL: uploadURL)
+        
+        if (fileData == nil) {
+            return
+        }
+            // Construct the request body
+        let requestBody: [String: Any] = [
+            "attachments": [
+                [
+                    "data": fileData,
+                    "title": "Emergency log",
+                    "path": "",
+                    "contentType": ""
+                ]
+            ],
+            "title": "Emergency log",
+            "message": "Emergency log",
+            "tags": ["emergency", "iOS"]
+        ]
+
+            // Convert the request body to JSON data
+        guard let jsonData = try? JSONSerialization.data(withJSONObject: requestBody) else {
+            print("Failed to encode request body")
+            return
+        }
+
+            // Set the request body
+        request.httpBody = jsonData
+        
+
+            // Create a data task to perform the request
+        let task = session.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("Upload log Error: \(error)")
+                return
+            }
+
+            guard let httpResponse = response as? HTTPURLResponse else {
+                print("Upload log Invalid response")
+                return
+            }
+
+            print("Upload log Response status: \(httpResponse.statusCode)")
+            return
+        }
+
+        // Start the data task
+        task.resume()
+    }
+    
+    func base64EncodedFile(fileURL: URL) -> String? {
+        do {
+            // Read file contents as bytes
+            let fileData = try Data(contentsOf: fileURL)
+                
+            // Encode bytes to Base64
+            let base64Data = fileData.base64EncodedData()
+                
+            // Convert Base64 data to a string representation
+            let base64String = String(data: base64Data, encoding: .utf8)
+                
+            return base64String
+        } catch {
+            // Handle any errors that occur during file reading
+            print("Error reading file:", error.localizedDescription)
+            return nil
+        }
     }
     
     override func applicationWillEnterForeground(_ application: UIApplication) {

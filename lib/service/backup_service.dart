@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -23,6 +24,7 @@ import 'package:http/http.dart' as http;
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:sentry/sentry.dart';
 import 'package:sqflite/sqflite.dart' as sqflite;
 import 'package:sqflite/sqflite.dart';
 
@@ -133,8 +135,10 @@ class BackupService {
       },
     );
     if (resp.statusCode == 200) {
+      log.info('[BackupService] got response');
       try {
         final version = await injector<CloudDatabase>().database.getVersion();
+        log.info('[BackupService] Cloud database local version is $version');
         final tempFilePath =
             "${(await getTemporaryDirectory()).path}/$_dbEncryptedFileName";
         final tempFile = File(tempFilePath);
@@ -148,6 +152,8 @@ class BackupService {
         );
         final tempDbOld = await sqfliteDatabaseFactory.openDatabase(dbFilePath);
         final backUpVersion = await tempDbOld.getVersion();
+        log.info(
+            '[BackupService] Cloud database backup version is $backUpVersion');
         if (version > backUpVersion) {
           await MigrationAdapter.runMigrations(
               tempDbOld, backUpVersion, version, [
@@ -171,6 +177,7 @@ class BackupService {
         return;
       } catch (e) {
         log.info("[BackupService] Failed to restore Cloud Database $e");
+        unawaited(Sentry.captureException(e, stackTrace: StackTrace.current));
         return;
       }
     }
