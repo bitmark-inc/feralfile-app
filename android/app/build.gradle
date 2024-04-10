@@ -111,6 +111,7 @@ android {
                     appIcon     : "@mipmap/ic_launcher_dev",
                     appIconRound: "@mipmap/ic_launcher_dev_round"
             ]
+            buildConfigField "boolean", "ENABLE_DEBUGGER_DETECTION", "false"
         }
 
         prd {
@@ -120,6 +121,7 @@ android {
                     appIcon     : "@mipmap/ic_launcher",
                     appIconRound: "@mipmap/ic_launcher_round"
             ]
+            buildConfigField "boolean", "ENABLE_DEBUGGER_DETECTION", "true"
         }
     }
     packagingOptions {

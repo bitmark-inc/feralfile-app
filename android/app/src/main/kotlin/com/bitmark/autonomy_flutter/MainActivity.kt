@@ -20,6 +20,7 @@ import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import com.scottyab.rootbeer.RootBeer
+import java.io.File
 
 class MainActivity : FlutterFragmentActivity() {
     companion object {
@@ -33,12 +34,26 @@ class MainActivity : FlutterFragmentActivity() {
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         FileLogger.init(applicationContext)
+        // Detect rooted devices
         // Create a RootBeer instance
         val rootBeer = RootBeer(this)
         if (rootBeer.isRooted) {
             Toast.makeText(this, "This app cannot be used on rooted devices.", Toast.LENGTH_SHORT)
                 .show()
             finish() // Close the app
+        }
+
+        // debugger detection
+        val hasTracerPid = hasTracerPid()
+        if (BuildConfig.ENABLE_DEBUGGER_DETECTION && hasTracerPid) {
+            Toast.makeText(
+                this,
+                "Debugging detected. Please try again without any debugging tools.",
+                Toast.LENGTH_SHORT
+            )
+                .show()
+            finish()
+            return
         }
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
@@ -111,5 +126,27 @@ class MainActivity : FlutterFragmentActivity() {
     override fun onPause() {
         super.onPause()
         isAuthenticate = false
+    }
+
+    private fun hasTracerPid(): Boolean {
+        val tracerpid = "TracerPid"
+        try {
+            val file = File("/proc/self/status")
+            val lines = file.readLines()
+            for (line in lines) {
+                if (line.length > tracerpid.length) {
+                    if (line.substring(0, tracerpid.length).equals(tracerpid, ignoreCase = true)) {
+                        val pid = line.substring(tracerpid.length + 1).trim().toInt()
+                        if (pid > 0) {
+                            return true
+                        }
+                        break
+                    }
+                }
+            }
+        } catch (exception: Exception) {
+            println(exception)
+        }
+        return false
     }
 }
