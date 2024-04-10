@@ -146,7 +146,8 @@ final migrateCloudV5ToV6 = Migration(5, 6, (database) async {
   log.info('Migrating Cloud database: created WalletAddress table');
   final personaTable = await database.query("Persona");
   final personas = personaTable.map((e) => Persona.fromJson(e)).toList();
-  log.info('Migrating Cloud database: personas ${personas.map((e) => e.toJson()).toList()}');
+  log.info('Migrating Cloud database: personas '
+      '${personas.map((e) => e.toJson()).toList()}');
   for (var persona in personas) {
     List<String>? tezIndexesStr = (persona.tezosIndexes ?? "").split(',');
     tezIndexesStr.removeWhere((element) => element.isEmpty);
