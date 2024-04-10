@@ -19,6 +19,7 @@ import androidx.biometric.BiometricManager
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
+import com.scottyab.rootbeer.RootBeer
 import java.io.File
 
 class MainActivity : FlutterFragmentActivity() {
@@ -33,6 +34,16 @@ class MainActivity : FlutterFragmentActivity() {
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         FileLogger.init(applicationContext)
+        // Detect rooted devices
+        // Create a RootBeer instance
+        val rootBeer = RootBeer(this)
+        if (rootBeer.isRooted) {
+            Toast.makeText(this, "This app cannot be used on rooted devices.", Toast.LENGTH_SHORT)
+                .show()
+            finish() // Close the app
+        }
+
+        // debugger detection
         val hasTracerPid = hasTracerPid()
         if (BuildConfig.ENABLE_DEBUGGER_DETECTION && hasTracerPid) {
             Toast.makeText(

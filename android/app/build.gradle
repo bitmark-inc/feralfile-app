@@ -170,6 +170,7 @@ dependencies {
     implementation(platform("com.walletconnect:android-bom:1.12.0"))
     implementation("com.walletconnect:android-core:1.17.0")
     implementation("com.walletconnect:sign:2.15.0")
+    implementation("com.scottyab:rootbeer-lib:0.1.0")
 
     implementation("com.github.airgap-it:beacon-android-sdk:$beacon_version") {
         exclude group: 'com.goterl'
