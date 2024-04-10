@@ -31,6 +31,9 @@ import IOSSecuritySuite
         
         if !Constant.isInhouse {
             IOSSecuritySuite.denyDebugger()
+            if checkDebugger() {
+                exit(0)
+            }
         }
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
@@ -299,4 +302,112 @@ extension AppDelegate {
             self?.authenticationVC.view.removeFromSuperview()
         }
     }
+    
+    func checkDebugger() -> Bool {
+        return checkExceptionPorts() || checkSignalHandlers() || checkExecutionStates()
+    }
+    
+    private static let EXC_MASK_ALL = (
+        EXC_MASK_BAD_ACCESS | EXC_MASK_BAD_INSTRUCTION | EXC_MASK_ARITHMETIC |
+            EXC_MASK_EMULATION | EXC_MASK_SOFTWARE | EXC_MASK_BREAKPOINT |
+            EXC_MASK_SYSCALL | EXC_MASK_MACH_SYSCALL | EXC_MASK_RPC_ALERT |
+            EXC_MASK_CRASH | EXC_MASK_RESOURCE | EXC_MASK_GUARD |
+            EXC_MASK_CORPSE_NOTIFY
+    )
+
+    func checkExceptionPorts() -> Bool {
+        let typesCnt = Int(EXC_TYPES_COUNT)
+
+        let masks = exception_mask_array_t.allocate(capacity: typesCnt)
+        masks.initialize(repeating: exception_mask_t(), count: typesCnt)
+
+        let oldHandlers = exception_handler_array_t.allocate(capacity: typesCnt)
+        oldHandlers.initialize(repeating: exception_handler_t(), count: typesCnt)
+        let oldBehaviors = exception_behavior_array_t.allocate(capacity: typesCnt)
+        oldBehaviors.initialize(repeating: exception_behavior_t(), count: typesCnt)
+        let oldFlavors = exception_flavor_array_t.allocate(capacity: typesCnt)
+        oldFlavors.initialize(repeating: thread_state_flavor_t(), count: typesCnt)
+
+        defer {
+            masks.deallocate()
+            oldHandlers.deallocate()
+            oldBehaviors.deallocate()
+            oldFlavors.deallocate()
+        }
+
+        var masksCnt: mach_msg_type_number_t = 0
+        let kr = task_get_exception_ports(mach_task_self_, exception_mask_t(Self.EXC_MASK_ALL), masks, &masksCnt, oldHandlers, oldBehaviors, oldFlavors)
+        guard kr == KERN_SUCCESS else {
+            return false
+        }
+
+        let taskExceptionHandlers = UnsafeMutableBufferPointer(start: oldHandlers, count: typesCnt)
+
+        guard taskExceptionHandlers.first(where: { $0 != 0 }) == nil
+        else {
+            return false
+        }
+
+        return true
+    }
+
+    private static let availableSignals = [
+        SIGHUP, SIGINT, SIGQUIT, SIGILL,
+        SIGTRAP, SIGABRT, SIGEMT, SIGFPE,
+        SIGKILL, SIGBUS, SIGSEGV, SIGSYS,
+        SIGPIPE, SIGALRM, SIGTERM, SIGURG,
+        SIGSTOP, SIGTSTP, SIGCONT, SIGCHLD,
+        SIGTTIN, SIGTTOU, SIGIO, SIGXCPU,
+        SIGXFSZ, SIGVTALRM, SIGPROF, SIGWINCH,
+        SIGINFO, SIGUSR1, SIGUSR2,
+    ]
+
+    func checkSignalHandlers() -> Bool {
+        for signal in Self.availableSignals {
+            var oldact = sigaction()
+            sigaction(signal, nil, &oldact)
+            if oldact.__sigaction_u.__sa_sigaction != nil {
+                return false
+            }
+        }
+
+        return true
+    }
+
+    func checkExecutionStates() -> Bool {
+        let typesCnt = Int(EXC_TYPES_COUNT)
+
+        let masks = exception_mask_array_t.allocate(capacity: typesCnt)
+        masks.initialize(repeating: exception_mask_t(), count: typesCnt)
+
+        let oldHandlers = exception_handler_array_t.allocate(capacity: typesCnt)
+        oldHandlers.initialize(repeating: exception_handler_t(), count: typesCnt)
+        let oldBehaviors = exception_behavior_array_t.allocate(capacity: typesCnt)
+        oldBehaviors.initialize(repeating: exception_behavior_t(), count: typesCnt)
+        let oldFlavors = exception_flavor_array_t.allocate(capacity: typesCnt)
+        oldFlavors.initialize(repeating: thread_state_flavor_t(), count: typesCnt)
+
+        defer {
+            masks.deallocate()
+            oldHandlers.deallocate()
+            oldBehaviors.deallocate()
+            oldFlavors.deallocate()
+        }
+
+        var masksCnt: mach_msg_type_number_t = 0
+        let kr = task_get_exception_ports(mach_task_self_, exception_mask_t(Self.EXC_MASK_ALL), masks, &masksCnt, oldHandlers, oldBehaviors, oldFlavors)
+        guard kr == KERN_SUCCESS else {
+            return false
+        }
+
+        let taskThreadFlavors = UnsafeMutableBufferPointer(start: oldFlavors, count: typesCnt)
+
+        guard taskThreadFlavors.first(where: { $0 == THREAD_STATE_NONE }) == nil
+        else {
+            return false
+        }
+
+        return true
+    }
+
 }
