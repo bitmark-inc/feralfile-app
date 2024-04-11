@@ -28,8 +28,10 @@ import 'package:permission_handler/permission_handler.dart';
 
 class RecoveryPhrasePage extends StatefulWidget {
   final List<String> words;
+  final String passphrase;
 
-  const RecoveryPhrasePage({required this.words, super.key});
+  const RecoveryPhrasePage(
+      {required this.words, required this.passphrase, super.key});
 
   @override
   State<RecoveryPhrasePage> createState() => _RecoveryPhrasePageState();
@@ -70,6 +72,7 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
   @override
   Widget build(BuildContext context) {
     final roundNumber = widget.words.length ~/ 2 + widget.words.length % 2;
+    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: getBackAppBar(
@@ -93,14 +96,37 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
                     _getBackUpState(context),
                     Stack(
                       children: [
-                        Table(
-                          children: List.generate(
-                            roundNumber,
-                            (index) => _tableRow(context, index, roundNumber),
-                          ),
-                          border: TableBorder.all(
-                              color: AppColor.auLightGrey,
-                              borderRadius: BorderRadius.circular(10)),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Table(
+                              children: List.generate(
+                                roundNumber,
+                                (index) =>
+                                    _tableRow(context, index, roundNumber),
+                              ),
+                              border: TableBorder.all(
+                                  color: AppColor.auLightGrey,
+                                  borderRadius: BorderRadius.circular(10)),
+                            ),
+                            if (widget.passphrase.isNotEmpty) ...[
+                              const SizedBox(height: 20),
+                              RichText(
+                                text: TextSpan(
+                                  children: <TextSpan>[
+                                    TextSpan(
+                                      text: '${'passphrase'.tr()}: ',
+                                      style: theme.textTheme.ppMori400Black14,
+                                    ),
+                                    TextSpan(
+                                        text: widget.passphrase,
+                                        style:
+                                            theme.textTheme.ppMori700Black14),
+                                  ],
+                                ),
+                              ),
+                            ]
+                          ],
                         ),
                         if (!_isShow)
                           Positioned.fill(

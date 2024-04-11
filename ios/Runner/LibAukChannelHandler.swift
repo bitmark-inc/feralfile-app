@@ -20,9 +20,10 @@ class LibAukChannelHandler {
     func createKey(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let args: NSDictionary = call.arguments as! NSDictionary
         let uuid: String = args["uuid"] as! String
+        let password: String = (args["password"] as? String) ?? ""
         let name: String = (args["name"] as? String) ?? ""
         
-        LibAuk.shared.storage(for: UUID(uuidString: uuid)!).createKey(name: name)
+        LibAuk.shared.storage(for: UUID(uuidString: uuid)!).createKey(password: password, name: name)
             .sink(receiveCompletion: { (completion) in
                 if let error = completion.error {
                     result(ErrorHandler.handle(error: error))
@@ -39,6 +40,7 @@ class LibAukChannelHandler {
     func importKey(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let args: NSDictionary = call.arguments as! NSDictionary
         let uuid: String = args["uuid"] as! String
+        let password: String = (args["password"] as? String) ?? ""
         let name: String = (args["name"] as? String) ?? ""
         let words: String = (args["words"] as? String) ?? ""
         let dateInMili: Double? = args["date"] as? Double
@@ -47,7 +49,7 @@ class LibAukChannelHandler {
         let wordsArray = words.components(separatedBy: " ")
         
         LibAuk.shared.storage(for: UUID(uuidString: uuid)!)
-            .importKey(words: wordsArray, name: name, creationDate:date)
+            .importKey(words: wordsArray, password: password, name: name, creationDate:date)
             .sink(receiveCompletion: { (completion) in
                 if let error = completion.error {
                     result(ErrorHandler.handle(error: error))
@@ -57,6 +59,25 @@ class LibAukChannelHandler {
                 result([
                     "error": 0,
                     "msg": "importKey success",
+                ])
+            })
+            .store(in: &cancelBag)
+    }
+    
+    func calculateFirstEthAddress(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args: NSDictionary = call.arguments as! NSDictionary
+        let passphrase: String = (args["passphrase"] as? String) ?? ""
+        let words: String = (args["words"] as? String) ?? ""
+        let wordsArray = words.components(separatedBy: " ")
+        LibAuk.shared.calculateEthFirstAddress(words: wordsArray, passphrase: passphrase)
+            .sink(receiveCompletion: { (completion) in
+                if let error = completion.error {
+                    result(ErrorHandler.handle(error: error))
+                }
+            }, receiveValue: { address in
+                result([
+                    "error": 0,
+                    "data": address,
                 ])
             })
             .store(in: &cancelBag)
@@ -437,6 +458,24 @@ class LibAukChannelHandler {
                 result([
                     "error": 0,
                     "data": words.joined(separator: " "),
+                ])
+            })
+            .store(in: &cancelBag)
+    }
+    
+    func exportMnemonicPassphrase(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args: NSDictionary = call.arguments as! NSDictionary
+        let uuid: String = args["uuid"] as! String
+
+        LibAuk.shared.storage(for: UUID(uuidString: uuid)!).exportMnemonicPassphrase()
+            .sink(receiveCompletion: { (completion) in
+                if let error = completion.error {
+                    result(ErrorHandler.handle(error: error))
+                }
+            }, receiveValue: { passphrase in
+                result([
+                    "error": 0,
+                    "data": passphrase,
                 ])
             })
             .store(in: &cancelBag)

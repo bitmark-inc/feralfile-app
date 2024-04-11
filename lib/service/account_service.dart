@@ -66,7 +66,7 @@ abstract class AccountService {
   Future androidRestoreKeys();
 
   Future<Persona> createPersona(
-      {String name = '', String password, bool isDefault = false});
+      {String name = '', String password = '', bool isDefault = false});
 
   Future<Persona> importPersona(String words, String password,
       {WalletType walletType = WalletType.Autonomy});
@@ -153,10 +153,19 @@ class AccountServiceImpl extends AccountService {
   @override
   Future<Persona> importPersona(String words, String password,
       {WalletType walletType = WalletType.Autonomy}) async {
+    late String firstEthAddress;
+    try {
+      final uuid = const Uuid().v4();
+      firstEthAddress = await LibAukDart.getWallet(uuid)
+          .calculateFirstEthAddress(words, password);
+    } catch (e) {
+      rethrow;
+    }
+
     final personas = await _cloudDB.personaDao.getPersonas();
     for (final persona in personas) {
-      final mnemonic = await persona.wallet().exportMnemonicWords();
-      if (mnemonic == words) {
+      final ethAddress = await persona.wallet().getETHAddress();
+      if (ethAddress == firstEthAddress) {
         return persona;
       }
     }
