@@ -63,6 +63,10 @@ if (branchKeyTest == null) {
 
 def branchTestMode = localProperties["branch.testMode"] ?: environment["BRANCH_IS_TEST"] ?: false
 
+def signature_hash = localProperties["signature.hash"] ?: environment["SIGNATURE_HASH"]
+
+def signature_hash_inhouse = localProperties["signature.hashInhouse"] ?: environment["SIGNATURE_HASH_INHOUSE"]
+
 android {
     compileSdkVersion 34
     flavorDimensions 'env'
@@ -112,6 +116,7 @@ android {
                     appIconRound: "@mipmap/ic_launcher_dev_round"
             ]
             buildConfigField "boolean", "ENABLE_DEBUGGER_DETECTION", "false"
+            buildConfigField "String", "SIGNATURE_HASH", '\"' + signature_hash_inhouse + '\"'
         }
 
         prd {
@@ -122,6 +127,9 @@ android {
                     appIconRound: "@mipmap/ic_launcher_round"
             ]
             buildConfigField "boolean", "ENABLE_DEBUGGER_DETECTION", "true"
+            // SIGNATURE_HASH with value from local.properties
+
+            buildConfigField "String", "SIGNATURE_HASH", '\"' + signature_hash + '\"'
         }
     }
     packagingOptions {

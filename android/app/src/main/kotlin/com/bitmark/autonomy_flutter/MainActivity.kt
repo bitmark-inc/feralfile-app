@@ -11,16 +11,19 @@ import android.app.KeyguardManager
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
 import android.os.Build
+import android.util.Base64
+import android.util.Log
 import android.view.WindowManager.LayoutParams
 import android.widget.Toast
-import androidx.annotation.NonNull
 import androidx.biometric.BiometricManager
+import com.scottyab.rootbeer.RootBeer
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
-import com.scottyab.rootbeer.RootBeer
 import java.io.File
+import java.security.MessageDigest
 
 class MainActivity : FlutterFragmentActivity() {
     companion object {
@@ -31,9 +34,41 @@ class MainActivity : FlutterFragmentActivity() {
 
     var flutterSharedPreferences: SharedPreferences? = null
 
-    override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
+    private fun isSignatureValid(
+        context: Context,
+        expectedSignatureHash: String
+    ): Boolean {
+        try {
+            val packageInfo = context.packageManager.getPackageInfo(
+                context.packageName,
+                PackageManager.GET_SIGNING_CERTIFICATES
+            )
+            val signatures = packageInfo.signingInfo.apkContentsSigners
+            val md = MessageDigest.getInstance("SHA-256")
+            for (signature in signatures) {
+                md.update(signature.toByteArray())
+                val currentSignatureHash = Base64.encodeToString(md.digest(), Base64.NO_WRAP)
+                if (currentSignatureHash == expectedSignatureHash) {
+                    return true
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("Signature", e.message.toString())
+        }
+        return false
+    }
+
+    override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         FileLogger.init(applicationContext)
+        // verity signing certificate
+        val isSignatureValid = isSignatureValid(this, BuildConfig.SIGNATURE_HASH)
+        if (!isSignatureValid) {
+            Toast.makeText(this, "Invalid signature", Toast.LENGTH_SHORT).show()
+            finish()
+            return
+        }
+
         // Detect rooted devices
         // Create a RootBeer instance
         val rootBeer = RootBeer(this)
