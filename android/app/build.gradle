@@ -112,6 +112,7 @@ android {
                     appIconRound: "@mipmap/ic_launcher_dev_round"
             ]
             buildConfigField "boolean", "ENABLE_DEBUGGER_DETECTION", "false"
+            buildConfigField "String", "SIGNATURE_HASH", ' "pXJUtSaRrPBPJOnBTC39Yh0a49qDuvXTV1nqvkxlT8s=" '
         }
 
         prd {
@@ -122,6 +123,8 @@ android {
                     appIconRound: "@mipmap/ic_launcher_round"
             ]
             buildConfigField "boolean", "ENABLE_DEBUGGER_DETECTION", "true"
+            buildConfigField "String", "SIGNATURE_HASH", ' "iP4Jieai1A4WzVKLoCf8Ey4A2OGI/uePfIpDjTCKtVw=" '
+
         }
     }
     packagingOptions {
