@@ -22,6 +22,7 @@ import android.widget.Toast
 import androidx.biometric.BiometricManager
 import com.scottyab.rootbeer.RootBeer
 import io.flutter.embedding.android.FlutterFragmentActivity
+import io.flutter.embedding.android.FlutterView
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import java.io.File
@@ -37,8 +38,7 @@ class MainActivity : FlutterFragmentActivity() {
     var flutterSharedPreferences: SharedPreferences? = null
 
     private fun settingFlutterView() {
-        val flutterView = io.flutter.embedding.android.FlutterView(this)
-//        val contentView = findViewById<View>(android.R.id.content).rootView
+        val flutterView = FlutterView(this)
         if (Build.VERSION.SDK_INT >= 34) {
             flutterView.setAccessibilityDataSensitive(ACCESSIBILITY_DATA_SENSITIVE_YES)
         }
