@@ -155,9 +155,8 @@ class AccountServiceImpl extends AccountService {
       {WalletType walletType = WalletType.Autonomy}) async {
     late String firstEthAddress;
     try {
-      final uuid = const Uuid().v4();
-      firstEthAddress = await LibAukDart.getWallet(uuid)
-          .calculateFirstEthAddress(words, password);
+      firstEthAddress =
+          await LibAukDart.calculateFirstEthAddress(words, password);
     } catch (e) {
       rethrow;
     }
