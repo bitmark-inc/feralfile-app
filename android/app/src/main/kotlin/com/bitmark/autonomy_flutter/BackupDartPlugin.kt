@@ -134,7 +134,8 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler {
                                             .importKey(
                                                 account.mnemonic.split(" "),
                                                 account.name,
-                                                Date()
+                                                Date(),
+                                                true
                                             )
                                     } else {
                                         Completable.complete()
