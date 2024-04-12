@@ -157,12 +157,6 @@ class _ImportSeedsPageState extends State<ImportSeedsPage> {
     } catch (exception) {
       log.info('Import wallet fails $exception');
       unawaited(Sentry.captureException(exception));
-
-      // if (!(exception is PlatformException &&
-      //     exception.code == 'importKey error')) {
-      //   unawaited(Sentry.captureException(exception));
-      // }
-
       UIHelper.hideInfoDialog(context);
       setState(() {
         isError = true;
