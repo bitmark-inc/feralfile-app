@@ -13,13 +13,16 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Build
+import android.os.Bundle
 import android.util.Base64
 import android.util.Log
+import android.view.View.ACCESSIBILITY_DATA_SENSITIVE_YES
 import android.view.WindowManager.LayoutParams
 import android.widget.Toast
 import androidx.biometric.BiometricManager
 import com.scottyab.rootbeer.RootBeer
 import io.flutter.embedding.android.FlutterFragmentActivity
+import io.flutter.embedding.android.FlutterView
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import java.io.File
@@ -33,6 +36,13 @@ class MainActivity : FlutterFragmentActivity() {
     }
 
     var flutterSharedPreferences: SharedPreferences? = null
+
+    private fun settingFlutterView() {
+        val flutterView = FlutterView(this)
+        if (Build.VERSION.SDK_INT >= 34) {
+            flutterView.setAccessibilityDataSensitive(ACCESSIBILITY_DATA_SENSITIVE_YES)
+        }
+    }
 
     private fun isSignatureValid(
         context: Context,
@@ -56,6 +66,11 @@ class MainActivity : FlutterFragmentActivity() {
             Log.e("Signature", e.message.toString())
         }
         return false
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        settingFlutterView()
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
