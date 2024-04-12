@@ -782,10 +782,8 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => RecoveryPhrasePage(
-                  words: (settings.arguments! as Map<String, dynamic>)['words']
-                      as List<String>,
-                  passphrase: (settings.arguments!
-                      as Map<String, dynamic>)['passphrase'] as String,
+                  payload:
+                      settings.arguments! as RecoveryPhrasePayload,
                 ));
 
       case cloudPage:

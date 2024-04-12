@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/database/entity/wallet_address.dart';
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/screen/account/recovery_phrase_page.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/connections/connections_bloc.dart';
@@ -598,11 +599,13 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
           if (!context.mounted) {
             return;
           }
-          unawaited(Navigator.of(context)
-              .pushNamed(AppRouter.recoveryPhrasePage, arguments: {
-            'words': words.split(' '),
-            'passphrase': passphrase,
-          }));
+          unawaited(
+            Navigator.of(context).pushNamed(
+              AppRouter.recoveryPhrasePage,
+              arguments: RecoveryPhrasePayload(
+                  words: words.split(' '), passphrase: passphrase),
+            ),
+          );
         },
       ),
     ]);

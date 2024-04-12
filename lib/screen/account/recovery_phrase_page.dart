@@ -26,12 +26,17 @@ import 'package:flutter/material.dart';
 import 'package:open_settings/open_settings.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-class RecoveryPhrasePage extends StatefulWidget {
+class RecoveryPhrasePayload {
   final List<String> words;
   final String passphrase;
 
-  const RecoveryPhrasePage(
-      {required this.words, required this.passphrase, super.key});
+  RecoveryPhrasePayload({required this.words, required this.passphrase});
+}
+
+class RecoveryPhrasePage extends StatefulWidget {
+  final RecoveryPhrasePayload payload;
+
+  const RecoveryPhrasePage({required this.payload, super.key});
 
   @override
   State<RecoveryPhrasePage> createState() => _RecoveryPhrasePageState();
@@ -71,7 +76,7 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
 
   @override
   Widget build(BuildContext context) {
-    final roundNumber = widget.words.length ~/ 2 + widget.words.length % 2;
+    final roundNumber = widget.payload.words.length ~/ 2 + widget.payload.words.length % 2;
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -109,7 +114,7 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
                                   color: AppColor.auLightGrey,
                                   borderRadius: BorderRadius.circular(10)),
                             ),
-                            if (widget.passphrase.isNotEmpty) ...[
+                            if (widget.payload.passphrase.isNotEmpty) ...[
                               const SizedBox(height: 20),
                               RichText(
                                 text: TextSpan(
@@ -119,7 +124,7 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
                                       style: theme.textTheme.ppMori400Black14,
                                     ),
                                     TextSpan(
-                                        text: widget.passphrase,
+                                        text: widget.payload.passphrase,
                                         style:
                                             theme.textTheme.ppMori700Black14),
                                   ],
@@ -182,8 +187,8 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
 
   Widget _rowItem(BuildContext context, int index) {
     final theme = Theme.of(context);
-    final isNull = index >= widget.words.length;
-    final word = isNull ? '' : widget.words[index];
+    final isNull = index >= widget.payload.words.length;
+    final word = isNull ? '' : widget.payload.words[index];
     NumberFormat formatter = NumberFormat('00');
 
     return Padding(
