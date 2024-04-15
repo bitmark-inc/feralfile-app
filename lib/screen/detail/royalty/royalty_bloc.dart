@@ -5,7 +5,6 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/dio_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:dio/dio.dart';
-import 'package:easy_localization/easy_localization.dart';
 
 abstract class RoyaltyEvent {}
 
@@ -59,9 +58,21 @@ class RoyaltyBloc extends AuBloc<RoyaltyEvent, RoyaltyState> {
           final dataFuture = dio.get<String>(COLLECTOR_RIGHTS_DEFAULT_DOCS);
           final resaleInfo =
               await _feralFileService.getResaleInfo(exhibitionID);
-          final name = await _feralFileService.getPartnerFullName(exhibitionID);
-          final revenueSetting =
-              _getRevenueSetting(resaleInfo, name ?? 'partner'.tr());
+          final partnerName =
+              await _feralFileService.getPartnerFullName(exhibitionID);
+          final curatorName =
+              _feralFileService.getCuratorFullName(exhibitionID);
+          final nameMapper = {
+            RoyaltyType.platform: 'Feral File',
+          };
+          if (partnerName != null) {
+            nameMapper[RoyaltyType.partner] = partnerName;
+          }
+          if (curatorName != null) {
+            nameMapper[RoyaltyType.curator] = curatorName;
+          }
+
+          final revenueSetting = resaleInfo.getRoyaltySetting(nameMapper);
           var data = await dataFuture;
           if (data.statusCode == 200) {
             emit(RoyaltyState(
@@ -74,18 +85,5 @@ class RoyaltyBloc extends AuBloc<RoyaltyEvent, RoyaltyState> {
         emit(RoyaltyState());
       }
     });
-  }
-
-  String _getRevenueSetting(
-      FeralFileResaleInfo resaleInfo, String partnerName) {
-    final artist = (resaleInfo.artist * 100).toString();
-    final platform = (resaleInfo.platform * 100).toString();
-    final partner = (resaleInfo.partner * 100).toString();
-    if (resaleInfo.partner > 0) {
-      return 'revenue_setting_with'
-          .tr(args: [artist, platform, partnerName, partner]);
-    } else {
-      return 'revenue_setting'.tr(args: [artist, platform]);
-    }
   }
 }
