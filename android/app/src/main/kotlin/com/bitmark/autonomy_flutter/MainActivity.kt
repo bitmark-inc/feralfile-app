@@ -27,6 +27,10 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import java.io.File
 import java.security.MessageDigest
+import java.io.BufferedReader
+import java.io.FileReader
+import java.net.Socket
+import java.net.InetSocketAddress
 
 class MainActivity : FlutterFragmentActivity() {
     companion object {
@@ -77,6 +81,10 @@ class MainActivity : FlutterFragmentActivity() {
         super.configureFlutterEngine(flutterEngine)
         FileLogger.init(applicationContext)
         // verity signing certificate
+
+        if (detectFrida()) {
+            finish()
+        }
         val isSignatureValid = isSignatureValid(this, BuildConfig.SIGNATURE_HASH)
         if (!isSignatureValid) {
             Toast.makeText(this, "Invalid signature", Toast.LENGTH_SHORT).show()
@@ -135,6 +143,43 @@ class MainActivity : FlutterFragmentActivity() {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             window.setHideOverlayWindows(true)
+        }
+    }
+
+    private fun detectFrida(): Boolean {
+        return detectFridaPort() || detectFridaMem()
+    }
+
+    private fun detectFridaPort(): Boolean {
+        return try {
+            val socket = Socket()
+            socket.connect(InetSocketAddress("127.0.0.1", 27047), 1000)
+            socket.close()
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    private fun detectFridaMem(): Boolean {
+        try {
+            val mapsFile = BufferedReader(FileReader("/proc/self/maps"))
+            var isFridaDetected = false
+
+            while (true) {
+                val line = mapsFile.readLine() ?: break
+
+                if (line.contains("frida")) {
+                    isFridaDetected = true
+                    break
+                }
+            }
+
+            mapsFile.close()
+            return isFridaDetected
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return false
         }
     }
 
