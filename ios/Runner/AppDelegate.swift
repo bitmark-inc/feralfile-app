@@ -31,9 +31,14 @@ import IOSSecuritySuite
         
         if !Constant.isInhouse {
             IOSSecuritySuite.denyDebugger()
-            if checkDebugger() {
+            
+            if checkDebugger() || IOSSecuritySuite.amIRunInEmulator() {
                 exit(0)
             }
+        }
+        
+        if IOSSecuritySuite.amIReverseEngineered() {
+            exit(0)
         }
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
