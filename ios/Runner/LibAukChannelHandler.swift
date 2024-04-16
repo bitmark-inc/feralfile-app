@@ -17,15 +17,12 @@ class LibAukChannelHandler {
     static let shared = LibAukChannelHandler()
     private var cancelBag = Set<AnyCancellable>()
     
-    // Specify the key under which the biometric data is stored
-    private let biometricEnableFlagKey = "biometricEnableFlag"
-
-    
     private func isBiometricTurnedOn() -> Bool {
         // Retrieve the biometric data from Keychain
-        if let biometricData = Keychain().getData(biometricEnableFlagKey) {
+        let biometricData = UserDefaults.standard.bool(forKey: "flutter.device_passcode")
+        if biometricData == true {
             // Check the value of the biometric data
-            return biometricData == Data([1])
+            return biometricData
         } else {
             // If biometric data is not found in Keychain, consider it turned off
             return false
@@ -33,11 +30,8 @@ class LibAukChannelHandler {
     }
     
     private func setBiometric(isEnable: Bool) {
-        // Convert the isEnable flag to Data
-        let biometricData = isEnable ? Data([1]) : Data([0])
-
-        // Save the biometric data to Keychain
-        Keychain().set(biometricData, forKey: biometricEnableFlagKey)
+        // Save the biometric data to UserDefaults
+        UserDefaults.standard.set(isEnable, forKey: "flutter.device_passcode")
     }
 
     func createKey(call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -447,24 +441,7 @@ class LibAukChannelHandler {
             })
             .store(in: &cancelBag)
     }
-    
-//    func getTezosPublicKey(call: FlutterMethodCall, result: @escaping FlutterResult) {
-//        let args: NSDictionary = call.arguments as! NSDictionary
-//        let uuid: String = args["uuid"] as! String
-//
-//        LibAuk.shared.storage(for: UUID(uuidString: uuid)!).getTezosPublicKey()
-//            .sink(receiveCompletion: { (completion) in
-//                if let error = completion.error {
-//                    result(ErrorHandler.handle(error: error))
-//                }
-//            }, receiveValue: { publicKey in
-//                result([
-//                    "error": 0,
-//                    "data": publicKey,
-//                ])
-//            })
-//            .store(in: &cancelBag)
-//    }
+
     
     func getTezosPublicKeyWithIndex(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let args: NSDictionary = call.arguments as! NSDictionary
@@ -681,19 +658,11 @@ class LibAukChannelHandler {
     
     func isBiometricTurnedOn(call: FlutterMethodCall, result: @escaping FlutterResult) {
         // Retrieve the biometric data from Keychain
-        if let biometricData = Keychain().getData(biometricEnableFlagKey) {
-            // Check the value of the biometric data
-            result([
-                "error": 0,
-                "data": biometricData == Data([1])
-            ])
-        } else {
-            // If biometric data is not found in Keychain, consider it turned off
-            result([
-                "error": 0,
-                "data": false
-            ])
-        }
+        let isTurnedOn = isBiometricTurnedOn()
+        result([
+            "error": 0,
+            "data": isTurnedOn
+        ])
     }
     
 }

@@ -63,6 +63,10 @@ abstract class ConfigurationService {
 
   bool isPremium();
 
+  Future<void> setDevicePasscodeEnabled(bool value);
+
+  bool isDevicePasscodeEnabled();
+
   Future<void> setNotificationEnabled(bool value);
 
   bool? isNotificationEnabled();
@@ -278,6 +282,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_IAP_RECEIPT = 'key_iap_receipt';
   static const String KEY_IAP_JWT = 'key_iap_jwt';
   static const String IS_PREMIUM = 'is_premium';
+  static const String KEY_DEVICE_PASSCODE = 'device_passcode';
   static const String KEY_NOTIFICATION = 'notifications';
   static const String KEY_ANALYTICS = 'analytics';
   static const String KEY_DONE_ONBOARING = 'done_onboarding';
@@ -436,6 +441,16 @@ class ConfigurationServiceImpl implements ConfigurationService {
       final json = jsonDecode(data);
       return JWT.fromJson(json);
     }
+  }
+
+  @override
+  bool isDevicePasscodeEnabled() =>
+      _preferences.getBool(KEY_DEVICE_PASSCODE) ?? false;
+
+  @override
+  Future<void> setDevicePasscodeEnabled(bool value) async {
+    log.info('setDevicePasscodeEnabled: $value');
+    await _preferences.setBool(KEY_DEVICE_PASSCODE, value);
   }
 
   @override

@@ -114,13 +114,6 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
                                 child: PrimaryButton(
                                   text: 'tap_to_reveal'.tr(),
                                   onTap: () async {
-                                    final didAuthenticate =
-                                        await LocalAuthenticationService
-                                            .checkLocalAuth();
-
-                                    if (!didAuthenticate) {
-                                      return;
-                                    }
                                     setState(() {
                                       _isShow = !_isShow;
                                     });

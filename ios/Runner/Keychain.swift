@@ -78,47 +78,38 @@ class Keychain {
 
     }
     
-    func getAllKeychainItem() -> [Dictionary<String, Any>]? {
-        //        let syncAttr = isSync ? kCFBooleanTrue : kCFBooleanFalse
+    func getAllKeychainItem(filter: ((Dictionary<String, Any>) -> Bool)?) -> [Dictionary<String, Any>]? {
+//                let syncAttr = isSync ? kCFBooleanTrue : kCFBooleanFalse
         //        let context = AccessControl.shared.context
         let query = [
             kSecClass as String: kSecClassGenericPassword,
-            //            kSecAttrSynchronizable as String: syncAttr!,
-            //            kSecAttrAccount as String: buildKeyAttr(prefix: prefix, key: key),
+//            kSecAttrSynchronizable as String: syncAttr!,
             kSecReturnData as String: kCFBooleanTrue!,
             kSecReturnAttributes as String : kCFBooleanTrue,
-            //            kSecAttrAccessGroup as String: LibAuk.shared.keyChainGroup,
-            //            kSecAttrAccessible as String: AccessControl.shared.accessible,
             kSecMatchLimit as String: kSecMatchLimitAll,
-            //            kSecUseAuthenticationContext as String: context,
         ] as [String: Any]
         
         var dataTypeRef: CFTypeRef?
         let status = SecItemCopyMatching(query as CFDictionary, &dataTypeRef)
-        
+        var fillerItems: Array<Dictionary<String, Any>> = []
         if status == noErr {
             guard let array = dataTypeRef as? Array<Dictionary<String, Any>> else {
                 return []
             }
             
-            for item in array {
-                if let key = item[kSecAttrAccount as String] as? String, key.contains("seed") {
-                    let personaUUIDString = key.replacingOccurrences(of: "persona.", with: "")
-                        .replacingOccurrences(of: "_seed", with: "")
-                    
-                    guard let personaUUID = UUID(uuidString: personaUUIDString) else {
-                        continue
+            if let filter = filter {
+                for item in array {
+                    if filter(item) {
+                        fillerItems.append(item)
                     }
-                    let data = item[kSecValueData as String]
-                    let  a = personaUUID
-                    
                 }
+            } else {
+                fillerItems = array
             }
-            return array
         }
         else {
             print("Error \(status)")
         }
-        return nil
+        return fillerItems
     }
 }
