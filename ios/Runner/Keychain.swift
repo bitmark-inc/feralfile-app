@@ -18,8 +18,9 @@ class Keychain {
             kSecAttrSynchronizable as String: syncAttr!,
             kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
             kSecAttrAccessGroup as String: Constant.keychainGroup,
-            kSecAttrAccount as String: "Autonomy",
+            kSecAttrAccount as String: forKey,
             kSecValueData as String: data
+            
         ] as [String: Any]
 
         SecItemDelete(query as CFDictionary)
@@ -41,7 +42,7 @@ class Keychain {
             kSecReturnData as String: kCFBooleanTrue!,
             kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
             kSecAttrAccessGroup as String: Constant.keychainGroup,
-            kSecAttrAccount as String: "Autonomy",
+            kSecAttrAccount as String: key,
             kSecMatchLimit as String: kSecMatchLimitOne
         ] as [String: Any]
 
@@ -64,7 +65,7 @@ class Keychain {
             kSecAttrSynchronizable as String: syncAttr!,
             kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
             kSecAttrAccessGroup as String: Constant.keychainGroup,
-            kSecAttrAccount as String: "Autonomy",
+            kSecAttrAccount as String: key,
         ] as [String: Any]
 
         // Delete any existing items
