@@ -66,9 +66,9 @@ abstract class AccountService {
   Future androidRestoreKeys();
 
   Future<Persona> createPersona(
-      {String name = '', String password = '', bool isDefault = false});
+      {String name = '', String passphrase = '', bool isDefault = false});
 
-  Future<Persona> importPersona(String words, String password,
+  Future<Persona> importPersona(String words, String passphrase,
       {WalletType walletType = WalletType.Autonomy});
 
   Future<Connection> nameLinkedAccount(Connection connection, String name);
@@ -136,10 +136,10 @@ class AccountServiceImpl extends AccountService {
 
   @override
   Future<Persona> createPersona(
-      {String name = '', String password = '', bool isDefault = false}) async {
+      {String name = '', String passphrase = '', bool isDefault = false}) async {
     final uuid = const Uuid().v4();
     final walletStorage = LibAukDart.getWallet(uuid);
-    await walletStorage.createKey(password, name);
+    await walletStorage.createKey(passphrase, name);
     final persona = Persona.newPersona(
         uuid: uuid, defaultAccount: isDefault ? 1 : null, name: name);
     await _cloudDB.personaDao.insertPersona(persona);
@@ -151,12 +151,12 @@ class AccountServiceImpl extends AccountService {
   }
 
   @override
-  Future<Persona> importPersona(String words, String password,
+  Future<Persona> importPersona(String words, String passphrase,
       {WalletType walletType = WalletType.Autonomy}) async {
     late String firstEthAddress;
     try {
       firstEthAddress =
-          await LibAukDart.calculateFirstEthAddress(words, password);
+          await LibAukDart.calculateFirstEthAddress(words, passphrase);
     } catch (e) {
       rethrow;
     }
@@ -172,7 +172,7 @@ class AccountServiceImpl extends AccountService {
     final uuid = const Uuid().v4();
     final walletStorage = LibAukDart.getWallet(uuid);
     await walletStorage.importKey(
-        words, password, '', DateTime.now().microsecondsSinceEpoch);
+        words, passphrase, '', DateTime.now().microsecondsSinceEpoch);
 
     final persona = Persona.newPersona(uuid: uuid);
     await _cloudDB.personaDao.insertPersona(persona);

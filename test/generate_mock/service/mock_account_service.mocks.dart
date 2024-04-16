@@ -186,7 +186,7 @@ class MockAccountService extends _i1.Mock implements _i6.AccountService {
   @override
   _i7.Future<_i3.Persona> createPersona({
     String? name = r'',
-    String? password = r'',
+    String? passphrase = r'',
     bool? isDefault = false,
   }) =>
       (super.noSuchMethod(
@@ -195,7 +195,7 @@ class MockAccountService extends _i1.Mock implements _i6.AccountService {
           [],
           {
             #name: name,
-            #password: password,
+            #passphrase: passphrase,
             #isDefault: isDefault,
           },
         ),
@@ -206,7 +206,7 @@ class MockAccountService extends _i1.Mock implements _i6.AccountService {
             [],
             {
               #name: name,
-              #password: password,
+              #passphrase: passphrase,
               #isDefault: isDefault,
             },
           ),
@@ -215,7 +215,7 @@ class MockAccountService extends _i1.Mock implements _i6.AccountService {
   @override
   _i7.Future<_i3.Persona> importPersona(
     String? words,
-    String? password, {
+    String? passphrase, {
     _i8.WalletType? walletType = _i8.WalletType.Autonomy,
   }) =>
       (super.noSuchMethod(
@@ -223,7 +223,7 @@ class MockAccountService extends _i1.Mock implements _i6.AccountService {
           #importPersona,
           [
             words,
-            password,
+            passphrase,
           ],
           {#walletType: walletType},
         ),
@@ -233,7 +233,7 @@ class MockAccountService extends _i1.Mock implements _i6.AccountService {
             #importPersona,
             [
               words,
-              password,
+              passphrase,
             ],
             {#walletType: walletType},
           ),
