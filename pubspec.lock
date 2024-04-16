@@ -1596,9 +1596,11 @@ packages:
   libauk_dart:
     dependency: "direct main"
     description:
-      path: "../Bitmark Inc./libauk-dart"
-      relative: true
-    source: path
+      path: "."
+      ref: ac5c26280376f4ad00d2f79038d64db6e8eec2c7
+      resolved-ref: ac5c26280376f4ad00d2f79038d64db6e8eec2c7
+      url: "https://github.com/autonomy-system/libauk-dart.git"
+    source: git
     version: "0.0.1"
   linkify:
     dependency: transitive
