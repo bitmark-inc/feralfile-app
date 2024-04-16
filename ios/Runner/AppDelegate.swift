@@ -32,7 +32,7 @@ import IOSSecuritySuite
         if !Constant.isInhouse {
             IOSSecuritySuite.denyDebugger()
             
-            if checkDebugger() || IOSSecuritySuite.amIRunInEmulator() {
+            if checkDebugger() {
                 exit(0)
             }
         }
