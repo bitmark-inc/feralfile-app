@@ -29,6 +29,26 @@ class LibAukChannelHandler {
         }
     }
     
+    
+    private func migrateKeychainV1() {
+        let keychain = Keychain()
+        let allEthInfoKeychainItems = keychain.getAllKeychainItem { (item: [String: Any]) -> Bool in
+            if let key = item[kSecAttrAccount as String] as? String {
+                return key.contains("ethInfo")
+            }
+            return false
+        }
+        for item in allEthInfoKeychainItems ?? [] {
+            if let uuidString = item["uuid"] as? String, let uuid = UUID(uuidString: uuidString) {
+                LibAuk.shared.storage(for: uuid).migrateFromKeyInfo2SeedPublicData()
+            }
+        }
+    }
+    
+    private func migrateKeychain() {
+        migrateKeychainV1()
+    }
+    
     private func setBiometric(isEnable: Bool) {
         // Save the biometric data to UserDefaults
         UserDefaults.standard.set(isEnable, forKey: "flutter.device_passcode")
@@ -611,43 +631,49 @@ class LibAukChannelHandler {
 
     }
     
+    func migrateSeed(item: Dictionary<String, Any>, isBiometricEnable: Bool) {
+        if let data = item[kSecValueData as String] as? Data,
+           let seedUR = String(data: data, encoding: .utf8) {
+            // Assuming Seed is a custom type and Seed initializer is available
+            if let seed = try? Seed(urString: seedUR) {
+                // Extract personaUUID from key and add to dictionary
+                if let key = item[kSecAttrAccount as String] as? String, key.contains("_seed") {
+                    let personaUUIDString = key.replacingOccurrences(of: "persona.", with: "")
+                                                 .replacingOccurrences(of: "_seed", with: "")
+                    if let personaUUID = UUID(uuidString: personaUUIDString) {
+                        let storage = LibAuk.shared.storage(for: personaUUID)
+                        storage.setSeed(seed: seed, isPrivate: isBiometricEnable).sink { (completion) in
+                            // TODO
+                        } receiveValue: { _ in
+                            // TODO
+                        }.store(in: &cancelBag)
+
+                    }
+                }
+            } else {
+                // Handle error when parsing Seed
+                print("Failed to parse Seed from: \(seedUR)")
+            }
+        } else {
+            // Handle error when decoding data to UTF-8 string
+            print("Failed to decode data to UTF-8 string: \(item)")
+        }
+    }
+    
     func toggleBiometric(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let args: NSDictionary = call.arguments as! NSDictionary
         let isBiometricEnable = args["isEnable"] as! Bool
-        let keychainItems = Keychain().getAllKeychainItem()
+        
+        let keychainItems = Keychain().getAllKeychainItem { (item: [String: Any]) -> Bool in
+            return true
+        }
         self.setBiometric(isEnable: isBiometricEnable)
         
         var seedItems: [UUID: Seed] = [:] // Dictionary to store personaUUID: Seed pairs
         
         if let items = keychainItems {
             for item in items {
-                if let data = item[kSecValueData as String] as? Data,
-                   let seedUR = String(data: data, encoding: .utf8) {
-                    // Assuming Seed is a custom type and Seed initializer is available
-                    if let seed = try? Seed(urString: seedUR) {
-                        // Extract personaUUID from key and add to dictionary
-                        if let key = item[kSecAttrAccount as String] as? String, key.contains("seed") {
-                            let personaUUIDString = key.replacingOccurrences(of: "persona.", with: "")
-                                                         .replacingOccurrences(of: "_seed", with: "")
-                            if let personaUUID = UUID(uuidString: personaUUIDString) {
-                                seedItems[personaUUID] = seed
-                                let storage = LibAuk.shared.storage(for: personaUUID)
-                                storage.setSeed(seed: seed, isPrivate: isBiometricEnable).sink { (completion) in
-                                    // TODO
-                                } receiveValue: { _ in
-                                    // TODO
-                                }.store(in: &cancelBag)
-
-                            }
-                        }
-                    } else {
-                        // Handle error when parsing Seed
-                        print("Failed to parse Seed from: \(seedUR)")
-                    }
-                } else {
-                    // Handle error when decoding data to UTF-8 string
-                    print("Failed to decode data to UTF-8 string: \(item)")
-                }
+                migrateSeed(item: item, isBiometricEnable: isBiometricEnable)
             }
         }
         
