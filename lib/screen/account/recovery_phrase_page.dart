@@ -76,7 +76,8 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
 
   @override
   Widget build(BuildContext context) {
-    final roundNumber = widget.payload.words.length ~/ 2 + widget.payload.words.length % 2;
+    final roundNumber =
+        widget.payload.words.length ~/ 2 + widget.payload.words.length % 2;
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -116,18 +117,29 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
                             ),
                             if (widget.payload.passphrase.isNotEmpty) ...[
                               const SizedBox(height: 20),
-                              RichText(
-                                text: TextSpan(
-                                  children: <TextSpan>[
-                                    TextSpan(
-                                      text: '${'passphrase'.tr()}: ',
-                                      style: theme.textTheme.ppMori400Black14,
-                                    ),
-                                    TextSpan(
-                                        text: widget.payload.passphrase,
-                                        style:
-                                            theme.textTheme.ppMori700Black14),
-                                  ],
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  border:
+                                      Border.all(color: AppColor.auLightGrey),
+                                  borderRadius: BorderRadius.circular(5),
+                                ),
+                                child: RichText(
+                                  text: TextSpan(
+                                    children: <TextSpan>[
+                                      TextSpan(
+                                        text: 'passphrase'.tr(),
+                                        style: theme
+                                            .textTheme.ppMori400FFQuickSilver14,
+                                      ),
+                                      const TextSpan(text: '  '),
+                                      TextSpan(
+                                          text: widget.payload.passphrase,
+                                          style:
+                                              theme.textTheme.ppMori400Black14),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ]

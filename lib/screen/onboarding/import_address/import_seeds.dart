@@ -92,9 +92,26 @@ class _ImportSeedsPageState extends State<ImportSeedsPage> {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      Text(
-                        'enter_passphrase'.tr(),
-                        style: Theme.of(context).textTheme.ppMori400Black14,
+                      RichText(
+                        text: TextSpan(
+                          children: <TextSpan>[
+                            TextSpan(
+                              text: 'enter_passphrase'.tr().split('only')[0],
+                              style:
+                                  Theme.of(context).textTheme.ppMori400Black14,
+                            ),
+                            TextSpan(
+                              text: 'only',
+                              style:
+                                  Theme.of(context).textTheme.ppMori700Black14,
+                            ),
+                            TextSpan(
+                              text: 'enter_passphrase'.tr().split('only')[1],
+                              style:
+                                  Theme.of(context).textTheme.ppMori400Black14,
+                            ),
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 5),
                       AuTextField(
@@ -118,6 +135,13 @@ class _ImportSeedsPageState extends State<ImportSeedsPage> {
                             });
                           },
                         ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'enter_passphrase_warning'.tr(),
+                        style: Theme.of(context)
+                            .textTheme
+                            .ppMori400FFQuickSilver12,
                       ),
                     ],
                   ),
