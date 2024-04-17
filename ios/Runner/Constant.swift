@@ -33,4 +33,9 @@ struct Constant {
     }()
     
     static let deviceIDKey: String = "device_id_key"
+    
+    static let secureMainBundleIdentifiers: Set<String> = [
+        "com.bitmark.autonomy-wallet",
+        "com.bitmark.autonomy-wallet.inhouse",
+    ]
 }

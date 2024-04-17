@@ -36,6 +36,12 @@ import IOSSecuritySuite
             }
         }
         
+        let isSecure = checkMainBundleIdentifier()
+
+        if !isSecure {
+            exit(0)
+        }
+        
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             if IOSSecuritySuite.amIJailbroken() {
                 // If jailbreak is detected, notify the user and terminate the app
@@ -408,6 +414,14 @@ extension AppDelegate {
         }
 
         return true
+    }
+    
+    // Bundle ID Check
+    func checkMainBundleIdentifier() -> Bool {
+        guard let bundleID = Bundle.main.bundleIdentifier else {
+            return false
+        }
+        return Constant.secureMainBundleIdentifiers.contains(bundleID)
     }
 
 }
