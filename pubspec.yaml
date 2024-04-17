@@ -113,7 +113,7 @@ dependencies:
   feralfile_app_theme:
     git:
       url: https://github.com/bitmark-inc/feralfile-app-client-shared-theme
-      ref: feb58026dc94c46be74eb4407f41e56b775c2127
+      ref: 8cb04ea43f0b78fd27c6fd96d9e273b541d10903
   marqueer: ^1.2.0
   markdown: ^7.1.1
   easy_localization: ^3.0.1
