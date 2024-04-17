@@ -31,6 +31,7 @@ import IOSSecuritySuite
         
         if !Constant.isInhouse {
             IOSSecuritySuite.denyDebugger()
+
             if checkDebugger() {
                 exit(0)
             }
@@ -41,7 +42,11 @@ import IOSSecuritySuite
         if !isSecure {
             exit(0)
         }
-        
+
+        if IOSSecuritySuite.amIReverseEngineered() {
+            exit(0)
+        }
+
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             if IOSSecuritySuite.amIJailbroken() {
                 // If jailbreak is detected, notify the user and terminate the app
@@ -415,7 +420,7 @@ extension AppDelegate {
 
         return true
     }
-    
+
     // Bundle ID Check
     func checkMainBundleIdentifier() -> Bool {
         guard let bundleID = Bundle.main.bundleIdentifier else {
