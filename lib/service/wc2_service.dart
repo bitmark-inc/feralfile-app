@@ -126,7 +126,7 @@ class Wc2Service {
       'eth_sign': _handleEthSign,
       'eth_signTypedData': _handleEthSignType,
       'eth_signTypedData_v4': _handleEthSignType,
-      'wallet_addEthereumChain': _handleAddEthereumChain,
+      // 'wallet_addEthereumChain': _handleAddEthereumChain,
     };
     log.info('[Wc2Service] Registering handlers for chainId: $chainId');
     ethRequestHandlerMap.forEach((method, handler) {
