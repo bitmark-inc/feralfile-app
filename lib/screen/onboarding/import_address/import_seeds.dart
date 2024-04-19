@@ -28,8 +28,11 @@ class ImportSeedsPage extends StatefulWidget {
 class _ImportSeedsPageState extends State<ImportSeedsPage> {
   bool isError = false;
   final TextEditingController _phraseTextController = TextEditingController();
+  final TextEditingController _passphraseTextController =
+      TextEditingController();
   bool _isSubmissionEnabled = false;
   bool _obscureText = true;
+  bool _passphraseObscureText = true;
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -88,6 +91,58 @@ class _ImportSeedsPageState extends State<ImportSeedsPage> {
                           },
                         ),
                       ),
+                      const SizedBox(height: 20),
+                      RichText(
+                        text: TextSpan(
+                          children: <TextSpan>[
+                            TextSpan(
+                              text: 'enter_passphrase'.tr().split('only')[0],
+                              style:
+                                  Theme.of(context).textTheme.ppMori400Black14,
+                            ),
+                            TextSpan(
+                              text: 'only',
+                              style:
+                                  Theme.of(context).textTheme.ppMori700Black14,
+                            ),
+                            TextSpan(
+                              text: 'enter_passphrase'.tr().split('only')[1],
+                              style:
+                                  Theme.of(context).textTheme.ppMori400Black14,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 5),
+                      AuTextField(
+                        labelSemantics: 'enter_passphrase',
+                        title: '',
+                        obscureText: _passphraseObscureText,
+                        placeholder: 'enter_passphrase_placeholder'.tr(),
+                        hintMaxLines: 1,
+                        controller: _passphraseTextController,
+                        suffix: IconButton(
+                          icon: SvgPicture.asset(
+                            _passphraseObscureText
+                                ? 'assets/images/unhide.svg'
+                                : 'assets/images/hide.svg',
+                            colorFilter: const ColorFilter.mode(
+                                AppColor.primaryBlack, BlendMode.srcIn),
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _passphraseObscureText = !_passphraseObscureText;
+                            });
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'enter_passphrase_warning'.tr(),
+                        style: Theme.of(context)
+                            .textTheme
+                            .ppMori400FFQuickSilver12,
+                      ),
                     ],
                   ),
                 ),
@@ -110,8 +165,10 @@ class _ImportSeedsPageState extends State<ImportSeedsPage> {
       });
       final accountService = injector<AccountService>();
 
-      final persona =
-          await accountService.importPersona(_phraseTextController.text.trim());
+      final persona = await accountService.importPersona(
+        _phraseTextController.text.trim(),
+        _passphraseTextController.text.trim(),
+      );
       if (!mounted) {
         return;
       }
@@ -123,10 +180,7 @@ class _ImportSeedsPageState extends State<ImportSeedsPage> {
       }
     } catch (exception) {
       log.info('Import wallet fails $exception');
-      if (!(exception is PlatformException &&
-          exception.code == 'importKey error')) {
-        unawaited(Sentry.captureException(exception));
-      }
+      unawaited(Sentry.captureException(exception));
       UIHelper.hideInfoDialog(context);
       setState(() {
         isError = true;
