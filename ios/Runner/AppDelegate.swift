@@ -16,6 +16,7 @@ import flutter_downloader
 //import Sentry
 import Starscream
 import IOSSecuritySuite
+import Sentry
 
 @UIApplicationMain
 @objc class AppDelegate: FlutterAppDelegate {
@@ -28,28 +29,31 @@ import IOSSecuritySuite
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
-        
-        if !Constant.isInhouse {
-            IOSSecuritySuite.denyDebugger()
 
-            if checkDebugger() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+            if !Constant.isInhouse {
+                IOSSecuritySuite.denyDebugger()
+                
+                if checkDebugger() {
+                    captureMessage(message: "[Security check] Debugger detected")
+                    exit(0)
+                }
+            }
+            
+            let isSecure = checkMainBundleIdentifier()
+            
+            if !isSecure {
+                captureMessage(message: "[Security check] Integrity check failed")
                 exit(0)
             }
-        }
-        
-        let isSecure = checkMainBundleIdentifier()
-
-        if !isSecure {
-            exit(0)
-        }
-
-        if IOSSecuritySuite.amIReverseEngineered() {
-            exit(0)
-        }
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            
+            if IOSSecuritySuite.amIReverseEngineered() {
+                captureMessage(message: "[Security check] Reverse engineering tool detected")
+                exit(0)
+            }
+            
             if IOSSecuritySuite.amIJailbroken() {
-                // If jailbreak is detected, notify the user and terminate the app
+                captureMessage(message: "[Security check] Jail broken device detected")
                 self.showAlertAndExit()
             }
         }
@@ -237,6 +241,12 @@ import IOSSecuritySuite
 
     override func application(_ application: UIApplication, shouldAllowExtensionPointIdentifier extensionPointIdentifier: UIApplication.ExtensionPointIdentifier) -> Bool {
         return extensionPointIdentifier != .keyboard
+    }
+    
+    private func captureMessage(message: String) {
+        do {
+            SentrySDK.capture(message: message)
+        } catch {}
     }
     
     override func applicationWillEnterForeground(_ application: UIApplication) {
