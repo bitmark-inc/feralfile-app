@@ -8,7 +8,7 @@ on:
 #        - update_autotest
 jobs:
   build:
-    runs-on: [self-hosted, Linux, ci-local-bmvn, X64]
+    runs-on: [self-hosted, macOS, ARM, auto-android]
     steps:
       # Checkout code and get packages.
       - name: Checkout code
@@ -75,8 +75,8 @@ jobs:
           # echo SEED_TO_RESTORE_ACCOUNT_BUY_NFT=${{ secrets.SEED_TO_RESTORE_ACCOUNT_BUY_NFT }} >> .env
           # echo SEED_TO_SEND_ETH=${{ secrets.SEED_TO_SEND_ETH }} >> .env
           # echo SEED_TO_RECEIVE_ETH=${{ secrets.SEED_TO_RECEIVE_ETH }} >> .env
-          # echo AUTO_TEST_PLATFORM=android >> .env
-          # echo AUTO_TEST_PROFILE=GalaxyA52s5G >> .env
+          echo AUTO_TEST_PLATFORM=android >> .env
+          echo AUTO_TEST_PROFILE=GalaxyA52s5G >> .env
 
           echo AUTOTEST_ENV= "${{ secrets.AUTOTEST_ENV }}" | sed 's/\\n/\n/g' >> .env
           cat .env
@@ -99,7 +99,7 @@ jobs:
         if: success() || failure()
         run: |
           cd auto-test
-          npx cucumber-js ./src/features/ImportSeeds.feature --format ./reporter.js
+          npx cucumber-js ./src/features/*.feature --format ./reporter.js
       # - name: Run auto tests for Suite "Connect wallet to NFT exchanges"
       #   if: success() || failure()
       #   run: |
