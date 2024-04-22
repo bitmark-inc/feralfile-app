@@ -212,19 +212,23 @@ final migrateCloudV7ToV8 = Migration(7, 8, (database) async {
 
 final migrateCloudV8ToV9 = Migration(8, 9, (database) async {
   // Check if 'accountOrder' column exists in 'Connection' table
-  final countOrderColInConnection = sqflite.Sqflite.firstIntValue(await database.rawQuery(
-      "SELECT COUNT(*) FROM pragma_table_info('Connection') WHERE name='accountOrder';"));
+  final countOrderColInConnection = sqflite.Sqflite.firstIntValue(
+      await database.rawQuery(
+          "SELECT COUNT(*) FROM pragma_table_info('Connection') WHERE name='accountOrder';"));
 
   if (countOrderColInConnection == 0) {
-    await database.execute('ALTER TABLE Connection ADD COLUMN accountOrder INTEGER;');
+    await database
+        .execute('ALTER TABLE Connection ADD COLUMN accountOrder INTEGER;');
   }
 
   // Check if 'accountOrder' column exists in 'WalletAddress' table
-  final countOrderColInWalletAddress = sqflite.Sqflite.firstIntValue(await database.rawQuery(
-      "SELECT COUNT(*) FROM pragma_table_info('WalletAddress') WHERE name='accountOrder';"));
+  final countOrderColInWalletAddress = sqflite.Sqflite.firstIntValue(
+      await database.rawQuery(
+          "SELECT COUNT(*) FROM pragma_table_info('WalletAddress') WHERE name='accountOrder';"));
 
   if (countOrderColInWalletAddress == 0) {
-    await database.execute('ALTER TABLE WalletAddress ADD COLUMN accountOrder INTEGER;');
+    await database
+        .execute('ALTER TABLE WalletAddress ADD COLUMN accountOrder INTEGER;');
   }
 
   log.info('Migrated Cloud database from version 8 to 9');

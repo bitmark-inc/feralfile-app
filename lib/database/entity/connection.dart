@@ -66,15 +66,16 @@ class Connection {
     String? accountNumber,
     DateTime? createdAt,
     int? accountOrder,
-  }) => Connection(
-      key: key ?? this.key,
-      name: name ?? this.name,
-      data: data ?? this.data,
-      connectionType: connectionType ?? this.connectionType,
-      accountNumber: accountNumber ?? this.accountNumber,
-      createdAt: createdAt ?? this.createdAt,
-      accountOrder: accountOrder ?? this.accountOrder,
-    );
+  }) =>
+      Connection(
+        key: key ?? this.key,
+        name: name ?? this.name,
+        data: data ?? this.data,
+        connectionType: connectionType ?? this.connectionType,
+        accountNumber: accountNumber ?? this.accountNumber,
+        createdAt: createdAt ?? this.createdAt,
+        accountOrder: accountOrder ?? this.accountOrder,
+      );
 
   BeaconConnectConnection? get beaconConnectConnection {
     if (connectionType != ConnectionType.beaconP2PPeer.rawValue) {
@@ -108,8 +109,8 @@ class Connection {
   List<String> get accountNumbers => accountNumber.split('||');
 
   List<AddressIndex> get addressIndexes => accountNumbers
-        .map((e) => AddressIndex(address: e, createdAt: createdAt))
-        .toList();
+      .map((e) => AddressIndex(address: e, createdAt: createdAt))
+      .toList();
 
   @override
   bool operator ==(covariant Connection other) {
@@ -147,10 +148,11 @@ class Connection {
   }
 
   @override
-  int get hashCode => key.hashCode ^
-        name.hashCode ^
-        data.hashCode ^
-        connectionType.hashCode ^
-        accountNumber.hashCode ^
-        createdAt.hashCode;
+  int get hashCode =>
+      key.hashCode ^
+      name.hashCode ^
+      data.hashCode ^
+      connectionType.hashCode ^
+      accountNumber.hashCode ^
+      createdAt.hashCode;
 }
