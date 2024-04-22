@@ -34,26 +34,26 @@ import Sentry
             if !Constant.isInhouse {
                 IOSSecuritySuite.denyDebugger()
                 
-                if checkDebugger() {
-                    captureMessage(message: "[Security check] Debugger detected")
+                if self.checkDebugger() {
+                    self.captureMessage(message: "[Security check] Debugger detected")
                     exit(0)
                 }
             }
             
-            let isSecure = checkMainBundleIdentifier()
+            let isSecure = self.checkMainBundleIdentifier()
             
-            if !isSecure {
-                captureMessage(message: "[Security check] Integrity check failed")
+            if isSecure {
+                self.captureMessage(message: "[Security check] Integrity check failed")
                 exit(0)
             }
             
             if IOSSecuritySuite.amIReverseEngineered() {
-                captureMessage(message: "[Security check] Reverse engineering tool detected")
+                self.captureMessage(message: "[Security check] Reverse engineering tool detected")
                 exit(0)
             }
             
             if IOSSecuritySuite.amIJailbroken() {
-                captureMessage(message: "[Security check] Jail broken device detected")
+                self.captureMessage(message: "[Security check] Jail broken device detected")
                 self.showAlertAndExit()
             }
         }
