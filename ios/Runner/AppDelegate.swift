@@ -42,7 +42,7 @@ import Sentry
             
             let isSecure = self.checkMainBundleIdentifier()
             
-            if isSecure {
+            if !isSecure {
                 self.captureMessage(message: "[Security check] Integrity check failed")
                 exit(0)
             }
