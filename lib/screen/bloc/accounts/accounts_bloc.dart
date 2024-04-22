@@ -53,6 +53,39 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
       emit(AccountsState(accounts: accounts));
     });
 
+    on<ChangeAccountOrderEvent>((event, emit) {
+      int newOrder = event.newOrder;
+      final oldOrder = event.oldOrder;
+      if (oldOrder == newOrder ||
+          state.accounts == null ||
+          oldOrder >= state.accounts!.length ||
+          newOrder >= state.accounts!.length) {
+        return;
+      }
+
+      if (oldOrder < newOrder) {
+        newOrder -= 1;
+      }
+      final List<Account> accounts = [...state.accounts!];
+      final Account account = accounts.removeAt(oldOrder);
+      accounts.insert(newOrder, account);
+      emit(state.copyWith(accounts: accounts));
+      add(SaveAccountOrderEvent(accounts: accounts));
+    });
+
+    on<SaveAccountOrderEvent>((event, emit) async {
+      final accounts = event.accounts;
+      for (int i = 0; i < event.accounts.length; i++) {
+        final account = accounts[i];
+        if (account.persona != null) {
+          await _cloudDB.addressDao.setAddressOrder(account.key, i);
+        } else {
+          await _cloudDB.connectionDao
+              .setConnectionOrder(account.accountNumber, i);
+        }
+      }
+    });
+
     on<GetAccountsIRLEvent>((event, emit) async {
       final addresses = await _cloudDB.addressDao.getAllAddresses();
 
@@ -113,9 +146,9 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
         }
         if (event.getEth) {
           final ethConnections = connections.where((connection) {
-            final crytoType =
+            final cryptoType =
                 CryptoType.fromAddress(connection.accountNumber).source;
-            return crytoType == CryptoType.ETH.source;
+            return cryptoType == CryptoType.ETH.source;
           }).toList();
           categorizedConnection.addAll(ethConnections);
         }
@@ -127,14 +160,14 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
       }
 
       List<Account> accounts = await getAccountPersona(addresses);
-      accounts.addAll(viewOnlyAccounts);
-      accounts.sort(_compareAccount);
+      accounts
+        ..addAll(viewOnlyAccounts)
+        ..sort(_compareAccount);
       emit(state.copyWith(accounts: accounts));
     });
 
     on<NameLinkedAccountEvent>((event, emit) {
-      final connection = event.connection;
-      connection.name = event.name;
+      final connection = event.connection..name = event.name;
 
       _cloudDB.connectionDao.updateConnection(connection);
       add(GetAccountsEvent());
@@ -175,7 +208,9 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
     final existingConnections = await _cloudDB.connectionDao
         .getConnectionsByAccountNumber(accountNumber);
 
-    if (existingConnections.isEmpty) return null;
+    if (existingConnections.isEmpty) {
+      return null;
+    }
 
     return existingConnections.first;
   }
@@ -183,8 +218,7 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
   Future<List<Account>> getAccountPersona(
       List<WalletAddress> walletAddresses) async {
     final personas = await _cloudDB.personaDao.getPersonas();
-    final List<WalletAddress> addresses = [];
-    addresses.addAll(walletAddresses);
+    final List<WalletAddress> addresses = [...walletAddresses];
     List<Account> accounts = [];
     for (var e in addresses) {
       final name = e.name != null && e.name!.isNotEmpty ? e.name : e.cryptoType;
@@ -194,17 +228,33 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
         accounts.add(Account(
             key: e.address,
             persona: persona,
-            name: name ?? "",
+            name: name ?? '',
             blockchain: e.cryptoType,
             walletAddress: e,
             accountNumber: e.address,
-            createdAt: e.createdAt));
+            createdAt: e.createdAt,
+            accountOrder: e.accountOrder));
       }
     }
     return accounts;
   }
 
   int _compareAccount(Account a, Account b) {
+    if (a.accountOrder == b.accountOrder) {
+      return _compareAccountWithoutOrder(a, b);
+    }
+
+    if (a.accountOrder == null) {
+      return 1;
+    }
+    if (b.accountOrder == null) {
+      return -1;
+    }
+
+    return a.accountOrder!.compareTo(b.accountOrder!);
+  }
+
+  int _compareAccountWithoutOrder(Account a, Account b) {
     final aDefault = a.persona?.defaultAccount ?? 0;
     final bDefault = b.persona?.defaultAccount ?? 0;
     if (aDefault != bDefault) {
@@ -224,6 +274,7 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
       blockchain: cryptoType,
       name: name,
       createdAt: connection.createdAt,
+      accountOrder: connection.accountOrder,
     );
   }
 }

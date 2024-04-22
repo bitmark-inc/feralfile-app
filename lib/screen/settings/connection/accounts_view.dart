@@ -51,64 +51,63 @@ class _AccountsViewState extends State<AccountsView> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+  Widget build(BuildContext context) =>
+      BlocConsumer<AccountsBloc, AccountsState>(listener: (context, state) {
+        final accounts = state.accounts;
+        if (accounts == null) {
+          return;
+        }
+      }, builder: (context, state) {
+        final accounts = state.accounts;
+        if (accounts == null) {
+          return const Center(child: CupertinoActivityIndicator());
+        }
+        if (accounts.isEmpty) {
+          return const SizedBox();
+        }
 
-    return BlocConsumer<AccountsBloc, AccountsState>(
-        listener: (context, state) {
-      final accounts = state.accounts;
-      if (accounts == null) {
-        return;
-      }
-    }, builder: (context, state) {
-      final accounts = state.accounts;
-      if (accounts == null) {
-        return const Center(child: CupertinoActivityIndicator());
-      }
-      if (accounts.isEmpty) {
-        return const SizedBox();
-      }
+        if (!widget.isInSettingsPage) {
+          return _noEditAccountsListWidget(accounts);
+        }
+        return ReorderableListView(
+          header: widget.isInSettingsPage ? const SizedBox(height: 40) : null,
+          onReorder: (int oldIndex, int newIndex) {
+            context.read<AccountsBloc>().add(ChangeAccountOrderEvent(
+                newOrder: newIndex, oldOrder: oldIndex));
+          },
+          children: accounts
+              .map((account) => _accountCard(context, account))
+              .toList(),
+        );
+      });
 
-      if (!widget.isInSettingsPage) {
-        return _noEditAccountsListWidget(accounts);
-      }
-      return SlidableAutoCloseBehavior(
-        child: Column(
-          children: [
-            ...accounts.map(
-              (account) => Column(
+  Widget _accountCard(BuildContext context, Account account) => Column(
+        key: ValueKey(account.key),
+        children: [
+          Padding(
+            padding: padding,
+            child: Slidable(
+              groupTag: 'accountsView',
+              endActionPane: ActionPane(
+                motion: const DrawerMotion(),
+                dragDismissible: false,
+                children: slidableActions(account),
+              ),
+              child: Column(
                 children: [
-                  Padding(
-                    padding: padding,
-                    child: Slidable(
-                      groupTag: 'accountsView',
-                      endActionPane: ActionPane(
-                        motion: const DrawerMotion(),
-                        dragDismissible: false,
-                        children: slidableActions(account),
-                      ),
-                      child: Column(
-                        children: [
-                          if (_editingAccountKey == null ||
-                              _editingAccountKey != account.key) ...[
-                            _viewAccountItem(account),
-                          ] else ...[
-                            _editAccountItem(account),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ),
-                  const Divider(
-                      height: 1, thickness: 1, color: AppColor.auLightGrey)
+                  if (_editingAccountKey == null ||
+                      _editingAccountKey != account.key) ...[
+                    _viewAccountItem(account),
+                  ] else ...[
+                    _editAccountItem(account),
+                  ],
                 ],
               ),
             ),
-          ],
-        ),
+          ),
+          const Divider(height: 1, thickness: 1, color: AppColor.auLightGrey)
+        ],
       );
-    });
-  }
 
   List<CustomSlidableAction> slidableActions(Account account) {
     final theme = Theme.of(context);
