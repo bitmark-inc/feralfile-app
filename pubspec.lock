@@ -1685,8 +1685,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "363360e5af9cb76744093c734e8fa290794e189b"
-      resolved-ref: "363360e5af9cb76744093c734e8fa290794e189b"
+      ref: "598a4627345f746d7e8fd62e7d0da4766ed29fb6"
+      resolved-ref: "598a4627345f746d7e8fd62e7d0da4766ed29fb6"
       url: "https://github.com/autonomy-system/libauk-dart.git"
     source: git
     version: "0.0.1"
