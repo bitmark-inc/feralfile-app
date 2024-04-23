@@ -13,6 +13,9 @@ jobs:
       # Checkout code and get packages.
       - name: Checkout code
         uses: actions/checkout@v3
+      - uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: ${{ secrets.SSH_ASSETS_KEY }}
       # Set build number
       - name: Set env
         run: |
@@ -82,7 +85,7 @@ jobs:
           cat .env
 
       - name: Submoudles update
-        run: git submodule update --init --recursive
+        run: git -c submodule update --init --recursive
       - run: flutter pub cache repair
       - run: flutter pub get
       # Build app

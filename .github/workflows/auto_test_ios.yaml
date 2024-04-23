@@ -20,6 +20,9 @@ jobs:
           echo "FLUTTER_VERSION_CODE=10" >> $GITHUB_ENV
           echo "BRANCH_KEY=${{ secrets.BRANCH_KEY }}" >> $GITHUB_ENV
           echo "BRANCH_KEY_TEST=${{ secrets.BRANCH_KEY_TEST }}" >> $GITHUB_ENV
+      - uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: ${{ secrets.SSH_ASSETS_KEY }}
       - name: Create env file
         run: |
           touch .env
@@ -30,7 +33,7 @@ jobs:
           cat .env
 
       - name: Submoudles update
-        run: git submodule update --init --recursive
+        run: git -c submodule update --init --recursive
       - run: flutter pub cache repair
       - run: flutter pub get
       # Build app
