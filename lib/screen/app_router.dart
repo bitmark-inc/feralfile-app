@@ -782,7 +782,8 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => RecoveryPhrasePage(
-                  words: settings.arguments! as List<String>,
+                  payload:
+                      settings.arguments! as RecoveryPhrasePayload,
                 ));
 
       case cloudPage:

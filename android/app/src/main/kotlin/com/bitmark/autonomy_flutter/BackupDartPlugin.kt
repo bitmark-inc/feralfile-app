@@ -74,9 +74,11 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler {
                 Single.zip(
                     LibAuk.getInstance().getStorage(UUID.fromString(it), context)
                         .exportMnemonicWords(),
+                    LibAuk.getInstance().getStorage(UUID.fromString(it), context)
+                        .exportMnemonicPassphrase(),
                     LibAuk.getInstance().getStorage(UUID.fromString(it), context).getName()
-                ) { mnemonic, name ->
-                    BackupAccount(it, mnemonic, name)
+                ) { mnemonic, passphrase, name ->
+                    BackupAccount(it, mnemonic, passphrase, name)
                 }.toObservable()
             }
             .toList()
@@ -133,6 +135,7 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler {
                                             .getStorage(UUID.fromString(account.uuid), context)
                                             .importKey(
                                                 account.mnemonic.split(" "),
+                                                account.passphrase ?: "",
                                                 account.name,
                                                 Date()
                                             )
@@ -145,6 +148,7 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler {
                                         BackupAccount(
                                             account.uuid,
                                             "",
+                                            account.passphrase ?: "",
                                             account.name
                                         )
                                     )
@@ -198,6 +202,8 @@ data class BackupAccount(
     val uuid: String,
     @SerialName("mnemonic")
     val mnemonic: String,
+    @SerialName("passphrase")
+    val passphrase: String?,
     @SerialName("name")
     val name: String,
 )

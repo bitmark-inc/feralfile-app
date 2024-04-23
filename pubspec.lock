@@ -606,8 +606,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: feb58026dc94c46be74eb4407f41e56b775c2127
-      resolved-ref: feb58026dc94c46be74eb4407f41e56b775c2127
+      ref: "8cb04ea43f0b78fd27c6fd96d9e273b541d10903"
+      resolved-ref: "8cb04ea43f0b78fd27c6fd96d9e273b541d10903"
       url: "https://github.com/bitmark-inc/feralfile-app-client-shared-theme"
     source: git
     version: "0.0.1+20"
@@ -1685,8 +1685,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: ac5c26280376f4ad00d2f79038d64db6e8eec2c7
-      resolved-ref: ac5c26280376f4ad00d2f79038d64db6e8eec2c7
+      ref: "598a4627345f746d7e8fd62e7d0da4766ed29fb6"
+      resolved-ref: "598a4627345f746d7e8fd62e7d0da4766ed29fb6"
       url: "https://github.com/autonomy-system/libauk-dart.git"
     source: git
     version: "0.0.1"

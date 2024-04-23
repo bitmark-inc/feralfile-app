@@ -71,6 +71,8 @@ import Sentry
                 LibAukChannelHandler.shared.createKey(call: call, result: result)
             case "importKey":
                 LibAukChannelHandler.shared.importKey(call: call, result: result)
+            case "calculateFirstEthAddress":
+                LibAukChannelHandler.shared.calculateFirstEthAddress(call: call, result: result)
             case "getName":
                 LibAukChannelHandler.shared.getName(call: call, result: result)
             case "updateName":
@@ -93,6 +95,8 @@ import Sentry
                 LibAukChannelHandler.shared.signPersonalMessageWithIndex(call: call, result: result)
             case "ethSignMessageWithIndex":
                 LibAukChannelHandler.shared.signMessageWithIndex(call: call, result: result)
+            case "exportMnemonicPassphrase":
+                LibAukChannelHandler.shared.exportMnemonicPassphrase(call: call, result: result)
             case "exportMnemonicWords":
                 LibAukChannelHandler.shared.exportMnemonicWords(call: call, result: result)
             case "ethSignTransaction":
