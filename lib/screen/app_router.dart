@@ -10,10 +10,10 @@ import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
+import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
-import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/screen/account/access_method_page.dart';
 import 'package:autonomy_flutter/screen/account/link_manually_page.dart';
 import 'package:autonomy_flutter/screen/account/recovery_phrase_page.dart';
@@ -35,6 +35,7 @@ import 'package:autonomy_flutter/screen/claim/activation/claim_activation_page.d
 import 'package:autonomy_flutter/screen/claim/activation/preview_activation_claim.dart';
 import 'package:autonomy_flutter/screen/claim/airdrop/claim_airdrop_page.dart';
 import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
+import 'package:autonomy_flutter/screen/claim/preview_token_claim.dart';
 import 'package:autonomy_flutter/screen/claim/select_account_page.dart';
 import 'package:autonomy_flutter/screen/claim/token_detail_page.dart';
 import 'package:autonomy_flutter/screen/cloud/cloud_android_page.dart';
@@ -57,6 +58,7 @@ import 'package:autonomy_flutter/screen/detail/preview_primer.dart';
 import 'package:autonomy_flutter/screen/detail/royalty/royalty_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
+import 'package:autonomy_flutter/screen/exhibition_note/exhibition_note_page.dart';
 import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artwork_preview_page.dart';
 import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_bloc.dart';
 import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_page.dart';
@@ -99,6 +101,8 @@ import 'package:autonomy_flutter/screen/playlists/add_to_playlist/add_to_playlis
 import 'package:autonomy_flutter/screen/playlists/edit_playlist/edit_playlist.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
 import 'package:autonomy_flutter/screen/predefined_collection/predefined_collection_screen.dart';
+import 'package:autonomy_flutter/screen/projects/projects_bloc.dart';
+import 'package:autonomy_flutter/screen/projects/projects_page.dart';
 import 'package:autonomy_flutter/screen/release_notes_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
@@ -113,7 +117,6 @@ import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_det
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
 import 'package:autonomy_flutter/screen/settings/data_management/data_management_page.dart';
 import 'package:autonomy_flutter/screen/settings/help_us/help_us_page.dart';
-import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
 import 'package:autonomy_flutter/screen/settings/hidden_artworks/hidden_artworks_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/hidden_artworks/hidden_artworks_page.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_bloc.dart';
@@ -124,20 +127,25 @@ import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart'
 import 'package:autonomy_flutter/screen/tezos_beacon/au_sign_message_page.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_sign_message_page.dart';
-import 'package:autonomy_flutter/screen/unsafe_web_wallet_page.dart';
 import 'package:autonomy_flutter/screen/wallet/wallet_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_bloc.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
+import 'package:autonomy_flutter/screen/wallet_connect/v2/add_ethereum_chain_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/v2/wc2_permission_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/view/transparent_router.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:page_transition/page_transition.dart';
+
+GlobalKey<HomeNavigationPageState> homePageKey = GlobalKey();
+GlobalKey<HomeNavigationPageState> homePageNoTransactionKey = GlobalKey();
 
 class AppRouter {
   static const createPlayListPage = 'createPlayList';
@@ -156,19 +164,17 @@ class AppRouter {
   static const settingsPage = 'settings';
   static const personaConnectionsPage = 'persona_connections';
   static const connectionDetailsPage = 'connection_details';
-  static const linkedAccountDetailsPage = 'linked_account_details';
   static const walletDetailsPage = 'wallet_detail';
   static const linkedWalletDetailsPage = 'linked_wallet_detail';
   static const scanQRPage = 'qr_scanner';
   static const globalReceivePage = 'global_receive';
   static const recoveryPhrasePage = 'recovery_phrase';
-  static const wcConnectPage = 'wc_connect';
+  static const tbConnectPage = 'tb_connect';
   static const cloudPage = 'cloud_page';
   static const cloudAndroidPage = 'cloud_android_page';
   static const linkManually = 'link_manually';
   static const testArtwork = 'test_artwork';
   static const autonomySecurityPage = 'autonomy_security';
-  static const unsafeWebWalletPage = 'unsafeWebWalletPage';
   static const releaseNotesPage = 'releaseNotesPage';
   static const hiddenArtworksPage = 'hidden_artworks';
   static const supportCustomerPage = 'supportCustomerPage';
@@ -190,29 +196,23 @@ class AppRouter {
   static const subscriptionPage = 'subscription_page';
   static const dataManagementPage = 'data_management_page';
   static const helpUsPage = 'help_us_page';
-  static const inappWebviewPage = 'inapp_webview_page';
   static const postcardExplain = 'postcard_explain_screen';
   static const designStamp = 'design_stamp_screen';
   static const promptPage = 'prompt_page';
-  static const choosePromptPage = 'choose_prompt_page';
   static const handSignaturePage = 'hand_signature_page';
   static const stampPreview = 'stamp_preview';
   static const claimEmptyPostCard = 'claim_empty_postcard';
   static const payToMintPostcard = 'pay_to_mint_postcard';
   static const postcardSelectAddressScreen = 'postcard_select_address_screen';
   static const receivePostcardPage = 'receive_postcard_page';
-  static const receivePostcardSelectAccountPage =
-      'receive_postcard_select_account_page';
   static const irlWebView = 'irl_web_claim';
   static const irlSignMessage = 'irl_sign_message';
-  static const postcardConfirmingPage = 'postcard_confirming_page';
   static const canvasHelpPage = 'canvas_help_page';
   static const keyboardControlPage = 'keyboard_control_page';
   static const touchPadPage = 'touch_pad_page';
   static const claimAirdropPage = 'claim_airdrop_page';
   static const activationTokenDetailPage = 'activation_token_detail_page';
   static const claimActivationPage = 'claim_activation_page';
-  static const previewActivationClaimPage = 'preview_activation_claim_page';
   static const postcardLeaderboardPage = 'postcard_leaderboard_page';
   static const postcardLocationExplain = 'postcard_location_explain';
   static const predefinedCollectionPage = 'predefined_collection_page';
@@ -232,11 +232,21 @@ class AppRouter {
   static const tbSignMessagePage = 'tb_sign_message_page';
   static const auSignMessagePage = 'au_sign_message_page';
   static const globalReceiveDetailPage = 'global_receive_detail_page';
-  static const tutorialVideoPage = 'tutorial_video_page';
   static const chatThreadPage = 'chat_thread_page';
   static const accessMethodPage = 'access_method_page';
   static const wcSignMessagePage = 'wc_sign_message_page';
   static const wcSendTransactionPage = 'wc_send_transaction_page';
+  static const collectionPage = 'collection_page';
+  static const organizePage = 'organize_page';
+  static const exhibitionsPage = 'exhibitions_page';
+  static const autonomyAirdropTokenPreviewPage =
+      'autonomy_airdrop_token_detail_page';
+  static const exhibitionNotePage = 'exhibition_note_page';
+  static const activationTokenPreviewPage = 'activation_token_preview_page';
+  static const feralfileAirdropTokenPreviewPage =
+      'feralfile_airdrop_token_preview_page';
+  static const projectsList = 'projects_list';
+  static const addEthereumChainPage = 'add_ethereum_chain_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector(), injector());
@@ -259,8 +269,32 @@ class AppRouter {
       injector(),
       injector(),
     );
+    final projectBloc = ProjectsBloc(
+      injector(),
+      injector(),
+      injector(),
+      injector(),
+    );
 
     switch (settings.name) {
+      case addEthereumChainPage:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) => AddEthereumChainPage(
+            payload: settings.arguments! as AddEthereumChainPagePayload,
+          ),
+        );
+      case projectsList:
+        return PageTransition(
+          type: PageTransitionType.fade,
+          curve: Curves.easeIn,
+          duration: const Duration(milliseconds: 250),
+          settings: settings,
+          child: BlocProvider(
+            create: (_) => projectBloc,
+            child: const ProjectsPage(),
+          ),
+        );
       case viewPlayListPage:
         return CupertinoPageRoute(
           settings: settings,
@@ -336,6 +370,7 @@ class AppRouter {
                     ),
                   ],
                   child: HomeNavigationPage(
+                      key: homePageNoTransactionKey,
                       payload: HomeNavigationPagePayload(
                           fromOnboarding: true,
                           startedTab: payload?.startedTab)),
@@ -358,6 +393,7 @@ class AppRouter {
                     ),
                   ],
                   child: HomeNavigationPage(
+                    key: homePageKey,
                     payload: HomeNavigationPagePayload(
                         startedTab: payload?.startedTab),
                   ),
@@ -457,7 +493,7 @@ class AppRouter {
                 child: NameViewOnlyAddressPage(
                     connection: settings.arguments! as Connection)));
 
-      case wcConnectPage:
+      case tbConnectPage:
         final argument = settings.arguments;
         if (argument is ConnectionRequest) {
           return CupertinoPageRoute(
@@ -486,7 +522,6 @@ class AppRouter {
           settings: settings,
           builder: (context) => BlocProvider(
             create: (_) => WCSendTransactionBloc(
-              injector(),
               injector(),
               injector(),
               injector(),
@@ -733,8 +768,8 @@ class AppRouter {
       case auSignMessagePage:
         return CupertinoPageRoute(
           settings: settings,
-          builder: (context) =>
-              AUSignMessagePage(request: settings.arguments! as Wc2Request),
+          builder: (context) => AUSignMessagePage(
+              request: settings.arguments! as Wc2RequestPayload),
         );
       case tbSendTransactionPage:
         return CupertinoPageRoute(
@@ -747,7 +782,8 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => RecoveryPhrasePage(
-                  words: settings.arguments! as List<String>,
+                  payload:
+                      settings.arguments! as RecoveryPhrasePayload,
                 ));
 
       case cloudPage:
@@ -787,11 +823,6 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => const AutonomySecurityPage());
-
-      case unsafeWebWalletPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => const UnsafeWebWalletPage());
 
       case releaseNotesPage:
         return PageTransition(
@@ -985,7 +1016,7 @@ class AppRouter {
                       ),
                     ],
                     child: Wc2RequestPage(
-                        request: settings.arguments! as Wc2Request)));
+                        request: settings.arguments! as Wc2RequestPayload)));
 
       case walletPage:
         return CupertinoPageRoute(
@@ -1025,11 +1056,6 @@ class AppRouter {
       case helpUsPage:
         return CupertinoPageRoute(
             settings: settings, builder: (context) => const HelpUsPage());
-      case inappWebviewPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => InAppWebViewPage(
-                payload: settings.arguments! as InAppWebViewPayload));
       case claimEmptyPostCard:
         final claimRequest = settings.arguments! as RequestPostcardResponse;
         return PageTransition(
@@ -1153,17 +1179,6 @@ class AppRouter {
           ),
         );
 
-      case previewActivationClaimPage:
-        return CupertinoPageRoute(
-          settings: settings,
-          builder: (context) => BlocProvider.value(
-            value: accountsBloc,
-            child: PreviewActivationTokenPage(
-              assetToken: settings.arguments! as AssetToken,
-            ),
-          ),
-        );
-
       case postcardLeaderboardPage:
         return PageTransition(
           settings: settings,
@@ -1210,7 +1225,31 @@ class AppRouter {
             playList: settings.arguments! as PlayListModel,
           ),
         );
-
+      case autonomyAirdropTokenPreviewPage:
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (context) => PreviewTokenClaim(
+            series: settings.arguments! as FFSeries,
+          ),
+        );
+      case exhibitionNotePage:
+        return MaterialPageRoute(
+          builder: (context) => ExhibitionNotePage(
+            exhibition: settings.arguments! as Exhibition,
+          ),
+        );
+      case activationTokenPreviewPage:
+        return MaterialPageRoute(
+          builder: (context) => PreviewActivationTokenPage(
+            assetToken: settings.arguments! as AssetToken,
+          ),
+        );
+      case feralfileAirdropTokenPreviewPage:
+        return MaterialPageRoute(
+          builder: (context) => PreviewTokenClaim(
+            series: settings.arguments! as FFSeries,
+          ),
+        );
       default:
         throw Exception('Invalid route: ${settings.name}');
     }

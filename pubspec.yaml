@@ -50,7 +50,6 @@ dependencies:
   flutter_fgbg: ^0.3.0
   flutter_image_compress: ^2.0.4
   flutter_markdown: ^0.6.9
-  flutter_native_splash: ^2.0.5
   flutter_slidable: ^3.0.1
   flutter_svg: ^2.0.7
   flutter_switch: ^0.3.2
@@ -68,9 +67,7 @@ dependencies:
   jiffy: ^6.2.1
   flutter_keyboard_visibility: ^6.0.0
   libauk_dart:
-    git:
-      url: https://github.com/autonomy-system/libauk-dart.git
-      ref: ac5c26280376f4ad00d2f79038d64db6e8eec2c7
+    path: ../Bitmark Inc./libauk-dart
   local_auth: ^2.1.0
   logging: ^1.2.0
   measured_size: ^1.0.0
@@ -79,7 +76,7 @@ dependencies:
   nft_rendering:
     git:
       url: https://github.com/autonomy-system/nft-rendering.git
-      ref: 7136d752f860e486dec48451721266432089422b
+      ref: b3f4bec450f971829695d9354188d33cd6c6ce75
   onesignal_flutter: ^3.3.0
   open_settings: ^2.0.2
   overlay_support: ^2.0.0
@@ -114,7 +111,7 @@ dependencies:
   feralfile_app_theme:
     git:
       url: https://github.com/bitmark-inc/feralfile-app-client-shared-theme
-      ref: 75b30a8f41124dd1afaaf05201e21e0268a723b5
+      ref: 8cb04ea43f0b78fd27c6fd96d9e273b541d10903
   marqueer: ^1.2.0
   markdown: ^7.1.1
   easy_localization: ^3.0.1
@@ -153,9 +150,10 @@ dependencies:
   image: ^4.0.15
   widgets_to_image: ^0.0.2
   geocoding: ^2.1.0
-  flutter_inappwebview: ^5.8.0
+  flutter_inappwebview: ^6.0.0
   html: ^0.15.1
   video_player: ^2.4.8
+  walletconnect_flutter_v2: ^2.1.11
   awesome_notifications: ^0.8.3
   shimmer: ^3.0.0
   graphql_flutter: ^5.1.2
@@ -202,6 +200,7 @@ flutter:
     - assets/erc20-abi.json
     - assets/erc721-abi.json
     - assets/erc1155-abi.json
+    - assets/data-owner-abi.json
     - assets/images/
     - assets/translations/
     - assets/videos/

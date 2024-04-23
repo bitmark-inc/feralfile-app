@@ -42,9 +42,26 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
     'feralfile_artwork_action': {
       'allow_download_artwork_contracts': [],
       'sound_piece_contract_addresses': [],
+      'scrollable_preview_url': [],
+    },
+    'exhibition': {
+      'specified_series_artwork_model_title': {
+        'faa810f7-7b75-4c02-bf8a-b7447a89c921': 'interactive instruction'
+      },
+      'yoko_ono_public': {
+        'owner_data_contract': '0xcE6B8E357aaf9EC3A5ACD2F47364586BCF54Afef',
+        'moma_exhibition_contract':
+            '0xf31725F011cEB81D4cc313349a5942C31ed0AAe5',
+        'public_token_id': '1878818250871676369035922701317177438642275461',
+        'public_version_preview':
+            'previews/d15cc1f3-c2f1-4b9c-837d-7c131583bf40/1710123470/index.html',
+        'public_version_thumbnail':
+            'thumbnails/d15cc1f3-c2f1-4b9c-837d-7c131583bf40/1710123327'
+      }
     },
     'in_app_webview': {
       'uri_scheme_white_list': ['https'],
+      'allowed_fingerprints': [],
     },
     'dApp_urls': {
       'deny_dApp_list': [],
@@ -82,11 +99,15 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
       unawaited(loadConfigs());
       return _defaults[group.getString]![key.getString] as T ?? defaultValue;
     } else {
-      final res = _configs![group.getString]?[key.getString];
-      if (res != null) {
-        return res as T;
+      final hasKey = (_configs?.keys.contains(group.getString) ?? false) &&
+          (_configs![group.getString] as Map<String, dynamic>)
+              .keys
+              .contains(key.getString);
+      if (!hasKey) {
+        return defaultValue;
       }
-      return defaultValue;
+      final res = _configs![group.getString]?[key.getString] as T;
+      return res;
     }
   }
 }
@@ -100,6 +121,7 @@ enum ConfigGroup {
   feralfileArtworkAction,
   inAppWebView,
   dAppUrls,
+  exhibition,
 }
 
 // ConfigGroup getString extension
@@ -122,6 +144,8 @@ extension ConfigGroupExtension on ConfigGroup {
         return 'in_app_webview';
       case ConfigGroup.dAppUrls:
         return 'dApp_urls';
+      case ConfigGroup.exhibition:
+        return 'exhibition';
     }
   }
 }
@@ -145,8 +169,13 @@ enum ConfigKey {
   waitConfirmedToSend,
   allowDownloadArtworkContracts,
   soundPieceContractAddresses,
+  scrollablePreviewUrl,
+  specifiedSeriesArtworkModelTitle,
+  yokoOnoPublic,
+  yokoOnoPrivateTokenIds,
   uriSchemeWhiteList,
   denyDAppList,
+  allowedFingerprints,
 }
 
 // ConfigKey getString extension
@@ -189,10 +218,20 @@ extension ConfigKeyExtension on ConfigKey {
         return 'allow_download_artwork_contracts';
       case ConfigKey.soundPieceContractAddresses:
         return 'sound_piece_contract_addresses';
+      case ConfigKey.scrollablePreviewUrl:
+        return 'scrollable_preview_url';
+      case ConfigKey.specifiedSeriesArtworkModelTitle:
+        return 'specified_series_artwork_model_title';
+      case ConfigKey.yokoOnoPublic:
+        return 'yoko_ono_public';
+      case ConfigKey.yokoOnoPrivateTokenIds:
+        return 'yoko_ono_private_token_ids';
       case ConfigKey.uriSchemeWhiteList:
         return 'uri_scheme_white_list';
       case ConfigKey.denyDAppList:
         return 'deny_dApp_list';
+      case ConfigKey.allowedFingerprints:
+        return 'allowed_fingerprints';
     }
   }
 }

@@ -21,7 +21,7 @@ class CanvasClientService {
 
   CanvasClientService(this._db);
 
-  final List<CanvasDevice> _devices = [];
+  final List<CanvasDevice> _viewingDevices = [];
   late final String _deviceId;
   late final String _deviceName;
   bool _didInitialized = false;
@@ -47,7 +47,7 @@ class CanvasClientService {
   }
 
   Future<void> shutdownAll() async {
-    await Future.wait(_devices.map((e) => shutDown(e)));
+    await Future.wait(_viewingDevices.map((e) => shutDown(e)));
   }
 
   Future<void> shutDown(CanvasDevice device) async {
@@ -74,7 +74,6 @@ class CanvasClientService {
   Future<bool> _connectToDevice(CanvasDevice device) async {
     final stub = _getStub(device);
     try {
-      final index = _devices.indexWhere((element) => element.id == device.id);
       final request = ConnectRequest()
         ..device = (DeviceInfo()
           ..deviceId = _deviceId
@@ -85,20 +84,22 @@ class CanvasClientService {
         options: _callOptions,
       );
       log.info('CanvasClientService received: ${response.ok}');
+      final index =
+          _viewingDevices.indexWhere((element) => element.ip == device.ip);
       if (response.ok) {
         log.info('CanvasClientService: Connected to device');
         device.isConnecting = true;
-        await _db.canvasDeviceDao.insertCanvasDevice(device);
         if (index == -1) {
-          _devices.add(device);
+          _viewingDevices.add(device);
         } else {
-          _devices[index].isConnecting = true;
+          _viewingDevices[index].isConnecting = true;
         }
+        await _db.canvasDeviceDao.insertCanvasDevice(device);
         return true;
       } else {
         log.info('CanvasClientService: Failed to connect to device');
         if (index != -1) {
-          _devices[index].isConnecting = false;
+          _viewingDevices[index].isConnecting = false;
         }
         return false;
       }
@@ -146,7 +147,6 @@ class CanvasClientService {
 
   Future<void> syncDevices() async {
     final devices = await getAllDevices();
-    _devices.clear();
     final List<CanvasDevice> devicesToAdd = [];
     await Future.forEach<CanvasDevice>(devices, (device) async {
       final status = await checkDeviceStatus(device);
@@ -171,14 +171,17 @@ class CanvasClientService {
           break;
       }
     });
-    devicesToAdd.unique((element) => element.ip);
-    _devices.addAll(devicesToAdd);
-    log.info('Canvas client service sync device available ${_devices.length}');
+    _viewingDevices
+      ..clear()
+      ..addAll(devicesToAdd)
+      ..unique((element) => element.ip);
+    log.info(
+        'CanvasClientService sync device available ${_viewingDevices.length}');
   }
 
   Future<List<CanvasDevice>> getAllDevices() async {
     final devices = await _db.canvasDeviceDao.getCanvasDevices();
-    log.info('Canvas client service get devices local ${devices.length}');
+    log.info('CanvasClientService get devices local ${devices.length}');
     return devices;
   }
 
@@ -186,12 +189,12 @@ class CanvasClientService {
     if (doSync) {
       await syncDevices();
     } else {
-      for (var device in _devices) {
+      for (var device in _viewingDevices) {
         final status = await checkDeviceStatus(device);
         device.playingSceneId = status.second;
       }
     }
-    return _devices;
+    return _viewingDevices;
   }
 
   Future<void> _updateLocalDisconnectedDevice(CanvasDevice device) async {
@@ -204,7 +207,7 @@ class CanvasClientService {
     final stub = _getStub(device);
     final size =
         MediaQuery.of(_navigationService.navigatorKey.currentContext!).size;
-    final playingDevice = _devices.firstWhereOrNull(
+    final playingDevice = _viewingDevices.firstWhereOrNull(
       (element) => element.playingSceneId != null,
     );
     if (playingDevice != null) {
@@ -219,7 +222,7 @@ class CanvasClientService {
         ..coefficientY = 1 / size.height);
     final response = await stub.castSingleArtwork(castRequest);
     if (response.ok) {
-      final lst = _devices.firstWhereOrNull(
+      final lst = _viewingDevices.firstWhereOrNull(
         (element) {
           final isEqual = element == device;
           return isEqual;
@@ -237,7 +240,7 @@ class CanvasClientService {
     final uncastRequest = UncastSingleRequest()..id = '';
     final response = await stub.uncastSingleArtwork(uncastRequest);
     if (response.ok) {
-      _devices
+      _viewingDevices
           .firstWhereOrNull((element) => element == device)
           ?.playingSceneId = null;
     }
@@ -257,7 +260,7 @@ class CanvasClientService {
         ..duration = playlist.playControlModel?.timer ?? 10));
     final response = await stub.castCollection(castRequest);
     if (response.ok) {
-      _devices
+      _viewingDevices
           .firstWhereOrNull((element) => element == device)
           ?.playingSceneId = playlist.id;
     } else {
@@ -271,7 +274,7 @@ class CanvasClientService {
     final unCastRequest = UnCastRequest()..id = '';
     final response = await stub.unCastArtwork(unCastRequest);
     if (response.ok) {
-      _devices
+      _viewingDevices
           .firstWhereOrNull((element) => element == device)
           ?.playingSceneId = null;
     }
@@ -283,9 +286,9 @@ class CanvasClientService {
       final sendKeyboardRequest = KeyboardEventRequest()..code = code;
       final response = await stub.keyboardEvent(sendKeyboardRequest);
       if (response.ok) {
-        log.info('Canvas Client Service: Keyboard Event Success $code');
+        log.info('CanvasClientService: Keyboard Event Success $code');
       } else {
-        log.info('Canvas Client Service: Keyboard Event Failed $code');
+        log.info('CanvasClientService: Keyboard Event Failed $code');
       }
     }
   }
@@ -297,10 +300,9 @@ class CanvasClientService {
     final rotateCanvasRequest = RotateRequest()..clockwise = clockwise;
     try {
       final response = await stub.rotate(rotateCanvasRequest);
-      log.info(
-          'Canvas Client Service: Rotate Canvas Success ${response.degree}');
+      log.info('CanvasClientService: Rotate Canvas Success ${response.degree}');
     } catch (e) {
-      log.info('Canvas Client Service: Rotate Canvas Failed');
+      log.info('CanvasClientService: Rotate Canvas Failed');
     }
   }
 

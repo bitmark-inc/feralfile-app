@@ -115,6 +115,15 @@ class MockFeralFileService extends _i1.Mock implements _i6.FeralFileService {
         )),
       ) as _i7.Future<_i2.FFSeries>);
   @override
+  _i7.Future<List<_i2.FFSeries>> getListSeries(String? exhibitionId) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getListSeries,
+          [exhibitionId],
+        ),
+        returnValue: _i7.Future<List<_i2.FFSeries>>.value(<_i2.FFSeries>[]),
+      ) as _i7.Future<List<_i2.FFSeries>>);
+  @override
   _i7.Future<_i3.ClaimResponse> setPendingToken({
     required String? receiver,
     required _i4.TokenClaimResponse? response,
@@ -218,6 +227,7 @@ class MockFeralFileService extends _i1.Mock implements _i6.FeralFileService {
     int? limit = 8,
     int? offset = 0,
     bool? withArtworks = false,
+    bool? withSeries = false,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -229,6 +239,7 @@ class MockFeralFileService extends _i1.Mock implements _i6.FeralFileService {
             #limit: limit,
             #offset: offset,
             #withArtworks: withArtworks,
+            #withSeries: withSeries,
           },
         ),
         returnValue: _i7.Future<List<_i5.ExhibitionDetail>>.value(
@@ -249,20 +260,28 @@ class MockFeralFileService extends _i1.Mock implements _i6.FeralFileService {
         )),
       ) as _i7.Future<_i5.Exhibition>);
   @override
-  _i7.Future<List<_i4.Artwork>> getExhibitionArtworks(String? exhibitionId) =>
+  _i7.Future<List<_i4.Artwork>> getExhibitionArtworks(
+    String? exhibitionId, {
+    bool? withSeries = false,
+  }) =>
       (super.noSuchMethod(
         Invocation.method(
           #getExhibitionArtworks,
           [exhibitionId],
+          {#withSeries: withSeries},
         ),
         returnValue: _i7.Future<List<_i4.Artwork>>.value(<_i4.Artwork>[]),
       ) as _i7.Future<List<_i4.Artwork>>);
   @override
-  _i7.Future<List<_i4.Artwork>> getSeriesArtworks(String? seriesId) =>
+  _i7.Future<List<_i4.Artwork>> getSeriesArtworks(
+    String? seriesId, {
+    bool? withSeries = false,
+  }) =>
       (super.noSuchMethod(
         Invocation.method(
           #getSeriesArtworks,
           [seriesId],
+          {#withSeries: withSeries},
         ),
         returnValue: _i7.Future<List<_i4.Artwork>>.value(<_i4.Artwork>[]),
       ) as _i7.Future<List<_i4.Artwork>>);

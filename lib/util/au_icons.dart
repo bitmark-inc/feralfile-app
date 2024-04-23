@@ -46,4 +46,6 @@ class AuIcon {
       IconData(0xf688, fontFamily: _materialFontFamily);
   static const IconData microphone =
       IconData(0xe3e4, fontFamily: _materialFontFamily);
+  static const IconData bookOutlined =
+      IconData(0xeedf, fontFamily: _materialFontFamily);
 }

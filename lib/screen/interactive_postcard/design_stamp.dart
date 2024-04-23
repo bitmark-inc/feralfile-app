@@ -199,7 +199,6 @@ class _DesignStampPageState extends State<DesignStampPage> {
                                               });
                                             }
                                           },
-                                    width: 52,
                                     color: AppColor.white,
                                     borderColor: AppColor.disabledColor,
                                     textColor: AppColor.disabledColor,
@@ -263,7 +262,7 @@ class _DesignStampPageState extends State<DesignStampPage> {
                             const Duration(milliseconds: 200),
                             () async {
                               final bytes = await _controller.capture();
-                              if (!mounted) {
+                              if (!context.mounted) {
                                 return;
                               }
                               await Navigator.of(context).pushNamed(

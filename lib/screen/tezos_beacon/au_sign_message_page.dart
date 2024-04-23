@@ -9,7 +9,6 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
-import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
@@ -29,9 +28,11 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:libauk_dart/libauk_dart.dart';
+import 'package:walletconnect_flutter_v2/apis/core/pairing/utils/pairing_models.dart';
+import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
 
 class AUSignMessagePage extends StatefulWidget {
-  final Wc2Request request;
+  final Wc2RequestPayload request;
 
   const AUSignMessagePage({required this.request, super.key});
 
@@ -77,14 +78,10 @@ class _AUSignMessagePageState extends State<AUSignMessagePage> {
     }
 
     if (currentWallet == null) {
-      await _rejectRequest(
-        reason:
-            "No wallet found for address ${widget.request.params['address']}",
-      );
       if (!mounted) {
         return;
       }
-      Navigator.of(context).pop();
+      Navigator.of(context).pop(false);
       return;
     }
 
@@ -93,15 +90,7 @@ class _AUSignMessagePageState extends State<AUSignMessagePage> {
     });
   }
 
-  Future _rejectRequest({String? reason}) async {
-    log.info('[AUSignMessagePage] _rejectRequest: $reason');
-    await injector<Wc2Service>().respondOnReject(
-      widget.request.topic,
-      reason: reason,
-    );
-  }
-
-  Future _handleAuSignRequest({required Wc2Request request}) async {
+  Future _handleAuSignRequest({required Wc2RequestPayload request}) async {
     final accountService = injector<AccountService>();
     final params = Wc2SignRequestParams.fromJson(request.params);
     final address = params.address;
@@ -110,13 +99,15 @@ class _AUSignMessagePageState extends State<AUSignMessagePage> {
       chain: chain,
       address: address,
     );
-    final wc2Service = injector<Wc2Service>();
     try {
       final signature = await account.signMessage(
         chain: chain,
         message: params.message,
       );
-      unawaited(wc2Service.respondOnApprove(request.topic, signature));
+      if (!mounted) {
+        return;
+      }
+      Navigator.of(context).pop(signature);
       log.info('[Wc2RequestPage] _handleAuSignRequest: $signature');
     } catch (e) {
       log.info('[Wc2RequestPage] _handleAuSignRequest $e');
@@ -129,104 +120,94 @@ class _AUSignMessagePageState extends State<AUSignMessagePage> {
 
     final theme = Theme.of(context);
 
-    return PopScope(
-      onPopInvoked: (_) async {
-        await _rejectRequest(reason: 'User reject');
-      },
-      child: Scaffold(
-        appBar: getBackAppBar(
-          context,
-          action: () => unawaited(UIHelper.showAppReportBottomSheet(
-              context, widget.request.proposer)),
-          onBack: () {
-            unawaited(_rejectRequest(reason: 'User reject'));
-            Navigator.of(context).pop();
-          },
-          title: 'signature_request'.tr(),
-        ),
-        body: Container(
-          margin: const EdgeInsets.only(bottom: 32),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      addTitleSpace(),
-                      Padding(
-                        padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-                        child: _wc2AppInfo(widget.request.proposer),
+    return Scaffold(
+      appBar: getBackAppBar(
+        context,
+        action: () => unawaited(UIHelper.showAppReportBottomSheet(
+            context, widget.request.proposer)),
+        onBack: () {
+          Navigator.of(context).pop(false);
+        },
+        title: 'signature_request'.tr(),
+      ),
+      body: Container(
+        margin: const EdgeInsets.only(bottom: 32),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    addTitleSpace(),
+                    Padding(
+                      padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                      child: _wc2AppInfo(widget.request.proposer),
+                    ),
+                    const SizedBox(height: 60),
+                    addOnlyDivider(),
+                    const SizedBox(height: 30),
+                    Padding(
+                      padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                      child: Text(
+                        'message'.tr(),
+                        style: theme.textTheme.ppMori400Black14,
                       ),
-                      const SizedBox(height: 60),
-                      addOnlyDivider(),
-                      const SizedBox(height: 30),
-                      Padding(
-                        padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                    ),
+                    const SizedBox(height: 4),
+                    Padding(
+                      padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 20, horizontal: 22),
+                        decoration: BoxDecoration(
+                          color: AppColor.auLightGrey,
+                          borderRadius: BorderRadius.circular(5),
+                        ),
                         child: Text(
-                          'message'.tr(),
+                          viewMessage,
                           style: theme.textTheme.ppMori400Black14,
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Padding(
-                        padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 20, horizontal: 22),
-                          decoration: BoxDecoration(
-                            color: AppColor.auLightGrey,
-                            borderRadius: BorderRadius.circular(5),
-                          ),
-                          child: Text(
-                            viewMessage,
-                            style: theme.textTheme.ppMori400Black14,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Padding(
-                padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: PrimaryButton(
-                        text: 'sign'.tr(),
-                        onTap: _currentPersona != null
-                            ? () => withDebounce(() async {
-                                  unawaited(_handleAuSignRequest(
-                                      request: widget.request));
-                                  if (!mounted) {
-                                    return;
-                                  }
-                                  Navigator.of(context).pop();
-                                  showInfoNotification(
-                                    const Key('signed'),
-                                    'signed'.tr(),
-                                    frontWidget: SvgPicture.asset(
-                                      'assets/images/checkbox_icon.svg',
-                                      width: 24,
-                                    ),
-                                  );
-                                })
-                            : null,
-                      ),
-                    )
+                    ),
                   ],
                 ),
-              )
-            ],
-          ),
+              ),
+            ),
+            Padding(
+              padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: PrimaryButton(
+                      text: 'sign'.tr(),
+                      onTap: _currentPersona != null
+                          ? () => withDebounce(() async {
+                                unawaited(_handleAuSignRequest(
+                                    request: widget.request));
+                                showInfoNotification(
+                                  const Key('signed'),
+                                  'signed'.tr(),
+                                  frontWidget: SvgPicture.asset(
+                                    'assets/images/checkbox_icon.svg',
+                                    width: 24,
+                                  ),
+                                );
+                              })
+                          : null,
+                    ),
+                  )
+                ],
+              ),
+            )
+          ],
         ),
       ),
     );
   }
 
-  Widget _wc2AppInfo(AppMetadata? proposer) {
+  Widget _wc2AppInfo(PairingMetadata? proposer) {
     final theme = Theme.of(context);
 
     return proposer != null

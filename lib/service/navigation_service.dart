@@ -15,9 +15,9 @@ import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
-import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
+import 'package:autonomy_flutter/util/feral_file_custom_tab.dart';
 import 'package:autonomy_flutter/util/feral_file_helper.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -39,6 +39,7 @@ class NavigationService {
   // workaround solution for unknown reason
   // ModalRoute(navigatorKey.currentContext) returns nil
   bool _isWCConnectInShow = false;
+  final _browser = FeralFileBrowser();
 
   BuildContext get context => navigatorKey.currentContext!;
 
@@ -47,7 +48,9 @@ class NavigationService {
   Future<dynamic>? navigateTo(String routeName, {Object? arguments}) {
     log.info('NavigationService.navigateTo: $routeName');
 
-    if (routeName == AppRouter.wcConnectPage && _isWCConnectInShow) {
+    if ((routeName == AppRouter.tbConnectPage ||
+            routeName == AppRouter.wc2ConnectPage) &&
+        _isWCConnectInShow) {
       log.info('[NavigationService] skip because WCConnectPage is in showing');
       return null;
     }
@@ -64,7 +67,9 @@ class NavigationService {
   Future<dynamic>? popAndPushNamed(String routeName, {Object? arguments}) {
     log.info('NavigationService.popAndPushNamed: $routeName');
 
-    if (routeName == AppRouter.wcConnectPage && _isWCConnectInShow) {
+    if ((routeName == AppRouter.wc2ConnectPage ||
+            routeName == AppRouter.tbConnectPage) &&
+        _isWCConnectInShow) {
       log.info(
           // ignore: lines_longer_than_80_chars
           '[NavigationService] skip popAndPushNamed because WCConnectPage is in showing');
@@ -96,7 +101,9 @@ class NavigationService {
   }) {
     log.info('NavigationService.navigateTo: $routeName');
 
-    if (routeName == AppRouter.wcConnectPage && _isWCConnectInShow) {
+    if ((routeName == AppRouter.tbConnectPage ||
+            routeName == AppRouter.wc2ConnectPage) &&
+        _isWCConnectInShow) {
       log.info('[NavigationService] skip because WCConnectPage is in showing');
       return null;
     }
@@ -441,9 +448,7 @@ class NavigationService {
       return;
     }
     final url = FeralFileHelper.getArtistUrl(alias);
-    await Navigator.of(navigatorKey.currentContext!).pushNamed(
-        AppRouter.inappWebviewPage,
-        arguments: InAppWebViewPayload(url));
+    await _browser.openUrl(url);
   }
 
   Future<void> openFeralFileCuratorPage(String alias) async {
@@ -451,9 +456,7 @@ class NavigationService {
       return;
     }
     final url = FeralFileHelper.getCuratorUrl(alias);
-    await Navigator.of(navigatorKey.currentContext!).pushNamed(
-        AppRouter.inappWebviewPage,
-        arguments: InAppWebViewPayload(url));
+    await _browser.openUrl(url);
   }
 
   Future<void> showFeralFileClaimTokenPassLimit(

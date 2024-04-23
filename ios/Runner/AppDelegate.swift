@@ -14,11 +14,8 @@ import KukaiCoreSwift
 import Combine
 import flutter_downloader
 //import Sentry
-import WalletConnectPairing
-import WalletConnectSign
-import WalletConnectRelay
-import WalletConnectNetworking
 import Starscream
+import IOSSecuritySuite
 
 @UIApplicationMain
 @objc class AppDelegate: FlutterAppDelegate {
@@ -31,6 +28,31 @@ import Starscream
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
+        
+        if !Constant.isInhouse {
+            IOSSecuritySuite.denyDebugger()
+
+            if checkDebugger() {
+                exit(0)
+            }
+        }
+        
+        let isSecure = checkMainBundleIdentifier()
+
+        if !isSecure {
+            exit(0)
+        }
+
+        if IOSSecuritySuite.amIReverseEngineered() {
+            exit(0)
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            if IOSSecuritySuite.amIJailbroken() {
+                // If jailbreak is detected, notify the user and terminate the app
+                self.showAlertAndExit()
+            }
+        }
         
         LibAuk.create(keyChainGroup: Constant.keychainGroup)
         
@@ -45,6 +67,8 @@ import Starscream
                 LibAukChannelHandler.shared.createKey(call: call, result: result)
             case "importKey":
                 LibAukChannelHandler.shared.importKey(call: call, result: result)
+            case "calculateFirstEthAddress":
+                LibAukChannelHandler.shared.calculateFirstEthAddress(call: call, result: result)
             case "getName":
                 LibAukChannelHandler.shared.getName(call: call, result: result)
 //            case "updateName":
@@ -67,6 +91,8 @@ import Starscream
                 LibAukChannelHandler.shared.signPersonalMessageWithIndex(call: call, result: result)
             case "ethSignMessageWithIndex":
                 LibAukChannelHandler.shared.signMessageWithIndex(call: call, result: result)
+            case "exportMnemonicPassphrase":
+                LibAukChannelHandler.shared.exportMnemonicPassphrase(call: call, result: result)
             case "exportMnemonicWords":
                 LibAukChannelHandler.shared.exportMnemonicWords(call: call, result: result)
             case "ethSignTransaction":
@@ -195,45 +221,6 @@ import Starscream
             }
         })
         beaconEventChannel.setStreamHandler(BeaconChannelHandler.shared)
-        
-
-        let metadata = AppMetadata(
-            name: "Feral File",
-            description: "Feral File Wallet",
-            url: "https://autonomy.io",
-            icons: [])
-        
-        Networking.configure(projectId: "33abc0fd433c7a6e1cc198273e4a7d6e", socketFactory: SocketFactory())
-        Pair.configure(metadata: metadata)
-        // try? Sign.instance.cleanup()
-
-        let wc2Channel = FlutterMethodChannel(name: "wallet_connect_v2",
-                                              binaryMessenger: controller.binaryMessenger)
-        let wc2EventChannel = FlutterEventChannel(name: "wallet_connect_v2/event", binaryMessenger: controller.binaryMessenger)
-
-        wc2Channel.setMethodCallHandler({(call: FlutterMethodCall, result: @escaping FlutterResult) -> Void in
-            switch call.method {
-            case "pairClient":
-                WC2ChannelHandler.shared.pairClient(call: call, result: result)
-            case "approve":
-                WC2ChannelHandler.shared.approve(call: call, result: result)
-            case "reject":
-                WC2ChannelHandler.shared.reject(call: call, result: result)
-            case "respondOnApprove":
-                WC2ChannelHandler.shared.respondOnApprove(call: call, result: result)
-            case "respondOnReject":
-                WC2ChannelHandler.shared.respondOnReject(call: call, result: result)
-            case "getPairings":
-                WC2ChannelHandler.shared.getPairings(call: call, result: result)
-            case "deletePairing":
-                WC2ChannelHandler.shared.deletePairing(call: call, result: result)
-            case "cleanup":
-                WC2ChannelHandler.shared.cleanupSessions(call: call, result: result)
-            default:
-                result(FlutterMethodNotImplemented)
-            }
-        })
-        wc2EventChannel.setStreamHandler(WC2ChannelHandler.shared)
 
 
         let cloudEventChannel = FlutterEventChannel(name: "cloud/event", binaryMessenger: controller.binaryMessenger)
@@ -278,6 +265,23 @@ import Starscream
         }
     }
     
+    func showAlertAndExit() {
+            let alert = UIAlertController(title: "Jailbreak Detected",
+                                          message: "This app cannot run on jailbroken devices.",
+                                          preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { _ in
+                // Dismiss the alert and exit the app
+                exit(0)
+            }))
+            
+            // Get the root view controller to present the alert
+            if let rootViewController = UIApplication.shared.keyWindow?.rootViewController {
+                rootViewController.present(alert, animated: true, completion: nil)
+                
+            }
+        
+        }
+    
     
     private func showSplashScreen() {
         if splashScreenVC == nil {
@@ -317,12 +321,120 @@ extension AppDelegate {
             self?.authenticationVC.view.removeFromSuperview()
         }
     }
-}
-
-extension WebSocket: WebSocketConnecting { }
-
-struct SocketFactory: WebSocketFactory {
-    func create(with url: URL) -> WebSocketConnecting {
-        return WebSocket(url: url)
+    
+    func checkDebugger() -> Bool {
+        return checkExceptionPorts() || checkSignalHandlers() || checkExecutionStates()
     }
+    
+    private static let EXC_MASK_ALL = (
+        EXC_MASK_BAD_ACCESS | EXC_MASK_BAD_INSTRUCTION | EXC_MASK_ARITHMETIC |
+            EXC_MASK_EMULATION | EXC_MASK_SOFTWARE | EXC_MASK_BREAKPOINT |
+            EXC_MASK_SYSCALL | EXC_MASK_MACH_SYSCALL | EXC_MASK_RPC_ALERT |
+            EXC_MASK_CRASH | EXC_MASK_RESOURCE | EXC_MASK_GUARD |
+            EXC_MASK_CORPSE_NOTIFY
+    )
+
+    func checkExceptionPorts() -> Bool {
+        let typesCnt = Int(EXC_TYPES_COUNT)
+
+        let masks = exception_mask_array_t.allocate(capacity: typesCnt)
+        masks.initialize(repeating: exception_mask_t(), count: typesCnt)
+
+        let oldHandlers = exception_handler_array_t.allocate(capacity: typesCnt)
+        oldHandlers.initialize(repeating: exception_handler_t(), count: typesCnt)
+        let oldBehaviors = exception_behavior_array_t.allocate(capacity: typesCnt)
+        oldBehaviors.initialize(repeating: exception_behavior_t(), count: typesCnt)
+        let oldFlavors = exception_flavor_array_t.allocate(capacity: typesCnt)
+        oldFlavors.initialize(repeating: thread_state_flavor_t(), count: typesCnt)
+
+        defer {
+            masks.deallocate()
+            oldHandlers.deallocate()
+            oldBehaviors.deallocate()
+            oldFlavors.deallocate()
+        }
+
+        var masksCnt: mach_msg_type_number_t = 0
+        let kr = task_get_exception_ports(mach_task_self_, exception_mask_t(Self.EXC_MASK_ALL), masks, &masksCnt, oldHandlers, oldBehaviors, oldFlavors)
+        guard kr == KERN_SUCCESS else {
+            return false
+        }
+
+        let taskExceptionHandlers = UnsafeMutableBufferPointer(start: oldHandlers, count: typesCnt)
+
+        guard taskExceptionHandlers.first(where: { $0 != 0 }) == nil
+        else {
+            return false
+        }
+
+        return true
+    }
+
+    private static let availableSignals = [
+        SIGHUP, SIGINT, SIGQUIT, SIGILL,
+        SIGTRAP, SIGABRT, SIGEMT, SIGFPE,
+        SIGKILL, SIGBUS, SIGSEGV, SIGSYS,
+        SIGPIPE, SIGALRM, SIGTERM, SIGURG,
+        SIGSTOP, SIGTSTP, SIGCONT, SIGCHLD,
+        SIGTTIN, SIGTTOU, SIGIO, SIGXCPU,
+        SIGXFSZ, SIGVTALRM, SIGPROF, SIGWINCH,
+        SIGINFO, SIGUSR1, SIGUSR2,
+    ]
+
+    func checkSignalHandlers() -> Bool {
+        for signal in Self.availableSignals {
+            var oldact = sigaction()
+            sigaction(signal, nil, &oldact)
+            if oldact.__sigaction_u.__sa_sigaction != nil {
+                return false
+            }
+        }
+
+        return true
+    }
+
+    func checkExecutionStates() -> Bool {
+        let typesCnt = Int(EXC_TYPES_COUNT)
+
+        let masks = exception_mask_array_t.allocate(capacity: typesCnt)
+        masks.initialize(repeating: exception_mask_t(), count: typesCnt)
+
+        let oldHandlers = exception_handler_array_t.allocate(capacity: typesCnt)
+        oldHandlers.initialize(repeating: exception_handler_t(), count: typesCnt)
+        let oldBehaviors = exception_behavior_array_t.allocate(capacity: typesCnt)
+        oldBehaviors.initialize(repeating: exception_behavior_t(), count: typesCnt)
+        let oldFlavors = exception_flavor_array_t.allocate(capacity: typesCnt)
+        oldFlavors.initialize(repeating: thread_state_flavor_t(), count: typesCnt)
+
+        defer {
+            masks.deallocate()
+            oldHandlers.deallocate()
+            oldBehaviors.deallocate()
+            oldFlavors.deallocate()
+        }
+
+        var masksCnt: mach_msg_type_number_t = 0
+        let kr = task_get_exception_ports(mach_task_self_, exception_mask_t(Self.EXC_MASK_ALL), masks, &masksCnt, oldHandlers, oldBehaviors, oldFlavors)
+        guard kr == KERN_SUCCESS else {
+            return false
+        }
+
+        let taskThreadFlavors = UnsafeMutableBufferPointer(start: oldFlavors, count: typesCnt)
+
+        guard taskThreadFlavors.first(where: { $0 == THREAD_STATE_NONE }) == nil
+        else {
+            return false
+        }
+
+        return true
+    }
+
+    // Bundle ID Check
+    func checkMainBundleIdentifier() -> Bool {
+        guard let bundleID = Bundle.main.bundleIdentifier else {
+            return false
+        }
+        return Constant.secureMainBundleIdentifiers.contains(bundleID)
+    }
+
 }

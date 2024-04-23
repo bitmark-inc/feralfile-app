@@ -94,7 +94,10 @@ class FileLogger {
   static File get logFile => _logFile;
 
   static Future log(LogRecord record) async {
-    final text = '$record\n';
+    var text = '$record\n';
+
+    text = _filterLog(text);
+
     debugPrint(text);
     return _lock.synchronized(() async {
       await _logFile.writeAsString('${record.time}: $text',
@@ -104,6 +107,54 @@ class FileLogger {
 
   static Future<void> clear() async {
     await _logFile.writeAsString('');
+  }
+
+  static String _filterLog(String logText) {
+    String filteredLog = logText;
+
+    RegExp combinedRegex = RegExp('("message":".*?")|'
+        '("Authorization: Bearer .*?")|'
+        '("X-Api-Signature: .*?")|'
+        r'(signature: [^,\}]*)|'
+        r'(location: \[.*?,.*?\])|'
+        r'(\\"signature\\":\\".*?\\")|'
+        r'(\\"location\\":\[.*?,.*?\])|'
+        r'(0x[A-Fa-f0-9]{64}[\s\W])|'
+        r'(0x[A-Fa-f0-9]{128,144}[\s\W])|'
+        r'(eyJ[A-Za-z0-9-_]+\.eyJ[A-Za-z0-9-_]+\.[A-Za-z0-9-_.+/]*)');
+
+    filteredLog = filteredLog.replaceAllMapped(combinedRegex, (match) {
+      if (match[1] != null) {
+        return '"message":"REDACTED_MESSAGE"';
+      }
+      if (match[2] != null) {
+        return '"Authorization: Bearer REDACTED_AUTH_TOKEN"';
+      }
+      if (match[3] != null) {
+        return '"X-Api-Signature: REDACTED_X_API_SIGNATURE"';
+      }
+      if (match[4] != null) {
+        return 'signature: REDACTED_SIGNATURE';
+      }
+      if (match[5] != null) {
+        return 'location: REDACTED_LOCATION';
+      }
+      if (match[6] != null) {
+        return r'\"signature\":\"REDACTED_SIGNATURE\"';
+      }
+      if (match[7] != null) {
+        return r'\"location\":REDACTED_LOCATION';
+      }
+      if (match[8] != null || match[9] != null) {
+        return 'REDACTED_SIGNATURE';
+      }
+      if (match[10] != null) {
+        return 'REDACTED_JWT_TOKEN';
+      }
+      return '';
+    });
+
+    return filteredLog;
   }
 }
 

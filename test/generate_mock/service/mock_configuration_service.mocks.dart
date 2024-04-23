@@ -124,6 +124,28 @@ class MockConfigurationService extends _i1.Mock
         ),
       ) as _i2.ValueNotifier<bool>);
   @override
+  _i6.Future<void> setRecordOwners(
+    List<String>? owners, {
+    bool? override = false,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #setRecordOwners,
+          [owners],
+          {#override: override},
+        ),
+        returnValue: _i6.Future<void>.value(),
+        returnValueForMissingStub: _i6.Future<void>.value(),
+      ) as _i6.Future<void>);
+  @override
+  List<String> getRecordOwners() => (super.noSuchMethod(
+        Invocation.method(
+          #getRecordOwners,
+          [],
+        ),
+        returnValue: <String>[],
+      ) as List<String>);
+  @override
   _i6.Future<void> setHasMerchandiseSupport(
     String? indexId, {
     bool? value = true,

@@ -1,6 +1,5 @@
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
+import 'package:autonomy_flutter/util/feral_file_custom_tab.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
@@ -31,7 +30,6 @@ class ExhibitionEventView extends StatelessWidget {
         ? exhibitionEvent.links!.values.first
         : null;
     final watchMoreUrl = mediaVideoUrl ?? eventLink;
-
     return Padding(
       padding: const EdgeInsets.only(right: 14),
       child: Container(
@@ -41,58 +39,68 @@ class ExhibitionEventView extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
           color: AppColor.auGreyBackground,
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'event'.tr(),
-              style: theme.textTheme.ppMori400White12,
-            ),
-            const SizedBox(height: 30),
-            if (mediaImageUrl != null) ...[
-              Image.network(
-                mediaImageUrl,
-                fit: BoxFit.fitWidth,
-              ),
-              const SizedBox(height: 20),
-            ],
-            Text(exhibitionEvent.title,
-                style: theme.textTheme.ppMori400White14),
-            const SizedBox(height: 20),
-            if (exhibitionEvent.dateTime != null) ...[
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               Text(
-                'Date: ${dateFormat.format(exhibitionEvent.dateTime!)}',
-                style: theme.textTheme.ppMori400White14,
+                'event'.tr(),
+                style: theme.textTheme.ppMori400White12,
               ),
-              Text(
-                'Time: ${timeFormat.format(exhibitionEvent.dateTime!)}',
-                style: theme.textTheme.ppMori400White14,
-              ),
-            ],
-            if (exhibitionEvent.description != null) ...[
-              HtmlWidget(
-                exhibitionEvent.description!,
-                textStyle: theme.textTheme.ppMori400White14,
-              ),
+              const SizedBox(height: 30),
+              if (mediaImageUrl != null) ...[
+                Image.network(
+                  mediaImageUrl,
+                  fit: BoxFit.fitWidth,
+                ),
+                const SizedBox(height: 20),
+              ],
+              Text(exhibitionEvent.title,
+                  style: theme.textTheme.ppMori400White14),
               const SizedBox(height: 20),
-            ],
-            if (watchMoreUrl != null && watchMoreUrl.isNotEmpty)
-              GestureDetector(
-                onTap: () async {
-                  await Navigator.of(context).pushNamed(
-                      AppRouter.inappWebviewPage,
-                      arguments: InAppWebViewPayload(watchMoreUrl));
-                },
-                child: Text(
-                  'watch'.tr(),
-                  style: theme.textTheme.ppMori400White14.copyWith(
-                    decoration: TextDecoration.underline,
-                    decorationColor: AppColor.white,
+              if (exhibitionEvent.dateTime != null) ...[
+                Text(
+                  'Date: ${dateFormat.format(exhibitionEvent.dateTime!)}',
+                  style: theme.textTheme.ppMori400White14,
+                ),
+                Text(
+                  'Time: ${timeFormat.format(exhibitionEvent.dateTime!)}',
+                  style: theme.textTheme.ppMori400White14,
+                ),
+              ],
+              if (exhibitionEvent.description != null) ...[
+                HtmlWidget(
+                  exhibitionEvent.description!,
+                  textStyle: theme.textTheme.ppMori400White14,
+                  customStylesBuilder: (element) {
+                    if (element.localName == 'a') {
+                      return {
+                        'color': 'white',
+                        'text-decoration-color': 'white'
+                      };
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 20),
+              ],
+              if (watchMoreUrl != null && watchMoreUrl.isNotEmpty)
+                GestureDetector(
+                  onTap: () async {
+                    final browser = FeralFileBrowser();
+                    await browser.openUrl(watchMoreUrl);
+                  },
+                  child: Text(
+                    'watch'.tr(),
+                    style: theme.textTheme.ppMori400White14.copyWith(
+                      decoration: TextDecoration.underline,
+                      decorationColor: AppColor.white,
+                    ),
                   ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );

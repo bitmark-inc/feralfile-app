@@ -14,7 +14,6 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
-import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -31,6 +30,7 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:libauk_dart/libauk_dart.dart';
+import 'package:walletconnect_flutter_v2/apis/core/pairing/utils/pairing_models.dart';
 import 'package:web3dart/crypto.dart';
 
 class TBSignMessagePage extends StatefulWidget {
@@ -44,12 +44,12 @@ class TBSignMessagePage extends StatefulWidget {
 
 class _TBSignMessagePageState extends State<TBSignMessagePage> {
   WalletIndex? _currentPersona;
-  late AppMetadata? appMetadata;
+  late PairingMetadata? appMetadata;
 
   @override
   void initState() {
     super.initState();
-    appMetadata = AppMetadata(
+    appMetadata = PairingMetadata(
         icons: [widget.request.icon ?? ''],
         name: widget.request.name ?? '',
         url: widget.request.url ?? '',
@@ -96,12 +96,7 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
 
   Future _rejectRequest({String? reason}) async {
     log.info('[TBSignMessagePage] _rejectRequest: $reason');
-    if (widget.request.wc2Topic != null) {
-      await injector<Wc2Service>().respondOnReject(
-        widget.request.wc2Topic!,
-        reason: reason,
-      );
-    } else {
+    if (widget.request.wc2Topic == null) {
       await injector<TezosBeaconService>().signResponse(
         widget.request.id,
         null,
@@ -111,12 +106,7 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
 
   Future _approveRequest({required String signature}) async {
     log.info('[TBSignMessagePage] _approveRequest');
-    if (widget.request.wc2Topic != null) {
-      await injector<Wc2Service>().respondOnApprove(
-        widget.request.wc2Topic!,
-        signature,
-      );
-    } else {
+    if (widget.request.wc2Topic == null) {
       final tezosService = injector<TezosBeaconService>();
       await tezosService.signResponse(
         widget.request.id,
@@ -135,7 +125,7 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
         return;
       }
 
-      Navigator.of(context).pop(true);
+      Navigator.of(context).pop(signature);
       showInfoNotification(
         const Key('signed'),
         'signed'.tr(),
@@ -167,16 +157,17 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
     final theme = Theme.of(context);
 
     return PopScope(
-      onPopInvoked: (_) async {
-        await _rejectRequest(reason: 'User reject');
-      },
+      canPop: false,
       child: Scaffold(
         appBar: getBackAppBar(
           context,
           action: () => unawaited(
               UIHelper.showAppReportBottomSheet(context, appMetadata)),
-          onBack: () {
-            unawaited(_rejectRequest(reason: 'User reject'));
+          onBack: () async {
+            await _rejectRequest(reason: 'User rejected');
+            if (!context.mounted) {
+              return;
+            }
             Navigator.of(context).pop(false);
           },
           title: 'signature_request'.tr(),

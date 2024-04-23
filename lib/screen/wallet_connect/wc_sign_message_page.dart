@@ -10,9 +10,6 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/model/connection_request_args.dart';
-import 'package:autonomy_flutter/model/wc2_request.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
@@ -30,6 +27,7 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:libauk_dart/libauk_dart.dart';
+import 'package:walletconnect_flutter_v2/apis/core/pairing/utils/pairing_models.dart';
 import 'package:web3dart/crypto.dart';
 
 class WCSignMessagePage extends StatefulWidget {
@@ -64,87 +62,72 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
 
     final theme = Theme.of(context);
 
-    return PopScope(
-      onPopInvoked: (_) async {
-        await injector<Wc2Service>().respondOnReject(
-          widget.args.topic,
-          reason: 'User reject',
-        );
-      },
-      child: Scaffold(
-        appBar: getBackAppBar(
-          context,
-          action: () => unawaited(
-              UIHelper.showAppReportBottomSheet(context, widget.args.peerMeta)),
-          onBack: () async {
-            await injector<Wc2Service>().respondOnReject(
-              widget.args.topic,
-              reason: 'User reject',
-            );
-            if (!context.mounted) {
-              return;
-            }
-            Navigator.of(context).pop(false);
-          },
-          title: 'signature_request'.tr(),
-        ),
-        body: Container(
-          margin: const EdgeInsets.only(bottom: 32),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      addTitleSpace(),
-                      Padding(
-                        padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-                        child: _wcAppInfo(widget.args.peerMeta),
+    return Scaffold(
+      appBar: getBackAppBar(
+        context,
+        action: () => unawaited(
+            UIHelper.showAppReportBottomSheet(context, widget.args.peerMeta)),
+        onBack: () {
+          Navigator.of(context).pop(false);
+        },
+        title: 'signature_request'.tr(),
+      ),
+      body: Container(
+        margin: const EdgeInsets.only(bottom: 32),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    addTitleSpace(),
+                    Padding(
+                      padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                      child: _wcAppInfo(widget.args.peerMeta),
+                    ),
+                    const SizedBox(height: 60),
+                    addOnlyDivider(),
+                    const SizedBox(height: 30),
+                    Padding(
+                      padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                      child: Text(
+                        'message'.tr(),
+                        style: theme.textTheme.ppMori400Black14,
                       ),
-                      const SizedBox(height: 60),
-                      addOnlyDivider(),
-                      const SizedBox(height: 30),
-                      Padding(
-                        padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                    ),
+                    const SizedBox(height: 4),
+                    Padding(
+                      padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 20, horizontal: 22),
+                        decoration: BoxDecoration(
+                          color: AppColor.auLightGrey,
+                          borderRadius: BorderRadius.circular(5),
+                        ),
                         child: Text(
-                          'message'.tr(),
+                          viewingMessage,
                           style: theme.textTheme.ppMori400Black14,
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Padding(
-                        padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 20, horizontal: 22),
-                          decoration: BoxDecoration(
-                            color: AppColor.auLightGrey,
-                            borderRadius: BorderRadius.circular(5),
-                          ),
-                          child: Text(
-                            viewingMessage,
-                            style: theme.textTheme.ppMori400Black14,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-              Padding(
-                padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-                child: _signButton(context, message, viewingMessage),
-              ),
-            ],
-          ),
+            ),
+            Padding(
+              padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+              child: _signButton(context, message, viewingMessage),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _wcAppInfo(AppMetadata peerMeta) {
+  Widget _wcAppInfo(PairingMetadata peerMeta) {
     final theme = Theme.of(context);
 
     return Row(
@@ -189,47 +172,27 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
               text: 'sign'.tr(),
               onTap: () => withDebounce(() async {
                 final args = widget.args;
-                final wc2Params = args.wc2Params;
                 final WalletIndex wallet;
-                String signature;
-                if (wc2Params != null) {
-                  final accountService = injector<AccountService>();
-                  wallet = await accountService.getAccountByAddress(
-                    chain: wc2Params.chain,
-                    address: wc2Params.address,
-                  );
-                  signature = await wallet.signMessage(
-                    chain: wc2Params.chain,
-                    message: wc2Params.message,
-                  );
-                } else {
-                  wallet = WalletIndex(LibAukDart.getWallet(widget.args.uuid),
-                      widget.args.index);
+                wallet =
+                    WalletIndex(LibAukDart.getWallet(args.uuid), args.index);
+                final String signature;
 
-                  switch (widget.args.type) {
-                    case WCSignType.PERSONAL_MESSAGE:
-                    case WCSignType.MESSAGE:
-                      signature = await injector<EthereumService>()
-                          .signPersonalMessage(
-                              wallet.wallet, wallet.index, message);
-                      break;
-                    case WCSignType.TYPED_MESSAGE:
-                      signature = await injector<EthereumService>()
-                          .signMessage(wallet.wallet, wallet.index, message);
-                      break;
-                  }
+                switch (args.type) {
+                  case WCSignType.PERSONAL_MESSAGE:
+                  case WCSignType.MESSAGE:
+                    signature = await injector<EthereumService>()
+                        .signPersonalMessage(
+                            wallet.wallet, wallet.index, message);
+                    break;
+                  case WCSignType.TYPED_MESSAGE:
+                    signature = await injector<EthereumService>()
+                        .signMessage(wallet.wallet, wallet.index, message);
+                    break;
                 }
-                await injector<Wc2Service>().respondOnApprove(
-                  args.topic,
-                  signature,
-                );
 
                 if (!mounted) {
                   return;
                 }
-
-                Navigator.of(context).pop(true);
-
                 showInfoNotification(
                   const Key('signed'),
                   'signed'.tr(),
@@ -238,6 +201,7 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
                     width: 24,
                   ),
                 );
+                Navigator.of(context).pop(signature);
               }),
             ),
           )
@@ -246,27 +210,21 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
 }
 
 class WCSignMessagePageArgs {
-  final int id;
   final String topic;
-  final AppMetadata peerMeta;
+  final PairingMetadata peerMeta;
   final String message;
   final WCSignType type;
   final String uuid;
   final int index;
-  final Wc2SignRequestParams? wc2Params;
-  final bool isWalletConnect2;
 
   WCSignMessagePageArgs(
-    this.id,
     this.topic,
     this.peerMeta,
     this.message,
     this.type,
     this.uuid,
-    this.index, {
-    this.isWalletConnect2 = false,
-    this.wc2Params,
-  });
+    this.index,
+  );
 }
 
 // ignore: constant_identifier_names

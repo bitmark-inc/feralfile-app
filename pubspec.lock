@@ -9,6 +9,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "61.0.0"
+  adaptive_number:
+    dependency: transitive
+    description:
+      name: adaptive_number
+      sha256: "3a567544e9b5c9c803006f51140ad544aedc79604fd4f3f2c1380003f97c1d77"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
   after_layout:
     dependency: "direct main"
     description:
@@ -105,6 +113,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.2.0"
+  base_x:
+    dependency: transitive
+    description:
+      name: base_x
+      sha256: "519abcdafd637d4b6bd7e72fabd8f9264935f804b9b9f6c5d8411c7d52cbf8fd"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.1"
   bip39:
     dependency: transitive
     description:
@@ -129,6 +145,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.1"
+  bs58:
+    dependency: transitive
+    description:
+      name: bs58
+      sha256: "3ed24dadf386ca749ff50af678be1131ef569a3583a6f37b87b90c032270c767"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.2"
   bs58check:
     dependency: "direct main"
     description:
@@ -505,6 +529,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.0.2"
+  ed25519_edwards:
+    dependency: transitive
+    description:
+      name: ed25519_edwards
+      sha256: "6ce0112d131327ec6d42beede1e5dfd526069b18ad45dcf654f15074ad9276cd"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.3.1"
   eip1559:
     dependency: transitive
     description:
@@ -546,6 +578,14 @@ packages:
       url: "https://github.com/autonomy-system/eth-sig-util.git"
     source: git
     version: "0.0.8"
+  event:
+    dependency: transitive
+    description:
+      name: event
+      sha256: eb4814de94cbf6a10da9c4f652bc654087d7066e33566b5036822e6c0b24befb
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.2"
   fake_async:
     dependency: transitive
     description:
@@ -566,8 +606,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "75b30a8f41124dd1afaaf05201e21e0268a723b5"
-      resolved-ref: "75b30a8f41124dd1afaaf05201e21e0268a723b5"
+      ref: "8cb04ea43f0b78fd27c6fd96d9e273b541d10903"
+      resolved-ref: "8cb04ea43f0b78fd27c6fd96d9e273b541d10903"
       url: "https://github.com/bitmark-inc/feralfile-app-client-shared-theme"
     source: git
     version: "0.0.1+20"
@@ -787,19 +827,67 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_inappwebview
-      sha256: d198297060d116b94048301ee6749cd2e7d03c1f2689783f52d210a6b7aba350
+      sha256: "3e9a443a18ecef966fb930c3a76ca5ab6a7aafc0c7b5e14a4a850cf107b09959"
       url: "https://pub.dev"
     source: hosted
-    version: "5.8.0"
+    version: "6.0.0"
+  flutter_inappwebview_android:
+    dependency: transitive
+    description:
+      name: flutter_inappwebview_android
+      sha256: d247f6ed417f1f8c364612fa05a2ecba7f775c8d0c044c1d3b9ee33a6515c421
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.13"
+  flutter_inappwebview_internal_annotations:
+    dependency: transitive
+    description:
+      name: flutter_inappwebview_internal_annotations
+      sha256: "5f80fd30e208ddded7dbbcd0d569e7995f9f63d45ea3f548d8dd4c0b473fb4c8"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.1"
+  flutter_inappwebview_ios:
+    dependency: transitive
+    description:
+      name: flutter_inappwebview_ios
+      sha256: f363577208b97b10b319cd0c428555cd8493e88b468019a8c5635a0e4312bd0f
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.13"
+  flutter_inappwebview_macos:
+    dependency: transitive
+    description:
+      name: flutter_inappwebview_macos
+      sha256: b55b9e506c549ce88e26580351d2c71d54f4825901666bd6cfa4be9415bb2636
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.11"
+  flutter_inappwebview_platform_interface:
+    dependency: transitive
+    description:
+      name: flutter_inappwebview_platform_interface
+      sha256: "545fd4c25a07d2775f7d5af05a979b2cac4fbf79393b0a7f5d33ba39ba4f6187"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.10"
+  flutter_inappwebview_web:
+    dependency: transitive
+    description:
+      name: flutter_inappwebview_web
+      sha256: d8c680abfb6fec71609a700199635d38a744df0febd5544c5a020bd73de8ee07
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.8"
   flutter_inline_webview_macos:
     dependency: transitive
     description:
       path: "."
-      ref: "1.0.1"
-      resolved-ref: "243bc696c8b8348db9730eed7b160d80c1e4af1c"
+      ref: "65f1aba648425aa410c6965f89f50f0120049a50"
+      resolved-ref: "65f1aba648425aa410c6965f89f50f0120049a50"
       url: "https://github.com/autonomy-system/flutter_inline_webview_macos"
     source: git
-    version: "0.0.4"
+    version: "0.0.7"
   flutter_keyboard_visibility:
     dependency: "direct main"
     description:
@@ -885,14 +973,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.6.17"
-  flutter_native_splash:
-    dependency: "direct main"
-    description:
-      name: flutter_native_splash
-      sha256: d93394f22f73e810bda59e11ebe83329c5511d6460b6b7509c4e1f3c92d6d625
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.3.5"
   flutter_parsed_text:
     dependency: transitive
     description:
@@ -983,6 +1063,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.10.6"
+  freezed_annotation:
+    dependency: transitive
+    description:
+      name: freezed_annotation
+      sha256: c3fd9336eb55a38cc1bbd79ab17573113a8deccd0ecbbf926cca3c62803b5c2d
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.4.1"
   frontend_server_client:
     dependency: transitive
     description:
@@ -1304,10 +1392,10 @@ packages:
     dependency: "direct main"
     description:
       name: http
-      sha256: "759d1a329847dd0f39226c688d3e06a6b8679668e350e2891a6474f8b4bb8525"
+      sha256: d4872660c46d929f6b8a9ef4e7a7eff7e49bbf0c4ec3f385ee32df5119175139
       url: "https://pub.dev"
     source: hosted
-    version: "1.1.0"
+    version: "1.1.2"
   http2:
     dependency: transitive
     description:
@@ -1596,11 +1684,9 @@ packages:
   libauk_dart:
     dependency: "direct main"
     description:
-      path: "."
-      ref: ac5c26280376f4ad00d2f79038d64db6e8eec2c7
-      resolved-ref: ac5c26280376f4ad00d2f79038d64db6e8eec2c7
-      url: "https://github.com/autonomy-system/libauk-dart.git"
-    source: git
+      path: "../Bitmark Inc./libauk-dart"
+      relative: true
+    source: path
     version: "0.0.1"
   linkify:
     dependency: transitive
@@ -1666,6 +1752,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.9"
+  logger:
+    dependency: transitive
+    description:
+      name: logger
+      sha256: "6bbb9d6f7056729537a4309bda2e74e18e5d9f14302489cc1e93f33b3fe32cac"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.2+1"
   logging:
     dependency: "direct main"
     description:
@@ -1791,8 +1885,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "7136d752f860e486dec48451721266432089422b"
-      resolved-ref: "7136d752f860e486dec48451721266432089422b"
+      ref: b3f4bec450f971829695d9354188d33cd6c6ce75
+      resolved-ref: b3f4bec450f971829695d9354188d33cd6c6ce75
       url: "https://github.com/autonomy-system/nft-rendering.git"
     source: git
     version: "1.0.9"
@@ -1864,10 +1958,10 @@ packages:
     dependency: "direct main"
     description:
       name: package_info_plus
-      sha256: "6ff267fcd9d48cb61c8df74a82680e8b82e940231bb5f68356672fde0397334a"
+      sha256: "7e76fad405b3e4016cd39d08f455a4eb5199723cf594cd1b8916d47140d93017"
       url: "https://pub.dev"
     source: hosted
-    version: "4.1.0"
+    version: "4.2.0"
   package_info_plus_platform_interface:
     dependency: transitive
     description:
@@ -2790,10 +2884,10 @@ packages:
     dependency: "direct main"
     description:
       name: video_player
-      sha256: "3fd106c74da32f336dc7feb65021da9b0207cb3124392935f1552834f7cce822"
+      sha256: afc65f4b8bcb2c188f64a591f84fb471f4f2e19fc607c65fd8d2f8fedb3dec23
       url: "https://pub.dev"
     source: hosted
-    version: "2.7.0"
+    version: "2.8.3"
   video_player_android:
     dependency: transitive
     description:
@@ -2806,10 +2900,10 @@ packages:
     dependency: transitive
     description:
       name: video_player_avfoundation
-      sha256: f5f5b7fe8c865be8a57fe80c2dca130772e1db775b7af4e5c5aa1905069cfc6c
+      sha256: "309e3962795e761be010869bae65c0b0e45b5230c5cee1bec72197ca7db040ed"
       url: "https://pub.dev"
     source: hosted
-    version: "2.4.9"
+    version: "2.5.6"
   video_player_macos:
     dependency: transitive
     description:
@@ -2874,6 +2968,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.0.12+1"
+  walletconnect_flutter_v2:
+    dependency: "direct main"
+    description:
+      name: walletconnect_flutter_v2
+      sha256: "60f56018f69401799dfcfdee2d5112132aa922eea613018155132b87849ea1b5"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.11"
   watcher:
     dependency: transitive
     description:
@@ -2882,6 +2984,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.0"
+  web:
+    dependency: transitive
+    description:
+      name: web
+      sha256: "4188706108906f002b3a293509234588823c8c979dc83304e229ff400c996b05"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.4.2"
   web3dart:
     dependency: "direct main"
     description:
@@ -2970,6 +3080,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.1"
+  x25519:
+    dependency: transitive
+    description:
+      name: x25519
+      sha256: cec3c125f0d934dccba6c4cab48f3fbf866dc78895dcc5a1584d35b0a845005b
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.1"
   xdg_directories:
     dependency: transitive
     description:
@@ -2996,4 +3114,4 @@ packages:
     version: "3.1.2"
 sdks:
   dart: ">=3.3.0-279.1.beta <4.0.0"
-  flutter: ">=3.13.0"
+  flutter: ">=3.16.0"

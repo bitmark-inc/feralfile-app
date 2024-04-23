@@ -30,10 +30,10 @@ import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/postcar
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_state.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
-import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
@@ -42,6 +42,7 @@ import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
+import 'package:autonomy_flutter/util/feral_file_custom_tab.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/moma_style_color.dart';
 import 'package:autonomy_flutter/util/share_helper.dart';
@@ -111,6 +112,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   final _postcardService = injector<PostcardService>();
   final _remoteConfig = injector<RemoteConfigService>();
   Prompt? _prompt;
+  final _metricClientService = injector<MetricClientService>();
+  final _browser = FeralFileBrowser();
 
   @override
   void initState() {
@@ -133,7 +136,12 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   }
 
   @override
-  void afterFirstLayout(BuildContext context) {}
+  void afterFirstLayout(BuildContext context) {
+    _metricClientService.addEvent(MixpanelEvent.visitPage, data: {
+      MixpanelProp.tokenId:
+          widget.payload.identities[widget.payload.currentIndex],
+    });
+  }
 
   Future<void> _showSharingExpired(BuildContext context) async {
     await UIHelper.showPostcardDrawerAction(context, options: [
@@ -280,7 +288,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     if (wallet == null) {
       return;
     }
-    if (!mounted) {
+    if (!context.mounted) {
       return;
     }
     await Navigator.of(context).pushNamed(
@@ -357,6 +365,10 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           !isNotOwner &&
           current.isViewOnly == false) {
         unawaited(_youDidIt(context, current.assetToken!));
+      }
+      if (previous.assetToken != current.assetToken &&
+          current.assetToken != null) {
+        unawaited(current.assetToken?.sendViewArtworkEvent());
       }
       return true;
     }, listener: (context, state) async {
@@ -736,11 +748,11 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                     onTap: () async {
                       final isSuccess =
                           await retryStampPostcardIfNeed(context, asset);
-                      if (mounted && isSuccess == false) {
+                      if (context.mounted && isSuccess == false) {
                         await UIHelper.showPostcardStampFailed(context);
                         return;
                       }
-                      if (!mounted) {
+                      if (!context.mounted) {
                         return;
                       }
                       final box = context.findRenderObject() as RenderBox?;
@@ -878,12 +890,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                     .moMASans700Black16
                     .copyWith(fontSize: 18),
               ),
-              onTap: () {
-                unawaited(Navigator.pushNamed(
-                  context,
-                  AppRouter.inappWebviewPage,
-                  arguments: InAppWebViewPayload(POSTCARD_ABOUT_THE_PROJECT),
-                ));
+              onTap: () async {
+                await _browser.openUrl(POSTCARD_ABOUT_THE_PROJECT);
               },
             ),
           ),
@@ -1048,14 +1056,14 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                   await _postcardService.downloadStamp(
                       tokenId: asset.tokenId!,
                       stampIndex: asset.stampIndexWithStamping);
-                  if (!mounted) {
+                  if (!context.mounted) {
                     return;
                   }
                   Navigator.of(context).pop();
                   await UIHelper.showPostcardStampSaved(context);
                 } catch (e) {
                   log.info('Download stamp failed: error $e');
-                  if (!mounted) {
+                  if (!context.mounted) {
                     return;
                   }
                   Navigator.of(context).pop();
@@ -1100,14 +1108,14 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
               onTap: () async {
                 try {
                   await _postcardService.downloadPostcard(asset.tokenId!);
-                  if (!mounted) {
+                  if (!context.mounted) {
                     return;
                   }
                   Navigator.of(context).pop();
                   await UIHelper.showPostcardSaved(context);
                 } catch (e) {
                   log.info('Download postcard failed: error $e');
-                  if (!mounted) {
+                  if (!context.mounted) {
                     return;
                   }
                   Navigator.of(context).pop();
@@ -1146,7 +1154,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                 .updateTempStorageHiddenTokenIDs([asset.id], !isHidden);
             await injector<SettingsDataService>().backup();
 
-            if (!mounted) {
+            if (!context.mounted) {
               return;
             }
             NftCollectionBloc.eventController.add(ReloadEvent());

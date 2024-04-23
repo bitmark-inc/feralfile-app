@@ -52,6 +52,8 @@ extension StringExtension on String {
 
   bool isValidUrl() => Uri.tryParse(this) != null;
 
+  bool isInvalidRPCScheme() => startsWith('file:') || startsWith('http:');
+
   String replacePrefix(String from, String to) {
     if (startsWith(from)) {
       return replaceRange(0, from.length, to);
