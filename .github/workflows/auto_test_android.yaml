@@ -19,6 +19,7 @@ jobs:
           ssh-private-key: |
             ${{ secrets.KEY_VAULT_DEPLOYMENT_KEY }}
             ${{ secrets.SSH_ASSETS_KEY }}
+            ${{ secrets.SUBMODULE_AUTOTEST }}
       # Set build number
       - name: Set env
         run: |
@@ -88,7 +89,7 @@ jobs:
           cat .env
 
       - name: Submoudles update
-        run: git -c submodule update --init --recursive
+        run: git submodule update --init --recursive
       - run: flutter pub cache repair
       - run: flutter pub get
       # Build app
