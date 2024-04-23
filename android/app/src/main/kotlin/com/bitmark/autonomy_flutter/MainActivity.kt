@@ -11,13 +11,13 @@ import android.app.KeyguardManager
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.os.Build
+import android.view.WindowManager.LayoutParams
 import androidx.annotation.NonNull
 import androidx.biometric.BiometricManager
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
-import android.view.WindowManager.LayoutParams
-import android.os.Build
 
 class MainActivity : FlutterFragmentActivity() {
     companion object {
@@ -43,7 +43,7 @@ class MainActivity : FlutterFragmentActivity() {
             }
         }
 
-        BackupDartPlugin().createChannels(flutterEngine, applicationContext)
+        BackupDartPlugin().createChannels(flutterEngine, this)
         TezosBeaconDartPlugin().createChannels(flutterEngine)
         flutterEngine.plugins.add(Wc2ConnectPlugin(this.application))
 
@@ -87,6 +87,7 @@ class MainActivity : FlutterFragmentActivity() {
             "FlutterSharedPreferences",
             Context.MODE_PRIVATE
         )
+
         val isEnabled = sharedPreferences.getBoolean("flutter.device_passcode", false)
         if (isEnabled && !isAuthenticate) {
             val biometricManager = BiometricManager.from(this)
