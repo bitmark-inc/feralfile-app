@@ -20,14 +20,19 @@ jobs:
           echo "FLUTTER_VERSION_CODE=10" >> $GITHUB_ENV
           echo "BRANCH_KEY=${{ secrets.BRANCH_KEY }}" >> $GITHUB_ENV
           echo "BRANCH_KEY_TEST=${{ secrets.BRANCH_KEY_TEST }}" >> $GITHUB_ENV
-      - uses: webfactory/ssh-agent@v0.5.4
+      - name: SSH key
+        uses: webfactory/ssh-agent@v0.5.4
         with:
-          ssh-private-key: ${{ secrets.SSH_ASSETS_KEY }}
+          ssh-private-key: |
+            ${{ secrets.KEY_VAULT_DEPLOYMENT_KEY }}
+            ${{ secrets.SSH_ASSETS_KEY }}
       - name: Create env file
         run: |
           touch .env
           echo AUTO_TEST_PLATFORM=ios >> .env
           echo AUTO_TEST_PROFILE=XsmaxBitmark >> .env
+
+          echo FASTLAN_ENV=test >> $GITHUB_ENV
 
           echo AUTOTEST_ENV= "${{ secrets.AUTOTEST_ENV }}" | sed 's/\\n/\n/g' >> .env
           cat .env
@@ -37,8 +42,28 @@ jobs:
       - run: flutter pub cache repair
       - run: flutter pub get
       # Build app
-      - name: Build to IPA inhouse app
-        run: flutter build ipa --flavor inhouse --export-options-plist ios/ExportOptions-Inhouse.plist
+      - name: Build and deploy with Fastlane
+        env:
+          ENTERPRISE_CERTIFICATE_PASSWORD: ${{ secrets.ENTERPRISE_CERTIFICATE_PASSWORD }}
+          APPSTORE_CERTIFICATE_PASSWORD: ${{ secrets.APPSTORE_CERTIFICATE_PASSWORD }}
+          JSON_FILE: ${{ secrets.JSON_FILE }}
+          SENTRY_AUTH: ${{ secrets.SENTRY_AUTH }}
+          APPCENTER_API_TOKEN: ${{ secrets.APPCENTER_API_TOKEN }}
+          APP_VERSION: ${{ inputs.version }}
+          BRANCH_KEY: ${{ secrets.BRANCH_KEY }}
+          RELEASE_NOTES: ${{ inputs.message }}
+
+        run: |
+          git clone git@github.com:bitmark-inc/mobile-signing-key-vault.git --depth 1
+          echo $JSON_FILE >> key.json
+          bundle exec fastlane install_plugins
+          echo "APP_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+          bundle exec fastlane ciappcenter env:${{ env.FASTLAN_ENV }}
+
+        working-directory: ios
+
+      # - name: Build to IPA inhouse app
+      #   run: flutter build ipa --flavor inhouse --export-options-plist ios/ExportOptions-Inhouse.plist
       - name: CD to auto-test folder
         run: |
           cd auto-test

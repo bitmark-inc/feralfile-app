@@ -13,9 +13,12 @@ jobs:
       # Checkout code and get packages.
       - name: Checkout code
         uses: actions/checkout@v3
-      - uses: webfactory/ssh-agent@v0.5.4
+      - name: SSH key
+        uses: webfactory/ssh-agent@v0.5.4
         with:
-          ssh-private-key: ${{ secrets.SSH_ASSETS_KEY }}
+          ssh-private-key: |
+            ${{ secrets.KEY_VAULT_DEPLOYMENT_KEY }}
+            ${{ secrets.SSH_ASSETS_KEY }}
       # Set build number
       - name: Set env
         run: |
