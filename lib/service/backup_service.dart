@@ -156,15 +156,7 @@ class BackupService {
             '[BackupService] Cloud database backup version is $backUpVersion');
         if (version > backUpVersion) {
           await MigrationAdapter.runMigrations(
-              tempDbOld, backUpVersion, version, [
-            migrateCloudV1ToV2,
-            migrateCloudV2ToV3,
-            migrateCloudV3ToV4,
-            migrateCloudV4ToV5,
-            migrateCloudV5ToV6,
-            migrateCloudV6ToV7,
-            migrateCloudV7ToV8,
-          ]);
+              tempDbOld, backUpVersion, version, cloudDatabaseMigrations);
         }
 
         final tempDb =
