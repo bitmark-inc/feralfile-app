@@ -79,18 +79,11 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
         for (int i = 0; i < event.accounts.length; i++) {
           final account = accounts[i];
           if (account.persona != null) {
-            await tx.update(
-                'WalletAddress',
-                {'accountOrder': i},
-                where: 'address = ?',
-                whereArgs: [account.key]);
+            await tx.update('WalletAddress', {'accountOrder': i},
+                where: 'address = ?', whereArgs: [account.key]);
           } else {
-
-            await tx.update(
-                'Connection',
-                {'accountOrder': i},
-                where: 'accountNumber = ?',
-                whereArgs: [account.key]);
+            await tx.update('Connection', {'accountOrder': i},
+                where: 'accountNumber = ?', whereArgs: [account.key]);
           }
         }
       });
