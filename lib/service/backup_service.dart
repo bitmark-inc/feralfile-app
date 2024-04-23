@@ -153,8 +153,9 @@ class BackupService {
         } catch (e) {
           log.warning('[BackupService] Cloud database decrypted failed,'
               ' fallback to legacy method');
-          unawaited(Sentry.captureMessage(
-              '[BackupService] Cloud database decrypted failed,'));
+          unawaited(Sentry.captureException(
+              '[BackupService] Cloud database decrypted failed, '
+              'fallback to legacy method, $e'));
           await account.decryptFile(
             inputPath: tempFilePath,
             outputPath: dbFilePath,
@@ -187,7 +188,7 @@ class BackupService {
         return;
       } catch (e) {
         log.info('[BackupService] Failed to restore Cloud Database $e');
-        unawaited(Sentry.captureMessage(
+        unawaited(Sentry.captureException(
             '[BackupService] Failed to restore Cloud Database $e'));
         return;
       }
