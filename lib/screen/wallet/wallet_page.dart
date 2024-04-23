@@ -139,17 +139,12 @@ class _WalletPageState extends State<WalletPage>
             ),
             action: _showAddWalletOption),
         body: SafeArea(
-          child: SingleChildScrollView(
+          child: Padding(
             padding: EdgeInsets.only(
               bottom: ResponsiveLayout.pageEdgeInsetsWithSubmitButton.bottom,
             ),
-            child: const Column(
-              children: [
-                SizedBox(height: 40),
-                AccountsView(
-                  isInSettingsPage: true,
-                ),
-              ],
+            child: const AccountsView(
+              isInSettingsPage: true,
             ),
           ),
         ),

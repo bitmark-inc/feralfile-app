@@ -25,7 +25,7 @@ part 'cloud_database.g.dart'; // the generated code will be there
 //ignore_for_file: lines_longer_than_80_chars
 
 @TypeConverters([DateTimeConverter])
-@Database(version: 8, entities: [Persona, Connection, Audit, WalletAddress])
+@Database(version: 9, entities: [Persona, Connection, Audit, WalletAddress])
 abstract class CloudDatabase extends FloorDatabase {
   PersonaDao get personaDao;
 
@@ -209,3 +209,38 @@ final migrateCloudV7ToV8 = Migration(7, 8, (database) async {
   }
   log.info('Migrated Cloud database from version 7 to 8');
 });
+
+final migrateCloudV8ToV9 = Migration(8, 9, (database) async {
+  // Check if 'accountOrder' column exists in 'Connection' table
+  final countOrderColInConnection = sqflite.Sqflite.firstIntValue(
+      await database.rawQuery(
+          "SELECT COUNT(*) FROM pragma_table_info('Connection') WHERE name='accountOrder';"));
+
+  if (countOrderColInConnection == 0) {
+    await database
+        .execute('ALTER TABLE Connection ADD COLUMN accountOrder INTEGER;');
+  }
+
+  // Check if 'accountOrder' column exists in 'WalletAddress' table
+  final countOrderColInWalletAddress = sqflite.Sqflite.firstIntValue(
+      await database.rawQuery(
+          "SELECT COUNT(*) FROM pragma_table_info('WalletAddress') WHERE name='accountOrder';"));
+
+  if (countOrderColInWalletAddress == 0) {
+    await database
+        .execute('ALTER TABLE WalletAddress ADD COLUMN accountOrder INTEGER;');
+  }
+
+  log.info('Migrated Cloud database from version 8 to 9');
+});
+
+final cloudDatabaseMigrations = [
+  migrateCloudV1ToV2,
+  migrateCloudV2ToV3,
+  migrateCloudV3ToV4,
+  migrateCloudV4ToV5,
+  migrateCloudV5ToV6,
+  migrateCloudV6ToV7,
+  migrateCloudV7ToV8,
+  migrateCloudV8ToV9,
+];
