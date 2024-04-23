@@ -59,7 +59,7 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
       if (oldOrder == newOrder ||
           state.accounts == null ||
           oldOrder >= state.accounts!.length ||
-          newOrder >= state.accounts!.length) {
+          newOrder > state.accounts!.length) {
         return;
       }
 
