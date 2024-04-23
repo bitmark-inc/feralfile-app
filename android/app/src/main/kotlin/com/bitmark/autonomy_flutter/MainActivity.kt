@@ -75,7 +75,6 @@ class MainActivity : FlutterFragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         settingFlutterView()
-        LibAukUtil.migrate(this)
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
