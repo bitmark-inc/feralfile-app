@@ -83,7 +83,7 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
                 where: 'address = ?', whereArgs: [account.key]);
           } else {
             await tx.update('Connection', {'accountOrder': i},
-                where: 'accountNumber = ?', whereArgs: [account.key]);
+                where: 'accountNumber = ?', whereArgs: [account.accountNumber]);
           }
         }
       });
