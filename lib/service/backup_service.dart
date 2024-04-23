@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -23,6 +24,7 @@ import 'package:http/http.dart' as http;
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:sqflite/sqflite.dart' as sqflite;
 import 'package:sqflite/sqflite.dart';
 
@@ -151,6 +153,8 @@ class BackupService {
         } catch (e) {
           log.warning('[BackupService] Cloud database decrypted failed,'
               ' fallback to legacy method');
+          unawaited(Sentry.captureMessage(
+              '[BackupService] Cloud database decrypted failed,'));
           await account.decryptFile(
             inputPath: tempFilePath,
             outputPath: dbFilePath,
@@ -178,12 +182,13 @@ class BackupService {
         await injector<CloudDatabase>().copyDataFrom(tempDb);
         await tempFile.delete();
         await File(dbFilePath).delete();
-        log.info(
-            '[BackupService] Cloud database is restored $backUpVersion to '
-                '$version');
+        log.info('[BackupService] Cloud database is restored $backUpVersion to '
+            '$version');
         return;
       } catch (e) {
         log.info('[BackupService] Failed to restore Cloud Database $e');
+        unawaited(Sentry.captureMessage(
+            '[BackupService] Failed to restore Cloud Database $e'));
         return;
       }
     }
