@@ -75,15 +75,25 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
 
     on<SaveAccountOrderEvent>((event, emit) async {
       final accounts = event.accounts;
-      for (int i = 0; i < event.accounts.length; i++) {
-        final account = accounts[i];
-        if (account.persona != null) {
-          await _cloudDB.addressDao.setAddressOrder(account.key, i);
-        } else {
-          await _cloudDB.connectionDao
-              .setConnectionOrder(account.accountNumber, i);
+      await _cloudDB.database.database.transaction((tx) async {
+        for (int i = 0; i < event.accounts.length; i++) {
+          final account = accounts[i];
+          if (account.persona != null) {
+            await tx.update(
+                'WalletAddress',
+                {'accountOrder': i},
+                where: 'address = ?',
+                whereArgs: [account.key]);
+          } else {
+
+            await tx.update(
+                'Connection',
+                {'accountOrder': i},
+                where: 'accountNumber = ?',
+                whereArgs: [account.key]);
+          }
         }
-      }
+      });
     });
 
     on<GetAccountsIRLEvent>((event, emit) async {
