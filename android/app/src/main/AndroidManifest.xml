@@ -195,6 +195,20 @@
                     android:scheme="https" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".EmergencyLog"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="emergency-logs"
+                    android:pathPattern="/.*"
+                    android:scheme="feralfile" />
+            </intent-filter>
+        </activity>
         <!--
  Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java

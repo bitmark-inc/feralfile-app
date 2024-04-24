@@ -12,12 +12,16 @@ class FileLogger(context: Context) {
 
         fun init(context: Context) = INSTANCE ?: FileLogger(context).also { INSTANCE = it }
 
-        fun log(tag: String , message: String) {
+        fun log(tag: String, message: String) {
             INSTANCE?.log(tag, message)
         }
     }
-    
+
     private val _fileLogger: File
+
+    fun getFile(): File {
+        return _fileLogger
+    }
 
     init {
         _fileLogger = File(context.cacheDir, "app.log")
@@ -26,7 +30,7 @@ class FileLogger(context: Context) {
         }
     }
 
-    private fun log(tag: String , message: String) {
+    private fun log(tag: String, message: String) {
         if (_fileLogger.canWrite()) {
             Log.d(tag, message)
             FileOutputStream(_fileLogger, true).apply {

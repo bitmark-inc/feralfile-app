@@ -75,7 +75,7 @@ class _$CloudDatabase extends CloudDatabase {
     Callback? callback,
   ]) async {
     final databaseOptions = sqflite.OpenDatabaseOptions(
-      version: 8,
+      version: 9,
       onConfigure: (database) async {
         await database.execute('PRAGMA foreign_keys = ON');
         await callback?.onConfigure?.call(database);
@@ -93,11 +93,11 @@ class _$CloudDatabase extends CloudDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `Persona` (`uuid` TEXT NOT NULL, `name` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `defaultAccount` INTEGER, `ethereumIndex` INTEGER NOT NULL, `tezosIndex` INTEGER NOT NULL, `ethereumIndexes` TEXT, `tezosIndexes` TEXT, PRIMARY KEY (`uuid`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `Connection` (`key` TEXT NOT NULL, `name` TEXT NOT NULL, `data` TEXT NOT NULL, `connectionType` TEXT NOT NULL, `accountNumber` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, PRIMARY KEY (`key`))');
+            'CREATE TABLE IF NOT EXISTS `Connection` (`key` TEXT NOT NULL, `name` TEXT NOT NULL, `data` TEXT NOT NULL, `connectionType` TEXT NOT NULL, `accountNumber` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `accountOrder` INTEGER, PRIMARY KEY (`key`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `Audit` (`uuid` TEXT NOT NULL, `category` TEXT NOT NULL, `action` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `metadata` TEXT NOT NULL, PRIMARY KEY (`uuid`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `WalletAddress` (`address` TEXT NOT NULL, `uuid` TEXT NOT NULL, `index` INTEGER NOT NULL, `cryptoType` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `isHidden` INTEGER NOT NULL, `name` TEXT, PRIMARY KEY (`address`))');
+            'CREATE TABLE IF NOT EXISTS `WalletAddress` (`address` TEXT NOT NULL, `uuid` TEXT NOT NULL, `index` INTEGER NOT NULL, `cryptoType` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `isHidden` INTEGER NOT NULL, `name` TEXT, `accountOrder` INTEGER, PRIMARY KEY (`address`))');
 
         await callback?.onCreate?.call(database, version);
       },
@@ -276,7 +276,8 @@ class _$ConnectionDao extends ConnectionDao {
                   'data': item.data,
                   'connectionType': item.connectionType,
                   'accountNumber': item.accountNumber,
-                  'createdAt': _dateTimeConverter.encode(item.createdAt)
+                  'createdAt': _dateTimeConverter.encode(item.createdAt),
+                  'accountOrder': item.accountOrder
                 }),
         _connectionUpdateAdapter = UpdateAdapter(
             database,
@@ -288,7 +289,8 @@ class _$ConnectionDao extends ConnectionDao {
                   'data': item.data,
                   'connectionType': item.connectionType,
                   'accountNumber': item.accountNumber,
-                  'createdAt': _dateTimeConverter.encode(item.createdAt)
+                  'createdAt': _dateTimeConverter.encode(item.createdAt),
+                  'accountOrder': item.accountOrder
                 }),
         _connectionDeletionAdapter = DeletionAdapter(
             database,
@@ -300,7 +302,8 @@ class _$ConnectionDao extends ConnectionDao {
                   'data': item.data,
                   'connectionType': item.connectionType,
                   'accountNumber': item.accountNumber,
-                  'createdAt': _dateTimeConverter.encode(item.createdAt)
+                  'createdAt': _dateTimeConverter.encode(item.createdAt),
+                  'accountOrder': item.accountOrder
                 });
 
   final sqflite.DatabaseExecutor database;
@@ -324,7 +327,8 @@ class _$ConnectionDao extends ConnectionDao {
             data: row['data'] as String,
             connectionType: row['connectionType'] as String,
             accountNumber: row['accountNumber'] as String,
-            createdAt: _dateTimeConverter.decode(row['createdAt'] as int)));
+            createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
+            accountOrder: row['accountOrder'] as int?));
   }
 
   @override
@@ -337,7 +341,8 @@ class _$ConnectionDao extends ConnectionDao {
             data: row['data'] as String,
             connectionType: row['connectionType'] as String,
             accountNumber: row['accountNumber'] as String,
-            createdAt: _dateTimeConverter.decode(row['createdAt'] as int)));
+            createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
+            accountOrder: row['accountOrder'] as int?));
   }
 
   @override
@@ -350,27 +355,29 @@ class _$ConnectionDao extends ConnectionDao {
             data: row['data'] as String,
             connectionType: row['connectionType'] as String,
             accountNumber: row['accountNumber'] as String,
-            createdAt: _dateTimeConverter.decode(row['createdAt'] as int)));
+            createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
+            accountOrder: row['accountOrder'] as int?));
   }
 
   @override
   Future<List<Connection>> getWc2Connections() async {
     return _queryAdapter.queryList(
-        'SELECT * FROM Connection WHERE connectionType IN (\"dappConnect2\",\ "walletConnect2\")',
+        'SELECT * FROM Connection WHERE connectionType IN (\"dappConnect2\", \"walletConnect2\")',
         mapper: (Map<String, Object?> row) => Connection(
             key: row['key'] as String,
             name: row['name'] as String,
             data: row['data'] as String,
             connectionType: row['connectionType'] as String,
             accountNumber: row['accountNumber'] as String,
-            createdAt: _dateTimeConverter.decode(row['createdAt'] as int)));
+            createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
+            accountOrder: row['accountOrder'] as int?));
   }
 
   @override
   Future<List<Connection>> getConnectionsByType(String type) async {
     return _queryAdapter.queryList(
         'SELECT * FROM Connection WHERE connectionType = ?1 ORDER BY createdAt DESC',
-        mapper: (Map<String, Object?> row) => Connection(key: row['key'] as String, name: row['name'] as String, data: row['data'] as String, connectionType: row['connectionType'] as String, accountNumber: row['accountNumber'] as String, createdAt: _dateTimeConverter.decode(row['createdAt'] as int)),
+        mapper: (Map<String, Object?> row) => Connection(key: row['key'] as String, name: row['name'] as String, data: row['data'] as String, connectionType: row['connectionType'] as String, accountNumber: row['accountNumber'] as String, createdAt: _dateTimeConverter.decode(row['createdAt'] as int), accountOrder: row['accountOrder'] as int?),
         arguments: [type]);
   }
 
@@ -385,8 +392,19 @@ class _$ConnectionDao extends ConnectionDao {
             data: row['data'] as String,
             connectionType: row['connectionType'] as String,
             accountNumber: row['accountNumber'] as String,
-            createdAt: _dateTimeConverter.decode(row['createdAt'] as int)),
+            createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
+            accountOrder: row['accountOrder'] as int?),
         arguments: [accountNumber]);
+  }
+
+  @override
+  Future<void> setConnectionOrder(
+    String accountNumber,
+    int accountOrder,
+  ) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE Connection SET accountOrder = ?2 WHERE accountNumber = ?1',
+        arguments: [accountNumber, accountOrder]);
   }
 
   @override
@@ -398,7 +416,8 @@ class _$ConnectionDao extends ConnectionDao {
             data: row['data'] as String,
             connectionType: row['connectionType'] as String,
             accountNumber: row['accountNumber'] as String,
-            createdAt: _dateTimeConverter.decode(row['createdAt'] as int)),
+            createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
+            accountOrder: row['accountOrder'] as int?),
         arguments: [key]);
   }
 
@@ -531,7 +550,8 @@ class _$WalletAddressDao extends WalletAddressDao {
                   'cryptoType': item.cryptoType,
                   'createdAt': _dateTimeConverter.encode(item.createdAt),
                   'isHidden': item.isHidden ? 1 : 0,
-                  'name': item.name
+                  'name': item.name,
+                  'accountOrder': item.accountOrder
                 }),
         _walletAddressUpdateAdapter = UpdateAdapter(
             database,
@@ -544,7 +564,8 @@ class _$WalletAddressDao extends WalletAddressDao {
                   'cryptoType': item.cryptoType,
                   'createdAt': _dateTimeConverter.encode(item.createdAt),
                   'isHidden': item.isHidden ? 1 : 0,
-                  'name': item.name
+                  'name': item.name,
+                  'accountOrder': item.accountOrder
                 }),
         _walletAddressDeletionAdapter = DeletionAdapter(
             database,
@@ -557,7 +578,8 @@ class _$WalletAddressDao extends WalletAddressDao {
                   'cryptoType': item.cryptoType,
                   'createdAt': _dateTimeConverter.encode(item.createdAt),
                   'isHidden': item.isHidden ? 1 : 0,
-                  'name': item.name
+                  'name': item.name,
+                  'accountOrder': item.accountOrder
                 });
 
   final sqflite.DatabaseExecutor database;
@@ -582,7 +604,8 @@ class _$WalletAddressDao extends WalletAddressDao {
             cryptoType: row['cryptoType'] as String,
             createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
             isHidden: (row['isHidden'] as int) != 0,
-            name: row['name'] as String?));
+            name: row['name'] as String?,
+            accountOrder: row['accountOrder'] as int?));
   }
 
   @override
@@ -595,7 +618,8 @@ class _$WalletAddressDao extends WalletAddressDao {
             cryptoType: row['cryptoType'] as String,
             createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
             isHidden: (row['isHidden'] as int) != 0,
-            name: row['name'] as String?),
+            name: row['name'] as String?,
+            accountOrder: row['accountOrder'] as int?),
         arguments: [address]);
   }
 
@@ -610,7 +634,8 @@ class _$WalletAddressDao extends WalletAddressDao {
             cryptoType: row['cryptoType'] as String,
             createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
             isHidden: (row['isHidden'] as int) != 0,
-            name: row['name'] as String?),
+            name: row['name'] as String?,
+            accountOrder: row['accountOrder'] as int?),
         arguments: [uuid]);
   }
 
@@ -626,7 +651,8 @@ class _$WalletAddressDao extends WalletAddressDao {
             cryptoType: row['cryptoType'] as String,
             createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
             isHidden: (row['isHidden'] as int) != 0,
-            name: row['name'] as String?),
+            name: row['name'] as String?,
+            accountOrder: row['accountOrder'] as int?),
         arguments: [isHidden ? 1 : 0]);
   }
 
@@ -644,7 +670,8 @@ class _$WalletAddressDao extends WalletAddressDao {
             cryptoType: row['cryptoType'] as String,
             createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
             isHidden: (row['isHidden'] as int) != 0,
-            name: row['name'] as String?),
+            name: row['name'] as String?,
+            accountOrder: row['accountOrder'] as int?),
         arguments: [uuid, cryptoType]);
   }
 
@@ -659,7 +686,8 @@ class _$WalletAddressDao extends WalletAddressDao {
             cryptoType: row['cryptoType'] as String,
             createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
             isHidden: (row['isHidden'] as int) != 0,
-            name: row['name'] as String?),
+            name: row['name'] as String?,
+            accountOrder: row['accountOrder'] as int?),
         arguments: [cryptoType]);
   }
 
@@ -671,6 +699,16 @@ class _$WalletAddressDao extends WalletAddressDao {
     await _queryAdapter.queryNoReturn(
         'UPDATE WalletAddress SET isHidden = ?2 WHERE address = ?1',
         arguments: [address, isHidden ? 1 : 0]);
+  }
+
+  @override
+  Future<void> setAddressOrder(
+    String address,
+    int accountOrder,
+  ) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE WalletAddress SET accountOrder = ?2 WHERE address = ?1',
+        arguments: [address, accountOrder]);
   }
 
   @override
