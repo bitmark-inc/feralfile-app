@@ -155,7 +155,7 @@ class TezosBeaconService implements BeaconHandler {
       final result = await _navigationService
           .navigateTo(AppRouter.tbSignMessagePage, arguments: request);
       log.info('TezosBeaconService: handle permission Request result: $result');
-      if (result) {
+      if (result is String || result == true) {
         _showYouAllSet();
       }
       _clearConnectFlag();

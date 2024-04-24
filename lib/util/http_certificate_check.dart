@@ -35,6 +35,12 @@ Future<String?> _fetchCertificate(Uri url) async {
 }
 
 Future<bool> checkCertificate(String url) async {
+  if (url.startsWith('http://localhost:') ||
+      url.startsWith('http://192.168.')) {
+    log.info('Localhost, skip certificate check');
+    return true;
+  }
+
   final fingerprint = await _fetchCertificate(Uri.parse(url));
   if (fingerprint == null) {
     unawaited(Sentry.captureMessage(

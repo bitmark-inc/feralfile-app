@@ -14,6 +14,9 @@ import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import io.sentry.Sentry
 import android.util.Base64
 import android.util.Log
 import android.view.View.ACCESSIBILITY_DATA_SENSITIVE_YES
@@ -82,37 +85,7 @@ class MainActivity : FlutterFragmentActivity() {
         FileLogger.init(applicationContext)
         // verity signing certificate
 
-        if (detectFrida()) {
-            finish()
-        }
-        val isSignatureValid = isSignatureValid(this, BuildConfig.SIGNATURE_HASH)
-        if (!isSignatureValid) {
-            Toast.makeText(this, "Invalid signature", Toast.LENGTH_SHORT).show()
-            finish()
-            return
-        }
-
-        // Detect rooted devices
-        // Create a RootBeer instance
-        val rootBeer = RootBeer(this)
-        if (rootBeer.isRooted) {
-            Toast.makeText(this, "This app cannot be used on rooted devices.", Toast.LENGTH_SHORT)
-                .show()
-            finish() // Close the app
-        }
-
-        // debugger detection
-        val hasTracerPid = hasTracerPid()
-        if (BuildConfig.ENABLE_DEBUGGER_DETECTION && hasTracerPid) {
-            Toast.makeText(
-                this,
-                "Debugging detected. Please try again without any debugging tools.",
-                Toast.LENGTH_SHORT
-            )
-                .show()
-            finish()
-            return
-        }
+        checkSecurity()
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
             CHANNEL
@@ -149,6 +122,54 @@ class MainActivity : FlutterFragmentActivity() {
     private fun detectFrida(): Boolean {
         return detectFridaPort() || detectFridaMem()
     }
+    private fun checkSecurity() {
+        val handler = Handler(Looper.getMainLooper())
+
+        handler.postDelayed({
+            if (detectFrida()) {
+                captureMessage("[Security check] Reverse engineering tool detected")
+                finish()
+            }
+            val isSignatureValid = isSignatureValid(this, BuildConfig.SIGNATURE_HASH)
+            if (!isSignatureValid) {
+                captureMessage("[Security check] Invalid signature detected")
+                Toast.makeText(this, "Invalid signature", Toast.LENGTH_SHORT).show()
+                finish()
+            }
+
+            // Detect rooted devices
+            // Create a RootBeer instance
+            val rootBeer = RootBeer(this)
+            if (rootBeer.isRooted) {
+                captureMessage("[Security check] Rooted device detected")
+                Toast.makeText(this, "This app cannot be used on rooted devices.", Toast.LENGTH_SHORT)
+                    .show()
+                finish() // Close the app
+            }
+
+            // debugger detection
+            val hasTracerPid = hasTracerPid()
+            if (BuildConfig.ENABLE_DEBUGGER_DETECTION && hasTracerPid) {
+                captureMessage("[Security check] Debugger detected")
+                Toast.makeText(
+                    this,
+                    "Debugging detected. Please try again without any debugging tools.",
+                    Toast.LENGTH_SHORT
+                )
+                    .show()
+                finish()
+            }
+        }, 5000L)
+    }
+
+    private fun captureMessage(message: String) {
+        try {
+            Sentry.captureMessage(message)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
 
     private fun detectFridaPort(): Boolean {
         return try {

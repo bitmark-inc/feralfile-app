@@ -566,8 +566,8 @@ class QRScanViewState extends State<QRScanView>
                   'scan_qr_to'.tr(),
                   style: theme.textTheme.ppMori700White14,
                 ),
-                Divider(
-                  color: theme.colorScheme.secondary,
+                const Divider(
+                  color: AppColor.auGreyBackground,
                   height: 30,
                 ),
                 RichText(
@@ -589,7 +589,24 @@ class QRScanViewState extends State<QRScanView>
                 const SizedBox(height: 15),
                 RichText(
                   text: TextSpan(
-                    text: 'autonomy_canvas'.tr(),
+                    text: 'sign_transaction'.tr(),
+                    children: [
+                      TextSpan(
+                        text: ' ',
+                        style: theme.textTheme.ppMori400Grey14,
+                      ),
+                      TextSpan(
+                        text: 'after_connecting'.tr(),
+                        style: theme.textTheme.ppMori400Grey14,
+                      ),
+                    ],
+                    style: theme.textTheme.ppMori400White14,
+                  ),
+                ),
+                const SizedBox(height: 15),
+                RichText(
+                  text: TextSpan(
+                    text: 'display_with_ff'.tr(),
                     children: [
                       TextSpan(
                         text: ' ',
