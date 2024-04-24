@@ -137,6 +137,7 @@ Future<void> _setupApp() async {
   await setup();
 
   await DeviceInfo.instance.init();
+  await LibAukDart.migrate();
 
   final metricClient = injector.get<MetricClientService>();
   await metricClient.initService();
@@ -152,7 +153,6 @@ Future<void> _setupApp() async {
   await disableLandscapeMode();
   final isPremium = await injector.get<IAPService>().isSubscribed();
   await injector<ConfigurationService>().setPremium(isPremium);
-  await LibAukDart.migrate();
 
   runApp(
     EasyLocalization(

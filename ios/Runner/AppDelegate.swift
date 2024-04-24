@@ -107,8 +107,6 @@ import IOSSecuritySuite
                 LibAukChannelHandler.shared.encryptFile(call: call, result: result)
             case "decryptFile":
                 LibAukChannelHandler.shared.decryptFile(call: call, result: result)
-//            case "getTezosPublicKey":
-//                LibAukChannelHandler.shared.getTezosPublicKey(call: call, result: result)
             case "tezosSignMessage":
                 LibAukChannelHandler.shared.tezosSign(call: call, result: result)
             case "tezosSignTransaction":
@@ -125,6 +123,8 @@ import IOSSecuritySuite
                 LibAukChannelHandler.shared.toggleBiometric(call: call, result: result)
             case "isBiometricEnabled":
                 LibAukChannelHandler.shared.isBiometricTurnedOn(call: call, result: result)
+            case "migrate":
+                LibAukChannelHandler.shared.migrate(call: call, result: result)
             default:
                 result(FlutterMethodNotImplemented)
             }

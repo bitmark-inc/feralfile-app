@@ -61,7 +61,7 @@ class LibAukChannelHandler {
         let name: String = (args["name"] as? String) ?? ""
         let isBioMetricTurnedOn = isBiometricTurnedOn()
 
-        LibAuk.shared.storage(for: UUID(uuidString: uuid)!).createKey(name: name, isPrivate: isBioMetricTurnedOn)
+        LibAuk.shared.storage(for: UUID(uuidString: uuid)!).createKey(passphrase: passphrase ,name: name, isPrivate: isBioMetricTurnedOn)
             .sink(receiveCompletion: { (completion) in
                 if let error = completion.error {
                     result(ErrorHandler.handle(error: error))
@@ -726,6 +726,68 @@ class LibAukChannelHandler {
         result([
             "error": 0,
             "data": isTurnedOn
+        ])
+    }
+    
+    func migrate(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let allItems = Keychain().getAllKeychainItem { item in
+            return true
+        }
+        if let items = allItems {
+            for item in items {
+                let account = item[kSecAttrAccount as! String]as! String
+                Keychain().remove(key: account)
+            }
+        }
+        let allEthInfoKeychainItems = Keychain().getAllKeychainItem { item in
+            let account = item[kSecAttrAccount as! String]as! String
+            return account.contains("ethInfo")
+        }
+        if let items = allEthInfoKeychainItems {
+            for item in items {
+                if let account = item[kSecAttrAccount as! String] as? String {
+                    let personaUUIDString = account.replacingOccurrences(of: "persona.", with: "")
+                        .replacingOccurrences(of: "_ethInfo", with: "")
+                    if let personaUUID = UUID(uuidString: personaUUIDString) {
+                        let storage = LibAuk.shared.storage(for: personaUUID)
+                        let sink = storage.exportSeed()
+                        .sink(receiveCompletion: { completion in
+                            switch completion {
+                            case .failure(let error):
+                                // Handle error
+                                print("Error exporting seed: \(error)")
+                            case .finished:
+                                break
+                            }
+                        }, receiveValue: { seed in
+                            
+                            do {
+                                let seedPublicData = try storage.generateSeedPublicData(seed: seed)
+                                let isDevicePasscode = UserDefaults.standard.bool(forKey: "flutter.device_passcode")
+                                
+                                let setSeedSink = storage.setSeed(seed: seed, isPrivate: isDevicePasscode)
+                                    .sink(receiveCompletion: { completion in
+                                        // Handle completion
+                                    }, receiveValue: { _ in
+                                        // Handle value if needed
+                                    })
+                                
+                                setSeedSink.store(in: &self.cancelBag)
+                            } catch {
+                                // Handle error thrown by generateSeedPublicData
+                                print("Error generating seed public data: \(error)")
+                            }
+                        })
+                                    
+                        sink.store(in: &self.cancelBag)
+                        
+                    }
+                }
+            }
+        }
+        result([
+            "error": 0,
+            "data": true
         ])
     }
 

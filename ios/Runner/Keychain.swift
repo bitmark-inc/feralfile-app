@@ -63,7 +63,6 @@ class Keychain {
         let query = [
             kSecClass as String: kSecClassGenericPassword as String,
             kSecAttrSynchronizable as String: syncAttr!,
-            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
             kSecAttrAccessGroup as String: Constant.keychainGroup,
             kSecAttrAccount as String: key,
         ] as [String: Any]
@@ -79,16 +78,16 @@ class Keychain {
     }
     
     func getAllKeychainItem(filter: ((Dictionary<String, Any>) -> Bool)?) -> [Dictionary<String, Any>]? {
-//                let syncAttr = isSync ? kCFBooleanTrue : kCFBooleanFalse
-        //        let context = AccessControl.shared.context
         let query = [
             kSecClass as String: kSecClassGenericPassword,
-//            kSecAttrSynchronizable as String: syncAttr!,
+            kSecAttrSynchronizable as String: kCFBooleanTrue,
             kSecReturnData as String: kCFBooleanTrue!,
             kSecReturnAttributes as String : kCFBooleanTrue,
             kSecMatchLimit as String: kSecMatchLimitAll,
+            kSecAttrAccessGroup as String: Constant.keychainGroup
         ] as [String: Any]
         
+    
         var dataTypeRef: CFTypeRef?
         let status = SecItemCopyMatching(query as CFDictionary, &dataTypeRef)
         var fillerItems: Array<Dictionary<String, Any>> = []

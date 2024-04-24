@@ -90,7 +90,6 @@ class SystemChannelHandler: NSObject {
             kSecClass: kSecClassGenericPassword,
             kSecAttrSynchronizable: kCFBooleanTrue,
             kSecReturnData: kCFBooleanTrue,
-            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
             kSecReturnAttributes as String : kCFBooleanTrue,
             kSecMatchLimit as String: kSecMatchLimitAll,
             kSecAttrAccessGroup as String: Constant.keychainGroup,
