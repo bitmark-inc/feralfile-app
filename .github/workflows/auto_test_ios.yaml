@@ -39,7 +39,7 @@ jobs:
           cat .env
 
       - name: Submoudles update
-        run: git submodule update --init --recursive
+        run: git -c submodule.auto-test.update=none submodule update --init --recursive
       - run: flutter pub cache repair
       - run: flutter pub get
       # Build app
@@ -65,6 +65,8 @@ jobs:
 
       # - name: Build to IPA inhouse app
       #   run: flutter build ipa --flavor inhouse --export-options-plist ios/ExportOptions-Inhouse.plist
+      - name: Submoudles update again
+        run: git submodule update --init --recursive
       - name: CD to auto-test folder
         run: |
           cd auto-test
