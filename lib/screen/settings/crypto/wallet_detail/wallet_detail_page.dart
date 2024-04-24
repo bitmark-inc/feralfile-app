@@ -592,19 +592,10 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
           style: theme.textTheme.ppMori400Black14,
         ),
         onTap: () async {
-          final words =
-              await widget.payload.persona.wallet().exportMnemonicWords();
-          final passphrase =
-              await widget.payload.persona.wallet().exportMnemonicPassphrase();
-          if (!context.mounted) {
-            return;
-          }
-          unawaited(
-            Navigator.of(context).pushNamed(
-              AppRouter.recoveryPhrasePage,
-              arguments: RecoveryPhrasePayload(
-                  words: words.split(' '), passphrase: passphrase),
-            ),
+          await Navigator.of(context).pushNamed(
+            AppRouter.recoveryPhrasePage,
+            arguments:
+                RecoveryPhrasePayload(wallet: widget.payload.persona.wallet()),
           );
         },
       ),
