@@ -27,6 +27,7 @@ import 'package:autonomy_flutter/gateway/merchandise_api.dart';
 import 'package:autonomy_flutter/gateway/postcard_api.dart';
 import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
 import 'package:autonomy_flutter/gateway/tzkt_api.dart';
+import 'package:autonomy_flutter/screen/bloc/connections/connections_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/chat/chat_bloc.dart';
 import 'package:autonomy_flutter/screen/collection_pro/collection_pro_bloc.dart';
@@ -417,4 +418,10 @@ Future<void> setup() async {
   injector.registerFactory<IdentityBloc>(
       () => IdentityBloc(injector(), injector()));
   injector.registerFactory<AuChatBloc>(() => AuChatBloc(injector()));
+
+  injector.registerLazySingleton<ConnectionsBloc>(() => ConnectionsBloc(
+        injector<CloudDatabase>(),
+        injector(),
+        injector(),
+      ));
 }

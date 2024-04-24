@@ -28,6 +28,7 @@ import 'package:autonomy_flutter/util/wallet_connect_ext.dart';
 import 'package:autonomy_flutter/util/wc2_ext.dart';
 import 'package:autonomy_flutter/util/wc2_tezos_ext.dart';
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
 import 'package:web3dart/credentials.dart';
 
@@ -76,6 +77,9 @@ class Wc2Service {
 
   final List<String> _approvedConnectionKey = [];
 
+  final ValueNotifier<String?> sessionDeleteNotifier =
+      ValueNotifier<String?>(null);
+
   void addApprovedTopic(List<String> keys) {
     _approvedConnectionKey.addAll(keys);
   }
@@ -107,6 +111,7 @@ class Wc2Service {
     _wcClient.onSessionRequest.subscribe((request) {
       log.info('[Wc2Service] Finish handle request $request');
     });
+    _wcClient.onSessionDelete.subscribe(_onSessionDeleted);
 
     _registerEthRequest('${Wc2Chain.ethereum}:${Environment.web3ChainId}');
     _registerEthRequest('${Wc2Chain.ethereum}:5');
@@ -446,6 +451,12 @@ class Wc2Service {
   }
 
   //#endregion
+
+  Future<void> _onSessionDeleted(SessionDelete? session) async {
+    if (session?.topic != null) {
+      sessionDeleteNotifier.value = session!.topic;
+    }
+  }
 
   //#region Events handling
 
