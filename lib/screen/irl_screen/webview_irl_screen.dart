@@ -112,6 +112,8 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
           SelectAddressView(
             addresses: addresses,
           ),
+          padding: const EdgeInsets.symmetric(vertical: 32),
+          paddingTitle: const EdgeInsets.symmetric(horizontal: 14),
         );
       }
       if (address != null) {

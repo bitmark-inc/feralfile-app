@@ -135,8 +135,10 @@ class BackupService {
       },
     );
     if (resp.statusCode == 200) {
+      log.info('[BackupService] got response');
       try {
         final version = await injector<CloudDatabase>().database.getVersion();
+        log.info('[BackupService] Cloud database local version is $version');
         final tempFilePath =
             '${(await getTemporaryDirectory()).path}/$_dbEncryptedFileName';
         final tempFile = File(tempFilePath);
@@ -165,17 +167,11 @@ class BackupService {
 
         final tempDbOld = await sqfliteDatabaseFactory.openDatabase(dbFilePath);
         final backUpVersion = await tempDbOld.getVersion();
+        log.info(
+            '[BackupService] Cloud database backup version is $backUpVersion');
         if (version > backUpVersion) {
           await MigrationAdapter.runMigrations(
-              tempDbOld, backUpVersion, version, [
-            migrateCloudV1ToV2,
-            migrateCloudV2ToV3,
-            migrateCloudV3ToV4,
-            migrateCloudV4ToV5,
-            migrateCloudV5ToV6,
-            migrateCloudV6ToV7,
-            migrateCloudV7ToV8,
-          ]);
+              tempDbOld, backUpVersion, version, cloudDatabaseMigrations);
         }
 
         final tempDb =
@@ -187,9 +183,8 @@ class BackupService {
             '$version');
         return;
       } catch (e) {
-        log.info('[BackupService] Failed to restore Cloud Database $e');
-        unawaited(Sentry.captureException(
-            '[BackupService] Failed to restore Cloud Database $e'));
+        log.info("[BackupService] Failed to restore Cloud Database $e");
+        unawaited(Sentry.captureException(e, stackTrace: StackTrace.current));
         return;
       }
     }
