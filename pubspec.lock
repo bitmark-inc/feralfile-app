@@ -314,7 +314,7 @@ packages:
     source: hosted
     version: "2.0.3"
   chewie:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: chewie
       sha256: "3427e469d7cc99536ac4fbaa069b3352c21760263e65ffb4f0e1c054af43a73e"
@@ -1887,8 +1887,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: b3f4bec450f971829695d9354188d33cd6c6ce75
-      resolved-ref: b3f4bec450f971829695d9354188d33cd6c6ce75
+      ref: "0d4cce1bd966cf95edfdf36d5f54505b8534b995"
+      resolved-ref: "0d4cce1bd966cf95edfdf36d5f54505b8534b995"
       url: "https://github.com/autonomy-system/nft-rendering.git"
     source: git
     version: "1.0.9"
@@ -2886,10 +2886,10 @@ packages:
     dependency: "direct main"
     description:
       name: video_player
-      sha256: afc65f4b8bcb2c188f64a591f84fb471f4f2e19fc607c65fd8d2f8fedb3dec23
+      sha256: db6a72d8f4fd155d0189845678f55ad2fd54b02c10dcafd11c068dbb631286c0
       url: "https://pub.dev"
     source: hosted
-    version: "2.8.3"
+    version: "2.8.6"
   video_player_android:
     dependency: transitive
     description:
@@ -3116,4 +3116,4 @@ packages:
     version: "3.1.2"
 sdks:
   dart: ">=3.3.0-279.1.beta <4.0.0"
-  flutter: ">=3.16.0"
+  flutter: ">=3.16.6"

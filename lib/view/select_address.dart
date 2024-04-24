@@ -45,28 +45,31 @@ class _SelectAddressViewState extends State<SelectAddressView> {
                   .toList(),
             )),
           ),
-          Row(
-            children: [
-              Expanded(
-                  child: Column(
-                children: [
-                  PrimaryButton(
-                      text: widget.selectButton ?? 'connect'.tr(),
-                      enabled: _selectedAddress != null,
-                      onTap: () {
-                        Navigator.pop(context, _selectedAddress);
-                      }),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  OutlineButton(
-                      text: 'cancel'.tr(),
-                      onTap: () {
-                        Navigator.pop(context, null);
-                      })
-                ],
-              )),
-            ],
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            child: Row(
+              children: [
+                Expanded(
+                    child: Column(
+                  children: [
+                    PrimaryButton(
+                        text: widget.selectButton ?? 'connect'.tr(),
+                        enabled: _selectedAddress != null,
+                        onTap: () {
+                          Navigator.pop(context, _selectedAddress);
+                        }),
+                    const SizedBox(
+                      height: 10,
+                    ),
+                    OutlineButton(
+                        text: 'cancel'.tr(),
+                        onTap: () {
+                          Navigator.pop(context, null);
+                        })
+                  ],
+                )),
+              ],
+            ),
           )
         ],
       ));
@@ -88,17 +91,18 @@ class AddressView extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final cryptoType = CryptoType.fromSource(address.cryptoType);
-    final color = address.address == selectedAddress
-        ? AppColor.white
-        : AppColor.disabledColor;
+    final isSelected = address.address == selectedAddress;
+    final color = isSelected ? AppColor.white : AppColor.disabledColor;
     final name = address.name ?? '';
     return GestureDetector(
       onTap: onTap,
       child: Column(
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(vertical: 15),
-            color: Colors.transparent,
+            padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 14),
+            color: isSelected
+                ? const Color.fromRGBO(30, 30, 30, 1)
+                : Colors.transparent,
             child: Row(
               children: [
                 LogoCrypto(

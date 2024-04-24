@@ -100,14 +100,17 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
         if (_configurationService.isDoneOnboarding()) {
           return;
         }
+        log.info('[RestoreCloudDatabase] restoreCloudDatabase');
         await _backupService.restoreCloudDatabase(
             await _accountService.getDefaultAccount(), event.version);
 
         await _settingsDataService.restoreSettingsData();
 
         await _accountService.androidRestoreKeys();
+        log.info('[RestoreCloudDatabase] restoreCloudDatabase success');
 
         final personas = await _cloudDB.personaDao.getPersonas();
+        log.info('[RestoreCloudDatabase] personas: ${personas.length}');
         for (var persona in personas) {
           if (persona.name != '') {
             unawaited(persona.wallet().updateName(persona.name));
@@ -115,6 +118,7 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
         }
         final connections =
             await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
+        log.info('[RestoreCloudDatabase] connections: ${connections.length}');
         if (personas.isEmpty && connections.isEmpty) {
           await _configurationService.setDoneOnboarding(false);
           emit(RouterState(onboardingStep: OnboardingStep.startScreen));

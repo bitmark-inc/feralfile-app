@@ -9,6 +9,7 @@ import 'dart:convert';
 
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:floor/floor.dart';
+//ignore_for_file: lines_longer_than_80_chars
 
 @dao
 abstract class ConnectionDao {
@@ -51,6 +52,11 @@ abstract class ConnectionDao {
   @Query('SELECT * FROM Connection WHERE accountNumber = :accountNumber '
       'COLLATE NOCASE')
   Future<List<Connection>> getConnectionsByAccountNumber(String accountNumber);
+
+  // update order query
+  @Query(
+      'UPDATE Connection SET accountOrder = :accountOrder WHERE accountNumber = :accountNumber')
+  Future<void> setConnectionOrder(String accountNumber, int accountOrder);
 
   @Insert(onConflict: OnConflictStrategy.replace)
   Future<void> insertConnection(Connection connection);

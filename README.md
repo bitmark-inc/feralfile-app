@@ -1,18 +1,62 @@
-# Autonomy: Digital Art Wallet
-_Collect, View & Discovery_
+# Feral File: the way to collect art
+
 
 ## About
 
-Autonomy is the world’s first and only digital art wallet. It gives you one easy-to-use app to securely collect, view and discover digital art you love. Autonomy works with Ethereum and Tezos and is built to support all new chains as they emerge.  
- 
-- _Collect_: Buy digital art on Tezos or Ethereum and let Autonomy secure, organize and showcase your collection—all in one beautiful, simple experience. Autonomy takes care of the hard stuff so you can focus on growing the good stuff. 
- 
-- _View_: Enjoy your digital art anywhere—on any screen, TV or projector. Autonomy is the only app that does this. It’s like having an infinite personal gallery you can share and experience anywhere you go.
- 
-- _Discover_: Autonomy automatically helps you discover new art by knowing the artists you collect, what they’ve minted and what they’ve bought for themselves. We don’t use likes, trends or algorithms. We go straight to the source to give you the stuff we know you’ll love. 
+### [Feral File](https://feralfile.com/) is the place to experience digital art today.
+
+Visit curated exhibitions of world-class, software-based art, interact with dynamic digital works, and organize your personal digital art collection directly in the app. You can share and enjoy all artwork found in the app with friends and family by Streaming to any compatible screen.
+
+Co-create a [MoMA Postcard](https://www.moma.org/calendar/exhibitions/5618) and experiment with borderless collaboration and creativity.
 
 
-<img src="https://user-images.githubusercontent.com/422993/177656126-c3e02532-8ee6-4772-b495-84565231371b.jpg" width=220/> <img src="https://user-images.githubusercontent.com/422993/177656144-c3ccf692-5882-4bd2-8920-daaef399b055.jpg" width=220/> <img src="https://user-images.githubusercontent.com/422993/177656150-bce1a823-3944-4649-a502-049be2a57017.jpg" width=220/>
+</br>
+</br>
+
+
+The **Feral File** app enhances the digital experience, increasing the ways people can share, organize, explore, and live with software-based artwork.
+
+
+#### Explore Feral File Exhibitions
+
+- Each exhibition on **Feral File** begins with the curator. World-class artists collaborate with visionary curators to create and exhibit artworks around a single, ambitious theme.
+
+- Exhibitions never close on **[feralfile.com](https://feralfile.com/)**. Soon, all exhibitions will be viewable and streamable on the **Feral File** app. For now, the current exhibition is on view.
+
+
+#### Live with digital art
+
+- Stream digital artwork to any compatible screen. Share and enjoy your favorite pieces with family, friends, and colleagues at home and in the office.
+
+- For interactive works, your mobile device becomes the remote control. Use the keyboard, experiment with the artist’s commands, and dive into the immersive world of software-based art.
+
+
+#### Organize
+
+- Consolidate collected digital art across blockchains (Ethereum and Tezos)
+
+- Create collections within your collection.
+
+- The app classifies artwork into 3 categories: Still, Video, Interactive.
+
+
+#### Share
+
+- Co-create a digital chain letter with [MoMA Postcard](https://www.moma.org/calendar/exhibitions/5618). This experiment in borderless collaboration and creativity explores ways individuals, groups, and institutions can make and own digital goods.
+
+- The “View existing address” feature allows you to see other collections and share yours with friends.
+
+
+</br>
+</br>
+
+
+Bitmark started with the idea of building tools to help individuals and institutions secure digital property rights. Feral File, an online gallery co-founded by Casey Reas, applies this vision to art made with software, helping artists and collectors secure the property rights to their artwork. Visit feralfile.com and experience world-class digital art in-situ. The **Feral File** app goes beyond ownership and provides dynamic ways to engage with digital art on your personal devices, in your home, and across the world.
+
+</br>
+
+![all in one](https://github.com/bitmark-inc/feralfile-app/assets/61187455/a63402ea-3949-4188-b9dd-c26c7457952b)
+
 
 
 ## Getting Started
@@ -29,7 +73,7 @@ Autonomy is the world’s first and only digital art wallet. It gives you one ea
 6. Run ./script/encrypt_secrets.sh <-entropy-> to generate the encrypted secrets file.
 - <-entropy-> is a random string. You can type a random string like akhrdsgl4893tynk3iu4y8hf
 - You only need to run this script again when you want to update .env.secret.
-7. Run `flutter run --flavor inhouse` to run Feral File app development on the connected device.
+7. Run `flutter run --flavor inhouse` to run **Feral File** app development on the connected device.
 
 A few resources to get you started if this is your first Flutter project:
 
@@ -41,8 +85,8 @@ For help getting started with Flutter, view our
 samples, guidance on mobile development, and a full API reference.
 
 ## Status - Released
-- [App Store](https://apps.apple.com/us/app/autonomy-app/id1544022728)
-- [Google Play](https://play.google.com/store/apps/details?id=com.bitmark.autonomy_client)
+- [App Store](https://apps.apple.com/us/app/feral-file/id1544022728)
+- [Google Play](https://play.google.com/store/apps/details?id=com.bitmark.autonomy_client&pli=)
 
 [Release Notes](https://github.com/bitmark-inc/autonomy-apps/tree/main/release_notes/production)
 

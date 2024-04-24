@@ -16,6 +16,7 @@ import flutter_downloader
 //import Sentry
 import Starscream
 import IOSSecuritySuite
+import Logging
 
 @UIApplicationMain
 @objc class AppDelegate: FlutterAppDelegate {
@@ -23,7 +24,7 @@ import IOSSecuritySuite
     var cancelBag = Set<AnyCancellable>()
     var authenticationVC = BiometricAuthenticationViewController()
     var splashScreenVC: SplashViewController? = SplashViewController()
-    
+
     override func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
@@ -36,7 +37,7 @@ import IOSSecuritySuite
                 exit(0)
             }
         }
-        
+
         let isSecure = checkMainBundleIdentifier()
 
         if !isSecure {
@@ -53,7 +54,7 @@ import IOSSecuritySuite
                 self.showAlertAndExit()
             }
         }
-        
+
         LibAuk.create(keyChainGroup: Constant.keychainGroup)
         
         authenticationVC.authenticationCallback = self.authenticationCompleted
@@ -140,10 +141,10 @@ import IOSSecuritySuite
                 result(FlutterMethodNotImplemented)
             }
         })
-        
+
         let keychainChannel = FlutterMethodChannel(name: "keychain",
                                                   binaryMessenger: controller.binaryMessenger)
-        
+
         keychainChannel.setMethodCallHandler({(call: FlutterMethodCall, result: @escaping FlutterResult) -> Void in
             switch call.method {
             case "removeKeychainItems":
@@ -152,7 +153,7 @@ import IOSSecuritySuite
                 result(FlutterMethodNotImplemented)
             }
         })
-        
+
         let secureScreenChannel = FlutterMethodChannel(name: "secure_screen_channel",
                                                    binaryMessenger: controller.binaryMessenger)
         secureScreenChannel.setMethodCallHandler({(call: FlutterMethodCall, result: @escaping FlutterResult) -> Void in
@@ -163,7 +164,7 @@ import IOSSecuritySuite
                 result(FlutterMethodNotImplemented)
             }
         })
-        
+
         let migrationChannel = FlutterMethodChannel(name: "migration_util",
                                                     binaryMessenger: controller.binaryMessenger)
         migrationChannel.setMethodCallHandler({(call: FlutterMethodCall, result: @escaping FlutterResult) -> Void in
@@ -222,7 +223,6 @@ import IOSSecuritySuite
         })
         beaconEventChannel.setStreamHandler(BeaconChannelHandler.shared)
 
-
         let cloudEventChannel = FlutterEventChannel(name: "cloud/event", binaryMessenger: controller.binaryMessenger)
         cloudEventChannel.setStreamHandler(CloudChannelHandler.shared)
 
@@ -246,7 +246,115 @@ import IOSSecuritySuite
     override func application(_ application: UIApplication, shouldAllowExtensionPointIdentifier extensionPointIdentifier: UIApplication.ExtensionPointIdentifier) -> Bool {
         return extensionPointIdentifier != .keyboard
     }
-    
+
+    override func application(_ application: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
+        logger.info("handle deeplink")
+        if url.scheme == "feralfile" {
+
+            handleEmergencyLog(url)
+        }
+        return super.application(application, open: url, options: options)
+    }
+
+    private func handleEmergencyLog(_ url: URL) {
+        logger.info("handle feralfile deeplink")
+
+        if url.host == "emergency-logs" {
+            logger.info("emergency-logs")
+            let token = url.lastPathComponent
+            uploadLogFile(uploadURL: Logger.appLogURL,token: token)
+        }
+    }
+
+    func uploadLogFile(uploadURL: URL , token: String) {
+        // Create a URLSession configuration
+        logger.info("upload log file")
+        let config = URLSessionConfiguration.default
+        let session = URLSession(configuration: config)
+
+        let endpoint = Constant.isInhouse ? "https://support.test.autonomy.io/v1/issues/" : "https://support.autonomy.io/v1/issues/"
+        // Create the request body
+        guard let url = URL(string: endpoint) else {
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+
+        // Set the authorization header
+        request.setValue("Emergency \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+
+        let fileData = base64EncodedFile(fileURL: uploadURL)
+
+        if (fileData == nil) {
+            return
+        }
+            // Construct the request body
+        let requestBody: [String: Any] = [
+            "attachments": [
+                [
+                    "data": fileData,
+                    "title": "Emergency log",
+                    "path": "",
+                    "contentType": ""
+                ]
+            ],
+            "title": "Emergency log",
+            "message": "Emergency log",
+            "tags": ["emergency", "iOS"]
+        ]
+
+            // Convert the request body to JSON data
+        guard let jsonData = try? JSONSerialization.data(withJSONObject: requestBody) else {
+            print("Failed to encode request body")
+            return
+        }
+
+            // Set the request body
+        request.httpBody = jsonData
+
+
+            // Create a data task to perform the request
+        let task = session.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("Upload log Error: \(error)")
+                return
+            }
+
+            guard let httpResponse = response as? HTTPURLResponse else {
+                print("Upload log Invalid response")
+                return
+            }
+
+            print("Upload log Response status: \(httpResponse.statusCode)")
+            return
+        }
+
+        // Start the data task
+        task.resume()
+    }
+
+    func base64EncodedFile(fileURL: URL) -> String? {
+        do {
+            // Read file contents as bytes
+            let fileData = try Data(contentsOf: fileURL)
+
+            // Encode bytes to Base64
+            let base64Data = fileData.base64EncodedData()
+
+            // Convert Base64 data to a string representation
+            let base64String = String(data: base64Data, encoding: .utf8)
+
+            return base64String
+        } catch {
+            // Handle any errors that occur during file reading
+            print("Error reading file:", error.localizedDescription)
+            return nil
+        }
+    }
+
     override func applicationWillEnterForeground(_ application: UIApplication) {
         if UserDefaults.standard.bool(forKey: "flutter.device_passcode") == true {
             authenticationVC.authentication()
@@ -264,7 +372,7 @@ import IOSSecuritySuite
             showSplashScreen()
         }
     }
-    
+
     func showAlertAndExit() {
             let alert = UIAlertController(title: "Jailbreak Detected",
                                           message: "This app cannot run on jailbroken devices.",
@@ -273,16 +381,16 @@ import IOSSecuritySuite
                 // Dismiss the alert and exit the app
                 exit(0)
             }))
-            
+
             // Get the root view controller to present the alert
             if let rootViewController = UIApplication.shared.keyWindow?.rootViewController {
                 rootViewController.present(alert, animated: true, completion: nil)
-                
+
             }
-        
+
         }
-    
-    
+
+
     private func showSplashScreen() {
         if splashScreenVC == nil {
             splashScreenVC = SplashViewController()
@@ -290,7 +398,7 @@ import IOSSecuritySuite
             window?.rootViewController?.present(splashScreenVC!, animated: false, completion: nil)
         }
     }
-        
+
     private func removeSplashScreen() {
         if let splashVC = splashScreenVC {
             splashVC.dismiss(animated: false, completion: {
@@ -321,11 +429,11 @@ extension AppDelegate {
             self?.authenticationVC.view.removeFromSuperview()
         }
     }
-    
+
     func checkDebugger() -> Bool {
         return checkExceptionPorts() || checkSignalHandlers() || checkExecutionStates()
     }
-    
+
     private static let EXC_MASK_ALL = (
         EXC_MASK_BAD_ACCESS | EXC_MASK_BAD_INSTRUCTION | EXC_MASK_ARITHMETIC |
             EXC_MASK_EMULATION | EXC_MASK_SOFTWARE | EXC_MASK_BREAKPOINT |
