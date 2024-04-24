@@ -67,7 +67,9 @@ dependencies:
   jiffy: ^6.2.1
   flutter_keyboard_visibility: ^6.0.0
   libauk_dart:
-    path: ../Bitmark Inc./libauk-dart
+    git:
+      url: https://github.com/autonomy-system/libauk-dart.git
+      ref: 13b9ad033ec0fb1474eeebe3a7c626bc5f968cad
   local_auth: ^2.1.0
   logging: ^1.2.0
   measured_size: ^1.0.0
