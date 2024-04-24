@@ -80,7 +80,6 @@ class Keychain {
     func getAllKeychainItem(filter: ((Dictionary<String, Any>) -> Bool)?) -> [Dictionary<String, Any>]? {
         let query = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrSynchronizable as String: kCFBooleanTrue,
             kSecReturnData as String: kCFBooleanTrue!,
             kSecReturnAttributes as String : kCFBooleanTrue,
             kSecMatchLimit as String: kSecMatchLimitAll,

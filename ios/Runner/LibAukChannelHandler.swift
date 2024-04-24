@@ -730,15 +730,6 @@ class LibAukChannelHandler {
     }
     
     func migrate(call: FlutterMethodCall, result: @escaping FlutterResult) {
-        let allItems = Keychain().getAllKeychainItem { item in
-            return true
-        }
-        if let items = allItems {
-            for item in items {
-                let account = item[kSecAttrAccount as! String]as! String
-                Keychain().remove(key: account)
-            }
-        }
         let allEthInfoKeychainItems = Keychain().getAllKeychainItem { item in
             let account = item[kSecAttrAccount as! String]as! String
             return account.contains("ethInfo")
@@ -764,14 +755,14 @@ class LibAukChannelHandler {
                             do {
                                 let seedPublicData = try storage.generateSeedPublicData(seed: seed)
                                 let isDevicePasscode = UserDefaults.standard.bool(forKey: "flutter.device_passcode")
-                                
                                 let setSeedSink = storage.setSeed(seed: seed, isPrivate: isDevicePasscode)
                                     .sink(receiveCompletion: { completion in
                                         // Handle completion
                                     }, receiveValue: { _ in
                                         // Handle value if needed
                                     })
-                                
+                                let seedPublicDataRaw = try JSONEncoder().encode(seedPublicData)
+                                let setSeedPublicDataSink = storage.setData(seedPublicDataRaw, forKey: Constant.KeychainKey.seedPublicData, isSync: true, isPrivate: false)
                                 setSeedSink.store(in: &self.cancelBag)
                             } catch {
                                 // Handle error thrown by generateSeedPublicData

@@ -38,4 +38,14 @@ struct Constant {
         "com.bitmark.autonomy-wallet",
         "com.bitmark.autonomy-wallet.inhouse",
     ]
+    
+    struct KeychainKey {
+        static func personaPrefix(at uuid: UUID) -> String {
+            "persona.\(uuid.uuidString)"
+        }
+
+        static let seed = "seed"
+        static let ethInfoKey = "ethInfo"
+        static let seedPublicData = "seedPublicData"
+    }
 }
