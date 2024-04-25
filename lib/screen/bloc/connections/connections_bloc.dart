@@ -136,6 +136,10 @@ class ConnectionsBloc extends AuBloc<ConnectionsEvent, ConnectionsState> {
       unawaited(
           _cloudDB.connectionDao.deleteConnectionsByTopic('%${event.topic}%'));
 
+      if (state.connectionItems == null || state.connectionItems!.isEmpty) {
+        return;
+      }
+
       for (var item in state.connectionItems!) {
         item.connections
             .removeWhere((connection) => connection.key.contains(event.topic));
