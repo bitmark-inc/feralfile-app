@@ -12,26 +12,18 @@ jobs:
     steps:
       # Checkout code and get packages.
       - name: SSH key
-        uses: webfactory/ssh-agent@v0.5.4
+        uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: |
             ${{ secrets.KEY_VAULT_DEPLOYMENT_KEY }}
             ${{ secrets.SSH_ASSETS_KEY }}
             ${{ secrets.SUBMODULE_AUTOTEST }}
-          repo-mappings: |
-            github.com/bitmark-inc/mobile-signing-key-vault
-            github.com/bitmark-inc/feralfile-app-client-assets
-            github.com/bitmark-inc/feralfile-app-automation-tests
       - name: Checkout code
         uses: actions/checkout@v3
         with:
           submodules: recursive
-          fetch-depth: 0
-          submodules-depth: 0
-      - name: Submoudles update
-        run: |
-          git submodule foreach 'git config -f .gitmodules submodule.$name.branch main'
-        # run: git submodule update --init --recursive
+          ${{ secrets.SUBMODULE_AUTOTEST }}
+      # Set build number
       - name: Set env
         run: |
           echo "FLUTTER_VERSION_NAME=0.100.0" >> $GITHUB_ENV
@@ -99,6 +91,8 @@ jobs:
           echo AUTOTEST_ENV= "${{ secrets.AUTOTEST_ENV }}" | sed 's/\\n/\n/g' >> .env
           cat .env
 
+      - name: Submoudles update
+        run: git submodule update --init --recursive
       - run: flutter pub cache repair
       - run: flutter pub get
       # Build app
