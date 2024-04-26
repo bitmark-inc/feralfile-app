@@ -32,7 +32,7 @@ class GetStartedBanner extends StatelessWidget {
                 child: Text(
                   title,
                   style: textTheme.ppMori400White14,
-                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
                 ),
               ),
               IconButton(
