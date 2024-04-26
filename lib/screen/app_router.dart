@@ -258,6 +258,7 @@ class AppRouter {
       injector(),
       injector<AuditService>(),
     );
+    final connectionsBloc = injector<ConnectionsBloc>();
     final identityBloc = IdentityBloc(injector<AppDatabase>(), injector());
     final postcardDetailBloc = PostcardDetailBloc(
       injector(),
@@ -368,6 +369,7 @@ class AppRouter {
                     BlocProvider(
                       create: (_) => personaBloc,
                     ),
+                    BlocProvider(lazy: false, create: (_) => connectionsBloc),
                   ],
                   child: HomeNavigationPage(
                       key: homePageNoTransactionKey,
@@ -391,6 +393,7 @@ class AppRouter {
                     BlocProvider(
                       create: (_) => personaBloc,
                     ),
+                    BlocProvider(lazy: false, create: (_) => connectionsBloc),
                   ],
                   child: HomeNavigationPage(
                     key: homePageKey,
@@ -559,11 +562,8 @@ class AppRouter {
                       BlocProvider.value(value: tezosBloc),
                       BlocProvider.value(value: usdcBloc),
                       BlocProvider.value(
-                          value: ConnectionsBloc(
-                        injector<CloudDatabase>(),
-                        injector(),
-                        injector(),
-                      ))
+                        value: connectionsBloc,
+                      ),
                     ],
                     child: PersonaConnectionsPage(
                         payload:
@@ -572,12 +572,8 @@ class AppRouter {
       case connectionDetailsPage:
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) => BlocProvider(
-                create: (_) => ConnectionsBloc(
-                      injector<CloudDatabase>(),
-                      injector(),
-                      injector(),
-                    ),
+            builder: (context) => BlocProvider.value(
+                value: connectionsBloc,
                 child: ConnectionDetailsPage(
                   connectionItem: settings.arguments! as ConnectionItem,
                 )));
@@ -589,12 +585,7 @@ class AppRouter {
                   providers: [
                     BlocProvider.value(value: accountsBloc),
                     BlocProvider.value(value: usdcBloc),
-                    BlocProvider.value(
-                        value: ConnectionsBloc(
-                      injector<CloudDatabase>(),
-                      injector(),
-                      injector(),
-                    )),
+                    BlocProvider.value(value: connectionsBloc),
                     BlocProvider(
                         create: (_) => WalletDetailBloc(
                             injector(), injector(), injector())),
