@@ -11,18 +11,15 @@ jobs:
     runs-on: [self-hosted, macOS, ARM, auto-android]
     steps:
       # Checkout code and get packages.
+      - name: Checkout code
+        uses: actions/checkout@v3
+
       - name: SSH key
         uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: |
-            ${{ secrets.KEY_VAULT_DEPLOYMENT_KEY }}
             ${{ secrets.SSH_ASSETS_KEY }}
             ${{ secrets.SUBMODULE_AUTOTEST }}
-      - name: Checkout code
-        uses: actions/checkout@v3
-        with:
-          submodules: recursive
-          ${{ secrets.SUBMODULE_AUTOTEST }}
       # Set build number
       - name: Set env
         run: |
@@ -93,6 +90,11 @@ jobs:
 
       - name: Submoudles update
         run: git submodule update --init --recursive
+      - name: Checkout private submodule auto-test
+        run: |
+          git submodule update --init --recursive --remote auto-test
+        env:
+          GIT_SSH_COMMAND: "ssh -o StrictHostKeyChecking=no -i ${{ secrets.SUBMODULE_AUTOTEST }}"
       - run: flutter pub cache repair
       - run: flutter pub get
       # Build app
