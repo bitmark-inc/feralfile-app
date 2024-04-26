@@ -9,7 +9,6 @@ import 'dart:async';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/blockchain.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -115,7 +114,6 @@ class CollectionHomePageState extends State<CollectionHomePage>
   void afterFirstLayout(BuildContext context) {
     unawaited(_handleForeground());
     unawaited(injector<AutonomyService>().postLinkedAddresses());
-    unawaited(_checkForKeySync(context));
   }
 
   @override
@@ -453,18 +451,6 @@ class CollectionHomePageState extends State<CollectionHomePage>
                 arguments: payload));
       },
     );
-  }
-
-  Future<void> _checkForKeySync(BuildContext context) async {
-    final cloudDatabase = injector<CloudDatabase>();
-    final defaultAccounts = await cloudDatabase.personaDao.getDefaultPersonas();
-
-    if (defaultAccounts.length >= 2) {
-      if (!context.mounted) {
-        return;
-      }
-      unawaited(Navigator.of(context).pushNamed(AppRouter.keySyncPage));
-    }
   }
 
   void scrollToTop() {
