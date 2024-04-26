@@ -5,10 +5,14 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
+
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_state.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
+import 'package:autonomy_flutter/util/log.dart';
+import 'package:sentry/sentry.dart';
 
 class KeySyncBloc extends AuBloc<KeySyncEvent, KeySyncState> {
   final BackupService _backupService;
@@ -26,41 +30,53 @@ class KeySyncBloc extends AuBloc<KeySyncEvent, KeySyncState> {
 
     on<ProceedKeySyncEvent>((event, emit) async {
       emit(state.copyWith(
-          isProcessing: true, isLocalSelectedTmp: state.isLocalSelected));
+          isProcessing: true,
+          isLocalSelectedTmp: state.isLocalSelected,
+          isError: false));
 
       final accounts = await _cloudDatabase.personaDao.getDefaultPersonas();
-      if (accounts.length < 2) return;
-
-      final cloudWallet = accounts[1].wallet();
-
-      final cloudBackupVersion =
-          await _backupService.fetchBackupVersion(cloudWallet);
-
-      if (cloudBackupVersion.isNotEmpty) {
-        const tmpCloudDbName = 'tmp_cloud_database.db';
-        await _backupService.restoreCloudDatabase(
-            cloudWallet, cloudBackupVersion,
-            dbName: tmpCloudDbName);
-
-        final tmpCloudDb = await $FloorCloudDatabase
-            .databaseBuilder(tmpCloudDbName)
-            .addMigrations(cloudDatabaseMigrations)
-            .build();
-
-        final connections = await tmpCloudDb.connectionDao.getConnections();
-        await _cloudDatabase.connectionDao.insertConnections(connections);
+      if (accounts.length < 2) {
+        //return;
       }
 
-      if (state.isLocalSelected) {
-        final cloudDefaultPersona = accounts[1];
-        await _backupService.deleteAllProfiles(cloudWallet);
-        cloudDefaultPersona.defaultAccount = null;
-        await _cloudDatabase.personaDao.updatePersona(cloudDefaultPersona);
-      } else {
-        final localDefaultPersona = accounts[0];
-        await _backupService.deleteAllProfiles(localDefaultPersona.wallet());
-        localDefaultPersona.defaultAccount = null;
-        await _cloudDatabase.personaDao.updatePersona(localDefaultPersona);
+      final cloudWallet = accounts[1].wallet();
+      try {
+        final cloudBackupVersion =
+            await _backupService.fetchBackupVersion(cloudWallet);
+
+        if (cloudBackupVersion.isNotEmpty) {
+          const tmpCloudDbName = 'tmp_cloud_database.db';
+          await _backupService.restoreCloudDatabase(
+              cloudWallet, cloudBackupVersion,
+              dbName: tmpCloudDbName);
+
+          final tmpCloudDb = await $FloorCloudDatabase
+              .databaseBuilder(tmpCloudDbName)
+              .addMigrations(cloudDatabaseMigrations)
+              .build();
+
+          final connections = await tmpCloudDb.connectionDao.getConnections();
+          await _cloudDatabase.connectionDao.insertConnections(connections);
+        }
+        log.info('ProceedKeySyncEvent done restore connection');
+
+        if (state.isLocalSelected) {
+          final cloudDefaultPersona = accounts[1];
+          await _backupService.deleteAllProfiles(cloudWallet);
+          cloudDefaultPersona.defaultAccount = null;
+          await _cloudDatabase.personaDao.updatePersona(cloudDefaultPersona);
+        } else {
+          final localDefaultPersona = accounts[0];
+          await _backupService.deleteAllProfiles(localDefaultPersona.wallet());
+          localDefaultPersona.defaultAccount = null;
+          await _cloudDatabase.personaDao.updatePersona(localDefaultPersona);
+        }
+      } catch (e) {
+        log.info('ProceedKeySyncEvent select local'
+            ' ${state.isLocalSelected} error: $e');
+        unawaited(Sentry.captureException('ProceedKeySyncEvent select local'
+            ' ${state.isLocalSelected} error: $e'));
+        emit(state.copyWith(isError: true));
       }
 
       emit(state.copyWith(isProcessing: false));

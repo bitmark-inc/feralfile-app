@@ -32,7 +32,7 @@ class KeySyncPage extends StatelessWidget {
 
     return BlocConsumer<KeySyncBloc, KeySyncState>(
       listener: (context, state) async {
-        if (state.isProcessing == false) {
+        if (state.isProcessing == false && !state.isError) {
           Navigator.of(context).pop();
         }
       },
@@ -180,7 +180,8 @@ class KeySyncPage extends StatelessWidget {
                     Expanded(
                       child: PrimaryButton(
                         text: 'proceed'.tr(),
-                        isProcessing: state.isProcessing == true,
+                        isProcessing:
+                            state.isProcessing == true && !state.isError,
                         onTap: state.isProcessing == true
                             ? null
                             : () {
