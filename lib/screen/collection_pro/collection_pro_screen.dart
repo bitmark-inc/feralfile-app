@@ -303,7 +303,7 @@ class CollectionProState extends State<CollectionPro>
             onClose: () async {
               await _hideGetStartedBanner();
             },
-            title: 'try_making_your_own_postcard'.tr(),
+            title: 'add_collection_from_address'.tr(),
             onGetStarted: _onGetStarted,
           )
       ],
