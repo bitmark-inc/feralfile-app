@@ -58,6 +58,7 @@ jobs:
           repository: bitmark-inc/mobile-signing-key-vault
           token: ${{ secrets.BITMARK_BOT_GH_PAT }}
           path: mobile-signing-key-vault
+          ref: 'master'
           fetch-depth: 1
 
       # Setup Ruby, Bundler, and Gemfile dependencies
