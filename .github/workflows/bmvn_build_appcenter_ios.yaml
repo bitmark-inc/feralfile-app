@@ -52,11 +52,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Checkout signging keys
+      - name: Checkout signing keys
         uses: actions/checkout@v4
         with:
           repository: bitmark-inc/mobile-signing-key-vault
-          token: ${{ secrets.BITMARK_BOT_GH_BOT }}
+          token: ${{ secrets.BITMARK_BOT_GH_PAT }}
           path: mobile-signing-key-vault
           fetch-depth: 1
 
