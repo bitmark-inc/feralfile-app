@@ -234,21 +234,3 @@ class HmacAuthInterceptor extends Interceptor {
     handler.next(options);
   }
 }
-
-class AirdropInterceptor extends Interceptor {
-  @override
-  void onError(DioException err, ErrorInterceptorHandler handler) {
-    DioException exp = err;
-    try {
-      final errorBody = err.response?.data as Map<String, dynamic>;
-      final json = errorBody["message"] != null
-          ? jsonDecode(errorBody["message"])
-          : errorBody;
-      exp = err.copyWith(error: FeralfileError.fromJson(json["error"]));
-    } catch (e) {
-      log.info("[AirdropInterceptor] Can't parse error. ${err.response?.data}");
-    } finally {
-      handler.next(exp);
-    }
-  }
-}

@@ -151,7 +151,6 @@ class CloudPage extends StatelessWidget {
   void _continue(BuildContext context) {
     if (injector<ConfigurationService>().isDoneOnboarding()) {
       Navigator.of(context).popUntil((route) =>
-          route.settings.name == AppRouter.claimSelectAccountPage ||
           route.settings.name == AppRouter.tbConnectPage ||
           route.settings.name == AppRouter.wc2ConnectPage ||
           route.settings.name == AppRouter.homePage ||

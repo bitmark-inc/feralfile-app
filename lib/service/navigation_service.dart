@@ -7,11 +7,7 @@
 
 import 'dart:async';
 
-import 'package:autonomy_flutter/model/ff_series.dart';
-import 'package:autonomy_flutter/model/otp.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/claim/activation/claim_activation_page.dart';
-import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
@@ -117,90 +113,6 @@ class NavigationService {
   }
 
   NavigatorState navigatorState() => Navigator.of(navigatorKey.currentContext!);
-
-  Future showAirdropNotStarted(String? artworkId) async {
-    log.info('NavigationService.showAirdropNotStarted');
-    if (navigatorKey.currentState?.mounted == true &&
-        navigatorKey.currentContext != null) {
-      await UIHelper.showAirdropNotStarted(
-          navigatorKey.currentContext!, artworkId);
-    } else {
-      await Future.value(0);
-    }
-  }
-
-  Future showAirdropExpired(String? artworkId) async {
-    log.info('NavigationService.showAirdropExpired');
-    if (navigatorKey.currentState?.mounted == true &&
-        navigatorKey.currentContext != null) {
-      await UIHelper.showAirdropExpired(
-          navigatorKey.currentContext!, artworkId);
-    } else {
-      await Future.value(0);
-    }
-  }
-
-  Future showNoRemainingToken({
-    required FFSeries series,
-  }) async {
-    log.info('NavigationService.showNoRemainingToken');
-    if (navigatorKey.currentState?.mounted == true &&
-        navigatorKey.currentContext != null) {
-      await UIHelper.showNoRemainingAirdropToken(
-        navigatorKey.currentContext!,
-        series: series,
-      );
-    } else {
-      await Future.value(0);
-    }
-  }
-
-  Future showOtpExpired(String? artworkId) async {
-    log.info('NavigationService.showOtpExpired');
-    if (navigatorKey.currentState?.mounted == true &&
-        navigatorKey.currentContext != null) {
-      await UIHelper.showOtpExpired(navigatorKey.currentContext!, artworkId);
-    } else {
-      await Future.value(0);
-    }
-  }
-
-  Future openClaimTokenPage(
-    FFSeries series, {
-    Otp? otp,
-    Future<ClaimResponse?> Function({required String receiveAddress})?
-        claimFunction,
-  }) async {
-    log.info('NavigationService.openClaimTokenPage');
-    if (navigatorKey.currentState?.mounted == true &&
-        navigatorKey.currentContext != null) {
-      await navigatorKey.currentState?.pushNamed(
-        AppRouter.claimFeralfileTokenPage,
-        arguments: ClaimTokenPagePayload(
-          series: series,
-          otp: otp,
-          allowViewOnlyClaim: true,
-          claimFunction: claimFunction,
-        ),
-      );
-    } else {
-      await Future.value(0);
-    }
-  }
-
-  Future<void> openActivationPage(
-      {required ClaimActivationPagePayload payload}) async {
-    log.info('NavigationService.openActivationPage');
-    if (navigatorKey.currentState?.mounted == true &&
-        navigatorKey.currentContext != null) {
-      await navigatorKey.currentState?.pushNamed(
-        AppRouter.claimActivationPage,
-        arguments: payload,
-      );
-    } else {
-      await Future.value(0);
-    }
-  }
 
   void showErrorDialog(
     ErrorEvent event, {
@@ -349,34 +261,6 @@ class NavigationService {
     }
   }
 
-  Future<void> showAirdropJustOnce() async {
-    if (navigatorKey.currentContext != null &&
-        navigatorKey.currentState?.mounted == true) {
-      await UIHelper.showAirdropJustOnce(navigatorKey.currentContext!);
-    }
-  }
-
-  Future<void> showAirdropAlreadyClaimed() async {
-    if (navigatorKey.currentContext != null &&
-        navigatorKey.currentState?.mounted == true) {
-      await UIHelper.showAirdropAlreadyClaim(navigatorKey.currentContext!);
-    }
-  }
-
-  Future<void> showActivationError(Object e, String id) async {
-    if (navigatorKey.currentContext != null &&
-        navigatorKey.currentState?.mounted == true) {
-      await UIHelper.showActivationError(navigatorKey.currentContext!, e, id);
-    }
-  }
-
-  Future<void> showAirdropClaimFailed() async {
-    if (navigatorKey.currentContext != null &&
-        navigatorKey.currentState?.mounted == true) {
-      await UIHelper.showAirdropClaimFailed(navigatorKey.currentContext!);
-    }
-  }
-
   Future<void> showPostcardShareLinkExpired() async {
     if (navigatorKey.currentContext != null &&
         navigatorKey.currentState?.mounted == true) {
@@ -460,26 +344,5 @@ class NavigationService {
     await Navigator.of(navigatorKey.currentContext!).pushNamed(
         AppRouter.inappWebviewPage,
         arguments: InAppWebViewPayload(url));
-  }
-
-  Future<void> showFeralFileClaimTokenPassLimit(
-      {required FFSeries series}) async {
-    if (navigatorKey.currentContext != null &&
-        navigatorKey.currentState?.mounted == true) {
-      await UIHelper.showFeralFileClaimTokenPassLimit(
-        context,
-        series: series,
-      );
-    }
-  }
-
-  Future showClaimTokenError(
-    Object e, {
-    required FFSeries series,
-  }) async {
-    if (navigatorKey.currentContext != null &&
-        navigatorKey.currentState?.mounted == true) {
-      await UIHelper.showClaimTokenError(context, e, series: series);
-    }
   }
 }

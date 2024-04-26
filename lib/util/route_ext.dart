@@ -1,15 +1,10 @@
 import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
-import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/connections/connections_bloc.dart';
 import 'package:autonomy_flutter/screen/chat/chat_thread_page.dart';
-import 'package:autonomy_flutter/screen/claim/activation/claim_activation_page.dart';
-import 'package:autonomy_flutter/screen/claim/airdrop/claim_airdrop_page.dart';
-import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
-import 'package:autonomy_flutter/screen/claim/select_account_page.dart';
 import 'package:autonomy_flutter/screen/cloud/cloud_android_page.dart';
 import 'package:autonomy_flutter/screen/cloud/cloud_page.dart';
 import 'package:autonomy_flutter/screen/connection/persona_connections_page.dart';
@@ -44,7 +39,6 @@ import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:flutter/material.dart';
-import 'package:nft_collection/models/models.dart';
 
 const unknownMetricTitle = 'Unknown';
 
@@ -197,24 +191,6 @@ extension RouteExt on Route {
           MixpanelProp.recipientAddress: payload.address,
         };
         break;
-      case AppRouter.claimFeralfileTokenPage:
-        final payload = settings.arguments! as ClaimTokenPagePayload;
-        data = {
-          MixpanelProp.seriesId: payload.series.id,
-        };
-        break;
-      case AppRouter.claimSelectAccountPage:
-        final payload = settings.arguments! as SelectAddressPagePayload;
-        data = {
-          MixpanelProp.type: payload.blockchain,
-        };
-        break;
-      case AppRouter.airdropTokenDetailPage:
-        final payload = settings.arguments! as FFSeries;
-        data = {
-          MixpanelProp.seriesId: payload.id,
-        };
-        break;
       case AppRouter.wc2ConnectPage:
         final payload = settings.arguments! as Wc2Proposal;
         data = {
@@ -301,27 +277,6 @@ extension RouteExt on Route {
         data = {
           MixpanelProp.type: payload.chain,
           MixpanelProp.address: payload.sourceAddress,
-        };
-        break;
-      case AppRouter.claimAirdropPage:
-        final payload = settings.arguments! as ClaimAirdropPagePayload;
-        data = {
-          MixpanelProp.seriesId: payload.series.id,
-        };
-        break;
-      case AppRouter.activationTokenDetailPage:
-        final payload = settings.arguments! as AssetToken;
-        data = {
-          MixpanelProp.tokenId: payload.id,
-          MixpanelProp.ownerAddress: payload.owner,
-        };
-        break;
-      case AppRouter.claimActivationPage:
-        final payload = settings.arguments! as ClaimActivationPagePayload;
-        data = {
-          MixpanelProp.tokenId: payload.assetToken.id,
-          MixpanelProp.ownerAddress: payload.assetToken.owner,
-          MixpanelProp.activationId: payload.activationID,
         };
         break;
       case AppRouter.postcardLocationExplain:
@@ -448,29 +403,10 @@ extension RouteExt on Route {
           MixpanelProp.recipientAddress: payload.transaction.to,
         };
         break;
-      case AppRouter.autonomyAirdropTokenPreviewPage:
-        final payload = settings.arguments! as FFSeries;
-        data = {
-          MixpanelProp.seriesId: payload.id,
-        };
-        break;
       case AppRouter.exhibitionNotePage:
         final payload = settings.arguments! as Exhibition;
         data = {
           MixpanelProp.exhibitionId: payload.id,
-        };
-        break;
-      case AppRouter.activationTokenPreviewPage:
-        final payload = settings.arguments! as AssetToken;
-        data = {
-          MixpanelProp.tokenId: payload.id,
-          MixpanelProp.ownerAddress: payload.owner,
-        };
-        break;
-      case AppRouter.feralfileAirdropTokenPreviewPage:
-        final payload = settings.arguments! as FFSeries;
-        data = {
-          MixpanelProp.seriesId: payload.id,
         };
         break;
       default:
@@ -514,9 +450,6 @@ final screenNameMap = {
   AppRouter.githubDocPage: 'Github Doc',
   AppRouter.sendArtworkPage: 'Send Artwork',
   AppRouter.sendArtworkReviewPage: 'Send Artwork Review',
-  AppRouter.claimFeralfileTokenPage: 'Claim Feral File Token',
-  AppRouter.claimSelectAccountPage: 'Claim Select Account',
-  AppRouter.airdropTokenDetailPage: 'Airdrop Token Detail',
   AppRouter.wc2ConnectPage: 'WC2 Connect',
   AppRouter.wc2PermissionPage: 'WC2 Permission',
   AppRouter.preferencesPage: 'Preferences',
@@ -539,9 +472,6 @@ final screenNameMap = {
   AppRouter.canvasHelpPage: 'Canvas Help',
   AppRouter.keyboardControlPage: 'Keyboard Control',
   AppRouter.touchPadPage: 'Touch Pad',
-  AppRouter.claimAirdropPage: 'Claim Airdrop',
-  AppRouter.activationTokenDetailPage: 'Activation Token Detail',
-  AppRouter.claimActivationPage: 'Claim Activation',
   AppRouter.postcardLeaderboardPage: 'Postcard Leaderboard',
   AppRouter.postcardLocationExplain: 'Postcard Location Explain',
   AppRouter.predefinedCollectionPage: 'Predefined Collection',
@@ -566,11 +496,7 @@ final screenNameMap = {
   AppRouter.feralFileSeriesPage: 'Series Detail',
   AppRouter.ffArtworkPreviewPage: 'Feral File Artwork Preview',
   AppRouter.exhibitionDetailPage: 'Exhibition Detail',
-  AppRouter.autonomyAirdropTokenPreviewPage: 'Autonomy Airdrop Token Preview',
   AppRouter.exhibitionNotePage: 'Exhibition Note',
-  AppRouter.activationTokenPreviewPage: 'Activation Token Preview',
-  AppRouter.feralfileAirdropTokenPreviewPage:
-      'Feral File Airdrop Token Preview',
   AppRouter.previewPrimerPage: 'Preview Primer',
   AppRouter.projectsList: 'Projects',
 };

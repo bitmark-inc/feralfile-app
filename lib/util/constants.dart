@@ -147,15 +147,6 @@ const artworkSectionDivider = Divider(
   thickness: 1,
 );
 
-const MOMA_MEMENTO_6_CLAIM_ID = 'memento6';
-
-const MEMENTO_6_SERIES_ID_MAINNET = '2b75da9b-c605-4842-bf59-8e2e1fe04be6';
-const MEMENTO_6_SERIES_ID_TESTNET = '420f4f8e-f45f-4627-b36c-e9fa5bf6af43';
-
-String get memento6SeriesId => Environment.appTestnetConfig
-    ? MEMENTO_6_SERIES_ID_TESTNET
-    : MEMENTO_6_SERIES_ID_MAINNET;
-
 const REMOVE_CUSTOMER_SUPPORT =
     '/bitmark-inc/autonomy-apps/main/customer_support/annoucement_os.md';
 const int cellPerRowPhone = 3;
@@ -181,9 +172,6 @@ final internetUserGeoLocation =
 const int MAX_STAMP_IN_POSTCARD = 15;
 
 const int STAMP_SIZE = 2160;
-
-const int MAX_ANNOUNCEMENT_SHOW_COUNT = 3;
-const Duration MAX_ANNOUNCEMENT_SHOW_EXPIRED_DURATION = Duration(days: 30);
 
 const String POSTCARD_LOCATION_HIVE_BOX = 'postcard_location_hive_box';
 
@@ -542,7 +530,6 @@ class MixpanelProp {
   static const recipientAddress = 'recipientAddress';
   static const seriesId = 'seriesId';
   static const method = 'method';
-  static const activationId = 'activationId';
   static const isOnboarding = 'isOnboarding';
   static const id = 'id';
 }

@@ -51,69 +51,6 @@ Map<String, dynamic> _$FFContractToJson(FFContract instance) =>
       'address': instance.address,
     };
 
-AirdropInfo _$AirdropInfoFromJson(Map<String, dynamic> json) => AirdropInfo(
-      json['contractAddress'] as String,
-      json['blockchain'] as String,
-      json['remainAmount'] as int,
-      json['seriesId'] as String?,
-      json['seriesTitle'] as String?,
-      json['artist'] as String?,
-      json['gifter'] as String?,
-      json['startedAt'] == null
-          ? null
-          : DateTime.parse(json['startedAt'] as String),
-      json['endedAt'] == null
-          ? null
-          : DateTime.parse(json['endedAt'] as String),
-      json['twitterCaption'] as String?,
-    );
-
-Map<String, dynamic> _$AirdropInfoToJson(AirdropInfo instance) =>
-    <String, dynamic>{
-      'contractAddress': instance.contractAddress,
-      'blockchain': instance.blockchain,
-      'remainAmount': instance.remainAmount,
-      'seriesId': instance.seriesId,
-      'seriesTitle': instance.seriesTitle,
-      'artist': instance.artist,
-      'gifter': instance.gifter,
-      'startedAt': instance.startedAt?.toIso8601String(),
-      'endedAt': instance.endedAt?.toIso8601String(),
-      'twitterCaption': instance.twitterCaption,
-    };
-
-TokenClaimResponse _$TokenClaimResponseFromJson(Map<String, dynamic> json) =>
-    TokenClaimResponse(
-      TokenClaimResult.fromJson(json['result'] as Map<String, dynamic>),
-    );
-
-Map<String, dynamic> _$TokenClaimResponseToJson(TokenClaimResponse instance) =>
-    <String, dynamic>{
-      'result': instance.result,
-    };
-
-TokenClaimResult _$TokenClaimResultFromJson(Map<String, dynamic> json) =>
-    TokenClaimResult(
-      json['id'] as String,
-      json['claimerID'] as String,
-      json['exhibitionID'] as String,
-      json['artworkID'] as String,
-      json['txID'] as String,
-      json['seriesID'] as String,
-      json['metadata'] as Map<String, dynamic>?,
-    );
-
-Map<String, dynamic> _$TokenClaimResultToJson(TokenClaimResult instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'claimerID': instance.claimerID,
-      'exhibitionID': instance.exhibitionID,
-      'seriesID': instance.seriesID,
-      'artworkID': instance.artworkID,
-      'txID': instance.txID,
-      'metadata': instance.metadata,
-    };
-
 FeralfileError _$FeralfileErrorFromJson(Map<String, dynamic> json) =>
     FeralfileError(
       json['code'] as int,

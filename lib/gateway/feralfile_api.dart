@@ -40,12 +40,6 @@ abstract class FeralFileApi {
     @Query('includeUniqueFilePath') bool includeUniqueFilePath = true,
   });
 
-  @POST('/api/series/{seriesId}/claim')
-  Future<TokenClaimResponse> claimSeries(
-    @Path('seriesId') String seriesId,
-    @Body() Map<String, dynamic> body,
-  );
-
   @GET('/api/exhibitions/{exhibitionID}/revenue-setting/resale')
   Future<ResaleResponse> getResaleInfo(
       @Path('exhibitionID') String exhibitionID);
