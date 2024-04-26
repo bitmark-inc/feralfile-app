@@ -114,7 +114,6 @@ class Wc2Service {
     _wcClient.onSessionDelete.subscribe(_onSessionDeleted);
 
     _registerEthRequest('${Wc2Chain.ethereum}:${Environment.web3ChainId}');
-    _registerEthRequest('${Wc2Chain.ethereum}:5');
 
     _registerFeralfileRequest(
         '${Wc2Chain.autonomy}:${Environment.appTestnetConfig ? 1 : 0}');
@@ -330,7 +329,19 @@ class Wc2Service {
 
   Future<List<String>> _getAllConnectionKey() async {
     final connections = await _cloudDB.connectionDao.getWc2Connections();
-    return connections.map((e) => e.key).toList();
+    final activeTopics = _wcClient.getActiveSessions().keys;
+    log.info('[Wc2Service] activeTopics: $activeTopics');
+    final inactiveConnections = connections
+        .where((element) =>
+            !activeTopics.any((topic) => element.key.contains(topic)))
+        .toList();
+    await _cloudDB.connectionDao.deleteConnections(inactiveConnections);
+    final keys = connections
+        .where((element) => !inactiveConnections.contains(element))
+        .map((e) => e.key)
+        .toList();
+    log.info('[Wc2Service] connection keys: $keys');
+    return keys;
   }
 
   List<SessionRequest> getPendingRequests() =>
