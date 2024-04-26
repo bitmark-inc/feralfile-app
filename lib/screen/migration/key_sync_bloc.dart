@@ -36,7 +36,7 @@ class KeySyncBloc extends AuBloc<KeySyncEvent, KeySyncState> {
 
       final accounts = await _cloudDatabase.personaDao.getDefaultPersonas();
       if (accounts.length < 2) {
-        //return;
+        return;
       }
 
       final cloudWallet = accounts[1].wallet();
@@ -76,7 +76,7 @@ class KeySyncBloc extends AuBloc<KeySyncEvent, KeySyncState> {
             ' ${state.isLocalSelected} error: $e');
         unawaited(Sentry.captureException('ProceedKeySyncEvent select local'
             ' ${state.isLocalSelected} error: $e'));
-        emit(state.copyWith(isError: true));
+        emit(state.copyWith(isError: true, isProcessing: false));
       }
 
       emit(state.copyWith(isProcessing: false));
