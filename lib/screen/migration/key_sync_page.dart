@@ -180,8 +180,7 @@ class KeySyncPage extends StatelessWidget {
                     Expanded(
                       child: PrimaryButton(
                         text: 'proceed'.tr(),
-                        isProcessing:
-                            state.isProcessing == true && !state.isError,
+                        isProcessing: state.isProcessing == true,
                         onTap: state.isProcessing == true
                             ? null
                             : () {
