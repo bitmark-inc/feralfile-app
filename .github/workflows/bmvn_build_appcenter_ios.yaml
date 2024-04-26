@@ -50,7 +50,15 @@ jobs:
 
       # Checkout code and get packages.
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
+      - name: Checkout signging keys
+        uses: actions/checkout@v4
+        with:
+          repository: bitmark-inc/mobile-signing-key-vault
+          token: ${{ secrets.BITMARK_BOT_GH_BOT }}
+          path: mobile-signing-key-vault
+          fetch-depth: 1
 
       # Setup Ruby, Bundler, and Gemfile dependencies
       #      - name: Setup Fastlane
@@ -111,7 +119,6 @@ jobs:
           RELEASE_NOTES: ${{ inputs.message }}
 
         run: |
-          git clone git@github.com:bitmark-inc/mobile-signing-key-vault.git --depth 1
           echo $JSON_FILE >> key.json
           bundle exec fastlane install_plugins
           echo "APP_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
