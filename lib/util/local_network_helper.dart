@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 
 class LocalNetworkHelper {
@@ -5,8 +6,10 @@ class LocalNetworkHelper {
     bool isGranted = false;
     try {
       final wifiIp = await NetworkInfo().getWifiIP();
+      log.info('[LocalNetworkHelper] wifiIp: $wifiIp');
       isGranted = true;
     } catch (e) {
+      log.info('[LocalNetworkHelper] requestLocalNetworkPermission Error: $e');
       isGranted = false;
     }
     return isGranted;
