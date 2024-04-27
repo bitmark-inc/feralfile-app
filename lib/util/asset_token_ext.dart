@@ -5,7 +5,6 @@ import 'dart:ui';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
-import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
@@ -21,7 +20,6 @@ import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
-import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -370,9 +368,6 @@ extension AssetTokenExtension on AssetToken {
     return lst.map((e) => Artist.fromJson(e)).toList().sublist(1);
   }
 
-  bool get isAirdropToken =>
-      Environment.autonomyAirDropContractAddress == contractAddress;
-
   bool get isMoMAMemento => [
         ...momaMementoContractAddresses,
         Environment.autonomyAirDropContractAddress
@@ -556,64 +551,6 @@ String _refineToCloudflareURL(String url, String thumbnailID, String variant) {
   return thumbnailID.isEmpty
       ? replaceIPFS(url)
       : '$cloudFlareImageUrlPrefix$thumbnailID/$variant';
-}
-
-AssetToken createPendingAssetToken({
-  required FFSeries series,
-  required String owner,
-  required String tokenId,
-}) {
-  final indexerId = series.airdropInfo?.getTokenIndexerId(tokenId);
-  final artist = series.artist;
-  final exhibition = series.exhibition;
-  final contract = series.contract;
-  return AssetToken(
-    asset: Asset(
-      indexerId,
-      '',
-      DateTime.now(),
-      artist?.id,
-      artist?.fullName,
-      null,
-      null,
-      series.title,
-      series.description,
-      null,
-      null,
-      null,
-      series.maxEdition,
-      'airdrop',
-      null,
-      series.thumbnailURI,
-      series.thumbnailURI,
-      series.thumbnailURI,
-      null,
-      null,
-      'airdrop',
-      null,
-      null,
-      null,
-    ),
-    blockchain: exhibition?.mintBlockchain.toLowerCase() ?? 'tezos',
-    fungible: false,
-    contractType: '',
-    tokenId: tokenId,
-    contractAddress: contract?.address,
-    edition: 0,
-    editionName: '',
-    id: indexerId ?? '',
-    mintedAt: series.createdAt ?? DateTime.now(),
-    balance: 1,
-    owner: owner,
-    owners: {
-      owner: 1,
-    },
-    lastActivityTime: DateTime.now(),
-    lastRefreshedTime: DateTime(1),
-    pending: true,
-    originTokenInfo: [],
-    provenance: [],
-  );
 }
 
 extension AssetExt on Asset {

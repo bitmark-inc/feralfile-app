@@ -16,15 +16,9 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/otp.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/claim/activation/claim_activation_page.dart';
-import 'package:autonomy_flutter/screen/claim/airdrop/claim_airdrop_page.dart';
-import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/activation_service.dart';
-import 'package:autonomy_flutter/service/airdrop_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
@@ -39,8 +33,6 @@ import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_branch_sdk/flutter_branch_sdk.dart';
-import 'package:nft_collection/graphql/model/get_list_tokens.dart';
-import 'package:nft_collection/services/indexer_service.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uni_links/uni_links.dart';
 
@@ -58,13 +50,9 @@ class DeeplinkServiceImpl extends DeeplinkService {
   final ConfigurationService _configurationService;
   final Wc2Service _walletConnect2Service;
   final TezosBeaconService _tezosBeaconService;
-  final FeralFileService _feralFileService;
   final NavigationService _navigationService;
   final BranchApi _branchApi;
   final PostcardService _postcardService;
-  final AirdropService _airdropService;
-  final ActivationService _activationService;
-  final IndexerService _indexerService;
   final RemoteConfigService _remoteConfigService;
 
   String? currentExhibitionId;
@@ -76,13 +64,9 @@ class DeeplinkServiceImpl extends DeeplinkService {
     this._configurationService,
     this._walletConnect2Service,
     this._tezosBeaconService,
-    this._feralFileService,
     this._navigationService,
     this._branchApi,
     this._postcardService,
-    this._airdropService,
-    this._activationService,
-    this._indexerService,
     this._remoteConfigService,
   );
 
@@ -373,27 +357,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
     }
     final source = data['source'];
     switch (source) {
-      case 'FeralFile_AirDrop':
-        final String? exhibitionId = data['exhibition_id'];
-        final String? seriesId = data['series_id'];
-        final String? expiredAt = data['expired_at'];
-
-        if (expiredAt != null &&
-            DateTime.now().isAfter(DateTime.fromMillisecondsSinceEpoch(
-                int.tryParse(expiredAt) ?? 0))) {
-          log.info('[DeeplinkService] FeralFile Airdrop expired');
-          unawaited(_navigationService.showAirdropExpired(seriesId));
-          break;
-        }
-
-        if (exhibitionId?.isNotEmpty == true || seriesId?.isNotEmpty == true) {
-          unawaited(_claimFFAirdropToken(
-            exhibitionId: exhibitionId,
-            seriesId: seriesId,
-            otp: _getOtpFromBranchData(data),
-          ));
-        }
-        break;
       case 'Postcard':
         final String? type = data['type'];
         final String? id = data['id'];
@@ -431,6 +394,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
           await _handlePostcardDeeplink(sharedCode);
         }
         break;
+
       case 'autonomy_irl':
         final url = data['irl_url'];
         if (url != null) {
@@ -443,65 +407,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
       case 'moma_postcard_purchase':
         await _handlePayToMint();
         break;
-      case 'autonomy_airdrop':
-        final type = data['type'];
-        switch (type) {
-          case 'claim_pass':
-            final id = data['claim_pass_id'];
-            final seriesId = data['series_id'];
-            if (id != null) {
-              await _claimFFAirdropToken(
-                seriesId: seriesId,
-                otp: _getOtpFromBranchData(data),
-                claimFunction: ({required String receiveAddress}) async {
-                  final response = await _airdropService.claimFeralFileToken(
-                      receiveAddress: receiveAddress,
-                      id: id,
-                      seriesID: seriesId);
-                  return response;
-                },
-              );
-            }
-            break;
-          default:
-            final String? sharedCode = data['share_code'];
-            if (sharedCode != null) {
-              log.info('[DeeplinkService] _handlePostcardDeeplink $sharedCode');
-              final sharedInfor = await _airdropService.claimShare(
-                AirdropClaimShareRequest(shareCode: sharedCode),
-              );
-              final series =
-                  await _feralFileService.getSeries(sharedInfor.seriesID);
-              unawaited(_navigationService.navigateTo(
-                AppRouter.claimAirdropPage,
-                arguments: ClaimAirdropPagePayload(
-                    claimID: '',
-                    shareCode: sharedInfor.shareCode,
-                    series: series,
-                    allowViewOnlyClaim: true),
-              ));
-            }
-        }
 
-        break;
-
-      case 'Autonomy_Activation':
-        final String? activationID = data['activationID'];
-        final String? expiredAt = data['expired_at'];
-
-        if (expiredAt != null &&
-            DateTime.now().isAfter(DateTime.fromMillisecondsSinceEpoch(
-                int.tryParse(expiredAt) ?? 0))) {
-          log.info('[DeeplinkService] FeralFile Airdrop expired');
-          // _navigationService.showAirdropExpired(seriesId);
-          break;
-        }
-
-        if (activationID?.isNotEmpty == true) {
-          unawaited(_handleActivationDeeplink(
-              activationID, _getOtpFromBranchData(data)));
-        }
-        break;
       case 'autonomy_connect':
         final wcUri = data['uri'];
         final decodedWcUri = Uri.decodeFull(wcUri);
@@ -511,67 +417,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
         memoryValues.branchDeeplinkData.value = null;
     }
     _deepLinkHandlingMap.remove(data['~referring_link']);
-  }
-
-  Future _claimFFAirdropToken({
-    String? exhibitionId,
-    String? seriesId,
-    Otp? otp,
-    Future<ClaimResponse?> Function({required String receiveAddress})?
-        claimFunction,
-  }) async {
-    log.info('[DeeplinkService] Claim FF Airdrop token. '
-        'Exhibition $exhibitionId, otp: ${otp?.toJson()}');
-    final id = '${exhibitionId}_${seriesId}_${otp?.code}';
-    if (currentExhibitionId == id) {
-      return;
-    }
-    try {
-      currentExhibitionId = id;
-      final doneOnboarding = _configurationService.isDoneOnboarding();
-      if (doneOnboarding) {
-        final seriesFuture = (seriesId?.isNotEmpty == true)
-            ? _feralFileService.getSeries(seriesId!)
-            : _feralFileService.getAirdropSeriesFromExhibitionId(exhibitionId!);
-
-        await Future.delayed(const Duration(seconds: 1), () {
-          _navigationService.popUntilHomeOrSettings();
-        });
-
-        final series = await seriesFuture;
-        final endTime = series.airdropInfo?.endedAt;
-        if (series.airdropInfo == null ||
-            (endTime != null && endTime.isBefore(DateTime.now()))) {
-          await _navigationService.showAirdropExpired(seriesId);
-        } else if (series.airdropInfo?.isAirdropStarted != true) {
-          await _navigationService.showAirdropNotStarted(seriesId);
-        } else if (series.airdropInfo?.remainAmount == 0) {
-          await _navigationService.showNoRemainingToken(
-            series: series,
-          );
-        } else if (otp?.isExpired == true) {
-          await _navigationService.showOtpExpired(seriesId);
-        } else {
-          Future.delayed(const Duration(seconds: 5), () {
-            currentExhibitionId = null;
-          });
-          unawaited(_navigationService.openClaimTokenPage(
-            series,
-            otp: otp,
-            claimFunction: claimFunction,
-          ));
-        }
-        currentExhibitionId = null;
-      } else {
-        handlingDeepLink = null;
-        await Future.delayed(const Duration(seconds: 5), () {
-          currentExhibitionId = null;
-        });
-      }
-    } catch (e) {
-      log.info('[DeeplinkService] _claimFFAirdropToken error $e');
-      currentExhibitionId = null;
-    }
   }
 
   Future<void> _deepLinkHandleClock(String message, String param,
@@ -643,27 +488,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
         unawaited(_navigationService.showPostcardQRCodeExpired());
       }
     }
-  }
-
-  Future<void> _handleActivationDeeplink(String? activationID, Otp? otp) async {
-    if (activationID == null) {
-      return;
-    }
-    final activationInfo =
-        await _activationService.getActivation(activationID: activationID);
-    final indexerId = _activationService.getIndexerID(activationInfo.blockchain,
-        activationInfo.contractAddress, activationInfo.tokenID);
-    final request = QueryListTokensRequest(
-      ids: [indexerId],
-    );
-    final assetToken = await _indexerService.getNftTokens(request);
-    await _navigationService.openActivationPage(
-      payload: ClaimActivationPagePayload(
-        activationID: activationID,
-        assetToken: assetToken.first,
-        otp: otp!,
-      ),
-    );
   }
 }
 

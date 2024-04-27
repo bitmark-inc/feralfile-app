@@ -18,9 +18,3 @@ class LinkingFailedException implements Exception {}
 class InvalidDeeplink implements Exception {}
 
 class FailedFetchBackupVersion implements Exception {}
-
-class NoRemainingToken implements Exception {}
-
-class AirdropExpired implements Exception {}
-
-class AlreadyDelivered implements Exception {}
