@@ -4,7 +4,7 @@ import 'package:bonsoir/bonsoir.dart';
 
 class DiscoverService {
   final BonsoirDiscovery _discover;
-  static const String _type = '_feral-file-cast._tcp';
+  static const String _type = '__feralFileCanvas._tcp';
   final DiscoverHandler _handler;
 
   DiscoverService(this._handler) : _discover = BonsoirDiscovery(type: _type);
