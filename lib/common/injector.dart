@@ -121,6 +121,7 @@ Future<void> setup() async {
     migrateV15ToV16,
     migrateV16ToV17,
     migrateV17ToV18,
+    migrateV18ToV19,
   ]).build();
 
   final cloudDB = await $FloorCloudDatabase
@@ -320,8 +321,8 @@ Future<void> setup() async {
   injector.registerLazySingleton<PlaylistService>(
       () => PlayListServiceImp(injector(), injector(), injector(), injector()));
 
-  injector.registerLazySingleton<CanvasClientService>(
-      () => CanvasClientService(injector()));
+  injector
+      .registerLazySingleton<CanvasClientService>(() => CanvasClientService());
 
   injector.registerLazySingleton<PostcardService>(
     () => PostcardServiceImpl(

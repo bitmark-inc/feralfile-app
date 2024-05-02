@@ -1,25 +1,25 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/shared_postcard.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/discover_handler.dart';
+import 'package:autonomy_flutter/service/discover_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart' as my_device;
+import 'package:bonsoir/bonsoir.dart';
 import 'package:collection/collection.dart';
 import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter/material.dart';
 import 'package:synchronized/synchronized.dart';
 import 'package:uuid/uuid.dart';
 
-class CanvasClientService {
-  final AppDatabase _db;
-
-  CanvasClientService(this._db);
+class CanvasClientService extends DiscoverHandler {
+  CanvasClientService() : super();
 
   final List<CanvasDevice> _viewingDevices = [];
   late final String _deviceId;
@@ -29,6 +29,7 @@ class CanvasClientService {
   final _connectDevice = Lock();
   final AccountService _accountService = injector<AccountService>();
   final NavigationService _navigationService = injector<NavigationService>();
+  late DiscoverService _discoverService;
 
   Offset currentCursorOffset = Offset.zero;
 
@@ -43,6 +44,8 @@ class CanvasClientService {
     _deviceName = await device.getMachineName() ?? 'Autonomy App';
     final account = await _accountService.getDefaultAccount();
     _deviceId = await account.getAccountDID();
+    _discoverService = DiscoverService(this);
+    await _discoverService.discover();
     _didInitialized = true;
   }
 
@@ -94,7 +97,7 @@ class CanvasClientService {
         } else {
           _viewingDevices[index].isConnecting = true;
         }
-        await _db.canvasDeviceDao.insertCanvasDevice(device);
+        //await _db.canvasDeviceDao.insertCanvasDevice(device);
         return true;
       } else {
         log.info('CanvasClientService: Failed to connect to device');
@@ -155,17 +158,17 @@ class CanvasClientService {
         case CanvasServerStatus.connected:
           device.playingSceneId = status.second;
           device.isConnecting = true;
-          unawaited(_db.canvasDeviceDao.updateCanvasDevice(device));
+          //unawaited(_db.canvasDeviceDao.updateCanvasDevice(device));
           devicesToAdd.add(device);
           break;
         case CanvasServerStatus.open:
           device.playingSceneId = status.second;
           device.isConnecting = false;
-          unawaited(_db.canvasDeviceDao.updateCanvasDevice(device));
+          //unawaited(_db.canvasDeviceDao.updateCanvasDevice(device));
           devicesToAdd.add(device);
           break;
         case CanvasServerStatus.notServing:
-          unawaited(_updateLocalDisconnectedDevice(device));
+          //unawaited(_updateLocalDisconnectedDevice(device));
           break;
         case CanvasServerStatus.error:
           break;
@@ -179,11 +182,7 @@ class CanvasClientService {
         'CanvasClientService sync device available ${_viewingDevices.length}');
   }
 
-  Future<List<CanvasDevice>> getAllDevices() async {
-    final devices = await _db.canvasDeviceDao.getCanvasDevices();
-    log.info('CanvasClientService get devices local ${devices.length}');
-    return devices;
-  }
+  Future<List<CanvasDevice>> getAllDevices() async => _viewingDevices;
 
   Future<List<CanvasDevice>> getConnectingDevices({bool doSync = false}) async {
     if (doSync) {
@@ -195,12 +194,6 @@ class CanvasClientService {
       }
     }
     return _viewingDevices;
-  }
-
-  Future<void> _updateLocalDisconnectedDevice(CanvasDevice device) async {
-    final updatedDevice = device.copyWith(isConnecting: false)
-      ..playingSceneId = null;
-    await _db.canvasDeviceDao.updateCanvasDevice(updatedDevice);
   }
 
   Future<bool> castSingleArtwork(CanvasDevice device, String tokenId) async {
@@ -351,6 +344,36 @@ class CanvasClientService {
       ..coefficientY = 1 / size.height;
 
     await stub.setCursorOffset(request);
+  }
+
+  @override
+  void handleServiceLost(BonsoirService service) {
+    final ip = service.attributes['ip'];
+    _viewingDevices.removeWhere((element) => element.ip == ip);
+    log.info('CanvasClientService: remove device ip: $ip');
+  }
+
+  @override
+  void handleServiceResolved(BonsoirService service) {
+    final ip = service.attributes['ip'];
+    final id = service.attributes['id'];
+    final port = service.attributes['port'];
+    final name = service.attributes['name'];
+    if (ip == null || id == null || port == null || name == null) {
+      log.info('CanvasClientService: Invalid service');
+      return;
+    }
+    if (_viewingDevices.any((element) => element.ip == ip)) {
+      return;
+    }
+    final device = CanvasDevice(
+      id: id,
+      ip: ip,
+      port: int.parse(port),
+      name: name,
+    );
+    _viewingDevices.add(device);
+    log.info('CanvasClientService: add device ip: $ip');
   }
 }
 
