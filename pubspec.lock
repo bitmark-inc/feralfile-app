@@ -1770,14 +1770,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "7.1.1"
-  marqueer:
-    dependency: "direct main"
-    description:
-      name: marqueer
-      sha256: "15dcb57f7b8cd621eba9c45761d6a7997135e6ac219dd420fede254f828b84dd"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.4.0"
   matcher:
     dependency: transitive
     description:
@@ -3099,5 +3091,5 @@ packages:
     source: hosted
     version: "3.1.2"
 sdks:
-  dart: ">=3.2.0 <4.0.0"
-  flutter: ">=3.16.0"
+  dart: ">=3.2.3 <4.0.0"
+  flutter: ">=3.16.6"

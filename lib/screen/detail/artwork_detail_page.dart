@@ -22,7 +22,6 @@ import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_wid
 import 'package:autonomy_flutter/screen/gallery/gallery_page.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_page.dart';
-import 'package:autonomy_flutter/service/airdrop_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
@@ -38,7 +37,6 @@ import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/external_link.dart';
-import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:dio/dio.dart';
@@ -52,7 +50,6 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/provenance.dart';
 import 'package:nft_collection/nft_collection.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:social_share/social_share.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -75,7 +72,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 
   HashSet<String> _accountNumberHash = HashSet.identity();
   AssetToken? currentAsset;
-  final _airdropService = injector.get<AirdropService>();
   final _feralfileService = injector.get<FeralFileService>();
 
   @override
@@ -164,46 +160,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       ],
     );
     return UIHelper.showDialog(context, 'share_the_new'.tr(), content);
-  }
-
-  Future<void> _shareMemento(BuildContext context, AssetToken asset) async {
-    final deeplink = await _airdropService.shareAirdrop(asset);
-    if (deeplink == null) {
-      if (!context.mounted) {
-        return;
-      }
-      context
-          .read<ArtworkDetailBloc>()
-          .add(ArtworkDetailGetAirdropDeeplink(assetToken: asset));
-      unawaited(UIHelper.showAirdropCannotShare(context));
-      return;
-    }
-    try {
-      final shareMessage = 'memento_6_share_message'.tr(namedArgs: {
-        'deeplink': deeplink,
-      });
-      await Share.share(shareMessage);
-    } catch (e) {
-      if (e is DioException) {
-        if (context.mounted) {
-          unawaited(UIHelper.showSharePostcardFailed(context, e));
-        }
-      }
-    }
-  }
-
-  Widget _sendMemento6(BuildContext context, AssetToken asset) {
-    final deeplink = context.watch<ArtworkDetailBloc>().state.airdropDeeplink;
-    final canSend = deeplink != null && deeplink.isNotEmpty;
-    if (!canSend) {
-      return const SizedBox();
-    }
-    return PostcardButton(
-      text: 'send_memento'.tr(),
-      onTap: () {
-        unawaited(_shareMemento(context, asset));
-      },
-    );
   }
 
   @override
@@ -338,7 +294,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                     token: asset,
                   ),
                 ),
-                _sendMemento6(context, asset),
                 Visibility(
                   visible:
                       checkWeb3ContractAddress.contains(asset.contractAddress),

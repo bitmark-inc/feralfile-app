@@ -255,10 +255,6 @@ abstract class ConfigurationService {
 
   ShowAnouncementNotificationInfo getShowAnnouncementNotificationInfo();
 
-  bool getAlreadyClaimedAirdrop(String seriesId);
-
-  Future<void> setAlreadyClaimedAirdrop(String seriesId, bool value);
-
   // set and get for did_sync_artists
   Future<void> setDidSyncArtists(bool value);
 
@@ -363,8 +359,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
 
   static const String KEY_SHOW_ANOUNCEMENT_NOTIFICATION_INFO =
       'show_anouncement_notification_info';
-
-  static const String KEY_ALREADY_CLAIMED_AIRDROP = 'already_claimed_airdrop';
 
   static const String KEY_PROCESSING_STAMP_POSTCARD =
       'processing_stamp_postcard';
@@ -1057,26 +1051,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
       return ShowAnouncementNotificationInfo();
     }
     return ShowAnouncementNotificationInfo.fromJson(jsonDecode(data));
-  }
-
-  @override
-  bool getAlreadyClaimedAirdrop(String seriesId) {
-    final data = _preferences.getStringList(KEY_ALREADY_CLAIMED_AIRDROP);
-    if (data == null) {
-      return false;
-    }
-    return data.contains(seriesId);
-  }
-
-  @override
-  Future<void> setAlreadyClaimedAirdrop(String seriesId, bool value) async {
-    final data = _preferences.getStringList(KEY_ALREADY_CLAIMED_AIRDROP) ?? [];
-    if (value) {
-      data.add(seriesId);
-    } else {
-      data.remove(seriesId);
-    }
-    await _preferences.setStringList(KEY_ALREADY_CLAIMED_AIRDROP, data);
   }
 
   @override

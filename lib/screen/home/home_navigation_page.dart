@@ -9,6 +9,7 @@ import 'dart:async';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/announcement_local.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -23,7 +24,6 @@ import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_blo
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/airdrop_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service.dart';
@@ -641,6 +641,18 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     event.complete(null);
   }
 
+  Future<void> _checkForKeySync(BuildContext context) async {
+    final cloudDatabase = injector<CloudDatabase>();
+    final defaultAccounts = await cloudDatabase.personaDao.getDefaultPersonas();
+
+    if (defaultAccounts.length >= 2) {
+      if (!context.mounted) {
+        return;
+      }
+      unawaited(Navigator.of(context).pushNamed(AppRouter.keySyncPage));
+    }
+  }
+
   PageController _getPageController(int initialIndex) =>
       PageController(initialPage: initialIndex);
 
@@ -822,34 +834,9 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     });
   }
 
-  Future<void> announcementNotificationIfNeed() async {
-    final announcements =
-        (await injector<CustomerSupportService>().getIssuesAndAnnouncement())
-            .whereType<AnnouncementLocal>()
-            .toList();
-
-    final showAnnouncementInfo =
-        _configurationService.getShowAnnouncementNotificationInfo();
-    final shouldShowAnnouncements = announcements.where((element) =>
-        (element.isMemento6 &&
-            !_configurationService
-                .getAlreadyClaimedAirdrop(AirdropType.memento6.seriesId)) &&
-        showAnnouncementInfo.shouldShowAnnouncementNotification(element));
-    if (shouldShowAnnouncements.isEmpty) {
-      return;
-    }
-    unawaited(Future.forEach<AnnouncementLocal>(shouldShowAnnouncements,
-        (announcement) async {
-      await showAnnouncementNotification(announcement);
-      await _configurationService
-          .updateShowAnnouncementNotificationInfo(announcement);
-    }));
-  }
-
   Future<void> _handleForeground() async {
     _metricClientService.onForeground();
     await injector<CustomerSupportService>().fetchAnnouncement();
-    unawaited(announcementNotificationIfNeed());
     await _remoteConfig.loadConfigs();
   }
 
@@ -863,6 +850,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     if (initialAction != null) {
       NotificationService.onActionReceivedMethod(initialAction);
     }
+    unawaited(_checkForKeySync(context));
   }
 
   Future<void> _cloudBackup() async {

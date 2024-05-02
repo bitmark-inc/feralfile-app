@@ -18,17 +18,12 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/customer_support.dart' as app;
 import 'package:autonomy_flutter/model/customer_support.dart';
 import 'package:autonomy_flutter/model/pair.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/claim/airdrop/claim_airdrop_page.dart';
-import 'package:autonomy_flutter/service/airdrop_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
-import 'package:autonomy_flutter/util/announcement_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/log.dart' as log_util;
-import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -45,7 +40,6 @@ import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:nft_collection/models/asset_token.dart';
 import 'package:uuid/uuid.dart';
 
 abstract class SupportThreadPayload {
@@ -128,7 +122,6 @@ class _SupportThreadPageState extends State<SupportThreadPage>
   final _askReviewMessengerID = const Uuid().v4();
   final _announcementMessengerID = const Uuid().v4();
   final _customerSupportService = injector<CustomerSupportService>();
-  final _airdropService = injector<AirdropService>();
   final _feralFileService = injector<FeralFileService>();
 
   types.TextMessage get _introMessenger => types.TextMessage(
@@ -371,46 +364,6 @@ class _SupportThreadPageState extends State<SupportThreadPage>
               }).toList(),
               onSendPressed: _handleSendPressed,
               user: _user,
-              listBottomWidget:
-                  (widget.payload.announcement?.isMemento6 == true)
-                      ? FutureBuilder(
-                          future: _airdropService
-                              // ignore: discarded_futures
-                              .getTokenByContract(momaMementoContractAddresses),
-                          builder: (context, snapshot) {
-                            final token = snapshot.data as AssetToken?;
-                            return Padding(
-                              padding: const EdgeInsets.only(
-                                  left: 18, right: 18, bottom: 15),
-                              child: PrimaryAsyncButton(
-                                text: 'claim_your_gift'.tr(),
-                                enabled: token != null,
-                                onTap: () async {
-                                  if (token == null) {
-                                    return;
-                                  }
-                                  try {
-                                    final response = await _airdropService
-                                        .claimRequestGift(token);
-                                    final series = await _feralFileService
-                                        .getSeries(response.seriesID);
-                                    if (!mounted) {
-                                      return;
-                                    }
-                                    unawaited(Navigator.of(context).pushNamed(
-                                        AppRouter.claimAirdropPage,
-                                        arguments: ClaimAirdropPagePayload(
-                                            claimID: response.claimID,
-                                            series: series,
-                                            shareCode: '')));
-                                  } catch (e) {
-                                    log.info('Claim your gift tap $e');
-                                  }
-                                },
-                              ),
-                            );
-                          })
-                      : null,
               customBottomWidget: !isCustomerSupportAvailable
                   ? const SizedBox()
                   : !_isRated && _status == 'closed'

@@ -22,16 +22,20 @@ class ProceedKeySyncEvent extends KeySyncEvent {}
 class KeySyncState {
   final bool isLocalSelected;
   final bool? isProcessing;
+  final bool isError;
   bool isLocalSelectedTmp;
 
-  KeySyncState(
-      this.isLocalSelected, this.isProcessing, this.isLocalSelectedTmp);
+  KeySyncState(this.isLocalSelected, this.isProcessing, this.isLocalSelectedTmp,
+      {this.isError = false});
 
   KeySyncState copyWith(
-      {bool? isLocalSelected, bool? isProcessing, bool? isLocalSelectedTmp}) {
-    return KeySyncState(
-        isLocalSelected ?? this.isLocalSelected,
-        isProcessing ?? this.isProcessing,
-        isLocalSelectedTmp ?? this.isLocalSelectedTmp);
-  }
+          {bool? isLocalSelected,
+          bool? isProcessing,
+          bool? isLocalSelectedTmp,
+          bool? isError}) =>
+      KeySyncState(
+          isLocalSelected ?? this.isLocalSelected,
+          isProcessing ?? this.isProcessing,
+          isLocalSelectedTmp ?? this.isLocalSelectedTmp,
+          isError: isError ?? this.isError);
 }

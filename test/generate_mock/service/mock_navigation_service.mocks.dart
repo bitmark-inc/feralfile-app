@@ -5,15 +5,10 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i4;
 
-import 'package:autonomy_flutter/model/ff_series.dart' as _i6;
-import 'package:autonomy_flutter/model/otp.dart' as _i7;
-import 'package:autonomy_flutter/screen/claim/activation/claim_activation_page.dart'
-    as _i9;
-import 'package:autonomy_flutter/screen/claim/claim_token_page.dart' as _i8;
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart'
-    as _i11;
+    as _i7;
 import 'package:autonomy_flutter/service/navigation_service.dart' as _i3;
-import 'package:autonomy_flutter/util/error_handler.dart' as _i10;
+import 'package:autonomy_flutter/util/error_handler.dart' as _i6;
 import 'package:flutter/material.dart' as _i1;
 import 'package:mockito/mockito.dart' as _i2;
 import 'package:nft_collection/models/asset_token.dart' as _i5;
@@ -161,74 +156,8 @@ class MockNavigationService extends _i2.Mock implements _i3.NavigationService {
         ),
       ) as _i1.NavigatorState);
   @override
-  _i4.Future<dynamic> showAirdropNotStarted(String? artworkId) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #showAirdropNotStarted,
-          [artworkId],
-        ),
-        returnValue: _i4.Future<dynamic>.value(),
-      ) as _i4.Future<dynamic>);
-  @override
-  _i4.Future<dynamic> showAirdropExpired(String? artworkId) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #showAirdropExpired,
-          [artworkId],
-        ),
-        returnValue: _i4.Future<dynamic>.value(),
-      ) as _i4.Future<dynamic>);
-  @override
-  _i4.Future<dynamic> showNoRemainingToken({required _i6.FFSeries? series}) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #showNoRemainingToken,
-          [],
-          {#series: series},
-        ),
-        returnValue: _i4.Future<dynamic>.value(),
-      ) as _i4.Future<dynamic>);
-  @override
-  _i4.Future<dynamic> showOtpExpired(String? artworkId) => (super.noSuchMethod(
-        Invocation.method(
-          #showOtpExpired,
-          [artworkId],
-        ),
-        returnValue: _i4.Future<dynamic>.value(),
-      ) as _i4.Future<dynamic>);
-  @override
-  _i4.Future<dynamic> openClaimTokenPage(
-    _i6.FFSeries? series, {
-    _i7.Otp? otp,
-    _i4.Future<_i8.ClaimResponse?> Function({required String receiveAddress})?
-        claimFunction,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #openClaimTokenPage,
-          [series],
-          {
-            #otp: otp,
-            #claimFunction: claimFunction,
-          },
-        ),
-        returnValue: _i4.Future<dynamic>.value(),
-      ) as _i4.Future<dynamic>);
-  @override
-  _i4.Future<void> openActivationPage(
-          {required _i9.ClaimActivationPagePayload? payload}) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #openActivationPage,
-          [],
-          {#payload: payload},
-        ),
-        returnValue: _i4.Future<void>.value(),
-        returnValueForMissingStub: _i4.Future<void>.value(),
-      ) as _i4.Future<void>);
-  @override
   void showErrorDialog(
-    _i10.ErrorEvent? event, {
+    _i6.ErrorEvent? event, {
     dynamic Function()? defaultAction,
     dynamic Function()? cancelAction,
   }) =>
@@ -337,7 +266,7 @@ class MockNavigationService extends _i2.Mock implements _i3.NavigationService {
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
   @override
-  _i4.Future<dynamic> goToIRLWebview(_i11.IRLWebScreenPayload? payload) =>
+  _i4.Future<dynamic> goToIRLWebview(_i7.IRLWebScreenPayload? payload) =>
       (super.noSuchMethod(
         Invocation.method(
           #goToIRLWebview,
@@ -349,49 +278,6 @@ class MockNavigationService extends _i2.Mock implements _i3.NavigationService {
   _i4.Future<void> showAlreadyDeliveredPostcard() => (super.noSuchMethod(
         Invocation.method(
           #showAlreadyDeliveredPostcard,
-          [],
-        ),
-        returnValue: _i4.Future<void>.value(),
-        returnValueForMissingStub: _i4.Future<void>.value(),
-      ) as _i4.Future<void>);
-  @override
-  _i4.Future<void> showAirdropJustOnce() => (super.noSuchMethod(
-        Invocation.method(
-          #showAirdropJustOnce,
-          [],
-        ),
-        returnValue: _i4.Future<void>.value(),
-        returnValueForMissingStub: _i4.Future<void>.value(),
-      ) as _i4.Future<void>);
-  @override
-  _i4.Future<void> showAirdropAlreadyClaimed() => (super.noSuchMethod(
-        Invocation.method(
-          #showAirdropAlreadyClaimed,
-          [],
-        ),
-        returnValue: _i4.Future<void>.value(),
-        returnValueForMissingStub: _i4.Future<void>.value(),
-      ) as _i4.Future<void>);
-  @override
-  _i4.Future<void> showActivationError(
-    Object? e,
-    String? id,
-  ) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #showActivationError,
-          [
-            e,
-            id,
-          ],
-        ),
-        returnValue: _i4.Future<void>.value(),
-        returnValueForMissingStub: _i4.Future<void>.value(),
-      ) as _i4.Future<void>);
-  @override
-  _i4.Future<void> showAirdropClaimFailed() => (super.noSuchMethod(
-        Invocation.method(
-          #showAirdropClaimFailed,
           [],
         ),
         returnValue: _i4.Future<void>.value(),
@@ -496,29 +382,4 @@ class MockNavigationService extends _i2.Mock implements _i3.NavigationService {
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
-  @override
-  _i4.Future<void> showFeralFileClaimTokenPassLimit(
-          {required _i6.FFSeries? series}) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #showFeralFileClaimTokenPassLimit,
-          [],
-          {#series: series},
-        ),
-        returnValue: _i4.Future<void>.value(),
-        returnValueForMissingStub: _i4.Future<void>.value(),
-      ) as _i4.Future<void>);
-  @override
-  _i4.Future<dynamic> showClaimTokenError(
-    Object? e, {
-    required _i6.FFSeries? series,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #showClaimTokenError,
-          [e],
-          {#series: series},
-        ),
-        returnValue: _i4.Future<dynamic>.value(),
-      ) as _i4.Future<dynamic>);
 }
