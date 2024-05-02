@@ -63,8 +63,8 @@ jobs:
       - uses: webfactory/ssh-agent@v0.5.4
         with:
           ssh-private-key: |
+#            ${{ secrets.SSH_ASSETS_KEY }}
             ${{ secrets.KEY_VAULT_DEPLOYMENT_KEY }}
-            ${{ secrets.SSH_ASSETS_KEY }}
 
       - name: Create env file
         run: |
