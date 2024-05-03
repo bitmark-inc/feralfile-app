@@ -111,6 +111,7 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
         children: [
           Expanded(
             child: SingleChildScrollView(
+              physics: const ClampingScrollPhysics(),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -164,36 +165,15 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
                         Positioned.fill(
                           child: ClipRect(
                               child: BackdropFilter(
-                            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                            filter: ImageFilter.blur(
+                                sigmaX: 10,
+                                sigmaY: 10,
+                                tileMode: TileMode.decal),
                             child: Center(
                                 child: ConstrainedBox(
                               constraints: const BoxConstraints.tightFor(
                                   width: 168, height: 45),
-                              child: PrimaryButton(
-                                text: 'tap_to_reveal'.tr(),
-                                onTap: () async {
-                                  final didAuthenticate =
-                                      await LocalAuthenticationService
-                                          .checkLocalAuth();
-
-                                  if (!didAuthenticate) {
-                                    return;
-                                  }
-                                  setState(() {
-                                    _isShow = !_isShow;
-                                  });
-                                  Future.delayed(
-                                    const Duration(seconds: 60),
-                                    () {
-                                      if (mounted) {
-                                        setState(() {
-                                          _isShow = !_isShow;
-                                        });
-                                      }
-                                    },
-                                  );
-                                },
-                              ),
+                              child: _revealButton(context),
                             )),
                           )),
                         ),
@@ -210,6 +190,31 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
       ),
     );
   }
+
+  Widget _revealButton(BuildContext context) => PrimaryButton(
+        text: 'tap_to_reveal'.tr(),
+        onTap: () async {
+          final didAuthenticate =
+              await LocalAuthenticationService.checkLocalAuth();
+
+          if (!didAuthenticate) {
+            return;
+          }
+          setState(() {
+            _isShow = !_isShow;
+          });
+          Future.delayed(
+            const Duration(seconds: 60),
+            () {
+              if (mounted) {
+                setState(() {
+                  _isShow = !_isShow;
+                });
+              }
+            },
+          );
+        },
+      );
 
   Widget _rowItem(BuildContext context, int index, List<String> words) {
     final theme = Theme.of(context);
@@ -228,7 +233,9 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
                 style: theme.textTheme.ppMori400Grey14),
           ),
           const SizedBox(width: 16),
-          Text(word, style: theme.textTheme.ppMori400Black14),
+          Text(word,
+              style: theme.textTheme.ppMori400Black14.copyWith(
+                  color: _isShow ? AppColor.primaryBlack : AppColor.white)),
         ],
       ),
     );
