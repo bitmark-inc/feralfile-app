@@ -94,11 +94,11 @@ class CanvasDeviceState {
       .whereNotNull()
       .toList();
 
-  bool get isCasting =>
-      devices.firstWhereOrNull((deviceState) =>
-          deviceState.status == DeviceStatus.playing &&
-          deviceState.device.playingSceneId == sceneId) !=
-      null;
+  CanvasDevice? get connectingDevice => devices
+      .firstWhereOrNull((deviceState) => deviceState.device.isConnecting)
+      ?.device;
+
+  bool get isCasting => connectingDevice != null;
 }
 
 class DeviceState {
