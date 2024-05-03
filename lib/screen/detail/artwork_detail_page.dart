@@ -394,7 +394,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       context,
       options: [
         OptionItem(
-          title: 'view_on_blockchain'.tr(),
+          title: 'view_on_secondary_market'.tr(),
           icon: SvgPicture.asset(
             'assets/images/external_link.svg',
             height: 18,
