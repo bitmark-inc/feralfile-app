@@ -350,10 +350,10 @@ class CanvasClientService {
     final devices = <CanvasDevice>[];
     final discoverDevices = await _mdnsService.findCanvas();
     final localDevices = await _db.canvasDeviceDao.getCanvasDevices();
+    localDevices.removeWhere((l) => discoverDevices.any((d) => d.ip == l.ip));
     devices
       ..addAll(discoverDevices)
-      ..addAll(localDevices)
-      ..unique((element) => element.ip);
+      ..addAll(localDevices);
     return devices;
   }
 
