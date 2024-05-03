@@ -40,6 +40,7 @@ import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service.dart';
+import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/chat_auth_service.dart';
 import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
@@ -322,6 +323,8 @@ Future<void> setup() async {
 
   injector.registerLazySingleton<CanvasClientService>(
       () => CanvasClientService(injector()));
+  injector.registerLazySingleton<CanvasClientServiceV2>(
+      () => CanvasClientServiceV2());
 
   injector.registerLazySingleton<PostcardService>(
     () => PostcardServiceImpl(

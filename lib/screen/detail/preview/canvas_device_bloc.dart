@@ -1,6 +1,7 @@
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/service/canvas_client_service.dart';
+import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:collection/collection.dart';
 import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 
@@ -46,6 +47,60 @@ class CanvasDeviceRotateEvent extends CanvasDeviceEvent {
   final bool clockwise;
 
   CanvasDeviceRotateEvent(this.device, {this.clockwise = true});
+}
+
+/*
+* Version V2
+*/
+
+class CanvasDeviceDisconnectEvent extends CanvasDeviceEvent {
+  final CanvasDevice device;
+
+  CanvasDeviceDisconnectEvent(this.device);
+}
+
+class CanvasDeviceCastListArtworkEvent extends CanvasDeviceEvent {
+  final CanvasDevice device;
+  final List<PlayArtworkV2> artwork;
+
+  CanvasDeviceCastListArtworkEvent(this.device, this.artwork);
+}
+
+class CanvasDeviceCancelCastingEvent extends CanvasDeviceEvent {
+  final CanvasDevice device;
+
+  CanvasDeviceCancelCastingEvent(this.device);
+}
+
+class CanvasDevicePauseCastingEvent extends CanvasDeviceEvent {
+  final CanvasDevice device;
+
+  CanvasDevicePauseCastingEvent(this.device);
+}
+
+class CanvasDeviceResumeCastingEvent extends CanvasDeviceEvent {
+  final CanvasDevice device;
+
+  CanvasDeviceResumeCastingEvent(this.device);
+}
+
+class CanvasDeviceNextArtworkEvent extends CanvasDeviceEvent {
+  final CanvasDevice device;
+
+  CanvasDeviceNextArtworkEvent(this.device);
+}
+
+class CanvasDevicePreviousArtworkEvent extends CanvasDeviceEvent {
+  final CanvasDevice device;
+
+  CanvasDevicePreviousArtworkEvent(this.device);
+}
+
+class CanvasDeviceUpdateDurationEvent extends CanvasDeviceEvent {
+  final CanvasDevice device;
+  final List<PlayArtworkV2> artwork;
+
+  CanvasDeviceUpdateDurationEvent(this.device, this.artwork);
 }
 
 class CanvasDeviceState {
@@ -131,9 +186,10 @@ enum DeviceStatus {
 
 class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
   final CanvasClientService _canvasClientService;
+  final CanvasClientServiceV2 _canvasClientServiceV2;
 
   // constructor
-  CanvasDeviceBloc(this._canvasClientService)
+  CanvasDeviceBloc(this._canvasClientService, this._canvasClientServiceV2)
       : super(CanvasDeviceState(devices: [], isLoaded: false)) {
     on<CanvasDeviceGetDevicesEvent>((event, emit) async {
       emit(CanvasDeviceState(
@@ -232,6 +288,56 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
       try {
         await _canvasClientService.rotateCanvas(device,
             clockwise: event.clockwise);
+      } catch (_) {}
+    });
+
+    /*
+    * Version V2
+    */
+
+    on<CanvasDeviceDisconnectEvent>((event, emit) async {
+      final device = event.device;
+      try {
+        await _canvasClientServiceV2.disconnectDevice(device);
+        emit(state.replaceDeviceState(
+            device: device, deviceState: DeviceState(device: device)));
+      } catch (_) {}
+    });
+
+    on<CanvasDeviceCastListArtworkEvent>((event, emit) async {
+      final device = event.device;
+      try {
+        emit(state.replaceDeviceState(
+            device: device,
+            deviceState:
+                DeviceState(device: device, status: DeviceStatus.loading)));
+        final connected = await _canvasClientServiceV2.connectToDevice(device);
+        if (!connected) {
+          throw Exception('Failed to connect to device');
+        }
+        final ok =
+            await _canvasClientServiceV2.castListArtwork(device, event.artwork);
+        if (!ok) {
+          throw Exception('Failed to cast to device');
+        }
+        emit(state.replaceDeviceState(
+            device: device,
+            deviceState:
+                DeviceState(device: device, status: DeviceStatus.playing)));
+      } catch (_) {
+        emit(state.replaceDeviceState(
+            device: device,
+            deviceState:
+                DeviceState(device: device, status: DeviceStatus.error)));
+      }
+    });
+
+    on<CanvasDeviceCancelCastingEvent>((event, emit) async {
+      final device = event.device;
+      try {
+        await _canvasClientServiceV2.cancelCasting(device);
+        emit(state.replaceDeviceState(
+            device: device, deviceState: DeviceState(device: device)));
       } catch (_) {}
     });
   }
