@@ -69,6 +69,20 @@ extension AssetTokenExtension on AssetToken {
     }
   }
 
+  String get secondaryMarketName {
+    final url = secondaryMarketURL;
+    if (url.contains(OPENSEA_ASSET_PREFIX)) {
+      return 'OpenSea';
+    } else if (url.contains(FXHASH_IDENTIFIER)) {
+      return 'FXHash';
+    } else if (url.contains(TEIA_ART_ASSET_PREFIX)) {
+      return 'Teia Art';
+    } else if (url.contains(objktAssetPrefix)) {
+      return 'Objkt';
+    }
+    return '';
+  }
+
   bool get isAirdrop {
     final saleModel = initialSaleModel?.toLowerCase();
     return ['airdrop', 'shopping_airdrop'].contains(saleModel);

@@ -22,6 +22,7 @@ import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_wid
 import 'package:autonomy_flutter/screen/gallery/gallery_page.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_page.dart';
+import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
@@ -550,6 +551,24 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
             },
           ),
         ],
+        OptionItem(
+          title: 'view_on_'.tr(args: [asset.secondaryMarketName]),
+          icon: SvgPicture.asset(
+            'assets/images/external_link.svg',
+            width: 20,
+            height: 20,
+          ),
+          onTap: () {
+            unawaited(
+              Navigator.pushNamed(
+                context,
+                AppRouter.inappWebviewPage,
+                arguments: InAppWebViewPayload(asset.secondaryMarketURL),
+              ),
+            );
+          },
+        ),
+        emptyOptionItem,
       ],
     ));
   }

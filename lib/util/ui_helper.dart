@@ -1715,3 +1715,4 @@ class OptionItem {
     this.separator,
   });
 }
+final emptyOptionItem = OptionItem(title: '');
