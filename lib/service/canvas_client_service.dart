@@ -6,8 +6,7 @@ import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/shared_postcard.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/discover_handler.dart';
-import 'package:autonomy_flutter/service/discover_service.dart';
+import 'package:autonomy_flutter/service/mdns_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart' as my_device;
@@ -29,7 +28,7 @@ class CanvasClientService extends DiscoverHandler {
   final _connectDevice = Lock();
   final AccountService _accountService = injector<AccountService>();
   final NavigationService _navigationService = injector<NavigationService>();
-  late DiscoverService _discoverService;
+  final MDnsService _mdnsService = MDnsService();
 
   Offset currentCursorOffset = Offset.zero;
 
@@ -71,10 +70,12 @@ class CanvasClientService extends DiscoverHandler {
     return CanvasControlClient(channel);
   }
 
-  Future<bool> connectToDevice(CanvasDevice device) async =>
-      _connectDevice.synchronized(() async => await _connectToDevice(device));
+  Future<bool> connectToDevice(CanvasDevice device,
+          {bool isLocal = false}) async =>
+      _connectDevice
+          .synchronized(() async => await _connectToDevice(device, isLocal));
 
-  Future<bool> _connectToDevice(CanvasDevice device) async {
+  Future<bool> _connectToDevice(CanvasDevice device, bool isLocal) async {
     final stub = _getStub(device);
     try {
       final request = ConnectRequest()
@@ -97,7 +98,9 @@ class CanvasClientService extends DiscoverHandler {
         } else {
           _viewingDevices[index].isConnecting = true;
         }
-        //await _db.canvasDeviceDao.insertCanvasDevice(device);
+        if (!isLocal) {
+          await _db.canvasDeviceDao.insertCanvasDevice(device);
+        }
         return true;
       } else {
         log.info('CanvasClientService: Failed to connect to device');
@@ -158,17 +161,10 @@ class CanvasClientService extends DiscoverHandler {
         case CanvasServerStatus.connected:
           device.playingSceneId = status.second;
           device.isConnecting = true;
-          //unawaited(_db.canvasDeviceDao.updateCanvasDevice(device));
-          devicesToAdd.add(device);
-          break;
-        case CanvasServerStatus.open:
-          device.playingSceneId = status.second;
           device.isConnecting = false;
-          //unawaited(_db.canvasDeviceDao.updateCanvasDevice(device));
           devicesToAdd.add(device);
           break;
         case CanvasServerStatus.notServing:
-          //unawaited(_updateLocalDisconnectedDevice(device));
           break;
         case CanvasServerStatus.error:
           break;
@@ -346,34 +342,34 @@ class CanvasClientService extends DiscoverHandler {
     await stub.setCursorOffset(request);
   }
 
-  @override
-  void handleServiceLost(BonsoirService service) {
-    final ip = service.attributes['ip'];
-    _viewingDevices.removeWhere((element) => element.ip == ip);
-    log.info('CanvasClientService: remove device ip: $ip');
+  Future<List<CanvasDevice>> _findRawDevices() async {
+    final devices = <CanvasDevice>[];
+    final discoverDevices = await _mdnsService.findCanvas();
+    final localDevices = await _db.canvasDeviceDao.getCanvasDevices();
+    localDevices.removeWhere((l) => discoverDevices.any((d) => d.ip == l.ip));
+    devices
+      ..addAll(discoverDevices)
+      ..addAll(localDevices);
+    return devices;
   }
 
-  @override
-  void handleServiceResolved(BonsoirService service) {
-    final ip = service.attributes['ip'];
-    final id = service.attributes['id'];
-    final port = service.attributes['port'];
-    final name = service.attributes['name'];
-    if (ip == null || id == null || port == null || name == null) {
-      log.info('CanvasClientService: Invalid service');
-      return;
+  Future<List<CanvasDevice>> fetchDevices() async {
+    final devices = await _findRawDevices();
+
+    // remove devices that are not available
+    _viewingDevices.removeWhere(
+        (element) => !devices.any((current) => current.ip == element.ip));
+
+    // add new devices
+    for (var element in devices) {
+      final index =
+          _viewingDevices.indexWhere((current) => current.ip == element.ip);
+      if (index == -1) {
+        _viewingDevices.add(element);
+      }
     }
-    if (_viewingDevices.any((element) => element.ip == ip)) {
-      return;
-    }
-    final device = CanvasDevice(
-      id: id,
-      ip: ip,
-      port: int.parse(port),
-      name: name,
-    );
-    _viewingDevices.add(device);
-    log.info('CanvasClientService: add device ip: $ip');
+
+    return _viewingDevices;
   }
 }
 
