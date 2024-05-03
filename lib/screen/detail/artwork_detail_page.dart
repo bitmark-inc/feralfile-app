@@ -50,6 +50,7 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/provenance.dart';
 import 'package:nft_collection/nft_collection.dart';
+import 'package:nft_collection/services/tokens_service.dart';
 import 'package:social_share/social_share.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -558,6 +559,24 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                 arguments: InAppWebViewPayload(asset.secondaryMarketURL),
               ),
             );
+          },
+        ),
+        OptionItem(
+          title: 'refresh_metadata'.tr(),
+          icon: SvgPicture.asset(
+            'assets/images/refresh_metadata.svg',
+            width: 20,
+            height: 20,
+          ),
+          onTap: () async {
+            await injector<TokensService>().fetchManualTokens([asset.id]);
+            if (!context.mounted) {
+              return;
+            }
+            Navigator.of(context).pop();
+            await Navigator.of(context).pushReplacementNamed(
+                AppRouter.artworkDetailsPage,
+                arguments: widget.payload.copyWith());
           },
         ),
         emptyOptionItem,
