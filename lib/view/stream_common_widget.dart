@@ -53,6 +53,7 @@ class _PlaylistControlState extends State<PlaylistControl> {
     '24hr',
   ];
   double _currentSliderValue = 0;
+
   @override
   Widget build(BuildContext context) => Container(
       padding: const EdgeInsets.all(15),
@@ -122,7 +123,7 @@ class _PlaylistControlState extends State<PlaylistControl> {
             child: Row(
               children: [
                 Text(
-                  '24hr',
+                  speedValues.last,
                   style: Theme.of(context).textTheme.ppMori400White12,
                 ),
                 const SizedBox(width: 10),
@@ -156,7 +157,7 @@ class _PlaylistControlState extends State<PlaylistControl> {
                 ),
                 const SizedBox(width: 10),
                 Text(
-                  '1min',
+                  speedValues.first,
                   style: Theme.of(context).textTheme.ppMori400White12,
                 ),
               ],
