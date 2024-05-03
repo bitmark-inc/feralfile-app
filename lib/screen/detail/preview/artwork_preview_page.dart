@@ -364,13 +364,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                                 const SizedBox(
                                   width: 20,
                                 ),
-                                CastButton(
-                                  onCastTap: () async => _onCastTap(assetToken),
-                                  isCasting: isCasting,
-                                ),
-                                const SizedBox(
-                                  width: 20,
-                                ),
                                 GestureDetector(
                                   onTap: isCasting
                                       ? null
@@ -386,6 +379,12 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                                           BlendMode.srcIn),
                                     ),
                                   ),
+                                ),
+                                const SizedBox(
+                                  width: 20,
+                                ),
+                                FFCastButton(
+                                  onDeviceSelected: (deviceID) {},
                                 ),
                               ],
                             ),

@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
+import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibitions/exhibitions_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibitions/exhibitions_page.dart';
 import 'package:autonomy_flutter/screen/exhibitions/exhibitions_state.dart';
@@ -284,11 +285,17 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     });
 
     _pages = <Widget>[
-      CollectionHomePage(key: _collectionHomePageKey),
+      BlocProvider(
+        create: (_) => CanvasDeviceBloc(
+          injector(),
+        ),
+        child: CollectionHomePage(key: _collectionHomePageKey),
+      ),
       OrganizeHomePage(key: _organizeHomePageKey),
       MultiBlocProvider(providers: [
         BlocProvider.value(
-            value: ExhibitionBloc(injector())..add(GetAllExhibitionsEvent())),
+          value: ExhibitionBloc(injector())..add(GetAllExhibitionsEvent()),
+        ),
       ], child: const ExhibitionsPage()),
       ScanQRPage(
         key: _scanQRPageKey,
