@@ -579,7 +579,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                 arguments: widget.payload.copyWith());
           },
         ),
-        emptyOptionItem,
+        OptionItem.emptyOptionItem,
       ],
     ));
   }
