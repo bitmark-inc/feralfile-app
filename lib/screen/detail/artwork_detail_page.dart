@@ -36,7 +36,6 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
-import 'package:autonomy_flutter/view/external_link.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:dio/dio.dart';
@@ -237,13 +236,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                   : null,
             ),
             actions: [
-              Semantics(
-                label: 'externalLink',
-                child: ExternalLink(
-                  link: asset.secondaryMarketURL,
-                  color: AppColor.white,
-                ),
-              ),
               if (widget.payload.useIndexer)
                 const SizedBox()
               else
@@ -401,6 +393,14 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     unawaited(UIHelper.showDrawerAction(
       context,
       options: [
+        OptionItem(
+          title: 'view_on_blockchain'.tr(),
+          icon: SvgPicture.asset(
+            'assets/images/external_link.svg',
+            height: 18,
+          ),
+          onTap: () {},
+        ),
         if (!isViewOnly && irlUrl != null)
           OptionItem(
             title: irlUrl.first,
