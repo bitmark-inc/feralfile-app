@@ -3,25 +3,19 @@ import 'dart:async';
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
-import 'package:autonomy_flutter/model/play_control_model.dart';
-import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_state.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
-import 'package:autonomy_flutter/view/canvas_device_view.dart';
 import 'package:autonomy_flutter/view/cast_button.dart';
 import 'package:autonomy_flutter/view/event_view.dart';
 import 'package:autonomy_flutter/view/exhibition_detail_last_page.dart';
 import 'package:autonomy_flutter/view/exhibition_detail_preview.dart';
 import 'package:autonomy_flutter/view/ff_artwork_preview.dart';
 import 'package:autonomy_flutter/view/note_view.dart';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -39,7 +33,7 @@ class ExhibitionDetailPage extends StatefulWidget {
 class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
     with AfterLayoutMixin {
   late final ExhibitionDetailBloc _exBloc;
-  late final CanvasDeviceBloc _canvasDeviceBloc;
+  // late final CanvasDeviceBloc _canvasDeviceBloc;
   final _metricClientService = injector<MetricClientService>();
 
   late final PageController _controller;
@@ -49,7 +43,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
   void initState() {
     super.initState();
     _exBloc = context.read<ExhibitionDetailBloc>();
-    _canvasDeviceBloc = context.read<CanvasDeviceBloc>();
+    // _canvasDeviceBloc = context.read<CanvasDeviceBloc>();
     _exBloc.add(GetExhibitionDetailEvent(
         widget.payload.exhibitions[widget.payload.index].id));
 
@@ -201,53 +195,50 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
             : Padding(
                 padding: const EdgeInsets.only(right: 14, bottom: 10, top: 10),
                 child: FFCastButton(
-                  text: _currentIndex == 0 ? 'stream_to_device'.tr() : null,
-                  onCastTap: () async {
-                    await _onCastTap(buildContext, exhibitionDetail);
-                  },
+                  onDeviceSelected: (deviceID) async {},
                 ),
               ),
       );
 
-  Future<void> _onCastTap(
-      BuildContext context, ExhibitionDetail exhibitionDetail) async {
-    if (exhibitionDetail.artworks == null ||
-        exhibitionDetail.artworks!.isEmpty) {
-      return;
-    }
-    final tokenIds = exhibitionDetail.artworks
-        ?.map((e) => exhibitionDetail.getArtworkTokenId(e)!)
-        .toList();
-    final sceneId = exhibitionDetail.exhibition.id;
-    final playlistModel = PlayListModel(
-      name: exhibitionDetail.exhibition.title,
-      id: sceneId,
-      thumbnailURL: exhibitionDetail.exhibition.coverUrl,
-      tokenIDs: tokenIds,
-      playControlModel: PlayControlModel(timer: 30),
-    );
-    await UIHelper.showFlexibleDialog(
-      context,
-      BlocProvider.value(
-        value: _canvasDeviceBloc,
-        child: CanvasDeviceView(
-          sceneId: sceneId,
-          isCollection: true,
-          playlist: playlistModel,
-          onClose: () {
-            Navigator.of(context).pop();
-          },
-        ),
-      ),
-      isDismissible: true,
-    );
-    await _fetchDevice(sceneId);
-  }
+  // Future<void> _onCastTap(
+  //     BuildContext context, ExhibitionDetail exhibitionDetail) async {
+  //   if (exhibitionDetail.artworks == null ||
+  //       exhibitionDetail.artworks!.isEmpty) {
+  //     return;
+  //   }
+  //   final tokenIds = exhibitionDetail.artworks
+  //       ?.map((e) => exhibitionDetail.getArtworkTokenId(e)!)
+  //       .toList();
+  //   final sceneId = exhibitionDetail.exhibition.id;
+  //   final playlistModel = PlayListModel(
+  //     name: exhibitionDetail.exhibition.title,
+  //     id: sceneId,
+  //     thumbnailURL: exhibitionDetail.exhibition.coverUrl,
+  //     tokenIDs: tokenIds,
+  //     playControlModel: PlayControlModel(timer: 30),
+  //   );
+  //   await UIHelper.showFlexibleDialog(
+  //     context,
+  //     BlocProvider.value(
+  //       value: _canvasDeviceBloc,
+  //       child: CanvasDeviceView(
+  //         sceneId: sceneId,
+  //         isCollection: true,
+  //         playlist: playlistModel,
+  //         onClose: () {
+  //           Navigator.of(context).pop();
+  //         },
+  //       ),
+  //     ),
+  //     isDismissible: true,
+  //   );
+  //   await _fetchDevice(sceneId);
+  // }
 
-  Future<void> _fetchDevice(String exhibitionId) async {
-    _canvasDeviceBloc
-        .add(CanvasDeviceGetDevicesEvent(exhibitionId, syncAll: false));
-  }
+  // Future<void> _fetchDevice(String exhibitionId) async {
+  //   _canvasDeviceBloc
+  //       .add(CanvasDeviceGetDevicesEvent(exhibitionId, syncAll: false));
+  // }
 
   @override
   FutureOr<void> afterFirstLayout(BuildContext context) {

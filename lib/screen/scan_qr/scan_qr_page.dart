@@ -778,7 +778,7 @@ class QRScanViewState extends State<QRScanView>
     try {
       final device = CanvasDevice.fromJson(jsonDecode(code));
       final canvasClient = injector<CanvasClientService>();
-      final result = await canvasClient.connectToDevice(device);
+      final result = await canvasClient.connectToDevice(device, isLocal: true);
       if (result) {
         device.isConnecting = true;
       }

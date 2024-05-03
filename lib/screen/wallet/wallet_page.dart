@@ -28,7 +28,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class WalletPage extends StatefulWidget {
-  const WalletPage({super.key});
+  final WalletPagePayload? payload;
+
+  const WalletPage({super.key, this.payload});
 
   @override
   State<WalletPage> createState() => _WalletPageState();
@@ -42,6 +44,11 @@ class _WalletPageState extends State<WalletPage>
     WidgetsBinding.instance.addObserver(this);
     context.read<AccountsBloc>().add(GetAccountsEvent());
     unawaited(injector<SettingsDataService>().backup());
+    WidgetsBinding.instance.addPostFrameCallback((context) {
+      if (widget.payload?.openAddAddress == true) {
+        _showAddWalletOption();
+      }
+    });
   }
 
   @override
@@ -149,4 +156,10 @@ class _WalletPageState extends State<WalletPage>
           ),
         ),
       );
+}
+
+class WalletPagePayload {
+  final bool openAddAddress;
+
+  const WalletPagePayload({required this.openAddAddress});
 }

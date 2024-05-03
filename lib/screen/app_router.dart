@@ -979,7 +979,9 @@ class AppRouter {
                       create: (_) => personaBloc,
                     ),
                   ],
-                  child: const WalletPage(),
+                  child: WalletPage(
+                    payload: settings.arguments as WalletPagePayload?,
+                  ),
                 ));
       case preferencesPage:
         return CupertinoPageRoute(

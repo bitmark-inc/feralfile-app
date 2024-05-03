@@ -192,21 +192,52 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
   CanvasDeviceBloc(this._canvasClientService, this._canvasClientServiceV2)
       : super(CanvasDeviceState(devices: [], isLoaded: false)) {
     on<CanvasDeviceGetDevicesEvent>((event, emit) async {
-      emit(CanvasDeviceState(
-          devices: state.devices,
-          sceneId: event.sceneId,
-          isLoaded: state.devices.isNotEmpty));
-      final devices = await _canvasClientService.getConnectingDevices(
-          doSync: event.syncAll);
-      emit(state.copyWith(
-          devices: devices
-              .map((e) => DeviceState(
-                  device: e,
-                  status: e.isConnecting && e.playingSceneId != null
-                      ? DeviceStatus.playing
-                      : DeviceStatus.connected))
-              .toList(),
-          isLoaded: true));
+      // emit(CanvasDeviceState(
+      //     devices: state.devices,
+      //     sceneId: event.sceneId,
+      //     isLoaded: state.devices.isNotEmpty));
+      // final devices = await _canvasClientService.getConnectingDevices(
+      //     doSync: event.syncAll);
+      emit(
+        state.copyWith(
+            // devices: devices
+            //     .map((e) => DeviceState(
+            //         device: e,
+            //         status: e.isConnecting && e.playingSceneId != null
+            //             ? DeviceStatus.playing
+            //             : DeviceStatus.connected))
+            //     .toList(),
+            devices: [
+              DeviceState(
+                device: CanvasDevice(
+                    id: '0',
+                    ip: '192.168.31.1',
+                    port: 4200,
+                    name: 'LG-423',
+                    isConnecting: true,
+                    playingSceneId: ''),
+              ),
+              DeviceState(
+                device: CanvasDevice(
+                    id: '1',
+                    ip: '192.168.31.2',
+                    port: 4200,
+                    name: "Sean's iPad Pro",
+                    isConnecting: false,
+                    playingSceneId: ''),
+              ),
+              DeviceState(
+                device: CanvasDevice(
+                    id: '2',
+                    ip: '192.168.31.3',
+                    port: 4200,
+                    name: 'LG-424',
+                    isConnecting: false,
+                    playingSceneId: ''),
+              ),
+            ],
+            isLoaded: true),
+      );
     });
 
     on<CanvasDeviceAddEvent>((event, emit) async {

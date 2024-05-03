@@ -266,6 +266,10 @@ abstract class ConfigurationService {
 
   bool getShowPostcardBanner();
 
+  Future<void> setShowAddAddressBanner(bool bool);
+
+  bool getShowAddAddressBanner();
+
   Future<void> setMerchandiseOrderIds(List<String> ids,
       {bool override = false});
 
@@ -360,6 +364,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
       'processing_stamp_postcard';
 
   static const String KEY_SHOW_POSTCARD_BANNER = 'show_postcard_banner';
+
+  static const String KEY_SHOW_ADD_ADDRESS_BANNER = 'show_add_address_banner';
 
   static const String KEY_MERCHANDISE_ORDER_IDS = 'merchandise_order_ids';
 
@@ -1173,6 +1179,15 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   bool getShowPostcardBanner() =>
       _preferences.getBool(KEY_SHOW_POSTCARD_BANNER) ?? true;
+
+  @override
+  Future<void> setShowAddAddressBanner(bool bool) async {
+    await _preferences.setBool(KEY_SHOW_ADD_ADDRESS_BANNER, bool);
+  }
+
+  @override
+  bool getShowAddAddressBanner() =>
+      _preferences.getBool(KEY_SHOW_ADD_ADDRESS_BANNER) ?? true;
 
   @override
   List<String> getMerchandiseOrderIds() =>
