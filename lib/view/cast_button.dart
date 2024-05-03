@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/stream_device_view.dart';
@@ -20,6 +21,7 @@ class FFCastButton extends StatefulWidget {
 
 class _FFCastButtonState extends State<FFCastButton> {
   late CanvasDeviceBloc _canvasDeviceBloc;
+  final keyboardManagerKey = GlobalKey<KeyboardManagerWidgetState>();
 
   @override
   void initState() {
@@ -72,6 +74,7 @@ class _FFCastButtonState extends State<FFCastButton> {
   }
 
   Future<void> _showStreamAction(BuildContext context) async {
+    keyboardManagerKey.currentState?.hideKeyboard();
     await UIHelper.showFlexibleDialog(
       context,
       BlocProvider.value(

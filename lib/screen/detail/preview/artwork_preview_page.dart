@@ -24,10 +24,8 @@ import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
-import 'package:autonomy_flutter/view/canvas_device_view.dart';
 import 'package:autonomy_flutter/view/cast_button.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -190,23 +188,23 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     );
   }
 
-  Future<void> _onCastTap(AssetToken? assetToken) async {
-    keyboardManagerKey.currentState?.hideKeyboard();
-    await UIHelper.showFlexibleDialog(
-      context,
-      BlocProvider.value(
-        value: _canvasDeviceBloc,
-        child: CanvasDeviceView(
-          sceneId: assetToken?.id ?? '',
-          onClose: () {
-            Navigator.of(context).pop();
-          },
-        ),
-      ),
-      isDismissible: true,
-    );
-    unawaited(_fetchDevice(assetToken?.id ?? ''));
-  }
+  // Future<void> _onCastTap(AssetToken? assetToken) async {
+  //   keyboardManagerKey.currentState?.hideKeyboard();
+  //   await UIHelper.showFlexibleDialog(
+  //     context,
+  //     BlocProvider.value(
+  //       value: _canvasDeviceBloc,
+  //       child: CanvasDeviceView(
+  //         sceneId: assetToken?.id ?? '',
+  //         onClose: () {
+  //           Navigator.of(context).pop();
+  //         },
+  //       ),
+  //     ),
+  //     isDismissible: true,
+  //   );
+  //   unawaited(_fetchDevice(assetToken?.id ?? ''));
+  // }
 
   @override
   Widget build(BuildContext context) {

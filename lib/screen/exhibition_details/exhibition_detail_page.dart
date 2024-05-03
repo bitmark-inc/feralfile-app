@@ -4,7 +4,6 @@ import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_state.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -34,7 +33,7 @@ class ExhibitionDetailPage extends StatefulWidget {
 class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
     with AfterLayoutMixin {
   late final ExhibitionDetailBloc _exBloc;
-  late final CanvasDeviceBloc _canvasDeviceBloc;
+  // late final CanvasDeviceBloc _canvasDeviceBloc;
   final _metricClientService = injector<MetricClientService>();
 
   late final PageController _controller;
@@ -44,7 +43,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
   void initState() {
     super.initState();
     _exBloc = context.read<ExhibitionDetailBloc>();
-    _canvasDeviceBloc = context.read<CanvasDeviceBloc>();
+    // _canvasDeviceBloc = context.read<CanvasDeviceBloc>();
     _exBloc.add(GetExhibitionDetailEvent(
         widget.payload.exhibitions[widget.payload.index].id));
 
@@ -236,10 +235,10 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
   //   await _fetchDevice(sceneId);
   // }
 
-  Future<void> _fetchDevice(String exhibitionId) async {
-    _canvasDeviceBloc
-        .add(CanvasDeviceGetDevicesEvent(exhibitionId, syncAll: false));
-  }
+  // Future<void> _fetchDevice(String exhibitionId) async {
+  //   _canvasDeviceBloc
+  //       .add(CanvasDeviceGetDevicesEvent(exhibitionId, syncAll: false));
+  // }
 
   @override
   FutureOr<void> afterFirstLayout(BuildContext context) {

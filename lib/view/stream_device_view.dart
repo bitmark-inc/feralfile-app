@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/stream_common_widget.dart';
@@ -84,10 +85,11 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
                       Builder(
                         builder: (context) => StreamDrawerItem(
                           item: OptionItem(
-                            title: device.name,
-                            onTap: () =>
-                                {widget.onDeviceSelected?.call(device.id)},
-                          ),
+                              title: device.name,
+                              onTap: () {
+                                log.info('device selected: ${device.id}');
+                                widget.onDeviceSelected?.call(device.id);
+                              }),
                           backgroundColor: connectedDevice == null
                               ? AppColor.white
                               : isConnected
