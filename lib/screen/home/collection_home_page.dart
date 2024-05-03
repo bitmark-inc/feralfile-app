@@ -37,6 +37,7 @@ import 'package:autonomy_flutter/util/token_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/get_started_banner.dart';
+import 'package:autonomy_flutter/view/cast_button.dart';
 import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:dio/dio.dart';
@@ -221,7 +222,12 @@ class CollectionHomePageState extends State<CollectionHomePage>
     final paddingTop = MediaQuery.of(context).viewPadding.top;
     return Padding(
       padding: EdgeInsets.only(top: paddingTop),
-      child: HeaderView(title: 'collection'.tr()),
+      child: HeaderView(
+        title: 'collection'.tr(),
+        action: FFCastButton(
+          onDeviceSelected: (deviceID) async {},
+        ),
+      ),
     );
   }
 
