@@ -385,7 +385,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     final ownerWallet = owner?.first;
     final addressIndex = owner?.second;
     final irlUrl = asset.irlTapLink;
-
+    final externalLink = asset.secondaryMarketURL;
+    final isExternalLinkValid = externalLink.isValidUrl();
     if (!context.mounted) {
       return;
     }
@@ -399,7 +400,19 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
             'assets/images/external_link.svg',
             height: 18,
           ),
-          onTap: () {},
+          iconOnDisable: SvgPicture.asset(
+            'assets/images/external_link.svg',
+            height: 18,
+            colorFilter: const ColorFilter.mode(
+              AppColor.disabledColor,
+              BlendMode.srcIn,
+            ),
+          ),
+          onTap: () {
+            Navigator.of(context).pushNamed(AppRouter.irlWebView,
+                arguments: IRLWebScreenPayload(externalLink));
+          },
+          isEnable: isExternalLinkValid,
         ),
         if (!isViewOnly && irlUrl != null)
           OptionItem(
