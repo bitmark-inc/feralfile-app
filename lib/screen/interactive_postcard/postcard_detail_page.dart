@@ -1143,40 +1143,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
               },
             ),
         ],
-        OptionItem(
-          title: 'hide'.tr(),
-          titleStyle: theme.textTheme.moMASans700Black16
-              .copyWith(fontSize: 18, color: MoMAColors.moMA3),
-          titleStyleOnPrecessing: theme.textTheme.moMASans700Black16.copyWith(
-              fontSize: 18, color: const Color.fromRGBO(245, 177, 177, 1)),
-          icon: SvgPicture.asset(
-            'assets/images/postcard_hide.svg',
-            colorFilter:
-                const ColorFilter.mode(MoMAColors.moMA3, BlendMode.srcIn),
-          ),
-          iconOnProcessing: SvgPicture.asset(
-            'assets/images/postcard_hide.svg',
-            colorFilter: const ColorFilter.mode(
-                Color.fromRGBO(245, 177, 177, 1), BlendMode.srcIn),
-          ),
-          onTap: () async {
-            await _configurationService
-                .updateTempStorageHiddenTokenIDs([asset.id], !isHidden);
-            await injector<SettingsDataService>().backup();
-
-            if (!context.mounted) {
-              return;
-            }
-            NftCollectionBloc.eventController.add(ReloadEvent());
-            Navigator.of(context).pop();
-            unawaited(UIHelper.showHideArtworkResultDialog(context, !isHidden,
-                onOK: () {
-              Navigator.of(context).popUntil((route) =>
-                  route.settings.name == AppRouter.homePage ||
-                  route.settings.name == AppRouter.homePageNoTransition);
-            }));
-          },
-        ),
         if (ownerWallet != null &&
             asset.isTransferable &&
             asset.isCompleted) ...[
@@ -1227,6 +1193,40 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             },
           ),
         ],
+        OptionItem(
+          title: 'hide'.tr(),
+          titleStyle: theme.textTheme.moMASans700Black16
+              .copyWith(fontSize: 18, color: MoMAColors.moMA3),
+          titleStyleOnPrecessing: theme.textTheme.moMASans700Black16.copyWith(
+              fontSize: 18, color: const Color.fromRGBO(245, 177, 177, 1)),
+          icon: SvgPicture.asset(
+            'assets/images/postcard_hide.svg',
+            colorFilter:
+                const ColorFilter.mode(MoMAColors.moMA3, BlendMode.srcIn),
+          ),
+          iconOnProcessing: SvgPicture.asset(
+            'assets/images/postcard_hide.svg',
+            colorFilter: const ColorFilter.mode(
+                Color.fromRGBO(245, 177, 177, 1), BlendMode.srcIn),
+          ),
+          onTap: () async {
+            await _configurationService
+                .updateTempStorageHiddenTokenIDs([asset.id], !isHidden);
+            await injector<SettingsDataService>().backup();
+
+            if (!context.mounted) {
+              return;
+            }
+            NftCollectionBloc.eventController.add(ReloadEvent());
+            Navigator.of(context).pop();
+            unawaited(UIHelper.showHideArtworkResultDialog(context, !isHidden,
+                onOK: () {
+              Navigator.of(context).popUntil((route) =>
+                  route.settings.name == AppRouter.homePage ||
+                  route.settings.name == AppRouter.homePageNoTransition);
+            }));
+          },
+        ),
       ],
     );
   }
