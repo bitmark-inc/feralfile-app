@@ -544,23 +544,24 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
             },
           ),
         ],
-        OptionItem(
-          title: 'view_on_'.tr(args: [asset.secondaryMarketName]),
-          icon: SvgPicture.asset(
-            'assets/images/external_link.svg',
-            width: 20,
-            height: 20,
+        if (asset.secondaryMarketURL.isNotEmpty)
+          OptionItem(
+            title: 'view_on_'.tr(args: [asset.secondaryMarketName]),
+            icon: SvgPicture.asset(
+              'assets/images/external_link.svg',
+              width: 18,
+              height: 18,
+            ),
+            onTap: () {
+              unawaited(
+                Navigator.pushNamed(
+                  context,
+                  AppRouter.inappWebviewPage,
+                  arguments: InAppWebViewPayload(asset.secondaryMarketURL),
+                ),
+              );
+            },
           ),
-          onTap: () {
-            unawaited(
-              Navigator.pushNamed(
-                context,
-                AppRouter.inappWebviewPage,
-                arguments: InAppWebViewPayload(asset.secondaryMarketURL),
-              ),
-            );
-          },
-        ),
         OptionItem(
           title: 'refresh_metadata'.tr(),
           icon: SvgPicture.asset(
