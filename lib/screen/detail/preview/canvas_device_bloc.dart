@@ -2,8 +2,8 @@ import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/service/canvas_client_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
-import 'package:collection/collection.dart';
 import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
+import 'package:web3dart/json_rpc.dart';
 
 abstract class CanvasDeviceEvent {}
 
@@ -105,29 +105,30 @@ class CanvasDeviceUpdateDurationEvent extends CanvasDeviceEvent {
 
 class CanvasDeviceState {
   final List<DeviceState> devices;
-  final String sceneId;
-  final bool isConnectError;
+  final List<String> controllingDeviceIds;
+
+  // final String sceneId;
+  final RPCError? rpcError;
   final bool isLoaded;
 
   CanvasDeviceState({
     required this.devices,
-    required this.isLoaded,
-    this.sceneId = '',
-    this.isConnectError = false,
+    this.controllingDeviceIds = const [],
+    this.isLoaded = false,
+    this.rpcError,
   });
 
-  CanvasDeviceState copyWith({
-    List<DeviceState>? devices,
-    String? sceneId,
-    bool? isConnectError,
-    bool? isLoaded,
-  }) =>
+  CanvasDeviceState copyWith(
+          {List<DeviceState>? devices,
+          List<String>? controllingDeviceIds,
+          bool? isLoaded,
+          RPCError? rpcError}) =>
       CanvasDeviceState(
-        devices: devices ?? this.devices,
-        sceneId: sceneId ?? this.sceneId,
-        isConnectError: isConnectError ?? false,
-        isLoaded: isLoaded ?? this.isLoaded,
-      );
+          devices: devices ?? this.devices,
+          controllingDeviceIds:
+              controllingDeviceIds ?? this.controllingDeviceIds,
+          isLoaded: isLoaded ?? this.isLoaded,
+          rpcError: rpcError ?? this.rpcError);
 
   CanvasDeviceState replaceDeviceState(
       {required CanvasDevice device, required DeviceState deviceState}) {
@@ -140,40 +141,46 @@ class CanvasDeviceState {
     return copyWith(devices: newDeviceState);
   }
 
-  List<CanvasDevice> get playingDevice => devices
-      .map((e) {
-        if (e.status == DeviceStatus.playing) {
-          return e.device;
-        }
-      })
-      .whereNotNull()
-      .toList();
+  List<CanvasDevice> get playingDevice => [];
 
-  bool get isCasting =>
-      devices.firstWhereOrNull((deviceState) =>
-          deviceState.status == DeviceStatus.playing &&
-          deviceState.device.playingSceneId == sceneId) !=
-      null;
+  // devices
+  //     .map((e) {
+  //       if (e.status == DeviceStatus.playing) {
+  //         return e.device;
+  //       }
+  //     })
+  //     .whereNotNull()
+  //     .toList();
+
+  bool get isCasting => false;
+//     devices.firstWhereOrNull((deviceState) =>
+//         deviceState.status == DeviceStatus.playing &&
+//         deviceState.device.playingSceneId == sceneId) !=
+//     null;
 }
 
 class DeviceState {
   final CanvasDevice device;
-  DeviceStatus status;
+  final Duration? duration;
+  final bool? isPlaying;
 
   // constructor
   DeviceState({
     required this.device,
-    this.status = DeviceStatus.connected,
+    this.duration,
+    this.isPlaying,
   });
 
   //
   DeviceState copyWith({
     CanvasDevice? device,
-    DeviceStatus? status,
+    Duration? duration,
+    bool? isPlaying,
   }) =>
       DeviceState(
         device: device ?? this.device,
-        status: status ?? this.status,
+        duration: duration ?? this.duration,
+        isPlaying: isPlaying ?? this.isPlaying,
       );
 }
 
@@ -210,12 +217,25 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
             devices: [
               DeviceState(
                 device: CanvasDevice(
+                    id: '411f861a-3c81-4eed-821a-634116bccf45',
+                    ip: '192.168.31.116',
+                    port: 50051,
+                    name: 'SM-S908E',
+                    isConnecting: false,
+                    playingSceneId: ''),
+                duration: Duration(seconds: 10),
+                isPlaying: true,
+              ),
+              DeviceState(
+                device: CanvasDevice(
                     id: '0',
                     ip: '192.168.31.1',
                     port: 4200,
                     name: 'LG-423',
                     isConnecting: true,
                     playingSceneId: ''),
+                duration: Duration(seconds: 10),
+                isPlaying: true,
               ),
               DeviceState(
                 device: CanvasDevice(
@@ -225,6 +245,8 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
                     name: "Sean's iPad Pro",
                     isConnecting: false,
                     playingSceneId: ''),
+                duration: Duration(seconds: 10),
+                isPlaying: true,
               ),
               DeviceState(
                 device: CanvasDevice(
@@ -234,6 +256,8 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
                     name: 'LG-424',
                     isConnecting: false,
                     playingSceneId: ''),
+                duration: Duration(seconds: 10),
+                isPlaying: true,
               ),
             ],
             isLoaded: true),
@@ -245,7 +269,10 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
           devices: state.devices
             ..removeWhere(
                 (element) => element.device.id == event.device.device.id)
-            ..add(DeviceState(device: event.device.device)));
+            ..add(DeviceState(
+                device: event.device.device,
+                duration: null,
+                isPlaying: false)));
       emit(newState);
     });
 
@@ -254,8 +281,9 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
       try {
         emit(state.replaceDeviceState(
             device: device,
-            deviceState:
-                DeviceState(device: device, status: DeviceStatus.loading)));
+            deviceState: DeviceState(
+              device: device,
+            )));
         final connected = await _canvasClientService.connectToDevice(device);
         if (!connected) {
           throw Exception('Failed to connect to device');
@@ -266,14 +294,10 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
           throw Exception('Failed to cast to device');
         }
         emit(state.replaceDeviceState(
-            device: device,
-            deviceState:
-                DeviceState(device: device, status: DeviceStatus.playing)));
+            device: device, deviceState: DeviceState(device: device)));
       } catch (_) {
         emit(state.replaceDeviceState(
-            device: device,
-            deviceState:
-                DeviceState(device: device, status: DeviceStatus.error)));
+            device: device, deviceState: DeviceState(device: device)));
       }
     });
 
@@ -281,9 +305,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
       final device = event.device;
       try {
         emit(state.replaceDeviceState(
-            device: device,
-            deviceState:
-                DeviceState(device: device, status: DeviceStatus.loading)));
+            device: device, deviceState: DeviceState(device: device)));
         final connected = await _canvasClientService.connectToDevice(device);
         if (!connected) {
           throw Exception('Failed to connect to device');
@@ -294,14 +316,10 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
           throw Exception('Failed to cast to device');
         }
         emit(state.replaceDeviceState(
-            device: device,
-            deviceState:
-                DeviceState(device: device, status: DeviceStatus.playing)));
+            device: device, deviceState: DeviceState(device: device)));
       } catch (_) {
         emit(state.replaceDeviceState(
-            device: device,
-            deviceState:
-                DeviceState(device: device, status: DeviceStatus.error)));
+            device: device, deviceState: DeviceState(device: device)));
       }
     });
 
@@ -339,9 +357,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
       final device = event.device;
       try {
         emit(state.replaceDeviceState(
-            device: device,
-            deviceState:
-                DeviceState(device: device, status: DeviceStatus.loading)));
+            device: device, deviceState: DeviceState(device: device)));
         final connected = await _canvasClientServiceV2.connectToDevice(device);
         if (!connected) {
           throw Exception('Failed to connect to device');
@@ -352,14 +368,10 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
           throw Exception('Failed to cast to device');
         }
         emit(state.replaceDeviceState(
-            device: device,
-            deviceState:
-                DeviceState(device: device, status: DeviceStatus.playing)));
+            device: device, deviceState: DeviceState(device: device)));
       } catch (_) {
         emit(state.replaceDeviceState(
-            device: device,
-            deviceState:
-                DeviceState(device: device, status: DeviceStatus.error)));
+            device: device, deviceState: DeviceState(device: device)));
       }
     });
 

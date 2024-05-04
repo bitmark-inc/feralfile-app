@@ -8,11 +8,13 @@ import 'package:autonomy_flutter/view/stream_common_widget.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
+import 'package:feralfile_app_tv_proto/models/canvas_device.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class StreamDeviceView extends StatefulWidget {
-  final Function(String device)? onDeviceSelected;
+  final Function(CanvasDevice device)? onDeviceSelected;
+
   const StreamDeviceView({
     super.key,
     this.onDeviceSelected,
@@ -88,7 +90,7 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
                               title: device.name,
                               onTap: () {
                                 log.info('device selected: ${device.id}');
-                                widget.onDeviceSelected?.call(device.id);
+                                widget.onDeviceSelected?.call(device);
                               }),
                           backgroundColor: connectedDevice == null
                               ? AppColor.white

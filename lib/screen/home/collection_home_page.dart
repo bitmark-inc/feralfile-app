@@ -19,6 +19,7 @@ import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
+import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
@@ -43,6 +44,7 @@ import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
+import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
@@ -74,6 +76,7 @@ class CollectionHomePageState extends State<CollectionHomePage>
   final nftBloc = injector<ClientTokenService>().nftBloc;
   late bool _showPostcardBanner;
   final _identityBloc = injector<IdentityBloc>();
+  final _canvasClientServiceV2 = injector.get<CanvasClientServiceV2>();
 
   @override
   void initState() {
@@ -225,7 +228,15 @@ class CollectionHomePageState extends State<CollectionHomePage>
       child: HeaderView(
         title: 'collection'.tr(),
         action: FFCastButton(
-          onDeviceSelected: (deviceID) async {},
+          onDeviceSelected: (device) async {
+            final firstTokens =
+                _updateTokens(nftBloc.state.tokens.items).firstOrNull;
+            final playArtwork = PlayArtworkV2(
+              token: CastAssetToken(id: firstTokens?.id ?? ''),
+            );
+
+            _canvasClientServiceV2.castListArtwork(device, [playArtwork]);
+          },
         ),
       ),
     );

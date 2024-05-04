@@ -288,6 +288,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
       BlocProvider(
         create: (_) => CanvasDeviceBloc(
           injector(),
+          injector(),
         ),
         child: CollectionHomePage(key: _collectionHomePageKey),
       ),

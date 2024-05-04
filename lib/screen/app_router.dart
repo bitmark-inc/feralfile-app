@@ -283,6 +283,7 @@ class AppRouter {
           builder: (context) => BlocProvider(
             create: (_) => CanvasDeviceBloc(
               injector(),
+              injector(),
             ),
             child: ViewPlaylistScreen(
               payload: settings.arguments! as ViewPlaylistScreenPayload,
@@ -638,6 +639,7 @@ class AppRouter {
                 BlocProvider(
                   create: (_) => CanvasDeviceBloc(
                     injector(),
+                    injector(),
                   ),
                 ),
                 BlocProvider(create: (_) => postcardDetailBloc),
@@ -863,6 +865,7 @@ class AppRouter {
                     ),
                     BlocProvider(
                       create: (_) => CanvasDeviceBloc(
+                        injector(),
                         injector(),
                       ),
                     ),
