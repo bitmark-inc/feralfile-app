@@ -2,6 +2,7 @@ import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/service/canvas_client_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
+import 'package:collection/collection.dart';
 import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:web3dart/json_rpc.dart';
 
@@ -143,20 +144,11 @@ class CanvasDeviceState {
 
   List<CanvasDevice> get playingDevice => [];
 
-  // devices
-  //     .map((e) {
-  //       if (e.status == DeviceStatus.playing) {
-  //         return e.device;
-  //       }
-  //     })
-  //     .whereNotNull()
-  //     .toList();
+  CanvasDevice? get connectingDevice => devices
+      .firstWhereOrNull((deviceState) => deviceState.device.isConnecting)
+      ?.device;
 
-  bool get isCasting => false;
-//     devices.firstWhereOrNull((deviceState) =>
-//         deviceState.status == DeviceStatus.playing &&
-//         deviceState.device.playingSceneId == sceneId) !=
-//     null;
+  bool get isCasting => connectingDevice != null;
 }
 
 class DeviceState {

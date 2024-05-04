@@ -44,9 +44,7 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
     return BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
       builder: (context, state) {
         final devices = state.devices;
-        final connectedDevice = devices
-            .firstWhereOrNull((deviceState) => deviceState.device.isConnecting)
-            ?.device;
+        final connectedDevice = state.connectingDevice;
         const isPlaylist = true;
         return Padding(
           padding: ResponsiveLayout.pageHorizontalEdgeInsets,

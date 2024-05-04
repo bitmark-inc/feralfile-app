@@ -23,6 +23,7 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/au_radio_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/cast_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -376,6 +377,10 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
               ],
             ),
             actions: [
+              const SizedBox(width: 15),
+              FFCastButton(
+                onDeviceSelected: (deviceID) {},
+              ),
               const SizedBox(width: 15),
               GestureDetector(
                 onTap: () async {
