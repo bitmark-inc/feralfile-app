@@ -16,8 +16,6 @@ import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_state.dart';
-import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
-import 'package:autonomy_flutter/screen/detail/preview/keyboard_control_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
@@ -56,7 +54,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
         WidgetsBindingObserver {
   late PageController controller;
   late ArtworkPreviewBloc _bloc;
-  late CanvasDeviceBloc _canvasDeviceBloc;
 
   ShakeDetector? _detector;
   final keyboardManagerKey = GlobalKey<KeyboardManagerWidgetState>();
@@ -77,7 +74,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 
     controller = PageController(initialPage: initialPage);
     _bloc = context.read<ArtworkPreviewBloc>();
-    _canvasDeviceBloc = context.read<CanvasDeviceBloc>();
     final currentIdentity = tokens[initialPage];
     _bloc.add(ArtworkPreviewGetAssetTokenEvent(currentIdentity,
         useIndexer: widget.payload.useIndexer));
@@ -188,24 +184,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     );
   }
 
-  // Future<void> _onCastTap(AssetToken? assetToken) async {
-  //   keyboardManagerKey.currentState?.hideKeyboard();
-  //   await UIHelper.showFlexibleDialog(
-  //     context,
-  //     BlocProvider.value(
-  //       value: _canvasDeviceBloc,
-  //       child: CanvasDeviceView(
-  //         sceneId: assetToken?.id ?? '',
-  //         onClose: () {
-  //           Navigator.of(context).pop();
-  //         },
-  //       ),
-  //     ),
-  //     isDismissible: true,
-  //   );
-  //   unawaited(_fetchDevice(assetToken?.id ?? ''));
-  // }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -224,7 +202,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
         final identityState = context.watch<IdentityBloc>().state;
         final artistName =
             assetToken?.artistName?.toIdentityOrMask(identityState.identityMap);
-        unawaited(_fetchDevice(assetToken?.id ?? ''));
         var subTitle = '';
         if (artistName != null && artistName.isNotEmpty) {
           subTitle = artistName;
@@ -281,114 +258,77 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                     },
                     controller: controller,
                     itemCount: tokens.length,
-                    itemBuilder: (context, index) =>
-                        BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
-                      bloc: _canvasDeviceBloc,
-                      builder: (context, state) {
-                        final isCasting = state.isCasting;
-                        if (isCasting) {
-                          return const Center(
-                            child: CurrentlyCastingArtwork(),
-                          );
-                        }
-                        if (tokens[index].id.isPostcardId) {
-                          return PostcardPreviewWidget(
-                            identity: tokens[index],
-                            useIndexer: widget.payload.useIndexer,
-                          );
-                        }
-                        return ArtworkPreviewWidget(
+                    itemBuilder: (context, index) {
+                      if (tokens[index].id.isPostcardId) {
+                        return PostcardPreviewWidget(
                           identity: tokens[index],
-                          onLoaded: (
-                              {InAppWebViewController? webViewController,
-                              int? time}) {},
-                          focusNode: _focusNode,
                           useIndexer: widget.payload.useIndexer,
                         );
-                      },
-                    ),
+                      }
+                      return ArtworkPreviewWidget(
+                        identity: tokens[index],
+                        onLoaded: (
+                            {InAppWebViewController? webViewController,
+                            int? time}) {},
+                        focusNode: _focusNode,
+                        useIndexer: widget.payload.useIndexer,
+                      );
+                    },
                   ),
                 ),
                 Visibility(
                   visible: !isFullScreen,
-                  child: BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
-                      bloc: _canvasDeviceBloc,
-                      builder: (context, state) {
-                        final isCasting = state.isCasting;
-                        final playingDevice = state.playingDevice;
-                        return Container(
-                          color: theme.colorScheme.primary,
-                          child: Padding(
-                            padding: const EdgeInsets.only(
-                              top: 15,
-                              bottom: 30,
-                              right: 20,
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                const SizedBox(
-                                  width: 20,
-                                ),
-                                Visibility(
-                                  visible: (assetToken?.medium == 'software' ||
-                                          assetToken?.medium == 'other' ||
-                                          (assetToken?.medium?.isEmpty ??
-                                              true) ||
-                                          isCasting) &&
-                                      assetToken?.isPostcard != true,
-                                  child: KeyboardManagerWidget(
-                                    key: keyboardManagerKey,
-                                    focusNode: _focusNode,
-                                    onTap: isCasting
-                                        ? () {
-                                            unawaited(
-                                              Navigator.of(context).pushNamed(
-                                                AppRouter.keyboardControlPage,
-                                                arguments:
-                                                    KeyboardControlPagePayload(
-                                                  assetToken!,
-                                                  playingDevice,
-                                                ),
-                                              ),
-                                            );
-                                          }
-                                        : () {
-                                            FocusScope.of(context)
-                                                .requestFocus(_focusNode);
-                                          },
-                                  ),
-                                ),
-                                const SizedBox(
-                                  width: 20,
-                                ),
-                                GestureDetector(
-                                  onTap: isCasting
-                                      ? null
-                                      : () => onClickFullScreen(assetToken),
-                                  child: Semantics(
-                                    label: 'fullscreen_icon',
-                                    child: SvgPicture.asset(
-                                      'assets/images/fullscreen_icon.svg',
-                                      colorFilter: ColorFilter.mode(
-                                          isCasting
-                                              ? AppColor.disabledColor
-                                              : AppColor.white,
-                                          BlendMode.srcIn),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(
-                                  width: 20,
-                                ),
-                                FFCastButton(
-                                  onDeviceSelected: (deviceID) {},
-                                ),
-                              ],
+                  child: Container(
+                    color: theme.colorScheme.primary,
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                        top: 15,
+                        bottom: 30,
+                        right: 20,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          const SizedBox(
+                            width: 20,
+                          ),
+                          Visibility(
+                            visible: (assetToken?.medium == 'software' ||
+                                    assetToken?.medium == 'other' ||
+                                    (assetToken?.medium?.isEmpty ?? true)) &&
+                                assetToken?.isPostcard != true,
+                            child: KeyboardManagerWidget(
+                              key: keyboardManagerKey,
+                              focusNode: _focusNode,
+                              onTap: () {
+                                FocusScope.of(context).requestFocus(_focusNode);
+                              },
                             ),
                           ),
-                        );
-                      }),
+                          const SizedBox(
+                            width: 20,
+                          ),
+                          GestureDetector(
+                            onTap: () => onClickFullScreen(assetToken),
+                            child: Semantics(
+                              label: 'fullscreen_icon',
+                              child: SvgPicture.asset(
+                                'assets/images/fullscreen_icon.svg',
+                                colorFilter: const ColorFilter.mode(
+                                    AppColor.white, BlendMode.srcIn),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(
+                            width: 20,
+                          ),
+                          FFCastButton(
+                            onDeviceSelected: (deviceID) {},
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -409,10 +349,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
         context.read<IdentityBloc>().add(GetIdentityEvent(identitiesList));
       },
     );
-  }
-
-  Future<void> _fetchDevice(String tokenID) async {
-    _canvasDeviceBloc.add(CanvasDeviceGetDevicesEvent(tokenID, syncAll: false));
   }
 }
 
