@@ -50,6 +50,18 @@ extension AssetTokenExtension on AssetToken {
     }
   };
 
+  String? get displayTitle {
+    if (title == null) {
+      return null;
+    }
+    final displayTitle = title ?? '';
+    if (mintedAt != null) {
+      return '$displayTitle (${mintedAt!.year})';
+    }
+
+    return displayTitle;
+  }
+
   bool get hasMetadata => galleryThumbnailURL != null;
 
   String get secondaryMarketURL {
@@ -456,6 +468,18 @@ extension CompactedAssetTokenExtension on CompactedAssetToken {
   bool get hasMetadata => galleryThumbnailURL != null;
 
   ArtworkIdentity get identity => ArtworkIdentity(id, owner);
+
+  String? get displayTitle {
+    if (title == null) {
+      return null;
+    }
+    final displayTitle = title ?? '';
+    if (mintedAt != null) {
+      return '$displayTitle (${mintedAt!.year})';
+    }
+
+    return displayTitle;
+  }
 
   bool get isPostcard {
     final splitted = id.split('-');

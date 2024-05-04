@@ -162,7 +162,7 @@ class _StampPreviewState extends State<StampPreview> with AfterLayoutMixin {
         backgroundColor: backgroundColor,
         appBar: getCloseAppBar(
           context,
-          title: widget.payload.asset.title ?? '',
+          title: widget.payload.asset.displayTitle ?? '',
           titleStyle: theme.textTheme.moMASans700Black16.copyWith(
             fontSize: 18,
           ),

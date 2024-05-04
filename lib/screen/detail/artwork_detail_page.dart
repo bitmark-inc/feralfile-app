@@ -225,7 +225,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
             centerTitle: false,
             backgroundColor: Colors.transparent,
             title: ArtworkDetailsHeader(
-              title: asset.title ?? '',
+              title: asset.displayTitle ?? '',
               subTitle: subTitle,
               onSubTitleTap: asset.artistID != null
                   ? () => unawaited(
