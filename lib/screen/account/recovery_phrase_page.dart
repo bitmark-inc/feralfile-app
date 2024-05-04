@@ -7,7 +7,6 @@
 
 import 'dart:async';
 import 'dart:io';
-import 'dart:ui';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -163,19 +162,17 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
                       ),
                       if (!_isShow)
                         Positioned.fill(
-                          child: ClipRect(
-                              child: BackdropFilter(
-                            filter: ImageFilter.blur(
-                                sigmaX: 10,
-                                sigmaY: 10,
-                                tileMode: TileMode.decal),
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              color: AppColor.white.withOpacity(0.6),
+                            ),
                             child: Center(
                                 child: ConstrainedBox(
                               constraints: const BoxConstraints.tightFor(
                                   width: 168, height: 45),
                               child: _revealButton(context),
                             )),
-                          )),
+                          ),
                         ),
                     ],
                   ),
