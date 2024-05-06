@@ -21,6 +21,7 @@ class FFSeries {
   final Exhibition? exhibition;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  final DateTime? mintedAt;
   final FileInfo? originalFile;
   final FileInfo? previewFile;
   final Artwork? artwork;
@@ -44,6 +45,7 @@ class FFSeries {
     this.artist,
     this.exhibition,
     this.createdAt,
+    this.mintedAt,
     this.displayIndex,
     this.featuringIndex,
     this.updatedAt,
@@ -84,6 +86,9 @@ class FFSeries {
         json['createdAt'] == null
             ? null
             : DateTime.parse(json['createdAt'] as String),
+        json['mintedAt'] == null
+            ? null
+            : DateTime.parse(json['mintedAt'] as String),
         json['displayIndex'] as int?,
         json['featuringIndex'] as int?,
         json['updatedAt'] == null
@@ -122,6 +127,7 @@ class FFSeries {
         'exhibition': exhibition,
         'createdAt': createdAt?.toIso8601String(),
         'updatedAt': updatedAt?.toIso8601String(),
+        'mintedAt': mintedAt?.toIso8601String(),
         'originalFile': originalFile?.toJson(),
         'previewFile': previewFile?.toJson(),
         'artwork': artwork?.toJson(),
