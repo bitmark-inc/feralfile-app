@@ -234,8 +234,7 @@ class CollectionHomePageState extends State<CollectionHomePage>
             final playArtwork = PlayArtworkV2(
               token: CastAssetToken(id: firstTokens?.id ?? ''),
             );
-
-            _canvasClientServiceV2.castListArtwork(device, [playArtwork]);
+            await _canvasClientServiceV2.castListArtwork(device, [playArtwork]);
           },
         ),
       ),
