@@ -54,12 +54,8 @@ extension AssetTokenExtension on AssetToken {
     if (title == null) {
       return null;
     }
-    final displayTitle = title ?? '';
-    if (mintedAt != null) {
-      return '$displayTitle (${mintedAt!.year})';
-    }
 
-    return displayTitle;
+    return mintedAt != null ? '$title (${mintedAt!.year})' : title;
   }
 
   bool get hasMetadata => galleryThumbnailURL != null;
@@ -473,12 +469,8 @@ extension CompactedAssetTokenExtension on CompactedAssetToken {
     if (title == null) {
       return null;
     }
-    final displayTitle = title ?? '';
-    if (mintedAt != null) {
-      return '$displayTitle (${mintedAt!.year})';
-    }
 
-    return displayTitle;
+    return mintedAt != null ? '$title (${mintedAt!.year})' : title;
   }
 
   bool get isPostcard {
