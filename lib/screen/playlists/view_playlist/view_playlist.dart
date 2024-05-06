@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_state.dart';
+import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
@@ -17,6 +18,7 @@ import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/iterable_ext.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/token_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -27,6 +29,7 @@ import 'package:autonomy_flutter/view/cast_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
+import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -66,6 +69,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
   late CanvasDeviceBloc _canvasDeviceBloc;
   late SortOrder _sortOrder;
   late bool editable;
+  final _canvasClientServiceV2 = injector<CanvasClientServiceV2>();
 
   List<SortOrder> _getAvailableOrders() {
     switch (widget.payload.collectionType) {
@@ -379,7 +383,21 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
             actions: [
               const SizedBox(width: 15),
               FFCastButton(
-                onDeviceSelected: (deviceID) {},
+                onDeviceSelected: (device) async {
+                  final listTokenIds = playList.tokenIDs;
+                  if (listTokenIds == null) {
+                    log.info('Playlist tokenIds is null');
+                    return;
+                  }
+                  final durationInSecond = 30;
+                  final listPlayArtwork = listTokenIds
+                      .map((e) => PlayArtworkV2(
+                          token: CastAssetToken(id: e),
+                          duration: durationInSecond))
+                      .toList();
+                  _canvasDeviceBloc.add(CanvasDeviceCastListArtworkEvent(
+                      device, listPlayArtwork));
+                },
               ),
               const SizedBox(width: 15),
               GestureDetector(

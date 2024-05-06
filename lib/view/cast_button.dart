@@ -3,12 +3,13 @@ import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/stream_device_view.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
+import 'package:feralfile_app_tv_proto/models/canvas_device.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class FFCastButton extends StatefulWidget {
-  final Function(String device)? onDeviceSelected;
+  final Function(CanvasDevice device)? onDeviceSelected;
   final String? text;
   final String? type;
 

@@ -1,14 +1,18 @@
+import 'dart:async';
 import 'dart:ui' as ui;
 
+import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 
 class StreamDrawerItem extends StatelessWidget {
   final OptionItem item;
   final Color backgroundColor;
+
   const StreamDrawerItem(
       {required this.item, required this.backgroundColor, super.key});
 
@@ -40,19 +44,33 @@ class PlaylistControl extends StatefulWidget {
 }
 
 class _PlaylistControlState extends State<PlaylistControl> {
-  final speedValues = [
-    '1min',
-    '2min',
-    '5min',
-    '10min',
-    '15min',
-    '30min',
-    '1hr',
-    '4hr',
-    '12hr',
-    '24hr',
-  ];
+  final speedValues = {
+    '1min': const Duration(minutes: 1),
+    '2min': const Duration(minutes: 2),
+    '5min': const Duration(minutes: 5),
+    '10min': const Duration(minutes: 10),
+    '15min': const Duration(minutes: 15),
+    '30min': const Duration(minutes: 30),
+    '1hr': const Duration(hours: 1),
+    '4hr': const Duration(hours: 4),
+    '12hr': const Duration(hours: 12),
+    '24hr': const Duration(hours: 24),
+  };
   double _currentSliderValue = 0;
+  Timer? _timer;
+  late CanvasDeviceBloc _canvasDeviceBloc;
+
+  @override
+  void initState() {
+    super.initState();
+    _canvasDeviceBloc = context.read<CanvasDeviceBloc>();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) => Container(
@@ -96,73 +114,143 @@ class _PlaylistControlState extends State<PlaylistControl> {
           const SizedBox(height: 4),
           Row(
             children: [
-              _buildPlayButton(icon: 'chevron_left_icon', onTap: () => {}),
+              _buildPlayButton(
+                  icon: 'chevron_left_icon',
+                  onTap: () => {
+                        onPrevious(context),
+                      }),
               const SizedBox(width: 15),
-              _buildPlayButton(icon: 'stream_play_icon', onTap: () => {}),
+              _buildPlayButton(
+                  icon: 'stream_play_icon',
+                  onTap: () => {
+                        onPauseOrResume(context),
+                      }),
               const SizedBox(width: 15),
-              _buildPlayButton(icon: 'chevron_right_icon', onTap: () => {}),
+              _buildPlayButton(
+                  icon: 'chevron_right_icon',
+                  onTap: () => {
+                        onNext(context),
+                      }),
             ],
           )
         ],
       );
 
-  Widget _buildSpeedControl(BuildContext context) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'autoplay_speed'.tr(),
-            style: Theme.of(context).textTheme.ppMori400White12,
+  void onPrevious(BuildContext context) {
+    final controllingDevice = _canvasDeviceBloc.state.controllingDevice;
+    if (controllingDevice == null) {
+      return;
+    }
+    _canvasDeviceBloc.add(CanvasDevicePreviousArtworkEvent(controllingDevice));
+  }
+
+  void onNext(BuildContext context) {
+    final controllingDevice = _canvasDeviceBloc.state.controllingDevice;
+    if (controllingDevice == null) {
+      return;
+    }
+    _canvasDeviceBloc.add(CanvasDeviceNextArtworkEvent(controllingDevice));
+  }
+
+  void onPause(BuildContext context) {
+    final controllingDevice = _canvasDeviceBloc.state.controllingDevice;
+    if (controllingDevice == null) {
+      return;
+    }
+    _canvasDeviceBloc.add(CanvasDevicePauseCastingEvent(controllingDevice));
+  }
+
+  void onResume(BuildContext context) {
+    final controllingDevice = _canvasDeviceBloc.state.controllingDevice;
+    if (controllingDevice == null) {
+      return;
+    }
+    _canvasDeviceBloc.add(CanvasDeviceResumeCastingEvent(controllingDevice));
+  }
+
+  void onPauseOrResume(BuildContext context) {
+    // final _canvasDeviceBloc = context.read<CanvasDeviceBloc>();
+    final isCasting = _canvasDeviceBloc.state.isCasting;
+    if (isCasting) {
+      onPause(context);
+    } else {
+      onResume(context);
+    }
+  }
+
+  Widget _buildSpeedControl(BuildContext context) {
+    final speedTitles = speedValues.keys.toList();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'autoplay_speed'.tr(),
+          style: Theme.of(context).textTheme.ppMori400White12,
+        ),
+        const SizedBox(height: 4),
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(5),
+            color: AppColor.auGreyBackground,
           ),
-          const SizedBox(height: 4),
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(5),
-              color: AppColor.auGreyBackground,
-            ),
-            child: Row(
-              children: [
-                Text(
-                  speedValues.last,
-                  style: Theme.of(context).textTheme.ppMori400White12,
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: SliderTheme(
-                    data: const SliderThemeData(
-                      activeTrackColor: AppColor.white,
-                      inactiveTrackColor: AppColor.white,
-                      trackHeight: 1,
-                      trackShape: RectangularSliderTrackShape(),
-                      thumbColor: AppColor.white,
-                      thumbShape: RoundSliderThumbShape(enabledThumbRadius: 8),
-                      valueIndicatorColor: AppColor.white,
-                      overlayShape: RoundSliderOverlayShape(overlayRadius: 0),
-                    ),
-                    child: Directionality(
-                      textDirection: ui.TextDirection.rtl,
-                      child: Slider(
-                        value: _currentSliderValue,
-                        max: speedValues.length.toDouble() - 1,
-                        divisions: speedValues.length,
-                        label: speedValues[_currentSliderValue.round()],
-                        onChanged: (double value) {
-                          setState(() {
-                            _currentSliderValue = value;
-                          });
-                        },
-                      ),
+          child: Row(
+            children: [
+              Text(
+                speedTitles.last,
+                style: Theme.of(context).textTheme.ppMori400White12,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: SliderTheme(
+                  data: const SliderThemeData(
+                    activeTrackColor: AppColor.white,
+                    inactiveTrackColor: AppColor.white,
+                    trackHeight: 1,
+                    trackShape: RectangularSliderTrackShape(),
+                    thumbColor: AppColor.white,
+                    thumbShape: RoundSliderThumbShape(enabledThumbRadius: 8),
+                    valueIndicatorColor: AppColor.white,
+                    overlayShape: RoundSliderOverlayShape(overlayRadius: 0),
+                  ),
+                  child: Directionality(
+                    textDirection: ui.TextDirection.rtl,
+                    child: Slider(
+                      value: _currentSliderValue,
+                      max: speedTitles.length.toDouble() - 1,
+                      divisions: speedTitles.length,
+                      label: speedTitles[_currentSliderValue.round()],
+                      onChanged: (double value) {
+                        setState(() {
+                          _currentSliderValue = value;
+                        });
+                        final controllingDeviceIds =
+                            _canvasDeviceBloc.state.controllingDeviceIds;
+                        if (controllingDeviceIds.isEmpty) {
+                          return;
+                        }
+                        _timer?.cancel();
+                        _timer = Timer(
+                          const Duration(seconds: 300),
+                          () {
+                            // final listPlayArtwork = _canvasDeviceBloc.state.;
+                            // _canvasDeviceBloc.add(CanvasDeviceUpdateDurationEvent(device, artwork))
+                          },
+                        );
+                      },
                     ),
                   ),
                 ),
-                const SizedBox(width: 10),
-                Text(
-                  speedValues.first,
-                  style: Theme.of(context).textTheme.ppMori400White12,
-                ),
-              ],
-            ),
-          )
-        ],
-      );
+              ),
+              const SizedBox(width: 10),
+              Text(
+                speedTitles.first,
+                style: Theme.of(context).textTheme.ppMori400White12,
+              ),
+            ],
+          ),
+        )
+      ],
+    );
+  }
 }

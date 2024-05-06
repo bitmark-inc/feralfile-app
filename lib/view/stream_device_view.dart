@@ -5,14 +5,15 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/stream_common_widget.dart';
-import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
+import 'package:feralfile_app_tv_proto/models/canvas_device.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class StreamDeviceView extends StatefulWidget {
-  final Function(String device)? onDeviceSelected;
+  final Function(CanvasDevice device)? onDeviceSelected;
+
   const StreamDeviceView({
     super.key,
     this.onDeviceSelected,
@@ -40,9 +41,13 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
+      bloc: _canvasDeviceBloc,
       builder: (context, state) {
         final devices = state.devices;
-        final connectedDevice = state.connectingDevice;
+        final connectedDevice = state.devices
+            .where((element) =>
+                state.controllingDeviceIds.contains(element.device.id))
+            .firstOrNull;
         const isPlaylist = true;
         return Padding(
           padding: ResponsiveLayout.pageHorizontalEdgeInsets,
@@ -59,7 +64,7 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
                     ),
                     if (connectedDevice != null)
                       TextSpan(
-                        text: ' ${connectedDevice.name}',
+                        text: ' ${connectedDevice.device.name}',
                         style: theme.textTheme.ppMori400White24,
                       ),
                   ],
@@ -77,7 +82,7 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
                 itemCount: devices.length,
                 itemBuilder: (BuildContext context, int index) {
                   final device = devices[index].device;
-                  final isConnected = device.id == connectedDevice?.id;
+                  final isConnected = device.id == connectedDevice?.device.id;
                   return Column(
                     children: [
                       Builder(
@@ -86,7 +91,7 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
                               title: device.name,
                               onTap: () {
                                 log.info('device selected: ${device.id}');
-                                widget.onDeviceSelected?.call(device.id);
+                                widget.onDeviceSelected?.call(device);
                               }),
                           backgroundColor: connectedDevice == null
                               ? AppColor.white
@@ -124,7 +129,9 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
                       ),
                     ),
                   ),
-                  onTap: () => {},
+                  onTap: () async {
+                    await onDisconnect();
+                  },
                 )
               ]
             ],
@@ -132,5 +139,11 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
         );
       },
     );
+  }
+
+  Future<void> onDisconnect() async {
+    final allDevices =
+        _canvasDeviceBloc.state.devices.map((e) => e.device).toList();
+    _canvasDeviceBloc.add(CanvasDeviceDisconnectEvent(allDevices));
   }
 }
