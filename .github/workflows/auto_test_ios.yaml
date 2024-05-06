@@ -8,7 +8,7 @@ on:
   # - develop
 jobs:
   build:
-    runs-on: [self-hosted, macOS, ARM, auto-ios]
+    runs-on: [longtest]
     steps:
       # Checkout code and get packages.
       - name: Checkout code
@@ -39,7 +39,7 @@ jobs:
           cat .env
 
       - name: Submoudles update
-        run: git -c submodule.auto-test.update=none submodule update --init --recursive
+        run: git submodule update --init --recursive
       - run: flutter pub cache repair
       - run: flutter pub get
       # Build app

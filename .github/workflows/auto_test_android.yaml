@@ -8,7 +8,7 @@ on:
 #        - update_autotest
 jobs:
   build:
-    runs-on: [self-hosted, macOS, ARM, auto-android]
+    runs-on: [longtest]
     steps:
       # Checkout code and get packages.
       - name: Checkout code
@@ -90,11 +90,11 @@ jobs:
 
       - name: Submoudles update
         run: git submodule update --init --recursive
-      - name: Checkout private submodule auto-test
-        run: |
-          git submodule update --init --recursive --remote auto-test
-        env:
-          GIT_SSH_COMMAND: "ssh -o StrictHostKeyChecking=no -i ${{ secrets.SUBMODULE_AUTOTEST }}"
+      # - name: Checkout private submodule auto-test
+      #   run: |
+      #     git submodule update --init --recursive --remote auto-test
+      #   env:
+      #     GIT_SSH_COMMAND: "ssh -o StrictHostKeyChecking=no -i ${{ secrets.SUBMODULE_AUTOTEST }}"
       - run: flutter pub cache repair
       - run: flutter pub get
       # Build app
