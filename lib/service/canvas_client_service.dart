@@ -152,7 +152,7 @@ class CanvasClientService {
   }
 
   Future<void> syncDevices() async {
-    final devices = await getAllDevices();
+    final devices = await _getAllDevices();
     final List<CanvasDevice> devicesToAdd = [];
     await Future.forEach<CanvasDevice>(devices, (device) async {
       final status = await checkDeviceStatus(device);
@@ -182,7 +182,7 @@ class CanvasClientService {
         'CanvasClientService sync device available ${_viewingDevices.length}');
   }
 
-  Future<List<CanvasDevice>> getAllDevices() async => _viewingDevices;
+  Future<List<CanvasDevice>> _getAllDevices() async => fetchDevices();
 
   Future<List<CanvasDevice>> getConnectingDevices({bool doSync = false}) async {
     if (doSync) {
@@ -193,6 +193,36 @@ class CanvasClientService {
         device.playingSceneId = status.second;
       }
     }
+    return _viewingDevices;
+  }
+
+  Future<List<CanvasDevice>> _findRawDevices() async {
+    final devices = <CanvasDevice>[];
+    final discoverDevices = await _mdnsService.findCanvas();
+    final localDevices = await _db.canvasDeviceDao.getCanvasDevices();
+    localDevices.removeWhere((l) => discoverDevices.any((d) => d.ip == l.ip));
+    devices
+      ..addAll(discoverDevices)
+      ..addAll(localDevices);
+    return devices;
+  }
+
+  Future<List<CanvasDevice>> fetchDevices() async {
+    final devices = await _findRawDevices();
+
+    // remove devices that are not available
+    _viewingDevices.removeWhere(
+        (element) => !devices.any((current) => current.ip == element.ip));
+
+    // add new devices
+    for (var element in devices) {
+      final index =
+          _viewingDevices.indexWhere((current) => current.ip == element.ip);
+      if (index == -1) {
+        _viewingDevices.add(element);
+      }
+    }
+
     return _viewingDevices;
   }
 
@@ -344,36 +374,6 @@ class CanvasClientService {
       ..coefficientY = 1 / size.height;
 
     await stub.setCursorOffset(request);
-  }
-
-  Future<List<CanvasDevice>> _findRawDevices() async {
-    final devices = <CanvasDevice>[];
-    final discoverDevices = await _mdnsService.findCanvas();
-    final localDevices = await _db.canvasDeviceDao.getCanvasDevices();
-    localDevices.removeWhere((l) => discoverDevices.any((d) => d.ip == l.ip));
-    devices
-      ..addAll(discoverDevices)
-      ..addAll(localDevices);
-    return devices;
-  }
-
-  Future<List<CanvasDevice>> fetchDevices() async {
-    final devices = await _findRawDevices();
-
-    // remove devices that are not available
-    _viewingDevices.removeWhere(
-        (element) => !devices.any((current) => current.ip == element.ip));
-
-    // add new devices
-    for (var element in devices) {
-      final index =
-          _viewingDevices.indexWhere((current) => current.ip == element.ip);
-      if (index == -1) {
-        _viewingDevices.add(element);
-      }
-    }
-
-    return _viewingDevices;
   }
 }
 
