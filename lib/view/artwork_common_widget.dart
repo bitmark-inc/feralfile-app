@@ -981,7 +981,7 @@ Widget postcardDetailsMetadataSection(
           child: MetaDataItem(
             title: 'title'.tr(),
             titleStyle: titleStyle,
-            value: assetToken.title ?? '',
+            value: assetToken.displayTitle ?? '',
             valueStyle: theme.textTheme.moMASans400Black12,
           ),
         ),
@@ -1116,7 +1116,7 @@ Widget artworkDetailsMetadataSection(
       children: [
         MetaDataItem(
           title: 'title'.tr(),
-          value: assetToken.title ?? '',
+          value: assetToken.displayTitle ?? '',
         ),
         if (artistName != null) ...[
           divider,

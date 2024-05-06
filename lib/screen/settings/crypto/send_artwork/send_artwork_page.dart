@@ -585,7 +585,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
   }
 
   Widget _artworkView(BuildContext context) {
-    final title = widget.payload.asset.title;
+    final title = widget.payload.asset.displayTitle;
     final theme = Theme.of(context);
     final asset = widget.payload.asset;
 
