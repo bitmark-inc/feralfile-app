@@ -205,19 +205,27 @@ class CanvasClientServiceV2 {
     return response.ok;
   }
 
-  Future<bool> nextArtwork(CanvasDevice device, String startTime) async {
+  Future<bool> nextArtwork(CanvasDevice device, {String? startTime}) async {
     final stub = _getStub(device);
+    final request = NextArtworkRequest();
+    if (startTime != null) {
+      request.startTime = $fixnum.Int64(int.parse(startTime));
+    }
     final response = await stub.nextArtwork(
-      NextArtworkRequest()..startTime = $fixnum.Int64(int.parse(startTime)),
+      request,
       options: _callOptions,
     );
     return response.ok;
   }
 
-  Future<bool> previousArtwork(CanvasDevice device, String startTime) async {
+  Future<bool> previousArtwork(CanvasDevice device, {String? startTime}) async {
     final stub = _getStub(device);
+    final request = PreviousArtwortRequest();
+    if (startTime != null) {
+      request.startTime = $fixnum.Int64(int.parse(startTime));
+    }
     final response = await stub.previousArtwork(
-      PreviousArtwortRequest()..startTime = $fixnum.Int64(int.parse(startTime)),
+      request,
       options: _callOptions,
     );
     return response.ok;

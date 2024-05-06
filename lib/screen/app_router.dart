@@ -241,6 +241,8 @@ class AppRouter {
       injector<AuditService>(),
     );
     final identityBloc = IdentityBloc(injector<AppDatabase>(), injector());
+    final canvasDeviceBloc = CanvasDeviceBloc(injector(), injector());
+
     final postcardDetailBloc = PostcardDetailBloc(
       injector(),
       injector(),
@@ -281,10 +283,7 @@ class AppRouter {
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) => BlocProvider(
-            create: (_) => CanvasDeviceBloc(
-              injector(),
-              injector(),
-            ),
+            create: (_) => canvasDeviceBloc,
             child: ViewPlaylistScreen(
               payload: settings.arguments! as ViewPlaylistScreenPayload,
             ),
@@ -637,10 +636,7 @@ class AppRouter {
                   create: (_) => identityBloc,
                 ),
                 BlocProvider(
-                  create: (_) => CanvasDeviceBloc(
-                    injector(),
-                    injector(),
-                  ),
+                  create: (_) => canvasDeviceBloc,
                 ),
                 BlocProvider(create: (_) => postcardDetailBloc),
               ],
@@ -864,10 +860,7 @@ class AppRouter {
                       create: (_) => ExhibitionDetailBloc(injector()),
                     ),
                     BlocProvider(
-                      create: (_) => CanvasDeviceBloc(
-                        injector(),
-                        injector(),
-                      ),
+                      create: (_) => canvasDeviceBloc,
                     ),
                   ],
                   child: ExhibitionDetailPage(
