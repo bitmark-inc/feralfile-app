@@ -87,7 +87,7 @@ class CanvasClientService {
         request,
         options: _callOptions,
       );
-      log.info('CanvasClientService received: ${response.ok}');
+      log.info('CanvasClientService connect: ${response.ok}');
       final index =
           _viewingDevices.indexWhere((element) => element.ip == device.ip);
       if (response.ok) {

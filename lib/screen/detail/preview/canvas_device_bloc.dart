@@ -195,69 +195,15 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
 
   // constructor
   CanvasDeviceBloc(this._canvasClientService, this._canvasClientServiceV2)
-      : super(CanvasDeviceState(devices: [], isLoaded: false)) {
+      : super(CanvasDeviceState(devices: [])) {
     on<CanvasDeviceGetDevicesEvent>((event, emit) async {
-      // emit(CanvasDeviceState(
-      //     devices: state.devices,
-      //     sceneId: event.sceneId,
-      //     isLoaded: state.devices.isNotEmpty));
-      // final devices = await _canvasClientService.getConnectingDevices(
-      //     doSync: event.syncAll);
+      emit(CanvasDeviceState(
+          devices: state.devices, isLoaded: state.devices.isNotEmpty));
+      final devices = await _canvasClientService.getConnectingDevices(
+          doSync: event.syncAll);
       emit(
         state.copyWith(
-            // devices: devices
-            //     .map((e) => DeviceState(
-            //         device: e,
-            //         status: e.isConnecting && e.playingSceneId != null
-            //             ? DeviceStatus.playing
-            //             : DeviceStatus.connected))
-            //     .toList(),
-            devices: [
-              DeviceState(
-                device: CanvasDevice(
-                    id: '411f861a-3c81-4eed-821a-634116bccf45',
-                    ip: '192.168.31.116',
-                    port: 50051,
-                    name: 'SM-S908E',
-                    isConnecting: true,
-                    playingSceneId: ''),
-                duration: Duration(seconds: 10),
-                isPlaying: true,
-              ),
-              DeviceState(
-                device: CanvasDevice(
-                    id: '0',
-                    ip: '192.168.31.1',
-                    port: 4200,
-                    name: 'LG-423',
-                    isConnecting: false,
-                    playingSceneId: ''),
-                duration: Duration(seconds: 10),
-                isPlaying: true,
-              ),
-              DeviceState(
-                device: CanvasDevice(
-                    id: '1',
-                    ip: '192.168.31.2',
-                    port: 4200,
-                    name: "Sean's iPad Pro",
-                    isConnecting: false,
-                    playingSceneId: ''),
-                duration: Duration(seconds: 10),
-                isPlaying: true,
-              ),
-              DeviceState(
-                device: CanvasDevice(
-                    id: '2',
-                    ip: '192.168.31.3',
-                    port: 4200,
-                    name: 'LG-424',
-                    isConnecting: false,
-                    playingSceneId: ''),
-                duration: Duration(seconds: 10),
-                isPlaying: true,
-              ),
-            ],
+            devices: devices.map((e) => DeviceState(device: e)).toList(),
             isLoaded: true),
       );
     });
@@ -346,8 +292,8 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
       final devices = event.devices;
       await Future.forEach<CanvasDevice>(devices, (device) async {
         try {
-          log.info(
-              'CanvasDeviceBloc: disconnect device: ${device.id}, ${device.name}, ${device.ip}');
+          log.info('CanvasDeviceBloc: disconnect device: '
+              '${device.id}, ${device.name}, ${device.ip}');
           await _canvasClientServiceV2.disconnectDevice(device);
           emit(state.replaceDeviceState(
               device: device, deviceState: DeviceState(device: device)));
