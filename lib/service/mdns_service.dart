@@ -10,6 +10,7 @@ class MDnsService {
 
   Future<List<CanvasDevice>> findCanvas() async {
     final devices = <CanvasDevice>[];
+    log.info('[MDnsService] Looking for devices');
     await _client.start();
     await _client
         .lookup<PtrResourceRecord>(
@@ -20,7 +21,7 @@ class MDnsService {
           in _client.lookup<TxtResourceRecord>(
         ResourceRecordQuery.text(record.domainName),
       )) {
-        log.info('Found device: ${txt.text}');
+        log.info('[MDnsService] Found device: ${txt.text}');
         final name = record.domainName.split('.').first;
         final text = txt.text;
         final attributes = text.split('\n')
