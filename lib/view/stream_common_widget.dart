@@ -73,19 +73,26 @@ class _PlaylistControlState extends State<PlaylistControl> {
   }
 
   @override
-  Widget build(BuildContext context) => Container(
-      padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        color: AppColor.primaryBlack,
-      ),
-      child: Column(
-        children: [
-          _buildPlayControls(context),
-          const SizedBox(height: 15),
-          _buildSpeedControl(context),
-        ],
-      ));
+  Widget build(BuildContext context) =>
+      BlocConsumer<CanvasDeviceBloc, CanvasDeviceState>(
+        bloc: _canvasDeviceBloc,
+        listener: (context, state) {},
+        builder: (context, state) {
+          return Container(
+              padding: const EdgeInsets.all(15),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                color: AppColor.primaryBlack,
+              ),
+              child: Column(
+                children: [
+                  _buildPlayControls(context, state),
+                  const SizedBox(height: 15),
+                  _buildSpeedControl(context, state),
+                ],
+              ));
+        },
+      );
 
   Widget _buildPlayButton({required String icon, required Function() onTap}) =>
       Expanded(
@@ -98,43 +105,48 @@ class _PlaylistControlState extends State<PlaylistControl> {
               color: AppColor.auGreyBackground,
             ),
             child: SvgPicture.asset(
-              'assets/images/$icon.svg',
+              icon,
             ),
           ),
         ),
       );
 
-  Widget _buildPlayControls(BuildContext context) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'play_collection'.tr(),
-            style: Theme.of(context).textTheme.ppMori400White12,
-          ),
-          const SizedBox(height: 4),
-          Row(
-            children: [
-              _buildPlayButton(
-                  icon: 'chevron_left_icon',
-                  onTap: () => {
-                        onPrevious(context),
-                      }),
-              const SizedBox(width: 15),
-              _buildPlayButton(
-                  icon: 'stream_play_icon',
-                  onTap: () => {
-                        onPauseOrResume(context),
-                      }),
-              const SizedBox(width: 15),
-              _buildPlayButton(
-                  icon: 'chevron_right_icon',
-                  onTap: () => {
-                        onNext(context),
-                      }),
-            ],
-          )
-        ],
-      );
+  Widget _buildPlayControls(BuildContext context, CanvasDeviceState state) {
+    final isCasting = state.isCasting;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'play_collection'.tr(),
+          style: Theme.of(context).textTheme.ppMori400White12,
+        ),
+        const SizedBox(height: 4),
+        Row(
+          children: [
+            _buildPlayButton(
+                icon: 'assets/images/chevron_left_icon.svg',
+                onTap: () => {
+                      onPrevious(context),
+                    }),
+            const SizedBox(width: 15),
+            _buildPlayButton(
+                icon: isCasting
+                    ? 'assets/images/stream_pause_icon.svg'
+                    : 'assets/images/stream_play_icon.svg',
+                onTap: () => {
+                      onPauseOrResume(context),
+                    }),
+            const SizedBox(width: 15),
+            _buildPlayButton(
+                icon: 'assets/images/chevron_right_icon.svg',
+                onTap: () => {
+                      onNext(context),
+                    }),
+          ],
+        )
+      ],
+    );
+  }
 
   void onPrevious(BuildContext context) {
     final controllingDevice = _canvasDeviceBloc.state.controllingDevice;
@@ -178,7 +190,16 @@ class _PlaylistControlState extends State<PlaylistControl> {
     }
   }
 
-  Widget _buildSpeedControl(BuildContext context) {
+  void changeSpeed(Duration duration) {
+    final controllingDevice = _canvasDeviceBloc.state.controllingDevice;
+    if (controllingDevice == null) {
+      return;
+    }
+    _canvasDeviceBloc
+        .add(CanvasDeviceUpdateDurationEvent(controllingDevice, []));
+  }
+
+  Widget _buildSpeedControl(BuildContext context, CanvasDeviceState state) {
     final speedTitles = speedValues.keys.toList();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -224,8 +245,7 @@ class _PlaylistControlState extends State<PlaylistControl> {
                         setState(() {
                           _currentSliderValue = value;
                         });
-                        final controllingDeviceIds =
-                            _canvasDeviceBloc.state.controllingDeviceIds;
+                        final controllingDeviceIds = state.controllingDeviceIds;
                         if (controllingDeviceIds.isEmpty) {
                           return;
                         }
@@ -233,8 +253,8 @@ class _PlaylistControlState extends State<PlaylistControl> {
                         _timer = Timer(
                           const Duration(seconds: 300),
                           () {
-                            // final listPlayArtwork = _canvasDeviceBloc.state.;
-                            // _canvasDeviceBloc.add(CanvasDeviceUpdateDurationEvent(device, artwork))
+                            changeSpeed(speedValues[
+                                speedTitles[_currentSliderValue.round()]]!);
                           },
                         );
                       },

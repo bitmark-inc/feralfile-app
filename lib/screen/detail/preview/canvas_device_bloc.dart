@@ -154,7 +154,10 @@ class CanvasDeviceState {
       .firstWhereOrNull((deviceState) => deviceState.device.isConnecting)
       ?.device;
 
-  bool get isCasting => connectingDevice != null;
+  bool get isCasting {
+    return devices.any((element) =>
+        element.device == controllingDevice && element.isPlaying == true);
+  }
 }
 
 class DeviceState {
@@ -222,7 +225,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
                     isConnecting: true,
                     playingSceneId: ''),
                 duration: Duration(seconds: 10),
-                isPlaying: true,
+                isPlaying: false,
               ),
               DeviceState(
                 device: CanvasDevice(
@@ -233,7 +236,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
                     isConnecting: false,
                     playingSceneId: ''),
                 duration: Duration(seconds: 10),
-                isPlaying: true,
+                isPlaying: false,
               ),
               DeviceState(
                 device: CanvasDevice(
@@ -244,7 +247,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
                     isConnecting: false,
                     playingSceneId: ''),
                 duration: Duration(seconds: 10),
-                isPlaying: true,
+                isPlaying: false,
               ),
               DeviceState(
                 device: CanvasDevice(
@@ -255,7 +258,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
                     isConnecting: false,
                     playingSceneId: ''),
                 duration: Duration(seconds: 10),
-                isPlaying: true,
+                isPlaying: false,
               ),
             ],
             isLoaded: true),
@@ -366,9 +369,15 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
         if (!ok) {
           throw Exception('Failed to cast to device');
         }
+        final currentDeviceState = state.devices
+            .firstWhereOrNull((element) => element.device.id == device.id);
+        if (currentDeviceState == null) {
+          throw Exception('Device not found');
+        }
         emit(state
             .replaceDeviceState(
-                device: device, deviceState: DeviceState(device: device))
+                device: device,
+                deviceState: currentDeviceState.copyWith(isPlaying: true))
             .copyWith(controllingDeviceIds: [device.id]));
       } catch (_) {
         emit(state.replaceDeviceState(
@@ -379,18 +388,75 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
     on<CanvasDeviceCancelCastingEvent>((event, emit) async {
       final device = event.device;
       try {
+        final currentDeviceState = state.devices
+            .firstWhereOrNull((element) => element.device.id == device.id);
+        if (currentDeviceState == null) {
+          throw Exception('Device not found');
+        }
         await _canvasClientServiceV2.cancelCasting(device);
         emit(state.replaceDeviceState(
-            device: device, deviceState: DeviceState(device: device)));
+            device: device,
+            deviceState: currentDeviceState.copyWith(isPlaying: false)));
       } catch (_) {}
     });
 
     on<CanvasDeviceNextArtworkEvent>((event, emit) async {
       final device = event.device;
       try {
+        final currentDeviceState = state.devices
+            .firstWhereOrNull((element) => element.device.id == device.id);
+        if (currentDeviceState == null) {
+          throw Exception('Device not found');
+        }
         await _canvasClientServiceV2.nextArtwork(device);
         emit(state.replaceDeviceState(
-            device: device, deviceState: DeviceState(device: device)));
+            device: device,
+            deviceState: currentDeviceState.copyWith(isPlaying: true)));
+      } catch (_) {}
+    });
+
+    on<CanvasDevicePreviousArtworkEvent>((event, emit) async {
+      final device = event.device;
+      try {
+        final currentDeviceState = state.devices
+            .firstWhereOrNull((element) => element.device.id == device.id);
+        if (currentDeviceState == null) {
+          throw Exception('Device not found');
+        }
+        await _canvasClientServiceV2.previousArtwork(device);
+        emit(state.replaceDeviceState(
+            device: device,
+            deviceState: currentDeviceState.copyWith(isPlaying: true)));
+      } catch (_) {}
+    });
+
+    on<CanvasDevicePauseCastingEvent>((event, emit) async {
+      final device = event.device;
+      try {
+        final currentDeviceState = state.devices
+            .firstWhereOrNull((element) => element.device.id == device.id);
+        if (currentDeviceState == null) {
+          throw Exception('Device not found');
+        }
+        await _canvasClientServiceV2.pauseCasting(device);
+        emit(state.replaceDeviceState(
+            device: device,
+            deviceState: currentDeviceState.copyWith(isPlaying: false)));
+      } catch (_) {}
+    });
+
+    on<CanvasDeviceResumeCastingEvent>((event, emit) async {
+      final device = event.device;
+      try {
+        final currentDeviceState = state.devices
+            .firstWhereOrNull((element) => element.device.id == device.id);
+        if (currentDeviceState == null) {
+          throw Exception('Device not found');
+        }
+        await _canvasClientServiceV2.resumeCasting(device);
+        emit(state.replaceDeviceState(
+            device: device,
+            deviceState: currentDeviceState.copyWith(isPlaying: true)));
       } catch (_) {}
     });
   }

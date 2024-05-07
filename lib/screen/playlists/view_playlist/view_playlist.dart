@@ -389,11 +389,10 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                     log.info('Playlist tokenIds is null');
                     return;
                   }
-                  final durationInSecond = 30;
+                  final duration = Duration(seconds: 10).inMilliseconds;
                   final listPlayArtwork = listTokenIds
                       .map((e) => PlayArtworkV2(
-                          token: CastAssetToken(id: e),
-                          duration: durationInSecond))
+                          token: CastAssetToken(id: e), duration: duration))
                       .toList();
                   _canvasDeviceBloc.add(CanvasDeviceCastListArtworkEvent(
                       device, listPlayArtwork));
