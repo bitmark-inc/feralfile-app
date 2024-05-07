@@ -131,7 +131,7 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
                                 color: AppColor.auLightGrey,
                                 borderRadius: BorderRadius.circular(10)),
                           ),
-                          if (_passphrase.isNotEmpty) ...[
+                          if (passphrase.isNotEmpty) ...[
                             const SizedBox(height: 20),
                             Container(
                               width: double.infinity,
@@ -151,8 +151,11 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
                                     const TextSpan(text: '  '),
                                     TextSpan(
                                         text: passphrase,
-                                        style:
-                                            theme.textTheme.ppMori400Black14),
+                                        style: theme.textTheme.ppMori400Black14
+                                            .copyWith(
+                                                color: _isShow
+                                                    ? AppColor.primaryBlack
+                                                    : AppColor.white)),
                                   ],
                                 ),
                               ),
