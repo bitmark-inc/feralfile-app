@@ -28,6 +28,7 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service.dart';
+import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -325,6 +326,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
 
     unawaited(injector<CanvasClientService>().init());
+    unawaited(injector<CanvasClientServiceV2>().init());
     unawaited(_syncArtist());
   }
 

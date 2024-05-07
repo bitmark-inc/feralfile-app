@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
+import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -195,8 +196,17 @@ class _PlaylistControlState extends State<PlaylistControl> {
     if (controllingDevice == null) {
       return;
     }
-    _canvasDeviceBloc
-        .add(CanvasDeviceUpdateDurationEvent(controllingDevice, []));
+    final canvasStatus =
+        _canvasDeviceBloc.state.controllingDeviceStatus?.values.firstOrNull;
+    if (canvasStatus == null) {
+      return;
+    }
+    final playArtworks = canvasStatus.artworks;
+    final playArtworkWithNewDuration = playArtworks.map((e) {
+      return e.copy(duration: Duration(milliseconds: duration.inMilliseconds));
+    }).toList();
+    _canvasDeviceBloc.add(CanvasDeviceUpdateDurationEvent(
+        controllingDevice, playArtworkWithNewDuration));
   }
 
   Widget _buildSpeedControl(BuildContext context, CanvasDeviceState state) {
@@ -245,8 +255,10 @@ class _PlaylistControlState extends State<PlaylistControl> {
                         setState(() {
                           _currentSliderValue = value;
                         });
-                        final controllingDeviceIds = state.controllingDeviceIds;
-                        if (controllingDeviceIds.isEmpty) {
+                        final controllingDeviceIds =
+                            state.controllingDeviceStatus?.keys.toList();
+                        if (controllingDeviceIds == null ||
+                            controllingDeviceIds.isEmpty) {
                           return;
                         }
                         _timer?.cancel();
@@ -271,6 +283,20 @@ class _PlaylistControlState extends State<PlaylistControl> {
           ),
         )
       ],
+    );
+  }
+}
+
+extension PlayArtworkExt on PlayArtworkV2 {
+  PlayArtworkV2 copy({
+    CastAssetToken? token,
+    CastArtwork? artwork,
+    Duration? duration,
+  }) {
+    return PlayArtworkV2(
+      token: token ?? this.token,
+      artwork: artwork ?? this.artwork,
+      duration: duration?.inMilliseconds ?? this.duration,
     );
   }
 }

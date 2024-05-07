@@ -46,7 +46,9 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
         final devices = state.devices;
         final connectedDevice = state.devices
             .where((element) =>
-                state.controllingDeviceIds.contains(element.device.id))
+                state.controllingDeviceStatus?.keys
+                    .contains(element.device.id) ??
+                false)
             .firstOrNull;
         const isPlaylist = true;
         return Padding(

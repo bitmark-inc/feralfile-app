@@ -105,9 +105,15 @@ class CanvasDeviceUpdateDurationEvent extends CanvasDeviceEvent {
   CanvasDeviceUpdateDurationEvent(this.device, this.artwork);
 }
 
+class CanvasDeviceChangeDeviceEvent extends CanvasDeviceEvent {
+  final CanvasDevice device;
+
+  CanvasDeviceChangeDeviceEvent(this.device);
+}
+
 class CanvasDeviceState {
   final List<DeviceState> devices;
-  final List<String> controllingDeviceIds;
+  final Map<String, CheckDeviceStatusReply>? controllingDeviceStatus;
 
   // final String sceneId;
   final RPCError? rpcError;
@@ -115,20 +121,20 @@ class CanvasDeviceState {
 
   CanvasDeviceState({
     required this.devices,
-    this.controllingDeviceIds = const [],
+    this.controllingDeviceStatus,
     this.isLoaded = false,
     this.rpcError,
   });
 
   CanvasDeviceState copyWith(
           {List<DeviceState>? devices,
-          List<String>? controllingDeviceIds,
+          Map<String, CheckDeviceStatusReply>? controllingDeviceStatus,
           bool? isLoaded,
           RPCError? rpcError}) =>
       CanvasDeviceState(
           devices: devices ?? this.devices,
-          controllingDeviceIds:
-              controllingDeviceIds ?? this.controllingDeviceIds,
+          controllingDeviceStatus:
+              controllingDeviceStatus ?? this.controllingDeviceStatus,
           isLoaded: isLoaded ?? this.isLoaded,
           rpcError: rpcError ?? this.rpcError);
 
@@ -144,8 +150,9 @@ class CanvasDeviceState {
   }
 
   CanvasDevice? get controllingDevice => devices
-      .firstWhereOrNull(
-          (deviceState) => controllingDeviceIds.contains(deviceState.device.id))
+      .firstWhereOrNull((deviceState) =>
+          controllingDeviceStatus?.keys.contains(deviceState.device.id) ??
+          false)
       ?.device;
 
   List<CanvasDevice> get playingDevice => [];
@@ -304,7 +311,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
           log.info('CanvasDeviceBloc: error while disconnect device: $e');
         }
       });
-      emit(state.copyWith(controllingDeviceIds: []));
+      emit(state.copyWith(controllingDeviceStatus: {}));
     });
 
     on<CanvasDeviceCastListArtworkEvent>((event, emit) async {
@@ -320,11 +327,15 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
         if (currentDeviceState == null) {
           throw Exception('Device not found');
         }
-        emit(state
-            .replaceDeviceState(
-                device: device,
-                deviceState: currentDeviceState.copyWith(isPlaying: true))
-            .copyWith(controllingDeviceIds: [device.id]));
+        final status =
+            await _canvasClientServiceV2.getDeviceCastingStatus(device);
+        emit(
+          state
+              .replaceDeviceState(
+                  device: device,
+                  deviceState: currentDeviceState.copyWith(isPlaying: true))
+              .copyWith(controllingDeviceStatus: {device.id: status}),
+        );
       } catch (_) {
         emit(state.replaceDeviceState(
             device: device, deviceState: DeviceState(device: device)));
@@ -400,6 +411,33 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
           throw Exception('Device not found');
         }
         await _canvasClientServiceV2.resumeCasting(device);
+        emit(state.replaceDeviceState(
+            device: device,
+            deviceState: currentDeviceState.copyWith(isPlaying: true)));
+      } catch (_) {}
+    });
+
+    on<CanvasDeviceChangeDeviceEvent>((event, emit) async {
+      final newCanvas = event.device;
+      try {
+        final canvasStatus =
+            await _canvasClientServiceV2.getDeviceCastingStatus(newCanvas);
+        emit(state.copyWith(
+          controllingDeviceStatus: {newCanvas.id: canvasStatus},
+        ));
+      } catch (_) {}
+    });
+
+    on<CanvasDeviceUpdateDurationEvent>((event, emit) async {
+      final device = event.device;
+      final artworks = event.artwork;
+      try {
+        await _canvasClientServiceV2.updateDuration(device, artworks);
+        final currentDeviceState = state.devices
+            .firstWhereOrNull((element) => element.device.id == device.id);
+        if (currentDeviceState == null) {
+          throw Exception('Device not found');
+        }
         emit(state.replaceDeviceState(
             device: device,
             deviceState: currentDeviceState.copyWith(isPlaying: true)));

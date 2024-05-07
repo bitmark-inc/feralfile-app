@@ -1,9 +1,7 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/canvas_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart' as my_device;
@@ -40,6 +38,13 @@ class CanvasClientServiceV2 {
     _didInitialized = true;
   }
 
+  DeviceInfoV2 get clientDeviceInfo {
+    return DeviceInfoV2()
+      ..deviceId = _deviceId
+      ..deviceName = _deviceName
+      ..platform = _platform;
+  }
+
   Future<void> shutdownAll() async {
     await Future.wait(_viewingDevices.map((e) => shutDown(e)));
   }
@@ -62,6 +67,17 @@ class CanvasClientServiceV2 {
     return CanvasControlV2Client(channel);
   }
 
+  Future<CheckDeviceStatusReply> getDeviceCastingStatus(
+      CanvasDevice device) async {
+    final stub = _getStub(device);
+    final request = CheckDeviceStatusRequest();
+    final response = await stub.status(
+      request,
+      options: _callOptions,
+    );
+    return response;
+  }
+
   Future<bool> connectToDevice(CanvasDevice device) async =>
       _connectDevice.synchronized(() async => await _connectToDevice(device));
 
@@ -76,18 +92,17 @@ class CanvasClientServiceV2 {
     }
   }
 
-  Future<bool> _connectToDevice(CanvasDevice device) async {
+  Future<ConnectReplyV2> connect(CanvasDevice device) async {
     final stub = _getStub(device);
+    final deviceInfo = clientDeviceInfo;
+    final request = ConnectRequestV2()..clientDevice = deviceInfo;
+    final response = stub.connect(request, options: _callOptions);
+    return response;
+  }
+
+  Future<bool> _connectToDevice(CanvasDevice device) async {
     try {
-      final deviceInfo = DeviceInfoV2()
-        ..deviceId = _deviceId
-        ..deviceName = _deviceName
-        ..platform = _platform;
-      final request = ConnectRequestV2()..clientDevice = deviceInfo;
-      final response = await stub.connect(
-        request,
-        options: _callOptions,
-      );
+      final response = await connect(device);
       log.info('CanvasClientService received: ${response.ok}');
       final index =
           _viewingDevices.indexWhere((element) => element.ip == device.ip);
@@ -114,42 +129,6 @@ class CanvasClientServiceV2 {
     }
   }
 
-  Future<Pair<CanvasServerStatus, String?>> checkDeviceStatus(
-      CanvasDevice device) async {
-    final stub = _getStub(device);
-    String? sceneId;
-    late CanvasServerStatus status;
-    try {
-      final request = CheckDeviceStatusRequest();
-      final response = await stub.status(
-        request,
-        options: _callOptions,
-      );
-      log.info('CanvasClientService received: ${response.status}');
-      switch (response.status) {
-        case CheckDeviceStatusReply_ServingStatus.NOT_SERVING:
-        case CheckDeviceStatusReply_ServingStatus.SERVICE_UNKNOWN:
-          status = CanvasServerStatus.notServing;
-          break;
-        case CheckDeviceStatusReply_ServingStatus.SERVING:
-          if (response.sceneId.isNotEmpty) {
-            status = CanvasServerStatus.playing;
-            sceneId = response.sceneId;
-          } else {
-            status = CanvasServerStatus.connected;
-          }
-          break;
-        case CheckDeviceStatusReply_ServingStatus.UNKNOWN:
-          status = CanvasServerStatus.open;
-          break;
-      }
-    } catch (e) {
-      log.info('CanvasClientService: Caught error: $e');
-      status = CanvasServerStatus.error;
-    }
-    return Pair(status, sceneId);
-  }
-
   Future<void> disconnectDevice(CanvasDevice device) async {
     final stub = _getStub(device);
     final response = await stub.disconnect(
@@ -164,6 +143,7 @@ class CanvasClientServiceV2 {
   Future<bool> castListArtwork(
       CanvasDevice device, List<PlayArtworkV2> artworks) async {
     try {
+      await connect(device);
       final stub = _getStub(device);
       final castRequest = CastListArtworkRequest()..artworks.addAll(artworks);
 
@@ -243,5 +223,15 @@ class CanvasClientServiceV2 {
 
   Future<bool> castExhibition(CanvasDevice device, String exhibitionId) async {
     throw UnimplementedError();
+  }
+
+  Future<UpdateDurationReply> updateDuration(
+      CanvasDevice device, List<PlayArtworkV2> artworks) async {
+    final stub = _getStub(device);
+    final response = await stub.updateDuration(
+      UpdateDurationRequest()..artworks.addAll(artworks),
+      options: _callOptions,
+    );
+    return response;
   }
 }
