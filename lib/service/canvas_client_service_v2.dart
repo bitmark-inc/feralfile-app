@@ -25,7 +25,7 @@ class CanvasClientServiceV2 {
   Offset currentCursorOffset = Offset.zero;
 
   CallOptions get _callOptions => CallOptions(
-      compression: const GzipCodec(), timeout: const Duration(seconds: 30));
+      compression: const GzipCodec(), timeout: const Duration(seconds: 5));
 
   Future<void> init() async {
     if (_didInitialized) {
@@ -96,7 +96,7 @@ class CanvasClientServiceV2 {
     final stub = _getStub(device);
     final deviceInfo = clientDeviceInfo;
     final request = ConnectRequestV2()..clientDevice = deviceInfo;
-    final response = stub.connect(request, options: _callOptions);
+    final response = await stub.connect(request, options: _callOptions);
     return response;
   }
 
@@ -143,7 +143,7 @@ class CanvasClientServiceV2 {
   Future<bool> castListArtwork(
       CanvasDevice device, List<PlayArtworkV2> artworks) async {
     try {
-      await connect(device);
+      // await connect(device);
       final stub = _getStub(device);
       final castRequest = CastListArtworkRequest()..artworks.addAll(artworks);
 

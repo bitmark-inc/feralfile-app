@@ -35,7 +35,7 @@ class CanvasClientService {
   Offset currentCursorOffset = Offset.zero;
 
   CallOptions get _callOptions => CallOptions(
-      compression: const GzipCodec(), timeout: const Duration(seconds: 3));
+      compression: const GzipCodec(), timeout: const Duration(seconds: 10));
 
   Future<void> init() async {
     if (_didInitialized) {

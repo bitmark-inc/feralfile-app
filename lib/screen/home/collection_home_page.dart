@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/model/blockchain.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
+import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
@@ -77,6 +78,7 @@ class CollectionHomePageState extends State<CollectionHomePage>
   late bool _showPostcardBanner;
   final _identityBloc = injector<IdentityBloc>();
   final _canvasClientServiceV2 = injector.get<CanvasClientServiceV2>();
+  late CanvasDeviceBloc _canvasDeviceBloc;
 
   @override
   void initState() {
@@ -88,6 +90,7 @@ class CollectionHomePageState extends State<CollectionHomePage>
     _controller = ScrollController()..addListener(_scrollListenerToLoadMore);
     unawaited(_configurationService.setAutoShowPostcard(true));
     context.read<HomeBloc>().add(CheckReviewAppEvent());
+    _canvasDeviceBloc = context.read<CanvasDeviceBloc>();
     unawaited(injector<IAPService>().setup());
   }
 
@@ -221,6 +224,15 @@ class CollectionHomePageState extends State<CollectionHomePage>
     );
   }
 
+  void castToken(CanvasDevice device, String tokenId) {
+    final token = CastAssetToken(id: tokenId);
+    final playArtwork = PlayArtworkV2(token: token);
+    _canvasDeviceBloc.add(CanvasDeviceCastListArtworkEvent(
+      device,
+      [playArtwork],
+    ));
+  }
+
   Widget _header(BuildContext context) {
     final paddingTop = MediaQuery.of(context).viewPadding.top;
     return Padding(
@@ -229,12 +241,15 @@ class CollectionHomePageState extends State<CollectionHomePage>
         title: 'collection'.tr(),
         action: FFCastButton(
           onDeviceSelected: (device) async {
-            final firstTokens =
-                _updateTokens(nftBloc.state.tokens.items).firstOrNull;
-            final playArtwork = PlayArtworkV2(
-              token: CastAssetToken(id: firstTokens?.id ?? ''),
-            );
-            await _canvasClientServiceV2.castListArtwork(device, [playArtwork]);
+            try {
+              final firstTokens =
+                  _updateTokens(nftBloc.state.tokens.items).firstOrNull;
+              if (firstTokens != null) {
+                castToken(device, firstTokens.id);
+              }
+            } catch (e) {
+              log.info('Failed to cast artwork: $e');
+            }
           },
         ),
       ),
@@ -450,6 +465,17 @@ class CollectionHomePageState extends State<CollectionHomePage>
       onTap: () {
         if (asset.pending == true && !asset.hasMetadata) {
           return;
+        }
+
+        final id = asset.id;
+        final playArtwork =
+            PlayArtworkV2(token: CastAssetToken(id: id), duration: 30);
+        final device = _canvasDeviceBloc.state.controllingDevice;
+        if (device != null) {
+          _canvasDeviceBloc.add(CanvasDeviceCastListArtworkEvent(
+            device,
+            [playArtwork],
+          ));
         }
 
         final index = tokens
