@@ -44,11 +44,7 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
       bloc: _canvasDeviceBloc,
       builder: (context, state) {
         final devices = state.devices;
-        final connectedDevice = state.devices
-            .where((element) =>
-                state.controllingDeviceIds.contains(element.device.id))
-            .firstOrNull;
-        const isPlaylist = true;
+        final connectedDevice = state.connectingDevice;
         return Padding(
           padding: ResponsiveLayout.pageHorizontalEdgeInsets,
           child: Column(
@@ -71,10 +67,6 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
                 ),
               ),
               const SizedBox(height: 40),
-              if (isPlaylist) ...[
-                const PlaylistControl(),
-                const SizedBox(height: 40),
-              ],
               ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),

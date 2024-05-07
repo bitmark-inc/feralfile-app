@@ -150,14 +150,11 @@ class CanvasDeviceState {
 
   List<CanvasDevice> get playingDevice => [];
 
-  CanvasDevice? get connectingDevice => devices
-      .firstWhereOrNull((deviceState) => deviceState.device.isConnecting)
-      ?.device;
+  DeviceState? get connectingDevice => devices.firstWhereOrNull(
+      (deviceState) => controllingDeviceIds.contains(deviceState.device.id));
 
-  bool get isCasting {
-    return devices.any((element) =>
-        element.device == controllingDevice && element.isPlaying == true);
-  }
+  bool get isCasting => devices.any((element) =>
+      element.device == controllingDevice && element.isPlaying == true);
 }
 
 class DeviceState {
