@@ -22,7 +22,6 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -108,8 +107,8 @@ class PendingTokenWidget extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 height: double.infinity,
-                child: CachedNetworkImage(
-                  imageUrl: thumbnail!,
+                child: Image.network(
+                  thumbnail!,
                   fit: BoxFit.cover,
                 ),
               )
@@ -171,8 +170,6 @@ Widget tokenGalleryThumbnailWidget(
         }
         return cached;
       });
-  final memCacheWidth = cachedImageSize;
-  final memCacheHeight = memCacheWidth ~/ ratio;
 
   return Semantics(
     label: 'gallery_artwork_${token.id}',
@@ -189,40 +186,41 @@ Widget tokenGalleryThumbnailWidget(
               unsupportWidgetBuilder: (context) =>
                   const GalleryUnSupportThumbnailWidget(),
             )
-          : CachedNetworkImage(
-              imageUrl: thumbnailUrl,
-              fadeInDuration: Duration.zero,
+          : Image.network(
+              thumbnailUrl,
               fit: BoxFit.cover,
-              memCacheHeight: memCacheHeight,
-              memCacheWidth: memCacheWidth,
-              maxWidthDiskCache: cachedImageSize,
-              maxHeightDiskCache: cachedImageSize,
-              cacheManager: cacheManager,
-              placeholder: (context, index) => FutureBuilder<bool>(
-                  future: cachingState,
-                  builder: (context, snapshot) =>
-                      galleryThumbnailPlaceholder ??
-                      GalleryThumbnailPlaceholder(
-                        loading: !(snapshot.data ?? true),
-                      )),
-              errorWidget: (context, url, error) => CachedNetworkImage(
-                imageUrl:
-                    token.getGalleryThumbnailUrl(usingThumbnailID: false) ?? '',
-                fadeInDuration: Duration.zero,
-                fit: BoxFit.cover,
-                memCacheHeight: cachedImageSize,
-                memCacheWidth: cachedImageSize,
-                maxWidthDiskCache: cachedImageSize,
-                maxHeightDiskCache: cachedImageSize,
-                cacheManager: cacheManager,
-                placeholder: (context, index) => FutureBuilder<bool>(
+              cacheWidth: cachedImageSize,
+              cacheHeight: cachedImageSize,
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) {
+                  return child;
+                }
+                return FutureBuilder<bool>(
                     future: cachingState,
                     builder: (context, snapshot) =>
                         galleryThumbnailPlaceholder ??
                         GalleryThumbnailPlaceholder(
                           loading: !(snapshot.data ?? true),
-                        )),
-                errorWidget: (context, url, error) =>
+                        ));
+              },
+              errorBuilder: (context, url, error) => Image.network(
+                token.getGalleryThumbnailUrl(usingThumbnailID: false) ?? '',
+                fit: BoxFit.cover,
+                cacheWidth: cachedImageSize,
+                cacheHeight: cachedImageSize,
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) {
+                    return child;
+                  }
+                  return FutureBuilder<bool>(
+                      future: cachingState,
+                      builder: (context, snapshot) =>
+                          galleryThumbnailPlaceholder ??
+                          GalleryThumbnailPlaceholder(
+                            loading: !(snapshot.data ?? true),
+                          ));
+                },
+                errorBuilder: (context, url, error) =>
                     const GalleryThumbnailErrorWidget(),
               ),
             ),
@@ -441,7 +439,7 @@ INFTRenderingWidget buildRenderingWidget(
           ? assetToken.getPreviewUrl()
           : '${assetToken.getPreviewUrl()}?t=$attempt',
       thumbnailURL: assetToken.getGalleryThumbnailUrl(usingThumbnailID: false),
-      loadingWidget: loadingWidget ?? previewPlaceholder(context),
+      loadingWidget: loadingWidget ?? previewPlaceholder(),
       errorWidget: BrokenTokenWidget(token: assetToken),
       cacheManager: injector<CacheManager>(),
       onLoaded: onLoaded,
@@ -473,8 +471,8 @@ INFTRenderingWidget buildFeralfileRenderingWidget(
     ..setRenderWidgetBuilder(RenderingWidgetBuilder(
       previewURL: attempt == null ? previewURL : '$previewURL?t=$attempt',
       thumbnailURL: thumbnailURL,
-      loadingWidget: loadingWidget ?? previewPlaceholder(context),
       cacheManager: injector<CacheManager>(),
+      loadingWidget: loadingWidget ?? previewPlaceholder(),
       onLoaded: onLoaded,
       onDispose: onDispose,
       overriddenHtml: overriddenHtml,
@@ -649,7 +647,7 @@ class _CurrentlyCastingArtworkState extends State<CurrentlyCastingArtwork> {
   }
 }
 
-Widget previewPlaceholder(BuildContext context) => const PreviewPlaceholder();
+Widget previewPlaceholder() => const PreviewPlaceholder();
 
 class PreviewPlaceholder extends StatefulWidget {
   const PreviewPlaceholder({
@@ -1102,7 +1100,6 @@ Widget postcardDetailsMetadataSection(
 
 Widget artworkDetailsMetadataSection(
     BuildContext context, AssetToken assetToken, String? artistName) {
-  final theme = Theme.of(context);
   final artworkID =
       ((assetToken.swapped ?? false) && assetToken.originTokenInfoId != null)
           ? assetToken.originTokenInfoId ?? ''
@@ -1807,95 +1804,6 @@ class _ArtworkRightsViewState extends State<ArtworkRightsView> {
           return const SizedBox();
         }
       });
-}
-
-Widget _rowItem(
-  BuildContext context,
-  String name,
-  String? value, {
-  String? subTitle,
-  Function()? onNameTap,
-  String? tapLink,
-  bool? forceSafariVC,
-  Function()? onValueTap,
-  Widget? title,
-  int maxLines = 2,
-}) {
-  if (onValueTap == null && tapLink != null) {
-    final uri = Uri.parse(tapLink);
-    onValueTap = () => unawaited(launchUrl(uri,
-        mode: forceSafariVC == true
-            ? LaunchMode.externalApplication
-            : LaunchMode.platformDefault));
-  }
-  final theme = Theme.of(context);
-
-  return Row(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    children: [
-      Flexible(
-        flex: 3,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            GestureDetector(
-              onTap: onNameTap,
-              child:
-                  title ?? Text(name, style: theme.textTheme.ppMori400White12),
-            ),
-            if (subTitle != null) ...[
-              const SizedBox(height: 2),
-              Text(
-                subTitle,
-                style: ResponsiveLayout.isMobile
-                    ? theme.textTheme.ppMori400White12
-                    : theme.textTheme.ppMori400White14,
-              ),
-            ]
-          ],
-        ),
-      ),
-      Flexible(
-        flex: 4,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            Expanded(
-              child: GestureDetector(
-                onTap: onValueTap,
-                child: Semantics(
-                  label: name,
-                  child: Text(
-                    value ?? '',
-                    textAlign: TextAlign.end,
-                    maxLines: maxLines,
-                    softWrap: true,
-                    overflow: TextOverflow.ellipsis,
-                    style: onValueTap != null
-                        ? theme.textTheme.ppMori400White12
-                        : ResponsiveLayout.isMobile
-                            ? theme.textTheme.ppMori400White12
-                            : theme.textTheme.ppMori400White12,
-                  ),
-                ),
-              ),
-            ),
-            if (onValueTap != null) ...[
-              const SizedBox(width: 8),
-              SvgPicture.asset(
-                'assets/images/iconForward.svg',
-                colorFilter: ColorFilter.mode(
-                    theme.textTheme.ppMori400White12.color ??
-                        AppColor.primaryBlack,
-                    BlendMode.srcIn),
-              ),
-            ]
-          ],
-        ),
-      )
-    ],
-  );
 }
 
 class ArtworkDetailsHeader extends StatelessWidget {
