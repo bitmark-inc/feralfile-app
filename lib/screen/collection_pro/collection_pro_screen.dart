@@ -28,6 +28,7 @@ import 'package:autonomy_flutter/view/galery_thumbnail_item.dart';
 import 'package:autonomy_flutter/view/get_started_banner.dart';
 import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/search_bar.dart';
+import 'package:autonomy_flutter/view/title_text.dart';
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -543,29 +544,36 @@ class CollectionProState extends State<CollectionPro>
                 },
               ),
             )
-          : Align(
-              alignment: Alignment.bottomLeft,
-              child: ActionBar(
-                searchBar: AuSearchBar(
-                  onChanged: (text) {},
-                  onSearch: (text) {
-                    setState(() {
-                      searchStr.value = text;
-                    });
-                  },
-                  onClear: (text) {
-                    setState(() {
-                      searchStr.value = text;
-                    });
-                  },
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Align(
+                  alignment: Alignment.bottomLeft,
+                  child: ActionBar(
+                    searchBar: AuSearchBar(
+                      onChanged: (text) {},
+                      onSearch: (text) {
+                        setState(() {
+                          searchStr.value = text;
+                        });
+                      },
+                      onClear: (text) {
+                        setState(() {
+                          searchStr.value = text;
+                        });
+                      },
+                    ),
+                    onCancel: () {
+                      setState(() {
+                        searchStr.value = '';
+                        isShowSearchBar = false;
+                      });
+                    },
+                  ),
                 ),
-                onCancel: () {
-                  setState(() {
-                    searchStr.value = '';
-                    isShowSearchBar = false;
-                  });
-                },
-              ),
+                const SizedBox(height: 20),
+                if (searchStr.value.isEmpty) TitleText(title: 'organize'.tr()),
+              ],
             ),
     );
   }

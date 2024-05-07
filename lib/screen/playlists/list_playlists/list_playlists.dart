@@ -6,6 +6,7 @@ import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.da
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/collection_ext.dart';
+import 'package:autonomy_flutter/view/title_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -63,37 +64,47 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
             return const SizedBox();
           }
           const height = 165.0;
-          return SizedBox(
-            height: height,
-            width: 400,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15),
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: playlists.length + 1,
-                itemBuilder: (context, index) {
-                  if (index == playlists.length) {
-                    if (widget.filter.isNotEmpty) {
-                      return const SizedBox();
-                    }
-                    return AddPlayListItem(
-                      onTap: () {
-                        widget.onAdd();
-                      },
-                    );
-                  }
-                  final item = playlists[index];
-                  return PlaylistItem(
-                    playlist: item,
-                    onSelected: () async => Navigator.pushNamed(
-                      context,
-                      AppRouter.viewPlayListPage,
-                      arguments: ViewPlaylistScreenPayload(playListModel: item),
-                    ),
-                  );
-                },
-                separatorBuilder: (context, index) => const SizedBox(width: 10),
-              ),
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (widget.filter.isNotEmpty)
+                  TitleText(title: 'playlists'.tr()),
+                const SizedBox(height: 30),
+                SizedBox(
+                  height: height,
+                  width: 400,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: playlists.length + 1,
+                    itemBuilder: (context, index) {
+                      if (index == playlists.length) {
+                        if (widget.filter.isNotEmpty) {
+                          return const SizedBox();
+                        }
+                        return AddPlayListItem(
+                          onTap: () {
+                            widget.onAdd();
+                          },
+                        );
+                      }
+                      final item = playlists[index];
+                      return PlaylistItem(
+                        playlist: item,
+                        onSelected: () async => Navigator.pushNamed(
+                          context,
+                          AppRouter.viewPlayListPage,
+                          arguments:
+                              ViewPlaylistScreenPayload(playListModel: item),
+                        ),
+                      );
+                    },
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(width: 10),
+                  ),
+                ),
+              ],
             ),
           );
         },
