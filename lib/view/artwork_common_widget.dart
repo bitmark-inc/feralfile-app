@@ -3,11 +3,9 @@ import 'dart:collection';
 import 'dart:math';
 
 import 'package:after_layout/after_layout.dart';
-import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
-import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/screen/detail/royalty/royalty_bloc.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
@@ -19,7 +17,6 @@ import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/dio_util.dart';
-import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/moma_style_color.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -984,7 +981,7 @@ Widget postcardDetailsMetadataSection(
           child: MetaDataItem(
             title: 'title'.tr(),
             titleStyle: titleStyle,
-            value: assetToken.title ?? '',
+            value: assetToken.displayTitle ?? '',
             valueStyle: theme.textTheme.moMASans400Black12,
           ),
         ),
@@ -1119,7 +1116,7 @@ Widget artworkDetailsMetadataSection(
       children: [
         MetaDataItem(
           title: 'title'.tr(),
-          value: assetToken.title ?? '',
+          value: assetToken.displayTitle ?? '',
         ),
         if (artistName != null) ...[
           divider,
@@ -1899,109 +1896,6 @@ Widget _rowItem(
       )
     ],
   );
-}
-
-class ArtworkRightWidget extends StatelessWidget {
-  final FFContract? contract;
-  final String? exhibitionID;
-
-  const ArtworkRightWidget(
-      {required this.contract, super.key, this.exhibitionID});
-
-  @override
-  Widget build(BuildContext context) {
-    final linkStyle = Theme.of(context).primaryTextTheme.linkStyle.copyWith(
-          color: Colors.white,
-          decorationColor: Colors.white,
-        );
-    return ArtworkRightsView(
-      linkStyle: linkStyle,
-      contract: FFContract('', '', ''),
-      exhibitionID: exhibitionID,
-    );
-  }
-}
-
-class FeralfileArtworkDetailsMetadataSection extends StatelessWidget {
-  final FFSeries series;
-
-  const FeralfileArtworkDetailsMetadataSection({
-    required this.series,
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final artist = series.artist;
-    final contract = series.contract;
-    final df = DateFormat('yyyy-MMM-dd hh:mm');
-    final mintDate = series.createdAt;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'metadata'.tr(),
-          style: theme.textTheme.displayMedium,
-        ),
-        const SizedBox(height: 23),
-        _rowItem(context, 'title'.tr(), series.title),
-        const Divider(
-          height: 32,
-          color: AppColor.secondarySpanishGrey,
-        ),
-        if (artist != null) ...[
-          _rowItem(
-            context,
-            'artist'.tr(),
-            artist.getDisplayName(),
-            tapLink: '${Environment.feralFileAPIURL}/profiles/${artist.id}',
-          ),
-          const Divider(
-            height: 32,
-            color: AppColor.secondarySpanishGrey,
-          )
-        ],
-        _rowItem(
-          context,
-          'token'.tr(),
-          'Feral File',
-          // tapLink: "${Environment.feralFileAPIURL}/artworks/${artwork?.id}"
-        ),
-        const Divider(
-          height: 32,
-          color: AppColor.secondarySpanishGrey,
-        ),
-        _rowItem(
-          context,
-          'contract'.tr(),
-          contract?.blockchainType.capitalize() ?? '',
-          tapLink: contract?.getBlockChainUrl(),
-        ),
-        const Divider(
-          height: 32,
-          color: AppColor.secondarySpanishGrey,
-        ),
-        _rowItem(
-          context,
-          'medium'.tr(),
-          series.medium.capitalize(),
-        ),
-        if (mintDate != null) ...[
-          const Divider(
-            height: 32,
-            color: AppColor.secondarySpanishGrey,
-          ),
-          _rowItem(
-            context,
-            'date_minted'.tr(),
-            df.format(mintDate).toUpperCase(),
-            maxLines: 1,
-          ),
-        ],
-      ],
-    );
-  }
 }
 
 class ArtworkDetailsHeader extends StatelessWidget {

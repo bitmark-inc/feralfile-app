@@ -9,7 +9,6 @@ import 'dart:async';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/blockchain.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -30,7 +29,6 @@ import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
-import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -38,8 +36,8 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/token_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/get_started_banner.dart';
 import 'package:autonomy_flutter/view/header.dart';
-import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -115,7 +113,6 @@ class CollectionHomePageState extends State<CollectionHomePage>
   void afterFirstLayout(BuildContext context) {
     unawaited(_handleForeground());
     unawaited(injector<AutonomyService>().postLinkedAddresses());
-    unawaited(_checkForKeySync(context));
   }
 
   @override
@@ -251,11 +248,12 @@ class CollectionHomePageState extends State<CollectionHomePage>
         if (_showPostcardBanner)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 15),
-            child: MakingPostcardBanner(
+            child: GetStartedBanner(
               onClose: () async {
                 await _hidePostcardBanner();
               },
-              onMakingPostcard: _onMakePostcard,
+              title: 'try_making_your_own_postcard'.tr(),
+              onGetStarted: _onMakePostcard,
             ),
           )
         else
@@ -325,11 +323,12 @@ class CollectionHomePageState extends State<CollectionHomePage>
           SliverToBoxAdapter(
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 15),
-              child: MakingPostcardBanner(
+              child: GetStartedBanner(
                 onClose: () async {
                   await _hidePostcardBanner();
                 },
-                onMakingPostcard: _onMakePostcard,
+                title: 'try_making_your_own_postcard'.tr(),
+                onGetStarted: _onMakePostcard,
               ),
             ),
           ),
@@ -366,7 +365,7 @@ class CollectionHomePageState extends State<CollectionHomePage>
   }) {
     final theme = Theme.of(context);
     final asset = tokens[index];
-    final title = asset.title;
+    final title = asset.displayTitle;
     final artistTitle = asset.artistTitle?.toIdentityOrMask(artistIdentities);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -455,18 +454,6 @@ class CollectionHomePageState extends State<CollectionHomePage>
     );
   }
 
-  Future<void> _checkForKeySync(BuildContext context) async {
-    final cloudDatabase = injector<CloudDatabase>();
-    final defaultAccounts = await cloudDatabase.personaDao.getDefaultPersonas();
-
-    if (defaultAccounts.length >= 2) {
-      if (!context.mounted) {
-        return;
-      }
-      unawaited(Navigator.of(context).pushNamed(AppRouter.keySyncPage));
-    }
-  }
-
   void scrollToTop() {
     unawaited(_controller.animateTo(0,
         duration: const Duration(milliseconds: 500),
@@ -528,62 +515,4 @@ class CollectionHomePageState extends State<CollectionHomePage>
 
   @override
   bool get wantKeepAlive => true;
-}
-
-class MakingPostcardBanner extends StatelessWidget {
-  final Function? onClose;
-  final Function? onMakingPostcard;
-
-  const MakingPostcardBanner({super.key, this.onMakingPostcard, this.onClose});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
-    return Container(
-      decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
-          color: AppColor.auGreyBackground),
-      padding: const EdgeInsets.all(15),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Text(
-                  'try_making_your_own_postcard'.tr(),
-                  style: textTheme.ppMori400White14,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              IconButton(
-                onPressed: () {
-                  onClose?.call();
-                },
-                iconSize: 18,
-                constraints: const BoxConstraints(maxHeight: 18, maxWidth: 18),
-                icon: const Icon(
-                  AuIcon.close,
-                  color: AppColor.white,
-                ),
-                padding: EdgeInsets.zero,
-              )
-            ],
-          ),
-          const SizedBox(
-            height: 20,
-          ),
-          PrimaryAsyncButton(
-            onTap: () {
-              onMakingPostcard?.call();
-            },
-            text: 'get_started'.tr(),
-          )
-        ],
-      ),
-    );
-  }
 }

@@ -28,14 +28,6 @@ Dio postcardDio(BaseOptions options) {
   return dio;
 }
 
-Dio airdropDio(BaseOptions options) {
-  final dio = baseDio(options);
-  dio.interceptors.add(AutonomyAuthInterceptor());
-  dio.interceptors.add(HmacAuthInterceptor(Environment.auClaimSecretKey));
-  dio.interceptors.add(AirdropInterceptor());
-  return dio;
-}
-
 Dio chatDio(BaseOptions options) {
   final dio = baseDio(options);
   dio.interceptors.add(HmacAuthInterceptor(Environment.chatServerHmacKey));

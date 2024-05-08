@@ -965,30 +965,6 @@ class MockConfigurationService extends _i1.Mock
         ),
       ) as _i4.ShowAnouncementNotificationInfo);
   @override
-  bool getAlreadyClaimedAirdrop(String? seriesId) => (super.noSuchMethod(
-        Invocation.method(
-          #getAlreadyClaimedAirdrop,
-          [seriesId],
-        ),
-        returnValue: false,
-      ) as bool);
-  @override
-  _i6.Future<void> setAlreadyClaimedAirdrop(
-    String? seriesId,
-    bool? value,
-  ) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #setAlreadyClaimedAirdrop,
-          [
-            seriesId,
-            value,
-          ],
-        ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
-  @override
   _i6.Future<void> setDidSyncArtists(bool? value) => (super.noSuchMethod(
         Invocation.method(
           #setDidSyncArtists,

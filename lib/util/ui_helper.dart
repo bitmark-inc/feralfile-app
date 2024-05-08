@@ -14,8 +14,6 @@ import 'dart:convert';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
-import 'package:autonomy_flutter/model/ff_account.dart';
-import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
@@ -23,10 +21,8 @@ import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
-import 'package:autonomy_flutter/util/feralfile_extension.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/moma_style_color.dart';
 import 'package:autonomy_flutter/util/notification_util.dart';
@@ -73,7 +69,6 @@ Future<void> doneOnboarding(BuildContext context) async {
 void nameContinue(BuildContext context) {
   if (injector<ConfigurationService>().isDoneOnboarding()) {
     Navigator.of(context).popUntil((route) =>
-        route.settings.name == AppRouter.claimSelectAccountPage ||
         route.settings.name == AppRouter.tbConnectPage ||
         route.settings.name == AppRouter.wc2ConnectPage ||
         route.settings.name == AppRouter.homePage ||
@@ -780,161 +775,6 @@ class UIHelper {
     } catch (_) {}
   }
 
-  static Future showAirdropNotStarted(
-      BuildContext context, String? artworkId) async {
-    final theme = Theme.of(context);
-    final error = FeralfileError(5006, '');
-    return UIHelper.showDialog(
-      context,
-      error.dialogTitle,
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            error.dialogMessage,
-            style: theme.primaryTextTheme.ppMori400White14,
-          ),
-          const SizedBox(
-            height: 40,
-          ),
-          OutlineButton(
-            text: 'close'.tr(),
-            onTap: () {
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
-      ),
-      isDismissible: true,
-    );
-  }
-
-  static Future showAirdropExpired(
-      BuildContext context, String? artworkId) async {
-    final theme = Theme.of(context);
-    final error = FeralfileError(3007, '');
-    return UIHelper.showDialog(
-      context,
-      error.dialogTitle,
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            error.dialogMessage,
-            style: theme.primaryTextTheme.bodyLarge,
-          ),
-          const SizedBox(
-            height: 40,
-          ),
-          OutlineButton(
-            text: 'close'.tr(),
-            onTap: () {
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
-      ),
-      isDismissible: true,
-    );
-  }
-
-  static Future showNoRemainingAirdropToken(
-    BuildContext context, {
-    required FFSeries series,
-  }) async {
-    final error = FeralfileError(3009, '');
-    return showErrorDialog(
-      context,
-      error.getDialogTitle(),
-      error.getDialogMessage(series: series),
-      'close'.tr(),
-    );
-  }
-
-  static Future showNoRemainingActivationToken(
-    BuildContext context, {
-    required String id,
-  }) async {
-    final error = FeralfileError(3009, '');
-    return showErrorDialog(
-      context,
-      error.getDialogTitle(),
-      error.getDialogMessage(),
-      'close'.tr(),
-    );
-  }
-
-  static Future showOtpExpired(BuildContext context, String? artworkId) async {
-    final error = FeralfileError(3013, '');
-    return showErrorDialog(
-      context,
-      error.dialogTitle,
-      error.dialogMessage,
-      'close'.tr(),
-    );
-  }
-
-  static Future showClaimTokenError(
-    BuildContext context,
-    Object e, {
-    required FFSeries series,
-  }) async {
-    if (e is AirdropExpired) {
-      await showAirdropExpired(context, series.id);
-    } else if (e is DioException) {
-      final ffError = e.error as FeralfileError?;
-      final message = ffError != null
-          ? ffError.getDialogMessage(series: series)
-          : '${e.response?.data ?? e.message}';
-
-      await showErrorDialog(
-        context,
-        ffError?.getDialogTitle() ?? 'error'.tr(),
-        message,
-        'close'.tr(),
-      );
-    } else if (e is NoRemainingToken) {
-      await showNoRemainingAirdropToken(
-        context,
-        series: series,
-      );
-    }
-  }
-
-  static Future showFeralFileClaimTokenPassLimit(BuildContext context,
-      {required FFSeries series}) async {
-    final message = 'all_gifts_claimed_desc'.tr();
-    final dialogTitle = 'all_gifts_claimed'.tr();
-
-    await showErrorDialog(
-      context,
-      dialogTitle,
-      message,
-      'close'.tr(),
-    );
-  }
-
-  static Future showActivationError(
-      BuildContext context, Object e, String id) async {
-    if (e is AirdropExpired) {
-      await showAirdropExpired(context, id);
-    } else if (e is DioException) {
-      final ffError = e.error as FeralfileError?;
-      final message = ffError != null
-          ? ffError.dialogMessage
-          : '${e.response?.data ?? e.message}';
-
-      await showErrorDialog(
-        context,
-        ffError?.dialogMessage ?? 'error'.tr(),
-        message,
-        'close'.tr(),
-      );
-    } else if (e is NoRemainingToken) {
-      await showNoRemainingActivationToken(context, id: id);
-    }
-  }
-
   // MARK: - Connection
   static Widget buildConnectionAppWidget(Connection connection, double size) {
     switch (connection.connectionType) {
@@ -1540,22 +1380,6 @@ class UIHelper {
     }
   }
 
-  static Future<void> showAirdropClaimFailed(BuildContext context) async =>
-      await showErrorDialog(
-          context, 'airdrop_claim_failed'.tr(), '', 'close'.tr());
-
-  static Future<void> showAirdropAlreadyClaim(BuildContext context) async =>
-      await showErrorDialog(context, 'already_claimed'.tr(),
-          'already_claimed_desc'.tr(), 'close'.tr());
-
-  static Future<void> showAirdropJustOnce(BuildContext context) async =>
-      await showErrorDialog(
-          context, 'just_once'.tr(), 'just_once_desc'.tr(), 'close'.tr());
-
-  static Future<void> showAirdropCannotShare(BuildContext context) async =>
-      await showErrorDialog(context, 'already_claimed'.tr(),
-          'cannot_share_aridrop_desc'.tr(), 'close'.tr());
-
   static Future<void> showPostcardShareLinkExpired(BuildContext context) async {
     await UIHelper.showDialog(
       context,
@@ -1890,4 +1714,6 @@ class OptionItem {
     this.builder,
     this.separator,
   });
+
+  static OptionItem emptyOptionItem = OptionItem(title: '');
 }

@@ -9,7 +9,6 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
-import 'package:autonomy_flutter/service/airdrop_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:http/http.dart' as http;
@@ -24,7 +23,6 @@ class ArtworkDetailBloc extends AuBloc<ArtworkDetailEvent, ArtworkDetailState> {
   final ProvenanceDao _provenanceDao;
   final IndexerService _indexerService;
   final TokenDao _tokenDao;
-  final AirdropService _airdropService;
   final IndexerApi _indexerApi;
 
   ArtworkDetailBloc(
@@ -33,7 +31,6 @@ class ArtworkDetailBloc extends AuBloc<ArtworkDetailEvent, ArtworkDetailState> {
     this._provenanceDao,
     this._indexerService,
     this._tokenDao,
-    this._airdropService,
     this._indexerApi,
   ) : super(ArtworkDetailState(provenances: [])) {
     on<ArtworkDetailGetInfoEvent>((event, emit) async {
@@ -92,20 +89,7 @@ class ArtworkDetailBloc extends AuBloc<ArtworkDetailEvent, ArtworkDetailState> {
           }
         }
       }
-      if (assetToken != null && assetToken.isAirdropToken) {
-        add(ArtworkDetailGetAirdropDeeplink(assetToken: state.assetToken!));
-      }
       await _indexHistory(event.identity.id);
-    });
-    on<ArtworkDetailGetAirdropDeeplink>((event, emit) async {
-      String deeplink = '';
-      try {
-        deeplink = await _airdropService.shareAirdrop(event.assetToken) ?? '';
-      } catch (error) {
-        log.info('ArtworkDetailGetAirdropDeeplink: share airdrop error',
-            error.toString());
-      }
-      emit(state.copyWith(airdropDeeplink: deeplink));
     });
   }
 

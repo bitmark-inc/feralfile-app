@@ -1770,14 +1770,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "7.1.1"
-  marqueer:
-    dependency: "direct main"
-    description:
-      name: marqueer
-      sha256: "15dcb57f7b8cd621eba9c45761d6a7997135e6ac219dd420fede254f828b84dd"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.4.0"
   matcher:
     dependency: transitive
     description:
@@ -1886,8 +1878,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "103d9009bd87a5d95123c53dd0a0ee4da6bc3904"
-      resolved-ref: "103d9009bd87a5d95123c53dd0a0ee4da6bc3904"
+      ref: fe728879ea8fad6853e222826047728ba2eb5f98
+      resolved-ref: fe728879ea8fad6853e222826047728ba2eb5f98
       url: "https://github.com/autonomy-system/nft-collection"
     source: git
     version: "0.0.1"

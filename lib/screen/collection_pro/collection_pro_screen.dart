@@ -13,9 +13,11 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/playlists/list_playlists/list_playlists.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
 import 'package:autonomy_flutter/screen/predefined_collection/predefined_collection_screen.dart';
+import 'package:autonomy_flutter/screen/wallet/wallet_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/collection_ext.dart';
 import 'package:autonomy_flutter/util/medium_category_ext.dart';
 import 'package:autonomy_flutter/util/predefined_collection_ext.dart';
@@ -23,6 +25,7 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/galery_thumbnail_item.dart';
+import 'package:autonomy_flutter/view/get_started_banner.dart';
 import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/search_bar.dart';
 import 'package:collection/collection.dart';
@@ -58,11 +61,14 @@ class CollectionProState extends State<CollectionPro>
   List<PredefinedCollectionModel> _listPredefinedCollectionByMedium = [];
   List<CompactedAssetToken> _works = [];
   late bool _isLoaded;
+  late bool _showGetStartedBanner = false;
+  final _configurationService = injector<ConfigurationService>();
 
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
     _isLoaded = false;
+    _showGetStartedBanner = _configurationService.getShowAddAddressBanner();
     searchStr = ValueNotifier('');
     searchStr.addListener(() {
       loadCollection();
@@ -164,9 +170,11 @@ class CollectionProState extends State<CollectionPro>
                   });
                 },
                 builder: (context, identityState) {
-                  final isEmptyView = _isLoaded &&
-                      searchStr.value.isNotEmpty &&
-                      _isEmptyCollection();
+                  final isEmptyView = !_isLoaded ||
+                      (_isEmptyCollection() && searchStr.value.isEmpty);
+                  final isSearchEmptyView = _isLoaded &&
+                      _isEmptyCollection() &&
+                      searchStr.value.isNotEmpty;
                   return CustomScrollView(
                     controller: _scrollController,
                     shrinkWrap: true,
@@ -177,17 +185,18 @@ class CollectionProState extends State<CollectionPro>
                       SliverToBoxAdapter(
                         child: _pageHeader(context),
                       ),
-                      SliverToBoxAdapter(
-                        child: ValueListenableBuilder(
-                          valueListenable: searchStr,
-                          builder: (BuildContext context, String value,
-                                  Widget? child) =>
-                              CollectionSection(
-                            key: _collectionSectionKey,
-                            filterString: value,
+                      if (!isEmptyView)
+                        SliverToBoxAdapter(
+                          child: ValueListenableBuilder(
+                            valueListenable: searchStr,
+                            builder: (BuildContext context, String value,
+                                    Widget? child) =>
+                                CollectionSection(
+                              key: _collectionSectionKey,
+                              filterString: value,
+                            ),
                           ),
                         ),
-                      ),
                       if (isEmptyView) ...[
                         SliverToBoxAdapter(
                           child: Visibility(
@@ -196,6 +205,17 @@ class CollectionProState extends State<CollectionPro>
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 15),
                               child: _emptyView(context),
+                            ),
+                          ),
+                        ),
+                      ] else if (isSearchEmptyView) ...[
+                        SliverToBoxAdapter(
+                          child: Visibility(
+                            visible: isSearchEmptyView,
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 15),
+                              child: _searchEmptyView(context),
                             ),
                           ),
                         ),
@@ -261,12 +281,46 @@ class CollectionProState extends State<CollectionPro>
     return isEmpty;
   }
 
-  Widget _emptyView(BuildContext context) {
+  Widget _searchEmptyView(BuildContext context) {
     final theme = Theme.of(context);
     return Text(
       'no_results'.tr(),
       style: theme.textTheme.ppMori400White14,
     );
+  }
+
+  Widget _emptyView(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'see_your_collection'.tr(),
+          style: theme.textTheme.ppMori400White14,
+        ),
+        const SizedBox(height: 15),
+        if (_showGetStartedBanner)
+          GetStartedBanner(
+            onClose: () async {
+              await _hideGetStartedBanner();
+            },
+            title: 'add_collection_from_address'.tr(),
+            onGetStarted: _onGetStarted,
+          )
+      ],
+    );
+  }
+
+  Future<void> _hideGetStartedBanner() async {
+    setState(() {
+      _showGetStartedBanner = false;
+    });
+    await _configurationService.setShowPostcardBanner(false);
+  }
+
+  Future<void> _onGetStarted() async {
+    await Navigator.of(context).pushNamed(AppRouter.walletPage,
+        arguments: const WalletPagePayload(openAddAddress: true));
   }
 
   Widget _predefinedCollectionByArtistBuilder(BuildContext context, int index) {
@@ -286,11 +340,14 @@ class CollectionProState extends State<CollectionPro>
       return Padding(
         padding: padding,
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             HeaderView(title: 'works'.tr(), padding: EdgeInsets.zero),
             const SizedBox(
               height: 30,
             ),
+            if (searchStr.value.isNotEmpty && _works.isEmpty)
+              _searchEmptyView(context),
           ],
         ),
       );
@@ -334,6 +391,7 @@ class CollectionProState extends State<CollectionPro>
       return Padding(
         padding: padding,
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _predefinedCollectionHeader(
               context,
@@ -342,6 +400,10 @@ class CollectionProState extends State<CollectionPro>
             const SizedBox(
               height: 30,
             ),
+            if (searchStr.value.isNotEmpty &&
+                _listPredefinedCollectionByArtist.isEmpty &&
+                type == PredefinedCollectionType.artist)
+              _searchEmptyView(context)
           ],
         ),
       );
@@ -353,7 +415,7 @@ class CollectionProState extends State<CollectionPro>
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 15),
-              child: _predefinedCollectionitem(
+              child: _predefinedCollectionItem(
                   context, predefinedCollection, type, searchStr.value),
             ),
             sep,
@@ -363,7 +425,7 @@ class CollectionProState extends State<CollectionPro>
     }
   }
 
-  Widget _predefinedCollectionitem(
+  Widget _predefinedCollectionItem(
       BuildContext context,
       PredefinedCollectionModel predefinedCollection,
       PredefinedCollectionType type,
@@ -510,7 +572,7 @@ class CollectionProState extends State<CollectionPro>
 
   Widget _artworkItem(BuildContext context, CompactedAssetToken token) {
     final theme = Theme.of(context);
-    final title = token.title ?? '';
+    final title = token.displayTitle ?? '';
     final artistName = token.artistTitle ?? token.artistID ?? '';
     return GestureDetector(
       onTap: () async {
