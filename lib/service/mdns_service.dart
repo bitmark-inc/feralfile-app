@@ -5,13 +5,16 @@ import 'package:multicast_dns/multicast_dns.dart';
 class MDnsService {
   static const String _serviceType = '_feralFileCanvas._tcp';
   final MDnsClient _client;
+  bool _isStarted = false;
 
   MDnsService() : _client = MDnsClient();
 
   Future<List<CanvasDevice>> findCanvas() async {
     final devices = <CanvasDevice>[];
     log.info('[MDnsService] Looking for devices');
-    await _client.start();
+    if (!_isStarted) {
+      await start();
+    }
     await _client
         .lookup<PtrResourceRecord>(
       ResourceRecordQuery.serverPointer(_serviceType),
@@ -44,8 +47,12 @@ class MDnsService {
         }
       }
     });
-    await stop();
     return devices;
+  }
+
+  Future<void> start() async {
+    await _client.start();
+    _isStarted = true;
   }
 
   Future<void> stop() async {

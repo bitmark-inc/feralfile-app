@@ -9,7 +9,6 @@ import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_state.dart';
-import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
@@ -70,7 +69,6 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
   late CanvasDeviceBloc _canvasDeviceBloc;
   late SortOrder _sortOrder;
   late bool editable;
-  final _canvasClientServiceV2 = injector<CanvasClientServiceV2>();
 
   List<SortOrder> _getAvailableOrders() {
     switch (widget.payload.collectionType) {
@@ -577,9 +575,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
   }
 
   Future<void> _fetchDevice() async {
-    _canvasDeviceBloc.add(CanvasDeviceGetDevicesEvent(
-        widget.payload.playListModel?.id ?? '',
-        syncAll: false));
+    _canvasDeviceBloc.add(CanvasDeviceGetDevicesEvent());
   }
 }
 
