@@ -248,7 +248,9 @@ class CanvasClientServiceV2 {
       try {
         final status = await getDeviceCastingStatus(device);
         devices.add(Pair(device, status));
-      } catch (_) {}
+      } catch (e) {
+        log.info('CanvasClientService: Caught error: $e');
+      }
     });
     return devices;
   }

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui' as ui;
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -76,7 +77,7 @@ class _PlaylistControlState extends State<PlaylistControl> {
   @override
   void initState() {
     super.initState();
-    _canvasDeviceBloc = context.read<CanvasDeviceBloc>();
+    _canvasDeviceBloc = injector.get<CanvasDeviceBloc>();
     final castingDuration = _canvasDeviceBloc.state.castingSpeed;
     final index = castingDuration != null
         ? speedValues.values.toList().indexOf(castingDuration)

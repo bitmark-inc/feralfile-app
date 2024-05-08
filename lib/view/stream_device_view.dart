@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -29,7 +30,7 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
   @override
   void initState() {
     super.initState();
-    _canvasDeviceBloc = context.read<CanvasDeviceBloc>();
+    _canvasDeviceBloc = injector.get<CanvasDeviceBloc>();
     unawaited(_fetchDevice());
   }
 

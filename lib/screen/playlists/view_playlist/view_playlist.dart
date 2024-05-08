@@ -104,7 +104,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
       debugTokenIds: isDemo ? widget.payload.playListModel?.tokenIDs : [],
     ));
 
-    _canvasDeviceBloc = context.read<CanvasDeviceBloc>();
+    _canvasDeviceBloc = injector.get<CanvasDeviceBloc>();
     unawaited(_fetchDevice());
     bloc.add(GetPlayList(playListModel: widget.payload.playListModel));
   }

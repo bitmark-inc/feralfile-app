@@ -2,10 +2,11 @@ import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/service/canvas_client_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
-import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:collection/collection.dart';
 import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:rxdart/transformers.dart';
 import 'package:web3dart/json_rpc.dart';
 
 abstract class CanvasDeviceEvent {}
@@ -209,6 +210,9 @@ enum DeviceStatus {
   error,
 }
 
+EventTransformer<Event> debounceSequential<Event>(Duration duration) =>
+    (events, mapper) => events.debounceTime(duration).asyncExpand(mapper);
+
 class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
   final CanvasClientService _canvasClientService;
   final CanvasClientServiceV2 _canvasClientServiceV2;
@@ -216,8 +220,8 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
   // constructor
   CanvasDeviceBloc(this._canvasClientService, this._canvasClientServiceV2)
       : super(CanvasDeviceState(devices: [])) {
-    on<CanvasDeviceGetDevicesEvent>((event, emit) async {
-      withDebounce(() async {
+    on<CanvasDeviceGetDevicesEvent>(
+      (event, emit) async {
         emit(state.copyWith(
             devices: state.devices, isLoaded: state.devices.isNotEmpty));
         final devices = await _canvasClientServiceV2.scanDevices();
@@ -225,7 +229,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
         final thisDevice = _canvasClientServiceV2.clientDeviceInfo;
         final Map<String, CheckDeviceStatusReply> controllingDeviceStatus = {};
         for (final device in devices) {
-          if (device.first.id == thisDevice.deviceId) {
+          if (device.second.connectedDevice.deviceId == thisDevice.deviceId) {
             controllingDeviceStatus[device.first.id] = device.second;
             break;
           }
@@ -235,8 +239,9 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
             controllingDeviceStatus: controllingDeviceStatus,
             isLoaded: true);
         emit(newState);
-      }, debounceTime: const Duration(seconds: 5).inMilliseconds);
-    });
+      },
+      transformer: debounceSequential(const Duration(seconds: 5)),
+    );
 
     on<CanvasDeviceAddEvent>((event, emit) async {
       final newState = state.copyWith(

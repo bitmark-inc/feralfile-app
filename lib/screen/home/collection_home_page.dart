@@ -91,7 +91,7 @@ class CollectionHomePageState extends State<CollectionHomePage>
     _controller = ScrollController()..addListener(_scrollListenerToLoadMore);
     unawaited(_configurationService.setAutoShowPostcard(true));
     context.read<HomeBloc>().add(CheckReviewAppEvent());
-    _canvasDeviceBloc = context.read<CanvasDeviceBloc>();
+    _canvasDeviceBloc = injector.get<CanvasDeviceBloc>();
     unawaited(injector<IAPService>().setup());
   }
 
