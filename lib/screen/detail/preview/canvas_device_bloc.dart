@@ -219,7 +219,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
     on<CanvasDeviceGetDevicesEvent>((event, emit) async {
       emit(state.copyWith(
           devices: state.devices, isLoaded: state.devices.isNotEmpty));
-      final devices = await _canvasClientService.scanDevices();
+      final devices = await _canvasClientServiceV2.scanDevices();
 
       final newState = state.copyWith(
           devices: devices.map((e) => DeviceState(device: e)).toList(),

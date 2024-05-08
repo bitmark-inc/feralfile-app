@@ -6,7 +6,6 @@ import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/mdns_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart' as my_device;
@@ -29,7 +28,6 @@ class CanvasClientService {
   final _connectDevice = Lock();
   final AccountService _accountService = injector<AccountService>();
   final NavigationService _navigationService = injector<NavigationService>();
-  final MDnsService _mdnsService = MDnsService();
 
   Offset currentCursorOffset = Offset.zero;
 
@@ -44,7 +42,6 @@ class CanvasClientService {
     _deviceName = await device.getMachineName() ?? 'Autonomy App';
     final account = await _accountService.getDefaultAccount();
     _deviceId = await account.getAccountDID();
-    await _mdnsService.start();
     _didInitialized = true;
   }
 
@@ -149,12 +146,8 @@ class CanvasClientService {
 
   Future<List<CanvasDevice>> _findRawDevices() async {
     final devices = <CanvasDevice>[];
-    final discoverDevices = await _mdnsService.findCanvas();
     final localDevices = await _db.canvasDeviceDao.getCanvasDevices();
-    localDevices.removeWhere((l) => discoverDevices.any((d) => d.ip == l.ip));
-    devices
-      ..addAll(discoverDevices)
-      ..addAll(await refreshDevices(localDevices));
+    devices.addAll(await refreshDevices(localDevices));
     return devices;
   }
 

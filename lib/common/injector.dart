@@ -55,6 +55,7 @@ import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/hive_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
+import 'package:autonomy_flutter/service/mdns_service.dart';
 import 'package:autonomy_flutter/service/merchandise_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
@@ -324,8 +325,10 @@ Future<void> setup() async {
 
   injector.registerLazySingleton<CanvasClientService>(
       () => CanvasClientService(injector()));
+  injector.registerLazySingleton<MDnsService>(() => MDnsService());
   injector.registerLazySingleton<CanvasClientServiceV2>(
-      () => CanvasClientServiceV2());
+      () => CanvasClientServiceV2(injector(), injector()));
+
 
   injector.registerLazySingleton<PostcardService>(
     () => PostcardServiceImpl(
