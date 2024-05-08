@@ -2,6 +2,7 @@ import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/service/canvas_client_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
+import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:collection/collection.dart';
 import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
@@ -216,30 +217,25 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
   CanvasDeviceBloc(this._canvasClientService, this._canvasClientServiceV2)
       : super(CanvasDeviceState(devices: [])) {
     on<CanvasDeviceGetDevicesEvent>((event, emit) async {
-      emit(state.copyWith(
-          devices: state.devices, isLoaded: state.devices.isNotEmpty));
-      final devices = await _canvasClientServiceV2.scanDevices();
+      withDebounce(() async {
+        emit(state.copyWith(
+            devices: state.devices, isLoaded: state.devices.isNotEmpty));
+        final devices = await _canvasClientServiceV2.scanDevices();
 
-      final thisDevice = _canvasClientServiceV2.clientDeviceInfo;
-      final Map<String, CheckDeviceStatusReply> controllingDeviceStatus = {};
-      for (final device in devices) {
-        if (device.first.id == thisDevice.deviceId) {
-          controllingDeviceStatus[device.first.id] = device.second;
-          break;
+        final thisDevice = _canvasClientServiceV2.clientDeviceInfo;
+        final Map<String, CheckDeviceStatusReply> controllingDeviceStatus = {};
+        for (final device in devices) {
+          if (device.first.id == thisDevice.deviceId) {
+            controllingDeviceStatus[device.first.id] = device.second;
+            break;
+          }
         }
-      }
-      final Map<String, CheckDeviceStatusReply>? firstControllingDevice =
-          controllingDeviceStatus.isNotEmpty
-              ? {
-                  controllingDeviceStatus.keys.first:
-                      controllingDeviceStatus.values.first
-                }
-              : null;
-      final newState = state.copyWith(
-          devices: devices.map((e) => DeviceState(device: e.first)).toList(),
-          controllingDeviceStatus: firstControllingDevice,
-          isLoaded: true);
-      emit(newState);
+        final newState = state.copyWith(
+            devices: devices.map((e) => DeviceState(device: e.first)).toList(),
+            controllingDeviceStatus: controllingDeviceStatus,
+            isLoaded: true);
+        emit(newState);
+      }, debounceTime: const Duration(seconds: 5).inMilliseconds);
     });
 
     on<CanvasDeviceAddEvent>((event, emit) async {
@@ -439,18 +435,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
     });
 
     on<CanvasDeviceChangeControllDeviceEvent>((event, emit) async {
-      final newCanvas = event.newDevice;
-      try {
-        final canvasStatus =
-            await _canvasClientServiceV2.getDeviceCastingStatus(newCanvas);
-        if (canvasStatus.connectedDevice.deviceId ==
-            _canvasClientServiceV2.clientDeviceInfo.deviceId) {
-          emit(state
-              .copyWith(controllingDeviceStatus: {newCanvas.id: canvasStatus}));
-        } else {
-          add(CanvasDeviceCastListArtworkEvent(newCanvas, event.artwork));
-        }
-      } catch (_) {}
+      add(CanvasDeviceCastListArtworkEvent(event.newDevice, event.artwork));
     });
 
     on<CanvasDeviceUpdateDurationEvent>((event, emit) async {

@@ -2,13 +2,16 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/collection_ext.dart';
+import 'package:autonomy_flutter/view/stream_common_widget.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
+import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter/material.dart';
 
 class ListPlaylistsScreen extends StatefulWidget {
@@ -85,11 +88,30 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
                   final item = playlists[index];
                   return PlaylistItem(
                     playlist: item,
-                    onSelected: () async => Navigator.pushNamed(
-                      context,
-                      AppRouter.viewPlayListPage,
-                      arguments: ViewPlaylistScreenPayload(playListModel: item),
-                    ),
+                    onSelected: () async {
+                      Navigator.pushNamed(
+                        context,
+                        AppRouter.viewPlayListPage,
+                        arguments:
+                            ViewPlaylistScreenPayload(playListModel: item),
+                      );
+                      final tokenIds = item.tokenIDs;
+                      if (tokenIds != null && tokenIds.isNotEmpty) {
+                        final _bloc = injector.get<CanvasDeviceBloc>();
+                        final controllingDevice = _bloc.state.controllingDevice;
+                        if (controllingDevice != null) {
+                          final duration = speedValues.values.first;
+                          final List<PlayArtworkV2> castArtworks = tokenIds
+                              .map((e) => PlayArtworkV2(
+                                    token: CastAssetToken(id: e),
+                                    duration: duration.inMilliseconds,
+                                  ))
+                              .toList();
+                          _bloc.add(CanvasDeviceChangeControllDeviceEvent(
+                              controllingDevice, castArtworks));
+                        }
+                      }
+                    },
                   );
                 },
                 separatorBuilder: (context, index) => const SizedBox(width: 10),
