@@ -383,6 +383,6 @@ Future<void> setup() async {
   injector.registerFactory<IdentityBloc>(
       () => IdentityBloc(injector(), injector()));
   injector.registerFactory<AuChatBloc>(() => AuChatBloc(injector()));
-  injector.registerFactory<CanvasDeviceBloc>(
-      () => CanvasDeviceBloc(injector(), injector()));
+  final canvasDeviceBloc = CanvasDeviceBloc(injector(), injector());
+  injector.registerFactory<CanvasDeviceBloc>(() => canvasDeviceBloc);
 }

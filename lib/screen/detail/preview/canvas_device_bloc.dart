@@ -13,6 +13,8 @@ class CanvasDeviceGetDevicesEvent extends CanvasDeviceEvent {
   CanvasDeviceGetDevicesEvent();
 }
 
+class CanvasDeviceGetControllingStatusEvent extends CanvasDeviceEvent {}
+
 class CanvasDeviceAddEvent extends CanvasDeviceEvent {
   final DeviceState device;
 
@@ -151,11 +153,12 @@ class CanvasDeviceState {
           false)
       ?.device;
 
-  List<CanvasDevice> get playingDevice => [];
+  bool isDeviceControlling(CanvasDevice device) {
+    return controllingDeviceStatus?.keys.contains(device.id) ?? false;
+  }
 
-  CanvasDevice? get connectingDevice => devices
-      .firstWhereOrNull((deviceState) => deviceState.device.isConnecting)
-      ?.device;
+  List<DeviceState> get controllingDevices =>
+      devices.where((element) => isDeviceControlling(element.device)).toList();
 
   bool get isCasting => devices.any((element) =>
       element.device == controllingDevice && element.isPlaying == true);
@@ -201,14 +204,26 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
   CanvasDeviceBloc(this._canvasClientService, this._canvasClientServiceV2)
       : super(CanvasDeviceState(devices: [])) {
     on<CanvasDeviceGetDevicesEvent>((event, emit) async {
-      emit(CanvasDeviceState(
+      emit(state.copyWith(
           devices: state.devices, isLoaded: state.devices.isNotEmpty));
       final devices = await _canvasClientService.scanDevices();
-      emit(
-        state.copyWith(
-            devices: devices.map((e) => DeviceState(device: e)).toList(),
-            isLoaded: true),
-      );
+
+      final newState = state.copyWith(
+          devices: devices.map((e) => DeviceState(device: e)).toList(),
+          isLoaded: true);
+      emit(newState);
+      Map<String, CheckDeviceStatusReply> controllingDeviceStatus = {};
+      final thisDevice = _canvasClientServiceV2.clientDeviceInfo;
+      await Future.forEach<CanvasDevice>(devices, (device) async {
+        try {
+          final status =
+          await _canvasClientServiceV2.getDeviceCastingStatus(device);
+          if (thisDevice.deviceId == status.connectedDevice.deviceId) {
+            controllingDeviceStatus[device.id] = status;
+          }
+        } catch (_) {}
+      });
+      emit(newState.copyWith(controllingDeviceStatus: controllingDeviceStatus));
     });
 
     on<CanvasDeviceAddEvent>((event, emit) async {

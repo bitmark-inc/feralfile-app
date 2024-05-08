@@ -241,7 +241,8 @@ class AppRouter {
       injector<AuditService>(),
     );
     final identityBloc = IdentityBloc(injector<AppDatabase>(), injector());
-    final canvasDeviceBloc = CanvasDeviceBloc(injector(), injector());
+    final canvasDeviceBloc =
+        injector<CanvasDeviceBloc>(); //(injector(), injector());
 
     final postcardDetailBloc = PostcardDetailBloc(
       injector(),
@@ -350,6 +351,7 @@ class AppRouter {
                     BlocProvider(
                       create: (_) => personaBloc,
                     ),
+                    BlocProvider(create: (_) => canvasDeviceBloc),
                   ],
                   child: HomeNavigationPage(
                       key: homePageNoTransactionKey,
@@ -373,6 +375,7 @@ class AppRouter {
                     BlocProvider(
                       create: (_) => personaBloc,
                     ),
+                    BlocProvider(create: (_) => canvasDeviceBloc),
                   ],
                   child: HomeNavigationPage(
                     key: homePageKey,
