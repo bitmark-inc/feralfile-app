@@ -27,6 +27,7 @@ import 'package:autonomy_flutter/view/au_radio_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/cast_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_flutter/view/stream_common_widget.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
@@ -389,7 +390,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                     log.info('Playlist tokenIds is null');
                     return;
                   }
-                  final duration = Duration(seconds: 10).inMilliseconds;
+                  final duration = speedValues.values.first.inMilliseconds;
                   final listPlayArtwork = listTokenIds
                       .map((e) => PlayArtworkV2(
                           token: CastAssetToken(id: e), duration: duration))

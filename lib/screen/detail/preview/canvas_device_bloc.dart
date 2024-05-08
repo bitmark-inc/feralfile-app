@@ -151,6 +151,18 @@ class CanvasDeviceState {
     return copyWith(devices: newDeviceState);
   }
 
+  Duration? get castingSpeed {
+    final controllingDevice = controllingDeviceStatus?.keys.first;
+    if (controllingDevice == null) {
+      return null;
+    }
+    final status = controllingDeviceStatus![controllingDevice];
+    if (status == null) {
+      return null;
+    }
+    return Duration(milliseconds: status.artworks.first.duration);
+  }
+
   CanvasDevice? get controllingDevice => devices
       .firstWhereOrNull((deviceState) =>
           controllingDeviceStatus?.keys.contains(deviceState.device.id) ??
@@ -446,15 +458,37 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
       final device = event.device;
       final artworks = event.artwork;
       try {
-        await _canvasClientServiceV2.updateDuration(device, artworks);
+        final response =
+            await _canvasClientServiceV2.updateDuration(device, artworks);
         final currentDeviceState = state.devices
             .firstWhereOrNull((element) => element.device.id == device.id);
         if (currentDeviceState == null) {
           throw Exception('Device not found');
         }
-        emit(state.replaceDeviceState(
-            device: device,
-            deviceState: currentDeviceState.copyWith(isPlaying: true)));
+        final controllingStatus = state.controllingDeviceStatus?[device.id];
+        if (controllingStatus == null) {
+          throw Exception('Device not found');
+        }
+        final newControllingStatus = CheckDeviceStatusReply();
+        newControllingStatus.artworks.clear();
+        newControllingStatus.artworks.addAll(artworks);
+        newControllingStatus.startTime = response.startTime;
+        newControllingStatus.connectedDevice =
+            controllingStatus.connectedDevice;
+
+        final controllingDeviceStatus =
+            state.controllingDeviceStatus?.map((key, value) {
+          if (key == device.id) {
+            return MapEntry(key, newControllingStatus);
+          }
+          return MapEntry(key, value);
+        });
+
+        emit(state
+            .copyWith(controllingDeviceStatus: controllingDeviceStatus)
+            .replaceDeviceState(
+                device: device,
+                deviceState: currentDeviceState.copyWith(isPlaying: true)));
       } catch (_) {}
     });
   }
