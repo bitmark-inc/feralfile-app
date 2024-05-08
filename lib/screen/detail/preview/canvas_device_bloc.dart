@@ -70,6 +70,13 @@ class CanvasDeviceCastListArtworkEvent extends CanvasDeviceEvent {
   CanvasDeviceCastListArtworkEvent(this.device, this.artwork);
 }
 
+class CanvasDeviceChangeControllDeviceEvent extends CanvasDeviceEvent {
+  final CanvasDevice newDevice;
+  final List<PlayArtworkV2> artwork;
+
+  CanvasDeviceChangeControllDeviceEvent(this.newDevice, this.artwork);
+}
+
 class CanvasDeviceCancelCastingEvent extends CanvasDeviceEvent {
   final CanvasDevice device;
 
@@ -105,12 +112,6 @@ class CanvasDeviceUpdateDurationEvent extends CanvasDeviceEvent {
   final List<PlayArtworkV2> artwork;
 
   CanvasDeviceUpdateDurationEvent(this.device, this.artwork);
-}
-
-class CanvasDeviceChangeDeviceEvent extends CanvasDeviceEvent {
-  final CanvasDevice device;
-
-  CanvasDeviceChangeDeviceEvent(this.device);
 }
 
 class CanvasDeviceState {
@@ -241,7 +242,12 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
           }
         } catch (_) {}
       });
-      emit(newState.copyWith(controllingDeviceStatus: controllingDeviceStatus));
+
+      final Map<String, CheckDeviceStatusReply> firstControllingDevice = {
+        controllingDeviceStatus.keys.first: controllingDeviceStatus.values.first
+      };
+
+      emit(newState.copyWith(controllingDeviceStatus: firstControllingDevice));
     });
 
     on<CanvasDeviceAddEvent>((event, emit) async {
@@ -443,14 +449,18 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
       } catch (_) {}
     });
 
-    on<CanvasDeviceChangeDeviceEvent>((event, emit) async {
-      final newCanvas = event.device;
+    on<CanvasDeviceChangeControllDeviceEvent>((event, emit) async {
+      final newCanvas = event.newDevice;
       try {
         final canvasStatus =
             await _canvasClientServiceV2.getDeviceCastingStatus(newCanvas);
-        emit(state.copyWith(
-          controllingDeviceStatus: {newCanvas.id: canvasStatus},
-        ));
+        if (canvasStatus.connectedDevice.deviceId ==
+            _canvasClientServiceV2.clientDeviceInfo.deviceId) {
+          emit(state
+              .copyWith(controllingDeviceStatus: {newCanvas.id: canvasStatus}));
+        } else {
+          add(CanvasDeviceCastListArtworkEvent(newCanvas, event.artwork));
+        }
       } catch (_) {}
     });
 
