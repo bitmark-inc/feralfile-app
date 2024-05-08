@@ -51,6 +51,9 @@ class MDnsService {
   }
 
   Future<void> start() async {
+    if (_isStarted) {
+      return;
+    }
     await _client.start();
     _isStarted = true;
   }
