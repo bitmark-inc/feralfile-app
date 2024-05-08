@@ -87,7 +87,7 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
                 itemCount: devices.length,
                 itemBuilder: (BuildContext context, int index) {
                   final device = devices[index].device;
-                  final isConnected = device.id == connectedDevice?.device.id;
+                  final isControlling = state.isDeviceControlling(device);
                   return Column(
                     children: [
                       Builder(
@@ -100,7 +100,7 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
                               }),
                           backgroundColor: connectedDevice == null
                               ? AppColor.white
-                              : isConnected
+                              : isControlling
                                   ? AppColor.feralFileLightBlue
                                   : AppColor.disabledColor,
                         ),

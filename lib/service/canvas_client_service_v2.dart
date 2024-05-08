@@ -75,6 +75,7 @@ class CanvasClientServiceV2 {
       request,
       options: _callOptions,
     );
+    final deviceInfo = response.connectedDevice.deviceName;
     return response;
   }
 
@@ -143,7 +144,7 @@ class CanvasClientServiceV2 {
   Future<bool> castListArtwork(
       CanvasDevice device, List<PlayArtworkV2> artworks) async {
     try {
-      // await connect(device);
+      await connect(device);
       final stub = _getStub(device);
       final castRequest = CastListArtworkRequest()..artworks.addAll(artworks);
 

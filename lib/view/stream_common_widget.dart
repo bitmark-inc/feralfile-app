@@ -263,7 +263,7 @@ class _PlaylistControlState extends State<PlaylistControl> {
                         }
                         _timer?.cancel();
                         _timer = Timer(
-                          const Duration(seconds: 300),
+                          const Duration(milliseconds: 300),
                           () {
                             changeSpeed(speedValues[
                                 speedTitles[_currentSliderValue.round()]]!);
