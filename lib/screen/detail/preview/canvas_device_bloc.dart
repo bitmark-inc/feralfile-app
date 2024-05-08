@@ -166,9 +166,8 @@ class CanvasDeviceState {
           false)
       ?.device;
 
-  bool isDeviceControlling(CanvasDevice device) {
-    return controllingDeviceStatus?.keys.contains(device.id) ?? false;
-  }
+  bool isDeviceControlling(CanvasDevice device) =>
+      controllingDeviceStatus?.keys.contains(device.id) ?? false;
 
   List<DeviceState> get controllingDevices =>
       devices.where((element) => isDeviceControlling(element.device)).toList();
@@ -221,27 +220,26 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
           devices: state.devices, isLoaded: state.devices.isNotEmpty));
       final devices = await _canvasClientServiceV2.scanDevices();
 
+      final thisDevice = _canvasClientServiceV2.clientDeviceInfo;
+      final Map<String, CheckDeviceStatusReply> controllingDeviceStatus = {};
+      for (final device in devices) {
+        if (device.first.id == thisDevice.deviceId) {
+          controllingDeviceStatus[device.first.id] = device.second;
+          break;
+        }
+      }
+      final Map<String, CheckDeviceStatusReply>? firstControllingDevice =
+          controllingDeviceStatus.isNotEmpty
+              ? {
+                  controllingDeviceStatus.keys.first:
+                      controllingDeviceStatus.values.first
+                }
+              : null;
       final newState = state.copyWith(
-          devices: devices.map((e) => DeviceState(device: e)).toList(),
+          devices: devices.map((e) => DeviceState(device: e.first)).toList(),
+          controllingDeviceStatus: firstControllingDevice,
           isLoaded: true);
       emit(newState);
-      Map<String, CheckDeviceStatusReply> controllingDeviceStatus = {};
-      final thisDevice = _canvasClientServiceV2.clientDeviceInfo;
-      await Future.forEach<CanvasDevice>(devices, (device) async {
-        try {
-          final status =
-          await _canvasClientServiceV2.getDeviceCastingStatus(device);
-          if (thisDevice.deviceId == status.connectedDevice.deviceId) {
-            controllingDeviceStatus[device.id] = status;
-          }
-        } catch (_) {}
-      });
-
-      final Map<String, CheckDeviceStatusReply> firstControllingDevice = {
-        controllingDeviceStatus.keys.first: controllingDeviceStatus.values.first
-      };
-
-      emit(newState.copyWith(controllingDeviceStatus: firstControllingDevice));
     });
 
     on<CanvasDeviceAddEvent>((event, emit) async {
@@ -249,9 +247,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
           devices: state.devices
             ..removeWhere(
                 (element) => element.device.id == event.device.device.id)
-            ..add(DeviceState(
-                device: event.device.device,
-                isPlaying: false)));
+            ..add(DeviceState(device: event.device.device, isPlaying: false)));
       emit(newState);
     });
 
@@ -475,9 +471,9 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
         final newControllingStatus = CheckDeviceStatusReply();
         newControllingStatus.artworks.clear();
         newControllingStatus.artworks.addAll(artworks);
-        newControllingStatus.startTime = response.startTime;
-        newControllingStatus.connectedDevice =
-            controllingStatus.connectedDevice;
+        newControllingStatus
+          ..startTime = response.startTime
+          ..connectedDevice = controllingStatus.connectedDevice;
 
         final controllingDeviceStatus =
             state.controllingDeviceStatus?.map((key, value) {
