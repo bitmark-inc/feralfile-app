@@ -30,7 +30,6 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -136,8 +135,6 @@ class PendingTokenWidget extends StatelessWidget {
   }
 }
 
-final Map<String, Future<bool>> _cachingStates = {};
-
 Widget tokenGalleryThumbnailWidget(
   BuildContext context,
   CompactedAssetToken token,
@@ -158,18 +155,6 @@ Widget tokenGalleryThumbnailWidget(
   }
 
   final ext = p.extension(thumbnailUrl);
-
-  final cacheManager = injector<CacheManager>();
-
-  Future<bool> cachingState = _cachingStates[thumbnailUrl] ??
-      // ignore: discarded_futures
-      cacheManager.store.retrieveCacheData(thumbnailUrl).then((cachedObject) {
-        final cached = cachedObject != null;
-        if (cached) {
-          _cachingStates[thumbnailUrl] = Future.value(true);
-        }
-        return cached;
-      });
 
   return Semantics(
     label: 'gallery_artwork_${token.id}',
@@ -195,13 +180,8 @@ Widget tokenGalleryThumbnailWidget(
                 if (loadingProgress == null) {
                   return child;
                 }
-                return FutureBuilder<bool>(
-                    future: cachingState,
-                    builder: (context, snapshot) =>
-                        galleryThumbnailPlaceholder ??
-                        GalleryThumbnailPlaceholder(
-                          loading: !(snapshot.data ?? true),
-                        ));
+                return galleryThumbnailPlaceholder ??
+                    const GalleryThumbnailPlaceholder();
               },
               errorBuilder: (context, url, error) => Image.network(
                 token.getGalleryThumbnailUrl(usingThumbnailID: false) ?? '',
@@ -212,13 +192,8 @@ Widget tokenGalleryThumbnailWidget(
                   if (loadingProgress == null) {
                     return child;
                   }
-                  return FutureBuilder<bool>(
-                      future: cachingState,
-                      builder: (context, snapshot) =>
-                          galleryThumbnailPlaceholder ??
-                          GalleryThumbnailPlaceholder(
-                            loading: !(snapshot.data ?? true),
-                          ));
+                  return galleryThumbnailPlaceholder ??
+                      const GalleryThumbnailPlaceholder();
                 },
                 errorBuilder: (context, url, error) =>
                     const GalleryThumbnailErrorWidget(),
@@ -441,7 +416,6 @@ INFTRenderingWidget buildRenderingWidget(
       thumbnailURL: assetToken.getGalleryThumbnailUrl(usingThumbnailID: false),
       loadingWidget: loadingWidget ?? previewPlaceholder(),
       errorWidget: BrokenTokenWidget(token: assetToken),
-      cacheManager: injector<CacheManager>(),
       onLoaded: onLoaded,
       onDispose: onDispose,
       overriddenHtml: overriddenHtml,
@@ -471,7 +445,6 @@ INFTRenderingWidget buildFeralfileRenderingWidget(
     ..setRenderWidgetBuilder(RenderingWidgetBuilder(
       previewURL: attempt == null ? previewURL : '$previewURL?t=$attempt',
       thumbnailURL: thumbnailURL,
-      cacheManager: injector<CacheManager>(),
       loadingWidget: loadingWidget ?? previewPlaceholder(),
       onLoaded: onLoaded,
       onDispose: onDispose,

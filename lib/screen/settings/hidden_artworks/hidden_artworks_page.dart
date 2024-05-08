@@ -18,12 +18,10 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:nft_rendering/nft_rendering.dart';
@@ -163,21 +161,22 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
                                   unsupportWidgetBuilder: (context) =>
                                       const GalleryUnSupportThumbnailWidget(),
                                 )
-                              : CachedNetworkImage(
-                                  imageUrl: thumbnailUrl,
+                              : Image.network(
+                                  thumbnailUrl,
                                   width: double.infinity,
                                   height: double.infinity,
                                   fit: BoxFit.cover,
-                                  memCacheHeight: _cachedImageSize,
-                                  memCacheWidth: _cachedImageSize,
-                                  cacheManager: injector<CacheManager>(),
-                                  placeholder: (context, index) =>
-                                      const GalleryThumbnailPlaceholder(),
-                                  errorWidget: (context, url, error) =>
+                                  cacheHeight: _cachedImageSize,
+                                  cacheWidth: _cachedImageSize,
+                                  loadingBuilder:
+                                      (context, child, loadingProgress) {
+                                    if (loadingProgress == null) {
+                                      return child;
+                                    }
+                                    return const GalleryThumbnailPlaceholder();
+                                  },
+                                  errorBuilder: (context, url, error) =>
                                       const GalleryThumbnailErrorWidget(),
-                                  placeholderFadeInDuration: const Duration(
-                                    milliseconds: 300,
-                                  ),
                                 ),
                         ),
                       ClipRRect(
@@ -200,7 +199,7 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
                     unawaited(injector<SettingsDataService>().backup());
                     NftCollectionBloc.eventController.add(ReloadEvent());
 
-                    if (!mounted) {
+                    if (!context.mounted) {
                       return;
                     }
                     unawaited(UIHelper.showHideArtworkResultDialog(

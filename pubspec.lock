@@ -714,7 +714,7 @@ packages:
     source: hosted
     version: "7.0.2"
   flutter_cache_manager:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: flutter_cache_manager
       sha256: "8207f27539deb83732fdda03e259349046a39a4c767269285f449ade355d54ba"
@@ -1871,8 +1871,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "303298c9da8010b4892b5b0163cb201501b5ac9e"
-      resolved-ref: "303298c9da8010b4892b5b0163cb201501b5ac9e"
+      ref: ff5cab8e8d882a7e37d74a641d285f261181e6d6
+      resolved-ref: ff5cab8e8d882a7e37d74a641d285f261181e6d6
       url: "https://github.com/autonomy-system/nft-rendering.git"
     source: git
     version: "1.0.9"

@@ -3,7 +3,6 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
@@ -49,8 +48,8 @@ class _AddEthereumChainPageState extends State<AddEthereumChainPage> {
                         style: textStyles),
                     const SizedBox(height: 10),
                     if (params.iconUrls != null && params.iconUrls!.isNotEmpty)
-                      CachedNetworkImage(
-                        imageUrl: params.iconUrls!.first,
+                      Image.network(
+                        params.iconUrls!.first,
                         width: 64,
                         height: 64,
                       ),
