@@ -10,11 +10,7 @@ import 'package:web3dart/json_rpc.dart';
 abstract class CanvasDeviceEvent {}
 
 class CanvasDeviceGetDevicesEvent extends CanvasDeviceEvent {
-  final String sceneId;
-  final bool syncAll;
-
-  // constructor
-  CanvasDeviceGetDevicesEvent(this.sceneId, {this.syncAll = true});
+  CanvasDeviceGetDevicesEvent();
 }
 
 class CanvasDeviceAddEvent extends CanvasDeviceEvent {
@@ -222,7 +218,6 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
                 (element) => element.device.id == event.device.device.id)
             ..add(DeviceState(
                 device: event.device.device,
-                duration: null,
                 isPlaying: false)));
       emit(newState);
     });

@@ -34,7 +34,7 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
   }
 
   Future<void> _fetchDevice() async {
-    _canvasDeviceBloc.add(CanvasDeviceGetDevicesEvent(''));
+    _canvasDeviceBloc.add(CanvasDeviceGetDevicesEvent());
   }
 
   @override

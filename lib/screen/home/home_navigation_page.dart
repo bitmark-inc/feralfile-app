@@ -290,7 +290,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         create: (_) => CanvasDeviceBloc(
           injector(),
           injector(),
-        )..add(CanvasDeviceGetDevicesEvent('')),
+        )..add(CanvasDeviceGetDevicesEvent()),
         child: CollectionHomePage(key: _collectionHomePageKey),
       ),
       OrganizeHomePage(key: _organizeHomePageKey),
