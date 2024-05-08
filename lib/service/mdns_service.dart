@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/model/shared_postcard.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:multicast_dns/multicast_dns.dart';
@@ -47,6 +48,9 @@ class MDnsService {
         }
       }
     });
+    devices
+      ..unique((device) => device.id)
+      ..unique((device) => device.ip);
     return devices;
   }
 
