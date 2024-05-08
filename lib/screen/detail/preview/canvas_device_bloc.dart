@@ -66,6 +66,13 @@ class CanvasDeviceCastListArtworkEvent extends CanvasDeviceEvent {
   CanvasDeviceCastListArtworkEvent(this.device, this.artwork);
 }
 
+class CanvasDeviceChangeControllDeviceEvent extends CanvasDeviceEvent {
+  final CanvasDevice newDevice;
+  final List<PlayArtworkV2> artwork;
+
+  CanvasDeviceChangeControllDeviceEvent(this.newDevice, this.artwork);
+}
+
 class CanvasDeviceCancelCastingEvent extends CanvasDeviceEvent {
   final CanvasDevice device;
 
@@ -101,12 +108,6 @@ class CanvasDeviceUpdateDurationEvent extends CanvasDeviceEvent {
   final List<PlayArtworkV2> artwork;
 
   CanvasDeviceUpdateDurationEvent(this.device, this.artwork);
-}
-
-class CanvasDeviceChangeDeviceEvent extends CanvasDeviceEvent {
-  final CanvasDevice device;
-
-  CanvasDeviceChangeDeviceEvent(this.device);
 }
 
 class CanvasDeviceState {
@@ -145,6 +146,18 @@ class CanvasDeviceState {
       return e;
     }).toList();
     return copyWith(devices: newDeviceState);
+  }
+
+  Duration? get castingSpeed {
+    final controllingDevice = controllingDeviceStatus?.keys.first;
+    if (controllingDevice == null) {
+      return null;
+    }
+    final status = controllingDeviceStatus![controllingDevice];
+    if (status == null) {
+      return null;
+    }
+    return Duration(milliseconds: status.artworks.first.duration);
   }
 
   CanvasDevice? get controllingDevice => devices
@@ -223,7 +236,12 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
           }
         } catch (_) {}
       });
-      emit(newState.copyWith(controllingDeviceStatus: controllingDeviceStatus));
+
+      final Map<String, CheckDeviceStatusReply> firstControllingDevice = {
+        controllingDeviceStatus.keys.first: controllingDeviceStatus.values.first
+      };
+
+      emit(newState.copyWith(controllingDeviceStatus: firstControllingDevice));
     });
 
     on<CanvasDeviceAddEvent>((event, emit) async {
@@ -424,14 +442,18 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
       } catch (_) {}
     });
 
-    on<CanvasDeviceChangeDeviceEvent>((event, emit) async {
-      final newCanvas = event.device;
+    on<CanvasDeviceChangeControllDeviceEvent>((event, emit) async {
+      final newCanvas = event.newDevice;
       try {
         final canvasStatus =
             await _canvasClientServiceV2.getDeviceCastingStatus(newCanvas);
-        emit(state.copyWith(
-          controllingDeviceStatus: {newCanvas.id: canvasStatus},
-        ));
+        if (canvasStatus.connectedDevice.deviceId ==
+            _canvasClientServiceV2.clientDeviceInfo.deviceId) {
+          emit(state
+              .copyWith(controllingDeviceStatus: {newCanvas.id: canvasStatus}));
+        } else {
+          add(CanvasDeviceCastListArtworkEvent(newCanvas, event.artwork));
+        }
       } catch (_) {}
     });
 
@@ -439,15 +461,37 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
       final device = event.device;
       final artworks = event.artwork;
       try {
-        await _canvasClientServiceV2.updateDuration(device, artworks);
+        final response =
+            await _canvasClientServiceV2.updateDuration(device, artworks);
         final currentDeviceState = state.devices
             .firstWhereOrNull((element) => element.device.id == device.id);
         if (currentDeviceState == null) {
           throw Exception('Device not found');
         }
-        emit(state.replaceDeviceState(
-            device: device,
-            deviceState: currentDeviceState.copyWith(isPlaying: true)));
+        final controllingStatus = state.controllingDeviceStatus?[device.id];
+        if (controllingStatus == null) {
+          throw Exception('Device not found');
+        }
+        final newControllingStatus = CheckDeviceStatusReply();
+        newControllingStatus.artworks.clear();
+        newControllingStatus.artworks.addAll(artworks);
+        newControllingStatus.startTime = response.startTime;
+        newControllingStatus.connectedDevice =
+            controllingStatus.connectedDevice;
+
+        final controllingDeviceStatus =
+            state.controllingDeviceStatus?.map((key, value) {
+          if (key == device.id) {
+            return MapEntry(key, newControllingStatus);
+          }
+          return MapEntry(key, value);
+        });
+
+        emit(state
+            .copyWith(controllingDeviceStatus: controllingDeviceStatus)
+            .replaceDeviceState(
+                device: device,
+                deviceState: currentDeviceState.copyWith(isPlaying: true)));
       } catch (_) {}
     });
   }

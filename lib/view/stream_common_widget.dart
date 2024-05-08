@@ -10,6 +10,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 
+final speedValues = {
+  '5sec': const Duration(seconds: 5),
+  '10sec': const Duration(seconds: 10),
+  '15sec': const Duration(seconds: 15),
+  '30sec': const Duration(seconds: 30),
+  '1min': const Duration(minutes: 1),
+  '2min': const Duration(minutes: 2),
+  // '5min': const Duration(minutes: 5),
+  // '10min': const Duration(minutes: 10),
+  // '15min': const Duration(minutes: 15),
+  // '30min': const Duration(minutes: 30),
+  // '1hr': const Duration(hours: 1),
+  // '4hr': const Duration(hours: 4),
+  // '12hr': const Duration(hours: 12),
+  // '24hr': const Duration(hours: 24),
+};
+
 class StreamDrawerItem extends StatelessWidget {
   final OptionItem item;
   final Color backgroundColor;
@@ -45,19 +62,7 @@ class PlaylistControl extends StatefulWidget {
 }
 
 class _PlaylistControlState extends State<PlaylistControl> {
-  final speedValues = {
-    '1min': const Duration(minutes: 1),
-    '2min': const Duration(minutes: 2),
-    '5min': const Duration(minutes: 5),
-    '10min': const Duration(minutes: 10),
-    '15min': const Duration(minutes: 15),
-    '30min': const Duration(minutes: 30),
-    '1hr': const Duration(hours: 1),
-    '4hr': const Duration(hours: 4),
-    '12hr': const Duration(hours: 12),
-    '24hr': const Duration(hours: 24),
-  };
-  double _currentSliderValue = 0;
+  late double _currentSliderValue;
   Timer? _timer;
   late CanvasDeviceBloc _canvasDeviceBloc;
 
@@ -65,6 +70,11 @@ class _PlaylistControlState extends State<PlaylistControl> {
   void initState() {
     super.initState();
     _canvasDeviceBloc = context.read<CanvasDeviceBloc>();
+    final castingDuration = _canvasDeviceBloc.state.castingSpeed;
+    final index = castingDuration != null
+        ? speedValues.values.toList().indexOf(castingDuration)
+        : 0;
+    _currentSliderValue = index.toDouble();
   }
 
   @override
@@ -77,7 +87,17 @@ class _PlaylistControlState extends State<PlaylistControl> {
   Widget build(BuildContext context) =>
       BlocConsumer<CanvasDeviceBloc, CanvasDeviceState>(
         bloc: _canvasDeviceBloc,
-        listener: (context, state) {},
+        listener: (context, state) {
+          final castingSpeed = state.controllingDeviceStatus?.values.firstOrNull
+              ?.artworks.firstOrNull?.duration;
+          if (castingSpeed != null) {
+            final castingDuration = Duration(milliseconds: castingSpeed);
+            final index = speedValues.values.toList().indexOf(castingDuration);
+            setState(() {
+              _currentSliderValue = index.toDouble();
+            });
+          }
+        },
         builder: (context, state) {
           return Container(
               padding: const EdgeInsets.all(15),

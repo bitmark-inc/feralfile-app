@@ -42,6 +42,7 @@ import 'package:autonomy_flutter/view/cast_button.dart';
 import 'package:autonomy_flutter/view/get_started_banner.dart';
 import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_flutter/view/stream_common_widget.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -227,7 +228,7 @@ class CollectionHomePageState extends State<CollectionHomePage>
   void castToken(CanvasDevice device, String tokenId) {
     final token = CastAssetToken(id: tokenId);
     final playArtwork = PlayArtworkV2(token: token);
-    _canvasDeviceBloc.add(CanvasDeviceCastListArtworkEvent(
+    _canvasDeviceBloc.add(CanvasDeviceChangeControllDeviceEvent(
       device,
       [playArtwork],
     ));
@@ -468,11 +469,12 @@ class CollectionHomePageState extends State<CollectionHomePage>
         }
 
         final id = asset.id;
+        final duration = speedValues.values.first.inMilliseconds;
         final playArtwork =
-            PlayArtworkV2(token: CastAssetToken(id: id), duration: 30);
+            PlayArtworkV2(token: CastAssetToken(id: id), duration: duration);
         final device = _canvasDeviceBloc.state.controllingDevice;
         if (device != null) {
-          _canvasDeviceBloc.add(CanvasDeviceCastListArtworkEvent(
+          _canvasDeviceBloc.add(CanvasDeviceChangeControllDeviceEvent(
             device,
             [playArtwork],
           ));
