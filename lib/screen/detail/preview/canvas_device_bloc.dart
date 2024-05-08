@@ -161,10 +161,8 @@ class CanvasDeviceState {
       .firstWhereOrNull((deviceState) => deviceState.device.isConnecting)
       ?.device;
 
-  bool get isCasting {
-    return devices.any((element) =>
-        element.device == controllingDevice && element.isPlaying == true);
-  }
+  bool get isCasting => devices.any((element) =>
+      element.device == controllingDevice && element.isPlaying == true);
 }
 
 class DeviceState {
@@ -209,8 +207,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
     on<CanvasDeviceGetDevicesEvent>((event, emit) async {
       emit(CanvasDeviceState(
           devices: state.devices, isLoaded: state.devices.isNotEmpty));
-      final devices = await _canvasClientService.getConnectingDevices(
-          doSync: event.syncAll);
+      final devices = await _canvasClientService.scanDevices();
       emit(
         state.copyWith(
             devices: devices.map((e) => DeviceState(device: e)).toList(),
@@ -280,7 +277,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
     on<CanvasDeviceUnCastingEvent>((event, emit) async {
       final device = event.device;
       try {
-        await _canvasClientService.uncastSingleArtwork(device);
+        await _canvasClientService.unCastSingleArtwork(device);
         emit(state.replaceDeviceState(
             device: device, deviceState: DeviceState(device: device)));
       } catch (_) {}
