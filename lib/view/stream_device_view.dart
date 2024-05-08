@@ -104,27 +104,34 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
                 const SizedBox(
                   height: 40,
                 ),
-                GestureDetector(
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(50),
-                      border: Border.all(
-                        color: AppColor.white,
-                      ),
-                    ),
-                    width: MediaQuery.of(context).size.width,
-                    child: Center(
-                      child: Text(
-                        'disconnect'.tr(),
-                        style: theme.textTheme.ppMori400White14,
-                      ),
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(50),
+                    border: Border.all(
+                      color: AppColor.white,
                     ),
                   ),
-                  onTap: () async {
-                    await onDisconnect();
-                  },
-                )
+                  width: MediaQuery.of(context).size.width,
+                  child: Material(
+                    type: MaterialType.transparency,
+                    child: InkWell(
+                      splashFactory: InkSparkle.splashFactory,
+                      borderRadius: BorderRadius.circular(50),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Center(
+                          child: Text(
+                            'disconnect'.tr(),
+                            style: theme.textTheme.ppMori400White14,
+                          ),
+                        ),
+                      ),
+                      onTap: () async {
+                        await onDisconnect();
+                      },
+                    ),
+                  ),
+                ),
               ]
             ],
           ),

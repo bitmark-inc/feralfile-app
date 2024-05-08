@@ -17,22 +17,28 @@ class StreamDrawerItem extends StatelessWidget {
       {required this.item, required this.backgroundColor, super.key});
 
   @override
-  Widget build(BuildContext context) => GestureDetector(
-        child: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: backgroundColor,
-            borderRadius: BorderRadius.circular(50),
-          ),
-          width: MediaQuery.of(context).size.width,
-          child: Center(
-            child: Text(
-              item.title ?? '',
-              style: Theme.of(context).textTheme.ppMori400Black14,
+  Widget build(BuildContext context) => Container(
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(50),
+        ),
+        width: MediaQuery.of(context).size.width,
+        child: Material(
+          type: MaterialType.transparency,
+          child: InkWell(
+            splashFactory: InkSparkle.splashFactory,
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Center(
+                child: Text(
+                  item.title ?? '',
+                  style: Theme.of(context).textTheme.ppMori400Black14,
+                ),
+              ),
             ),
+            onTap: () => item.onTap?.call(),
           ),
         ),
-        onTap: () => item.onTap?.call(),
       );
 }
 
@@ -79,16 +85,24 @@ class _PlaylistControlState extends State<PlaylistControl> {
 
   Widget _buildPlayButton({required String icon, required Function() onTap}) =>
       Expanded(
-        child: GestureDetector(
-          onTap: onTap,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
-            decoration: BoxDecoration(
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(5),
+            color: AppColor.primaryBlack,
+          ),
+          child: Material(
+            type: MaterialType.transparency,
+            child: InkWell(
+              splashFactory: InkSparkle.splashFactory,
               borderRadius: BorderRadius.circular(5),
-              color: AppColor.primaryBlack,
-            ),
-            child: SvgPicture.asset(
-              icon,
+              onTap: onTap,
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
+                child: SvgPicture.asset(
+                  icon,
+                ),
+              ),
             ),
           ),
         ),
