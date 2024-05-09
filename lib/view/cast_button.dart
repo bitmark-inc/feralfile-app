@@ -29,7 +29,6 @@ class _FFCastButtonState extends State<FFCastButton> {
   void initState() {
     super.initState();
     _canvasDeviceBloc = injector.get<CanvasDeviceBloc>();
-    ;
     _canvasDeviceBloc.add(CanvasDeviceGetDevicesEvent());
   }
 
