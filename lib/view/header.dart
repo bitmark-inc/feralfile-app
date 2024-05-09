@@ -5,7 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:feralfile_app_theme/feral_file_app_theme.dart';
+import 'package:autonomy_flutter/view/title_text.dart';
 import 'package:flutter/material.dart';
 
 class HeaderView extends StatelessWidget {
@@ -23,30 +23,25 @@ class HeaderView extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final defaultStyle =
-        theme.textTheme.ppMori700White24.copyWith(fontSize: 36);
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Container(
-        padding: padding ?? const EdgeInsets.fromLTRB(12, 33, 12, 42),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    title,
-                    style: titleStyle ?? defaultStyle,
+  Widget build(BuildContext context) => Align(
+        alignment: Alignment.centerLeft,
+        child: Container(
+          padding: padding ?? const EdgeInsets.fromLTRB(12, 33, 12, 42),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: TitleText(
+                      title: title,
+                      style: titleStyle,
+                    ),
                   ),
-                ),
-                action ?? const SizedBox()
-              ],
-            ),
-          ],
+                  action ?? const SizedBox()
+                ],
+              ),
+            ],
+          ),
         ),
-      ),
-    );
-  }
+      );
 }
