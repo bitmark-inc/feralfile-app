@@ -17,6 +17,7 @@ import 'package:autonomy_flutter/screen/wallet/wallet_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/collection_ext.dart';
 import 'package:autonomy_flutter/util/medium_category_ext.dart';
 import 'package:autonomy_flutter/util/predefined_collection_ext.dart';
@@ -571,7 +572,7 @@ class CollectionProState extends State<CollectionPro>
 
   Widget _artworkItem(BuildContext context, CompactedAssetToken token) {
     final theme = Theme.of(context);
-    final title = token.title ?? '';
+    final title = token.displayTitle ?? '';
     final artistName = token.artistTitle ?? token.artistID ?? '';
     return GestureDetector(
       onTap: () async {

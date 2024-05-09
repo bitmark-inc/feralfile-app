@@ -395,7 +395,7 @@ class CollectionHomePageState extends State<CollectionHomePage>
   }) {
     final theme = Theme.of(context);
     final asset = tokens[index];
-    final title = asset.title;
+    final title = asset.displayTitle;
     final artistTitle = asset.artistTitle?.toIdentityOrMask(artistIdentities);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

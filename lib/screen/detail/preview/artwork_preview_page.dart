@@ -218,7 +218,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                   title: GestureDetector(
                       onTap: () async => _moveToInfo(assetToken),
                       child: ArtworkDetailsHeader(
-                        title: assetToken?.title ?? '',
+                        title: assetToken?.displayTitle ?? '',
                         subTitle: subTitle,
                         hideArtist: hideArtist,
                       )),

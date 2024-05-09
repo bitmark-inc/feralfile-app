@@ -1710,4 +1710,6 @@ class OptionItem {
     this.builder,
     this.separator,
   });
+
+  static OptionItem emptyOptionItem = OptionItem(title: '');
 }
