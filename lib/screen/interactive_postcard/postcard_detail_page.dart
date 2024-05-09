@@ -495,7 +495,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                 toolbarHeight: 70,
                 centerTitle: false,
                 title: Text(
-                  asset.title!,
+                  asset.displayTitle!,
                   style: theme.textTheme.moMASans400Black12,
                   overflow: TextOverflow.ellipsis,
                 ),

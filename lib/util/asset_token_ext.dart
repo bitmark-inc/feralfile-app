@@ -50,6 +50,14 @@ extension AssetTokenExtension on AssetToken {
     }
   };
 
+  String? get displayTitle {
+    if (title == null) {
+      return null;
+    }
+
+    return mintedAt != null ? '$title (${mintedAt!.year})' : title;
+  }
+
   bool get hasMetadata => galleryThumbnailURL != null;
 
   String get secondaryMarketURL {
@@ -67,6 +75,20 @@ extension AssetTokenExtension on AssetToken {
       default:
         return '';
     }
+  }
+
+  String get secondaryMarketName {
+    final url = secondaryMarketURL;
+    if (url.contains(OPENSEA_ASSET_PREFIX)) {
+      return 'OpenSea';
+    } else if (url.contains(FXHASH_IDENTIFIER)) {
+      return 'FXHash';
+    } else if (url.contains(TEIA_ART_ASSET_PREFIX)) {
+      return 'Teia Art';
+    } else if (url.contains(objktAssetPrefix)) {
+      return 'Objkt';
+    }
+    return '';
   }
 
   bool get isAirdrop {
@@ -442,6 +464,14 @@ extension CompactedAssetTokenExtension on CompactedAssetToken {
   bool get hasMetadata => galleryThumbnailURL != null;
 
   ArtworkIdentity get identity => ArtworkIdentity(id, owner);
+
+  String? get displayTitle {
+    if (title == null) {
+      return null;
+    }
+
+    return mintedAt != null ? '$title (${mintedAt!.year})' : title;
+  }
 
   bool get isPostcard {
     final splitted = id.split('-');
