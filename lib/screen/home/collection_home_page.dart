@@ -20,7 +20,6 @@ import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
-import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
@@ -78,7 +77,6 @@ class CollectionHomePageState extends State<CollectionHomePage>
   final nftBloc = injector<ClientTokenService>().nftBloc;
   late bool _showPostcardBanner;
   final _identityBloc = injector<IdentityBloc>();
-  final _canvasClientServiceV2 = injector.get<CanvasClientServiceV2>();
   late CanvasDeviceBloc _canvasDeviceBloc;
 
   @override
@@ -508,10 +506,8 @@ class CollectionHomePageState extends State<CollectionHomePage>
     switch (event) {
       case FGBGType.foreground:
         unawaited(_handleForeground());
-        break;
       case FGBGType.background:
         _handleBackground();
-        break;
     }
   }
 
