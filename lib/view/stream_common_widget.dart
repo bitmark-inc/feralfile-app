@@ -12,20 +12,20 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 
 final speedValues = {
-  '5sec': const Duration(seconds: 5),
-  '10sec': const Duration(seconds: 10),
-  '15sec': const Duration(seconds: 15),
-  '30sec': const Duration(seconds: 30),
+  // '5sec': const Duration(seconds: 5),
+  // '10sec': const Duration(seconds: 10),
+  // '15sec': const Duration(seconds: 15),
+  // '30sec': const Duration(seconds: 30),
   '1min': const Duration(minutes: 1),
   '2min': const Duration(minutes: 2),
-  // '5min': const Duration(minutes: 5),
-  // '10min': const Duration(minutes: 10),
-  // '15min': const Duration(minutes: 15),
-  // '30min': const Duration(minutes: 30),
-  // '1hr': const Duration(hours: 1),
-  // '4hr': const Duration(hours: 4),
-  // '12hr': const Duration(hours: 12),
-  // '24hr': const Duration(hours: 24),
+  '5min': const Duration(minutes: 5),
+  '10min': const Duration(minutes: 10),
+  '15min': const Duration(minutes: 15),
+  '30min': const Duration(minutes: 30),
+  '1hr': const Duration(hours: 1),
+  '4hr': const Duration(hours: 4),
+  '12hr': const Duration(hours: 12),
+  '24hr': const Duration(hours: 24),
 };
 
 class StreamDrawerItem extends StatelessWidget {
@@ -106,21 +106,19 @@ class _PlaylistControlState extends State<PlaylistControl> {
             });
           }
         },
-        builder: (context, state) {
-          return Container(
-              padding: const EdgeInsets.all(15),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                color: AppColor.primaryBlack,
-              ),
-              child: Column(
-                children: [
-                  _buildPlayControls(context, state),
-                  const SizedBox(height: 15),
-                  _buildSpeedControl(context, state),
-                ],
-              ));
-        },
+        builder: (context, state) => Container(
+            padding: const EdgeInsets.all(15),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              color: AppColor.primaryBlack,
+            ),
+            child: Column(
+              children: [
+                _buildPlayControls(context, state),
+                const SizedBox(height: 15),
+                _buildSpeedControl(context, state),
+              ],
+            )),
       );
 
   Widget _buildPlayButton({required String icon, required Function() onTap}) =>
@@ -238,9 +236,10 @@ class _PlaylistControlState extends State<PlaylistControl> {
       return;
     }
     final playArtworks = canvasStatus.artworks;
-    final playArtworkWithNewDuration = playArtworks.map((e) {
-      return e.copy(duration: Duration(milliseconds: duration.inMilliseconds));
-    }).toList();
+    final playArtworkWithNewDuration = playArtworks
+        .map((e) =>
+            e.copy(duration: Duration(milliseconds: duration.inMilliseconds)))
+        .toList();
     _canvasDeviceBloc.add(CanvasDeviceUpdateDurationEvent(
         controllingDevice, playArtworkWithNewDuration));
   }
@@ -328,11 +327,10 @@ extension PlayArtworkExt on PlayArtworkV2 {
     CastAssetToken? token,
     CastArtwork? artwork,
     Duration? duration,
-  }) {
-    return PlayArtworkV2(
-      token: token ?? this.token,
-      artwork: artwork ?? this.artwork,
-      duration: duration?.inMilliseconds ?? this.duration,
-    );
-  }
+  }) =>
+      PlayArtworkV2(
+        token: token ?? this.token,
+        artwork: artwork ?? this.artwork,
+        duration: duration?.inMilliseconds ?? this.duration,
+      );
 }
