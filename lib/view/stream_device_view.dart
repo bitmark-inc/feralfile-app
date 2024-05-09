@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
+import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -9,6 +11,7 @@ import 'package:autonomy_flutter/view/stream_common_widget.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:feralfile_app_tv_proto/models/canvas_device.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -114,6 +117,31 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
                   );
                 },
               ),
+              const SizedBox(height: 40),
+              RichText(
+                  text: TextSpan(
+                children: <TextSpan>[
+                  TextSpan(
+                    text: 'not_find_canvas'.tr(),
+                    style: theme.textTheme.ppMori400White14,
+                  ),
+                  // text clickable
+                  TextSpan(
+                    text: 'scan_the_qrcode'.tr(),
+                    style: theme.textTheme.ppMori400White14.copyWith(
+                      decoration: TextDecoration.underline,
+                    ),
+                    recognizer: TapGestureRecognizer()
+                      ..onTap = () async {
+                        await scanToAddMore(context);
+                      },
+                  ),
+                  TextSpan(
+                    text: 'that_appear_on_canvas'.tr(),
+                    style: theme.textTheme.ppMori400White14,
+                  )
+                ],
+              )),
               if (connectedDevice != null) ...[
                 const SizedBox(
                   height: 40,
@@ -152,6 +180,13 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
         );
       },
     );
+  }
+
+  Future<void> scanToAddMore(BuildContext context) async {
+    final device = await Navigator.of(context)
+        .pushNamed(AppRouter.scanQRPage, arguments: ScannerItem.CANVAS_DEVICE);
+    log.info('device selected: ${device}');
+    _canvasDeviceBloc.add(CanvasDeviceGetDevicesEvent());
   }
 
   Future<void> onDisconnect() async {

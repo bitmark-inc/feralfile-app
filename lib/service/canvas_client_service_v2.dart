@@ -273,4 +273,8 @@ class CanvasClientServiceV2 {
       return null;
     }
   }
+
+  Future<void> addLocalDevice(CanvasDevice device) async {
+    await _db.canvasDeviceDao.insertCanvasDevice(device);
+  }
 }
