@@ -393,7 +393,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                       .map((e) => PlayArtworkV2(
                           token: CastAssetToken(id: e), duration: duration))
                       .toList();
-                  _canvasDeviceBloc.add(CanvasDeviceChangeControllDeviceEvent(
+                  _canvasDeviceBloc.add(CanvasDeviceChangeControlDeviceEvent(
                       device, listPlayArtwork));
                 },
               ),

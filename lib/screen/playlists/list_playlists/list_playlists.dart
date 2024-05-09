@@ -107,7 +107,7 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
                                     duration: duration.inMilliseconds,
                                   ))
                               .toList();
-                          _bloc.add(CanvasDeviceChangeControllDeviceEvent(
+                          _bloc.add(CanvasDeviceChangeControlDeviceEvent(
                               controllingDevice, castArtworks));
                         }
                       }

@@ -228,7 +228,7 @@ class CollectionHomePageState extends State<CollectionHomePage>
   void castToken(CanvasDevice device, String tokenId) {
     final token = CastAssetToken(id: tokenId);
     final playArtwork = PlayArtworkV2(token: token);
-    _canvasDeviceBloc.add(CanvasDeviceChangeControllDeviceEvent(
+    _canvasDeviceBloc.add(CanvasDeviceChangeControlDeviceEvent(
       device,
       [playArtwork],
     ));
@@ -474,7 +474,7 @@ class CollectionHomePageState extends State<CollectionHomePage>
             PlayArtworkV2(token: CastAssetToken(id: id), duration: duration);
         final device = _canvasDeviceBloc.state.controllingDevice;
         if (device != null) {
-          _canvasDeviceBloc.add(CanvasDeviceChangeControllDeviceEvent(
+          _canvasDeviceBloc.add(CanvasDeviceChangeControlDeviceEvent(
             device,
             [playArtwork],
           ));

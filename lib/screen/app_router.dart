@@ -241,8 +241,7 @@ class AppRouter {
       injector<AuditService>(),
     );
     final identityBloc = IdentityBloc(injector<AppDatabase>(), injector());
-    final canvasDeviceBloc =
-        injector<CanvasDeviceBloc>(); //(injector(), injector());
+    final canvasDeviceBloc = injector<CanvasDeviceBloc>();
 
     final postcardDetailBloc = PostcardDetailBloc(
       injector(),

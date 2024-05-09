@@ -15,6 +15,12 @@ class CanvasDeviceGetDevicesEvent extends CanvasDeviceEvent {
   CanvasDeviceGetDevicesEvent();
 }
 
+class CanvasDeviceAppendDeviceEvent extends CanvasDeviceEvent {
+  final CanvasDevice device;
+
+  CanvasDeviceAppendDeviceEvent(this.device);
+}
+
 class CanvasDeviceGetControllingStatusEvent extends CanvasDeviceEvent {}
 
 class CanvasDeviceAddEvent extends CanvasDeviceEvent {
@@ -68,11 +74,11 @@ class CanvasDeviceCastListArtworkEvent extends CanvasDeviceEvent {
   CanvasDeviceCastListArtworkEvent(this.device, this.artwork);
 }
 
-class CanvasDeviceChangeControllDeviceEvent extends CanvasDeviceEvent {
+class CanvasDeviceChangeControlDeviceEvent extends CanvasDeviceEvent {
   final CanvasDevice newDevice;
   final List<PlayArtworkV2> artwork;
 
-  CanvasDeviceChangeControllDeviceEvent(this.newDevice, this.artwork);
+  CanvasDeviceChangeControlDeviceEvent(this.newDevice, this.artwork);
 }
 
 class CanvasDeviceCancelCastingEvent extends CanvasDeviceEvent {
@@ -242,6 +248,14 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
       },
       transformer: debounceSequential(const Duration(seconds: 5)),
     );
+
+    on<CanvasDeviceAppendDeviceEvent>((event, emit) async {
+      final newState = state.copyWith(
+          devices: state.devices
+            ..removeWhere((element) => element.device.id == event.device.id)
+            ..add(DeviceState(device: event.device)));
+      emit(newState);
+    });
 
     on<CanvasDeviceAddEvent>((event, emit) async {
       final newState = state.copyWith(
@@ -439,7 +453,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
       } catch (_) {}
     });
 
-    on<CanvasDeviceChangeControllDeviceEvent>((event, emit) async {
+    on<CanvasDeviceChangeControlDeviceEvent>((event, emit) async {
       add(CanvasDeviceCastListArtworkEvent(event.newDevice, event.artwork));
     });
 

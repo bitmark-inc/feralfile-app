@@ -78,10 +78,8 @@ class CanvasClientServiceV2 {
     return response;
   }
 
-  Future<bool> connectToDevice(CanvasDevice device,
-          {bool isLocal = false}) async =>
-      _connectDevice
-          .synchronized(() async => await _connectToDevice(device, isLocal));
+  Future<bool> connectToDevice(CanvasDevice device) async =>
+      _connectDevice.synchronized(() async => await _connectToDevice(device));
 
   DeviceInfoV2_DevicePlatform get _platform {
     final device = my_device.DeviceInfo.instance;
@@ -94,6 +92,17 @@ class CanvasClientServiceV2 {
     }
   }
 
+  Future<Pair<CanvasDevice, CheckDeviceStatusReply>?> addQrDevice(
+      CanvasDevice device) async {
+    final deviceStatus = await _getDeviceStatus(device);
+    if (deviceStatus != null) {
+      await _db.canvasDeviceDao.insertCanvasDevice(device);
+      log.info('CanvasClientService: Added device to db ${device.name}');
+      return deviceStatus;
+    }
+    return null;
+  }
+
   Future<ConnectReplyV2> connect(CanvasDevice device) async {
     final stub = _getStub(device);
     final deviceInfo = clientDeviceInfo;
@@ -102,15 +111,12 @@ class CanvasClientServiceV2 {
     return response;
   }
 
-  Future<bool> _connectToDevice(CanvasDevice device, bool isLocal) async {
+  Future<bool> _connectToDevice(CanvasDevice device) async {
     try {
       final response = await connect(device);
       log.info('CanvasClientService received: ${response.ok}');
       if (response.ok) {
         log.info('CanvasClientService: Connected to device ${device.name}');
-        if (!isLocal) {
-          await _db.canvasDeviceDao.insertCanvasDevice(device);
-        }
         return true;
       } else {
         log.info('CanvasClientService: Failed to connect to device');
@@ -246,12 +252,25 @@ class CanvasClientServiceV2 {
     final List<Pair<CanvasDevice, CheckDeviceStatusReply>> devices = [];
     await Future.forEach<CanvasDevice>(rawDevices, (device) async {
       try {
-        final status = await getDeviceCastingStatus(device);
-        devices.add(Pair(device, status));
+        final status = await _getDeviceStatus(device);
+        if (status != null) {
+          devices.add(status);
+        }
       } catch (e) {
         log.info('CanvasClientService: Caught error: $e');
       }
     });
     return devices;
+  }
+
+  Future<Pair<CanvasDevice, CheckDeviceStatusReply>?> _getDeviceStatus(
+      CanvasDevice device) async {
+    try {
+      final status = await getDeviceCastingStatus(device);
+      return Pair(device, status);
+    } catch (e) {
+      log.info('CanvasClientService: Caught error: $e');
+      return null;
+    }
   }
 }
