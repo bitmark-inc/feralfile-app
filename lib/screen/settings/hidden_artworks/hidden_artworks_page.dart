@@ -17,6 +17,7 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/image_background.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -161,22 +162,18 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
                                   unsupportWidgetBuilder: (context) =>
                                       const GalleryUnSupportThumbnailWidget(),
                                 )
-                              : Image.network(
-                                  thumbnailUrl,
-                                  width: double.infinity,
-                                  height: double.infinity,
-                                  fit: BoxFit.cover,
-                                  cacheHeight: _cachedImageSize,
-                                  cacheWidth: _cachedImageSize,
-                                  loadingBuilder:
-                                      (context, child, loadingProgress) {
-                                    if (loadingProgress == null) {
-                                      return child;
-                                    }
-                                    return const GalleryThumbnailPlaceholder();
-                                  },
-                                  errorBuilder: (context, url, error) =>
-                                      const GalleryThumbnailErrorWidget(),
+                              : ImageBackground(
+                                  child: Image.network(
+                                    thumbnailUrl,
+                                    width: double.infinity,
+                                    height: double.infinity,
+                                    fit: BoxFit.cover,
+                                    cacheHeight: _cachedImageSize,
+                                    cacheWidth: _cachedImageSize,
+                                    loadingBuilder: _loadingBuilder,
+                                    errorBuilder: (context, url, error) =>
+                                        const GalleryThumbnailErrorWidget(),
+                                  ),
                                 ),
                         ),
                       ClipRRect(
@@ -221,5 +218,13 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
       ],
       controller: ScrollController(),
     );
+  }
+
+  Widget _loadingBuilder(
+      BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+    if (loadingProgress == null) {
+      return child;
+    }
+    return const GalleryThumbnailPlaceholder();
   }
 }

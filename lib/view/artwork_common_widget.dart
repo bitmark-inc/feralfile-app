@@ -21,6 +21,7 @@ import 'package:autonomy_flutter/util/moma_style_color.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/view/image_background.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
@@ -163,42 +164,42 @@ Widget tokenGalleryThumbnailWidget(
           ? 'gallery_thumbnail_${token.id}_${token.owner}'
           : const Uuid().v4(),
       key: const Key('Artwork_Thumbnail'),
-      child: ext == '.svg'
+      child: ImageBackground(child: ext == '.svg'
           ? SvgImage(
-              url: thumbnailUrl,
-              loadingWidgetBuilder: (_) => const GalleryThumbnailPlaceholder(),
-              errorWidgetBuilder: (_) => const GalleryThumbnailErrorWidget(),
-              unsupportWidgetBuilder: (context) =>
-                  const GalleryUnSupportThumbnailWidget(),
-            )
+        url: thumbnailUrl,
+        loadingWidgetBuilder: (_) => const GalleryThumbnailPlaceholder(),
+        errorWidgetBuilder: (_) => const GalleryThumbnailErrorWidget(),
+        unsupportWidgetBuilder: (context) =>
+        const GalleryUnSupportThumbnailWidget(),
+      )
           : Image.network(
-              thumbnailUrl,
-              fit: BoxFit.cover,
-              cacheWidth: cachedImageSize,
-              cacheHeight: cachedImageSize,
-              loadingBuilder: (context, child, loadingProgress) {
-                if (loadingProgress == null) {
-                  return child;
-                }
-                return galleryThumbnailPlaceholder ??
-                    const GalleryThumbnailPlaceholder();
-              },
-              errorBuilder: (context, url, error) => Image.network(
-                token.getGalleryThumbnailUrl(usingThumbnailID: false) ?? '',
-                fit: BoxFit.cover,
-                cacheWidth: cachedImageSize,
-                cacheHeight: cachedImageSize,
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) {
-                    return child;
-                  }
-                  return galleryThumbnailPlaceholder ??
-                      const GalleryThumbnailPlaceholder();
-                },
-                errorBuilder: (context, url, error) =>
-                    const GalleryThumbnailErrorWidget(),
-              ),
-            ),
+        thumbnailUrl,
+        fit: BoxFit.cover,
+        cacheWidth: cachedImageSize,
+        cacheHeight: cachedImageSize,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) {
+            return child;
+          }
+          return galleryThumbnailPlaceholder ??
+              const GalleryThumbnailPlaceholder();
+        },
+        errorBuilder: (context, url, error) => Image.network(
+          token.getGalleryThumbnailUrl(usingThumbnailID: false) ?? '',
+          fit: BoxFit.cover,
+          cacheWidth: cachedImageSize,
+          cacheHeight: cachedImageSize,
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) {
+              return child;
+            }
+            return galleryThumbnailPlaceholder ??
+                const GalleryThumbnailPlaceholder();
+          },
+          errorBuilder: (context, url, error) =>
+          const GalleryThumbnailErrorWidget(),
+        ),
+      )),
     ),
   );
 }
