@@ -26,6 +26,7 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -333,20 +334,11 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
             systemOverlayStyle: systemUiOverlayLightStyle(AppColor.white),
             elevation: 0,
             shadowColor: Colors.transparent,
-            leading: GestureDetector(
-              onTap: () => Navigator.of(context).pop(),
-              child: const Row(
-                children: [
-                  SizedBox(
-                    width: 15,
-                  ),
-                  Icon(
-                    AuIcon.chevron,
-                    color: AppColor.secondaryDimGrey,
-                    size: 18,
-                  ),
-                ],
-              ),
+            leading: Row(
+              children: [
+                backButton(context,
+                    onBack: () => Navigator.pop(context),),
+              ],
             ),
             leadingWidth: editable ? 90 : 55,
             titleSpacing: 0,
