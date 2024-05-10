@@ -163,16 +163,16 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
                                       const GalleryUnSupportThumbnailWidget(),
                                 )
                               : Image.network(
-                                thumbnailUrl,
-                                width: double.infinity,
-                                height: double.infinity,
-                                fit: BoxFit.cover,
-                                cacheHeight: _cachedImageSize,
-                                cacheWidth: _cachedImageSize,
-                                loadingBuilder: _loadingBuilder,
-                                errorBuilder: (context, url, error) =>
-                                    const GalleryThumbnailErrorWidget(),
-                              ),
+                                  thumbnailUrl,
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                  fit: BoxFit.cover,
+                                  cacheHeight: _cachedImageSize,
+                                  cacheWidth: _cachedImageSize,
+                                  loadingBuilder: _loadingBuilder,
+                                  errorBuilder: (context, url, error) =>
+                                      const GalleryThumbnailErrorWidget(),
+                                ),
                         ),
                       ClipRRect(
                         // Clip it cleanly.

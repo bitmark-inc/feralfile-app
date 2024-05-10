@@ -167,10 +167,8 @@ Widget tokenGalleryThumbnailWidget(
       child: ext == '.svg'
           ? SvgImage(
               url: thumbnailUrl,
-              loadingWidgetBuilder: (_) =>
-                  const GalleryThumbnailPlaceholder(),
-              errorWidgetBuilder: (_) =>
-                  const GalleryThumbnailErrorWidget(),
+              loadingWidgetBuilder: (_) => const GalleryThumbnailPlaceholder(),
+              errorWidgetBuilder: (_) => const GalleryThumbnailErrorWidget(),
               unsupportWidgetBuilder: (context) =>
                   const GalleryUnSupportThumbnailWidget(),
             )
