@@ -17,7 +17,6 @@ import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_sta
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
-import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
@@ -106,15 +105,6 @@ class _ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
         bloc: bloc,
         builder: (context, state) {
           switch (state.runtimeType) {
-            case ArtworkPreviewDetailLoadingState:
-              return const SizedBox(
-                width: 25,
-                height: 25,
-                child: CircularProgressIndicator(
-                  color: AppColor.auGrey,
-                  strokeWidth: 3,
-                ),
-              );
             case ArtworkPreviewDetailLoadedState:
               final assetToken =
                   (state as ArtworkPreviewDetailLoadedState).assetToken;
