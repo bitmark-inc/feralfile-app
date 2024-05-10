@@ -1,5 +1,5 @@
 class AccountV2Request {
-  final IdentityType type;
+  final String type;
   final String requester;
   final String? publicKey;
   final String timestamp;
@@ -15,16 +15,10 @@ class AccountV2Request {
 
   // toJson
   Map<String, dynamic> toJson() => <String, dynamic>{
-        'type': type.toString(),
+        'type': type,
         'requester': requester,
         'publicKey': publicKey,
         'timestamp': timestamp,
         'signature': signature,
       };
-}
-
-enum IdentityType {
-  ethereum,
-  tezos,
-  did,
 }

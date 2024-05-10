@@ -6,12 +6,22 @@
 //
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/entity/wallet_address.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
+import 'package:autonomy_flutter/model/account_v2_request.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/ethereum_service.dart';
+import 'package:autonomy_flutter/service/tezos_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/log.dart';
+import 'package:libauk_dart/libauk_dart.dart';
 
 class AuthService {
   final IAPApi _authApi;
@@ -85,5 +95,58 @@ class AuthService {
     }
 
     return newJwt;
+  }
+
+  Future<void> addIdentity(WalletAddress walletAddress) async {
+    final address = walletAddress.address;
+    try {
+      final wallet = LibAukDart.getWallet(address);
+      final isTezos = walletAddress.cryptoType == CryptoType.XTZ.source;
+      final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+      final message = getFeralFileAccountMessage(address, timestamp);
+      final messageBytes = Uint8List.fromList(utf8.encode(message));
+      final signature = isTezos
+          ? await injector<TezosService>()
+              .signMessage(wallet, walletAddress.index, messageBytes)
+          : await injector<EthereumService>()
+              .signPersonalMessage(wallet, walletAddress.index, messageBytes);
+      final tezosPublicKey = isTezos
+          ? await wallet.getTezosPublicKey(index: walletAddress.index)
+          : null;
+      await _authApi.addIdentity(AccountV2Request(
+        type: isTezos ? 'tezos' : 'ethereum',
+        requester: walletAddress.address,
+        publicKey: tezosPublicKey,
+        timestamp: timestamp,
+        signature: signature,
+      ));
+    } catch (e) {
+      log.info('Error adding identity for address $address: $e');
+    }
+  }
+
+  Future<void> removeIdentity(String address) async {
+    try {
+      await _authApi.deleteIdentity(address);
+    } catch (e) {
+      log.info('Error removing identity for address $address: $e');
+    }
+  }
+
+  Future<void> createAccount(WalletStorage walletStorage) async {
+    final accountDID = await walletStorage.getAccountDID();
+    try {
+      final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+      final message = getFeralFileAccountMessage(accountDID, timestamp);
+      final signature = await walletStorage.getAccountDIDSignature(message);
+      await _authApi.createAccount(AccountV2Request(
+        type: 'did',
+        requester: accountDID,
+        timestamp: timestamp,
+        signature: signature,
+      ));
+    } catch (e) {
+      log.info('Error creating account for DID $accountDID: $e');
+    }
   }
 }
