@@ -336,8 +336,10 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
             shadowColor: Colors.transparent,
             leading: Row(
               children: [
-                backButton(context,
-                    onBack: () => Navigator.pop(context),),
+                backButton(
+                  context,
+                  onBack: () => Navigator.pop(context),
+                ),
               ],
             ),
             leadingWidth: editable ? 90 : 55,
