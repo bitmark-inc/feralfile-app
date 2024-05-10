@@ -74,7 +74,7 @@ class Exhibition {
         curator: json['curator'] == null
             ? null
             : FFCurator.fromJson(json['curator'] as Map<String, dynamic>),
-        resources: (json['resources'] as List<dynamic>?)
+        resources: (json['posts'] as List<dynamic>?)
             ?.map((e) => ExhibitionEvent.fromJson(e as Map<String, dynamic>))
             .toList(),
         status: json['status'] as int,
@@ -97,7 +97,7 @@ class Exhibition {
         'partner': partner?.toJson(),
         'type': type,
         'curator': curator?.toJson(),
-        'resources': resources?.map((e) => e.toJson()).toList(),
+        'posts': resources?.map((e) => e.toJson()).toList(),
         'status': status,
       };
 

@@ -4,13 +4,13 @@ import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/pair.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_state.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/cast_button.dart';
 import 'package:autonomy_flutter/view/event_view.dart';
@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/view/exhibition_detail_last_page.dart';
 import 'package:autonomy_flutter/view/exhibition_detail_preview.dart';
 import 'package:autonomy_flutter/view/ff_artwork_preview.dart';
 import 'package:autonomy_flutter/view/note_view.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter/material.dart';
@@ -43,6 +44,8 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
 
   late final PageController _controller;
   int _currentIndex = 0;
+  late CarouselController _carouselController;
+  late int _carouselIndex;
 
   @override
   void initState() {
@@ -52,6 +55,8 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
         widget.payload.exhibitions[widget.payload.index].id));
 
     _controller = PageController();
+    _carouselController = CarouselController();
+    _carouselIndex = 0;
   }
 
   @override
@@ -83,6 +88,15 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
             setState(() {
               _currentIndex = index;
             });
+            final controllingDevice = _canvasDeviceBloc.state.controllingDevice;
+            log.info('onPageChanged: $_currentIndex');
+            if (controllingDevice != null) {
+              final request = _getCastExhibitionRequest(exhibitionDetail);
+              log.info('onPageChanged: request: $request');
+              _canvasDeviceBloc.add(
+                CanvasDeviceCastExhibitionEvent(controllingDevice, request),
+              );
+            }
           },
           scrollDirection: Axis.vertical,
           itemCount: itemCount,
@@ -101,7 +115,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
               case 0:
                 return _getPreviewPage(exhibitionDetail.exhibition);
               case 1:
-                return _notePage(exhibitionDetail.exhibition);
+                return _notePage(exhibitionDetail);
               default:
                 final seriesIndex = index - 2;
                 final series = exhibitionDetail.getSeriesByIndex(seriesIndex);
@@ -152,39 +166,94 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
         ),
       );
 
-  Widget _notePage(Exhibition exhibition) {
+  Widget _notePage(ExhibitionDetail exhibitionDetail) {
+    final exhibition = exhibitionDetail.exhibition;
     const horizontalPadding = 14.0;
     const peekWidth = 50.0;
     final width =
         MediaQuery.sizeOf(context).width - horizontalPadding * 2 - peekWidth;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(right: 14),
-              child: ExhibitionNoteView(
-                exhibition: exhibition,
-                width: width,
-                onReadMore: () async {
-                  await Navigator.pushNamed(
-                    context,
-                    AppRouter.exhibitionNotePage,
-                    arguments: exhibition,
-                  );
-                },
-              ),
-            ),
-            ...exhibition.resources?.map((e) => ExhibitionEventView(
+      child: CarouselSlider(
+        carouselController: _carouselController,
+        items: [
+          ExhibitionNoteView(
+            exhibition: exhibition,
+          ),
+          ...exhibition.resources?.map((e) => GestureDetector(
+                    onTap: () {
+                      final controllingDevice =
+                          _canvasDeviceBloc.state.controllingDevice;
+                      log.info('onTap: $e');
+                      if (controllingDevice != null) {
+                        final request = CastExhibitionRequest(
+                          exhibitionId: exhibition.id,
+                          katalog: ExhibitionKatalog.RESOURCE_DETAIL,
+                          katalogId: e.id,
+                        );
+                        log.info('onTap: request: $request');
+                        _canvasDeviceBloc.add(
+                          CanvasDeviceCastExhibitionEvent(
+                              controllingDevice, request),
+                        );
+                      }
+                    },
+                    child: ExhibitionEventView(
                       exhibitionEvent: e,
                       width: width,
-                    )) ??
-                []
-          ],
+                    ),
+                  )) ??
+              []
+        ],
+        options: CarouselOptions(
+          // aspectRatio: width / height,
+          viewportFraction: 0.6,
+          enableInfiniteScroll: false,
+          initialPage: _carouselIndex,
+          onPageChanged: (index, reason) {
+            setState(() {
+              _carouselIndex = index;
+            });
+            log.info('onPageChanged: $index');
+            final controllingDevice = _canvasDeviceBloc.state.controllingDevice;
+            if (controllingDevice != null) {
+              final request = _getCastExhibitionRequest(exhibitionDetail);
+              log.info('onPageChanged: request: $request');
+              _canvasDeviceBloc.add(
+                CanvasDeviceCastExhibitionEvent(controllingDevice, request),
+              );
+            } else {
+              log.info('onPageChanged: controllingDevice is null');
+            }
+          },
         ),
       ),
+      // child: SingleChildScrollView(
+      //   scrollDirection: Axis.horizontal,
+      //   child: Row(
+      //     children: [
+      //       Padding(
+      //         padding: const EdgeInsets.only(right: 14),
+      //         child: ExhibitionNoteView(
+      //           exhibition: exhibition,
+      //           width: width,
+      //           onReadMore: () async {
+      //             await Navigator.pushNamed(
+      //               context,
+      //               AppRouter.exhibitionNotePage,
+      //               arguments: exhibition,
+      //             );
+      //           },
+      //         ),
+      //       ),
+      //       ...exhibition.resources?.map((e) => ExhibitionEventView(
+      //                 exhibitionEvent: e,
+      //                 width: width,
+      //               )) ??
+      //           []
+      //     ],
+      //   ),
+      // ),
     );
   }
 
@@ -218,7 +287,13 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
         katalog = ExhibitionKatalog.HOME;
         break;
       case 1:
-        katalog = ExhibitionKatalog.CURATOR_NOTE;
+        if (_carouselIndex == 0) {
+          katalog = ExhibitionKatalog.CURATOR_NOTE;
+        } else {
+          katalog = ExhibitionKatalog.RESOURCE;
+          katalogId =
+              exhibitionDetail.exhibition.resources![_carouselIndex - 1].id;
+        }
         break;
       default:
         katalog = ExhibitionKatalog.ARTWORK;
