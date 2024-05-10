@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
+import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_state.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -17,6 +19,7 @@ import 'package:autonomy_flutter/view/exhibition_detail_preview.dart';
 import 'package:autonomy_flutter/view/ff_artwork_preview.dart';
 import 'package:autonomy_flutter/view/note_view.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
+import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -33,8 +36,10 @@ class ExhibitionDetailPage extends StatefulWidget {
 class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
     with AfterLayoutMixin {
   late final ExhibitionDetailBloc _exBloc;
+
   // late final CanvasDeviceBloc _canvasDeviceBloc;
   final _metricClientService = injector<MetricClientService>();
+  final _canvasDeviceBloc = injector<CanvasDeviceBloc>();
 
   late final PageController _controller;
   int _currentIndex = 0;
@@ -43,7 +48,6 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
   void initState() {
     super.initState();
     _exBloc = context.read<ExhibitionDetailBloc>();
-    // _canvasDeviceBloc = context.read<CanvasDeviceBloc>();
     _exBloc.add(GetExhibitionDetailEvent(
         widget.payload.exhibitions[widget.payload.index].id));
 
@@ -100,14 +104,14 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
                 return _notePage(exhibitionDetail.exhibition);
               default:
                 final seriesIndex = index - 2;
-                final series = exhibitionDetail.exhibition.series!.firstWhere(
-                    (element) =>
-                        element.id == viewingArtworks[seriesIndex].seriesID);
+                final series = exhibitionDetail.getSeriesByIndex(seriesIndex);
+                final artwork =
+                    exhibitionDetail.representArtworkByIndex(seriesIndex);
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 40),
                   child: FeralFileArtworkPreview(
                     payload: FeralFileArtworkPreviewPayload(
-                      artwork: viewingArtworks[seriesIndex],
+                      artwork: artwork,
                       series: series,
                     ),
                   ),
@@ -195,10 +199,51 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
             : Padding(
                 padding: const EdgeInsets.only(right: 14, bottom: 10, top: 10),
                 child: FFCastButton(
-                  onDeviceSelected: (deviceID) async {},
+                  onDeviceSelected: (device) async {
+                    final request = _getCastExhibitionRequest(exhibitionDetail);
+                    _canvasDeviceBloc.add(
+                      CanvasDeviceCastExhibitionEvent(device, request),
+                    );
+                  },
                 ),
               ),
       );
+
+  Pair<ExhibitionKatalog, String?> _getCurrentKatalogInfo(
+      ExhibitionDetail exhibitionDetail) {
+    ExhibitionKatalog? katalog;
+    String? katalogId;
+    switch (_currentIndex) {
+      case 0:
+        katalog = ExhibitionKatalog.HOME;
+        break;
+      case 1:
+        katalog = ExhibitionKatalog.CURATOR_NOTE;
+        break;
+      default:
+        katalog = ExhibitionKatalog.ARTWORK;
+        final seriesIndex = _currentIndex - 2;
+        final currentArtwork =
+            exhibitionDetail.representArtworkByIndex(seriesIndex).id;
+        katalogId = currentArtwork;
+        break;
+    }
+    return Pair(katalog, katalogId);
+  }
+
+  CastExhibitionRequest _getCastExhibitionRequest(
+      ExhibitionDetail exhibitionDetail) {
+    final exhibitionId = exhibitionDetail.exhibition.id;
+    final katalogInfo = _getCurrentKatalogInfo(exhibitionDetail);
+    final katalog = katalogInfo.first;
+    final katalogId = katalogInfo.second;
+    CastExhibitionRequest request = CastExhibitionRequest(
+      exhibitionId: exhibitionId,
+      katalog: katalog,
+      katalogId: katalogId,
+    );
+    return request;
+  }
 
   // Future<void> _onCastTap(
   //     BuildContext context, ExhibitionDetail exhibitionDetail) async {

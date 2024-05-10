@@ -220,8 +220,14 @@ class CanvasClientServiceV2 {
     return response.ok;
   }
 
-  Future<bool> castExhibition(CanvasDevice device, String exhibitionId) async {
-    throw UnimplementedError();
+  Future<bool> castExhibition(
+      CanvasDevice device, CastExhibitionRequest castRequest) async {
+    final stub = _getStub(device);
+    final response = await stub.castExhibition(
+      castRequest,
+      options: _callOptions,
+    );
+    return response.ok;
   }
 
   Future<UpdateDurationReply> updateDuration(

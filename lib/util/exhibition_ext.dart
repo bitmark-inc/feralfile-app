@@ -105,6 +105,21 @@ extension ExhibitionDetailExt on ExhibitionDetail {
   List<Artwork> get representArtworks =>
       seriesIds.map((e) => representArtwork(e)).whereNotNull().toList();
 
+  Artwork representArtworkByIndex(int seriesIndex) {
+    if (seriesIndex < 0 || seriesIndex >= representArtworks.length) {
+      throw Exception('Invalid series index');
+    }
+    return representArtworks[seriesIndex];
+  }
+
+  FFSeries getSeriesByIndex(int seriesIndex) {
+    if (seriesIndex < 0 || seriesIndex >= seriesIds.length) {
+      throw Exception('Invalid series index');
+    }
+    return exhibition.series!
+        .firstWhere((e) => e.id == representArtworks[seriesIndex].seriesID);
+  }
+
   String? getArtworkTokenId(Artwork artwork) {
     if (artwork.swap != null) {
       if (artwork.swap!.token == null) {

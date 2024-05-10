@@ -118,6 +118,13 @@ class CanvasDeviceUpdateDurationEvent extends CanvasDeviceEvent {
   CanvasDeviceUpdateDurationEvent(this.device, this.artwork);
 }
 
+class CanvasDeviceCastExhibitionEvent extends CanvasDeviceEvent {
+  final CanvasDevice device;
+  final CastExhibitionRequest castRequest;
+
+  CanvasDeviceCastExhibitionEvent(this.device, this.castRequest);
+}
+
 class CanvasDeviceState {
   final List<DeviceState> devices;
   final Map<String, CheckDeviceStatusReply>? controllingDeviceStatus;
@@ -355,6 +362,34 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
       try {
         final ok =
             await _canvasClientServiceV2.castListArtwork(device, event.artwork);
+        if (!ok) {
+          throw Exception('Failed to cast to device');
+        }
+        final currentDeviceState = state.devices
+            .firstWhereOrNull((element) => element.device.id == device.id);
+        if (currentDeviceState == null) {
+          throw Exception('Device not found');
+        }
+        final status =
+            await _canvasClientServiceV2.getDeviceCastingStatus(device);
+        emit(
+          state
+              .replaceDeviceState(
+                  device: device,
+                  deviceState: currentDeviceState.copyWith(isPlaying: true))
+              .copyWith(controllingDeviceStatus: {device.id: status}),
+        );
+      } catch (_) {
+        emit(state.replaceDeviceState(
+            device: device, deviceState: DeviceState(device: device)));
+      }
+    });
+
+    on<CanvasDeviceCastExhibitionEvent>((event, emit) async {
+      final device = event.device;
+      try {
+        final ok = await _canvasClientServiceV2.castExhibition(
+            device, event.castRequest);
         if (!ok) {
           throw Exception('Failed to cast to device');
         }
