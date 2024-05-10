@@ -89,8 +89,8 @@ class _PlaylistControlState extends State<PlaylistControl> {
 
   @override
   void dispose() {
-    _timer?.cancel();
     super.dispose();
+    _timer?.cancel();
   }
 
   @override
