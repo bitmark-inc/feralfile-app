@@ -54,10 +54,6 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
                     .contains(element.device.id) ??
                 false)
             .firstOrNull;
-        final isPlaylist = (_canvasDeviceBloc.state.controllingDeviceStatus
-                    ?.values.firstOrNull?.artworks.length ??
-                0) >
-            1;
         return Padding(
           padding: ResponsiveLayout.pageHorizontalEdgeInsets,
           child: Column(
