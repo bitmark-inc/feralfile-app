@@ -7,6 +7,7 @@ import 'dart:async' as _i5;
 import 'dart:io' as _i6;
 
 import 'package:autonomy_flutter/gateway/iap_api.dart' as _i4;
+import 'package:autonomy_flutter/model/account_v2_request.dart' as _i7;
 import 'package:autonomy_flutter/model/backup_versions.dart' as _i3;
 import 'package:autonomy_flutter/model/jwt.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
@@ -170,4 +171,44 @@ class MockIAPApi extends _i1.Mock implements _i4.IAPApi {
           ),
         )),
       ) as _i5.Future<_i2.OnesignalIdentityHash>);
+  @override
+  _i5.Future<dynamic> addIdentity(_i7.AccountV2Request? body) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #addIdentity,
+          [body],
+        ),
+        returnValue: _i5.Future<dynamic>.value(),
+      ) as _i5.Future<dynamic>);
+  @override
+  _i5.Future<_i2.JWT> authV2(_i7.AccountV2Request? body) => (super.noSuchMethod(
+        Invocation.method(
+          #authV2,
+          [body],
+        ),
+        returnValue: _i5.Future<_i2.JWT>.value(_FakeJWT_0(
+          this,
+          Invocation.method(
+            #authV2,
+            [body],
+          ),
+        )),
+      ) as _i5.Future<_i2.JWT>);
+  @override
+  _i5.Future<dynamic> createAccount(_i7.AccountV2Request? body) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #createAccount,
+          [body],
+        ),
+        returnValue: _i5.Future<dynamic>.value(),
+      ) as _i5.Future<dynamic>);
+  @override
+  _i5.Future<dynamic> deleteIdentity(String? address) => (super.noSuchMethod(
+        Invocation.method(
+          #deleteIdentity,
+          [address],
+        ),
+        returnValue: _i5.Future<dynamic>.value(),
+      ) as _i5.Future<dynamic>);
 }
