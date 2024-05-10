@@ -80,10 +80,6 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
                 ),
               ),
               const SizedBox(height: 40),
-              if (isPlaylist) ...[
-                const PlaylistControl(),
-                const SizedBox(height: 40),
-              ],
               ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
