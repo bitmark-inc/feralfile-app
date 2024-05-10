@@ -108,8 +108,11 @@ class _ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
           switch (state.runtimeType) {
             case ArtworkPreviewDetailLoadingState:
               return const SizedBox(
+                width: 25,
+                height: 25,
                 child: CircularProgressIndicator(
                   color: AppColor.auGrey,
+                  strokeWidth: 3,
                 ),
               );
             case ArtworkPreviewDetailLoadedState:
