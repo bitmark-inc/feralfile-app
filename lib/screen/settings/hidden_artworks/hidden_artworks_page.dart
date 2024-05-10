@@ -162,19 +162,17 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
                                   unsupportWidgetBuilder: (context) =>
                                       const GalleryUnSupportThumbnailWidget(),
                                 )
-                              : ImageBackground(
-                                  child: Image.network(
-                                    thumbnailUrl,
-                                    width: double.infinity,
-                                    height: double.infinity,
-                                    fit: BoxFit.cover,
-                                    cacheHeight: _cachedImageSize,
-                                    cacheWidth: _cachedImageSize,
-                                    loadingBuilder: _loadingBuilder,
-                                    errorBuilder: (context, url, error) =>
-                                        const GalleryThumbnailErrorWidget(),
-                                  ),
-                                ),
+                              : Image.network(
+                                thumbnailUrl,
+                                width: double.infinity,
+                                height: double.infinity,
+                                fit: BoxFit.cover,
+                                cacheHeight: _cachedImageSize,
+                                cacheWidth: _cachedImageSize,
+                                loadingBuilder: _loadingBuilder,
+                                errorBuilder: (context, url, error) =>
+                                    const GalleryThumbnailErrorWidget(),
+                              ),
                         ),
                       ClipRRect(
                         // Clip it cleanly.
@@ -223,7 +221,7 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
   Widget _loadingBuilder(
       BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
     if (loadingProgress == null) {
-      return child;
+      return ImageBackground(child: child);
     }
     return const GalleryThumbnailPlaceholder();
   }

@@ -185,15 +185,15 @@ class _PlaylistItemState extends State<PlaylistItem> {
                           height: double.infinity,
                           color: theme.disableColor,
                         )
-                      : ImageBackground(
-                          child: Image.network(
-                            thumbnailURL,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, url, error) => Container(
-                              width: double.infinity,
-                              height: double.infinity,
-                              color: theme.disableColor,
-                            ),
+                      : Image.network(
+                          thumbnailURL,
+                          fit: BoxFit.cover,
+                          loadingBuilder: (context, child, loadingProgress) =>
+                              ImageBackground(child: child),
+                          errorBuilder: (context, url, error) => Container(
+                            width: double.infinity,
+                            height: double.infinity,
+                            color: theme.disableColor,
                           ),
                         ),
                 ),

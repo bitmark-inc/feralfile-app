@@ -164,45 +164,44 @@ Widget tokenGalleryThumbnailWidget(
           ? 'gallery_thumbnail_${token.id}_${token.owner}'
           : const Uuid().v4(),
       key: const Key('Artwork_Thumbnail'),
-      child: ImageBackground(
-          child: ext == '.svg'
-              ? SvgImage(
-                  url: thumbnailUrl,
-                  loadingWidgetBuilder: (_) =>
-                      const GalleryThumbnailPlaceholder(),
-                  errorWidgetBuilder: (_) =>
-                      const GalleryThumbnailErrorWidget(),
-                  unsupportWidgetBuilder: (context) =>
-                      const GalleryUnSupportThumbnailWidget(),
-                )
-              : Image.network(
-                  thumbnailUrl,
-                  fit: BoxFit.cover,
-                  cacheWidth: cachedImageSize,
-                  cacheHeight: cachedImageSize,
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) {
-                      return child;
-                    }
-                    return galleryThumbnailPlaceholder ??
-                        const GalleryThumbnailPlaceholder();
-                  },
-                  errorBuilder: (context, url, error) => Image.network(
-                    token.getGalleryThumbnailUrl(usingThumbnailID: false) ?? '',
-                    fit: BoxFit.cover,
-                    cacheWidth: cachedImageSize,
-                    cacheHeight: cachedImageSize,
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) {
-                        return child;
-                      }
-                      return galleryThumbnailPlaceholder ??
-                          const GalleryThumbnailPlaceholder();
-                    },
-                    errorBuilder: (context, url, error) =>
-                        const GalleryThumbnailErrorWidget(),
-                  ),
-                )),
+      child: ext == '.svg'
+          ? SvgImage(
+              url: thumbnailUrl,
+              loadingWidgetBuilder: (_) =>
+                  const GalleryThumbnailPlaceholder(),
+              errorWidgetBuilder: (_) =>
+                  const GalleryThumbnailErrorWidget(),
+              unsupportWidgetBuilder: (context) =>
+                  const GalleryUnSupportThumbnailWidget(),
+            )
+          : Image.network(
+              thumbnailUrl,
+              fit: BoxFit.cover,
+              cacheWidth: cachedImageSize,
+              cacheHeight: cachedImageSize,
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) {
+                  return ImageBackground(child: child);
+                }
+                return galleryThumbnailPlaceholder ??
+                    const GalleryThumbnailPlaceholder();
+              },
+              errorBuilder: (context, url, error) => Image.network(
+                token.getGalleryThumbnailUrl(usingThumbnailID: false) ?? '',
+                fit: BoxFit.cover,
+                cacheWidth: cachedImageSize,
+                cacheHeight: cachedImageSize,
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) {
+                    return ImageBackground(child: child);
+                  }
+                  return galleryThumbnailPlaceholder ??
+                      const GalleryThumbnailPlaceholder();
+                },
+                errorBuilder: (context, url, error) =>
+                    const GalleryThumbnailErrorWidget(),
+              ),
+            ),
     ),
   );
 }

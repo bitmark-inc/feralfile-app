@@ -14,19 +14,17 @@ class FFArtworkThumbnailView extends StatelessWidget {
   @override
   Widget build(BuildContext context) => GestureDetector(
         onTap: () => onTap?.call(),
-        child: ImageBackground(
-          child: Image.network(
-            artwork.thumbnailURL,
-            fit: BoxFit.cover,
-            loadingBuilder: (context, child, loadingProgress) {
-              if (loadingProgress == null) {
-                return child;
-              }
-              return const GalleryThumbnailPlaceholder();
-            },
-            errorBuilder: (context, url, error) =>
-                const GalleryThumbnailErrorWidget(),
-          ),
+        child: Image.network(
+          artwork.thumbnailURL,
+          fit: BoxFit.cover,
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) {
+              return ImageBackground(child: child);
+            }
+            return const GalleryThumbnailPlaceholder();
+          },
+          errorBuilder: (context, url, error) =>
+              const GalleryThumbnailErrorWidget(),
         ),
       );
 }

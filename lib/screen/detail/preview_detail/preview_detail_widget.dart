@@ -107,8 +107,10 @@ class _ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
         builder: (context, state) {
           switch (state.runtimeType) {
             case ArtworkPreviewDetailLoadingState:
-              return const CircularProgressIndicator(
-                color: AppColor.auGrey,
+              return const SizedBox(
+                child: CircularProgressIndicator(
+                  color: AppColor.auGrey,
+                ),
               );
             case ArtworkPreviewDetailLoadedState:
               final assetToken =
