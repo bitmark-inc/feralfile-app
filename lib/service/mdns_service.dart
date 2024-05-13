@@ -12,9 +12,7 @@ class MDnsService {
   Future<List<CanvasDevice>> findCanvas() async {
     final devices = <CanvasDevice>[];
     log.info('[MDnsService] Looking for devices');
-    if (!_isStarted) {
-      await start();
-    }
+    await start();
     await _client
         .lookup<PtrResourceRecord>(
       ResourceRecordQuery.serverPointer(_serviceType),
@@ -58,6 +56,7 @@ class MDnsService {
       return;
     }
     await _client.start();
+    log.info('[MDnsService] MDnsClient started');
     _isStarted = true;
   }
 
