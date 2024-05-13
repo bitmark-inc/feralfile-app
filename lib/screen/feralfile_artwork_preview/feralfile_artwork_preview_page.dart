@@ -45,7 +45,6 @@ class _FeralFileArtworkPreviewPageState
           context,
           onBack: () => Navigator.pop(context),
           action: FFCastButton(
-            text: 'Cast',
             onDeviceSelected: (device) {
               final exhibitionId =
                   widget.payload.artwork.series?.exhibition?.id;
