@@ -187,8 +187,8 @@ class CanvasDeviceState {
   List<DeviceState> get controllingDevices =>
       devices.where((element) => isDeviceControlling(element.device)).toList();
 
-  bool get isCasting => devices.any((element) =>
-      element.device == controllingDevice && element.isPlaying == true);
+  bool get isCasting =>
+      devices.any((element) => element.device == controllingDevice);
 }
 
 class DeviceState {
@@ -235,23 +235,35 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
       : super(CanvasDeviceState(devices: [])) {
     on<CanvasDeviceGetDevicesEvent>(
       (event, emit) async {
-        emit(state.copyWith(
-            devices: state.devices, isLoaded: state.devices.isNotEmpty));
-        final devices = await _canvasClientServiceV2.scanDevices();
+        try {
+          emit(state.copyWith(
+              devices: state.devices, isLoaded: state.devices.isNotEmpty));
+          final devices = await _canvasClientServiceV2.scanDevices();
 
-        final thisDevice = _canvasClientServiceV2.clientDeviceInfo;
-        final Map<String, CheckDeviceStatusReply> controllingDeviceStatus = {};
-        for (final device in devices) {
-          if (device.second.connectedDevice.deviceId == thisDevice.deviceId) {
-            controllingDeviceStatus[device.first.id] = device.second;
-            break;
+          final thisDevice = _canvasClientServiceV2.clientDeviceInfo;
+          final Map<String, CheckDeviceStatusReply> controllingDeviceStatus =
+              {};
+          for (final device in devices) {
+            if (device.second.connectedDevice.deviceId == thisDevice.deviceId) {
+              controllingDeviceStatus[device.first.id] = device.second;
+              break;
+            } else {
+              log.info('CanvasDeviceBloc: get devices: ${device.first.id}, '
+                  'connectedDevice: ${device.second.connectedDevice.deviceId}');
+            }
           }
+          final newState = state.copyWith(
+              devices:
+                  devices.map((e) => DeviceState(device: e.first)).toList(),
+              controllingDeviceStatus: controllingDeviceStatus,
+              isLoaded: true);
+          log.info('CanvasDeviceBloc: get devices: ${newState.devices.length}, '
+              'controllingDeviceStatus: ${newState.controllingDeviceStatus}');
+          emit(newState);
+        } catch (e) {
+          log.info('CanvasDeviceBloc: error while get devices: $e');
+          emit(state.copyWith());
         }
-        final newState = state.copyWith(
-            devices: devices.map((e) => DeviceState(device: e.first)).toList(),
-            controllingDeviceStatus: controllingDeviceStatus,
-            isLoaded: true);
-        emit(newState);
       },
       transformer: debounceSequential(const Duration(seconds: 5)),
     );

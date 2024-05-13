@@ -222,6 +222,7 @@ class CanvasClientServiceV2 {
 
   Future<bool> castExhibition(
       CanvasDevice device, CastExhibitionRequest castRequest) async {
+    await connect(device);
     final stub = _getStub(device);
     final response = await stub.castExhibition(
       castRequest,
@@ -262,7 +263,7 @@ class CanvasClientServiceV2 {
         if (status != null) {
           devices.add(status);
         }
-      } catch (e) {
+      } catch (e, stackTrace) {
         log.info('CanvasClientService: Caught error: $e');
       }
     });
