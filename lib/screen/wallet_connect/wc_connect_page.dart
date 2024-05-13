@@ -34,7 +34,6 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/list_address_account.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
@@ -501,11 +500,11 @@ class _WCConnectPageState extends State<WCConnectPage>
     return Row(
       children: [
         if (peerMeta.icons.isNotEmpty) ...[
-          CachedNetworkImage(
-            imageUrl: peerMeta.icons.first,
+          Image.network(
+            peerMeta.icons.first,
             width: 64,
             height: 64,
-            errorWidget: (context, url, error) => SizedBox(
+            errorBuilder: (context, url, error) => SizedBox(
                 width: 64,
                 height: 64,
                 child:
@@ -537,11 +536,11 @@ class _WCConnectPageState extends State<WCConnectPage>
     return Row(
       children: [
         if (request.icon != null)
-          CachedNetworkImage(
-            imageUrl: request.icon!,
+          Image.network(
+            request.icon!,
             width: 64,
             height: 64,
-            errorWidget: (context, url, error) => SvgPicture.asset(
+            errorBuilder: (context, url, error) => SvgPicture.asset(
               'assets/images/tezos_social_icon.svg',
               width: 64,
               height: 64,
