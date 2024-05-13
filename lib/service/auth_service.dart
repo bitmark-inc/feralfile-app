@@ -98,32 +98,74 @@ class AuthService {
   }
 
   Future<void> addIdentity(WalletAddress walletAddress) async {
-    final address = walletAddress.address;
     try {
-      final wallet = LibAukDart.getWallet(walletAddress.uuid);
-      final isTezos = walletAddress.cryptoType == CryptoType.XTZ.source;
-      final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
-      final message = getFeralFileAccountMessage(address, timestamp);
-      final messageBytes = Uint8List.fromList(utf8.encode(message));
-      final signature = isTezos
-          ? await injector<TezosService>()
-              .signMessage(wallet, walletAddress.index, messageBytes)
-          : await injector<EthereumService>()
-              .signPersonalMessage(wallet, walletAddress.index, messageBytes);
-      final tezosPublicKey = isTezos
-          ? await wallet.getTezosPublicKey(index: walletAddress.index)
-          : null;
-      await _authApi.addIdentity(AccountV2Request(
-        type: isTezos ? 'tezos' : 'ethereum',
-        requester: walletAddress.address,
-        publicKey: tezosPublicKey,
-        timestamp: timestamp,
-        signature: signature,
-      ));
-      log.info('[AuthService] Added identity for address $address');
+      final request = await _getRequestFromWallet(walletAddress);
+      await _authApi.addIdentity(request);
+      log.info(
+          '[AuthService] Added identity for address ${walletAddress.address}');
     } catch (e) {
-      log.info('[AuthService] Error adding identity for address $address: $e');
+      log.info('[AuthService] Error adding identity for address'
+          ' ${walletAddress.address}: $e');
     }
+  }
+
+  Future<AccountV2Request> _getRequestFromWallet(
+      WalletAddress walletAddress) async {
+    final address = walletAddress.address;
+    final wallet = LibAukDart.getWallet(walletAddress.uuid);
+    final isTezos = walletAddress.cryptoType == CryptoType.XTZ.source;
+    final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+    final message = getFeralFileAccountMessage(address, timestamp);
+    final messageBytes = Uint8List.fromList(utf8.encode(message));
+    final signature = isTezos
+        ? await injector<TezosService>()
+            .signMessage(wallet, walletAddress.index, messageBytes)
+        : await injector<EthereumService>()
+            .signPersonalMessage(wallet, walletAddress.index, messageBytes);
+    final tezosPublicKey = isTezos
+        ? await wallet.getTezosPublicKey(index: walletAddress.index)
+        : null;
+    return AccountV2Request(
+      type: isTezos ? 'tezos' : 'ethereum',
+      requester: walletAddress.address,
+      publicKey: tezosPublicKey,
+      timestamp: timestamp,
+      signature: signature,
+    );
+  }
+
+  Future<JWT?> _getJwtTokenV2(AccountV2Request request) async {
+    try {
+      final jwt = await _authApi.authV2(request);
+      return jwt;
+    } catch (e) {
+      log.info('[AuthService] Failed to get jwt v2 $request');
+      return null;
+    }
+  }
+
+  Future<JWT?> getJwtForWallet(WalletAddress walletAddress) async {
+    final request = await _getRequestFromWallet(walletAddress);
+    return await _getJwtTokenV2(request);
+  }
+
+  Future<JWT?> getJwtForDID() async {
+    final wallet = await injector<AccountService>().getDefaultAccount();
+    final request = await _getDIDRequest(wallet);
+    return await _getJwtTokenV2(request);
+  }
+
+  Future<AccountV2Request> _getDIDRequest(WalletStorage wallet) async {
+    final accountDID = await wallet.getAccountDID();
+    final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+    final message = getFeralFileAccountMessage(accountDID, timestamp);
+    final signature = await wallet.getAccountDIDSignature(message);
+    return AccountV2Request(
+      type: 'did',
+      requester: accountDID,
+      timestamp: timestamp,
+      signature: signature,
+    );
   }
 
   Future<void> removeIdentity(String address) async {
@@ -137,20 +179,13 @@ class AuthService {
   }
 
   Future<void> createAccount(WalletStorage walletStorage) async {
-    final accountDID = await walletStorage.getAccountDID();
     try {
-      final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
-      final message = getFeralFileAccountMessage(accountDID, timestamp);
-      final signature = await walletStorage.getAccountDIDSignature(message);
-      await _authApi.createAccount(AccountV2Request(
-        type: 'did',
-        requester: accountDID,
-        timestamp: timestamp,
-        signature: signature,
-      ));
-      log.info('[AuthService] Created account for did $accountDID');
+      final request = await _getDIDRequest(walletStorage);
+      await _authApi.createAccount(request);
+      log.info('[AuthService] Created account for did ${walletStorage.uuid}');
     } catch (e) {
-      log.info('[AuthService] Error creating account for DID $accountDID: $e');
+      log.info('[AuthService] Error creating account for DID '
+          '${walletStorage.uuid}: $e');
     }
   }
 }
