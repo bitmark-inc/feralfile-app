@@ -100,7 +100,7 @@ class AuthService {
   Future<void> addIdentity(WalletAddress walletAddress) async {
     final address = walletAddress.address;
     try {
-      final wallet = LibAukDart.getWallet(address);
+      final wallet = LibAukDart.getWallet(walletAddress.uuid);
       final isTezos = walletAddress.cryptoType == CryptoType.XTZ.source;
       final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
       final message = getFeralFileAccountMessage(address, timestamp);
@@ -120,16 +120,19 @@ class AuthService {
         timestamp: timestamp,
         signature: signature,
       ));
+      log.info('[AuthService] Added identity for address $address');
     } catch (e) {
-      log.info('Error adding identity for address $address: $e');
+      log.info('[AuthService] Error adding identity for address $address: $e');
     }
   }
 
   Future<void> removeIdentity(String address) async {
     try {
       await _authApi.deleteIdentity(address);
+      log.info('[AuthService] Removed identity for address $address');
     } catch (e) {
-      log.info('Error removing identity for address $address: $e');
+      log.info(
+          '[AuthService] Error removing identity for address $address: $e');
     }
   }
 
@@ -145,8 +148,9 @@ class AuthService {
         timestamp: timestamp,
         signature: signature,
       ));
+      log.info('[AuthService] Created account for did $accountDID');
     } catch (e) {
-      log.info('Error creating account for DID $accountDID: $e');
+      log.info('[AuthService] Error creating account for DID $accountDID: $e');
     }
   }
 }

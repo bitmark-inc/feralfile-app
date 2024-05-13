@@ -632,6 +632,7 @@ class AccountServiceImpl extends AccountService {
   Future<void> deleteAddressPersona(
       Persona persona, WalletAddress walletAddress) async {
     await _cloudDB.addressDao.deleteAddress(walletAddress);
+    await injector<AuthService>().removeIdentity(walletAddress.address);
     await _addressService.deleteAddresses([walletAddress.address]);
     switch (CryptoType.fromSource(walletAddress.cryptoType)) {
       case CryptoType.ETH:
