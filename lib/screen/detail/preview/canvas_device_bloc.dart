@@ -398,8 +398,10 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
         if (currentDeviceState == null) {
           throw Exception('Device not found');
         }
+        log.info('CanvasDeviceBloc: currentDeviceState success');
         final status =
             await _canvasClientServiceV2.getDeviceCastingStatus(device);
+        log.info('CanvasDeviceBloc: getDeviceCastingStatus success');
         emit(
           state
               .replaceDeviceState(
@@ -407,7 +409,9 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
                   deviceState: currentDeviceState.copyWith(isPlaying: true))
               .copyWith(controllingDeviceStatus: {device.id: status}),
         );
-      } catch (_) {
+      } catch (e) {
+        log.info('CanvasDeviceBloc: error while cast exhibition: $e');
+
         emit(state.replaceDeviceState(
             device: device, deviceState: DeviceState(device: device)));
       }
