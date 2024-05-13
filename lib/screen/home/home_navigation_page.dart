@@ -6,6 +6,7 @@
 //
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
@@ -42,6 +43,7 @@ import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/dio_util.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
+import 'package:autonomy_flutter/util/local_network_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -318,6 +320,18 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
 
     unawaited(injector<CanvasClientService>().init());
     unawaited(_syncArtist());
+
+    unawaited(_requestLocalNetworkPermission());
+  }
+
+  Future<void> _requestLocalNetworkPermission() async {
+    if (Platform.isIOS) {
+      final didRequest = _configurationService.didGetLocalNetworkPermission();
+      if (!didRequest) {
+        final result = await LocalNetworkHelper.requestLocalNetworkPermission();
+        await _configurationService.setDidGetLocalNetworkPermission(result);
+      }
+    }
   }
 
   Future<void> _syncArtist() async {

@@ -8,7 +8,6 @@ import 'package:autonomy_flutter/model/shared_postcard.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
-import 'package:autonomy_flutter/util/local_network_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart' as my_device;
 import 'package:collection/collection.dart';
@@ -79,7 +78,6 @@ class CanvasClientService {
         ..device = (DeviceInfo()
           ..deviceId = _deviceId
           ..deviceName = _deviceName);
-      await LocalNetworkHelper.requestLocalNetworkPermission();
       final response = await stub.connect(
         request,
         options: _callOptions,
