@@ -587,4 +587,4 @@ final chatPrivateBannerMessage = SystemMessage(
 );
 
 String getFeralFileAccountMessage(String address, String timestamp) =>
-    'feralfile-account: {"requester":"$address":"timestamp":"$timestamp"}';
+    'feralfile-account: {"requester":"$address","timestamp":"$timestamp"}';
