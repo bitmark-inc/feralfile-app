@@ -632,18 +632,7 @@ class PreviewPlaceholder extends StatefulWidget {
   State<PreviewPlaceholder> createState() => _PreviewPlaceholderState();
 }
 
-class _PreviewPlaceholderState extends State<PreviewPlaceholder>
-    with AfterLayoutMixin<PreviewPlaceholder> {
-  final metricClient = injector.get<MetricClientService>();
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
-  @override
-  void afterFirstLayout(BuildContext context) {}
-
+class _PreviewPlaceholderState extends State<PreviewPlaceholder> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);

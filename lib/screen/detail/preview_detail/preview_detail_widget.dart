@@ -105,6 +105,8 @@ class _ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
         bloc: bloc,
         builder: (context, state) {
           switch (state.runtimeType) {
+            case ArtworkPreviewDetailLoadingState:
+              return previewPlaceholder();
             case ArtworkPreviewDetailLoadedState:
               final assetToken =
                   (state as ArtworkPreviewDetailLoadedState).assetToken;
