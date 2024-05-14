@@ -33,7 +33,7 @@ class MDnsService {
           map[parts.first] = parts.last;
         }
         final ip = map['ip'];
-        final port = map['port'];
+        final port = int.tryParse(map['port'] ?? '');
         final id = map['id'];
         if (ip != null && port != null && id != null) {
           if (devices.any((element) => element.id == id && element.ip == ip)) {
@@ -42,12 +42,13 @@ class MDnsService {
           devices.add(CanvasDevice(
             id: id,
             ip: ip,
-            port: int.parse(port),
+            port: port,
             name: name,
           ));
         }
       }
     });
+    stop();
     return devices;
   }
 
@@ -60,7 +61,8 @@ class MDnsService {
     _isStarted = true;
   }
 
-  Future<void> stop() async {
+  void stop() {
+    _isStarted = false;
     _client.stop();
   }
 }
