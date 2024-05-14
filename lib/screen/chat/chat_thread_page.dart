@@ -23,7 +23,6 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/postcard_chat.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/extensions/theme_extension/moma_sans.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -31,6 +30,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:flutter_chat_ui/flutter_chat_ui.dart';
+
 //ignore: implementation_imports
 import 'package:flutter_chat_ui/src/models/date_header.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -581,9 +581,9 @@ class UserAvatar extends StatelessWidget {
   Widget build(BuildContext context) => SizedBox(
       width: 41,
       height: 41,
-      child: CachedNetworkImage(
-        imageUrl: url,
-        errorWidget: (context, url, error) =>
+      child: Image.network(
+        url,
+        errorBuilder: (context, url, error) =>
             SvgPicture.asset('assets/images/default_avatar.svg'),
       ));
 }

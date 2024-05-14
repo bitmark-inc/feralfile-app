@@ -77,6 +77,7 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
       await _configurationService.removeAll();
 
       _authService.reset();
+      ImageCache().clear();
       unawaited(injector<MetricClientService>().mixPanelClient.reset());
       memoryValues = MemoryValues(
         branchDeeplinkData: ValueNotifier(null),
