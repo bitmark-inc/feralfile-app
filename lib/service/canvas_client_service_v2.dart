@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
@@ -10,6 +11,7 @@ import 'package:autonomy_flutter/view/user_agent_utils.dart' as my_device;
 import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:fixnum/fixnum.dart' as $fixnum;
 import 'package:flutter/material.dart';
+import 'package:retry/retry.dart';
 import 'package:synchronized/synchronized.dart';
 
 class CanvasClientServiceV2 {
@@ -25,10 +27,14 @@ class CanvasClientServiceV2 {
   final _connectDevice = Lock();
   final AccountService _accountService = injector<AccountService>();
 
+  final _retry = const RetryOptions(maxAttempts: 3);
+
   Offset currentCursorOffset = Offset.zero;
 
   CallOptions get _callOptions => CallOptions(
-      compression: const IdentityCodec(), timeout: const Duration(seconds: 60));
+      compression: const IdentityCodec(),
+      timeout: const Duration(seconds: 60),
+      providers: [_grpcLoggingProvider]);
 
   Future<void> init() async {
     if (_didInitialized) {
@@ -69,10 +75,10 @@ class CanvasClientServiceV2 {
       CanvasDevice device) async {
     final stub = _getStub(device);
     final request = CheckDeviceStatusRequest();
-    final response = await stub.status(
-      request,
-      options: _callOptions,
-    );
+    final response = await _retryWrapper(() => stub.status(
+          request,
+          options: _callOptions,
+        ));
     log.info(
         'CanvasClientService2 status ok: ${response.connectedDevice.deviceId}');
     return response;
@@ -107,7 +113,8 @@ class CanvasClientServiceV2 {
     final stub = _getStub(device);
     final deviceInfo = clientDeviceInfo;
     final request = ConnectRequestV2()..clientDevice = deviceInfo;
-    final response = await stub.connect(request, options: _callOptions);
+    final response =
+        await _retryWrapper(() => stub.connect(request, options: _callOptions));
     return response;
   }
 
@@ -130,10 +137,10 @@ class CanvasClientServiceV2 {
 
   Future<void> disconnectDevice(CanvasDevice device) async {
     final stub = _getStub(device);
-    final response = await stub.disconnect(
-      DisconnectRequestV2(),
-      options: _callOptions,
-    );
+    final response = await _retryWrapper(() => stub.disconnect(
+          DisconnectRequestV2(),
+          options: _callOptions,
+        ));
     if (response.ok) {
       //TODO: implement on disconnected
     }
@@ -146,10 +153,10 @@ class CanvasClientServiceV2 {
       final stub = _getStub(device);
       final castRequest = CastListArtworkRequest()..artworks.addAll(artworks);
 
-      final response = await stub.castListArtwork(
-        castRequest,
-        options: _callOptions,
-      );
+      final response = await _retryWrapper(() => stub.castListArtwork(
+            castRequest,
+            options: _callOptions,
+          ));
       return response.ok;
     } catch (e) {
       log.info('CanvasClientService: Caught error: $e');
@@ -159,28 +166,28 @@ class CanvasClientServiceV2 {
 
   Future<bool> cancelCasting(CanvasDevice device) async {
     final stub = _getStub(device);
-    final response = await stub.cancelCasting(
-      CancelCastingRequest(),
-      options: _callOptions,
-    );
+    final response = await _retryWrapper(() => stub.cancelCasting(
+          CancelCastingRequest(),
+          options: _callOptions,
+        ));
     return response.ok;
   }
 
   Future<bool> pauseCasting(CanvasDevice device) async {
     final stub = _getStub(device);
-    final response = await stub.pauseCasting(
-      PauseCastingRequest(),
-      options: _callOptions,
-    );
+    final response = await _retryWrapper(() => stub.pauseCasting(
+          PauseCastingRequest(),
+          options: _callOptions,
+        ));
     return response.ok;
   }
 
   Future<bool> resumeCasting(CanvasDevice device) async {
     final stub = _getStub(device);
-    final response = await stub.resumeCasting(
-      ResumeCastingRequest(),
-      options: _callOptions,
-    );
+    final response = await _retryWrapper(() => stub.resumeCasting(
+          ResumeCastingRequest(),
+          options: _callOptions,
+        ));
     return response.ok;
   }
 
@@ -190,10 +197,10 @@ class CanvasClientServiceV2 {
     if (startTime != null) {
       request.startTime = $fixnum.Int64(int.parse(startTime));
     }
-    final response = await stub.nextArtwork(
-      request,
-      options: _callOptions,
-    );
+    final response = await _retryWrapper(() => stub.nextArtwork(
+          request,
+          options: _callOptions,
+        ));
     return response.ok;
   }
 
@@ -203,20 +210,20 @@ class CanvasClientServiceV2 {
     if (startTime != null) {
       request.startTime = $fixnum.Int64(int.parse(startTime));
     }
-    final response = await stub.previousArtwork(
-      request,
-      options: _callOptions,
-    );
+    final response = await _retryWrapper(() => stub.previousArtwork(
+          request,
+          options: _callOptions,
+        ));
     return response.ok;
   }
 
   Future<bool> appendListArtwork(
       CanvasDevice device, List<PlayArtworkV2> artworks) async {
     final stub = _getStub(device);
-    final response = await stub.appendListArtwork(
-      AppendArtworkToCastingListRequest()..artworks.addAll(artworks),
-      options: _callOptions,
-    );
+    final response = await _retryWrapper(() => stub.appendListArtwork(
+          AppendArtworkToCastingListRequest()..artworks.addAll(artworks),
+          options: _callOptions,
+        ));
     return response.ok;
   }
 
@@ -224,20 +231,20 @@ class CanvasClientServiceV2 {
       CanvasDevice device, CastExhibitionRequest castRequest) async {
     await connect(device);
     final stub = _getStub(device);
-    final response = await stub.castExhibition(
-      castRequest,
-      options: _callOptions,
-    );
+    final response = await _retryWrapper(() => stub.castExhibition(
+          castRequest,
+          options: _callOptions,
+        ));
     return response.ok;
   }
 
   Future<UpdateDurationReply> updateDuration(
       CanvasDevice device, List<PlayArtworkV2> artworks) async {
     final stub = _getStub(device);
-    final response = await stub.updateDuration(
-      UpdateDurationRequest()..artworks.addAll(artworks),
-      options: _callOptions,
-    );
+    final response = await _retryWrapper(() => stub.updateDuration(
+          UpdateDurationRequest()..artworks.addAll(artworks),
+          options: _callOptions,
+        ));
     return response;
   }
 
@@ -283,5 +290,14 @@ class CanvasClientServiceV2 {
 
   Future<void> addLocalDevice(CanvasDevice device) async {
     await _db.canvasDeviceDao.insertCanvasDevice(device);
+  }
+
+  Future<T> _retryWrapper<T>(Future<T> Function() fn) =>
+      _retry.retry(() => fn.call(),
+          retryIf: (e) => e is SocketException || e is TimeoutException,
+          onRetry: (e) => log.info('CanvasClientService retry stub error $e'));
+
+  void _grpcLoggingProvider(Map<String, String> metadata, String uri) {
+    log.info('CanvasClientService call gRPC: metadata: $metadata, uri: $uri}');
   }
 }
