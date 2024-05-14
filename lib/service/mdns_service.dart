@@ -12,9 +12,7 @@ class MDnsService {
   Future<List<CanvasDevice>> findCanvas() async {
     final devices = <CanvasDevice>[];
     log.info('[MDnsService] Looking for devices');
-    if (!_isStarted) {
-      await start();
-    }
+    await start();
     await _client
         .lookup<PtrResourceRecord>(
       ResourceRecordQuery.serverPointer(_serviceType),
@@ -35,7 +33,7 @@ class MDnsService {
           map[parts.first] = parts.last;
         }
         final ip = map['ip'];
-        final port = map['port'];
+        final port = int.tryParse(map['port'] ?? '');
         final id = map['id'];
         if (ip != null && port != null && id != null) {
           if (devices.any((element) => element.id == id && element.ip == ip)) {
@@ -44,12 +42,13 @@ class MDnsService {
           devices.add(CanvasDevice(
             id: id,
             ip: ip,
-            port: int.parse(port),
+            port: port,
             name: name,
           ));
         }
       }
     });
+    stop();
     return devices;
   }
 
@@ -57,11 +56,17 @@ class MDnsService {
     if (_isStarted) {
       return;
     }
-    await _client.start();
-    _isStarted = true;
+    try {
+      await _client.start();
+      log.info('[MDnsService] MDnsClient started');
+      _isStarted = true;
+    } catch (e) {
+      log.info('[MDnsService] MDnsClient failed to start $e');
+    }
   }
 
-  Future<void> stop() async {
+  void stop() {
+    _isStarted = false;
     _client.stop();
   }
 }

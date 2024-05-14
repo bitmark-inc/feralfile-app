@@ -105,7 +105,6 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
     ));
 
     _canvasDeviceBloc = injector.get<CanvasDeviceBloc>();
-    unawaited(_fetchDevice());
     bloc.add(GetPlayList(playListModel: widget.payload.playListModel));
   }
 
@@ -431,21 +430,43 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
           ),
           body: BlocBuilder<NftCollectionBloc, NftCollectionBlocState>(
             bloc: nftBloc,
-            builder: (context, nftState) => NftCollectionGrid(
-              state: nftState.state,
-              tokens: setupPlayList(
-                tokens: nftState.tokens.items,
-                selectedTokens: playList.tokenIDs,
-              ),
-              customGalleryViewBuilder: (context, tokens) => _assetsWidget(
-                context,
-                tokens,
-                accountIdentities: accountIdentities,
-                playControlModel:
-                    playList.playControlModel ?? PlayControlModel(),
-                onShuffleTap: () => _onShufferTap(playList),
-                onTimerTap: () => _onTimerTap(playList),
-              ),
+            builder: (context, nftState) => Column(
+              children: [
+                BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
+                  bloc: _canvasDeviceBloc,
+                  builder: (context, canvasDeviceState) {
+                    final isPlaylistCasting =
+                        _canvasDeviceBloc.state.controllingDevice != null;
+                    if (isPlaylistCasting) {
+                      return const Padding(
+                        padding: EdgeInsets.all(15),
+                        child: PlaylistControl(),
+                      );
+                    } else {
+                      return const SizedBox();
+                    }
+                  },
+                ),
+                Expanded(
+                  child: NftCollectionGrid(
+                    state: nftState.state,
+                    tokens: setupPlayList(
+                      tokens: nftState.tokens.items,
+                      selectedTokens: playList.tokenIDs,
+                    ),
+                    customGalleryViewBuilder: (context, tokens) =>
+                        _assetsWidget(
+                      context,
+                      tokens,
+                      accountIdentities: accountIdentities,
+                      playControlModel:
+                          playList.playControlModel ?? PlayControlModel(),
+                      onShuffleTap: () => _onShufferTap(playList),
+                      onTimerTap: () => _onTimerTap(playList),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         );
@@ -572,10 +593,6 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
         )
       ],
     );
-  }
-
-  Future<void> _fetchDevice() async {
-    _canvasDeviceBloc.add(CanvasDeviceGetDevicesEvent());
   }
 }
 
