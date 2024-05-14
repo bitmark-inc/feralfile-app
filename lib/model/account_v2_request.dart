@@ -4,6 +4,7 @@ class AccountV2Request {
   final String? publicKey;
   final String timestamp;
   final String signature;
+  final dynamic receipt;
 
   AccountV2Request({
     required this.type,
@@ -11,6 +12,7 @@ class AccountV2Request {
     required this.timestamp,
     required this.signature,
     this.publicKey,
+    this.receipt,
   });
 
   // toJson
@@ -20,5 +22,6 @@ class AccountV2Request {
         'publicKey': publicKey,
         'timestamp': timestamp,
         'signature': signature,
+        'receipt': receipt,
       };
 }

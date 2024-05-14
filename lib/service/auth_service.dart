@@ -21,13 +21,17 @@ import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:dio/dio.dart';
 import 'package:libauk_dart/libauk_dart.dart';
+import 'package:synchronized/synchronized.dart';
 
 class AuthService {
   final IAPApi _authApi;
   final AccountService _accountService;
   final ConfigurationService _configurationService;
   JWT? _jwt;
+  static const int _accountNotCreatedErrorCode = 998;
+  final _authLock = Lock();
 
   AuthService(
     this._authApi,
@@ -40,25 +44,21 @@ class AuthService {
   }
 
   Future<JWT> getAuthToken(
-      {String? messageToSign,
-      String? receiptData,
-      bool forceRefresh = false}) async {
+          {String? receiptData,
+          bool forceRefresh = false,
+          bool retry = true}) async =>
+      await _authLock.synchronized(() async => await _getAuthToken(
+          receiptData: receiptData, forceRefresh: forceRefresh, retry: retry));
+
+  Future<JWT> _getAuthToken(
+      {String? receiptData,
+      bool forceRefresh = false,
+      bool retry = true}) async {
     if (!forceRefresh && _jwt != null && _jwt!.isValid()) {
       return _jwt!;
     }
 
     final account = await _accountService.getDefaultAccount();
-
-    final message =
-        messageToSign ?? DateTime.now().millisecondsSinceEpoch.toString();
-    final accountDID = await account.getAccountDID();
-    final signature = await account.getAccountDIDSignature(message);
-
-    Map<String, dynamic> payload = {
-      'requester': accountDID,
-      'timestamp': message,
-      'signature': signature,
-    };
 
     // the receipt data can be set by passing the parameter,
     // or query through the configuration service
@@ -70,6 +70,7 @@ class AuthService {
     }
 
     // add the receipt data if available
+    dynamic receipt;
     if (savedReceiptData != null) {
       final String platform;
       if (Platform.isIOS) {
@@ -77,12 +78,33 @@ class AuthService {
       } else {
         platform = 'google';
       }
-      payload.addAll({
-        'receipt': {'platform': platform, 'receipt_data': savedReceiptData}
-      });
+      receipt = {'platform': platform, 'receipt_data': savedReceiptData};
     }
 
-    var newJwt = await _authApi.auth(payload);
+    final request = await _getDIDRequest(account, receipt: receipt);
+    late JWT newJwt;
+    try {
+      newJwt = await _authApi.authV2(request);
+    } on DioException catch (authError) {
+      log.info('[AuthService] Failed to get jwt $authError');
+      final code = authError.response?.data['error']['code'] ?? 0;
+      if (retry && code == _accountNotCreatedErrorCode) {
+        log.info('[AuthService] Retry, creating account');
+        try {
+          await createAccount(account);
+        } catch (createAccountError) {
+          log.info(
+              '[AuthService] Failed to create account $createAccountError');
+          rethrow;
+        }
+
+        log.info('[AuthService] Retry, calling original method');
+        await _getAuthToken(
+            receiptData: receiptData, forceRefresh: forceRefresh, retry: false);
+      } else {
+        rethrow;
+      }
+    }
 
     _jwt = newJwt;
 
@@ -155,7 +177,8 @@ class AuthService {
     return await _getJwtTokenV2(request);
   }
 
-  Future<AccountV2Request> _getDIDRequest(WalletStorage wallet) async {
+  Future<AccountV2Request> _getDIDRequest(WalletStorage wallet,
+      {receipt}) async {
     final accountDID = await wallet.getAccountDID();
     final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
     final message = getFeralFileAccountMessage(accountDID, timestamp);
@@ -165,6 +188,7 @@ class AuthService {
       requester: accountDID,
       timestamp: timestamp,
       signature: signature,
+      receipt: receipt,
     );
   }
 
