@@ -263,7 +263,7 @@ class CanvasClientServiceV2 {
         if (status != null) {
           devices.add(status);
         }
-      } catch (e, stackTrace) {
+      } catch (e) {
         log.info('CanvasClientService: Caught error: $e');
       }
     });
