@@ -136,7 +136,7 @@ class _PreviewPrimerPageState extends State<PreviewPrimerPage>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        token.title ?? '',
+                        token.displayTitle ?? '',
                         style: theme.textTheme.ppMori400White16,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,

@@ -281,6 +281,7 @@ class Artwork {
           null,
           null,
           null,
+          null,
         ),
         null,
       );
