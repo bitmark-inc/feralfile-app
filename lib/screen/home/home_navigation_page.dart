@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
+import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibitions/exhibitions_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibitions/exhibitions_page.dart';
 import 'package:autonomy_flutter/screen/exhibitions/exhibitions_state.dart';
@@ -319,7 +320,8 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
 
     unawaited(injector<CanvasClientService>().init());
-    unawaited(injector<CanvasClientServiceV2>().init());
+    unawaited(injector<CanvasClientServiceV2>().init().then((_) =>
+        injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent())));
     unawaited(_syncArtist());
   }
 
@@ -839,6 +841,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
 
   Future<void> _handleForeground() async {
     _metricClientService.onForeground();
+    injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent());
     await injector<CustomerSupportService>().fetchAnnouncement();
     await _remoteConfig.loadConfigs();
   }
