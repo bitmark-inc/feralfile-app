@@ -105,7 +105,6 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
     ));
 
     _canvasDeviceBloc = injector.get<CanvasDeviceBloc>();
-    unawaited(_fetchDevice());
     bloc.add(GetPlayList(playListModel: widget.payload.playListModel));
   }
 
@@ -594,10 +593,6 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
         )
       ],
     );
-  }
-
-  Future<void> _fetchDevice() async {
-    _canvasDeviceBloc.add(CanvasDeviceGetDevicesEvent());
   }
 }
 
