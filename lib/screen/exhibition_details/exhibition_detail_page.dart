@@ -14,11 +14,12 @@ import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/cast_button.dart';
-import 'package:autonomy_flutter/view/event_view.dart';
 import 'package:autonomy_flutter/view/exhibition_detail_last_page.dart';
 import 'package:autonomy_flutter/view/exhibition_detail_preview.dart';
 import 'package:autonomy_flutter/view/ff_artwork_preview.dart';
 import 'package:autonomy_flutter/view/note_view.dart';
+import 'package:autonomy_flutter/view/post_view.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter/material.dart';
@@ -77,64 +78,63 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
 
     final viewingArtworks = exhibitionDetail.representArtworks;
     final itemCount = viewingArtworks.length + 3;
-    return Stack(
+    return Column(
       children: [
-        PageView.builder(
-          controller: _controller,
-          onPageChanged: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
-            final controllingDevice = _canvasDeviceBloc.state.controllingDevice;
-            log.info('onPageChanged: $_currentIndex');
-            if (controllingDevice != null) {
-              final request = _getCastExhibitionRequest(exhibitionDetail);
-              log.info('onPageChanged: request: $request');
-              _canvasDeviceBloc.add(
-                CanvasDeviceCastExhibitionEvent(controllingDevice, request),
-              );
-            }
-          },
-          scrollDirection: Axis.vertical,
-          itemCount: itemCount,
-          itemBuilder: (context, index) {
-            if (index == itemCount - 1) {
-              return ExhibitionDetailLastPage(
-                startOver: () => setState(() {
-                  _currentIndex = 0;
-                  _controller.jumpToPage(0);
-                }),
-                nextPayload: widget.payload.next(),
-              );
-            }
-
-            switch (index) {
-              case 0:
-                return _getPreviewPage(exhibitionDetail.exhibition);
-              case 1:
-                return _notePage(exhibitionDetail);
-              default:
-                final seriesIndex = index - 2;
-                final series = exhibitionDetail.getSeriesByIndex(seriesIndex);
-                final artwork =
-                    exhibitionDetail.representArtworkByIndex(seriesIndex);
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 40),
-                  child: FeralFileArtworkPreview(
-                    payload: FeralFileArtworkPreviewPayload(
-                      artwork: artwork,
-                      series: series,
-                    ),
-                  ),
+        Expanded(
+          child: PageView.builder(
+            controller: _controller,
+            onPageChanged: (index) {
+              setState(() {
+                _currentIndex = index;
+              });
+              final controllingDevice =
+                  _canvasDeviceBloc.state.controllingDevice;
+              log.info('onPageChanged: $_currentIndex');
+              if (controllingDevice != null) {
+                final request = _getCastExhibitionRequest(exhibitionDetail);
+                log.info('onPageChanged: request: $request');
+                _canvasDeviceBloc.add(
+                  CanvasDeviceCastExhibitionEvent(controllingDevice, request),
                 );
-            }
-          },
-        ),
-        if (_currentIndex == 0 || _currentIndex == 1)
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: _nextButton(),
+              }
+            },
+            scrollDirection: Axis.vertical,
+            itemCount: itemCount,
+            itemBuilder: (context, index) {
+              if (index == itemCount - 1) {
+                return ExhibitionDetailLastPage(
+                  startOver: () => setState(() {
+                    _currentIndex = 0;
+                    _controller.jumpToPage(0);
+                  }),
+                  nextPayload: widget.payload.next(),
+                );
+              }
+
+              switch (index) {
+                case 0:
+                  return _getPreviewPage(exhibitionDetail.exhibition);
+                case 1:
+                  return _notePage(exhibitionDetail);
+                default:
+                  final seriesIndex = index - 2;
+                  final series = exhibitionDetail.getSeriesByIndex(seriesIndex);
+                  final artwork =
+                      exhibitionDetail.representArtworkByIndex(seriesIndex);
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 40),
+                    child: FeralFileArtworkPreview(
+                      payload: FeralFileArtworkPreviewPayload(
+                        artwork: artwork,
+                        series: series,
+                      ),
+                    ),
+                  );
+              }
+            },
           ),
+        ),
+        if (_currentIndex == 0 || _currentIndex == 1) _nextButton()
       ],
     );
   }
@@ -153,6 +153,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
         child: RotatedBox(
           quarterTurns: 3,
           child: IconButton(
+            padding: const EdgeInsets.all(0),
             onPressed: () async => _controller.nextPage(
                 duration: const Duration(milliseconds: 300),
                 curve: Curves.easeIn),
@@ -165,36 +166,31 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
 
   Widget _notePage(ExhibitionDetail exhibitionDetail) {
     final exhibition = exhibitionDetail.exhibition;
-    const horizontalPadding = 14.0;
-    const peekWidth = 50.0;
-    final width =
-        MediaQuery.sizeOf(context).width - horizontalPadding * 2 - peekWidth;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(right: 14),
-              child: ExhibitionNoteView(
-                exhibition: exhibition,
-                width: width,
-                onReadMore: () async {
-                  await Navigator.pushNamed(
-                    context,
-                    AppRouter.exhibitionNotePage,
-                    arguments: exhibition,
-                  );
-                },
-              ),
+    return LayoutBuilder(
+      builder: (context, constraints) => Center(
+        child: CarouselSlider(
+          items: [
+            ExhibitionNoteView(
+              exhibition: exhibition,
+              onReadMore: () async {
+                await Navigator.pushNamed(
+                  context,
+                  AppRouter.exhibitionNotePage,
+                  arguments: exhibition,
+                );
+              },
             ),
-            ...exhibition.resources?.map((e) => ExhibitionEventView(
-                      exhibitionEvent: e,
-                      width: width,
+            ...exhibition.posts?.map((e) => ExhibitionPostView(
+                      post: e,
                     )) ??
                 []
           ],
+          options: CarouselOptions(
+            aspectRatio: constraints.maxWidth / constraints.maxHeight,
+            viewportFraction: 0.76,
+            enableInfiniteScroll: false,
+            enlargeCenterPage: true,
+          ),
         ),
       ),
     );
@@ -233,8 +229,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
           katalog = ExhibitionKatalog.CURATOR_NOTE;
         } else {
           katalog = ExhibitionKatalog.RESOURCE;
-          katalogId =
-              exhibitionDetail.exhibition.resources![_carouselIndex - 1].id;
+          katalogId = exhibitionDetail.exhibition.posts![_carouselIndex - 1].id;
         }
         break;
       default:
