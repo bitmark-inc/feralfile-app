@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/service/canvas_client_service.dart';
@@ -7,6 +9,7 @@ import 'package:collection/collection.dart';
 import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rxdart/transformers.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:web3dart/json_rpc.dart';
 
 abstract class CanvasDeviceEvent {}
@@ -131,25 +134,21 @@ class CanvasDeviceState {
 
   // final String sceneId;
   final RPCError? rpcError;
-  final bool isLoaded;
 
   CanvasDeviceState({
     required this.devices,
     this.controllingDeviceStatus,
-    this.isLoaded = false,
     this.rpcError,
   });
 
   CanvasDeviceState copyWith(
           {List<DeviceState>? devices,
           Map<String, CheckDeviceStatusReply>? controllingDeviceStatus,
-          bool? isLoaded,
           RPCError? rpcError}) =>
       CanvasDeviceState(
           devices: devices ?? this.devices,
           controllingDeviceStatus:
               controllingDeviceStatus ?? this.controllingDeviceStatus,
-          isLoaded: isLoaded ?? this.isLoaded,
           rpcError: rpcError ?? this.rpcError);
 
   CanvasDeviceState replaceDeviceState(
@@ -169,7 +168,7 @@ class CanvasDeviceState {
       return null;
     }
     final status = controllingDeviceStatus![controllingDevice];
-    if (status == null) {
+    if (status == null || status.artworks.isEmpty) {
       return null;
     }
     return Duration(milliseconds: status.artworks.first.duration);
@@ -236,8 +235,6 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
     on<CanvasDeviceGetDevicesEvent>(
       (event, emit) async {
         try {
-          emit(state.copyWith(
-              devices: state.devices, isLoaded: state.devices.isNotEmpty));
           final devices = await _canvasClientServiceV2.scanDevices();
 
           final thisDevice = _canvasClientServiceV2.clientDeviceInfo;
@@ -253,15 +250,15 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
             }
           }
           final newState = state.copyWith(
-              devices:
-                  devices.map((e) => DeviceState(device: e.first)).toList(),
-              controllingDeviceStatus: controllingDeviceStatus,
-              isLoaded: true);
+            devices: devices.map((e) => DeviceState(device: e.first)).toList(),
+            controllingDeviceStatus: controllingDeviceStatus,
+          );
           log.info('CanvasDeviceBloc: get devices: ${newState.devices.length}, '
               'controllingDeviceStatus: ${newState.controllingDeviceStatus}');
           emit(newState);
         } catch (e) {
           log.info('CanvasDeviceBloc: error while get devices: $e');
+          unawaited(Sentry.captureException(e));
           emit(state.copyWith());
         }
       },
