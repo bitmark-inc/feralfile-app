@@ -56,9 +56,13 @@ class MDnsService {
     if (_isStarted) {
       return;
     }
-    await _client.start();
-    log.info('[MDnsService] MDnsClient started');
-    _isStarted = true;
+    try {
+      await _client.start();
+      log.info('[MDnsService] MDnsClient started');
+      _isStarted = true;
+    } catch (e) {
+      log.info('[MDnsService] MDnsClient failed to start $e');
+    }
   }
 
   void stop() {
