@@ -305,12 +305,13 @@ class _SupportThreadPageState extends State<SupportThreadPage>
       messages.removeWhere((element) =>
           messages.indexOf(element) != 0 && _isRatingMessage(element));
 
-      if (_isRatingMessage(messages[0]) &&
-          (_status == 'closed' || _status == 'clickToReopen')) {
-        if (messages[1] != _askRatingMessenger) {
+      if (_status == 'closed' || _status == 'clickToReopen') {
+        final ratingIndex =
+            messages.indexWhere((element) => _isRatingMessage(element));
+        if (messages[ratingIndex + 1] != _askRatingMessenger) {
           messages
-            ..insert(1, _resolvedMessenger)
-            ..insert(1, _askRatingMessenger);
+            ..insert(ratingIndex + 1, _resolvedMessenger)
+            ..insert(ratingIndex + 1, _askRatingMessenger);
         }
       }
     }
@@ -442,25 +443,6 @@ class _SupportThreadPageState extends State<SupportThreadPage>
       }
     }
     return false;
-  }
-
-  bool _isCustomerSupportMessage(types.Message message) {
-    if (message is types.TextMessage) {
-      return message.text.contains(RATING_MESSAGE_START);
-    }
-    return false;
-  }
-
-  int _firstRatingIndex(List<types.Message> messages) {
-    for (int i = 0; i < messages.length; i++) {
-      if (_isRatingMessage(messages[i])) {
-        return i;
-      }
-      if (!_isCustomerSupportMessage(messages[i])) {
-        return -1;
-      }
-    }
-    return -1;
   }
 
   Widget _ratingBar(int rating) {
