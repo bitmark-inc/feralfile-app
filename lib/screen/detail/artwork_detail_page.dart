@@ -75,6 +75,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   HashSet<String> _accountNumberHash = HashSet.identity();
   AssetToken? currentAsset;
   final _feralfileService = injector.get<FeralFileService>();
+  double? _infoSize;
 
   @override
   void initState() {
@@ -216,8 +217,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 
         final editionSubTitle = getEditionSubTitle(asset);
 
-        var _size = 200.0;
-        const _big = 400.0;
+        final screenHeight = MediaQuery.sizeOf(context).height;
+        print('--------$screenHeight');
 
         return Scaffold(
             backgroundColor: theme.colorScheme.primary,
@@ -298,7 +299,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                   child: SingleChildScrollView(
                     // controller: _scrollController,
                     child: Column(
-                      // crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // const SizedBox(
                         //   height: 40,
@@ -380,21 +381,86 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                   ),
                 ),
                 GestureDetector(
-                  onVerticalDragUpdate: (details) {
-                    log.info('details.delta.dy: ${details.delta.dy}');
-                    if (details.delta.dy < -5) {
+                  onVerticalDragEnd: (details) {
+                    final dy = details.velocity.pixelsPerSecond.dy;
+                    const sensibility = 15;
+                    if (dy < 0 - sensibility) {
                       setState(() {
-                        _size = _big;
+                        _infoSize = 500;
+                      });
+                    } else if  (dy > sensibility) {
+                      setState(() {
+                        _infoSize = null;
                       });
                     }
                   },
+                  /*
+                  onVerticalDragUpdate: (details) {
+                    final dy = details.globalPosition.dy;
+                    final size = screenHeight - dy;
+                    if (size >= 400) {
+                      setState(() {
+                        _infoSize = 400;
+                      });
+                    } else if (size <= 105) {
+                      setState(() {
+                        _infoSize = null;
+                      });
+                    } else {
+                      setState(() {
+                        _infoSize = size;
+                      });
+                    }
+                  },
+
+                   */
                   child: AnimatedSize(
-                    duration: const Duration(microseconds: 200),
-                    child: SizedBox(
-                      height: _size,
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.fastOutSlowIn,
+                    child: Container(
+                      color: Colors.blue,
+                      height: _infoSize,
                       child: Column(
                         children: [
-                          _provenanceView(context, state.provenances),
+                          const Column(
+                            children: [
+                              Text('header-static'),
+                              SizedBox(
+                                height: 50,
+                              ),
+                              Text('-------'),
+                            ],
+                          ),
+                          if (_infoSize != null)
+                            Expanded(
+                                child: SingleChildScrollView(
+                              child:  Container(
+                                color: Colors.red,
+                                width: double.infinity,
+                                child: Column(
+                                  children: [
+                                    Text('data1'),
+                                    Text('data2'),
+                                    Text('data3'),
+                                    Text('data4'),
+                                    Text('data5'),
+                                    Text('data6'),
+                                    Text('data7'),
+                                    Text('data8'),
+                                    Text('data9'),
+                                    Text('data0'),
+                                    Text('data1'),
+                                    Text('data2'),
+                                    Text('data3'),
+                                    Text('data4'),
+                                    Text('data5'),
+                                    Text('data6'),
+                                    Text('data7'),
+                                    Text('data8'),
+                                  ],
+                                ),
+                              ),
+                            )),
                         ],
                       ),
                     ),
