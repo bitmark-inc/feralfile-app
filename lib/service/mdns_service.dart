@@ -39,6 +39,8 @@ class MDnsService {
     await Future.delayed(const Duration(seconds: _scanningTime), () {
       discovery.stop();
     });
+
+    print('3--------------${DateTime.now().millisecondsSinceEpoch}');
     return devices;
   }
 }

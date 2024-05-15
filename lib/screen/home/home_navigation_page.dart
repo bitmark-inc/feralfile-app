@@ -260,8 +260,11 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
 
   @override
   void initState() {
-    unawaited(injector<CustomerSupportService>().getIssuesAndAnnouncement());
     super.initState();
+    // since we moved to use bonsoir service,
+    // we don't need to wait for canvas service to init
+    injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent());
+    unawaited(injector<CustomerSupportService>().getIssuesAndAnnouncement());
     _initialTab = widget.payload.startedTab;
     _selectedIndex = _initialTab.index;
     NftCollectionBloc.eventController.stream.listen((event) async {
@@ -318,10 +321,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     }
     WidgetsBinding.instance.addObserver(this);
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
-
-    unawaited(injector<CanvasClientService>().init());
-    unawaited(injector<CanvasClientServiceV2>().init().then((_) =>
-        injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent())));
     unawaited(_syncArtist());
   }
 
