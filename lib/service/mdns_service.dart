@@ -4,7 +4,7 @@ import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 
 class MDnsService {
   static const String _serviceType = '_feralFileCanvas._tcp';
-  static const int _scanningTime = 2;
+  static const int _scanningTime = 3;
 
   Future<List<CanvasDevice>> findCanvas() async {
     BonsoirDiscovery discovery = BonsoirDiscovery(type: _serviceType);
