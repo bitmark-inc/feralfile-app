@@ -1,43 +1,30 @@
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:bonsoir/bonsoir.dart';
 import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
-import 'package:multicast_dns/multicast_dns.dart';
 
 class MDnsService {
   static const String _serviceType = '_feralFileCanvas._tcp';
-  final MDnsClient _client;
-  bool _isStarted = false;
-
-  MDnsService() : _client = MDnsClient();
+  static const int _scanningTime = 2;
 
   Future<List<CanvasDevice>> findCanvas() async {
+    BonsoirDiscovery discovery = BonsoirDiscovery(type: _serviceType);
     final devices = <CanvasDevice>[];
     log.info('[MDnsService] Looking for devices');
-    await start();
-    await _client
-        .lookup<PtrResourceRecord>(
-      ResourceRecordQuery.serverPointer(_serviceType),
-    )
-        .forEach((PtrResourceRecord record) async {
-      await for (final TxtResourceRecord txt
-          in _client.lookup<TxtResourceRecord>(
-        ResourceRecordQuery.text(record.domainName),
-      )) {
-        log.info('[MDnsService] Found device: ${txt.text}');
-        final name = record.domainName.split('.').first;
-        final text = txt.text;
-        final attributes = text.split('\n')
-          ..removeWhere((element) => !element.contains('='));
-        final Map<String, String> map = {};
-        for (final attribute in attributes) {
-          final parts = attribute.split('=');
-          map[parts.first] = parts.last;
-        }
-        final ip = map['ip'];
-        final port = int.tryParse(map['port'] ?? '');
-        final id = map['id'];
+    await discovery.ready;
+    discovery.eventStream!.listen((event) {
+      log.info(event.type);
+      if (event.service != null &&
+          (event.type == BonsoirDiscoveryEventType.discoveryServiceResolved ||
+              event.type == BonsoirDiscoveryEventType.discoveryServiceFound)) {
+        final attribute = event.service!.attributes;
+        log.info('[MDnsService] Service found : $attribute');
+        final name = event.service!.name;
+        final ip = attribute['ip'];
+        final port = int.tryParse(attribute['port'] ?? '');
+        final id = attribute['id'];
         if (ip != null && port != null && id != null) {
           if (devices.any((element) => element.id == id && element.ip == ip)) {
-            continue;
+            return;
           }
           devices.add(CanvasDevice(
             id: id,
@@ -48,25 +35,12 @@ class MDnsService {
         }
       }
     });
-    stop();
+    await discovery.start();
+    await Future.delayed(const Duration(seconds: _scanningTime), () {
+      discovery.stop();
+    });
+
+    print('3--------------${DateTime.now().millisecondsSinceEpoch}');
     return devices;
-  }
-
-  Future<void> start() async {
-    if (_isStarted) {
-      return;
-    }
-    try {
-      await _client.start();
-      log.info('[MDnsService] MDnsClient started');
-      _isStarted = true;
-    } catch (e) {
-      log.info('[MDnsService] MDnsClient failed to start $e');
-    }
-  }
-
-  void stop() {
-    _isStarted = false;
-    _client.stop();
   }
 }

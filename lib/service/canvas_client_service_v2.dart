@@ -44,7 +44,6 @@ class CanvasClientServiceV2 {
     _deviceName = await device.getMachineName() ?? 'Feral File App';
     final account = await _accountService.getDefaultAccount();
     _deviceId = await account.getAccountDID();
-    await _mdnsService.start();
     _didInitialized = true;
   }
 

@@ -223,7 +223,7 @@ enum DeviceStatus {
 }
 
 EventTransformer<Event> debounceSequential<Event>(Duration duration) =>
-    (events, mapper) => events.debounceTime(duration).asyncExpand(mapper);
+    (events, mapper) => events.throttleTime(duration).asyncExpand(mapper);
 
 class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
   final CanvasClientService _canvasClientService;
