@@ -240,18 +240,32 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
           final thisDevice = _canvasClientServiceV2.clientDeviceInfo;
           final Map<String, CheckDeviceStatusReply> controllingDeviceStatus =
               {};
+          final Map<String, CheckDeviceStatusReply> selectingDeviceStatus = {};
+          final currentDeviceStatus =
+              state.controllingDeviceStatus?[state.controllingDevice?.ip ?? ''];
           for (final device in devices) {
             if (device.second.connectedDevice.deviceId == thisDevice.deviceId) {
               controllingDeviceStatus[device.first.id] = device.second;
-              break;
+              if (currentDeviceStatus != null &&
+                  device.first.id ==
+                      currentDeviceStatus.connectedDevice.deviceId) {
+                selectingDeviceStatus[device.first.id] = device.second;
+                break;
+              }
             } else {
               log.info('CanvasDeviceBloc: get devices: ${device.first.id}, '
                   'connectedDevice: ${device.second.connectedDevice.deviceId}');
             }
           }
+          if (selectingDeviceStatus.isEmpty &&
+              controllingDeviceStatus.isNotEmpty) {
+            selectingDeviceStatus[controllingDeviceStatus.entries.first.key] =
+                controllingDeviceStatus.entries.first.value;
+          }
+
           final newState = state.copyWith(
             devices: devices.map((e) => DeviceState(device: e.first)).toList(),
-            controllingDeviceStatus: controllingDeviceStatus,
+            controllingDeviceStatus: selectingDeviceStatus,
           );
           log.info('CanvasDeviceBloc: get devices: ${newState.devices.length}, '
               'controllingDeviceStatus: ${newState.controllingDeviceStatus}');

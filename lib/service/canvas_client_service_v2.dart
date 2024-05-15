@@ -249,8 +249,10 @@ class CanvasClientServiceV2 {
 
   Future<List<CanvasDevice>> _findRawDevices() async {
     final devices = <CanvasDevice>[];
-    final discoverDevices = await _mdnsService.findCanvas();
-    final localDevices = await _db.canvasDeviceDao.getCanvasDevices();
+    final futures = await Future.wait(
+        [_mdnsService.findCanvas(), _db.canvasDeviceDao.getCanvasDevices()]);
+    final localDevices = futures[1];
+    final discoverDevices = futures[0];
     localDevices.removeWhere((l) => discoverDevices.any((d) => d.ip == l.ip));
     devices
       ..addAll(discoverDevices)
@@ -273,6 +275,7 @@ class CanvasClientServiceV2 {
         log.info('CanvasClientService: Caught error: $e');
       }
     });
+    devices.sort((a, b) => a.first.name.compareTo(b.first.name));
     return devices;
   }
 
