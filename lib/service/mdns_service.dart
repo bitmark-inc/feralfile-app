@@ -13,34 +13,38 @@ class MDnsService {
     await discovery.ready;
     discovery.eventStream!.listen((event) {
       log.info(event.type);
-      if (event.service != null &&
-          (event.type == BonsoirDiscoveryEventType.discoveryServiceResolved ||
-              event.type == BonsoirDiscoveryEventType.discoveryServiceFound)) {
-        final attribute = event.service!.attributes;
-        log.info('[MDnsService] Service found : $attribute');
-        final name = event.service!.name;
-        final ip = attribute['ip'];
-        final port = int.tryParse(attribute['port'] ?? '');
-        final id = attribute['id'];
-        if (ip != null && port != null && id != null) {
-          if (devices.any((element) => element.id == id && element.ip == ip)) {
-            return;
+      switch (event.type) {
+        case BonsoirDiscoveryEventType.discoveryServiceFound:
+          log.info('[MDnsService] Service found : ${event.service}');
+          event.service!.resolve(discovery.serviceResolver);
+        case BonsoirDiscoveryEventType.discoveryServiceResolved:
+          final attribute = event.service!.attributes;
+          log.info('[MDnsService] Service resolved : ${event.service}');
+          final name = event.service!.name;
+          final ip = attribute['ip'];
+          final port = int.tryParse(attribute['port'] ?? '');
+          final id = attribute['id'];
+          if (ip != null && port != null && id != null) {
+            if (devices
+                .any((element) => element.id == id && element.ip == ip)) {
+              return;
+            }
+            devices.add(CanvasDevice(
+              id: id,
+              ip: ip,
+              port: port,
+              name: name,
+            ));
           }
-          devices.add(CanvasDevice(
-            id: id,
-            ip: ip,
-            port: port,
-            name: name,
-          ));
-        }
+        case BonsoirDiscoveryEventType.discoveryServiceResolveFailed:
+          log.info('[MDnsService] Service resolved failed : ${event.service}');
+        default:
       }
     });
     await discovery.start();
     await Future.delayed(const Duration(seconds: _scanningTime), () {
       discovery.stop();
     });
-
-    print('3--------------${DateTime.now().millisecondsSinceEpoch}');
     return devices;
   }
 }
