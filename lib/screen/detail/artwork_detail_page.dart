@@ -37,6 +37,7 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/cast_button.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:dio/dio.dart';
@@ -215,147 +216,192 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 
         final editionSubTitle = getEditionSubTitle(asset);
 
+        var _size = 200.0;
+        const _big = 400.0;
+
         return Scaffold(
-          backgroundColor: theme.colorScheme.primary,
-          resizeToAvoidBottomInset: !hasKeyboard,
-          appBar: AppBar(
-            systemOverlayStyle: systemUiOverlayDarkStyle,
-            leadingWidth: 0,
-            leading: const SizedBox(),
-            centerTitle: false,
-            backgroundColor: Colors.transparent,
-            title: ArtworkDetailsHeader(
-              title: asset.displayTitle ?? '',
-              subTitle: subTitle,
-              onSubTitleTap: asset.artistID != null
-                  ? () => unawaited(
-                      Navigator.of(context).pushNamed(AppRouter.galleryPage,
-                          arguments: GalleryPagePayload(
-                            address: asset.artistID!,
-                            artistName: artistName!,
-                            artistURL: asset.artistURL,
-                          )))
-                  : null,
+            backgroundColor: theme.colorScheme.primary,
+            resizeToAvoidBottomInset: !hasKeyboard,
+            appBar: getBackAppBar(
+              context,
+              isWhite: false,
+              withDivider: false,
+              // icon: SvgPicture.asset('assets/images/icon_back_arrow.svg'),
+              onBack: () => {Navigator.of(context).pop()},
+              // icon: Semantics(
+              //   child: SvgPicture.asset(
+              //     'assets/images/icon_cast.svg',
+              //     width: 46,
+              //     colorFilter: const ColorFilter.mode(
+              //         AppColor.feralFileHighlight, BlendMode.srcIn),
+              //   ),
+              // ),
             ),
-            actions: [
-              if (widget.payload.useIndexer)
-                const SizedBox()
-              else
-                Semantics(
-                  label: 'artworkDotIcon',
-                  child: IconButton(
-                    onPressed: () => unawaited(_showArtworkOptionsDialog(
-                        context, asset, state.isViewOnly)),
-                    constraints: const BoxConstraints(
-                      maxWidth: 44,
-                      maxHeight: 44,
-                    ),
-                    icon: SvgPicture.asset(
-                      'assets/images/more_circle.svg',
-                      width: 22,
-                    ),
-                  ),
-                ),
-              Semantics(
-                label: 'close_icon',
-                child: IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  constraints: const BoxConstraints(
-                    maxWidth: 44,
-                    maxHeight: 44,
-                  ),
-                  icon: Icon(
-                    AuIcon.close,
-                    color: theme.colorScheme.secondary,
-                    size: 20,
-                  ),
-                ),
-              )
-            ],
-          ),
-          body: SingleChildScrollView(
-            controller: _scrollController,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+//            appBar: AppBar(
+//             systemOverlayStyle: systemUiOverlayDarkStyle,
+//             leadingWidth: 0,
+//             leading: const SizedBox(),
+//             centerTitle: false,
+//             backgroundColor: Colors.transparent,
+//             title: ArtworkDetailsHeader(
+//               title: asset.displayTitle ?? '',
+//               subTitle: subTitle,
+//               onSubTitleTap: asset.artistID != null
+//                   ? () => unawaited(
+//                       Navigator.of(context).pushNamed(AppRouter.galleryPage,
+//                           arguments: GalleryPagePayload(
+//                             address: asset.artistID!,
+//                             artistName: artistName!,
+//                             artistURL: asset.artistURL,
+//                           )))
+//                   : null,
+//             ),
+//             actions: [
+//               if (widget.payload.useIndexer)
+//                 const SizedBox()
+//               else
+//                 Semantics(
+//                   label: 'artworkDotIcon',
+//                   child: IconButton(
+//                     onPressed: () => unawaited(_showArtworkOptionsDialog(
+//                         context, asset, state.isViewOnly)),
+//                     constraints: const BoxConstraints(
+//                       maxWidth: 44,
+//                       maxHeight: 44,
+//                     ),
+//                     icon: SvgPicture.asset(
+//                       'assets/images/more_circle.svg',
+//                       width: 22,
+//                     ),
+//                   ),
+//                 ),
+//               Semantics(
+//                 label: 'close_icon',
+//                 child: IconButton(
+//                   onPressed: () => Navigator.pop(context),
+//                   constraints: const BoxConstraints(
+//                     maxWidth: 44,
+//                     maxHeight: 44,
+//                   ),
+//                   icon: Icon(
+//                     AuIcon.close,
+//                     color: theme.colorScheme.secondary,
+//                     size: 20,
+//                   ),
+//                 ),
+//               )
+//             ],
+//           ),
+            body: Column(
               children: [
-                const SizedBox(
-                  height: 40,
-                ),
-                Hero(
-                  tag: 'detail_${asset.id}',
-                  child: _ArtworkView(
-                    payload: widget.payload,
-                    token: asset,
-                  ),
-                ),
-                Visibility(
-                  visible:
-                      checkWeb3ContractAddress.contains(asset.contractAddress),
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: Padding(
-                      padding:
-                          const EdgeInsets.only(left: 16, right: 16, top: 40),
-                      child: OutlineButton(
-                        color: Colors.transparent,
-                        text: 'web3_glossary'.tr(),
-                        onTap: () {
-                          unawaited(Navigator.pushNamed(
-                              context, AppRouter.previewPrimerPage,
-                              arguments: asset));
-                        },
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(
-                  height: 40,
-                ),
-                Visibility(
-                  visible: editionSubTitle.isNotEmpty,
-                  child: Padding(
-                    padding: ResponsiveLayout.getPadding,
-                    child: Text(
-                      editionSubTitle,
-                      style: theme.textTheme.ppMori400Grey14,
-                    ),
-                  ),
-                ),
-                debugInfoWidget(context, currentAsset),
-                const SizedBox(height: 16),
-                Padding(
-                  padding: ResponsiveLayout.getPadding,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Semantics(
-                        label: 'Desc',
-                        child: HtmlWidget(
-                          customStylesBuilder: auHtmlStyle,
-                          asset.description ?? '',
-                          textStyle: theme.textTheme.ppMori400White14,
+                Expanded(
+                  child: SingleChildScrollView(
+                    // controller: _scrollController,
+                    child: Column(
+                      // crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // const SizedBox(
+                        //   height: 40,
+                        // ),
+                        Hero(
+                          tag: 'detail_${asset.id}',
+                          child: _ArtworkView(
+                            payload: widget.payload,
+                            token: asset,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 40),
-                      artworkDetailsMetadataSection(context, asset, artistName),
-                      if (asset.fungible) ...[
-                        tokenOwnership(context, asset,
-                            identityState.identityMap[asset.owner] ?? ''),
-                      ] else ...[
-                        if (state.provenances.isNotEmpty)
-                          _provenanceView(context, state.provenances)
-                        else
-                          const SizedBox()
+                        // Visibility(
+                        //   visible: checkWeb3ContractAddress
+                        //       .contains(asset.contractAddress),
+                        //   child: Align(
+                        //     alignment: Alignment.centerRight,
+                        //     child: Padding(
+                        //       padding: const EdgeInsets.only(
+                        //           left: 16, right: 16, top: 40),
+                        //       child: OutlineButton(
+                        //         color: Colors.transparent,
+                        //         text: 'web3_glossary'.tr(),
+                        //         onTap: () {
+                        //           unawaited(Navigator.pushNamed(
+                        //               context, AppRouter.previewPrimerPage,
+                        //               arguments: asset));
+                        //         },
+                        //       ),
+                        //     ),
+                        //   ),
+                        // ),
+                        // const SizedBox(
+                        //   height: 40,
+                        // ),
+                        // Visibility(
+                        //   visible: editionSubTitle.isNotEmpty,
+                        //   child: Padding(
+                        //     padding: ResponsiveLayout.getPadding,
+                        //     child: Text(
+                        //       editionSubTitle,
+                        //       style: theme.textTheme.ppMori400Grey14,
+                        //     ),
+                        //   ),
+                        // ),
+                        // debugInfoWidget(context, currentAsset),
+                        // const SizedBox(height: 16),
+                        // Padding(
+                        //   padding: ResponsiveLayout.getPadding,
+                        //   child: Column(
+                        //     crossAxisAlignment: CrossAxisAlignment.start,
+                        //     children: [
+                        //       Semantics(
+                        //         label: 'Desc',
+                        //         child: HtmlWidget(
+                        //           customStylesBuilder: auHtmlStyle,
+                        //           asset.description ?? '',
+                        //           textStyle: theme.textTheme.ppMori400White14,
+                        //         ),
+                        //       ),
+                        //       const SizedBox(height: 40),
+                        //       artworkDetailsMetadataSection(
+                        //           context, asset, artistName),
+                        //       if (asset.fungible) ...[
+                        //         tokenOwnership(context, asset,
+                        //             identityState.identityMap[asset.owner] ?? ''),
+                        //       ] else ...[
+                        //         if (state.provenances.isNotEmpty)
+                        //           _provenanceView(context, state.provenances)
+                        //         else
+                        //           const SizedBox()
+                        //       ],
+                        //       artworkDetailsRightSection(context, asset),
+                        //       const SizedBox(height: 80),
+                        //     ],
+                        //   ),
+                        // )
                       ],
-                      artworkDetailsRightSection(context, asset),
-                      const SizedBox(height: 80),
-                    ],
+                    ),
+                  ),
+                ),
+                GestureDetector(
+                  onVerticalDragUpdate: (details) {
+                    log.info('details.delta.dy: ${details.delta.dy}');
+                    if (details.delta.dy < -5) {
+                      setState(() {
+                        _size = _big;
+                      });
+                    }
+                  },
+                  child: AnimatedSize(
+                    duration: const Duration(microseconds: 200),
+                    child: SizedBox(
+                      height: _size,
+                      child: Column(
+                        children: [
+                          _provenanceView(context, state.provenances),
+                        ],
+                      ),
+                    ),
                   ),
                 )
               ],
-            ),
-          ),
-        );
+            ));
       } else {
         return const SizedBox();
       }
