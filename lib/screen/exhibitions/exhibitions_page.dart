@@ -11,7 +11,6 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/header.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -115,18 +114,23 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
               GestureDetector(
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(10),
-                  child: CachedNetworkImage(
-                    imageUrl: exhibition.coverUrl,
-                    placeholder: (context, url) => SizedBox(
-                      height: estimatedHeight,
-                      child: const Center(
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          backgroundColor: AppColor.auQuickSilver,
-                          strokeWidth: 2,
+                  child: Image.network(
+                    exhibition.coverUrl,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) {
+                        return child;
+                      }
+                      return SizedBox(
+                        height: estimatedHeight,
+                        child: const Center(
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            backgroundColor: AppColor.auQuickSilver,
+                            strokeWidth: 2,
+                          ),
                         ),
-                      ),
-                    ),
+                      );
+                    },
                     fit: BoxFit.fitWidth,
                   ),
                 ),

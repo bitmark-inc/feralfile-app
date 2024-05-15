@@ -14,7 +14,6 @@ import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -151,7 +150,7 @@ class _IRLSignMessageScreenState extends State<IRLSignMessageScreen> {
     if (widget.payload.payload.isHex) {
       final message = hexToBytes(widget.payload.payload);
       final Uint8List viewMessage = message.length > 6 &&
-          message.sublist(0, 2).equals(Uint8List.fromList([5, 1]))
+              message.sublist(0, 2).equals(Uint8List.fromList([5, 1]))
           ? message.sublist(6)
           : message;
       messageInUtf8 = utf8.decode(viewMessage, allowMalformed: true);
@@ -245,11 +244,11 @@ class _IRLSignMessageScreenState extends State<IRLSignMessageScreen> {
         ? Row(
             children: [
               if (icons != null && icons.isNotEmpty) ...[
-                CachedNetworkImage(
-                  imageUrl: icons.first,
+                Image.network(
+                  icons.first,
                   width: 64,
                   height: 64,
-                  errorWidget: (context, url, error) => const SizedBox(
+                  errorBuilder: (context, url, error) => const SizedBox(
                     width: 64,
                     height: 64,
                   ),

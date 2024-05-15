@@ -21,8 +21,8 @@ import 'package:autonomy_flutter/util/moma_style_color.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/view/image_background.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -31,7 +31,6 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -108,8 +107,8 @@ class PendingTokenWidget extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 height: double.infinity,
-                child: CachedNetworkImage(
-                  imageUrl: thumbnail!,
+                child: Image.network(
+                  thumbnail!,
                   fit: BoxFit.cover,
                 ),
               )
@@ -137,8 +136,6 @@ class PendingTokenWidget extends StatelessWidget {
   }
 }
 
-final Map<String, Future<bool>> _cachingStates = {};
-
 Widget tokenGalleryThumbnailWidget(
   BuildContext context,
   CompactedAssetToken token,
@@ -160,20 +157,6 @@ Widget tokenGalleryThumbnailWidget(
 
   final ext = p.extension(thumbnailUrl);
 
-  final cacheManager = injector<CacheManager>();
-
-  Future<bool> cachingState = _cachingStates[thumbnailUrl] ??
-      // ignore: discarded_futures
-      cacheManager.store.retrieveCacheData(thumbnailUrl).then((cachedObject) {
-        final cached = cachedObject != null;
-        if (cached) {
-          _cachingStates[thumbnailUrl] = Future.value(true);
-        }
-        return cached;
-      });
-  final memCacheWidth = cachedImageSize;
-  final memCacheHeight = memCacheWidth ~/ ratio;
-
   return Semantics(
     label: 'gallery_artwork_${token.id}',
     child: Hero(
@@ -189,40 +172,31 @@ Widget tokenGalleryThumbnailWidget(
               unsupportWidgetBuilder: (context) =>
                   const GalleryUnSupportThumbnailWidget(),
             )
-          : CachedNetworkImage(
-              imageUrl: thumbnailUrl,
-              fadeInDuration: Duration.zero,
+          : Image.network(
+              thumbnailUrl,
               fit: BoxFit.cover,
-              memCacheHeight: memCacheHeight,
-              memCacheWidth: memCacheWidth,
-              maxWidthDiskCache: cachedImageSize,
-              maxHeightDiskCache: cachedImageSize,
-              cacheManager: cacheManager,
-              placeholder: (context, index) => FutureBuilder<bool>(
-                  future: cachingState,
-                  builder: (context, snapshot) =>
-                      galleryThumbnailPlaceholder ??
-                      GalleryThumbnailPlaceholder(
-                        loading: !(snapshot.data ?? true),
-                      )),
-              errorWidget: (context, url, error) => CachedNetworkImage(
-                imageUrl:
-                    token.getGalleryThumbnailUrl(usingThumbnailID: false) ?? '',
-                fadeInDuration: Duration.zero,
+              cacheWidth: cachedImageSize,
+              cacheHeight: cachedImageSize,
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) {
+                  return ImageBackground(child: child);
+                }
+                return galleryThumbnailPlaceholder ??
+                    const GalleryThumbnailPlaceholder();
+              },
+              errorBuilder: (context, url, error) => Image.network(
+                token.getGalleryThumbnailUrl(usingThumbnailID: false) ?? '',
                 fit: BoxFit.cover,
-                memCacheHeight: cachedImageSize,
-                memCacheWidth: cachedImageSize,
-                maxWidthDiskCache: cachedImageSize,
-                maxHeightDiskCache: cachedImageSize,
-                cacheManager: cacheManager,
-                placeholder: (context, index) => FutureBuilder<bool>(
-                    future: cachingState,
-                    builder: (context, snapshot) =>
-                        galleryThumbnailPlaceholder ??
-                        GalleryThumbnailPlaceholder(
-                          loading: !(snapshot.data ?? true),
-                        )),
-                errorWidget: (context, url, error) =>
+                cacheWidth: cachedImageSize,
+                cacheHeight: cachedImageSize,
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) {
+                    return ImageBackground(child: child);
+                  }
+                  return galleryThumbnailPlaceholder ??
+                      const GalleryThumbnailPlaceholder();
+                },
+                errorBuilder: (context, url, error) =>
                     const GalleryThumbnailErrorWidget(),
               ),
             ),
@@ -441,9 +415,8 @@ INFTRenderingWidget buildRenderingWidget(
           ? assetToken.getPreviewUrl()
           : '${assetToken.getPreviewUrl()}?t=$attempt',
       thumbnailURL: assetToken.getGalleryThumbnailUrl(usingThumbnailID: false),
-      loadingWidget: loadingWidget ?? previewPlaceholder(context),
+      loadingWidget: loadingWidget ?? previewPlaceholder(),
       errorWidget: BrokenTokenWidget(token: assetToken),
-      cacheManager: injector<CacheManager>(),
       onLoaded: onLoaded,
       onDispose: onDispose,
       overriddenHtml: overriddenHtml,
@@ -473,8 +446,7 @@ INFTRenderingWidget buildFeralfileRenderingWidget(
     ..setRenderWidgetBuilder(RenderingWidgetBuilder(
       previewURL: attempt == null ? previewURL : '$previewURL?t=$attempt',
       thumbnailURL: thumbnailURL,
-      loadingWidget: loadingWidget ?? previewPlaceholder(context),
-      cacheManager: injector<CacheManager>(),
+      loadingWidget: loadingWidget ?? previewPlaceholder(),
       onLoaded: onLoaded,
       onDispose: onDispose,
       overriddenHtml: overriddenHtml,
@@ -649,7 +621,7 @@ class _CurrentlyCastingArtworkState extends State<CurrentlyCastingArtwork> {
   }
 }
 
-Widget previewPlaceholder(BuildContext context) => const PreviewPlaceholder();
+Widget previewPlaceholder() => const PreviewPlaceholder();
 
 class PreviewPlaceholder extends StatefulWidget {
   const PreviewPlaceholder({
@@ -660,18 +632,7 @@ class PreviewPlaceholder extends StatefulWidget {
   State<PreviewPlaceholder> createState() => _PreviewPlaceholderState();
 }
 
-class _PreviewPlaceholderState extends State<PreviewPlaceholder>
-    with AfterLayoutMixin<PreviewPlaceholder> {
-  final metricClient = injector.get<MetricClientService>();
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
-  @override
-  void afterFirstLayout(BuildContext context) {}
-
+class _PreviewPlaceholderState extends State<PreviewPlaceholder> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -1102,7 +1063,6 @@ Widget postcardDetailsMetadataSection(
 
 Widget artworkDetailsMetadataSection(
     BuildContext context, AssetToken assetToken, String? artistName) {
-  final theme = Theme.of(context);
   final artworkID =
       ((assetToken.swapped ?? false) && assetToken.originTokenInfoId != null)
           ? assetToken.originTokenInfoId ?? ''
@@ -1807,95 +1767,6 @@ class _ArtworkRightsViewState extends State<ArtworkRightsView> {
           return const SizedBox();
         }
       });
-}
-
-Widget _rowItem(
-  BuildContext context,
-  String name,
-  String? value, {
-  String? subTitle,
-  Function()? onNameTap,
-  String? tapLink,
-  bool? forceSafariVC,
-  Function()? onValueTap,
-  Widget? title,
-  int maxLines = 2,
-}) {
-  if (onValueTap == null && tapLink != null) {
-    final uri = Uri.parse(tapLink);
-    onValueTap = () => unawaited(launchUrl(uri,
-        mode: forceSafariVC == true
-            ? LaunchMode.externalApplication
-            : LaunchMode.platformDefault));
-  }
-  final theme = Theme.of(context);
-
-  return Row(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    children: [
-      Flexible(
-        flex: 3,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            GestureDetector(
-              onTap: onNameTap,
-              child:
-                  title ?? Text(name, style: theme.textTheme.ppMori400White12),
-            ),
-            if (subTitle != null) ...[
-              const SizedBox(height: 2),
-              Text(
-                subTitle,
-                style: ResponsiveLayout.isMobile
-                    ? theme.textTheme.ppMori400White12
-                    : theme.textTheme.ppMori400White14,
-              ),
-            ]
-          ],
-        ),
-      ),
-      Flexible(
-        flex: 4,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            Expanded(
-              child: GestureDetector(
-                onTap: onValueTap,
-                child: Semantics(
-                  label: name,
-                  child: Text(
-                    value ?? '',
-                    textAlign: TextAlign.end,
-                    maxLines: maxLines,
-                    softWrap: true,
-                    overflow: TextOverflow.ellipsis,
-                    style: onValueTap != null
-                        ? theme.textTheme.ppMori400White12
-                        : ResponsiveLayout.isMobile
-                            ? theme.textTheme.ppMori400White12
-                            : theme.textTheme.ppMori400White12,
-                  ),
-                ),
-              ),
-            ),
-            if (onValueTap != null) ...[
-              const SizedBox(width: 8),
-              SvgPicture.asset(
-                'assets/images/iconForward.svg',
-                colorFilter: ColorFilter.mode(
-                    theme.textTheme.ppMori400White12.color ??
-                        AppColor.primaryBlack,
-                    BlendMode.srcIn),
-              ),
-            ]
-          ],
-        ),
-      )
-    ],
-  );
 }
 
 class ArtworkDetailsHeader extends StatelessWidget {
