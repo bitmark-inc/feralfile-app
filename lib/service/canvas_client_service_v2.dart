@@ -8,8 +8,10 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/model/pair.dart';
+import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/service/canvas_channel_service.dart';
 import 'package:autonomy_flutter/service/device_info_service.dart';
 import 'package:autonomy_flutter/service/mdns_service.dart';
@@ -61,8 +63,8 @@ class CanvasClientServiceV2 {
     return response;
   }
 
-  Future<bool> connectToDevice(CanvasDevice device) async =>
-      _connectDevice.synchronized(() async => await _connectToDevice(device));
+  // Future<bool> connectToDevice(CanvasDevice device) async =>
+  //     _connectDevice.synchronized(() async => await _connectToDevice(device));
 
   DeviceInfoV2_DevicePlatform get _platform {
     final device = my_device.DeviceInfo.instance;
@@ -86,26 +88,57 @@ class CanvasClientServiceV2 {
     return null;
   }
 
-  Future<ConnectReplyV2> connect(CanvasDevice device) async {
+  Future<ResponseStream<ConnectReplyV2>> connect(
+    CanvasDevice device, {
+    Function(CanvasDevice device, ConnectReplyV2 reply)? onEvent,
+    Function(CanvasDevice device)? onDone,
+    Function(CanvasDevice device)? onError,
+  }) async {
     final stub = _getStub(device);
     final deviceInfo = clientDeviceInfo;
     final request = ConnectRequestV2()..clientDevice = deviceInfo;
-    final response =
-        await _retryWrapper(() => stub.connect(request, options: _callOptions));
+    final response = await _retryWrapper<ResponseStream<ConnectReplyV2>>(() =>
+        stub.connect(request, options: _callOptions)
+            as ResponseStream<ConnectReplyV2>);
+    response
+      ..listen((reply) {
+        log.info('CanvasClientService: connect $reply');
+        onEvent?.call(device, reply);
+      }, onDone: () {
+        log.info('CanvasClientService: onDone');
+        onDone?.call(device);
+      }, onError: (e) {
+        log.info('CanvasClientService: onError $e');
+        onError?.call(device);
+      });
     return response;
   }
 
-  Future<bool> _connectToDevice(CanvasDevice device) async {
+  Future<bool> connectToDevice(CanvasDevice device) async {
+    final completer = Completer<bool>();
     try {
-      final response = await connect(device);
-      log.info('CanvasClientService received: ${response.ok}');
-      if (response.ok) {
-        log.info('CanvasClientService: Connected to device ${device.name}');
-        return true;
-      } else {
-        log.info('CanvasClientService: Failed to connect to device');
-        return false;
-      }
+      await connect(
+        device,
+        onEvent: (device, event) {
+          if (event.ok) {
+            completer.complete(true);
+          } else {
+            injector<CanvasDeviceBloc>().add(
+              CanvasDeviceDisconnectEvent(
+                [device],
+              ),
+            );
+            completer.complete(false);
+          }
+        },
+        onDone: (device) {
+          completer.complete(true);
+        },
+        onError: (device) {
+          completer.complete(false);
+        },
+      );
+      return completer.future;
     } catch (e) {
       log.info('CanvasClientService: Caught error: $e');
       rethrow;
@@ -126,7 +159,7 @@ class CanvasClientServiceV2 {
   Future<bool> castListArtwork(
       CanvasDevice device, List<PlayArtworkV2> artworks) async {
     try {
-      await connect(device);
+      await connectToDevice(device);
       final stub = _getStub(device);
       final castRequest = CastListArtworkRequest()..artworks.addAll(artworks);
 
@@ -206,7 +239,7 @@ class CanvasClientServiceV2 {
 
   Future<bool> castExhibition(
       CanvasDevice device, CastExhibitionRequest castRequest) async {
-    await connect(device);
+    await connectToDevice(device);
     final stub = _getStub(device);
     final response = await _retryWrapper(() => stub.castExhibition(
           castRequest,
@@ -272,7 +305,7 @@ class CanvasClientServiceV2 {
     await _db.canvasDeviceDao.insertCanvasDevice(device);
   }
 
-  Future<T> _retryWrapper<T>(Future<T> Function() fn) =>
+  Future<T> _retryWrapper<T>(FutureOr<T> Function() fn) =>
       _retry.retry(() => fn.call(),
           retryIf: (e) => e is SocketException || e is TimeoutException,
           onRetry: (e) => log.info('CanvasClientService retry stub error $e'));

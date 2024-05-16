@@ -276,8 +276,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
             if (device.second.connectedDevice.deviceId == thisDevice.deviceId) {
               controllingDeviceStatus[device.first.id] = device.second;
               if (currentDeviceStatus != null &&
-                  device.first.id ==
-                      (state.controllingDevice?.id ?? '')) {
+                  device.first.id == (state.controllingDevice?.id ?? '')) {
                 selectingDeviceStatus[device.first.id] = device.second;
                 break;
               }
@@ -299,6 +298,8 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
           log.info('CanvasDeviceBloc: get devices: ${newState.devices.length}, '
               'controllingDeviceStatus: ${newState.controllingDeviceStatus}');
           emit(newState);
+          await _canvasClientServiceV2.connectToDevice(
+              newState.controllingDevices.map((e) => e.device).toList().first);
         } catch (e) {
           log.info('CanvasDeviceBloc: error while get devices: $e');
           unawaited(Sentry.captureException(e));
