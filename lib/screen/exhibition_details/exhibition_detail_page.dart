@@ -190,6 +190,17 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
             viewportFraction: 0.76,
             enableInfiniteScroll: false,
             enlargeCenterPage: true,
+            onPageChanged: (index, reason) {
+              _carouselIndex = index;
+              final controllingDevice =
+                  _canvasDeviceBloc.state.controllingDevice;
+              final request = _getCastExhibitionRequest(exhibitionDetail);
+              if (controllingDevice != null) {
+                _canvasDeviceBloc.add(
+                  CanvasDeviceCastExhibitionEvent(controllingDevice, request),
+                );
+              }
+            },
           ),
         ),
       ),
