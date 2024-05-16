@@ -7,10 +7,12 @@
 
 import 'dart:async';
 import 'dart:collection';
+import 'dart:io';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/play_control_model.dart';
 import 'package:autonomy_flutter/model/sent_artwork.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -45,6 +47,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -55,8 +58,10 @@ import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/provenance.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:nft_collection/services/tokens_service.dart';
+import 'package:shake/shake.dart';
 import 'package:social_share/social_share.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 part 'artwork_detail_page.g.dart';
 
@@ -70,7 +75,10 @@ class ArtworkDetailPage extends StatefulWidget {
 }
 
 class _ArtworkDetailPageState extends State<ArtworkDetailPage>
-    with AfterLayoutMixin<ArtworkDetailPage> {
+    with
+        AfterLayoutMixin<ArtworkDetailPage>,
+        RouteAware,
+        WidgetsBindingObserver {
   late ScrollController _scrollController;
   late bool withSharing;
   ValueNotifier<double> downloadProgress = ValueNotifier(0);
@@ -78,13 +86,17 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   HashSet<String> _accountNumberHash = HashSet.identity();
   AssetToken? currentAsset;
   final _feralfileService = injector.get<FeralFileService>();
+  final _focusNode = FocusNode();
   double? _infoSize;
+  ShakeDetector? _detector;
+  late ArtworkDetailBloc _bloc;
 
   @override
   void initState() {
     _scrollController = ScrollController();
     super.initState();
-    context.read<ArtworkDetailBloc>().add(ArtworkDetailGetInfoEvent(
+    _bloc = context.read<ArtworkDetailBloc>();
+    _bloc.add(ArtworkDetailGetInfoEvent(
         widget.payload.identities[widget.payload.currentIndex],
         useIndexer: widget.payload.useIndexer));
     context.read<AccountsBloc>().add(FetchAllAddressesEvent());
@@ -93,7 +105,37 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   }
 
   @override
-  void afterFirstLayout(BuildContext context) {}
+  void afterFirstLayout(BuildContext context) {
+    _detector = ShakeDetector.autoStart(
+      onPhoneShake: () {
+        _bloc.add(ChangeFullScreen());
+        unawaited(SystemChrome.setEnabledSystemUIMode(
+          SystemUiMode.manual,
+          overlays: SystemUiOverlay.values,
+        ));
+      },
+    );
+
+    _detector?.startListening();
+
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeDependencies() {
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+    unawaited(enableLandscapeMode());
+    unawaited(WakelockPlus.enable());
+    super.didChangeDependencies();
+  }
+
+  @override
+  void didPopNext() {
+    unawaited(enableLandscapeMode());
+    unawaited(WakelockPlus.enable());
+    // _renderingWidget?.didPopNext();
+    super.didPopNext();
+  }
 
   Future<void> _manualShare(
       String caption, String url, List<String> hashTags) async {
@@ -171,6 +213,18 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   @override
   void dispose() {
     _scrollController.dispose();
+    _focusNode.dispose();
+    unawaited(disableLandscapeMode());
+    unawaited(WakelockPlus.disable());
+    routeObserver.unsubscribe(this);
+    WidgetsBinding.instance.removeObserver(this);
+    _detector?.stopListening();
+    if (Platform.isAndroid) {
+      unawaited(SystemChrome.setEnabledSystemUIMode(
+        SystemUiMode.manual,
+        overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom],
+      ));
+    }
     super.dispose();
   }
 
@@ -287,189 +341,216 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                     ],
                   ),
                   Column(
-                    children: [
-                      const Spacer(),
-                      GestureDetector(
-                        onVerticalDragEnd: (details) {
-                          final dy = details.velocity.pixelsPerSecond.dy;
-                          const sensibility = 15;
-                          if (dy < 0 - sensibility) {
-                            setState(() {
-                              _infoSize = 500;
-                            });
-                          } else if (dy > sensibility) {
-                            setState(() {
-                              _infoSize = null;
-                            });
-                          }
-                        },
-                        child: AnimatedSize(
-                          duration: const Duration(milliseconds: 200),
-                          curve: Curves.fastOutSlowIn,
-                          child: Container(
-                            color: AppColor.primaryBlack,
-                            height: _infoSize,
-                            child: Column(
-                              children: [
-                                Column(
-                                  children: [
-                                    Column(
-                                      children: [
-                                        Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                              vertical: 15),
-                                          child: Row(
+                    children: isFullScreen
+                        ? []
+                        : [
+                            const Spacer(),
+                            GestureDetector(
+                              onVerticalDragEnd: (details) {
+                                final dy = details.velocity.pixelsPerSecond.dy;
+                                const sensibility = 15;
+                                if (dy < 0 - sensibility) {
+                                  setState(() {
+                                    _infoSize = 500;
+                                  });
+                                } else if (dy > sensibility) {
+                                  setState(() {
+                                    _infoSize = null;
+                                  });
+                                }
+                              },
+                              child: AnimatedSize(
+                                duration: const Duration(milliseconds: 200),
+                                curve: Curves.fastOutSlowIn,
+                                child: Container(
+                                  color: AppColor.primaryBlack,
+                                  height: _infoSize,
+                                  child: Column(
+                                    children: [
+                                      Column(
+                                        children: [
+                                          Column(
                                             children: [
-                                              const SizedBox(
-                                                width: 15,
-                                              ),
-                                              ArtworkDetailsHeader(
-                                                title: asset.displayTitle ?? '',
-                                                subTitle: subTitle,
-                                                onSubTitleTap: asset.artistID !=
-                                                        null
-                                                    ? () => unawaited(Navigator
-                                                            .of(context)
-                                                        .pushNamed(
-                                                            AppRouter
-                                                                .galleryPage,
-                                                            arguments:
-                                                                GalleryPagePayload(
-                                                              address: asset
-                                                                  .artistID!,
-                                                              artistName:
-                                                                  artistName!,
-                                                              artistURL: asset
-                                                                  .artistURL,
-                                                            )))
-                                                    : null,
-                                              ),
-                                              const Spacer(),
-                                              _artworkInfoIcon(),
-                                              if (!widget.payload.useIndexer)
-                                                Semantics(
-                                                  label: 'artworkDotIcon',
-                                                  child: IconButton(
-                                                    onPressed: () => unawaited(
-                                                        _showArtworkOptionsDialog(
-                                                            context,
-                                                            asset,
-                                                            state.isViewOnly)),
-                                                    constraints:
-                                                        const BoxConstraints(
-                                                      maxWidth: 44,
-                                                      maxHeight: 44,
+                                              Padding(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        vertical: 15),
+                                                child: Row(
+                                                  children: [
+                                                    const SizedBox(
+                                                      width: 15,
                                                     ),
-                                                    icon: SvgPicture.asset(
-                                                      'assets/images/more_circle.svg',
-                                                      width: 22,
+                                                    ArtworkDetailsHeader(
+                                                      title:
+                                                          asset.displayTitle ??
+                                                              '',
+                                                      subTitle: subTitle,
+                                                      onSubTitleTap: asset
+                                                                  .artistID !=
+                                                              null
+                                                          ? () => unawaited(Navigator
+                                                                  .of(context)
+                                                              .pushNamed(
+                                                                  AppRouter
+                                                                      .galleryPage,
+                                                                  arguments:
+                                                                      GalleryPagePayload(
+                                                                    address: asset
+                                                                        .artistID!,
+                                                                    artistName:
+                                                                        artistName!,
+                                                                    artistURL: asset
+                                                                        .artistURL,
+                                                                  )))
+                                                          : null,
                                                     ),
-                                                  ),
+                                                    const Spacer(),
+                                                    _artworkInfoIcon(),
+                                                    if (!widget
+                                                        .payload.useIndexer)
+                                                      Semantics(
+                                                        label: 'artworkDotIcon',
+                                                        child: IconButton(
+                                                          onPressed: () => unawaited(
+                                                              _showArtworkOptionsDialog(
+                                                                  context,
+                                                                  asset,
+                                                                  state
+                                                                      .isViewOnly)),
+                                                          constraints:
+                                                              const BoxConstraints(
+                                                            maxWidth: 44,
+                                                            maxHeight: 44,
+                                                          ),
+                                                          icon:
+                                                              SvgPicture.asset(
+                                                            'assets/images/more_circle.svg',
+                                                            width: 22,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                  ],
                                                 ),
+                                              ),
                                             ],
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                                if (_infoSize != null)
-                                  Expanded(
-                                      child: SingleChildScrollView(
-                                    child: SizedBox(
-                                      width: double.infinity,
-                                      child: Column(
-                                        children: [
-                                          Visibility(
-                                            visible: checkWeb3ContractAddress
-                                                .contains(
-                                                    asset.contractAddress),
-                                            child: Align(
-                                              alignment: Alignment.centerRight,
-                                              child: Padding(
-                                                padding: const EdgeInsets.only(
-                                                    left: 16,
-                                                    right: 16,
-                                                    top: 40),
-                                                child: OutlineButton(
-                                                  color: Colors.transparent,
-                                                  text: 'web3_glossary'.tr(),
-                                                  onTap: () {
-                                                    unawaited(Navigator.pushNamed(
-                                                        context,
-                                                        AppRouter
-                                                            .previewPrimerPage,
-                                                        arguments: asset));
-                                                  },
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                          Visibility(
-                                            visible: editionSubTitle.isNotEmpty,
-                                            child: Padding(
-                                              padding:
-                                                  ResponsiveLayout.getPadding,
-                                              child: Text(
-                                                editionSubTitle,
-                                                style: theme
-                                                    .textTheme.ppMori400Grey14,
-                                              ),
-                                            ),
-                                          ),
-                                          debugInfoWidget(
-                                              context, currentAsset),
-                                          Padding(
-                                            padding:
-                                                ResponsiveLayout.getPadding,
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Semantics(
-                                                  label: 'Desc',
-                                                  child: HtmlWidget(
-                                                    customStylesBuilder:
-                                                        auHtmlStyle,
-                                                    asset.description ?? '',
-                                                    textStyle: theme.textTheme
-                                                        .ppMori400White14,
-                                                  ),
-                                                ),
-                                                const SizedBox(height: 40),
-                                                artworkDetailsMetadataSection(
-                                                    context, asset, artistName),
-                                                if (asset.fungible) ...[
-                                                  tokenOwnership(
-                                                      context,
-                                                      asset,
-                                                      identityState.identityMap[
-                                                              asset.owner] ??
-                                                          ''),
-                                                ] else ...[
-                                                  if (state
-                                                      .provenances.isNotEmpty)
-                                                    _provenanceView(context,
-                                                        state.provenances)
-                                                  else
-                                                    const SizedBox()
-                                                ],
-                                                artworkDetailsRightSection(
-                                                    context, asset),
-                                                const SizedBox(height: 80),
-                                              ],
-                                            ),
-                                          )
                                         ],
                                       ),
-                                    ),
-                                  )),
-                              ],
+                                      if (_infoSize != null)
+                                        Expanded(
+                                            child: SingleChildScrollView(
+                                          child: SizedBox(
+                                            width: double.infinity,
+                                            child: Column(
+                                              children: [
+                                                Visibility(
+                                                  visible:
+                                                      checkWeb3ContractAddress
+                                                          .contains(asset
+                                                              .contractAddress),
+                                                  child: Align(
+                                                    alignment:
+                                                        Alignment.centerRight,
+                                                    child: Padding(
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                              left: 16,
+                                                              right: 16,
+                                                              top: 40),
+                                                      child: OutlineButton(
+                                                        color:
+                                                            Colors.transparent,
+                                                        text: 'web3_glossary'
+                                                            .tr(),
+                                                        onTap: () {
+                                                          unawaited(Navigator
+                                                              .pushNamed(
+                                                                  context,
+                                                                  AppRouter
+                                                                      .previewPrimerPage,
+                                                                  arguments:
+                                                                      asset));
+                                                        },
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                                Visibility(
+                                                  visible: editionSubTitle
+                                                      .isNotEmpty,
+                                                  child: Padding(
+                                                    padding: ResponsiveLayout
+                                                        .getPadding,
+                                                    child: Text(
+                                                      editionSubTitle,
+                                                      style: theme.textTheme
+                                                          .ppMori400Grey14,
+                                                    ),
+                                                  ),
+                                                ),
+                                                debugInfoWidget(
+                                                    context, currentAsset),
+                                                Padding(
+                                                  padding: ResponsiveLayout
+                                                      .getPadding,
+                                                  child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Semantics(
+                                                        label: 'Desc',
+                                                        child: HtmlWidget(
+                                                          customStylesBuilder:
+                                                              auHtmlStyle,
+                                                          asset.description ??
+                                                              '',
+                                                          textStyle: theme
+                                                              .textTheme
+                                                              .ppMori400White14,
+                                                        ),
+                                                      ),
+                                                      const SizedBox(
+                                                          height: 40),
+                                                      artworkDetailsMetadataSection(
+                                                          context,
+                                                          asset,
+                                                          artistName),
+                                                      if (asset.fungible) ...[
+                                                        tokenOwnership(
+                                                            context,
+                                                            asset,
+                                                            identityState
+                                                                        .identityMap[
+                                                                    asset
+                                                                        .owner] ??
+                                                                ''),
+                                                      ] else ...[
+                                                        if (state.provenances
+                                                            .isNotEmpty)
+                                                          _provenanceView(
+                                                              context,
+                                                              state.provenances)
+                                                        else
+                                                          const SizedBox()
+                                                      ],
+                                                      artworkDetailsRightSection(
+                                                          context, asset),
+                                                      const SizedBox(
+                                                          height: 80),
+                                                    ],
+                                                  ),
+                                                )
+                                              ],
+                                            ),
+                                          ),
+                                        )),
+                                    ],
+                                  ),
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
-                      ),
-                    ],
+                          ],
                   )
                 ],
               ),
@@ -478,6 +559,32 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
         return const SizedBox();
       }
     });
+  }
+
+  void onClickFullScreen(AssetToken? assetToken) {
+    final theme = Theme.of(context);
+    _bloc.add(ChangeFullScreen(isFullscreen: true));
+    unawaited(
+        SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky));
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Container(
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 10),
+          decoration: BoxDecoration(
+            color: AppColor.feralFileHighlight.withOpacity(0.9),
+            borderRadius: BorderRadius.circular(64),
+          ),
+          child: Text(
+            'shake_exit'.tr(),
+            textAlign: TextAlign.center,
+            style: theme.textTheme.ppMori600Black12,
+          ),
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
+    );
   }
 
   Widget _artworkInfoIcon() => Semantics(
@@ -526,6 +633,13 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     final isHidden = _isHidden(asset);
     unawaited(UIHelper.showDrawerAction(context,
         options: [
+          OptionItem(
+              title: 'full_screen',
+              icon: SvgPicture.asset('assets/images/fullscreen_icon.svg'),
+              onTap: () {
+                onClickFullScreen(asset);
+                Navigator.of(context).pop();
+              }),
           if (!isViewOnly && irlUrl != null)
             OptionItem(
               title: irlUrl.first,
