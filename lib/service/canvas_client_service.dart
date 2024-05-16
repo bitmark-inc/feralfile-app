@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
+import 'package:autonomy_flutter/service/canvas_channel_service.dart';
 import 'package:autonomy_flutter/service/device_info_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -24,8 +25,9 @@ import 'package:uuid/uuid.dart';
 class CanvasClientService {
   final AppDatabase _db;
   final DeviceInfoService _deviceInfoService;
+  final CanvasChannelService _channelService;
 
-  CanvasClientService(this._db, this._deviceInfoService);
+  CanvasClientService(this._db, this._deviceInfoService, this._channelService);
 
   final List<CanvasDevice> _viewingDevices = [];
 
@@ -37,23 +39,8 @@ class CanvasClientService {
   CallOptions get _callOptions => CallOptions(
       compression: const GzipCodec(), timeout: const Duration(seconds: 10));
 
-  Future<void> shutDown(CanvasDevice device) async {
-    final channel = _getChannel(device);
-    await channel.shutdown();
-  }
-
-  ClientChannel _getChannel(CanvasDevice device) => ClientChannel(
-        device.ip,
-        port: device.port,
-        options: const ChannelOptions(
-          credentials: ChannelCredentials.insecure(),
-        ),
-      );
-
-  CanvasControlClient _getStub(CanvasDevice device) {
-    final channel = _getChannel(device);
-    return CanvasControlClient(channel);
-  }
+  CanvasControlClient _getStub(CanvasDevice device) =>
+      _channelService.getStubV1(device);
 
   Future<bool> connectToDevice(CanvasDevice device,
           {bool isLocal = false}) async =>

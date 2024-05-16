@@ -24,9 +24,14 @@ class CanvasChannelService {
 
   final Map<String, ClientChannel> _channels = {};
 
-  CanvasControlV2Client getStub(CanvasDevice device) {
+  CanvasControlV2Client getStubV2(CanvasDevice device) {
     final channel = _getChannel(device);
     return CanvasControlV2Client(channel);
+  }
+
+  CanvasControlClient getStubV1(CanvasDevice device) {
+    final channel = _getChannel(device);
+    return CanvasControlClient(channel);
   }
 
   ClientChannel _getChannel(CanvasDevice device) =>

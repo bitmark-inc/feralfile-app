@@ -46,7 +46,7 @@ class CanvasClientServiceV2 {
     ..platform = _platform;
 
   CanvasControlV2Client _getStub(CanvasDevice device) =>
-      _channelService.getStub(device);
+      _channelService.getStubV2(device);
 
   Future<CheckDeviceStatusReply> getDeviceCastingStatus(
       CanvasDevice device) async {
