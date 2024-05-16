@@ -99,11 +99,14 @@ class AuthService {
         }
 
         log.info('[AuthService] Retry, calling original method');
-        await _getAuthToken(
+        newJwt = await _getAuthToken(
             receiptData: receiptData, forceRefresh: forceRefresh, retry: false);
       } else {
         rethrow;
       }
+    } catch (e) {
+      log.info('[AuthService] Could not get jwt, rethrow');
+      rethrow;
     }
 
     _jwt = newJwt;
