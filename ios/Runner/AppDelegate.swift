@@ -32,28 +32,27 @@ import Logging
     ) -> Bool {
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
-            if !Constant.isInhouse {
-                IOSSecuritySuite.denyDebugger()
-
+            if !Constant.isInhouse() {
                 if self.checkDebugger() {
                     self.captureMessage(message: "[Security check] Debugger detected")
-                    exit(0)
+                    self.exitApp()
                 }
+                IOSSecuritySuite.denyDebugger()
             }
 
             let isSecure = self.checkMainBundleIdentifier()
 
             if !isSecure {
                 self.captureMessage(message: "[Security check] Integrity check failed")
-                exit(0)
+                self.exitApp()
             }
 
             if IOSSecuritySuite.amIReverseEngineered() {
                 self.captureMessage(message: "[Security check] Reverse engineering tool detected")
-                exit(0)
+                self.exitApp()
             }
 
-            if IOSSecuritySuite.amIJailbroken() {
+            if !IOSSecuritySuite.amIJailbroken() {
                 self.captureMessage(message: "[Security check] Jail broken device detected")
                 self.showAlertAndExit()
             }
@@ -283,8 +282,8 @@ import Logging
         let config = URLSessionConfiguration.default
         let session = URLSession(configuration: config)
 
-        let endpoint = Constant.isInhouse ? "https://support.test.autonomy.io/v1/issues/" : "https://support.autonomy.io/v1/issues/"
-        // Create the request body
+        let endpoint = Constant.isInhouse() ? "https://support.test.autonomy.io/v1/issues/" : "https://support.autonomy.io/v1/issues/"
+        // Creatdoc-source-file:///Users/lephuoc/Desktop/bitmark/ios/autonomy-client/ios/Runner/Constant.swift#L34e the request body
         guard let url = URL(string: endpoint) else {
             return
         }
@@ -390,7 +389,7 @@ import Logging
                                           preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { _ in
                 // Dismiss the alert and exit the app
-                exit(0)
+                self.exitApp()
             }))
 
             // Get the root view controller to present the alert
@@ -422,6 +421,10 @@ import Logging
         if success {
             hideAuthenticationOverlay()
         }
+    }
+    
+    private func exitApp() {
+        UIControl().sendAction(#selector(NSXPCConnection.suspend), to: UIApplication.shared, for: nil)
     }
 }
 
