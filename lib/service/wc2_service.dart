@@ -108,7 +108,6 @@ class Wc2Service {
     });
 
     _registerEthRequest('${Wc2Chain.ethereum}:${Environment.web3ChainId}');
-    _registerEthRequest('${Wc2Chain.ethereum}:5');
 
     _registerFeralfileRequest(
         '${Wc2Chain.autonomy}:${Environment.appTestnetConfig ? 1 : 0}');
