@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/model/pair.dart';
+import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/mdns_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -77,8 +78,8 @@ class CanvasClientServiceV2 {
     return response;
   }
 
-  Future<bool> connectToDevice(CanvasDevice device) async =>
-      _connectDevice.synchronized(() async => await _connectToDevice(device));
+  // Future<bool> connectToDevice(CanvasDevice device) async =>
+  //     _connectDevice.synchronized(() async => await _connectToDevice(device));
 
   DeviceInfoV2_DevicePlatform get _platform {
     final device = my_device.DeviceInfo.instance;
@@ -102,25 +103,53 @@ class CanvasClientServiceV2 {
     return null;
   }
 
-  Future<ConnectReplyV2> connect(CanvasDevice device) async {
+  ResponseStream<ConnectReplyV2> connect(
+    CanvasDevice device, {
+    Function(CanvasDevice device, ConnectReplyV2 reply)? onEvent,
+    Function(CanvasDevice device)? onDone,
+    Function(CanvasDevice device)? onError,
+  }) {
     final stub = _getStub(device);
     final deviceInfo = clientDeviceInfo;
     final request = ConnectRequestV2()..clientDevice = deviceInfo;
-    final response = await stub.connect(request, options: _callOptions);
+    final response = stub.connect(request, options: _callOptions)
+      ..listen((reply) {
+        log.info('CanvasClientService: connect $reply');
+        onEvent?.call(device, reply);
+      }, onDone: () {
+        log.info('CanvasClientService: onDone');
+        onDone?.call(device);
+      }, onError: (e) {
+        log.info('CanvasClientService: onError $e');
+        onError?.call(device);
+      });
     return response;
   }
 
-  Future<bool> _connectToDevice(CanvasDevice device) async {
+  Future<bool> connectToDevice(CanvasDevice device) async {
+    final completer = Completer<bool>();
     try {
-      final response = await connect(device);
-      log.info('CanvasClientService received: ${response.ok}');
-      if (response.ok) {
-        log.info('CanvasClientService: Connected to device ${device.name}');
-        return true;
-      } else {
-        log.info('CanvasClientService: Failed to connect to device');
-        return false;
-      }
+      connect(
+        device,
+        onEvent: (device, event) {
+          if (event.ok) {
+            completer.complete(true);
+          } else {
+            injector<CanvasDeviceBloc>().add(
+              CanvasDeviceDisconnectEvent(
+                [device],
+              ),
+            );
+          }
+        },
+        onDone: (device) {
+          completer.complete(false);
+        },
+        onError: (device) {
+          completer.complete(false);
+        },
+      );
+      return completer.future;
     } catch (e) {
       log.info('CanvasClientService: Caught error: $e');
       rethrow;
@@ -141,7 +170,7 @@ class CanvasClientServiceV2 {
   Future<bool> castListArtwork(
       CanvasDevice device, List<PlayArtworkV2> artworks) async {
     try {
-      await connect(device);
+      await connectToDevice(device);
       final stub = _getStub(device);
       final castRequest = CastListArtworkRequest()..artworks.addAll(artworks);
 
@@ -221,7 +250,7 @@ class CanvasClientServiceV2 {
 
   Future<bool> castExhibition(
       CanvasDevice device, CastExhibitionRequest castRequest) async {
-    await connect(device);
+    await connectToDevice(device);
     final stub = _getStub(device);
     final response = await stub.castExhibition(
       castRequest,
