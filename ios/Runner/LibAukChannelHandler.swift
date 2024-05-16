@@ -733,7 +733,6 @@ class LibAukChannelHandler {
                         }, receiveValue: { seed in
                             
                             do {
-                                let seedPublicData = try storage.generateSeedPublicData(seed: seed)
                                 let isDevicePasscode = UserDefaults.standard.bool(forKey: "flutter.device_passcode")
                                 let setSeedSink = storage.setSeed(seed: seed, isPrivate: isDevicePasscode)
                                     .sink(receiveCompletion: { completion in
@@ -741,9 +740,22 @@ class LibAukChannelHandler {
                                     }, receiveValue: { _ in
                                         // Handle value if needed
                                     })
-                                let seedPublicDataRaw = try JSONEncoder().encode(seedPublicData)
-                                let setSeedPublicDataSink = storage.setData(seedPublicDataRaw, forKey: Constant.KeychainKey.seedPublicData, isSync: true, isPrivate: false)
                                 setSeedSink.store(in: &self.cancelBag)
+                                
+                                try storage.generateSeedPublicData(seed: seed)
+                                    .sink(receiveCompletion: { completion in
+                                        // Handle completion
+                                    }, receiveValue: { seedPublicData in
+                                        do {
+                                            let seedPublicDataRaw = try JSONEncoder().encode(seedPublicData)
+                                            storage.setData(seedPublicDataRaw, forKey: Constant.KeychainKey.seedPublicData, isSync: true, isPrivate: false)
+                                        } catch {
+                                            // Handle error thrown by encode or setData
+                                            print("Error encoding or setting data: \(error)")
+                                        }
+                                    })
+                                    .store(in: &self.cancelBag)
+                                
                             } catch {
                                 // Handle error thrown by generateSeedPublicData
                                 print("Error generating seed public data: \(error)")

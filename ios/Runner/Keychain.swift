@@ -15,7 +15,7 @@ class Keychain {
         let syncAttr = isSync ? kCFBooleanTrue : kCFBooleanFalse
         let query = [
             kSecClass as String: kSecClassGenericPassword as String,
-            kSecAttrSynchronizable as String: syncAttr!,
+//             kSecAttrSynchronizable as String: syncAttr!,
             kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
             kSecAttrAccessGroup as String: Constant.keychainGroup,
             kSecAttrAccount as String: forKey,
@@ -38,7 +38,7 @@ class Keychain {
         let syncAttr = isSync ? kCFBooleanTrue : kCFBooleanFalse
         let query = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrSynchronizable as String: syncAttr!,
+//            kSecAttrSynchronizable as String: syncAttr!,
             kSecReturnData as String: kCFBooleanTrue!,
             kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
             kSecAttrAccessGroup as String: Constant.keychainGroup,
@@ -62,7 +62,7 @@ class Keychain {
         let syncAttr = isSync ? kCFBooleanTrue : kCFBooleanFalse
         let query = [
             kSecClass as String: kSecClassGenericPassword as String,
-            kSecAttrSynchronizable as String: syncAttr!,
+//            kSecAttrSynchronizable as String: syncAttr!,
             kSecAttrAccessGroup as String: Constant.keychainGroup,
             kSecAttrAccount as String: key,
         ] as [String: Any]
