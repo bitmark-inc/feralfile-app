@@ -217,10 +217,9 @@ class _SupportListPageState extends State<SupportListPage>
       if (lastMessage.contains(RATING_MESSAGE_START)) {
         return lastMessage.substring(RATING_MESSAGE_START.length);
       }
-      if (lastMessage.contains(STAR_RATING)) {
-        return 'care_to_share'.tr();
+      if (!lastMessage.contains(STAR_RATING)) {
+        return 'rate_issue'.tr();
       }
-      return 'rate_issue'.tr();
     }
     return lastMessage;
   }
