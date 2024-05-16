@@ -5,10 +5,9 @@ import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/device_info_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/view/user_agent_utils.dart' as my_device;
 import 'package:collection/collection.dart';
 import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter/material.dart';
@@ -17,33 +16,19 @@ import 'package:uuid/uuid.dart';
 
 class CanvasClientService {
   final AppDatabase _db;
+  final DeviceInfoService _deviceInfoService;
 
-  CanvasClientService(this._db);
+  CanvasClientService(this._db, this._deviceInfoService);
 
   final List<CanvasDevice> _viewingDevices = [];
-  late final String _deviceId;
-  late final String _deviceName;
-  bool _didInitialized = false;
 
   final _connectDevice = Lock();
-  final AccountService _accountService = injector<AccountService>();
   final NavigationService _navigationService = injector<NavigationService>();
 
   Offset currentCursorOffset = Offset.zero;
 
   CallOptions get _callOptions => CallOptions(
       compression: const GzipCodec(), timeout: const Duration(seconds: 10));
-
-  Future<void> init() async {
-    if (_didInitialized) {
-      return;
-    }
-    final device = my_device.DeviceInfo.instance;
-    _deviceName = await device.getMachineName() ?? 'Autonomy App';
-    final account = await _accountService.getDefaultAccount();
-    _deviceId = await account.getAccountDID();
-    _didInitialized = true;
-  }
 
   Future<void> shutDown(CanvasDevice device) async {
     final channel = _getChannel(device);
@@ -73,8 +58,8 @@ class CanvasClientService {
     try {
       final request = ConnectRequest()
         ..device = (DeviceInfo()
-          ..deviceId = _deviceId
-          ..deviceName = _deviceName);
+          ..deviceId = _deviceInfoService.deviceId
+          ..deviceName = _deviceInfoService.deviceName);
 
       final response = await stub.connect(
         request,
@@ -114,7 +99,7 @@ class CanvasClientService {
     String? sceneId;
     late CanvasServerStatus status;
     try {
-      final request = CheckingStatus()..deviceId = _deviceId;
+      final request = CheckingStatus()..deviceId = _deviceInfoService.deviceId;
       final response = await stub.status(
         request,
         options: _callOptions,
@@ -124,7 +109,6 @@ class CanvasClientService {
         case ResponseStatus_ServingStatus.NOT_SERVING:
         case ResponseStatus_ServingStatus.SERVICE_UNKNOWN:
           status = CanvasServerStatus.notServing;
-          break;
         case ResponseStatus_ServingStatus.SERVING:
           if (response.sceneId.isNotEmpty) {
             status = CanvasServerStatus.playing;
@@ -132,10 +116,8 @@ class CanvasClientService {
           } else {
             status = CanvasServerStatus.connected;
           }
-          break;
         case ResponseStatus_ServingStatus.UNKNOWN:
           status = CanvasServerStatus.open;
-          break;
       }
     } catch (e) {
       log.info('CanvasClientService: Caught error: $e');
@@ -162,12 +144,10 @@ class CanvasClientService {
           device.playingSceneId = status.second;
           device.isConnecting = true;
           workingDevices.add(device);
-          break;
         case CanvasServerStatus.open:
           device.playingSceneId = status.second;
           device.isConnecting = false;
           workingDevices.add(device);
-          break;
         case CanvasServerStatus.notServing:
           break;
         case CanvasServerStatus.error:
