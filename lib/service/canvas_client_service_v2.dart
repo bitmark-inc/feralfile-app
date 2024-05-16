@@ -1,8 +1,16 @@
+//
+//  SPDX-License-Identifier: BSD-2-Clause-Patent
+//  Copyright © 2022 Bitmark. All rights reserved.
+//  Use of this source code is governed by the BSD-2-Clause Plus Patent License
+//  that can be found in the LICENSE file.
+//
+
 import 'dart:async';
 import 'dart:io';
 
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/model/pair.dart';
+import 'package:autonomy_flutter/service/canvas_channel_service.dart';
 import 'package:autonomy_flutter/service/device_info_service.dart';
 import 'package:autonomy_flutter/service/mdns_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -17,8 +25,10 @@ class CanvasClientServiceV2 {
   final AppDatabase _db;
   final MDnsService _mdnsService;
   final DeviceInfoService _deviceInfoService;
+  final CanvasChannelService _channelService;
 
-  CanvasClientServiceV2(this._db, this._mdnsService, this._deviceInfoService);
+  CanvasClientServiceV2(this._db, this._mdnsService, this._deviceInfoService,
+      this._channelService);
 
   final _connectDevice = Lock();
   final _retry = const RetryOptions(maxAttempts: 3);
@@ -35,23 +45,8 @@ class CanvasClientServiceV2 {
     ..deviceName = _deviceInfoService.deviceName
     ..platform = _platform;
 
-  Future<void> shutDown(CanvasDevice device) async {
-    final channel = _getChannel(device);
-    await channel.shutdown();
-  }
-
-  ClientChannel _getChannel(CanvasDevice device) => ClientChannel(
-        device.ip,
-        port: device.port,
-        options: const ChannelOptions(
-          credentials: ChannelCredentials.insecure(),
-        ),
-      );
-
-  CanvasControlV2Client _getStub(CanvasDevice device) {
-    final channel = _getChannel(device);
-    return CanvasControlV2Client(channel);
-  }
+  CanvasControlV2Client _getStub(CanvasDevice device) =>
+      _channelService.getStubV2(device);
 
   Future<CheckDeviceStatusReply> getDeviceCastingStatus(
       CanvasDevice device) async {
