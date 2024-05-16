@@ -9,28 +9,20 @@ import Foundation
 
 struct Constant {
     static var appname: String {
-        #if INHOUSE
-        return "Feral File (Dev)";
-        #else
-        return "Feral File";
-        #endif
-    }
-    
-    static var isInhouse: Bool {
-        #if INHOUSE
-        return true;
-        #else
-        return false;
-        #endif
+        if isInhouse() {
+            return "Feral File (Dev)"
+        } else {
+            return "Feral File"
+        }
     }
 
-    static var keychainGroup: String = {
-        #if INHOUSE
-        return "Z5CE7A3A7N.com.bitmark.autonomy-wallet.inhouse.keychain"
-        #else
-        return "Z5CE7A3A7N.com.bitmark.autonomywallet.keychain"
-        #endif
-    }()
+    static var keychainGroup: String {
+        if isInhouse() {
+            return "Z5CE7A3A7N.com.bitmark.autonomy-wallet.inhouse.keychain"
+        } else {
+            return "Z5CE7A3A7N.com.bitmark.autonomywallet.keychain"
+        }
+    }
     
     static let deviceIDKey: String = "device_id_key"
     
@@ -38,4 +30,9 @@ struct Constant {
         "com.bitmark.autonomy-wallet",
         "com.bitmark.autonomy-wallet.inhouse",
     ]
+    
+    static func isInhouse() -> Bool {
+        let bundleIdentifier = Bundle.main.bundleIdentifier ?? "Unknown"
+        return bundleIdentifier.contains("inhouse")
+    }
 }
