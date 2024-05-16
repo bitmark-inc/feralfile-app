@@ -20,6 +20,9 @@ import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
+import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_page.dart';
+import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
+import 'package:autonomy_flutter/screen/detail/preview/keyboard_control_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
 import 'package:autonomy_flutter/screen/gallery/gallery_page.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
@@ -39,29 +42,25 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/canvas_device_view.dart';
 import 'package:autonomy_flutter/view/cast_button.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/provenance.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:nft_collection/services/tokens_service.dart';
-import 'package:shake/shake.dart';
 import 'package:social_share/social_share.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:wakelock_plus/wakelock_plus.dart';
 
 part 'artwork_detail_page.g.dart';
 
@@ -88,14 +87,16 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   final _feralfileService = injector.get<FeralFileService>();
   final _focusNode = FocusNode();
   double? _infoSize;
-  ShakeDetector? _detector;
   late ArtworkDetailBloc _bloc;
+  late CanvasDeviceBloc _canvasDeviceBloc;
+  final keyboardManagerKey = GlobalKey<KeyboardManagerWidgetState>();
 
   @override
   void initState() {
     _scrollController = ScrollController();
     super.initState();
     _bloc = context.read<ArtworkDetailBloc>();
+    _canvasDeviceBloc = context.read<CanvasDeviceBloc>();
     _bloc.add(ArtworkDetailGetInfoEvent(
         widget.payload.identities[widget.payload.currentIndex],
         useIndexer: widget.payload.useIndexer));
@@ -106,33 +107,19 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 
   @override
   void afterFirstLayout(BuildContext context) {
-    _detector = ShakeDetector.autoStart(
-      onPhoneShake: () {
-        _bloc.add(ChangeFullScreen());
-        unawaited(SystemChrome.setEnabledSystemUIMode(
-          SystemUiMode.manual,
-          overlays: SystemUiOverlay.values,
-        ));
-      },
-    );
-
-    _detector?.startListening();
-
     WidgetsBinding.instance.addObserver(this);
   }
 
   @override
   void didChangeDependencies() {
     routeObserver.subscribe(this, ModalRoute.of(context)!);
-    unawaited(enableLandscapeMode());
-    unawaited(WakelockPlus.enable());
+    //unawaited(enableLandscapeMode());
     super.didChangeDependencies();
   }
 
   @override
   void didPopNext() {
-    unawaited(enableLandscapeMode());
-    unawaited(WakelockPlus.enable());
+    //unawaited(enableLandscapeMode());
     // _renderingWidget?.didPopNext();
     super.didPopNext();
   }
@@ -214,11 +201,9 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   void dispose() {
     _scrollController.dispose();
     _focusNode.dispose();
-    unawaited(disableLandscapeMode());
-    unawaited(WakelockPlus.disable());
+    //unawaited(disableLandscapeMode());
     routeObserver.unsubscribe(this);
     WidgetsBinding.instance.removeObserver(this);
-    _detector?.stopListening();
     if (Platform.isAndroid) {
       unawaited(SystemChrome.setEnabledSystemUIMode(
         SystemUiMode.manual,
@@ -230,7 +215,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final hasKeyboard = currentAsset?.medium == 'software' ||
         currentAsset?.medium == 'other' ||
         currentAsset?.medium == null;
@@ -267,20 +251,14 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
         final artistName =
             asset.artistName?.toIdentityOrMask(identityState.identityMap);
 
-        var subTitle = '';
-        if (artistName != null && artistName.isNotEmpty) {
-          subTitle = artistName;
-        }
-
-        final editionSubTitle = getEditionSubTitle(asset);
-        final isFullScreen = state.isFullScreen;
-
-        return Scaffold(
-            backgroundColor: theme.colorScheme.primary,
-            resizeToAvoidBottomInset: !hasKeyboard,
-            appBar: isFullScreen
-                ? null
-                : AppBar(
+        return BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
+            bloc: _canvasDeviceBloc,
+            builder: (context, canvasState) {
+              final isCasting = canvasState.isCasting;
+              return Scaffold(
+                  backgroundColor: AppColor.primaryBlack,
+                  resizeToAvoidBottomInset: !hasKeyboard,
+                  appBar: AppBar(
                     systemOverlayStyle: systemUiOverlayDarkStyle,
                     leadingWidth: 44,
                     leading: Semantics(
@@ -301,290 +279,85 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                     backgroundColor: Colors.transparent,
                     actions: [
                       FFCastButton(
-                        onCastTap: () => {},
-                        // isCasting: isCasting,
+                        onCastTap: () async => _onCastTap(asset),
+                        isCasting: isCasting,
                       ),
                     ],
                   ),
-            body: SafeArea(
-              top: false,
-              bottom: false,
-              left: !isFullScreen,
-              right: !isFullScreen,
-              child: Stack(
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  body: Stack(
                     children: [
-                      Expanded(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Hero(
-                              tag: 'detail_${asset.id}',
-                              child: _ArtworkView(
-                                payload: widget.payload,
-                                token: asset,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 15),
-                        child: ArtworkDetailsHeader(
-                          title: 'I',
-                          subTitle: 'I',
-                          color: Colors.transparent,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Column(
-                    children: isFullScreen
-                        ? []
-                        : [
-                            const Spacer(),
-                            GestureDetector(
-                              onVerticalDragEnd: (details) {
-                                final dy = details.velocity.pixelsPerSecond.dy;
-                                const sensibility = 15;
-                                if (dy < 0 - sensibility) {
-                                  setState(() {
-                                    _infoSize = 500;
-                                  });
-                                } else if (dy > sensibility) {
-                                  setState(() {
-                                    _infoSize = null;
-                                  });
-                                }
-                              },
-                              child: AnimatedSize(
-                                duration: const Duration(milliseconds: 200),
-                                curve: Curves.fastOutSlowIn,
-                                child: Container(
-                                  color: AppColor.primaryBlack,
-                                  height: _infoSize,
-                                  child: Column(
-                                    children: [
-                                      Column(
-                                        children: [
-                                          Column(
-                                            children: [
-                                              Padding(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                        vertical: 15),
-                                                child: Row(
-                                                  children: [
-                                                    const SizedBox(
-                                                      width: 15,
-                                                    ),
-                                                    ArtworkDetailsHeader(
-                                                      title:
-                                                          asset.displayTitle ??
-                                                              '',
-                                                      subTitle: subTitle,
-                                                      onSubTitleTap: asset
-                                                                  .artistID !=
-                                                              null
-                                                          ? () => unawaited(Navigator
-                                                                  .of(context)
-                                                              .pushNamed(
-                                                                  AppRouter
-                                                                      .galleryPage,
-                                                                  arguments:
-                                                                      GalleryPagePayload(
-                                                                    address: asset
-                                                                        .artistID!,
-                                                                    artistName:
-                                                                        artistName!,
-                                                                    artistURL: asset
-                                                                        .artistURL,
-                                                                  )))
-                                                          : null,
-                                                    ),
-                                                    const Spacer(),
-                                                    _artworkInfoIcon(),
-                                                    if (!widget
-                                                        .payload.useIndexer)
-                                                      Semantics(
-                                                        label: 'artworkDotIcon',
-                                                        child: IconButton(
-                                                          onPressed: () => unawaited(
-                                                              _showArtworkOptionsDialog(
-                                                                  context,
-                                                                  asset,
-                                                                  state
-                                                                      .isViewOnly)),
-                                                          constraints:
-                                                              const BoxConstraints(
-                                                            maxWidth: 44,
-                                                            maxHeight: 44,
-                                                          ),
-                                                          icon:
-                                                              SvgPicture.asset(
-                                                            'assets/images/more_circle.svg',
-                                                            width: 22,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                      if (_infoSize != null)
-                                        Expanded(
-                                            child: SingleChildScrollView(
-                                          child: SizedBox(
-                                            width: double.infinity,
-                                            child: Column(
-                                              children: [
-                                                Visibility(
-                                                  visible:
-                                                      checkWeb3ContractAddress
-                                                          .contains(asset
-                                                              .contractAddress),
-                                                  child: Align(
-                                                    alignment:
-                                                        Alignment.centerRight,
-                                                    child: Padding(
-                                                      padding:
-                                                          const EdgeInsets.only(
-                                                              left: 16,
-                                                              right: 16,
-                                                              top: 40),
-                                                      child: OutlineButton(
-                                                        color:
-                                                            Colors.transparent,
-                                                        text: 'web3_glossary'
-                                                            .tr(),
-                                                        onTap: () {
-                                                          unawaited(Navigator
-                                                              .pushNamed(
-                                                                  context,
-                                                                  AppRouter
-                                                                      .previewPrimerPage,
-                                                                  arguments:
-                                                                      asset));
-                                                        },
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                                Visibility(
-                                                  visible: editionSubTitle
-                                                      .isNotEmpty,
-                                                  child: Padding(
-                                                    padding: ResponsiveLayout
-                                                        .getPadding,
-                                                    child: Text(
-                                                      editionSubTitle,
-                                                      style: theme.textTheme
-                                                          .ppMori400Grey14,
-                                                    ),
-                                                  ),
-                                                ),
-                                                debugInfoWidget(
-                                                    context, currentAsset),
-                                                Padding(
-                                                  padding: ResponsiveLayout
-                                                      .getPadding,
-                                                  child: Column(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      Semantics(
-                                                        label: 'Desc',
-                                                        child: HtmlWidget(
-                                                          customStylesBuilder:
-                                                              auHtmlStyle,
-                                                          asset.description ??
-                                                              '',
-                                                          textStyle: theme
-                                                              .textTheme
-                                                              .ppMori400White14,
-                                                        ),
-                                                      ),
-                                                      const SizedBox(
-                                                          height: 40),
-                                                      artworkDetailsMetadataSection(
-                                                          context,
-                                                          asset,
-                                                          artistName),
-                                                      if (asset.fungible) ...[
-                                                        tokenOwnership(
-                                                            context,
-                                                            asset,
-                                                            identityState
-                                                                        .identityMap[
-                                                                    asset
-                                                                        .owner] ??
-                                                                ''),
-                                                      ] else ...[
-                                                        if (state.provenances
-                                                            .isNotEmpty)
-                                                          _provenanceView(
-                                                              context,
-                                                              state.provenances)
-                                                        else
-                                                          const SizedBox()
-                                                      ],
-                                                      artworkDetailsRightSection(
-                                                          context, asset),
-                                                      const SizedBox(
-                                                          height: 80),
-                                                    ],
-                                                  ),
-                                                )
-                                              ],
-                                            ),
-                                          ),
-                                        )),
-                                    ],
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Hero(
+                                  tag: 'detail_${asset.id}',
+                                  child: _ArtworkView(
+                                    payload: widget.payload,
+                                    token: asset,
+                                    focusNode: _focusNode,
                                   ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 15),
+                            child: ArtworkDetailsHeader(
+                              title: 'I',
+                              subTitle: 'I',
+                              color: Colors.transparent,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Column(
+                        children: [
+                          const Spacer(),
+                          GestureDetector(
+                            onVerticalDragEnd: (details) {
+                              final dy = details.velocity.pixelsPerSecond.dy;
+                              const sensibility = 15;
+                              if (dy < 0 - sensibility) {
+                                setState(() {
+                                  _infoSize = 500;
+                                });
+                              } else if (dy > sensibility) {
+                                setState(() {
+                                  _infoSize = null;
+                                });
+                              }
+                            },
+                            child: AnimatedSize(
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.fastOutSlowIn,
+                              child: Container(
+                                color: AppColor.primaryBlack,
+                                height: _infoSize,
+                                child: Column(
+                                  children: [
+                                    _infoHeader(context, asset, artistName,
+                                        state.isViewOnly, canvasState),
+                                    if (_infoSize != null)
+                                      _infoContent(context, identityState,
+                                          state, artistName),
+                                  ],
                                 ),
                               ),
                             ),
-                          ],
-                  )
-                ],
-              ),
-            ));
+                          ),
+                        ],
+                      )
+                    ],
+                  ));
+            });
       } else {
         return const SizedBox();
       }
     });
-  }
-
-  void onClickFullScreen(AssetToken? assetToken) {
-    final theme = Theme.of(context);
-    _bloc.add(ChangeFullScreen(isFullscreen: true));
-    unawaited(
-        SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky));
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Container(
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 10),
-          decoration: BoxDecoration(
-            color: AppColor.feralFileHighlight.withOpacity(0.9),
-            borderRadius: BorderRadius.circular(64),
-          ),
-          child: Text(
-            'shake_exit'.tr(),
-            textAlign: TextAlign.center,
-            style: theme.textTheme.ppMori600Black12,
-          ),
-        ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-    );
   }
 
   Widget _artworkInfoIcon() => Semantics(
@@ -600,6 +373,130 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               : 'assets/images/info_white_active.svg'),
         ),
       );
+
+  Widget _infoHeader(BuildContext context, AssetToken asset, String? artistName,
+      bool isViewOnly, CanvasDeviceState canvasState) {
+    var subTitle = '';
+    if (artistName != null && artistName.isNotEmpty) {
+      subTitle = artistName;
+    }
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 15),
+      child: Row(
+        children: [
+          const SizedBox(
+            width: 15,
+          ),
+          ArtworkDetailsHeader(
+            title: asset.displayTitle ?? '',
+            subTitle: subTitle,
+            onSubTitleTap: asset.artistID != null
+                ? () => unawaited(
+                    Navigator.of(context).pushNamed(AppRouter.galleryPage,
+                        arguments: GalleryPagePayload(
+                          address: asset.artistID!,
+                          artistName: artistName!,
+                          artistURL: asset.artistURL,
+                        )))
+                : null,
+          ),
+          const Spacer(),
+          _artworkInfoIcon(),
+          if (!widget.payload.useIndexer)
+            Semantics(
+              label: 'artworkDotIcon',
+              child: IconButton(
+                onPressed: () async => _showArtworkOptionsDialog(
+                    context, asset, isViewOnly, canvasState),
+                constraints: const BoxConstraints(
+                  maxWidth: 44,
+                  maxHeight: 44,
+                ),
+                icon: SvgPicture.asset(
+                  'assets/images/more_circle.svg',
+                  width: 22,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _infoContent(BuildContext context, IdentityState identityState,
+      ArtworkDetailState state, String? artistName) {
+    final theme = Theme.of(context);
+    final asset = state.assetToken!;
+    final editionSubTitle = getEditionSubTitle(asset);
+    return Expanded(
+        child: SingleChildScrollView(
+      child: SizedBox(
+        width: double.infinity,
+        child: Column(
+          children: [
+            Visibility(
+              visible: checkWeb3ContractAddress.contains(asset.contractAddress),
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 16, right: 16, top: 40),
+                  child: OutlineButton(
+                    color: Colors.transparent,
+                    text: 'web3_glossary'.tr(),
+                    onTap: () {
+                      unawaited(Navigator.pushNamed(
+                          context, AppRouter.previewPrimerPage,
+                          arguments: asset));
+                    },
+                  ),
+                ),
+              ),
+            ),
+            Visibility(
+              visible: editionSubTitle.isNotEmpty,
+              child: Padding(
+                padding: ResponsiveLayout.getPadding,
+                child: Text(
+                  editionSubTitle,
+                  style: theme.textTheme.ppMori400Grey14,
+                ),
+              ),
+            ),
+            debugInfoWidget(context, currentAsset),
+            Padding(
+              padding: ResponsiveLayout.getPadding,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Semantics(
+                    label: 'Desc',
+                    child: HtmlWidget(
+                      customStylesBuilder: auHtmlStyle,
+                      asset.description ?? '',
+                      textStyle: theme.textTheme.ppMori400White14,
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+                  artworkDetailsMetadataSection(context, asset, artistName),
+                  if (asset.fungible) ...[
+                    tokenOwnership(context, asset,
+                        identityState.identityMap[asset.owner] ?? ''),
+                  ] else ...[
+                    if (state.provenances.isNotEmpty)
+                      _provenanceView(context, state.provenances)
+                    else
+                      const SizedBox()
+                  ],
+                  artworkDetailsRightSection(context, asset),
+                  const SizedBox(height: 80),
+                ],
+              ),
+            )
+          ],
+        ),
+      ),
+    ));
+  }
 
   Widget _provenanceView(BuildContext context, List<Provenance> provenances) =>
       BlocBuilder<IdentityBloc, IdentityState>(
@@ -620,13 +517,17 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       .getTempStorageHiddenTokenIDs()
       .contains(token.id);
 
-  Future _showArtworkOptionsDialog(
-      BuildContext context, AssetToken asset, bool isViewOnly) async {
+  Future _showArtworkOptionsDialog(BuildContext context, AssetToken asset,
+      bool isViewOnly, CanvasDeviceState canvasDeviceState) async {
     final owner = await asset.getOwnerWallet();
     final ownerWallet = owner?.first;
     final addressIndex = owner?.second;
     final irlUrl = asset.irlTapLink;
-
+    final showKeyboard = (asset.medium == 'software' ||
+            asset.medium == 'other' ||
+            (asset.medium?.isEmpty ?? true) ||
+            canvasDeviceState.isCasting) &&
+        !asset.isPostcard;
     if (!context.mounted) {
       return;
     }
@@ -634,12 +535,35 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     unawaited(UIHelper.showDrawerAction(context,
         options: [
           OptionItem(
-              title: 'full_screen',
+              title: 'full_screen'.tr(),
               icon: SvgPicture.asset('assets/images/fullscreen_icon.svg'),
               onTap: () {
-                onClickFullScreen(asset);
-                Navigator.of(context).pop();
+                //Navigator.of(context).pop();
+                keyboardManagerKey.currentState?.hideKeyboard();
+                Navigator.of(context).popAndPushNamed(
+                    AppRouter.artworkPreviewPage,
+                    arguments: widget.payload);
+                //_onClickFullScreen(asset);
               }),
+          if (showKeyboard)
+            OptionItem(
+                title: 'keyboard'.tr(),
+                icon: SvgPicture.asset('assets/images/keyboard_icon.svg'),
+                onTap: canvasDeviceState.isCasting
+                    ? () {
+                        unawaited(
+                          Navigator.of(context).pushNamed(
+                            AppRouter.keyboardControlPage,
+                            arguments: KeyboardControlPagePayload(
+                              asset,
+                              canvasDeviceState.playingDevice,
+                            ),
+                          ),
+                        );
+                      }
+                    : () {
+                        FocusScope.of(context).requestFocus(_focusNode);
+                      }),
           if (!isViewOnly && irlUrl != null)
             OptionItem(
               title: irlUrl.first,
@@ -835,20 +759,50 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
         backgroundColor: AppColor.auGreyBackground,
         separatorColor: AppColor.primaryBlack));
   }
+
+  Future<void> _onCastTap(AssetToken? assetToken) async {
+    keyboardManagerKey.currentState?.hideKeyboard();
+    await UIHelper.showFlexibleDialog(
+      context,
+      BlocProvider.value(
+        value: _canvasDeviceBloc,
+        child: CanvasDeviceView(
+          sceneId: assetToken?.id ?? '',
+          onClose: () {
+            Navigator.of(context).pop();
+          },
+        ),
+      ),
+      isDismissible: true,
+    );
+    unawaited(_fetchDevice(assetToken?.id ?? ''));
+  }
+
+  Future<void> _fetchDevice(String tokenID) async {
+    _canvasDeviceBloc.add(CanvasDeviceGetDevicesEvent(tokenID, syncAll: false));
+  }
 }
 
 class _ArtworkView extends StatelessWidget {
   const _ArtworkView({
     required this.payload,
     required this.token,
+    this.focusNode,
   });
 
   final ArtworkDetailPayload payload;
   final AssetToken token;
+  final FocusNode? focusNode;
 
   @override
   Widget build(BuildContext context) {
     final mimeType = token.getMimeType;
+    final artworkWidget = ArtworkPreviewWidget(
+      identity: payload.identities[payload.currentIndex],
+      isMute: true,
+      useIndexer: payload.useIndexer,
+      focusNode: focusNode,
+    );
     switch (mimeType) {
       case 'image':
       case 'gif':
@@ -856,27 +810,9 @@ class _ArtworkView extends StatelessWidget {
       case 'video':
         return Stack(
           children: [
-            AbsorbPointer(
-              child: Center(
-                child: IntrinsicHeight(
-                  child: ArtworkPreviewWidget(
-                    identity: payload.identities[payload.currentIndex],
-                    isMute: true,
-                    useIndexer: payload.useIndexer,
-                  ),
-                ),
-              ),
-            ),
-            Positioned.fill(
-              child: GestureDetector(
-                onTap: () {
-                  unawaited(Navigator.of(context).pushNamed(
-                      AppRouter.artworkPreviewPage,
-                      arguments: payload));
-                },
-                child: Container(
-                  color: Colors.transparent,
-                ),
+            Center(
+              child: IntrinsicHeight(
+                child: artworkWidget,
               ),
             ),
           ],
@@ -885,26 +821,8 @@ class _ArtworkView extends StatelessWidget {
       default:
         return AspectRatio(
           aspectRatio: 1,
-          child: Stack(
-            children: [
-              Center(
-                child: ArtworkPreviewWidget(
-                  identity: payload.identities[payload.currentIndex],
-                  isMute: true,
-                  useIndexer: payload.useIndexer,
-                ),
-              ),
-              GestureDetector(
-                onTap: () {
-                  unawaited(Navigator.of(context).pushNamed(
-                      AppRouter.artworkPreviewPage,
-                      arguments: payload));
-                },
-                child: Container(
-                  color: Colors.transparent,
-                ),
-              ),
-            ],
+          child: Center(
+            child: artworkWidget,
           ),
         );
     }

@@ -18,38 +18,29 @@ class ArtworkDetailGetInfoEvent extends ArtworkDetailEvent {
   ArtworkDetailGetInfoEvent(this.identity, {this.useIndexer = false});
 }
 
-class ChangeFullScreen extends ArtworkDetailEvent {
-  bool isFullscreen;
-
-  ChangeFullScreen({this.isFullscreen = false});
-}
-
 class ArtworkDetailState {
   AssetToken? assetToken;
   List<Provenance> provenances;
   Map<String, int> owners;
   bool isViewOnly;
-  bool isFullScreen;
 
-  ArtworkDetailState(
-      {required this.provenances,
-      this.assetToken,
-      this.owners = const {},
-      this.isViewOnly = true,
-      this.isFullScreen = false});
+  ArtworkDetailState({
+    required this.provenances,
+    this.assetToken,
+    this.owners = const {},
+    this.isViewOnly = true,
+  });
 
   //copyWith
   ArtworkDetailState copyWith(
           {AssetToken? assetToken,
           List<Provenance>? provenances,
           Map<String, int>? owners,
-          bool? isViewOnly,
-          bool? isFullScreen}) =>
+          bool? isViewOnly}) =>
       ArtworkDetailState(
         assetToken: assetToken ?? this.assetToken,
         provenances: provenances ?? this.provenances,
         owners: owners ?? this.owners,
         isViewOnly: isViewOnly ?? this.isViewOnly,
-        isFullScreen: isFullScreen ?? this.isFullScreen,
       );
 }

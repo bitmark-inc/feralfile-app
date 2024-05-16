@@ -635,11 +635,6 @@ class AppRouter {
                 BlocProvider(
                   create: (_) => identityBloc,
                 ),
-                BlocProvider(
-                  create: (_) => CanvasDeviceBloc(
-                    injector(),
-                  ),
-                ),
                 BlocProvider(create: (_) => postcardDetailBloc),
               ],
               child: ArtworkPreviewPage(
@@ -719,6 +714,12 @@ class AppRouter {
                             injector(),
                             injector(),
                           )),
+
+                  BlocProvider(
+                    create: (_) => CanvasDeviceBloc(
+                      injector(),
+                    ),
+                  ),
                 ],
                 child: ArtworkDetailPage(
                     payload: settings.arguments! as ArtworkDetailPayload)));

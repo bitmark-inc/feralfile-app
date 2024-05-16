@@ -68,12 +68,5 @@ class ArtworkPreviewBloc
         // ignore this error
       }
     });
-
-    on<ChangeFullScreen>((event, emit) async {
-      if (state is ArtworkPreviewLoadedState) {
-        final currentState = state as ArtworkPreviewLoadedState;
-        emit(currentState.copyWith(isFullScreen: event.isFullscreen));
-      }
-    });
   }
 }
