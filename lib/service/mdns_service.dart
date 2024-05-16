@@ -1,3 +1,11 @@
+//
+//  SPDX-License-Identifier: BSD-2-Clause-Patent
+//  Copyright © 2022 Bitmark. All rights reserved.
+//  Use of this source code is governed by the BSD-2-Clause Plus Patent License
+//  that can be found in the LICENSE file.
+//
+
+import 'package:autonomy_flutter/service/network_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:bonsoir/bonsoir.dart';
 import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
@@ -5,10 +13,16 @@ import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 class MDnsService {
   static const String _serviceType = '_feralFileCanvas._tcp';
   static const int _scanningTime = 3;
+  final NetworkService _networkService;
+
+  MDnsService(this._networkService);
 
   Future<List<CanvasDevice>> findCanvas() async {
-    BonsoirDiscovery discovery = BonsoirDiscovery(type: _serviceType);
     final devices = <CanvasDevice>[];
+    if (!_networkService.isWifi) {
+      return devices;
+    }
+    BonsoirDiscovery discovery = BonsoirDiscovery(type: _serviceType);
     log.info('[MDnsService] Looking for devices');
     await discovery.ready;
     discovery.eventStream!.listen((event) {

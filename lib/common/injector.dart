@@ -327,7 +327,7 @@ Future<void> setup() async {
   injector.registerLazySingleton<NetworkService>(() => NetworkService());
   injector.registerLazySingleton<CanvasClientService>(
       () => CanvasClientService(injector()));
-  injector.registerLazySingleton<MDnsService>(() => MDnsService());
+  injector.registerLazySingleton<MDnsService>(() => MDnsService(injector()));
   injector.registerLazySingleton<CanvasClientServiceV2>(
       () => CanvasClientServiceV2(injector(), injector()));
 
@@ -388,5 +388,5 @@ Future<void> setup() async {
       () => IdentityBloc(injector(), injector()));
   injector.registerFactory<AuChatBloc>(() => AuChatBloc(injector()));
   injector.registerLazySingleton<CanvasDeviceBloc>(
-      () => CanvasDeviceBloc(injector(), injector()));
+      () => CanvasDeviceBloc(injector(), injector(), injector()));
 }

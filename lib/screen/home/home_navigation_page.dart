@@ -27,8 +27,6 @@ import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
-import 'package:autonomy_flutter/service/canvas_client_service.dart';
-import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -263,7 +261,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     super.initState();
     // since we moved to use bonsoir service,
     // we don't need to wait for canvas service to init
-    injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent());
+    injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent(retry: true));
     unawaited(injector<CustomerSupportService>().getIssuesAndAnnouncement());
     _initialTab = widget.payload.startedTab;
     _selectedIndex = _initialTab.index;
@@ -840,7 +838,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
 
   Future<void> _handleForeground() async {
     _metricClientService.onForeground();
-    injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent());
+    injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent(retry: true));
     await injector<CustomerSupportService>().fetchAnnouncement();
     await _remoteConfig.loadConfigs();
   }
