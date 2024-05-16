@@ -60,6 +60,7 @@ import 'package:autonomy_flutter/service/merchandise_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/service/network_service.dart';
 import 'package:autonomy_flutter/service/notification_service.dart';
 import 'package:autonomy_flutter/service/pending_token_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
@@ -323,6 +324,7 @@ Future<void> setup() async {
   injector.registerLazySingleton<PlaylistService>(
       () => PlayListServiceImp(injector(), injector(), injector(), injector()));
 
+  injector.registerLazySingleton<NetworkService>(() => NetworkService());
   injector.registerLazySingleton<CanvasClientService>(
       () => CanvasClientService(injector()));
   injector.registerLazySingleton<MDnsService>(() => MDnsService());
