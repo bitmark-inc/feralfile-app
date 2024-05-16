@@ -78,7 +78,6 @@ class CanvasClientService {
         ..device = (DeviceInfo()
           ..deviceId = _deviceId
           ..deviceName = _deviceName);
-
       final response = await stub.connect(
         request,
         options: _callOptions,
