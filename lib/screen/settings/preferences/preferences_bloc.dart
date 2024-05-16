@@ -12,13 +12,13 @@ import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/local_auth_service.dart';
 import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/biometrics_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/notification_util.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:libauk_dart/libauk_dart.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -33,7 +33,7 @@ class PreferencesBloc extends AuBloc<PreferenceEvent, PreferenceState> {
       _availableBiometrics = await _localAuth.getAvailableBiometrics();
       final canCheckBiometrics = await authenticateIsAvailable();
 
-      final passcodeEnabled = _configurationService.isDevicePasscodeEnabled();
+      final passcodeEnabled = await LibAukDart.isBiometricEnabled();
       final notificationEnabled =
           _configurationService.isNotificationEnabled() ?? false;
       final analyticsEnabled = _configurationService.isAnalyticsEnabled();
@@ -56,17 +56,16 @@ class PreferencesBloc extends AuBloc<PreferenceEvent, PreferenceState> {
       if (event.newState.isDevicePasscodeEnabled !=
           state.isDevicePasscodeEnabled) {
         final canCheckBiometrics = await authenticateIsAvailable();
+
         if (canCheckBiometrics) {
           bool didAuthenticate = false;
           try {
-            didAuthenticate = await LocalAuthenticationService.authenticate(
-                localizedReason: 'authen_for_autonomy'.tr());
+            didAuthenticate = await LibAukDart.toggleBiometric(
+                isEnable: event.newState.isDevicePasscodeEnabled);
           } catch (e) {
             log.info(e);
           }
           if (didAuthenticate) {
-            await _configurationService.setDevicePasscodeEnabled(
-                event.newState.isDevicePasscodeEnabled);
             await _configurationService.setPendingSettings(false);
           } else {
             event.newState.isDevicePasscodeEnabled =
@@ -84,8 +83,8 @@ class PreferencesBloc extends AuBloc<PreferenceEvent, PreferenceState> {
             unawaited(registerPushNotifications(askPermission: true).then(
                 (value) => event.newState.isNotificationEnabled == value));
           } else if (Platform.isIOS) {
-            // ignore: lines_longer_than_80_chars
-            // TODO: for iOS only, do not un-registry push, but silent the notification
+            // TODO: for iOS only, do not un-registry push,
+            //  but silent the notification
             unawaited(deregisterPushNotification());
           }
 

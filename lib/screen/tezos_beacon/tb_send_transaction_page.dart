@@ -12,7 +12,6 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/currency_exchange.dart';
 import 'package:autonomy_flutter/service/currency_service.dart';
-import 'package:autonomy_flutter/service/local_auth_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/pending_token_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
@@ -78,14 +77,6 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
     setState(() {
       _isSending = true;
     });
-
-    final didAuthenticate = await LocalAuthenticationService.checkLocalAuth();
-    if (!didAuthenticate) {
-      setState(() {
-        _isSending = false;
-      });
-      return;
-    }
 
     try {
       final wc2Topic = widget.request.wc2Topic;

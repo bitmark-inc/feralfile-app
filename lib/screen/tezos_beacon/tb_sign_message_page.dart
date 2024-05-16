@@ -12,7 +12,6 @@ import 'dart:typed_data';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
-import 'package:autonomy_flutter/service/local_auth_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
@@ -117,27 +116,27 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
   }
 
   Future<void> _sign(BuildContext context, Uint8List message) async {
-    final didAuthenticate = await LocalAuthenticationService.checkLocalAuth();
-    if (!didAuthenticate) {
-      return;
-    }
-    final signature = await injector<TezosService>()
-        .signMessage(_currentPersona!.wallet, _currentPersona!.index, message);
-    await _approveRequest(signature: signature);
-    log.info('[TBSignMessagePage] _sign: $signature');
-    if (!context.mounted) {
-      return;
-    }
+    try {
+      final signature = await injector<TezosService>().signMessage(
+          _currentPersona!.wallet, _currentPersona!.index, message);
+      await _approveRequest(signature: signature);
+      log.info('[TBSignMessagePage] _sign: $signature');
+      if (!context.mounted) {
+        return;
+      }
 
-    Navigator.of(context).pop(signature);
-    showInfoNotification(
-      const Key('signed'),
-      'signed'.tr(),
-      frontWidget: SvgPicture.asset(
-        'assets/images/checkbox_icon.svg',
-        width: 24,
-      ),
-    );
+      Navigator.of(context).pop(signature);
+      showInfoNotification(
+        const Key('signed'),
+        'signed'.tr(),
+        frontWidget: SvgPicture.asset(
+          'assets/images/checkbox_icon.svg',
+          width: 24,
+        ),
+      );
+    } catch (e) {
+      log.info('[TBSignMessagePage] _sign $e');
+    }
   }
 
   @override
