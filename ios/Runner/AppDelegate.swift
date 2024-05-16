@@ -52,7 +52,7 @@ import Logging
                 self.exitApp()
             }
 
-            if !IOSSecuritySuite.amIJailbroken() {
+            if IOSSecuritySuite.amIJailbroken() {
                 self.captureMessage(message: "[Security check] Jail broken device detected")
                 self.showAlertAndExit()
             }
@@ -283,7 +283,7 @@ import Logging
         let session = URLSession(configuration: config)
 
         let endpoint = Constant.isInhouse() ? "https://support.test.autonomy.io/v1/issues/" : "https://support.autonomy.io/v1/issues/"
-        // Creatdoc-source-file:///Users/lephuoc/Desktop/bitmark/ios/autonomy-client/ios/Runner/Constant.swift#L34e the request body
+        // Create the request body
         guard let url = URL(string: endpoint) else {
             return
         }
