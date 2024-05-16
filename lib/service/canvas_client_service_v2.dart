@@ -149,10 +149,11 @@ class CanvasClientServiceV2 {
                 [device],
               ),
             );
+            completer.complete(false);
           }
         },
         onDone: (device) {
-          completer.complete(false);
+          completer.complete(true);
         },
         onError: (device) {
           completer.complete(false);
