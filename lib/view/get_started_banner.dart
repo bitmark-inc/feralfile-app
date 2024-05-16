@@ -35,17 +35,16 @@ class GetStartedBanner extends StatelessWidget {
                   maxLines: 2,
                 ),
               ),
-              IconButton(
-                onPressed: () {
+              GestureDetector(
+                onTap: () {
                   onClose?.call();
                 },
-                iconSize: 18,
-                constraints: const BoxConstraints(maxHeight: 18, maxWidth: 18),
-                icon: const Icon(
+                child: const Icon(
+                  size: 18,
                   AuIcon.close,
                   color: AppColor.white,
                 ),
-                padding: EdgeInsets.zero,
+                //padding: EdgeInsets.zero,
               )
             ],
           ),
