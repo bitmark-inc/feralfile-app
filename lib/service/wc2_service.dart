@@ -28,6 +28,7 @@ import 'package:autonomy_flutter/util/wallet_connect_ext.dart';
 import 'package:autonomy_flutter/util/wc2_ext.dart';
 import 'package:autonomy_flutter/util/wc2_tezos_ext.dart';
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
 import 'package:web3dart/credentials.dart';
 
@@ -76,6 +77,9 @@ class Wc2Service {
 
   final List<String> _approvedConnectionKey = [];
 
+  final ValueNotifier<String?> sessionDeleteNotifier =
+      ValueNotifier<String?>(null);
+
   void addApprovedTopic(List<String> keys) {
     _approvedConnectionKey.addAll(keys);
   }
@@ -107,9 +111,9 @@ class Wc2Service {
     _wcClient.onSessionRequest.subscribe((request) {
       log.info('[Wc2Service] Finish handle request $request');
     });
+    _wcClient.onSessionDelete.subscribe(_onSessionDeleted);
 
     _registerEthRequest('${Wc2Chain.ethereum}:${Environment.web3ChainId}');
-    _registerEthRequest('${Wc2Chain.ethereum}:5');
 
     _registerFeralfileRequest(
         '${Wc2Chain.autonomy}:${Environment.appTestnetConfig ? 1 : 0}');
@@ -325,7 +329,19 @@ class Wc2Service {
 
   Future<List<String>> _getAllConnectionKey() async {
     final connections = await _cloudDB.connectionDao.getWc2Connections();
-    return connections.map((e) => e.key).toList();
+    final activeTopics = _wcClient.getActiveSessions().keys;
+    log.info('[Wc2Service] activeTopics: $activeTopics');
+    final inactiveConnections = connections
+        .where((element) =>
+            !activeTopics.any((topic) => element.key.contains(topic)))
+        .toList();
+    await _cloudDB.connectionDao.deleteConnections(inactiveConnections);
+    final keys = connections
+        .where((element) => !inactiveConnections.contains(element))
+        .map((e) => e.key)
+        .toList();
+    log.info('[Wc2Service] connection keys: $keys');
+    return keys;
   }
 
   List<SessionRequest> getPendingRequests() =>
@@ -446,6 +462,12 @@ class Wc2Service {
   }
 
   //#endregion
+
+  Future<void> _onSessionDeleted(SessionDelete? session) async {
+    if (session?.topic != null) {
+      sessionDeleteNotifier.value = session!.topic;
+    }
+  }
 
   //#region Events handling
 

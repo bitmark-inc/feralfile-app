@@ -427,6 +427,13 @@ class _$ConnectionDao extends ConnectionDao {
   }
 
   @override
+  Future<void> deleteConnectionsByTopic(String topic) async {
+    await _queryAdapter.queryNoReturn(
+        'DELETE FROM Connection WHERE `key` LIKE ?1',
+        arguments: [topic]);
+  }
+
+  @override
   Future<void> deleteConnectionsByAccountNumber(String accountNumber) async {
     await _queryAdapter.queryNoReturn(
         'DELETE FROM Connection WHERE accountNumber = ?1 COLLATE NOCASE',

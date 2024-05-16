@@ -16,6 +16,7 @@ import flutter_downloader
 //import Sentry
 import Starscream
 import IOSSecuritySuite
+import Sentry
 import Logging
 
 @UIApplicationMain
@@ -29,28 +30,31 @@ import Logging
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
-        
-        if !Constant.isInhouse {
-            IOSSecuritySuite.denyDebugger()
 
-            if checkDebugger() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+            if !Constant.isInhouse {
+                IOSSecuritySuite.denyDebugger()
+
+                if self.checkDebugger() {
+                    self.captureMessage(message: "[Security check] Debugger detected")
+                    exit(0)
+                }
+            }
+
+            let isSecure = self.checkMainBundleIdentifier()
+
+            if !isSecure {
+                self.captureMessage(message: "[Security check] Integrity check failed")
                 exit(0)
             }
-        }
 
-        let isSecure = checkMainBundleIdentifier()
+            if IOSSecuritySuite.amIReverseEngineered() {
+                self.captureMessage(message: "[Security check] Reverse engineering tool detected")
+                exit(0)
+            }
 
-        if !isSecure {
-            exit(0)
-        }
-
-        if IOSSecuritySuite.amIReverseEngineered() {
-            exit(0)
-        }
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             if IOSSecuritySuite.amIJailbroken() {
-                // If jailbreak is detected, notify the user and terminate the app
+                self.captureMessage(message: "[Security check] Jail broken device detected")
                 self.showAlertAndExit()
             }
         }
@@ -246,6 +250,13 @@ import Logging
     override func application(_ application: UIApplication, shouldAllowExtensionPointIdentifier extensionPointIdentifier: UIApplication.ExtensionPointIdentifier) -> Bool {
         return extensionPointIdentifier != .keyboard
     }
+
+    private func captureMessage(message: String) {
+        do {
+            SentrySDK.capture(message: message)
+        } catch {}
+    }
+
 
     override func application(_ application: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
         logger.info("handle deeplink")
