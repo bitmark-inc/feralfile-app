@@ -29,6 +29,10 @@ import 'package:uuid/uuid.dart';
 //ignore_for_file: constant_identifier_names
 
 abstract class ConfigurationService {
+  bool didGetLocalNetworkPermission();
+
+  Future<void> setDidGetLocalNetworkPermission(bool value);
+
   Future<void> setRecordOwners(List<String> owners, {bool override = false});
 
   List<String> getRecordOwners();
@@ -255,10 +259,6 @@ abstract class ConfigurationService {
 
   ShowAnouncementNotificationInfo getShowAnnouncementNotificationInfo();
 
-  bool getAlreadyClaimedAirdrop(String seriesId);
-
-  Future<void> setAlreadyClaimedAirdrop(String seriesId, bool value);
-
   // set and get for did_sync_artists
   Future<void> setDidSyncArtists(bool value);
 
@@ -270,6 +270,10 @@ abstract class ConfigurationService {
 
   bool getShowPostcardBanner();
 
+  Future<void> setShowAddAddressBanner(bool bool);
+
+  bool getShowAddAddressBanner();
+
   Future<void> setMerchandiseOrderIds(List<String> ids,
       {bool override = false});
 
@@ -277,6 +281,8 @@ abstract class ConfigurationService {
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
+  static const String keyDidGetLocalNetWorkPermission =
+      'did_get_local_network_permission';
   static const String keyRecordOwners = 'yoko_ono_record_owners';
   static const String KEY_HAS_MERCHANDISE_SUPPORT_INDEX_ID =
       'has_merchandise_support';
@@ -360,12 +366,12 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_SHOW_ANOUNCEMENT_NOTIFICATION_INFO =
       'show_anouncement_notification_info';
 
-  static const String KEY_ALREADY_CLAIMED_AIRDROP = 'already_claimed_airdrop';
-
   static const String KEY_PROCESSING_STAMP_POSTCARD =
       'processing_stamp_postcard';
 
   static const String KEY_SHOW_POSTCARD_BANNER = 'show_postcard_banner';
+
+  static const String KEY_SHOW_ADD_ADDRESS_BANNER = 'show_add_address_banner';
 
   static const String KEY_MERCHANDISE_ORDER_IDS = 'merchandise_order_ids';
 
@@ -1054,26 +1060,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   }
 
   @override
-  bool getAlreadyClaimedAirdrop(String seriesId) {
-    final data = _preferences.getStringList(KEY_ALREADY_CLAIMED_AIRDROP);
-    if (data == null) {
-      return false;
-    }
-    return data.contains(seriesId);
-  }
-
-  @override
-  Future<void> setAlreadyClaimedAirdrop(String seriesId, bool value) async {
-    final data = _preferences.getStringList(KEY_ALREADY_CLAIMED_AIRDROP) ?? [];
-    if (value) {
-      data.add(seriesId);
-    } else {
-      data.remove(seriesId);
-    }
-    await _preferences.setStringList(KEY_ALREADY_CLAIMED_AIRDROP, data);
-  }
-
-  @override
   bool getDidSyncArtists() =>
       _preferences.getBool(KEY_DID_SYNC_ARTISTS) ?? false;
 
@@ -1201,6 +1187,15 @@ class ConfigurationServiceImpl implements ConfigurationService {
       _preferences.getBool(KEY_SHOW_POSTCARD_BANNER) ?? true;
 
   @override
+  Future<void> setShowAddAddressBanner(bool bool) async {
+    await _preferences.setBool(KEY_SHOW_ADD_ADDRESS_BANNER, bool);
+  }
+
+  @override
+  bool getShowAddAddressBanner() =>
+      _preferences.getBool(KEY_SHOW_ADD_ADDRESS_BANNER) ?? true;
+
+  @override
   List<String> getMerchandiseOrderIds() =>
       _preferences.getStringList(KEY_MERCHANDISE_ORDER_IDS) ?? [];
 
@@ -1231,6 +1226,15 @@ class ConfigurationServiceImpl implements ConfigurationService {
       final currentOwners = getRecordOwners()..addAll(owners);
       await _preferences.setStringList(keyRecordOwners, currentOwners.toList());
     }
+  }
+
+  @override
+  bool didGetLocalNetworkPermission() =>
+      _preferences.getBool(keyDidGetLocalNetWorkPermission) ?? false;
+
+  @override
+  Future<void> setDidGetLocalNetworkPermission(bool value) async {
+    await _preferences.setBool(keyDidGetLocalNetWorkPermission, value);
   }
 }
 

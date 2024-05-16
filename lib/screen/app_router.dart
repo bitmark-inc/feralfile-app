@@ -11,7 +11,6 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
-import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/screen/account/access_method_page.dart';
@@ -30,14 +29,6 @@ import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/usdc/usdc_bloc.dart';
 import 'package:autonomy_flutter/screen/bug_bounty_page.dart';
 import 'package:autonomy_flutter/screen/chat/chat_thread_page.dart';
-import 'package:autonomy_flutter/screen/claim/activation/activation_token_detail_page.dart';
-import 'package:autonomy_flutter/screen/claim/activation/claim_activation_page.dart';
-import 'package:autonomy_flutter/screen/claim/activation/preview_activation_claim.dart';
-import 'package:autonomy_flutter/screen/claim/airdrop/claim_airdrop_page.dart';
-import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
-import 'package:autonomy_flutter/screen/claim/preview_token_claim.dart';
-import 'package:autonomy_flutter/screen/claim/select_account_page.dart';
-import 'package:autonomy_flutter/screen/claim/token_detail_page.dart';
 import 'package:autonomy_flutter/screen/cloud/cloud_android_page.dart';
 import 'package:autonomy_flutter/screen/cloud/cloud_page.dart';
 import 'package:autonomy_flutter/screen/connection/connection_details_page.dart';
@@ -186,9 +177,6 @@ class AppRouter {
   static const githubDocPage = 'github_doc_page';
   static const sendArtworkPage = 'send_artwork_page';
   static const sendArtworkReviewPage = 'send_artwork_review_page';
-  static const claimFeralfileTokenPage = 'claim_feralfile_token_page';
-  static const claimSelectAccountPage = 'claim_select_account_page';
-  static const airdropTokenDetailPage = 'airdrop_token_detail_page';
   static const wc2ConnectPage = 'wc2_connect_page';
   static const wc2PermissionPage = 'wc2_permission_page';
   static const preferencesPage = 'preferences_page';
@@ -211,9 +199,6 @@ class AppRouter {
   static const canvasHelpPage = 'canvas_help_page';
   static const keyboardControlPage = 'keyboard_control_page';
   static const touchPadPage = 'touch_pad_page';
-  static const claimAirdropPage = 'claim_airdrop_page';
-  static const activationTokenDetailPage = 'activation_token_detail_page';
-  static const claimActivationPage = 'claim_activation_page';
   static const postcardLeaderboardPage = 'postcard_leaderboard_page';
   static const postcardLocationExplain = 'postcard_location_explain';
   static const predefinedCollectionPage = 'predefined_collection_page';
@@ -240,12 +225,7 @@ class AppRouter {
   static const collectionPage = 'collection_page';
   static const organizePage = 'organize_page';
   static const exhibitionsPage = 'exhibitions_page';
-  static const autonomyAirdropTokenPreviewPage =
-      'autonomy_airdrop_token_detail_page';
   static const exhibitionNotePage = 'exhibition_note_page';
-  static const activationTokenPreviewPage = 'activation_token_preview_page';
-  static const feralfileAirdropTokenPreviewPage =
-      'feralfile_airdrop_token_preview_page';
   static const projectsList = 'projects_list';
   static const addEthereumChainPage = 'add_ethereum_chain_page';
 
@@ -730,7 +710,6 @@ class AppRouter {
                             injector(),
                             injector(),
                             injector(),
-                            injector(),
                           )),
                 ],
                 child: ArtworkDetailPage(
@@ -947,35 +926,6 @@ class AppRouter {
                       payload: settings.arguments! as SendArtworkReviewPayload),
                 ));
 
-      case claimFeralfileTokenPage:
-        final payload = settings.arguments! as ClaimTokenPagePayload;
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => ClaimTokenPage(
-                  payload: payload,
-                ));
-
-      case airdropTokenDetailPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => BlocProvider(
-                  create: (_) => RoyaltyBloc(injector()),
-                  child: TokenDetailPage(
-                    series: settings.arguments! as FFSeries,
-                  ),
-                ));
-
-      case claimSelectAccountPage:
-        final payload = settings.arguments! as SelectAddressPagePayload;
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => BlocProvider.value(
-                  value: accountsBloc,
-                  child: SelectAccountPage(
-                    payload: payload,
-                  ),
-                ));
-
       case wc2ConnectPage:
         return CupertinoPageRoute(
           settings: settings,
@@ -1021,7 +971,9 @@ class AppRouter {
                       create: (_) => personaBloc,
                     ),
                   ],
-                  child: const WalletPage(),
+                  child: WalletPage(
+                    payload: settings.arguments as WalletPagePayload?,
+                  ),
                 ));
       case preferencesPage:
         return CupertinoPageRoute(
@@ -1148,38 +1100,6 @@ class AppRouter {
                 payload: payload,
               );
             });
-      case claimAirdropPage:
-        return CupertinoPageRoute(
-          settings: settings,
-          builder: (context) => BlocProvider.value(
-            value: accountsBloc,
-            child: ClaimAirdropPage(
-              payload: settings.arguments! as ClaimAirdropPagePayload,
-            ),
-          ),
-        );
-
-      case activationTokenDetailPage:
-        return CupertinoPageRoute(
-          settings: settings,
-          builder: (context) => BlocProvider.value(
-            value: accountsBloc,
-            child: ActivationTokenDetailPage(
-              assetToken: settings.arguments! as AssetToken,
-            ),
-          ),
-        );
-
-      case claimActivationPage:
-        return CupertinoPageRoute(
-          settings: settings,
-          builder: (context) => BlocProvider.value(
-            value: accountsBloc,
-            child: ClaimActivationPage(
-              payload: settings.arguments! as ClaimActivationPagePayload,
-            ),
-          ),
-        );
 
       case postcardLeaderboardPage:
         return PageTransition(
@@ -1227,31 +1147,14 @@ class AppRouter {
             playList: settings.arguments! as PlayListModel,
           ),
         );
-      case autonomyAirdropTokenPreviewPage:
-        return MaterialPageRoute(
-          settings: settings,
-          builder: (context) => PreviewTokenClaim(
-            series: settings.arguments! as FFSeries,
-          ),
-        );
+
       case exhibitionNotePage:
         return MaterialPageRoute(
           builder: (context) => ExhibitionNotePage(
             exhibition: settings.arguments! as Exhibition,
           ),
         );
-      case activationTokenPreviewPage:
-        return MaterialPageRoute(
-          builder: (context) => PreviewActivationTokenPage(
-            assetToken: settings.arguments! as AssetToken,
-          ),
-        );
-      case feralfileAirdropTokenPreviewPage:
-        return MaterialPageRoute(
-          builder: (context) => PreviewTokenClaim(
-            series: settings.arguments! as FFSeries,
-          ),
-        );
+
       default:
         throw Exception('Invalid route: ${settings.name}');
     }

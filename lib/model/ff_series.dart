@@ -1,9 +1,7 @@
-import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/ff_user.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
-import 'package:collection/collection.dart';
 
 class FFSeries {
   final String id;
@@ -21,9 +19,9 @@ class FFSeries {
   final FFSeriesSettings? settings;
   final FFArtist? artist;
   final Exhibition? exhibition;
-  final AirdropInfo? airdropInfo;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  final DateTime? mintedAt;
   final FileInfo? originalFile;
   final FileInfo? previewFile;
   final Artwork? artwork;
@@ -46,8 +44,8 @@ class FFSeries {
     this.settings,
     this.artist,
     this.exhibition,
-    this.airdropInfo,
     this.createdAt,
+    this.mintedAt,
     this.displayIndex,
     this.featuringIndex,
     this.updatedAt,
@@ -61,11 +59,6 @@ class FFSeries {
   );
 
   int get maxEdition => settings?.maxArtwork ?? -1;
-
-  FFContract? get contract => exhibition?.contracts
-      ?.firstWhereOrNull((e) => e.address == airdropInfo?.contractAddress);
-
-  String getThumbnailURL() => '${Environment.feralFileAssetURL}/$thumbnailURI';
 
   bool get isAirdropSeries => settings?.isAirdrop == true;
 
@@ -90,12 +83,12 @@ class FFSeries {
         json['exhibition'] == null
             ? null
             : Exhibition.fromJson(json['exhibition'] as Map<String, dynamic>),
-        json['airdropInfo'] == null
-            ? null
-            : AirdropInfo.fromJson(json['airdropInfo'] as Map<String, dynamic>),
         json['createdAt'] == null
             ? null
             : DateTime.parse(json['createdAt'] as String),
+        json['mintedAt'] == null
+            ? null
+            : DateTime.parse(json['mintedAt'] as String),
         json['displayIndex'] as int?,
         json['featuringIndex'] as int?,
         json['updatedAt'] == null
@@ -132,9 +125,9 @@ class FFSeries {
         'settings': settings,
         'artist': artist,
         'exhibition': exhibition,
-        'airdropInfo': airdropInfo,
         'createdAt': createdAt?.toIso8601String(),
         'updatedAt': updatedAt?.toIso8601String(),
+        'mintedAt': mintedAt?.toIso8601String(),
         'originalFile': originalFile?.toJson(),
         'previewFile': previewFile?.toJson(),
         'artwork': artwork?.toJson(),

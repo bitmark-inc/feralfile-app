@@ -32,7 +32,7 @@ class KeySyncPage extends StatelessWidget {
 
     return BlocConsumer<KeySyncBloc, KeySyncState>(
       listener: (context, state) async {
-        if (state.isProcessing == false) {
+        if (state.isProcessing == false && !state.isError) {
           Navigator.of(context).pop();
         }
       },

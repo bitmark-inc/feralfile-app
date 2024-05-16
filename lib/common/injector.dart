@@ -12,8 +12,6 @@ import 'dart:math';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
-import 'package:autonomy_flutter/gateway/activation_api.dart';
-import 'package:autonomy_flutter/gateway/airdrop_api.dart';
 import 'package:autonomy_flutter/gateway/announcement_api.dart';
 import 'package:autonomy_flutter/gateway/autonomy_api.dart';
 import 'package:autonomy_flutter/gateway/branch_api.dart';
@@ -36,9 +34,7 @@ import 'package:autonomy_flutter/screen/playlists/edit_playlist/edit_playlist_bl
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/predefined_collection/predefined_collection_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/activation_service.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
-import 'package:autonomy_flutter/service/airdrop_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
@@ -71,14 +67,12 @@ import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
-import 'package:autonomy_flutter/util/au_file_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:autonomy_flutter/util/dio_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart';
 import 'package:logging/logging.dart';
@@ -192,7 +186,6 @@ Future<void> setup() async {
       .registerLazySingleton<MetricClientService>(() => MetricClientService());
   injector.registerLazySingleton<MixPanelClientService>(
       () => MixPanelClientService(injector(), injector()));
-  injector.registerLazySingleton<CacheManager>(() => AUImageCacheManage());
   injector.registerLazySingleton<AccountService>(() => AccountServiceImpl(
         cloudDB,
         injector(),
@@ -344,35 +337,8 @@ Future<void> setup() async {
         injector(),
       ));
 
-  injector.registerLazySingleton<AirdropService>(
-    () => AirdropService(
-      injector(),
-      injector(),
-      injector(),
-      injector(),
-      injector(),
-      injector(),
-      injector(),
-      injector(),
-    ),
-  );
-
-  injector.registerLazySingleton<ActivationService>(() => ActivationService(
-        injector(),
-        injector(),
-        injector(),
-      ));
-
   injector
       .registerLazySingleton<NotificationService>(() => NotificationService());
-
-  injector.registerLazySingleton<AirdropApi>(() => AirdropApi(
-      airdropDio(dioOptions.copyWith(followRedirects: true)),
-      baseUrl: Environment.autonomyAirdropURL));
-
-  injector.registerLazySingleton<ActivationApi>(() => ActivationApi(
-      airdropDio(dioOptions.copyWith(followRedirects: true)),
-      baseUrl: Environment.autonomyActivationURL));
 
   injector.registerLazySingleton<FeralFileService>(() => FeralFileServiceImpl(
         injector(),
@@ -380,10 +346,6 @@ Future<void> setup() async {
       ));
 
   injector.registerLazySingleton<DeeplinkService>(() => DeeplinkServiceImpl(
-        injector(),
-        injector(),
-        injector(),
-        injector(),
         injector(),
         injector(),
         injector(),
