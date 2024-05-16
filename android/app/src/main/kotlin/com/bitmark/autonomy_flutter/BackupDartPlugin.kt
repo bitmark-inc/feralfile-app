@@ -6,6 +6,7 @@
 
 package com.bitmark.autonomy_flutter
 
+import android.app.Activity
 import android.content.Context
 import android.util.Log
 import androidx.annotation.NonNull
@@ -14,6 +15,8 @@ import com.google.android.gms.auth.blockstore.Blockstore
 import com.google.android.gms.auth.blockstore.BlockstoreClient
 import com.google.android.gms.auth.blockstore.StoreBytesData
 import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.embedding.engine.plugins.activity.ActivityAware
+import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.reactivex.Completable
@@ -24,7 +27,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import java.util.*
 
-class BackupDartPlugin : MethodChannel.MethodCallHandler {
+class BackupDartPlugin : MethodChannel.MethodCallHandler, ActivityAware {
     /// The MethodChannel that will the communication between Flutter and native Android
     ///
     /// This local reference serves to register the plugin with the Flutter Engine and unregister it
@@ -33,6 +36,7 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler {
     private lateinit var context: Context
     private lateinit var disposables: CompositeDisposable
     private lateinit var client: BlockstoreClient
+    private lateinit var activity: Activity
 
     fun createChannels(@NonNull flutterEngine: FlutterEngine, @NonNull context: Context) {
         this.context = context
@@ -137,7 +141,8 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler {
                                                 account.mnemonic.split(" "),
                                                 account.passphrase ?: "",
                                                 account.name,
-                                                Date()
+                                                Date(),
+                                                true
                                             )
                                     } else {
                                         Completable.complete()
@@ -187,6 +192,24 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler {
                 Log.e("BackupDartPlugin", e.message ?: "")
                 result.error("deleteKeys error", e.message, e)
             }
+    }
+
+    override fun onAttachedToActivity(binding: ActivityPluginBinding) {
+        context = binding.activity
+        activity = binding.activity
+    }
+
+    override fun onDetachedFromActivityForConfigChanges() {
+        disposables.clear()
+    }
+
+    override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
+        context = binding.activity
+        activity = binding.activity
+    }
+
+    override fun onDetachedFromActivity() {
+        disposables.clear()
     }
 }
 

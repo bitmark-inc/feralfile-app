@@ -30,9 +30,19 @@ struct Constant {
         "com.bitmark.autonomy-wallet",
         "com.bitmark.autonomy-wallet.inhouse",
     ]
-    
+
     static func isInhouse() -> Bool {
         let bundleIdentifier = Bundle.main.bundleIdentifier ?? "Unknown"
         return bundleIdentifier.contains("inhouse")
+    }
+
+    struct KeychainKey {
+        static func personaPrefix(at uuid: UUID) -> String {
+            "persona.\(uuid.uuidString)"
+        }
+
+        static let seed = "seed"
+        static let ethInfoKey = "ethInfo"
+        static let seedPublicData = "seedPublicData"
     }
 }

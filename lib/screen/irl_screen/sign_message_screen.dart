@@ -5,7 +5,6 @@ import 'dart:convert';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/local_auth_service.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -123,20 +122,19 @@ class _IRLSignMessageScreenState extends State<IRLSignMessageScreen> {
   }
 
   Future<void> _sign() async {
-    final didAuthenticate = await LocalAuthenticationService.checkLocalAuth();
-    if (!didAuthenticate) {
+    try {
+      final signature = await _currentWallet!.signMessage(
+        chain: widget.payload.chain,
+        message: widget.payload.payload,
+      );
+      if (!mounted) {
+        return;
+      }
+      Navigator.of(context).pop(signature);
+    } catch (e) {
       return;
     }
-    final signature = await _currentWallet!.signMessage(
-      chain: widget.payload.chain,
-      message: widget.payload.payload,
-    );
 
-    if (!mounted) {
-      return;
-    }
-
-    Navigator.of(context).pop(signature);
     final notificationEnabled =
         injector<ConfigurationService>().isNotificationEnabled() ?? false;
     if (notificationEnabled) {
