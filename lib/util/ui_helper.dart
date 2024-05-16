@@ -1152,7 +1152,10 @@ class UIHelper {
   }
 
   static Future<void> showDrawerAction(BuildContext context,
-      {required List<OptionItem> options}) async {
+      {required List<OptionItem> options,
+      Color? color,
+      Color? backgroundColor,
+      Color? separatorColor}) async {
     final theme = Theme.of(context);
 
     await showModalBottomSheet<dynamic>(
@@ -1166,7 +1169,7 @@ class UIHelper {
         barrierColor: Colors.black.withOpacity(0.5),
         isScrollControlled: true,
         builder: (context) => Container(
-              color: AppColor.feralFileHighlight,
+              color: backgroundColor ?? AppColor.feralFileHighlight,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -1174,10 +1177,10 @@ class UIHelper {
                     alignment: Alignment.centerRight,
                     child: IconButton(
                       onPressed: () => Navigator.pop(context),
-                      icon: const Icon(
+                      icon: Icon(
                         AuIcon.close,
                         size: 18,
-                        color: AppColor.secondaryDimGrey,
+                        color: color ?? AppColor.secondaryDimGrey,
                       ),
                     ),
                   ),
@@ -1189,13 +1192,16 @@ class UIHelper {
                       if (option.builder != null) {
                         return option.builder!.call(context, option);
                       }
-                      return DrawerItem(item: option);
+                      return DrawerItem(
+                        item: option,
+                        color: color,
+                      );
                     },
                     itemCount: options.length,
                     separatorBuilder: (context, index) => Divider(
                       height: 1,
                       thickness: 1,
-                      color: theme.colorScheme.secondary,
+                      color: separatorColor ?? theme.colorScheme.secondary,
                     ),
                   ),
                 ],
