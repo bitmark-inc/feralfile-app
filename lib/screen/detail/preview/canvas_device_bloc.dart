@@ -77,8 +77,9 @@ class CanvasDeviceRotateEvent extends CanvasDeviceEvent {
 
 class CanvasDeviceDisconnectEvent extends CanvasDeviceEvent {
   final List<CanvasDevice> devices;
+  final bool callRPC;
 
-  CanvasDeviceDisconnectEvent(this.devices);
+  CanvasDeviceDisconnectEvent(this.devices, {this.callRPC = true});
 }
 
 class CanvasDeviceCastListArtworkEvent extends CanvasDeviceEvent {
@@ -276,8 +277,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
             if (device.second.connectedDevice.deviceId == thisDevice.deviceId) {
               controllingDeviceStatus[device.first.id] = device.second;
               if (currentDeviceStatus != null &&
-                  device.first.id ==
-                      (state.controllingDevice?.id ?? '')) {
+                  device.first.id == (state.controllingDevice?.id ?? '')) {
                 selectingDeviceStatus[device.first.id] = device.second;
                 break;
               }
@@ -299,6 +299,8 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
           log.info('CanvasDeviceBloc: get devices: ${newState.devices.length}, '
               'controllingDeviceStatus: ${newState.controllingDeviceStatus}');
           emit(newState);
+          _canvasClientServiceV2.connectToDevice(
+              newState.controllingDevices.map((e) => e.device).toList().first);
         } catch (e) {
           log.info('CanvasDeviceBloc: error while get devices: $e');
           unawaited(Sentry.captureException(e));
@@ -399,9 +401,18 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
         try {
           log.info('CanvasDeviceBloc: disconnect device: '
               '${device.id}, ${device.name}, ${device.ip}');
-          await _canvasClientServiceV2.disconnectDevice(device);
-          emit(state.replaceDeviceState(
-              device: device, deviceState: DeviceState(device: device)));
+          if (event.callRPC) {
+            await _canvasClientServiceV2.disconnectDevice(device);
+          }
+          final newControllingDeviceStatus = state.controllingDeviceStatus
+                  ?.map((key, value) => MapEntry(key, value)) ??
+              {};
+          newControllingDeviceStatus
+              .removeWhere((key, value) => key == device.id);
+          emit(state
+              .replaceDeviceState(
+                  device: device, deviceState: DeviceState(device: device))
+              .copyWith(controllingDeviceStatus: newControllingDeviceStatus));
         } catch (e) {
           log.info('CanvasDeviceBloc: error while disconnect device: $e');
         }
