@@ -53,7 +53,7 @@ class ExhibitionPostView extends StatelessWidget {
                   style: theme.textTheme.ppMori400White14,
                 ),
               ],
-              if (post.author != null) ...[
+              if (post.author?.isNotEmpty ?? false) ...[
                 const SizedBox(height: 10),
                 Text(
                   'by ${post.author}',
