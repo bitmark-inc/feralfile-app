@@ -271,13 +271,13 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
               {};
           final Map<String, CheckDeviceStatusReply> selectingDeviceStatus = {};
           final currentDeviceStatus =
-              state.controllingDeviceStatus?[state.controllingDevice?.ip ?? ''];
+              state.controllingDeviceStatus?[state.controllingDevice?.id ?? ''];
           for (final device in devices) {
             if (device.second.connectedDevice.deviceId == thisDevice.deviceId) {
               controllingDeviceStatus[device.first.id] = device.second;
               if (currentDeviceStatus != null &&
                   device.first.id ==
-                      currentDeviceStatus.connectedDevice.deviceId) {
+                      (state.controllingDevice?.id ?? '')) {
                 selectingDeviceStatus[device.first.id] = device.second;
                 break;
               }
