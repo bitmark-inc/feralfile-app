@@ -91,7 +91,15 @@ class ArtworkDetailBloc extends AuBloc<ArtworkDetailEvent, ArtworkDetailState> {
       }
       await _indexHistory(event.identity.id);
     });
+
+
+    on<ChangeFullScreen>((event, emit) async {
+      if (state.assetToken != null) {
+        emit(state.copyWith(isFullScreen: event.isFullscreen));
+      }
+    });
   }
+
 
   Future<void> _indexHistory(String tokenId) async {
     await _indexerApi.indexTokenHistory({'indexID': tokenId});
