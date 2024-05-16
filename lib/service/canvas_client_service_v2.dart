@@ -1,10 +1,9 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/model/pair.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/device_info_service.dart';
 import 'package:autonomy_flutter/service/mdns_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart' as my_device;
@@ -17,16 +16,11 @@ import 'package:synchronized/synchronized.dart';
 class CanvasClientServiceV2 {
   final AppDatabase _db;
   final MDnsService _mdnsService;
+  final DeviceInfoService _deviceInfoService;
 
-  CanvasClientServiceV2(this._db, this._mdnsService);
-
-  late final String _deviceId;
-  late final String _deviceName;
-  bool _didInitialized = false;
+  CanvasClientServiceV2(this._db, this._mdnsService, this._deviceInfoService);
 
   final _connectDevice = Lock();
-  final AccountService _accountService = injector<AccountService>();
-
   final _retry = const RetryOptions(maxAttempts: 3);
 
   Offset currentCursorOffset = Offset.zero;
@@ -36,20 +30,9 @@ class CanvasClientServiceV2 {
       timeout: const Duration(seconds: 60),
       providers: [_grpcLoggingProvider]);
 
-  Future<void> init() async {
-    if (_didInitialized) {
-      return;
-    }
-    final device = my_device.DeviceInfo.instance;
-    _deviceName = await device.getMachineName() ?? 'Feral File App';
-    final account = await _accountService.getDefaultAccount();
-    _deviceId = await account.getAccountDID();
-    _didInitialized = true;
-  }
-
   DeviceInfoV2 get clientDeviceInfo => DeviceInfoV2()
-    ..deviceId = _deviceId
-    ..deviceName = _deviceName
+    ..deviceId = _deviceInfoService.deviceId
+    ..deviceName = _deviceInfoService.deviceName
     ..platform = _platform;
 
   Future<void> shutDown(CanvasDevice device) async {
