@@ -16,7 +16,6 @@ import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_bloc.dart
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -150,7 +149,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return BlocConsumer<ArtworkPreviewBloc, ArtworkPreviewState>(
+    return BlocBuilder<ArtworkPreviewBloc, ArtworkPreviewState>(
         builder: (context, states) => PopScope(
               onPopInvoked: (_) async {
                 await SystemChrome.setEnabledSystemUIMode(
@@ -200,16 +199,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
                   ),
                 ),
               ),
-            ),
-        listener: (context, state) {},
-        listenWhen: (previous, current) {
-          if (current is ArtworkPreviewLoadedState &&
-              previous is ArtworkPreviewLoadingState) {
-            if (current.assetToken != null) {
-              unawaited(current.assetToken?.sendViewArtworkEvent());
-            }
-          }
-          return true;
-        });
+            ),);
   }
 }

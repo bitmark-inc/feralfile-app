@@ -706,7 +706,6 @@ class AppRouter {
                             injector(),
                             injector(),
                           )),
-
                   BlocProvider(
                     create: (_) => CanvasDeviceBloc(
                       injector(),
