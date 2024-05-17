@@ -150,55 +150,55 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return BlocBuilder<ArtworkPreviewBloc, ArtworkPreviewState>(
-        builder: (context, states) => PopScope(
-              onPopInvoked: (_) async {
-                await SystemChrome.setEnabledSystemUIMode(
-                  SystemUiMode.manual,
-                  overlays: SystemUiOverlay.values,
-                );
-              },
-              child: Scaffold(
-                backgroundColor: theme.colorScheme.primary,
-                body: SafeArea(
-                  top: false,
-                  bottom: false,
-                  left: false,
-                  right: false,
-                  child: Column(
-                    children: [
-                      Expanded(
-                        child: PageView.builder(
-                          physics: const NeverScrollableScrollPhysics(),
-                          onPageChanged: (value) {
-                            final currentId = _tokens[value];
-                            _bloc.add(ArtworkPreviewGetAssetTokenEvent(
-                                currentId,
-                                useIndexer: widget.payload.useIndexer));
-                          },
-                          controller: controller,
-                          itemCount: _tokens.length,
-                          itemBuilder: (context, index) {
-                            if (_tokens[index].id.isPostcardId) {
-                              return PostcardPreviewWidget(
-                                identity: _tokens[index],
-                                useIndexer: widget.payload.useIndexer,
-                              );
-                            }
-                            return ArtworkPreviewWidget(
-                              identity: _tokens[index],
-                              onLoaded: (
-                                  {InAppWebViewController? webViewController,
-                                  int? time}) {},
-                              focusNode: _focusNode,
-                              useIndexer: widget.payload.useIndexer,
-                            );
-                          },
-                        ),
-                      ),
-                    ],
+      builder: (context, states) => PopScope(
+        onPopInvoked: (_) async {
+          await SystemChrome.setEnabledSystemUIMode(
+            SystemUiMode.manual,
+            overlays: SystemUiOverlay.values,
+          );
+        },
+        child: Scaffold(
+          backgroundColor: theme.colorScheme.primary,
+          body: SafeArea(
+            top: false,
+            bottom: false,
+            left: false,
+            right: false,
+            child: Column(
+              children: [
+                Expanded(
+                  child: PageView.builder(
+                    physics: const NeverScrollableScrollPhysics(),
+                    onPageChanged: (value) {
+                      final currentId = _tokens[value];
+                      _bloc.add(ArtworkPreviewGetAssetTokenEvent(currentId,
+                          useIndexer: widget.payload.useIndexer));
+                    },
+                    controller: controller,
+                    itemCount: _tokens.length,
+                    itemBuilder: (context, index) {
+                      if (_tokens[index].id.isPostcardId) {
+                        return PostcardPreviewWidget(
+                          identity: _tokens[index],
+                          useIndexer: widget.payload.useIndexer,
+                        );
+                      }
+                      return ArtworkPreviewWidget(
+                        identity: _tokens[index],
+                        onLoaded: (
+                            {InAppWebViewController? webViewController,
+                            int? time}) {},
+                        focusNode: _focusNode,
+                        useIndexer: widget.payload.useIndexer,
+                      );
+                    },
                   ),
                 ),
-              ),
-            ),);
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
