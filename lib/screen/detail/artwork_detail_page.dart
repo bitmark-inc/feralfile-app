@@ -20,7 +20,6 @@ import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
-import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/keyboard_control_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
@@ -89,7 +88,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   double? _infoSize;
   late ArtworkDetailBloc _bloc;
   late CanvasDeviceBloc _canvasDeviceBloc;
-  final keyboardManagerKey = GlobalKey<KeyboardManagerWidgetState>();
 
   @override
   void initState() {
@@ -219,13 +217,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
         currentAsset?.medium == 'other' ||
         currentAsset?.medium == null;
     return BlocConsumer<ArtworkDetailBloc, ArtworkDetailState>(
-        listenWhen: (previous, current) {
-      if (previous.assetToken != current.assetToken &&
-          current.assetToken != null) {
-        unawaited(current.assetToken?.sendViewArtworkEvent());
-      }
-      return true;
-    }, listener: (context, state) {
+        listener: (context, state) {
       final identitiesList = state.provenances.map((e) => e.owner).toList();
       if (state.assetToken?.artistName != null &&
           state.assetToken!.artistName!.length > 20) {
@@ -258,31 +250,37 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               return Scaffold(
                   backgroundColor: AppColor.primaryBlack,
                   resizeToAvoidBottomInset: !hasKeyboard,
-                  appBar: AppBar(
-                    systemOverlayStyle: systemUiOverlayDarkStyle,
-                    leadingWidth: 44,
-                    leading: Semantics(
-                      label: 'BACK',
-                      child: IconButton(
-                        onPressed: () => Navigator.pop(context),
-                        constraints: const BoxConstraints(
-                          maxWidth: 34,
-                          maxHeight: 34,
+                  appBar: PreferredSize(
+                    preferredSize: const Size.fromHeight(kToolbarHeight),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 14),
+                      child: AppBar(
+                        systemOverlayStyle: systemUiOverlayDarkStyle,
+                        leadingWidth: 44,
+                        leading: Semantics(
+                          label: 'BACK',
+                          child: IconButton(
+                            onPressed: () => Navigator.pop(context),
+                            constraints: const BoxConstraints(
+                              maxWidth: 34,
+                              maxHeight: 34,
+                            ),
+                            icon: SvgPicture.asset(
+                              'assets/images/ff_back_dark.svg',
+                            ),
+                            padding: const EdgeInsets.all(0),
+                          ),
                         ),
-                        icon: SvgPicture.asset(
-                          'assets/images/ff_back_dark.svg',
-                        ),
-                        padding: const EdgeInsets.all(0),
+                        centerTitle: false,
+                        backgroundColor: Colors.transparent,
+                        actions: [
+                          FFCastButton(
+                            onCastTap: () async => _onCastTap(asset),
+                            isCasting: isCasting,
+                          ),
+                        ],
                       ),
                     ),
-                    centerTitle: false,
-                    backgroundColor: Colors.transparent,
-                    actions: [
-                      FFCastButton(
-                        onCastTap: () async => _onCastTap(asset),
-                        isCasting: isCasting,
-                      ),
-                    ],
                   ),
                   body: Stack(
                     children: [
@@ -333,7 +331,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                             },
                             child: AnimatedSize(
                               duration: const Duration(milliseconds: 300),
-                              curve: Curves.fastOutSlowIn,
+                              curve: Curves.decelerate,
                               child: Container(
                                 color: AppColor.primaryBlack,
                                 height: _infoSize,
@@ -532,14 +530,13 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       return;
     }
     final isHidden = _isHidden(asset);
+    _focusNode.unfocus();
     unawaited(UIHelper.showDrawerAction(context,
         options: [
           OptionItem(
               title: 'full_screen'.tr(),
               icon: SvgPicture.asset('assets/images/fullscreen_icon.svg'),
               onTap: () {
-                //Navigator.of(context).pop();
-                keyboardManagerKey.currentState?.hideKeyboard();
                 Navigator.of(context).popAndPushNamed(
                     AppRouter.artworkPreviewPage,
                     arguments: widget.payload);
@@ -547,23 +544,23 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               }),
           if (showKeyboard)
             OptionItem(
-                title: 'keyboard'.tr(),
-                icon: SvgPicture.asset('assets/images/keyboard_icon.svg'),
-                onTap: canvasDeviceState.isCasting
-                    ? () {
-                        unawaited(
-                          Navigator.of(context).pushNamed(
-                            AppRouter.keyboardControlPage,
-                            arguments: KeyboardControlPagePayload(
-                              asset,
-                              canvasDeviceState.playingDevice,
-                            ),
-                          ),
-                        );
-                      }
-                    : () {
-                        FocusScope.of(context).requestFocus(_focusNode);
-                      }),
+              title: 'keyboard'.tr(),
+              icon: SvgPicture.asset('assets/images/keyboard_icon.svg'),
+              onTap: () {
+                Navigator.of(context).pop();
+                if (canvasDeviceState.isCasting) {
+                  unawaited(Navigator.of(context).pushNamed(
+                    AppRouter.keyboardControlPage,
+                    arguments: KeyboardControlPagePayload(
+                      asset,
+                      canvasDeviceState.playingDevice,
+                    ),
+                  ));
+                } else {
+                  FocusScope.of(context).requestFocus(_focusNode);
+                }
+              },
+            ),
           if (!isViewOnly && irlUrl != null)
             OptionItem(
               title: irlUrl.first,
@@ -761,7 +758,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   }
 
   Future<void> _onCastTap(AssetToken? assetToken) async {
-    keyboardManagerKey.currentState?.hideKeyboard();
+    _focusNode.unfocus();
     await UIHelper.showFlexibleDialog(
       context,
       BlocProvider.value(

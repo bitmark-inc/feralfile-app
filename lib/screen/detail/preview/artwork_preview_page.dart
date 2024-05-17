@@ -25,8 +25,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_rendering/nft_rendering.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shake/shake.dart';
@@ -61,6 +59,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 
   @override
   void initState() {
+    super.initState();
     _tokens = List.from(widget.payload.identities);
     final initialTokenID = _tokens[widget.payload.currentIndex];
     initialPage = _tokens.indexOf(initialTokenID);
@@ -70,7 +69,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     final currentIdentity = _tokens[initialPage];
     _bloc.add(ArtworkPreviewGetAssetTokenEvent(currentIdentity,
         useIndexer: widget.payload.useIndexer));
-    super.initState();
+    unawaited(_setFullScreen());
   }
 
   @override
@@ -109,7 +108,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 
   @override
   void afterFirstLayout(BuildContext context) {
-    _setFullScreen(context);
+    unawaited(_openSnackBar(context));
     // Calling the same function "after layout" to resolve the issue.
     _detector = ShakeDetector.autoStart(
       onPhoneShake: () async {
@@ -122,11 +121,12 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
     WidgetsBinding.instance.addObserver(this);
   }
 
-  void _setFullScreen(BuildContext context) {
-    final theme = Theme.of(context);
-    unawaited(
-        SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky));
+  Future<void> _setFullScreen() async {
+    await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+  }
 
+  Future<void> _openSnackBar(BuildContext context) async {
+    final theme = Theme.of(context);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Container(
@@ -151,122 +151,65 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return BlocConsumer<ArtworkPreviewBloc, ArtworkPreviewState>(
-      builder: (context, states) => PopScope(
-        onPopInvoked: (_) async {
-          await SystemChrome.setEnabledSystemUIMode(
-            SystemUiMode.manual,
-            overlays: SystemUiOverlay.values,
-          );
-        },
-        child: Scaffold(
-          backgroundColor: theme.colorScheme.primary,
-          body: SafeArea(
-            top: false,
-            bottom: false,
-            left: false,
-            right: false,
-            child: Column(
-              children: [
-                Expanded(
-                  child: PageView.builder(
-                    physics: const NeverScrollableScrollPhysics(),
-                    onPageChanged: (value) {
-                      final currentId = _tokens[value];
-                      _bloc.add(ArtworkPreviewGetAssetTokenEvent(currentId,
-                          useIndexer: widget.payload.useIndexer));
-                    },
-                    controller: controller,
-                    itemCount: _tokens.length,
-                    itemBuilder: (context, index) {
-                      if (_tokens[index].id.isPostcardId) {
-                        return PostcardPreviewWidget(
-                          identity: _tokens[index],
-                          useIndexer: widget.payload.useIndexer,
-                        );
-                      }
-                      return ArtworkPreviewWidget(
-                        identity: _tokens[index],
-                        onLoaded: (
-                            {InAppWebViewController? webViewController,
-                            int? time}) {},
-                        focusNode: _focusNode,
-                        useIndexer: widget.payload.useIndexer,
-                      );
-                    },
+        builder: (context, states) => PopScope(
+              onPopInvoked: (_) async {
+                await SystemChrome.setEnabledSystemUIMode(
+                  SystemUiMode.manual,
+                  overlays: SystemUiOverlay.values,
+                );
+              },
+              child: Scaffold(
+                backgroundColor: theme.colorScheme.primary,
+                body: SafeArea(
+                  top: false,
+                  bottom: false,
+                  left: false,
+                  right: false,
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: PageView.builder(
+                          physics: const NeverScrollableScrollPhysics(),
+                          onPageChanged: (value) {
+                            final currentId = _tokens[value];
+                            _bloc.add(ArtworkPreviewGetAssetTokenEvent(
+                                currentId,
+                                useIndexer: widget.payload.useIndexer));
+                          },
+                          controller: controller,
+                          itemCount: _tokens.length,
+                          itemBuilder: (context, index) {
+                            if (_tokens[index].id.isPostcardId) {
+                              return PostcardPreviewWidget(
+                                identity: _tokens[index],
+                                useIndexer: widget.payload.useIndexer,
+                              );
+                            }
+                            return ArtworkPreviewWidget(
+                              identity: _tokens[index],
+                              onLoaded: (
+                                  {InAppWebViewController? webViewController,
+                                  int? time}) {},
+                              focusNode: _focusNode,
+                              useIndexer: widget.payload.useIndexer,
+                            );
+                          },
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
+              ),
             ),
-          ),
-        ),
-      ),
-      listener: (context, state) {
-        AssetToken? assetToken;
-        if (state is ArtworkPreviewLoadedState) {
-          assetToken = state.assetToken;
-        }
-        if (assetToken != null) {
-          unawaited(assetToken.sendViewArtworkEvent());
-        }
-      },
-    );
-  }
-}
-
-class KeyboardManagerWidget extends StatefulWidget {
-  final FocusNode? focusNode;
-  final Function()? onTap;
-
-  const KeyboardManagerWidget({super.key, this.focusNode, this.onTap});
-
-  @override
-  State<KeyboardManagerWidget> createState() => KeyboardManagerWidgetState();
-}
-
-class KeyboardManagerWidgetState extends State<KeyboardManagerWidget> {
-  bool _isShowKeyboard = false;
-
-  @override
-  void initState() {
-    widget.focusNode?.addListener(() {
-      if (widget.focusNode?.hasFocus ?? false) {
-        setState(() {
-          _isShowKeyboard = true;
+        listener: (context, state) {},
+        listenWhen: (previous, current) {
+          if (current is ArtworkPreviewLoadedState &&
+              previous is ArtworkPreviewLoadingState) {
+            if (current.assetToken != null) {
+              unawaited(current.assetToken?.sendViewArtworkEvent());
+            }
+          }
+          return true;
         });
-      } else {
-        setState(() {
-          _isShowKeyboard = false;
-        });
-      }
-    });
-    super.initState();
   }
-
-  void showKeyboard() {
-    setState(() {
-      widget.focusNode?.requestFocus();
-      _isShowKeyboard = true;
-    });
-  }
-
-  void hideKeyboard() {
-    setState(() {
-      widget.focusNode?.unfocus();
-      _isShowKeyboard = false;
-    });
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) => GestureDetector(
-        onTap: () {
-          _isShowKeyboard ? hideKeyboard : showKeyboard;
-          widget.onTap?.call();
-        },
-        child: SvgPicture.asset('assets/images/keyboard_icon.svg'),
-      );
 }
