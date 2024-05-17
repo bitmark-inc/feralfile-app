@@ -86,6 +86,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   final _feralfileService = injector.get<FeralFileService>();
   final _focusNode = FocusNode();
   double? _infoSize;
+  static const double _infoMaxSize = 450;
   late ArtworkDetailBloc _bloc;
   late CanvasDeviceBloc _canvasDeviceBloc;
 
@@ -315,14 +316,30 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                       ),
                       Column(
                         children: [
-                          const Spacer(),
+                          if (_infoSize == null)
+                            const Spacer()
+                          else
+                            GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _infoSize = null;
+                                });
+                              },
+                              child: Container(
+                                color: Colors.transparent,
+                                height: MediaQuery.of(context).size.height -
+                                    _infoSize! -
+                                    kToolbarHeight -
+                                    MediaQuery.of(context).padding.top,
+                              ),
+                            ),
                           GestureDetector(
                             onVerticalDragEnd: (details) {
                               final dy = details.velocity.pixelsPerSecond.dy;
                               const sensibility = 15;
                               if (dy < 0 - sensibility) {
                                 setState(() {
-                                  _infoSize = 500;
+                                  _infoSize = _infoMaxSize;
                                 });
                               } else if (dy > sensibility) {
                                 setState(() {
