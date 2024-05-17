@@ -205,8 +205,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
       getFFAppBar(
         buildContext,
         onBack: () => Navigator.pop(buildContext),
-        action: exhibitionDetail == null ||
-                exhibitionDetail.exhibition.status != 4
+        action: exhibitionDetail == null
             ? null
             : Padding(
                 padding: const EdgeInsets.only(right: 14, bottom: 10, top: 10),
