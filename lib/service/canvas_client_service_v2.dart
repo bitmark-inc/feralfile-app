@@ -276,19 +276,26 @@ class CanvasClientServiceV2 {
   /// it will check the status of the device by calling grpc
   Future<List<Pair<CanvasDevice, CheckDeviceStatusReply>>> scanDevices() async {
     final rawDevices = await _findRawDevices();
-    final List<Pair<CanvasDevice, CheckDeviceStatusReply>> devices = [];
-    await Future.forEach<CanvasDevice>(rawDevices, (device) async {
+    final List<Pair<CanvasDevice, CheckDeviceStatusReply>> devices =
+        await getDeviceStatuses(rawDevices);
+    devices.sort((a, b) => a.first.name.compareTo(b.first.name));
+    return devices;
+  }
+
+  Future<List<Pair<CanvasDevice, CheckDeviceStatusReply>>> getDeviceStatuses(
+      List<CanvasDevice> devices) async {
+    final List<Pair<CanvasDevice, CheckDeviceStatusReply>> statuses = [];
+    await Future.forEach<CanvasDevice>(devices, (device) async {
       try {
         final status = await _getDeviceStatus(device);
         if (status != null) {
-          devices.add(status);
+          statuses.add(status);
         }
       } catch (e) {
         log.info('CanvasClientService: Caught error: $e');
       }
     });
-    devices.sort((a, b) => a.first.name.compareTo(b.first.name));
-    return devices;
+    return statuses;
   }
 
   Future<Pair<CanvasDevice, CheckDeviceStatusReply>?> _getDeviceStatus(

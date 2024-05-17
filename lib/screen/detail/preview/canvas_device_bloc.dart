@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/service/canvas_client_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/network_service.dart';
+import 'package:autonomy_flutter/util/device_status_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:collection/collection.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -27,6 +28,12 @@ class CanvasDeviceGetDevicesEvent extends CanvasDeviceEvent {
   final bool retry;
 
   CanvasDeviceGetDevicesEvent({this.retry = false});
+}
+
+class CanvasDeviceUpdateStatusEvent extends CanvasDeviceEvent {
+  final List<DeviceState> devices;
+
+  CanvasDeviceUpdateStatusEvent(this.devices);
 }
 
 class CanvasDeviceAppendDeviceEvent extends CanvasDeviceEvent {
@@ -310,6 +317,16 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
       transformer: debounceSequential(const Duration(seconds: 5)),
     );
 
+    on<CanvasDeviceUpdateStatusEvent>((event, emit) async {
+      final devices = event.devices.map((e) => e.device).toList();
+      final deviceStatuses =
+          await _canvasClientServiceV2.getDeviceStatuses(devices);
+      final controllingDeviceStatus = deviceStatuses.controllingDevices;
+      final newState =
+          state.copyWith(controllingDeviceStatus: controllingDeviceStatus);
+      emit(newState);
+    });
+
     on<CanvasDeviceAppendDeviceEvent>((event, emit) async {
       final newState = state.copyWith(
           devices: state.devices
@@ -404,15 +421,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
           if (event.callRPC) {
             await _canvasClientServiceV2.disconnectDevice(device);
           }
-          final newControllingDeviceStatus = state.controllingDeviceStatus
-                  ?.map((key, value) => MapEntry(key, value)) ??
-              {};
-          newControllingDeviceStatus
-              .removeWhere((key, value) => key == device.id);
-          emit(state
-              .replaceDeviceState(
-                  device: device, deviceState: DeviceState(device: device))
-              .copyWith(controllingDeviceStatus: newControllingDeviceStatus));
+          add(CanvasDeviceUpdateStatusEvent(state.devices));
         } catch (e) {
           log.info('CanvasDeviceBloc: error while disconnect device: $e');
         }
