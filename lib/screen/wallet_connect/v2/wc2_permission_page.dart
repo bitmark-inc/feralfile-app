@@ -27,7 +27,6 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/list_address_account.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -192,11 +191,11 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
     return Row(
       children: [
         if (peerMeta.icons.isNotEmpty) ...[
-          CachedNetworkImage(
-            imageUrl: peerMeta.icons.first,
+          Image.network(
+            peerMeta.icons.first,
             width: 64,
             height: 64,
-            errorWidget: (context, url, error) => SizedBox(
+            errorBuilder: (context, url, error) => SizedBox(
               width: 64,
               height: 64,
               child: Image.asset(
