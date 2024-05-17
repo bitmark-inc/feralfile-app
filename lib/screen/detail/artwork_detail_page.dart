@@ -112,15 +112,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   @override
   void didChangeDependencies() {
     routeObserver.subscribe(this, ModalRoute.of(context)!);
-    //unawaited(enableLandscapeMode());
     super.didChangeDependencies();
-  }
-
-  @override
-  void didPopNext() {
-    //unawaited(enableLandscapeMode());
-    // _renderingWidget?.didPopNext();
-    super.didPopNext();
   }
 
   Future<void> _manualShare(
@@ -200,7 +192,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   void dispose() {
     _scrollController.dispose();
     _focusNode.dispose();
-    //unawaited(disableLandscapeMode());
     routeObserver.unsubscribe(this);
     WidgetsBinding.instance.removeObserver(this);
     if (Platform.isAndroid) {
@@ -558,7 +549,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                 Navigator.of(context).popAndPushNamed(
                     AppRouter.artworkPreviewPage,
                     arguments: widget.payload);
-                //_onClickFullScreen(asset);
               }),
           if (showKeyboard)
             OptionItem(

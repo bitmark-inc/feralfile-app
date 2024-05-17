@@ -1858,9 +1858,7 @@ class _DrawerItemState extends State<DrawerItem> {
     final item = widget.item;
     final color = widget.color;
     final defaultTextStyle = theme.textTheme.ppMori400Black14;
-    final customTextStyle = (color != null)
-        ? defaultTextStyle.copyWith(color: color)
-        : defaultTextStyle;
+    final customTextStyle = defaultTextStyle.copyWith(color: color);
     final defaultProcessingTextStyle =
         defaultTextStyle.copyWith(color: AppColor.disabledColor);
     final defaultDisabledTextStyle =
