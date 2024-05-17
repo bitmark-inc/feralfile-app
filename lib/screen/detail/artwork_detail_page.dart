@@ -288,18 +288,13 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Hero(
-                                  tag: 'detail_${asset.id}',
-                                  child: _ArtworkView(
-                                    payload: widget.payload,
-                                    token: asset,
-                                    focusNode: _focusNode,
-                                  ),
-                                ),
-                              ],
+                            child: Hero(
+                              tag: 'detail_${asset.id}',
+                              child: _ArtworkView(
+                                payload: widget.payload,
+                                token: asset,
+                                focusNode: _focusNode,
+                              ),
                             ),
                           ),
                           const Padding(
@@ -805,14 +800,10 @@ class _ArtworkView extends StatelessWidget {
       case 'gif':
       case 'audio':
       case 'video':
-        return Stack(
-          children: [
-            Center(
-              child: IntrinsicHeight(
-                child: artworkWidget,
-              ),
-            ),
-          ],
+        return Center(
+          child: IntrinsicHeight(
+            child: artworkWidget,
+          ),
         );
 
       default:
