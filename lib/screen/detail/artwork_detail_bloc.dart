@@ -93,7 +93,6 @@ class ArtworkDetailBloc extends AuBloc<ArtworkDetailEvent, ArtworkDetailState> {
     });
   }
 
-
   Future<void> _indexHistory(String tokenId) async {
     await _indexerApi.indexTokenHistory({'indexID': tokenId});
   }
