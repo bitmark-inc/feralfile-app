@@ -136,6 +136,12 @@ class CanvasClientServiceV2 {
           completer.complete(true);
         },
         onError: (device) {
+          injector<CanvasDeviceBloc>().add(
+            CanvasDeviceDisconnectEvent(
+              [device],
+              callRPC: false,
+            ),
+          );
           completer.complete(false);
         },
       );

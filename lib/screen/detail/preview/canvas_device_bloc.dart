@@ -30,12 +30,6 @@ class CanvasDeviceGetDevicesEvent extends CanvasDeviceEvent {
   CanvasDeviceGetDevicesEvent({this.retry = false});
 }
 
-class CanvasDeviceUpdateStatusEvent extends CanvasDeviceEvent {
-  final List<DeviceState> devices;
-
-  CanvasDeviceUpdateStatusEvent(this.devices);
-}
-
 class CanvasDeviceAppendDeviceEvent extends CanvasDeviceEvent {
   final CanvasDevice device;
 
@@ -274,34 +268,25 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
         try {
           final devices = await _canvasClientServiceV2.scanDevices();
 
-          final thisDevice = _canvasClientServiceV2.clientDeviceInfo;
-          final Map<String, CheckDeviceStatusReply> controllingDeviceStatus =
-              {};
-          final Map<String, CheckDeviceStatusReply> selectingDeviceStatus = {};
-          final currentDeviceStatus =
-              state.controllingDeviceStatus?[state.controllingDevice?.id ?? ''];
-          for (final device in devices) {
-            if (device.second.connectedDevice.deviceId == thisDevice.deviceId) {
-              controllingDeviceStatus[device.first.id] = device.second;
-              if (currentDeviceStatus != null &&
-                  device.first.id == (state.controllingDevice?.id ?? '')) {
-                selectingDeviceStatus[device.first.id] = device.second;
-                break;
-              }
+          final stateControllingDeviceStatus = state.controllingDeviceStatus;
+
+          final controllingdevice = state.controllingDevice;
+          Map<String, CheckDeviceStatusReply>? controllingDeviceStatus = {};
+
+          if (controllingdevice == null) {
+            controllingDeviceStatus = devices.controllingDevices;
+          } else {
+            if (devices
+                .any((element) => element.first.id == controllingdevice.id)) {
+              controllingDeviceStatus = stateControllingDeviceStatus;
             } else {
-              log.info('CanvasDeviceBloc: get devices: ${device.first.id}, '
-                  'connectedDevice: ${device.second.connectedDevice.deviceId}');
+              controllingDeviceStatus = devices.controllingDevices;
             }
-          }
-          if (selectingDeviceStatus.isEmpty &&
-              controllingDeviceStatus.isNotEmpty) {
-            selectingDeviceStatus[controllingDeviceStatus.entries.first.key] =
-                controllingDeviceStatus.entries.first.value;
           }
 
           final newState = state.copyWith(
             devices: devices.map((e) => DeviceState(device: e.first)).toList(),
-            controllingDeviceStatus: selectingDeviceStatus,
+            controllingDeviceStatus: controllingDeviceStatus,
           );
           log.info('CanvasDeviceBloc: get devices: ${newState.devices.length}, '
               'controllingDeviceStatus: ${newState.controllingDeviceStatus}');
@@ -316,16 +301,6 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
       },
       transformer: debounceSequential(const Duration(seconds: 5)),
     );
-
-    on<CanvasDeviceUpdateStatusEvent>((event, emit) async {
-      final devices = event.devices.map((e) => e.device).toList();
-      final deviceStatuses =
-          await _canvasClientServiceV2.getDeviceStatuses(devices);
-      final controllingDeviceStatus = deviceStatuses.controllingDevices;
-      final newState =
-          state.copyWith(controllingDeviceStatus: controllingDeviceStatus);
-      emit(newState);
-    });
 
     on<CanvasDeviceAppendDeviceEvent>((event, emit) async {
       final newState = state.copyWith(
@@ -421,7 +396,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
           if (event.callRPC) {
             await _canvasClientServiceV2.disconnectDevice(device);
           }
-          add(CanvasDeviceUpdateStatusEvent(state.devices));
+          add(CanvasDeviceGetDevicesEvent());
         } catch (e) {
           log.info('CanvasDeviceBloc: error while disconnect device: $e');
         }
