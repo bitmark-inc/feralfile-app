@@ -381,7 +381,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
         child: IconButton(
           onPressed: () => {
             setState(() {
-              _infoSize = _infoSize == null ? 500 : null;
+              _infoSize = _infoSize == null ? _infoMaxSize : null;
             })
           },
           icon: SvgPicture.asset(_infoSize == null
