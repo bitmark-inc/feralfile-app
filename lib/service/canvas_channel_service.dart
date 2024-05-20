@@ -43,6 +43,7 @@ class CanvasChannelService {
       port: device.port,
       options: const ChannelOptions(
         credentials: ChannelCredentials.insecure(),
+        keepAlive: ClientKeepAliveOptions(pingInterval: Duration(seconds: 2)),
       ),
     );
     _channels[device.ip] = newChannel;

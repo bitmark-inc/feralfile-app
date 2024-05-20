@@ -230,6 +230,8 @@ const int LEADERBOARD_PAGE_SIZE = 50;
 
 const int maxCollectionListSize = 3;
 
+const maxRetryCount = 3;
+
 const double collectionListArtworkAspectRatio = 375 / 210.94;
 const String collectionListArtworkThumbnailVariant = 'thumbnailList';
 
