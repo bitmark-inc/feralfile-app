@@ -95,7 +95,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     _scrollController = ScrollController();
     super.initState();
     _bloc = context.read<ArtworkDetailBloc>();
-    _canvasDeviceBloc = context.read<CanvasDeviceBloc>();
+    _canvasDeviceBloc = injector.get<CanvasDeviceBloc>();
     _bloc.add(ArtworkDetailGetInfoEvent(
         widget.payload.identities[widget.payload.currentIndex],
         useIndexer: widget.payload.useIndexer));

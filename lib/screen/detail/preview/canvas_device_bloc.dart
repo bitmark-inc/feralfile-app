@@ -250,7 +250,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
   final CanvasClientServiceV2 _canvasClientServiceV2;
   final NetworkService _networkService;
 
-  Map<String, int> _deviceRetryCount = {};
+  final Map<String, int> _deviceRetryCount = {};
 
   // constructor
   CanvasDeviceBloc(this._canvasClientService, this._canvasClientServiceV2,
