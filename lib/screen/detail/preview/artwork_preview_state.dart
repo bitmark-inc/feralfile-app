@@ -21,26 +21,15 @@ abstract class ArtworkPreviewState {
   ArtworkPreviewState();
 }
 
-class ChangeFullScreen extends ArtworkPreviewEvent {
-  bool isFullscreen;
-
-  ChangeFullScreen({this.isFullscreen = false});
-}
-
 class ArtworkPreviewLoadingState extends ArtworkPreviewState {
   ArtworkPreviewLoadingState();
 }
 
 class ArtworkPreviewLoadedState extends ArtworkPreviewState {
   AssetToken? assetToken;
-  bool isFullScreen;
 
-  ArtworkPreviewLoadedState({this.assetToken, this.isFullScreen = false});
+  ArtworkPreviewLoadedState({this.assetToken});
 
-  ArtworkPreviewLoadedState copyWith(
-      {AssetToken? assetToken, bool? isFullScreen}) {
-    return ArtworkPreviewLoadedState(
-        assetToken: assetToken ?? this.assetToken,
-        isFullScreen: isFullScreen ?? this.isFullScreen);
-  }
+  ArtworkPreviewLoadedState copyWith({AssetToken? assetToken}) =>
+      ArtworkPreviewLoadedState(assetToken: assetToken ?? this.assetToken);
 }

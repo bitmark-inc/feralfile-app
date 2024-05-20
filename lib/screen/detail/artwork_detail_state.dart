@@ -25,19 +25,18 @@ class ArtworkDetailState {
   bool isViewOnly;
 
   ArtworkDetailState({
-    this.assetToken,
     required this.provenances,
+    this.assetToken,
     this.owners = const {},
     this.isViewOnly = true,
   });
 
   //copyWith
-  ArtworkDetailState copyWith({
-    AssetToken? assetToken,
-    List<Provenance>? provenances,
-    Map<String, int>? owners,
-    bool? isViewOnly,
-  }) =>
+  ArtworkDetailState copyWith(
+          {AssetToken? assetToken,
+          List<Provenance>? provenances,
+          Map<String, int>? owners,
+          bool? isViewOnly}) =>
       ArtworkDetailState(
         assetToken: assetToken ?? this.assetToken,
         provenances: provenances ?? this.provenances,

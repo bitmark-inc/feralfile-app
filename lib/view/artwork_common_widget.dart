@@ -1776,6 +1776,7 @@ class ArtworkDetailsHeader extends StatelessWidget {
   final Function? onTitleTap;
   final Function? onSubTitleTap;
   final bool isReverse;
+  final Color? color;
 
   const ArtworkDetailsHeader({
     required this.title,
@@ -1785,6 +1786,7 @@ class ArtworkDetailsHeader extends StatelessWidget {
     this.onTitleTap,
     this.onSubTitleTap,
     this.isReverse = false,
+    this.color,
   });
 
   @override
@@ -1801,8 +1803,9 @@ class ArtworkDetailsHeader extends StatelessWidget {
             child: Text(
               subTitle,
               style: theme.textTheme.ppMori700White14.copyWith(
-                  color: AppColor.feralFileHighlight,
-                  fontWeight: isReverse ? FontWeight.w400 : null),
+                color: color ?? AppColor.white,
+                fontWeight: FontWeight.w400,
+              ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -1814,8 +1817,9 @@ class ArtworkDetailsHeader extends StatelessWidget {
           child: Text(
             title,
             style: theme.textTheme.ppMori400White14.copyWith(
-                color: AppColor.feralFileHighlight,
-                fontWeight: isReverse ? FontWeight.w700 : null),
+                color: color ?? AppColor.white,
+                fontWeight: FontWeight.w700,
+                fontStyle: FontStyle.italic),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -1827,9 +1831,11 @@ class ArtworkDetailsHeader extends StatelessWidget {
 
 class DrawerItem extends StatefulWidget {
   final OptionItem item;
+  final Color? color;
 
   const DrawerItem({
     required this.item,
+    this.color,
     super.key,
   });
 
@@ -1850,7 +1856,9 @@ class _DrawerItemState extends State<DrawerItem> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final item = widget.item;
+    final color = widget.color;
     final defaultTextStyle = theme.textTheme.ppMori400Black14;
+    final customTextStyle = defaultTextStyle.copyWith(color: color);
     final defaultProcessingTextStyle =
         defaultTextStyle.copyWith(color: AppColor.disabledColor);
     final defaultDisabledTextStyle =
@@ -1864,7 +1872,7 @@ class _DrawerItemState extends State<DrawerItem> {
         ? (item.titleStyleOnDisable ?? defaultDisabledTextStyle)
         : isProcessing
             ? (item.titleStyleOnPrecessing ?? defaultProcessingTextStyle)
-            : (item.titleStyle ?? defaultTextStyle);
+            : (item.titleStyle ?? customTextStyle);
 
     final child = Container(
       color: Colors.transparent,
