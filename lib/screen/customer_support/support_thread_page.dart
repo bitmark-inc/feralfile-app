@@ -144,13 +144,6 @@ class _SupportThreadPageState extends State<SupportThreadPage>
         createdAt: DateTime.now().millisecondsSinceEpoch,
       );
 
-  types.CustomMessage get _askReviewMessenger => types.CustomMessage(
-        author: _bitmark,
-        id: _askReviewMessengerID,
-        metadata: {'status': 'careToShare', 'content': 'care_to_share'.tr()},
-        createdAt: DateTime.now().millisecondsSinceEpoch,
-      );
-
   types.CustomMessage get _announcementMessenger => types.CustomMessage(
         id: _announcementMessengerID,
         author: _bitmark,
@@ -293,44 +286,36 @@ class _SupportThreadPageState extends State<SupportThreadPage>
   Widget build(BuildContext context) {
     List<types.Message> messages = _draftMessages + _messages;
     ////// this convert rating messages to customMessage type, then convert the string messages to rating bars
-    for (int i = 0; i < messages.length; i++) {
-      if (_isRating(messages[i])) {
-        final ratingMessengerID = const Uuid().v4();
-        final ratingMessenger = types.CustomMessage(
-          id: ratingMessengerID,
-          author: _user,
-          metadata: {
-            'status': 'rating',
-            'rating': messages[i].metadata!['rating'],
-          },
-        );
-        messages[i] = ratingMessenger;
+    if (messages.isNotEmpty) {
+      for (int i = 0; i < messages.length; i++) {
+        if (_isRating(messages[i])) {
+          final ratingMessengerID = const Uuid().v4();
+          final ratingMessenger = types.CustomMessage(
+            id: ratingMessengerID,
+            author: _user,
+            metadata: {
+              'status': 'rating',
+              'rating': messages[i].metadata!['rating'],
+            },
+          );
+          messages[i] = ratingMessenger;
+        }
       }
-    }
 
-    if (_status == 'closed' || _status == 'clickToReopen') {
-      final ratingIndex = _firstRatingIndex(messages);
-      messages
-        ..insert(ratingIndex + 1, _resolvedMessenger)
-        ..insert(ratingIndex + 1, _askRatingMessenger);
-      if (ratingIndex > -1 && _status == 'closed') {
-        messages.insert(ratingIndex, _askReviewMessenger);
-      }
-    }
+      messages.removeWhere((element) =>
+          messages.indexOf(element) != 0 && _isRatingMessage(element));
 
-    for (int i = 0; i < messages.length; i++) {
-      if (_isRatingMessage(messages[i])) {
-        if (messages[i + 1] != _askRatingMessenger) {
+      if (_status == 'closed' || _status == 'clickToReopen') {
+        final ratingIndex =
+            messages.indexWhere((element) => _isRatingMessage(element));
+        if (messages[ratingIndex + 1] != _askRatingMessenger) {
           messages
-            ..insert(i + 1, _resolvedMessenger)
-            ..insert(i + 1, _askRatingMessenger);
-        }
-        if (i > 0 && _isCustomerSupportMessage(messages[i - 1])) {
-          messages.insert(i, _askReviewMessenger);
-          i++;
+            ..insert(ratingIndex + 1, _resolvedMessenger)
+            ..insert(ratingIndex + 1, _askRatingMessenger);
         }
       }
     }
+
     if (widget.payload.announcement != null) {
       messages.add(_announcementMessenger);
     } else if (_issueID == null || messages.isNotEmpty) {
@@ -366,13 +351,16 @@ class _SupportThreadPageState extends State<SupportThreadPage>
               user: _user,
               customBottomWidget: !isCustomerSupportAvailable
                   ? const SizedBox()
-                  : !_isRated && _status == 'closed'
-                      ? MyRatingBar(
-                          submit: (String messageType,
-                                  DraftCustomerSupportData data,
-                                  {bool isRating = false}) =>
-                              // ignore: discarded_futures
-                              _submit(messageType, data, isRating: isRating))
+                  : _status == 'closed'
+                      ? _isRated
+                          ? const SizedBox()
+                          : MyRatingBar(
+                              submit: (String messageType,
+                                      DraftCustomerSupportData data,
+                                      {bool isRating = false}) =>
+                                  // ignore: discarded_futures
+                                  _submit(messageType, data,
+                                      isRating: isRating))
                       : Column(
                           children: [
                             if (_isFileAttached) debugLogView(),
@@ -455,25 +443,6 @@ class _SupportThreadPageState extends State<SupportThreadPage>
       }
     }
     return false;
-  }
-
-  bool _isCustomerSupportMessage(types.Message message) {
-    if (message is types.TextMessage) {
-      return message.text.contains(RATING_MESSAGE_START);
-    }
-    return false;
-  }
-
-  int _firstRatingIndex(List<types.Message> messages) {
-    for (int i = 0; i < messages.length; i++) {
-      if (_isRatingMessage(messages[i])) {
-        return i;
-      }
-      if (!_isCustomerSupportMessage(messages[i])) {
-        return -1;
-      }
-    }
-    return -1;
   }
 
   Widget _ratingBar(int rating) {
@@ -637,7 +606,7 @@ class _SupportThreadPageState extends State<SupportThreadPage>
             const SizedBox(height: 20),
             TextButton(
               onPressed: () {
-                if (_status == 'close') {
+                if (_status == 'closed') {
                   setState(() {
                     _status = 'clickToReopen';
                   });

@@ -23,7 +23,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:nft_collection/services/tokens_service.dart';
 
@@ -129,7 +128,7 @@ class _DataManagementPageState extends State<DataManagementPage> {
       'rebuild'.tr(),
       () async {
         await injector<TokensService>().purgeCachedGallery();
-        await injector<CacheManager>().emptyCache();
+        ImageCache().clear();
         await injector<ClientTokenService>().refreshTokens(syncAddresses: true);
         NftCollectionBloc.eventController
             .add(GetTokensByOwnerEvent(pageKey: PageKey.init()));

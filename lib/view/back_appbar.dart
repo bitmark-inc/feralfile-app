@@ -41,17 +41,7 @@ AppBar getBackAppBar(
     leadingWidth: 44,
     scrolledUnderElevation: 0,
     leading: onBack != null
-        ? Semantics(
-            label: 'BACK',
-            child: IconButton(
-              onPressed: onBack,
-              constraints: const BoxConstraints(maxWidth: 36),
-              icon: SvgPicture.asset(
-                'assets/images/icon_back.svg',
-                colorFilter: ColorFilter.mode(primaryColor, BlendMode.srcIn),
-              ),
-            ),
-          )
+        ? backButton(context, onBack: onBack, color: primaryColor)
         : const SizedBox(width: 36),
     automaticallyImplyLeading: false,
     title: Row(
@@ -123,17 +113,7 @@ AppBar getTitleEditAppBar(BuildContext context,
     leadingWidth: 44,
     scrolledUnderElevation: 0,
     leading: hasBack
-        ? Semantics(
-            label: 'BACK',
-            child: IconButton(
-              onPressed: () {},
-              constraints: const BoxConstraints(maxWidth: 36),
-              icon: SvgPicture.asset(
-                'assets/images/icon_back.svg',
-                colorFilter: ColorFilter.mode(primaryColor, BlendMode.srcIn),
-              ),
-            ),
-          )
+        ? backButton(context, onBack: () {}, color: primaryColor)
         : const SizedBox(),
     automaticallyImplyLeading: false,
     title: Row(
@@ -425,6 +405,21 @@ AppBar getFFAppBar(
       shadowColor: Colors.transparent,
       elevation: 0);
 }
+
+Widget backButton(BuildContext context,
+        {required Function() onBack, Color? color}) =>
+    Semantics(
+      label: 'BACK',
+      child: IconButton(
+        onPressed: onBack,
+        constraints: const BoxConstraints(maxWidth: 36),
+        icon: SvgPicture.asset(
+          'assets/images/icon_back.svg',
+          colorFilter:
+              color != null ? ColorFilter.mode(color, BlendMode.srcIn) : null,
+        ),
+      ),
+    );
 
 // class MomaPallet to save colors
 // Path: lib/util/style.dart

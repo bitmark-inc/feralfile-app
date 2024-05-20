@@ -336,20 +336,13 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
             systemOverlayStyle: systemUiOverlayLightStyle(AppColor.white),
             elevation: 0,
             shadowColor: Colors.transparent,
-            leading: GestureDetector(
-              onTap: () => Navigator.of(context).pop(),
-              child: const Row(
-                children: [
-                  SizedBox(
-                    width: 15,
-                  ),
-                  Icon(
-                    AuIcon.chevron,
-                    color: AppColor.secondaryDimGrey,
-                    size: 18,
-                  ),
-                ],
-              ),
+            leading: Row(
+              children: [
+                backButton(
+                  context,
+                  onBack: () => Navigator.pop(context),
+                ),
+              ],
             ),
             leadingWidth: editable ? 90 : 55,
             titleSpacing: 0,

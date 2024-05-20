@@ -22,7 +22,6 @@ import 'package:autonomy_flutter/util/wc2_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
@@ -216,11 +215,11 @@ class _AUSignMessagePageState extends State<AUSignMessagePage> {
         ? Row(
             children: [
               if (proposer.icons.isNotEmpty) ...[
-                CachedNetworkImage(
-                  imageUrl: proposer.icons.first,
+                Image.network(
+                  proposer.icons.first,
                   width: 64,
                   height: 64,
-                  errorWidget: (context, url, error) => SizedBox(
+                  errorBuilder: (context, url, error) => SizedBox(
                       width: 64,
                       height: 64,
                       child: SvgPicture.asset(

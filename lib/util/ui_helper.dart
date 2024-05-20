@@ -37,7 +37,6 @@ import 'package:autonomy_flutter/view/postcard_common_widget.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/slide_router.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
 import 'package:confetti/confetti.dart';
 import 'package:dio/dio.dart';
@@ -784,11 +783,11 @@ class UIHelper {
               child:
                   Image.asset('assets/images/walletconnect-alternative.png'));
         } else {
-          return CachedNetworkImage(
-            imageUrl: appIcons.firstOrNull ?? '',
+          return Image.network(
+            appIcons.firstOrNull ?? '',
             width: size,
             height: size,
-            errorWidget: (context, url, error) => SizedBox(
+            errorBuilder: (context, url, error) => SizedBox(
               width: size,
               height: size,
               child: Image.asset('assets/images/walletconnect-alternative.png'),
@@ -805,11 +804,11 @@ class UIHelper {
               child:
                   Image.asset('assets/images/walletconnect-alternative.png'));
         } else {
-          return CachedNetworkImage(
-            imageUrl: appIcons.first,
+          return Image.network(
+            appIcons.first,
             width: size,
             height: size,
-            errorWidget: (context, url, error) => SizedBox(
+            errorBuilder: (context, url, error) => SizedBox(
               width: size,
               height: size,
               child: Image.asset('assets/images/walletconnect-alternative.png'),
@@ -826,11 +825,11 @@ class UIHelper {
             height: size,
           );
         } else {
-          return CachedNetworkImage(
-            imageUrl: appIcon,
+          return Image.network(
+            appIcon,
             width: size,
             height: size,
-            errorWidget: (context, url, error) => SvgPicture.asset(
+            errorBuilder: (context, url, error) => SvgPicture.asset(
               'assets/images/tezos_social_icon.svg',
               width: size,
               height: size,
@@ -1148,7 +1147,10 @@ class UIHelper {
   }
 
   static Future<void> showDrawerAction(BuildContext context,
-      {required List<OptionItem> options}) async {
+      {required List<OptionItem> options,
+      Color? color,
+      Color? backgroundColor,
+      Color? separatorColor}) async {
     final theme = Theme.of(context);
 
     await showModalBottomSheet<dynamic>(
@@ -1162,7 +1164,7 @@ class UIHelper {
         barrierColor: Colors.black.withOpacity(0.5),
         isScrollControlled: true,
         builder: (context) => Container(
-              color: AppColor.feralFileHighlight,
+              color: backgroundColor ?? AppColor.feralFileHighlight,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -1170,10 +1172,10 @@ class UIHelper {
                     alignment: Alignment.centerRight,
                     child: IconButton(
                       onPressed: () => Navigator.pop(context),
-                      icon: const Icon(
+                      icon: Icon(
                         AuIcon.close,
                         size: 18,
-                        color: AppColor.secondaryDimGrey,
+                        color: color ?? AppColor.secondaryDimGrey,
                       ),
                     ),
                   ),
@@ -1185,13 +1187,16 @@ class UIHelper {
                       if (option.builder != null) {
                         return option.builder!.call(context, option);
                       }
-                      return DrawerItem(item: option);
+                      return DrawerItem(
+                        item: option,
+                        color: color,
+                      );
                     },
                     itemCount: options.length,
                     separatorBuilder: (context, index) => Divider(
                       height: 1,
                       thickness: 1,
-                      color: theme.colorScheme.secondary,
+                      color: separatorColor ?? theme.colorScheme.secondary,
                     ),
                   ),
                 ],
