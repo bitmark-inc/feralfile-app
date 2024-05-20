@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/service/canvas_client_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/network_service.dart';
+import 'package:autonomy_flutter/util/device_status_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:collection/collection.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -77,8 +78,9 @@ class CanvasDeviceRotateEvent extends CanvasDeviceEvent {
 
 class CanvasDeviceDisconnectEvent extends CanvasDeviceEvent {
   final List<CanvasDevice> devices;
+  final bool callRPC;
 
-  CanvasDeviceDisconnectEvent(this.devices);
+  CanvasDeviceDisconnectEvent(this.devices, {this.callRPC = true});
 }
 
 class CanvasDeviceCastListArtworkEvent extends CanvasDeviceEvent {
@@ -266,39 +268,30 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
         try {
           final devices = await _canvasClientServiceV2.scanDevices();
 
-          final thisDevice = _canvasClientServiceV2.clientDeviceInfo;
-          final Map<String, CheckDeviceStatusReply> controllingDeviceStatus =
-              {};
-          final Map<String, CheckDeviceStatusReply> selectingDeviceStatus = {};
-          final currentDeviceStatus =
-              state.controllingDeviceStatus?[state.controllingDevice?.id ?? ''];
-          for (final device in devices) {
-            if (device.second.connectedDevice.deviceId == thisDevice.deviceId) {
-              controllingDeviceStatus[device.first.id] = device.second;
-              if (currentDeviceStatus != null &&
-                  device.first.id == (state.controllingDevice?.id ?? '')) {
-                selectingDeviceStatus[device.first.id] = device.second;
-                break;
-              }
+          final stateControllingDeviceStatus = state.controllingDeviceStatus;
+
+          final controllingdevice = state.controllingDevice;
+          Map<String, CheckDeviceStatusReply>? controllingDeviceStatus = {};
+
+          if (controllingdevice == null) {
+            controllingDeviceStatus = devices.controllingDevices;
+          } else {
+            if (devices
+                .any((element) => element.first.id == controllingdevice.id)) {
+              controllingDeviceStatus = stateControllingDeviceStatus;
             } else {
-              log.info('CanvasDeviceBloc: get devices: ${device.first.id}, '
-                  'connectedDevice: ${device.second.connectedDevice.deviceId}');
+              controllingDeviceStatus = devices.controllingDevices;
             }
-          }
-          if (selectingDeviceStatus.isEmpty &&
-              controllingDeviceStatus.isNotEmpty) {
-            selectingDeviceStatus[controllingDeviceStatus.entries.first.key] =
-                controllingDeviceStatus.entries.first.value;
           }
 
           final newState = state.copyWith(
             devices: devices.map((e) => DeviceState(device: e.first)).toList(),
-            controllingDeviceStatus: selectingDeviceStatus,
+            controllingDeviceStatus: controllingDeviceStatus,
           );
           log.info('CanvasDeviceBloc: get devices: ${newState.devices.length}, '
               'controllingDeviceStatus: ${newState.controllingDeviceStatus}');
           emit(newState);
-          await _canvasClientServiceV2.connectToDevice(
+          _canvasClientServiceV2.connectToDevice(
               newState.controllingDevices.map((e) => e.device).toList().first);
         } catch (e) {
           log.info('CanvasDeviceBloc: error while get devices: $e');
@@ -400,9 +393,10 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
         try {
           log.info('CanvasDeviceBloc: disconnect device: '
               '${device.id}, ${device.name}, ${device.ip}');
-          await _canvasClientServiceV2.disconnectDevice(device);
-          emit(state.replaceDeviceState(
-              device: device, deviceState: DeviceState(device: device)));
+          if (event.callRPC) {
+            await _canvasClientServiceV2.disconnectDevice(device);
+          }
+          add(CanvasDeviceGetDevicesEvent());
         } catch (e) {
           log.info('CanvasDeviceBloc: error while disconnect device: $e');
         }
