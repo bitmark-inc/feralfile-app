@@ -122,7 +122,6 @@ import 'package:autonomy_flutter/screen/tezos_beacon/tb_sign_message_page.dart';
 import 'package:autonomy_flutter/screen/wallet/wallet_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_bloc.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
-import 'package:autonomy_flutter/screen/wallet_connect/v2/add_ethereum_chain_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/v2/wc2_permission_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
@@ -259,13 +258,6 @@ class AppRouter {
     );
 
     switch (settings.name) {
-      case addEthereumChainPage:
-        return CupertinoPageRoute(
-          settings: settings,
-          builder: (context) => AddEthereumChainPage(
-            payload: settings.arguments! as AddEthereumChainPagePayload,
-          ),
-        );
       case projectsList:
         return PageTransition(
           type: PageTransitionType.fade,
@@ -635,11 +627,6 @@ class AppRouter {
                 BlocProvider(
                   create: (_) => identityBloc,
                 ),
-                BlocProvider(
-                  create: (_) => CanvasDeviceBloc(
-                    injector(),
-                  ),
-                ),
                 BlocProvider(create: (_) => postcardDetailBloc),
               ],
               child: ArtworkPreviewPage(
@@ -719,6 +706,11 @@ class AppRouter {
                             injector(),
                             injector(),
                           )),
+                  BlocProvider(
+                    create: (_) => CanvasDeviceBloc(
+                      injector(),
+                    ),
+                  ),
                 ],
                 child: ArtworkDetailPage(
                     payload: settings.arguments! as ArtworkDetailPayload)));

@@ -141,7 +141,7 @@ abstract class FeralFileService {
     bool withSeries = false,
   });
 
-  Future<Exhibition> getFeaturedExhibition();
+  Future<ExhibitionDetail> getFeaturedExhibition();
 
   Future<List<Artwork>> getExhibitionArtworks(String exhibitionId,
       {bool withSeries = false});
@@ -245,9 +245,9 @@ class FeralFileServiceImpl extends FeralFileService {
   }
 
   @override
-  Future<Exhibition> getFeaturedExhibition() async {
-    final featuredExhibition = await _feralFileApi.getFeaturedExhibition();
-    return featuredExhibition.result;
+  Future<ExhibitionDetail> getFeaturedExhibition() async {
+    final exhibitionResponse = await _feralFileApi.getFeaturedExhibition();
+    return ExhibitionDetail(exhibition: exhibitionResponse.result);
   }
 
   Future<List<Artwork>> _getExhibitionArtworkByDirectApi(String exhibitionId,
