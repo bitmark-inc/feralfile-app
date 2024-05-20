@@ -40,6 +40,7 @@ import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
+import 'package:autonomy_flutter/service/canvas_channel_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/chat_auth_service.dart';
@@ -50,6 +51,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/currency_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
+import 'package:autonomy_flutter/service/device_info_service.dart';
 import 'package:autonomy_flutter/service/domain_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
@@ -60,6 +62,7 @@ import 'package:autonomy_flutter/service/merchandise_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/service/network_service.dart';
 import 'package:autonomy_flutter/service/notification_service.dart';
 import 'package:autonomy_flutter/service/pending_token_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
@@ -323,11 +326,15 @@ Future<void> setup() async {
   injector.registerLazySingleton<PlaylistService>(
       () => PlayListServiceImp(injector(), injector(), injector(), injector()));
 
+  injector.registerLazySingleton<NetworkService>(() => NetworkService());
+  injector.registerLazySingleton<CanvasChannelService>(
+      () => CanvasChannelService(injector()));
+  injector.registerLazySingleton<DeviceInfoService>(() => DeviceInfoService());
   injector.registerLazySingleton<CanvasClientService>(
-      () => CanvasClientService(injector()));
-  injector.registerLazySingleton<MDnsService>(() => MDnsService());
-  injector.registerLazySingleton<CanvasClientServiceV2>(
-      () => CanvasClientServiceV2(injector(), injector()));
+      () => CanvasClientService(injector(), injector(), injector()));
+  injector.registerLazySingleton<MDnsService>(() => MDnsService(injector()));
+  injector.registerLazySingleton<CanvasClientServiceV2>(() =>
+      CanvasClientServiceV2(injector(), injector(), injector(), injector()));
 
   injector.registerLazySingleton<PostcardService>(
     () => PostcardServiceImpl(
@@ -386,5 +393,5 @@ Future<void> setup() async {
       () => IdentityBloc(injector(), injector()));
   injector.registerFactory<AuChatBloc>(() => AuChatBloc(injector()));
   injector.registerLazySingleton<CanvasDeviceBloc>(
-      () => CanvasDeviceBloc(injector(), injector()));
+      () => CanvasDeviceBloc(injector(), injector(), injector()));
 }

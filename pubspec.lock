@@ -655,8 +655,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "8409d8dc920173e75f2a146567b5f0200444aaf0"
-      resolved-ref: "8409d8dc920173e75f2a146567b5f0200444aaf0"
+      ref: b595a46c2946569c75040f44f78733b86a8b5df4
+      resolved-ref: b595a46c2946569c75040f44f78733b86a8b5df4
       url: "https://github.com/autonomy-system/feralfile-app-tv-proto-communication"
     source: git
     version: "0.0.1"
@@ -2301,7 +2301,7 @@ packages:
     source: hosted
     version: "7.0.8"
   retry:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: retry
       sha256: "822e118d5b3aafed083109c72d5f484c6dc66707885e07c0fbcb8b986bba7efc"

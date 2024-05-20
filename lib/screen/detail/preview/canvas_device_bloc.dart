@@ -1,11 +1,21 @@
+//
+//  SPDX-License-Identifier: BSD-2-Clause-Patent
+//  Copyright © 2022 Bitmark. All rights reserved.
+//  Use of this source code is governed by the BSD-2-Clause Plus Patent License
+//  that can be found in the LICENSE file.
+//
+
 import 'dart:async';
 
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/service/canvas_client_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
+import 'package:autonomy_flutter/service/network_service.dart';
+import 'package:autonomy_flutter/util/device_status_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:collection/collection.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rxdart/transformers.dart';
@@ -15,7 +25,9 @@ import 'package:web3dart/json_rpc.dart';
 abstract class CanvasDeviceEvent {}
 
 class CanvasDeviceGetDevicesEvent extends CanvasDeviceEvent {
-  CanvasDeviceGetDevicesEvent();
+  final bool retry;
+
+  CanvasDeviceGetDevicesEvent({this.retry = false});
 }
 
 class CanvasDeviceAppendDeviceEvent extends CanvasDeviceEvent {
@@ -66,8 +78,9 @@ class CanvasDeviceRotateEvent extends CanvasDeviceEvent {
 
 class CanvasDeviceDisconnectEvent extends CanvasDeviceEvent {
   final List<CanvasDevice> devices;
+  final bool callRPC;
 
-  CanvasDeviceDisconnectEvent(this.devices);
+  CanvasDeviceDisconnectEvent(this.devices, {this.callRPC = true});
 }
 
 class CanvasDeviceCastListArtworkEvent extends CanvasDeviceEvent {
@@ -228,27 +241,49 @@ EventTransformer<Event> debounceSequential<Event>(Duration duration) =>
 class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
   final CanvasClientService _canvasClientService;
   final CanvasClientServiceV2 _canvasClientServiceV2;
+  final NetworkService _networkService;
 
   // constructor
-  CanvasDeviceBloc(this._canvasClientService, this._canvasClientServiceV2)
+  CanvasDeviceBloc(this._canvasClientService, this._canvasClientServiceV2,
+      this._networkService)
       : super(CanvasDeviceState(devices: [])) {
     on<CanvasDeviceGetDevicesEvent>(
       (event, emit) async {
+        if (!_networkService.isWifi) {
+          if (event.retry) {
+            _networkService.addListener((result) {
+              if (result == ConnectivityResult.wifi) {
+                log.info('CanvasDeviceBloc: retry get devices');
+                add(CanvasDeviceGetDevicesEvent());
+              }
+            }, id: NetworkService.canvasBlocListenerId);
+          }
+
+          log.info('CanvasDeviceBloc: not using wifi, skip getting devices');
+          return;
+        }
+        log.info('CanvasDeviceBloc: adding devices');
+        unawaited(_networkService
+            .removeListener(NetworkService.canvasBlocListenerId));
         try {
           final devices = await _canvasClientServiceV2.scanDevices();
 
-          final thisDevice = _canvasClientServiceV2.clientDeviceInfo;
-          final Map<String, CheckDeviceStatusReply> controllingDeviceStatus =
-              {};
-          for (final device in devices) {
-            if (device.second.connectedDevice.deviceId == thisDevice.deviceId) {
-              controllingDeviceStatus[device.first.id] = device.second;
-              break;
+          final stateControllingDeviceStatus = state.controllingDeviceStatus;
+
+          final controllingdevice = state.controllingDevice;
+          Map<String, CheckDeviceStatusReply>? controllingDeviceStatus = {};
+
+          if (controllingdevice == null) {
+            controllingDeviceStatus = devices.controllingDevices;
+          } else {
+            if (devices
+                .any((element) => element.first.id == controllingdevice.id)) {
+              controllingDeviceStatus = stateControllingDeviceStatus;
             } else {
-              log.info('CanvasDeviceBloc: get devices: ${device.first.id}, '
-                  'connectedDevice: ${device.second.connectedDevice.deviceId}');
+              controllingDeviceStatus = devices.controllingDevices;
             }
           }
+
           final newState = state.copyWith(
             devices: devices.map((e) => DeviceState(device: e.first)).toList(),
             controllingDeviceStatus: controllingDeviceStatus,
@@ -256,6 +291,8 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
           log.info('CanvasDeviceBloc: get devices: ${newState.devices.length}, '
               'controllingDeviceStatus: ${newState.controllingDeviceStatus}');
           emit(newState);
+          _canvasClientServiceV2.connectToDevice(
+              newState.controllingDevices.map((e) => e.device).toList().first);
         } catch (e) {
           log.info('CanvasDeviceBloc: error while get devices: $e');
           unawaited(Sentry.captureException(e));
@@ -356,9 +393,10 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
         try {
           log.info('CanvasDeviceBloc: disconnect device: '
               '${device.id}, ${device.name}, ${device.ip}');
-          await _canvasClientServiceV2.disconnectDevice(device);
-          emit(state.replaceDeviceState(
-              device: device, deviceState: DeviceState(device: device)));
+          if (event.callRPC) {
+            await _canvasClientServiceV2.disconnectDevice(device);
+          }
+          add(CanvasDeviceGetDevicesEvent());
         } catch (e) {
           log.info('CanvasDeviceBloc: error while disconnect device: $e');
         }

@@ -15,10 +15,9 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/eth_pending_tx_amount.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/service/canvas_client_service.dart';
-import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
+import 'package:autonomy_flutter/service/device_info_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -125,8 +124,7 @@ Future<void> _setupApp() async {
 
   await DeviceInfo.instance.init();
 
-  await injector<CanvasClientService>().init();
-  await injector<CanvasClientServiceV2>().init();
+  await injector<DeviceInfoService>().init();
 
   final metricClient = injector.get<MetricClientService>();
   await metricClient.initService();
