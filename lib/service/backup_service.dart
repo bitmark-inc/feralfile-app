@@ -14,10 +14,12 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/model/backup_versions.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/helpers.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration/migration_util.dart';
+import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:floor/floor.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -184,6 +186,15 @@ class BackupService {
   }
 
   Future<String> getAuthToken(WalletStorage account) async {
+    try {
+      final wallet = await injector<AccountService>().getDefaultAccount();
+      final jwtV2 = await _iapApi.authV2(await wallet.getDIDRequest());
+      log.info('[BackupService] Get jwt V2');
+      return jwtV2.jwtToken;
+    } catch (e) {
+      log.info('[BackupService] Get jwt V2 failed, trying V1');
+    }
+    log.info('[BackupService] Getting jwt V1');
     final message = DateTime.now().millisecondsSinceEpoch.toString();
     final accountDID = await account.getAccountDID();
     final signature = await account.getAccountDIDSignature(message);

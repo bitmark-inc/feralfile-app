@@ -11,10 +11,12 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/account_v2_request.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/wc2_ext.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/models/asset_token.dart';
@@ -29,6 +31,20 @@ extension StringExtension on WalletStorage {
     } else {
       return "";
     }
+  }
+
+  Future<AccountV2Request> getDIDRequest({receipt}) async {
+    final accountDID = await getAccountDID();
+    final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+    final message = getFeralFileAccountMessage(accountDID, timestamp);
+    final signature = await getAccountDIDSignature(message);
+    return AccountV2Request(
+      type: 'did',
+      requester: accountDID,
+      timestamp: timestamp,
+      signature: signature,
+      receipt: receipt,
+    );
   }
 }
 

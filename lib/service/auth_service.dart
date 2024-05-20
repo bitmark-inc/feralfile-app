@@ -21,6 +21,7 @@ import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:dio/dio.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:synchronized/synchronized.dart';
@@ -164,7 +165,7 @@ class AuthService {
       final jwt = await _authApi.authV2(request);
       return jwt;
     } catch (e) {
-      log.info('[AuthService] Failed to get jwt v2 $request');
+      log.info('[AuthService] Failed to get jwt v2 $e');
       return null;
     }
   }
@@ -174,26 +175,15 @@ class AuthService {
     return await _getJwtTokenV2(request);
   }
 
-  Future<JWT?> getJwtForDID() async {
-    final wallet = await injector<AccountService>().getDefaultAccount();
-    final request = await _getDIDRequest(wallet);
+  Future<JWT?> getJwtForDID({WalletStorage? account}) async {
+    final request = await _getDIDRequest(
+        account ?? await injector<AccountService>().getDefaultAccount());
     return await _getJwtTokenV2(request);
   }
 
   Future<AccountV2Request> _getDIDRequest(WalletStorage wallet,
-      {receipt}) async {
-    final accountDID = await wallet.getAccountDID();
-    final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
-    final message = getFeralFileAccountMessage(accountDID, timestamp);
-    final signature = await wallet.getAccountDIDSignature(message);
-    return AccountV2Request(
-      type: 'did',
-      requester: accountDID,
-      timestamp: timestamp,
-      signature: signature,
-      receipt: receipt,
-    );
-  }
+          {receipt}) async =>
+      await wallet.getDIDRequest(receipt: receipt);
 
   Future<void> removeIdentity(String address) async {
     try {
