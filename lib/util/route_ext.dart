@@ -499,6 +499,7 @@ final screenNameMap = {
   AppRouter.exhibitionNotePage: 'Exhibition Note',
   AppRouter.previewPrimerPage: 'Preview Primer',
   AppRouter.projectsList: 'Projects',
+  AppRouter.artistsListPage: 'Artists list',
 };
 
 String getPageName(String routeName) {

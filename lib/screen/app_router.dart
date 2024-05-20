@@ -31,6 +31,7 @@ import 'package:autonomy_flutter/screen/bug_bounty_page.dart';
 import 'package:autonomy_flutter/screen/chat/chat_thread_page.dart';
 import 'package:autonomy_flutter/screen/cloud/cloud_android_page.dart';
 import 'package:autonomy_flutter/screen/cloud/cloud_page.dart';
+import 'package:autonomy_flutter/screen/collection_pro/artists_list_page/artists_list_page.dart';
 import 'package:autonomy_flutter/screen/connection/connection_details_page.dart';
 import 'package:autonomy_flutter/screen/connection/persona_connections_page.dart';
 import 'package:autonomy_flutter/screen/customer_support/merchandise_order/merchandise_orders_page.dart';
@@ -228,6 +229,7 @@ class AppRouter {
   static const exhibitionNotePage = 'exhibition_note_page';
   static const projectsList = 'projects_list';
   static const addEthereumChainPage = 'add_ethereum_chain_page';
+  static const artistsListPage = 'artists_list_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector(), injector());
@@ -258,6 +260,15 @@ class AppRouter {
     );
 
     switch (settings.name) {
+      case artistsListPage:
+        return PageTransition(
+          type: PageTransitionType.fade,
+          curve: Curves.easeIn,
+          duration: const Duration(milliseconds: 250),
+          settings: settings,
+          child: ArtistsListPage(
+              payload: settings.arguments! as ArtistsListPagePayload),
+        );
       case projectsList:
         return PageTransition(
           type: PageTransitionType.fade,
