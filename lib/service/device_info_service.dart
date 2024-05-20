@@ -5,8 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart';
 
 class DeviceInfoService {
@@ -20,8 +19,7 @@ class DeviceInfoService {
     }
     final device = DeviceInfo.instance;
     _deviceName = await device.getMachineName() ?? 'Feral File App';
-    final account = await injector<AccountService>().getDefaultAccount();
-    _deviceId = await account.getAccountDID();
+    _deviceId = await getDeviceID();
     _didInitialized = true;
   }
 
