@@ -104,7 +104,7 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('current_exhibition'.tr(),
+          Text(index == 0 ? 'current_exhibition'.tr() : 'past_exhibition'.tr(),
               style: theme.textTheme.ppMori400White14),
           if (exhibition.isFreeToStream)
             Text('free_to_stream'.tr(), style: theme.textTheme.ppMori400Grey14),
