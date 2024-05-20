@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
@@ -96,12 +98,12 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
                       return PlaylistItem(
                           playlist: item,
                           onSelected: () async {
-                            Navigator.pushNamed(
+                            unawaited(Navigator.pushNamed(
                               context,
                               AppRouter.viewPlayListPage,
                               arguments: ViewPlaylistScreenPayload(
                                   playListModel: item),
-                            );
+                            ));
                             final tokenIds = item.tokenIDs;
                             if (tokenIds != null && tokenIds.isNotEmpty) {
                               final bloc = injector.get<CanvasDeviceBloc>();

@@ -21,7 +21,6 @@ import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:fixnum/fixnum.dart' as $fixnum;
 import 'package:flutter/material.dart';
 import 'package:retry/retry.dart';
-import 'package:synchronized/synchronized.dart';
 
 class CanvasClientServiceV2 {
   final AppDatabase _db;
@@ -32,7 +31,6 @@ class CanvasClientServiceV2 {
   CanvasClientServiceV2(this._db, this._mdnsService, this._deviceInfoService,
       this._channelService);
 
-  final _connectDevice = Lock();
   final _retry = const RetryOptions(maxAttempts: 3);
 
   Offset currentCursorOffset = Offset.zero;
@@ -62,9 +60,6 @@ class CanvasClientServiceV2 {
         'CanvasClientService2 status ok: ${response.connectedDevice.deviceId}');
     return response;
   }
-
-  // Future<bool> connectToDevice(CanvasDevice device) async =>
-  //     _connectDevice.synchronized(() async => await _connectToDevice(device));
 
   DeviceInfoV2_DevicePlatform get _platform {
     final device = my_device.DeviceInfo.instance;
@@ -97,20 +92,18 @@ class CanvasClientServiceV2 {
     final stub = _getStub(device);
     final deviceInfo = clientDeviceInfo;
     final request = ConnectRequestV2()..clientDevice = deviceInfo;
-    final response = await _retryWrapper<ResponseStream<ConnectReplyV2>>(() =>
-        stub.connect(request, options: _callOptions)
-            as ResponseStream<ConnectReplyV2>);
-    response
-      ..listen((reply) {
-        log.info('CanvasClientService: connect $reply');
-        onEvent?.call(device, reply);
-      }, onDone: () {
-        log.info('CanvasClientService: onDone');
-        onDone?.call(device);
-      }, onError: (e) {
-        log.info('CanvasClientService: onError $e');
-        onError?.call(device);
-      });
+    final response = await _retryWrapper<ResponseStream<ConnectReplyV2>>(
+        () => stub.connect(request, options: _callOptions));
+    response.listen((reply) {
+      log.info('CanvasClientService: connect $reply');
+      onEvent?.call(device, reply);
+    }, onDone: () {
+      log.info('CanvasClientService: onDone');
+      onDone?.call(device);
+    }, onError: (e) {
+      log.info('CanvasClientService: onError $e');
+      onError?.call(device);
+    });
     return response;
   }
 
