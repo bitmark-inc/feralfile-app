@@ -1,15 +1,20 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/collection_ext.dart';
 import 'package:autonomy_flutter/view/image_background.dart';
+import 'package:autonomy_flutter/view/stream_common_widget.dart';
 import 'package:autonomy_flutter/view/title_text.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
+import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter/material.dart';
 
 class ListPlaylistsScreen extends StatefulWidget {
@@ -71,9 +76,10 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
                 if (widget.filter.isNotEmpty)
                   TitleText(title: 'playlists'.tr()),
                 const SizedBox(height: 30),
-                (widget.playlists.value?.length ?? 0) >= 6
-                    ? playlistHorizontalGridView(context, playlists)
-                    : playlistListView(context, playlists)
+                if ((widget.playlists.value?.length ?? 0) >= 6)
+                  playlistHorizontalGridView(context, playlists)
+                else
+                  playlistListView(context, playlists)
               ],
             ),
           );
@@ -102,13 +108,10 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
           return SizedBox(
             height: PlaylistItem.height,
             child: PlaylistItem(
-              playlist: item,
-              onSelected: () async => Navigator.pushNamed(
-                context,
-                AppRouter.viewPlayListPage,
-                arguments: ViewPlaylistScreenPayload(playListModel: item),
-              ),
-            ),
+                playlist: item,
+                onSelected: () {
+                  onPlaylistTap(item);
+                }),
           );
         },
         separatorBuilder: (context, index) => const SizedBox(width: 15),
@@ -142,18 +145,39 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
           }
           final item = playlists[index];
           return PlaylistItem(
-            key: ValueKey(item.id),
-            playlist: item,
-            onSelected: () async => Navigator.pushNamed(
-              context,
-              AppRouter.viewPlayListPage,
-              arguments: ViewPlaylistScreenPayload(playListModel: item),
-            ),
-          );
+              key: ValueKey(item.id),
+              playlist: item,
+              onSelected: () {
+                onPlaylistTap(item);
+              });
         },
         itemCount: length,
       ),
     );
+  }
+
+  void onPlaylistTap(PlayListModel playlist) {
+    unawaited(Navigator.pushNamed(
+      context,
+      AppRouter.viewPlayListPage,
+      arguments: ViewPlaylistScreenPayload(playListModel: playlist),
+    ));
+    final tokenIds = playlist.tokenIDs;
+    if (tokenIds != null && tokenIds.isNotEmpty) {
+      final bloc = injector.get<CanvasDeviceBloc>();
+      final controllingDevice = bloc.state.controllingDevice;
+      if (controllingDevice != null) {
+        final duration = speedValues.values.first;
+        final List<PlayArtworkV2> castArtworks = tokenIds
+            .map((e) => PlayArtworkV2(
+                  token: CastAssetToken(id: e),
+                  duration: duration.inMilliseconds,
+                ))
+            .toList();
+        bloc.add(CanvasDeviceChangeControlDeviceEvent(
+            controllingDevice, castArtworks));
+      }
+    }
   }
 }
 

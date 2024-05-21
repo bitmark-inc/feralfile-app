@@ -4,6 +4,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
 import 'package:autonomy_flutter/screen/exhibitions/exhibitions_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibitions/exhibitions_state.dart';
@@ -14,6 +15,7 @@ import 'package:autonomy_flutter/view/header.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
+import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -29,6 +31,7 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
   late ExhibitionBloc _exhibitionBloc;
   late ScrollController _controller;
   final _navigationService = injector<NavigationService>();
+  final _canvasDeviceBloc = injector<CanvasDeviceBloc>();
 
   // initState
   @override
@@ -135,6 +138,15 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                   ),
                 ),
                 onTap: () async {
+                  final device = _canvasDeviceBloc.state.controllingDevice;
+                  if (device != null) {
+                    final castRequest = CastExhibitionRequest(
+                      exhibitionId: exhibition.id,
+                      katalog: ExhibitionKatalog.HOME,
+                    );
+                    _canvasDeviceBloc.add(
+                        CanvasDeviceCastExhibitionEvent(device, castRequest));
+                  }
                   await Navigator.of(context)
                       .pushNamed(AppRouter.exhibitionDetailPage,
                           arguments: ExhibitionDetailPayload(

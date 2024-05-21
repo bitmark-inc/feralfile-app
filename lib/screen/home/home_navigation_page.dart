@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
+import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibitions/exhibitions_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibitions/exhibitions_page.dart';
 import 'package:autonomy_flutter/screen/exhibitions/exhibitions_state.dart';
@@ -27,7 +28,6 @@ import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
-import 'package:autonomy_flutter/service/canvas_client_service.dart';
 import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -260,8 +260,11 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
 
   @override
   void initState() {
-    unawaited(injector<CustomerSupportService>().getIssuesAndAnnouncement());
     super.initState();
+    // since we moved to use bonsoir service,
+    // we don't need to wait for canvas service to init
+    injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent(retry: true));
+    unawaited(injector<CustomerSupportService>().getIssuesAndAnnouncement());
     _initialTab = widget.payload.startedTab;
     _selectedIndex = _initialTab.index;
     NftCollectionBloc.eventController.stream.listen((event) async {
@@ -290,7 +293,8 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
       OrganizeHomePage(key: _organizeHomePageKey),
       MultiBlocProvider(providers: [
         BlocProvider.value(
-            value: ExhibitionBloc(injector())..add(GetAllExhibitionsEvent())),
+          value: ExhibitionBloc(injector())..add(GetAllExhibitionsEvent()),
+        ),
       ], child: const ExhibitionsPage()),
       ScanQRPage(
         key: _scanQRPageKey,
@@ -317,8 +321,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     }
     WidgetsBinding.instance.addObserver(this);
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
-
-    unawaited(injector<CanvasClientService>().init());
     unawaited(_syncArtist());
 
     unawaited(_requestLocalNetworkPermission());
@@ -850,6 +852,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
 
   Future<void> _handleForeground() async {
     _metricClientService.onForeground();
+    injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent(retry: true));
     await injector<CustomerSupportService>().fetchAnnouncement();
     await _remoteConfig.loadConfigs();
   }

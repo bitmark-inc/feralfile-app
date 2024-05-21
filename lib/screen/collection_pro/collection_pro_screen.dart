@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
@@ -7,6 +8,7 @@ import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/shared_postcard.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
+import 'package:autonomy_flutter/screen/collection_pro/artists_list_page/artists_list_page.dart';
 import 'package:autonomy_flutter/screen/collection_pro/collection_pro_bloc.dart';
 import 'package:autonomy_flutter/screen/collection_pro/collection_pro_state.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
@@ -19,14 +21,13 @@ import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/collection_ext.dart';
-import 'package:autonomy_flutter/util/medium_category_ext.dart';
 import 'package:autonomy_flutter/util/predefined_collection_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/galery_thumbnail_item.dart';
 import 'package:autonomy_flutter/view/get_started_banner.dart';
 import 'package:autonomy_flutter/view/header.dart';
+import 'package:autonomy_flutter/view/predefined_collection/predefined_collection_item.dart';
 import 'package:autonomy_flutter/view/search_bar.dart';
 import 'package:autonomy_flutter/view/title_text.dart';
 import 'package:collection/collection.dart';
@@ -163,8 +164,22 @@ class CollectionProState extends State<CollectionPro>
                       )
                       .toList()
                       .filterByName(searchStr.value)
-                    ..sort((a, b) =>
-                        a.name!.toLowerCase().compareTo(b.name!.toLowerCase()));
+                    ..sort((a, b) {
+                      final aFirstCharacter = a.name.firstSearchCharacter;
+                      final bFirstCharacter = b.name.firstSearchCharacter;
+                      if (aFirstCharacter != '#' && bFirstCharacter != '#') {
+                        return a.name!
+                            .toUpperCase()
+                            .compareTo(b.name!.toUpperCase());
+                      }
+                      if (aFirstCharacter == '#' && bFirstCharacter != '#') {
+                        return 1;
+                      }
+                      if (aFirstCharacter != '#' && bFirstCharacter == '#') {
+                        return -1;
+                      }
+                      return (a.name ?? '').compareTo(b.name ?? '');
+                    });
                   setState(() {
                     _listPredefinedCollectionByArtist =
                         listPredefinedCollectionByArtist;
@@ -250,8 +265,9 @@ class CollectionProState extends State<CollectionPro>
                         SliverList(
                           delegate: SliverChildBuilderDelegate(
                             _predefinedCollectionByArtistBuilder,
-                            childCount:
+                            childCount: min(
                                 _listPredefinedCollectionByArtist.length + 1,
+                                31),
                           ),
                         ),
                         const SliverToBoxAdapter(
@@ -326,7 +342,24 @@ class CollectionProState extends State<CollectionPro>
 
   Widget _predefinedCollectionByArtistBuilder(BuildContext context, int index) {
     const type = PredefinedCollectionType.artist;
-    return _predefinedCollectionBuilder(context, index, type);
+    final isSearching = searchStr.value.isNotEmpty;
+    final numberOfArtists = _listPredefinedCollectionByArtist.length;
+    final displaySeeAll = !isSearching && index == 0 && numberOfArtists > 30;
+    final Widget? action = displaySeeAll
+        ? GestureDetector(
+            onTap: () async {
+              await Navigator.of(context).pushNamed(AppRouter.artistsListPage,
+                  arguments: ArtistsListPagePayload(
+                      _listPredefinedCollectionByArtist));
+            },
+            child: Text(
+              'see_all'.tr(),
+              style: Theme.of(context).textTheme.ppMori400White14.copyWith(
+                    decoration: TextDecoration.underline,
+                  ),
+            ))
+        : null;
+    return _predefinedCollectionBuilder(context, index, type, action: action);
   }
 
   Widget _predefinedCollectionByMediumBuilder(BuildContext context, int index) {
@@ -384,8 +417,9 @@ class CollectionProState extends State<CollectionPro>
   Widget _predefinedCollectionBuilder(
     BuildContext context,
     int index,
-    PredefinedCollectionType type,
-  ) {
+    PredefinedCollectionType type, {
+    Widget? action,
+  }) {
     final sep = addOnlyDivider(color: AppColor.auGreyBackground);
     const padding = EdgeInsets.symmetric(horizontal: 15);
     if (index == 0) {
@@ -394,10 +428,7 @@ class CollectionProState extends State<CollectionPro>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _predefinedCollectionHeader(
-              context,
-              type,
-            ),
+            _predefinedCollectionHeader(context, type, action: action),
             const SizedBox(
               height: 30,
             ),
@@ -414,10 +445,10 @@ class CollectionProState extends State<CollectionPro>
         padding: const EdgeInsets.symmetric(horizontal: 15),
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 15),
-              child: _predefinedCollectionItem(
-                  context, predefinedCollection, type, searchStr.value),
+            PredefinedCollectionItem(
+              predefinedCollection: predefinedCollection,
+              type: type,
+              searchStr: searchStr.value,
             ),
             sep,
           ],
@@ -426,97 +457,16 @@ class CollectionProState extends State<CollectionPro>
     }
   }
 
-  Widget _predefinedCollectionItem(
-      BuildContext context,
-      PredefinedCollectionModel predefinedCollection,
-      PredefinedCollectionType type,
-      String searchStr) {
-    final theme = Theme.of(context);
-    var title = predefinedCollection.name ?? predefinedCollection.id;
-    if (predefinedCollection.name == predefinedCollection.id) {
-      title = title.maskOnly(5);
-    }
-    final titleStyle = theme.textTheme.ppMori400White14;
-    return GestureDetector(
-      onTap: () async {
-        await Navigator.pushNamed(
-          context,
-          AppRouter.predefinedCollectionPage,
-          arguments: PredefinedCollectionScreenPayload(
-            type: type,
-            predefinedCollection: predefinedCollection,
-            filterStr: searchStr,
-          ),
-        );
-      },
-      child: Container(
-        color: Colors.transparent,
-        child: Row(
-          children: [
-            _predefinedCollectionIcon(
-              predefinedCollection,
-              type,
-            ),
-            const SizedBox(width: 33),
-            Expanded(
-              child: Text(
-                title,
-                style: titleStyle,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            Text('${predefinedCollection.total}',
-                style: theme.textTheme.ppMori400Grey14),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _predefinedCollectionIcon(
-      PredefinedCollectionModel predefinedCollection,
-      PredefinedCollectionType type) {
-    switch (type) {
-      case PredefinedCollectionType.medium:
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            color: AppColor.auGreyBackground,
-          ),
-          child: SvgPicture.asset(
-            MediumCategoryExt.icon(predefinedCollection.id),
-            width: 22,
-            colorFilter:
-                const ColorFilter.mode(AppColor.white, BlendMode.srcIn),
-          ),
-        );
-      case PredefinedCollectionType.artist:
-        final compactedAssetTokens = predefinedCollection.compactedAssetToken;
-        return SizedBox(
-          width: 42,
-          height: 42,
-          child: tokenGalleryThumbnailWidget(context, compactedAssetTokens, 100,
-              usingThumbnailID: false,
-              galleryThumbnailPlaceholder: Container(
-                width: 42,
-                height: 42,
-                color: AppColor.auLightGrey,
-              )),
-        );
-    }
-  }
-
   Widget _predefinedCollectionHeader(
-      BuildContext context, PredefinedCollectionType type) {
+      BuildContext context, PredefinedCollectionType type,
+      {Widget? action}) {
     final title = type == PredefinedCollectionType.medium
         ? 'medium'.tr()
         : 'artists'.tr();
     return HeaderView(
       title: title,
       padding: EdgeInsets.zero,
+      action: action,
     );
   }
 

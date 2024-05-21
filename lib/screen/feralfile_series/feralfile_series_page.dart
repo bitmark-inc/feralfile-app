@@ -1,7 +1,9 @@
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artwork_preview_page.dart';
 import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_bloc.dart';
 import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_state.dart';
@@ -9,6 +11,7 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/ff_artwork_thumbnail_view.dart';
 import 'package:autonomy_flutter/view/series_title_view.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
+import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -23,6 +26,7 @@ class FeralFileSeriesPage extends StatefulWidget {
 
 class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
   late final FeralFileSeriesBloc _feralFileSeriesBloc;
+  final _canvasDeviceBloc = injector.get<CanvasDeviceBloc>();
 
   @override
   void initState() {
@@ -77,6 +81,20 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
               return FFArtworkThumbnailView(
                 artwork: artwork,
                 onTap: () async {
+                  final controllingDevice =
+                      _canvasDeviceBloc.state.controllingDevice;
+                  if (controllingDevice != null) {
+                    final castRequest = CastExhibitionRequest(
+                        exhibitionId: exhibitionDetail!.exhibition.id,
+                        katalog: ExhibitionKatalog.ARTWORK,
+                        katalogId: artwork.id);
+                    _canvasDeviceBloc.add(
+                      CanvasDeviceCastExhibitionEvent(
+                        controllingDevice,
+                        castRequest,
+                      ),
+                    );
+                  }
                   await Navigator.of(context).pushNamed(
                     AppRouter.ffArtworkPreviewPage,
                     arguments: FeralFileArtworkPreviewPagePayload(
