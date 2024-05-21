@@ -21,14 +21,13 @@ import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/collection_ext.dart';
-import 'package:autonomy_flutter/util/medium_category_ext.dart';
 import 'package:autonomy_flutter/util/predefined_collection_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/galery_thumbnail_item.dart';
 import 'package:autonomy_flutter/view/get_started_banner.dart';
 import 'package:autonomy_flutter/view/header.dart';
+import 'package:autonomy_flutter/view/predefined_collection/predefined_collection_item.dart';
 import 'package:autonomy_flutter/view/search_bar.dart';
 import 'package:autonomy_flutter/view/title_text.dart';
 import 'package:collection/collection.dart';
@@ -446,98 +445,15 @@ class CollectionProState extends State<CollectionPro>
         padding: const EdgeInsets.symmetric(horizontal: 15),
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 15),
-              child: _predefinedCollectionItem(
-                  context, predefinedCollection, type, searchStr.value),
+            PredefinedCollectionItem(
+              predefinedCollection: predefinedCollection,
+              type: type,
+              searchStr: searchStr.value,
             ),
             sep,
           ],
         ),
       );
-    }
-  }
-
-  Widget _predefinedCollectionItem(
-      BuildContext context,
-      PredefinedCollectionModel predefinedCollection,
-      PredefinedCollectionType type,
-      String searchStr) {
-    final theme = Theme.of(context);
-    var title = predefinedCollection.name ?? predefinedCollection.id;
-    if (predefinedCollection.name == predefinedCollection.id) {
-      title = title.maskOnly(5);
-    }
-    final titleStyle = theme.textTheme.ppMori400White14;
-    return GestureDetector(
-      onTap: () async {
-        await Navigator.pushNamed(
-          context,
-          AppRouter.predefinedCollectionPage,
-          arguments: PredefinedCollectionScreenPayload(
-            type: type,
-            predefinedCollection: predefinedCollection,
-            filterStr: searchStr,
-          ),
-        );
-      },
-      child: Container(
-        color: Colors.transparent,
-        child: Row(
-          children: [
-            _predefinedCollectionIcon(
-              predefinedCollection,
-              type,
-            ),
-            const SizedBox(width: 33),
-            Expanded(
-              child: Text(
-                title,
-                style: titleStyle,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            Text('${predefinedCollection.total}',
-                style: theme.textTheme.ppMori400Grey14),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _predefinedCollectionIcon(
-      PredefinedCollectionModel predefinedCollection,
-      PredefinedCollectionType type) {
-    switch (type) {
-      case PredefinedCollectionType.medium:
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            color: AppColor.auGreyBackground,
-          ),
-          child: SvgPicture.asset(
-            MediumCategoryExt.icon(predefinedCollection.id),
-            width: 22,
-            colorFilter:
-                const ColorFilter.mode(AppColor.white, BlendMode.srcIn),
-          ),
-        );
-      case PredefinedCollectionType.artist:
-        final compactedAssetTokens = predefinedCollection.compactedAssetToken;
-        return SizedBox(
-          width: 42,
-          height: 42,
-          child: tokenGalleryThumbnailWidget(context, compactedAssetTokens, 100,
-              usingThumbnailID: false,
-              galleryThumbnailPlaceholder: Container(
-                width: 42,
-                height: 42,
-                color: AppColor.auLightGrey,
-              )),
-        );
     }
   }
 

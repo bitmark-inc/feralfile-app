@@ -32,7 +32,7 @@ class _ArtistsListPageState extends State<ArtistsListPage> {
   final ScrollController _scrollController = ScrollController();
   final List<PredefinedCollectionModel> _items = [];
   final ValueNotifier<String?> _selectedCharacter = ValueNotifier(null);
-  final _itemHeight = PredefinedCollectionItem.height;
+  final _itemHeight = PredefinedCollectionItem.height + 1;
   static const int _scrollDuration = 500;
   static const int _scrollLag = 10;
 
@@ -110,19 +110,22 @@ class _ArtistsListPageState extends State<ArtistsListPage> {
                     selectedCharacter: value,
                   )),
           Expanded(
-              child: ListView.separated(
-            controller: _scrollController,
-            itemCount: _items.length,
-            itemBuilder: (context, index) {
-              final predefinedCollection = _items[index];
-              return PredefinedCollectionItem(
-                predefinedCollection: predefinedCollection,
-                type: PredefinedCollectionType.artist,
-                searchStr: '',
-              );
-            },
-            separatorBuilder: (BuildContext context, int index) =>
-                addOnlyDivider(color: AppColor.auGreyBackground),
+              child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 5),
+            child: ListView.separated(
+              controller: _scrollController,
+              itemCount: _items.length,
+              itemBuilder: (context, index) {
+                final predefinedCollection = _items[index];
+                return PredefinedCollectionItem(
+                  predefinedCollection: predefinedCollection,
+                  type: PredefinedCollectionType.artist,
+                  searchStr: '',
+                );
+              },
+              separatorBuilder: (BuildContext context, int index) =>
+                  addOnlyDivider(color: AppColor.auGreyBackground),
+            ),
           )),
         ],
       );

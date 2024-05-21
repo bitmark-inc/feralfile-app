@@ -29,7 +29,7 @@ class PredefinedCollectionIcon extends StatelessWidget {
     switch (type) {
       case PredefinedCollectionType.medium:
         return Container(
-          padding: const EdgeInsets.symmetric(vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 10),
           width: 44,
           height: 44,
           decoration: BoxDecoration(
