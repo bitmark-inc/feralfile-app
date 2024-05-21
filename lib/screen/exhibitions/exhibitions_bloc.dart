@@ -10,17 +10,22 @@ class ExhibitionBloc extends AuBloc<ExhibitionsEvent, ExhibitionsState> {
 
   ExhibitionBloc(this._feralFileService) : super(ExhibitionsState()) {
     on<GetAllExhibitionsEvent>((event, emit) async {
-      final isSubscribed = await injector.get<IAPService>().isSubscribed();
-      final List<ExhibitionDetail> exhibitionDetails = [];
-      if (isSubscribed) {
-        final allExhibitions = await _feralFileService.getAllExhibitions();
-        exhibitionDetails.addAll(allExhibitions);
-      } else {
-        final featuredExhibition =
-            await _feralFileService.getFeaturedExhibition();
-        exhibitionDetails.add(featuredExhibition);
-      }
-      emit(state.copyWith(exhibitions: exhibitionDetails));
+      final result = await Future.wait([
+        injector.get<IAPService>().isSubscribed(),
+        _feralFileService.getFeaturedExhibition(),
+        _feralFileService.getAllExhibitions()
+      ]);
+      final isSubscribed = result[0] as bool;
+      final featuredExhibition = result[1] as ExhibitionDetail;
+      final proExhibitions = result[2] as List<ExhibitionDetail>
+        ..removeWhere((element) =>
+            element.exhibition.id == featuredExhibition.exhibition.id);
+
+      emit(state.copyWith(
+        freeExhibitions: [featuredExhibition],
+        proExhibitions: proExhibitions,
+        isSubscribed: isSubscribed,
+      ));
     });
   }
 }

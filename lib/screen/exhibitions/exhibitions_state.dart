@@ -8,15 +8,23 @@ class GetOpeningExhibitionsEvent extends ExhibitionsEvent {}
 
 class ExhibitionsState {
   ExhibitionsState({
-    this.exhibitions,
+    this.freeExhibitions,
+    this.proExhibitions,
+    this.isSubscribed = false,
   });
 
-  final List<ExhibitionDetail>? exhibitions;
+  final List<ExhibitionDetail>? freeExhibitions;
+  final List<ExhibitionDetail>? proExhibitions;
+  final bool isSubscribed;
 
   ExhibitionsState copyWith({
-    List<ExhibitionDetail>? exhibitions,
+    List<ExhibitionDetail>? freeExhibitions,
+    final List<ExhibitionDetail>? proExhibitions,
+    bool? isSubscribed,
   }) =>
       ExhibitionsState(
-        exhibitions: exhibitions ?? this.exhibitions,
+        freeExhibitions: freeExhibitions ?? this.freeExhibitions,
+        proExhibitions: proExhibitions ?? this.proExhibitions,
+        isSubscribed: isSubscribed ?? this.isSubscribed,
       );
 }

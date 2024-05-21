@@ -9,14 +9,17 @@ import 'package:autonomy_flutter/screen/exhibitions/exhibitions_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibitions/exhibitions_state.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/header.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class ExhibitionsPage extends StatefulWidget {
   const ExhibitionsPage({super.key});
@@ -29,6 +32,7 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
   late ExhibitionBloc _exhibitionBloc;
   late ScrollController _controller;
   final _navigationService = injector<NavigationService>();
+  static const _padding = 14.0;
 
   // initState
   @override
@@ -92,118 +96,122 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
         ),
       );
 
-  Widget _exhibitionItem(
-      BuildContext context, ExhibitionDetail exhibitionDetail, int index) {
+  Widget _exhibitionItem({
+    required BuildContext context,
+    required List<ExhibitionDetail> exhibitionDetails,
+    required int index,
+    required bool isCastable,
+    required int numFree,
+  }) {
     final theme = Theme.of(context);
     final screenWidth = MediaQuery.sizeOf(context).width;
-    const double padding = 14;
-    final estimatedHeight = (screenWidth - padding * 2) / 16 * 9;
+    final estimatedHeight = (screenWidth - _padding * 2) / 16 * 9;
+    final exhibitionDetail = exhibitionDetails[index];
     final exhibition = exhibitionDetail.exhibition;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: padding),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(index == 0 ? 'current_exhibition'.tr() : 'past_exhibition'.tr(),
-              style: theme.textTheme.ppMori400White14),
-          if (exhibition.isFreeToStream)
-            Text('free_to_stream'.tr(), style: theme.textTheme.ppMori400Grey14),
-          const SizedBox(height: 18),
-          Column(
-            children: [
-              GestureDetector(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: Image.network(
-                    exhibition.coverUrl,
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) {
-                        return child;
-                      }
-                      return SizedBox(
-                        height: estimatedHeight,
-                        child: const Center(
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            backgroundColor: AppColor.auQuickSilver,
-                            strokeWidth: 2,
-                          ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Column(
+          children: [
+            GestureDetector(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: Image.network(
+                  exhibition.coverUrl,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) {
+                      return child;
+                    }
+                    return SizedBox(
+                      height: estimatedHeight,
+                      child: const Center(
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          backgroundColor: AppColor.auQuickSilver,
+                          strokeWidth: 2,
                         ),
-                      );
-                    },
-                    fit: BoxFit.fitWidth,
+                      ),
+                    );
+                  },
+                  fit: BoxFit.fitWidth,
+                ),
+              ),
+              onTap: () async {
+                await Navigator.of(context).pushNamed(
+                    AppRouter.exhibitionDetailPage,
+                    arguments: ExhibitionDetailPayload(
+                      exhibitions:
+                          exhibitionDetails.map((e) => e.exhibition).toList(),
+                      index: index,
+                    ));
+              },
+            ),
+            const SizedBox(height: 20),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Row(
+                    children: [
+                      if (isCastable) ...[
+                        _lockIcon(),
+                        const SizedBox(width: 5),
+                      ],
+                      Text(exhibition.title,
+                          style: theme.textTheme.ppMori400White16),
+                    ],
                   ),
                 ),
-                onTap: () async {
-                  await Navigator.of(context)
-                      .pushNamed(AppRouter.exhibitionDetailPage,
-                          arguments: ExhibitionDetailPayload(
-                            exhibitions: _exhibitionBloc.state.exhibitions!
-                                .map((e) => e.exhibition)
-                                .toList(),
-                            index: index,
-                          ));
-                },
-              ),
-              const SizedBox(height: 20),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Text(exhibition.title,
-                        style: theme.textTheme.ppMori400White16),
-                  ),
-                  const SizedBox(width: 20),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (exhibition.curator != null)
-                          RichText(
-                              text: TextSpan(
-                                  style: theme.textTheme.ppMori400Grey14
-                                      .copyWith(
-                                          decorationColor:
-                                              AppColor.disabledColor),
-                                  children: [
-                                TextSpan(text: 'curated_by'.tr()),
-                                TextSpan(
-                                    recognizer: TapGestureRecognizer()
-                                      ..onTap = () async {
-                                        await _navigationService
-                                            .openFeralFileCuratorPage(
-                                                exhibition.curator!.alias);
-                                      },
-                                    text: exhibition.curator!.alias,
-                                    style: const TextStyle(
-                                      decoration: TextDecoration.underline,
-                                    )),
-                              ])),
-                        Text(
-                            exhibition.isGroupExhibition
-                                ? 'group_exhibition'.tr()
-                                : 'solo_exhibition'.tr(),
+                const SizedBox(width: 20),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (exhibition.curator != null)
+                        RichText(
+                            text: TextSpan(
+                                style: theme.textTheme.ppMori400Grey14.copyWith(
+                                    decorationColor: AppColor.disabledColor),
+                                children: [
+                              TextSpan(text: 'curated_by'.tr()),
+                              TextSpan(
+                                  recognizer: TapGestureRecognizer()
+                                    ..onTap = () async {
+                                      await _navigationService
+                                          .openFeralFileCuratorPage(
+                                              exhibition.curator!.alias);
+                                    },
+                                  text: exhibition.curator!.alias,
+                                  style: const TextStyle(
+                                    decoration: TextDecoration.underline,
+                                  )),
+                            ])),
+                      Text(
+                          exhibition.isGroupExhibition
+                              ? 'group_exhibition'.tr()
+                              : 'solo_exhibition'.tr(),
+                          style: theme.textTheme.ppMori400Grey14),
+                      if (exhibition.getSeriesArtworkModelText != null)
+                        Text(exhibition.getSeriesArtworkModelText!,
                             style: theme.textTheme.ppMori400Grey14),
-                        if (exhibition.getSeriesArtworkModelText != null)
-                          Text(exhibition.getSeriesArtworkModelText!,
-                              style: theme.textTheme.ppMori400Grey14),
-                      ],
-                    ),
-                  )
-                ],
-              )
-            ],
-          ),
-        ],
-      ),
+                    ],
+                  ),
+                )
+              ],
+            )
+          ],
+        ),
+      ],
     );
   }
 
   Widget _listExhibitions(BuildContext context) =>
       BlocConsumer<ExhibitionBloc, ExhibitionsState>(
         builder: (context, state) {
-          final exhibitions = state.exhibitions;
-          if (exhibitions == null) {
+          final freeExhibitions = state.freeExhibitions;
+          final proExhibitions = state.proExhibitions;
+          final theme = Theme.of(context);
+          if (freeExhibitions == null || proExhibitions == null) {
             return const Center(
               child: CircularProgressIndicator(
                 color: Colors.white,
@@ -212,19 +220,99 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
               ),
             );
           } else {
-            return Column(
-              children: [
-                ...exhibitions
-                    .map((e) => [
-                          _exhibitionItem(context, e, exhibitions.indexOf(e)),
-                          const SizedBox(height: 40)
-                        ])
-                    .flattened,
-                const SizedBox(height: 100),
-              ],
+            final allExhibitions =
+                state.freeExhibitions! + state.proExhibitions!;
+            final isSubscribed = state.isSubscribed;
+            final numFree =
+                isSubscribed ? allExhibitions.length : freeExhibitions.length;
+            final divider = addDivider(
+                height: 40, color: AppColor.auQuickSilver, thickness: 0.5);
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: _padding),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (!isSubscribed && freeExhibitions.isNotEmpty) ...[
+                    Text('current_exhibition'.tr(),
+                        style: theme.textTheme.ppMori400White14),
+                    Text('free_to_stream'.tr(),
+                        style: theme.textTheme.ppMori400Grey14),
+                    const SizedBox(height: 18),
+                  ],
+                  ...freeExhibitions
+                      .map((e) => [
+                            _exhibitionItem(
+                                context: context,
+                                exhibitionDetails: allExhibitions,
+                                index: allExhibitions.indexOf(e),
+                                isCastable: true,
+                                numFree: numFree),
+                            divider,
+                          ])
+                      .flattened,
+                  if (!isSubscribed && freeExhibitions.isNotEmpty)
+                    _pastExhibitionHeader(context),
+                  ...proExhibitions
+                      .map((e) => [
+                            _exhibitionItem(
+                                context: context,
+                                exhibitionDetails: allExhibitions,
+                                index: allExhibitions.indexOf(e),
+                                isCastable: true,
+                                numFree: numFree),
+                            divider,
+                          ])
+                      .flattened,
+                ],
+              ),
             );
           }
         },
         listener: (context, state) {},
+      );
+
+  Widget _pastExhibitionHeader(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 18),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('past_exhibition'.tr(),
+                  style: theme.textTheme.ppMori400White14),
+              Row(
+                children: [
+                  _lockIcon(),
+                  const SizedBox(width: 5),
+                  Text('pro_members_only'.tr(),
+                      style: theme.textTheme.ppMori400Grey14),
+                ],
+              ),
+            ],
+          ),
+          PrimaryButton(
+            color: AppColor.feralFileLightBlue,
+            padding: EdgeInsets.zero,
+            elevatedPadding: const EdgeInsets.symmetric(horizontal: 15),
+            borderRadius: 20,
+            text: 'go_pro'.tr(),
+            onTap: () async {
+              await Navigator.of(context).pushNamed(AppRouter.subscriptionPage);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _lockIcon() => SizedBox(
+        width: 13,
+        height: 13,
+        child: SvgPicture.asset('assets/images/lock_icon.svg',
+            colorFilter: const ColorFilter.mode(
+                AppColor.auQuickSilver, BlendMode.srcIn)),
       );
 }
