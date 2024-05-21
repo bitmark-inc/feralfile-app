@@ -35,6 +35,7 @@ class _ArtistsListPageState extends State<ArtistsListPage> {
   final _itemHeight = PredefinedCollectionItem.height + 1;
   static const int _scrollDuration = 500;
   static const int _scrollLag = 10;
+  bool _isDragging = false;
 
   @override
   void initState() {
@@ -47,6 +48,9 @@ class _ArtistsListPageState extends State<ArtistsListPage> {
   }
 
   void _scrollListener() {
+    if (_isDragging) {
+      return;
+    }
     double offset = _scrollController.offset;
     final targetIndex = (offset / _itemHeight).floor();
     if (targetIndex < 0 || targetIndex >= _items.length) {
@@ -106,6 +110,16 @@ class _ArtistsListPageState extends State<ArtistsListPage> {
                           () {
                         _selectedCharacter.value = a;
                       });
+                    },
+                    onDragEnd: () {
+                      Future.delayed(
+                          const Duration(
+                              milliseconds: _scrollDuration + _scrollLag), () {
+                        _isDragging = false;
+                      });
+                    },
+                    onDragging: () {
+                      _isDragging = true;
                     },
                     selectedCharacter: value,
                   )),
