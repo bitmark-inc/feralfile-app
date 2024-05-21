@@ -63,7 +63,6 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
           if (playlists.isEmpty && widget.filter.isNotEmpty) {
             return const SizedBox();
           }
-          const height = 165.0;
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 15),
             child: Column(
@@ -72,49 +71,98 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
                 if (widget.filter.isNotEmpty)
                   TitleText(title: 'playlists'.tr()),
                 const SizedBox(height: 30),
-                SizedBox(
-                  height: height,
-                  width: 400,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: playlists.length + 1,
-                    itemBuilder: (context, index) {
-                      if (index == playlists.length) {
-                        if (widget.filter.isNotEmpty) {
-                          return const SizedBox();
-                        }
-                        return AddPlayListItem(
-                          onTap: () {
-                            widget.onAdd();
-                          },
-                        );
-                      }
-                      final item = playlists[index];
-                      return PlaylistItem(
-                        playlist: item,
-                        onSelected: () async => Navigator.pushNamed(
-                          context,
-                          AppRouter.viewPlayListPage,
-                          arguments:
-                              ViewPlaylistScreenPayload(playListModel: item),
-                        ),
-                      );
-                    },
-                    separatorBuilder: (context, index) =>
-                        const SizedBox(width: 10),
-                  ),
-                ),
+                (widget.playlists.value?.length ?? 0) >= 6
+                    ? playlistHorizontalGridView(context, playlists)
+                    : playlistListView(context, playlists)
               ],
             ),
           );
         },
       );
+
+  Widget playlistListView(BuildContext context, List<PlayListModel> playlists) {
+    const height = PlaylistItem.height;
+    return SizedBox(
+      height: height,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: playlists.length + 1,
+        itemBuilder: (context, index) {
+          if (index == playlists.length) {
+            if (widget.filter.isNotEmpty) {
+              return const SizedBox();
+            }
+            return AddPlayListItem(
+              onTap: () {
+                widget.onAdd();
+              },
+            );
+          }
+          final item = playlists[index];
+          return SizedBox(
+            height: PlaylistItem.height,
+            child: PlaylistItem(
+              playlist: item,
+              onSelected: () async => Navigator.pushNamed(
+                context,
+                AppRouter.viewPlayListPage,
+                arguments: ViewPlaylistScreenPayload(playListModel: item),
+              ),
+            ),
+          );
+        },
+        separatorBuilder: (context, index) => const SizedBox(width: 15),
+      ),
+    );
+  }
+
+  Widget playlistHorizontalGridView(
+      BuildContext context, List<PlayListModel> playlists) {
+    const height = PlaylistItem.height * 2 + 15;
+    final length = playlists.length + (playlists.length.isEven ? 2 : 1);
+    return SizedBox(
+      height: height,
+      child: GridView.builder(
+        scrollDirection: Axis.horizontal,
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 15,
+          mainAxisSpacing: 15,
+          childAspectRatio: PlaylistItem.height / PlaylistItem.width,
+        ),
+        itemBuilder: (context, index) {
+          if (index == length - 1) {
+            return AddPlayListItem(
+              onTap: () {
+                widget.onAdd();
+              },
+            );
+          } else if (index >= playlists.length) {
+            return const SizedBox();
+          }
+          final item = playlists[index];
+          return PlaylistItem(
+            key: ValueKey(item.id),
+            playlist: item,
+            onSelected: () async => Navigator.pushNamed(
+              context,
+              AppRouter.viewPlayListPage,
+              arguments: ViewPlaylistScreenPayload(playListModel: item),
+            ),
+          );
+        },
+        itemCount: length,
+      ),
+    );
+  }
 }
 
 class PlaylistItem extends StatefulWidget {
   final Function()? onSelected;
   final PlayListModel playlist;
   final bool onHold;
+  static const double width = 140;
+  static const double height = 165;
 
   const PlaylistItem({
     required this.playlist,
@@ -134,15 +182,13 @@ class _PlaylistItemState extends State<PlaylistItem> {
     final numberFormatter = NumberFormat('#,###');
     final thumbnailURL = widget.playlist.thumbnailURL;
     final name = widget.playlist.getName();
-    const width = 140.0;
-    const height = 165.0;
     return GestureDetector(
       onTap: widget.onSelected,
       child: Padding(
         padding: EdgeInsets.zero,
         child: Container(
-          width: width,
-          height: height,
+          width: PlaylistItem.width,
+          height: PlaylistItem.height,
           decoration: BoxDecoration(
             color: AppColor.white,
             border: Border.all(
