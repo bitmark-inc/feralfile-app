@@ -529,23 +529,19 @@ class UIHelper {
               : Constants.maxWidthModalTablet),
       isScrollControlled: true,
       barrierColor: Colors.black.withOpacity(0.5),
-      builder: (context) => Container(
-        color: Colors.transparent,
-        padding: const EdgeInsets.only(top: 200),
-        child: ClipPath(
-          clipper: isRoundCorner ? null : AutonomyTopRightRectangleClipper(),
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(0, 20, 0, 40),
-            decoration: BoxDecoration(
-              color: backgroundColor ?? theme.auGreyBackground,
-              borderRadius: isRoundCorner
-                  ? const BorderRadius.only(
-                      topRight: Radius.circular(20),
-                    )
-                  : null,
-            ),
-            child: content,
+      builder: (context) => ClipPath(
+        clipper: isRoundCorner ? null : AutonomyTopRightRectangleClipper(),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(0, 20, 0, 40),
+          decoration: BoxDecoration(
+            color: backgroundColor ?? theme.auGreyBackground,
+            borderRadius: isRoundCorner
+                ? const BorderRadius.only(
+                    topRight: Radius.circular(20),
+                  )
+                : null,
           ),
+          child: content,
         ),
       ),
     );

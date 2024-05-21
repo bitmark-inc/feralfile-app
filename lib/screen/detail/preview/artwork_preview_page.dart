@@ -24,6 +24,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:nft_rendering/nft_rendering.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shake/shake.dart';
@@ -201,4 +202,62 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
       ),
     );
   }
+}
+
+class KeyboardManagerWidget extends StatefulWidget {
+  final FocusNode? focusNode;
+  final Function()? onTap;
+
+  const KeyboardManagerWidget({super.key, this.focusNode, this.onTap});
+
+  @override
+  State<KeyboardManagerWidget> createState() => KeyboardManagerWidgetState();
+}
+
+class KeyboardManagerWidgetState extends State<KeyboardManagerWidget> {
+  bool _isShowKeyboard = false;
+
+  @override
+  void initState() {
+    widget.focusNode?.addListener(() {
+      if (widget.focusNode?.hasFocus ?? false) {
+        setState(() {
+          _isShowKeyboard = true;
+        });
+      } else {
+        setState(() {
+          _isShowKeyboard = false;
+        });
+      }
+    });
+    super.initState();
+  }
+
+  void showKeyboard() {
+    setState(() {
+      widget.focusNode?.requestFocus();
+      _isShowKeyboard = true;
+    });
+  }
+
+  void hideKeyboard() {
+    setState(() {
+      widget.focusNode?.unfocus();
+      _isShowKeyboard = false;
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+        onTap: () {
+          _isShowKeyboard ? hideKeyboard : showKeyboard;
+          widget.onTap?.call();
+        },
+        child: SvgPicture.asset('assets/images/keyboard_icon.svg'),
+      );
 }

@@ -242,6 +242,8 @@ class AppRouter {
       injector<AuditService>(),
     );
     final identityBloc = IdentityBloc(injector<AppDatabase>(), injector());
+    final canvasDeviceBloc = injector<CanvasDeviceBloc>();
+
     final postcardDetailBloc = PostcardDetailBloc(
       injector(),
       injector(),
@@ -284,9 +286,7 @@ class AppRouter {
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) => BlocProvider(
-            create: (_) => CanvasDeviceBloc(
-              injector(),
-            ),
+            create: (_) => canvasDeviceBloc,
             child: ViewPlaylistScreen(
               payload: settings.arguments! as ViewPlaylistScreenPayload,
             ),
@@ -353,6 +353,7 @@ class AppRouter {
                     BlocProvider(
                       create: (_) => personaBloc,
                     ),
+                    BlocProvider(create: (_) => canvasDeviceBloc),
                   ],
                   child: HomeNavigationPage(
                       key: homePageNoTransactionKey,
@@ -376,6 +377,7 @@ class AppRouter {
                     BlocProvider(
                       create: (_) => personaBloc,
                     ),
+                    BlocProvider(create: (_) => canvasDeviceBloc),
                   ],
                   child: HomeNavigationPage(
                     key: homePageKey,
@@ -638,6 +640,9 @@ class AppRouter {
                 BlocProvider(
                   create: (_) => identityBloc,
                 ),
+                BlocProvider(
+                  create: (_) => canvasDeviceBloc,
+                ),
                 BlocProvider(create: (_) => postcardDetailBloc),
               ],
               child: ArtworkPreviewPage(
@@ -718,9 +723,7 @@ class AppRouter {
                             injector(),
                           )),
                   BlocProvider(
-                    create: (_) => CanvasDeviceBloc(
-                      injector(),
-                    ),
+                    create: (_) => canvasDeviceBloc,
                   ),
                 ],
                 child: ArtworkDetailPage(
@@ -865,9 +868,7 @@ class AppRouter {
                       create: (_) => ExhibitionDetailBloc(injector()),
                     ),
                     BlocProvider(
-                      create: (_) => CanvasDeviceBloc(
-                        injector(),
-                      ),
+                      create: (_) => canvasDeviceBloc,
                     ),
                   ],
                   child: ExhibitionDetailPage(

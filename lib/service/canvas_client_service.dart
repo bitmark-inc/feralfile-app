@@ -1,15 +1,21 @@
+//
+//  SPDX-License-Identifier: BSD-2-Clause-Patent
+//  Copyright © 2022 Bitmark. All rights reserved.
+//  Use of this source code is governed by the BSD-2-Clause Plus Patent License
+//  that can be found in the LICENSE file.
+//
+
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
-import 'package:autonomy_flutter/model/shared_postcard.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/canvas_channel_service.dart';
+import 'package:autonomy_flutter/service/device_info_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/view/user_agent_utils.dart' as my_device;
 import 'package:collection/collection.dart';
 import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter/material.dart';
@@ -18,71 +24,42 @@ import 'package:uuid/uuid.dart';
 
 class CanvasClientService {
   final AppDatabase _db;
+  final DeviceInfoService _deviceInfoService;
+  final CanvasChannelService _channelService;
 
-  CanvasClientService(this._db);
+  CanvasClientService(this._db, this._deviceInfoService, this._channelService);
 
   final List<CanvasDevice> _viewingDevices = [];
-  late final String _deviceId;
-  late final String _deviceName;
-  bool _didInitialized = false;
 
   final _connectDevice = Lock();
-  final AccountService _accountService = injector<AccountService>();
   final NavigationService _navigationService = injector<NavigationService>();
 
   Offset currentCursorOffset = Offset.zero;
 
   CallOptions get _callOptions => CallOptions(
-      compression: const GzipCodec(), timeout: const Duration(seconds: 3));
+      compression: const GzipCodec(), timeout: const Duration(seconds: 10));
 
-  Future<void> init() async {
-    if (_didInitialized) {
-      return;
-    }
-    final device = my_device.DeviceInfo.instance;
-    _deviceName = await device.getMachineName() ?? 'Autonomy App';
-    final account = await _accountService.getDefaultAccount();
-    _deviceId = await account.getAccountDID();
-    _didInitialized = true;
-  }
+  CanvasControlClient _getStub(CanvasDevice device) =>
+      _channelService.getStubV1(device);
 
-  Future<void> shutdownAll() async {
-    await Future.wait(_viewingDevices.map((e) => shutDown(e)));
-  }
+  Future<bool> connectToDevice(CanvasDevice device,
+          {bool isLocal = false}) async =>
+      _connectDevice
+          .synchronized(() async => await _connectToDevice(device, isLocal));
 
-  Future<void> shutDown(CanvasDevice device) async {
-    final channel = _getChannel(device);
-    await channel.shutdown();
-  }
-
-  ClientChannel _getChannel(CanvasDevice device) => ClientChannel(
-        device.ip,
-        port: device.port,
-        options: const ChannelOptions(
-          credentials: ChannelCredentials.insecure(),
-        ),
-      );
-
-  CanvasControlClient _getStub(CanvasDevice device) {
-    final channel = _getChannel(device);
-    return CanvasControlClient(channel);
-  }
-
-  Future<bool> connectToDevice(CanvasDevice device) async =>
-      _connectDevice.synchronized(() async => await _connectToDevice(device));
-
-  Future<bool> _connectToDevice(CanvasDevice device) async {
+  Future<bool> _connectToDevice(CanvasDevice device, bool isLocal) async {
     final stub = _getStub(device);
     try {
       final request = ConnectRequest()
         ..device = (DeviceInfo()
-          ..deviceId = _deviceId
-          ..deviceName = _deviceName);
+          ..deviceId = _deviceInfoService.deviceId
+          ..deviceName = _deviceInfoService.deviceName);
+
       final response = await stub.connect(
         request,
         options: _callOptions,
       );
-      log.info('CanvasClientService received: ${response.ok}');
+      log.info('CanvasClientService connect: ${response.ok}');
       final index =
           _viewingDevices.indexWhere((element) => element.ip == device.ip);
       if (response.ok) {
@@ -93,7 +70,9 @@ class CanvasClientService {
         } else {
           _viewingDevices[index].isConnecting = true;
         }
-        await _db.canvasDeviceDao.insertCanvasDevice(device);
+        if (!isLocal) {
+          await _db.canvasDeviceDao.insertCanvasDevice(device);
+        }
         return true;
       } else {
         log.info('CanvasClientService: Failed to connect to device');
@@ -114,7 +93,7 @@ class CanvasClientService {
     String? sceneId;
     late CanvasServerStatus status;
     try {
-      final request = CheckingStatus()..deviceId = _deviceId;
+      final request = CheckingStatus()..deviceId = _deviceInfoService.deviceId;
       final response = await stub.status(
         request,
         options: _callOptions,
@@ -124,7 +103,6 @@ class CanvasClientService {
         case ResponseStatus_ServingStatus.NOT_SERVING:
         case ResponseStatus_ServingStatus.SERVICE_UNKNOWN:
           status = CanvasServerStatus.notServing;
-          break;
         case ResponseStatus_ServingStatus.SERVING:
           if (response.sceneId.isNotEmpty) {
             status = CanvasServerStatus.playing;
@@ -132,10 +110,8 @@ class CanvasClientService {
           } else {
             status = CanvasServerStatus.connected;
           }
-          break;
         case ResponseStatus_ServingStatus.UNKNOWN:
           status = CanvasServerStatus.open;
-          break;
       }
     } catch (e) {
       log.info('CanvasClientService: Caught error: $e');
@@ -144,9 +120,16 @@ class CanvasClientService {
     return Pair(status, sceneId);
   }
 
-  Future<void> syncDevices() async {
-    final devices = await getAllDevices();
-    final List<CanvasDevice> devicesToAdd = [];
+  Future<List<CanvasDevice>> _findRawDevices() async {
+    final devices = <CanvasDevice>[];
+    final localDevices = await _db.canvasDeviceDao.getCanvasDevices();
+    devices.addAll(await refreshDevices(localDevices));
+    return devices;
+  }
+
+  /// This method will check the status of the devices by calling grpc
+  Future<List<CanvasDevice>> refreshDevices(List<CanvasDevice> devices) async {
+    final List<CanvasDevice> workingDevices = [];
     await Future.forEach<CanvasDevice>(devices, (device) async {
       final status = await checkDeviceStatus(device);
       switch (status.first) {
@@ -154,52 +137,44 @@ class CanvasClientService {
         case CanvasServerStatus.connected:
           device.playingSceneId = status.second;
           device.isConnecting = true;
-          unawaited(_db.canvasDeviceDao.updateCanvasDevice(device));
-          devicesToAdd.add(device);
-          break;
+          workingDevices.add(device);
         case CanvasServerStatus.open:
           device.playingSceneId = status.second;
           device.isConnecting = false;
-          unawaited(_db.canvasDeviceDao.updateCanvasDevice(device));
-          devicesToAdd.add(device);
-          break;
+          workingDevices.add(device);
         case CanvasServerStatus.notServing:
-          unawaited(_updateLocalDisconnectedDevice(device));
           break;
         case CanvasServerStatus.error:
           break;
       }
     });
-    _viewingDevices
-      ..clear()
-      ..addAll(devicesToAdd)
-      ..unique((element) => element.ip);
-    log.info(
-        'CanvasClientService sync device available ${_viewingDevices.length}');
+    log.info('CanvasClientService refresh device ${workingDevices.length}');
+    return workingDevices;
   }
 
-  Future<List<CanvasDevice>> getAllDevices() async {
-    final devices = await _db.canvasDeviceDao.getCanvasDevices();
-    log.info('CanvasClientService get devices local ${devices.length}');
-    return devices;
-  }
+  /// This method will get devices saved in memory, no status check
+  Future<List<CanvasDevice>> getConnectingDevices() async => _viewingDevices;
 
-  Future<List<CanvasDevice>> getConnectingDevices({bool doSync = false}) async {
-    if (doSync) {
-      await syncDevices();
-    } else {
-      for (var device in _viewingDevices) {
-        final status = await checkDeviceStatus(device);
-        device.playingSceneId = status.second;
+  /// This method will get devices via mDNS and local db, for local db devices
+  /// it will check the status of the device by calling grpc,
+  /// it will return the devices that are available and save in memory
+  Future<List<CanvasDevice>> scanDevices() async {
+    final devices = await _findRawDevices();
+
+    // remove devices that are not available
+    _viewingDevices.removeWhere(
+        (element) => !devices.any((current) => current.ip == element.ip));
+
+    // add new devices
+    for (var element in devices) {
+      final index =
+          _viewingDevices.indexWhere((current) => current.ip == element.ip);
+      if (index == -1) {
+        _viewingDevices.add(element);
       }
     }
-    return _viewingDevices;
-  }
 
-  Future<void> _updateLocalDisconnectedDevice(CanvasDevice device) async {
-    final updatedDevice = device.copyWith(isConnecting: false)
-      ..playingSceneId = null;
-    await _db.canvasDeviceDao.updateCanvasDevice(updatedDevice);
+    return _viewingDevices;
   }
 
   Future<bool> castSingleArtwork(CanvasDevice device, String tokenId) async {
@@ -234,10 +209,10 @@ class CanvasClientService {
     return response.ok;
   }
 
-  Future<void> uncastSingleArtwork(CanvasDevice device) async {
+  Future<void> unCastSingleArtwork(CanvasDevice device) async {
     final stub = _getStub(device);
-    final uncastRequest = UncastSingleRequest()..id = '';
-    final response = await stub.uncastSingleArtwork(uncastRequest);
+    final unCastRequest = UncastSingleRequest()..id = '';
+    final response = await stub.uncastSingleArtwork(unCastRequest);
     if (response.ok) {
       _viewingDevices
           .firstWhereOrNull((element) => element == device)
