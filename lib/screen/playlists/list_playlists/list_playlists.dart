@@ -37,10 +37,12 @@ class ListPlaylistsScreen extends StatefulWidget {
 class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
     with RouteAware, WidgetsBindingObserver {
   final isDemo = injector.get<ConfigurationService>().isDemoArtworksMode();
+  late int playlistNumberBreakpoint;
 
   @override
   void initState() {
     super.initState();
+    playlistNumberBreakpoint = 6;
     WidgetsBinding.instance.addObserver(this);
   }
 
@@ -76,7 +78,8 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
                 if (widget.filter.isNotEmpty)
                   TitleText(title: 'playlists'.tr()),
                 const SizedBox(height: 30),
-                if ((widget.playlists.value?.length ?? 0) >= 6)
+                if ((widget.playlists.value?.length ?? 0) >=
+                    playlistNumberBreakpoint)
                   playlistHorizontalGridView(context, playlists)
                 else
                   playlistListView(context, playlists)
