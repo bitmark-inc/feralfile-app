@@ -506,10 +506,13 @@ class Wc2Service {
       log.info('[Wc2Service] Proposal contains unsupported methods: '
           '$unsupportedMethods');
     }
-    final wc2Proposal = Wc2Proposal(proposal.id,
-        proposer: proposal.params.proposer.metadata,
-        requiredNamespaces: proposal.params.requiredNamespaces,
-        optionalNamespaces: proposal.params.optionalNamespaces);
+    final wc2Proposal = Wc2Proposal(
+      proposal.id,
+      proposer: proposal.params.proposer.metadata,
+      requiredNamespaces: proposal.params.requiredNamespaces,
+      optionalNamespaces: proposal.params.optionalNamespaces,
+      validation: proposal.verifyContext?.validation,
+    );
     unawaited(_navigationService.navigateTo(AppRouter.wc2ConnectPage,
         arguments: wc2Proposal));
   }
