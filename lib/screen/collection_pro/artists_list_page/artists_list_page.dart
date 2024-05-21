@@ -91,8 +91,8 @@ class _ArtistsListPageState extends State<ArtistsListPage> {
                           (element) => element.name.firstSearchCharacter == a);
                       if (index == -1) {
                         final nearestIndex = _items.lastIndexWhere((element) =>
-                            _compareHeadCharacter(
-                                element.name.firstSearchCharacter, a) <
+                            element.name.firstSearchCharacter
+                                .compareSearchKey(a) <
                             0);
                         if (nearestIndex == -1) {
                           await _scrollTo(0);
@@ -135,16 +135,6 @@ class _ArtistsListPageState extends State<ArtistsListPage> {
         min(_scrollController.position.maxScrollExtent, offset),
         duration: const Duration(milliseconds: _scrollDuration),
         curve: Curves.easeIn);
-  }
-
-  int _compareHeadCharacter(String a, String b) {
-    if (a == '#' && b != '#') {
-      return 1;
-    }
-    if (a != '#' && b == '#') {
-      return -1;
-    }
-    return a.compareTo(b);
   }
 }
 

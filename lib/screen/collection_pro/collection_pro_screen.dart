@@ -65,6 +65,7 @@ class CollectionProState extends State<CollectionPro>
   late bool _isLoaded;
   late bool _showGetStartedBanner = false;
   final _configurationService = injector<ConfigurationService>();
+  static const _maxArtistsView = 30;
 
   @override
   void initState() {
@@ -164,22 +165,7 @@ class CollectionProState extends State<CollectionPro>
                       )
                       .toList()
                       .filterByName(searchStr.value)
-                    ..sort((a, b) {
-                      final aFirstCharacter = a.name.firstSearchCharacter;
-                      final bFirstCharacter = b.name.firstSearchCharacter;
-                      if (aFirstCharacter != '#' && bFirstCharacter != '#') {
-                        return a.name!
-                            .toUpperCase()
-                            .compareTo(b.name!.toUpperCase());
-                      }
-                      if (aFirstCharacter == '#' && bFirstCharacter != '#') {
-                        return 1;
-                      }
-                      if (aFirstCharacter != '#' && bFirstCharacter == '#') {
-                        return -1;
-                      }
-                      return (a.name ?? '').compareTo(b.name ?? '');
-                    });
+                    ..sort((a, b) => a.name.compareSearchKey(b.name));
                   setState(() {
                     _listPredefinedCollectionByArtist =
                         listPredefinedCollectionByArtist;
@@ -266,8 +252,9 @@ class CollectionProState extends State<CollectionPro>
                           delegate: SliverChildBuilderDelegate(
                             _predefinedCollectionByArtistBuilder,
                             childCount: min(
-                                _listPredefinedCollectionByArtist.length + 1,
-                                31),
+                                    _listPredefinedCollectionByArtist.length,
+                                    _maxArtistsView) +
+                                1,
                           ),
                         ),
                         const SliverToBoxAdapter(
@@ -344,7 +331,8 @@ class CollectionProState extends State<CollectionPro>
     const type = PredefinedCollectionType.artist;
     final isSearching = searchStr.value.isNotEmpty;
     final numberOfArtists = _listPredefinedCollectionByArtist.length;
-    final displaySeeAll = !isSearching && index == 0 && numberOfArtists > 30;
+    final displaySeeAll =
+        !isSearching && index == 0 && numberOfArtists > _maxArtistsView;
     final Widget? action = displaySeeAll
         ? GestureDetector(
             onTap: () async {
