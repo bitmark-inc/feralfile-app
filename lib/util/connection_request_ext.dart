@@ -9,7 +9,9 @@ extension ConnectionRequestExt on ConnectionRequest {
     final denyDAppUrls = remoteConfig.getConfig<List<dynamic>>(
         ConfigGroup.dAppUrls, ConfigKey.denyDAppList, []);
 
-    if (denyDAppUrls.isNotEmpty && denyDAppUrls.contains(name)) {
+    if (isBeaconConnect &&
+        denyDAppUrls.isNotEmpty &&
+        denyDAppUrls.contains(name)) {
       return Validation.SCAM;
     }
 
