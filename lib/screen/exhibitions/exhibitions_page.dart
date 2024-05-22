@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
@@ -18,6 +19,7 @@ import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -36,6 +38,7 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
   final _navigationService = injector<NavigationService>();
   static const _padding = 14.0;
   final _canvasDeviceBloc = injector<CanvasDeviceBloc>();
+  static const _exhibitionInfoDivideWidth = 20.0;
 
   // initState
   @override
@@ -106,6 +109,7 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
     final theme = Theme.of(context);
     final screenWidth = MediaQuery.sizeOf(context).width;
     final estimatedHeight = (screenWidth - _padding * 2) / 16 * 9;
+    final estimatedWidth = screenWidth - _padding * 2;
     final exhibitionDetail = exhibitionDetails[index];
     final exhibition = exhibitionDetail.exhibition;
     return Column(
@@ -159,19 +163,24 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: Row(
-                    children: [
-                      if (!exhibition.canStream) ...[
-                        _lockIcon(),
-                        const SizedBox(width: 5),
-                      ],
-                      Text(exhibition.title,
-                          style: theme.textTheme.ppMori400White16),
+                Row(
+                  children: [
+                    if (!exhibition.canStream) ...[
+                      _lockIcon(),
+                      const SizedBox(width: 5),
                     ],
-                  ),
+                    SizedBox(
+                      width: (estimatedWidth - _exhibitionInfoDivideWidth) / 2 -
+                          (exhibition.canStream ? 0 : 13 + 5),
+                      child: AutoSizeText(
+                        exhibition.title,
+                        style: theme.textTheme.ppMori400White16,
+                        maxLines: 2,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 20),
+                const SizedBox(width: _exhibitionInfoDivideWidth),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -268,6 +277,7 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                             divider,
                           ])
                       .flattened,
+                  const SizedBox(height: 40)
                 ],
               ),
             );
