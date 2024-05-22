@@ -18,9 +18,10 @@ import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart'
 import 'package:autonomy_flutter/screen/bloc/ethereum/ethereum_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
+import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/global_receive/receive_page.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
-import 'package:autonomy_flutter/service/canvas_client_service.dart';
+import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -777,22 +778,21 @@ class QRScanViewState extends State<QRScanView>
     }
     try {
       final device = CanvasDevice.fromJson(jsonDecode(code));
-      final canvasClient = injector<CanvasClientService>();
-      final result = await canvasClient.connectToDevice(device);
-      if (result) {
-        device.isConnecting = true;
-      }
+      final canvasClient = injector<CanvasClientServiceV2>();
+      final result = await canvasClient.addQrDevice(device);
+      final isSuccessful = result != null;
       if (!mounted) {
         return false;
       }
       if (_shouldPop) {
-        Navigator.pop(context, device);
+        Navigator.pop(context, isSuccessful);
       }
-      return result;
+      injector<CanvasDeviceBloc>().add(CanvasDeviceAppendDeviceEvent(device));
+      return isSuccessful;
     } catch (e) {
       if (mounted) {
         if (_shouldPop) {
-          Navigator.pop(context);
+          Navigator.pop(context, false);
         }
         if (e.toString().contains('DEADLINE_EXCEEDED') || true) {
           await UIHelper.showInfoDialog(
