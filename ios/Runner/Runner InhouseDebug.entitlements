@@ -8,7 +8,7 @@
 	<array>
 		<string>applinks:au.bitmark.com</string>
 		<string>applinks:autonomy.io</string>
-		<string>applinks:autonomy-app.app.link</string>
+		<string>applinks:autonomy-app.test-app.link</string>
 		<string>applinks:autonomy-app-alternate.app.link</string>
 		<string>applinks:link.autonomy.io</string>
 		<string>applinks:feralfile-app.app.link</string>

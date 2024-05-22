@@ -45,14 +45,13 @@ const DEEP_LINKS = [
   'autonomy://',
   'https://autonomy.io',
   'https://au.bitmark.com',
-  'https://autonomy-app.app.link',
-  'https://autonomy-app-alternate.app.link',
-  'https://link.autonomy.io',
   'feralfile://',
   'https://feralfile-app.app.link',
   'https://feralfile-app-alternate.app.link',
   'https://app.feralfile.com',
+  ...Constants.branchDeepLinks
 ];
+
 const FF_ARTIST_COLLECTOR =
     'https://feralfile.com/docs/artist-collector-rights';
 const WEB3_PRIMER_URL = 'https://autonomy.io/catalog/primer/';
@@ -498,7 +497,8 @@ class Constants {
   static const paddingTabletLandScape = EdgeInsets.symmetric(horizontal: 32);
   static const branchDeepLinks = [
     'https://autonomy-app.app.link',
-    'https://autonomy-app-alternate.app.link',
+    'https://autonomy-app.test-app.link'
+        'https://autonomy-app-alternate.app.link',
     'https://link.autonomy.io',
   ];
 }
