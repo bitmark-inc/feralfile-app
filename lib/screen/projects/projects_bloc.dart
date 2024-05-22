@@ -35,6 +35,9 @@ class ProjectsBloc extends AuBloc<ProjectsEvent, ProjectsState> {
             )));
       }
 
+      newProjects.add(TapNavigate(
+          title: 'moma_postcard'.tr(), route: AppRouter.momaPostcardPage));
+
       emit(state.copyWith(loading: false, projects: newProjects));
     });
   }

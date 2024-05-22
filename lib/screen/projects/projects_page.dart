@@ -1,5 +1,4 @@
 import 'package:after_layout/after_layout.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/projects/projects_bloc.dart';
 import 'package:autonomy_flutter/screen/projects/projects_state.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -43,23 +42,8 @@ class _ProjectsPageState extends State<ProjectsPage>
     return Column(
       children: [
         addTitleSpace(),
-        TappableForwardRow(
-          padding: ResponsiveLayout.paddingAll,
-          leftWidget: Text(
-            'moma_postcard'.tr(),
-            style: theme.textTheme.ppMori400Black14,
-          ),
-          onTap: () async {
-            await Navigator.of(context).pushNamed(AppRouter.momaPostcardPage);
-          },
-        ),
         ...state.projects.map((e) => Column(
               children: [
-                const Divider(
-                  height: 1,
-                  thickness: 1,
-                  color: Color.fromRGBO(227, 227, 227, 1),
-                ),
                 TappableForwardRow(
                     padding: ResponsiveLayout.paddingAll,
                     leftWidget: Text(
@@ -72,6 +56,7 @@ class _ProjectsPageState extends State<ProjectsPage>
                         arguments: e.arguments,
                       );
                     }),
+                addDivider()
               ],
             ))
       ],
