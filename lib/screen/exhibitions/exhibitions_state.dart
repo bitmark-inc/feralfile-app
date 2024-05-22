@@ -39,7 +39,7 @@ class ExhibitionsState {
       );
 
   List<String> get allExhibitionIds => [
-      ...freeExhibitions?.map((e) => e.exhibition.id) ?? [],
-      ...proExhibitions?.map((e) => e.exhibition.id) ?? [],
-    ];
+        ...freeExhibitions?.map((e) => e.exhibition.id) ?? [],
+        ...proExhibitions?.map((e) => e.exhibition.id) ?? [],
+      ];
 }
