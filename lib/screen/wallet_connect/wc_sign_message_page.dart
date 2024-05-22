@@ -11,7 +11,6 @@ import 'dart:typed_data';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
-import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -23,6 +22,7 @@ import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:eth_sig_util/eth_sig_util.dart';
+import 'package:eth_sig_util/model/typed_data.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -43,6 +43,7 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
   @override
   Widget build(BuildContext context) {
     String viewingMessage;
+    Map<String, dynamic>? viewingTypedMessage;
     Uint8List message;
     switch (widget.args.type) {
       case WCSignType.MESSAGE:
@@ -57,6 +58,10 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
       case WCSignType.TYPED_MESSAGE:
         message = TypedDataUtil.typedDataV4(jsonData: widget.args.message);
         viewingMessage = widget.args.message;
+        final typedData =
+            jsonDecode(widget.args.message) as Map<String, dynamic>;
+        final typedMessage = TypedMessage.fromJson(typedData);
+        viewingTypedMessage = typedMessage.message;
         break;
     }
 
@@ -107,10 +112,13 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
                           color: AppColor.auLightGrey,
                           borderRadius: BorderRadius.circular(5),
                         ),
-                        child: Text(
-                          viewingMessage,
-                          style: theme.textTheme.ppMori400Black14,
-                        ),
+                        child: viewingTypedMessage != null
+                            ? _buildTypedMessageViewing(
+                                viewingTypedMessage, theme)
+                            : Text(
+                                viewingMessage,
+                                style: theme.textTheme.ppMori400Black14,
+                              ),
                       ),
                     ),
                   ],
@@ -206,6 +214,46 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
             ),
           )
         ],
+      );
+
+  Widget _buildTypedMessageViewing(
+          Map<String, dynamic> json, ThemeData theme) =>
+      Column(
+        children: json.entries
+            .map(
+              (entry) => entry.value is Map<String, dynamic>
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${entry.key}: ',
+                          style: theme.textTheme.ppMori700Black14,
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 20),
+                          child: _buildTypedMessageViewing(
+                              entry.value as Map<String, dynamic>, theme),
+                        )
+                      ],
+                    )
+                  : Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${entry.key}: ',
+                          style: theme.textTheme.ppMori700Black14,
+                        ),
+                        Flexible(
+                          child: Text(
+                            entry.value.toString(),
+                            overflow: TextOverflow.visible,
+                            style: theme.textTheme.ppMori400Black14,
+                          ),
+                        ),
+                      ],
+                    ),
+            )
+            .toList(),
       );
 }
 
