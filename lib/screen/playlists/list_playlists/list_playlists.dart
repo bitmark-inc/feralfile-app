@@ -97,7 +97,7 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
         scrollDirection: Axis.horizontal,
         itemCount: playlists.length + 1,
         itemBuilder: (context, index) {
-          if (index == playlists.length) {
+          if (index == 0) {
             if (widget.filter.isNotEmpty) {
               return const SizedBox();
             }
@@ -107,7 +107,7 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
               },
             );
           }
-          final item = playlists[index];
+          final item = playlists[index - 1];
           return SizedBox(
             height: PlaylistItem.height,
             child: PlaylistItem(
@@ -125,7 +125,7 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
   Widget playlistHorizontalGridView(
       BuildContext context, List<PlayListModel> playlists) {
     const height = PlaylistItem.height * 2 + 15;
-    final length = playlists.length + (playlists.length.isEven ? 2 : 1);
+    final length = playlists.length + 1;
     return SizedBox(
       height: height,
       child: GridView.builder(
@@ -137,16 +137,14 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
           childAspectRatio: PlaylistItem.height / PlaylistItem.width,
         ),
         itemBuilder: (context, index) {
-          if (index == length - 1) {
+          if (index == 0) {
             return AddPlayListItem(
               onTap: () {
                 widget.onAdd();
               },
             );
-          } else if (index >= playlists.length) {
-            return const SizedBox();
           }
-          final item = playlists[index];
+          final item = playlists[index - 1];
           return PlaylistItem(
               key: ValueKey(item.id),
               playlist: item,
