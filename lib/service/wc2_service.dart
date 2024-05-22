@@ -259,6 +259,12 @@ class Wc2Service {
   Future _handleEthSendTx(String topic, params) async {
     log.info('[Wc2Service] received eip155-eth_sendTx request $params');
     final proposer = await _getWc2Request(topic, params);
+    final chainId = params[0]['chainId'];
+    if (chainId != null &&
+        BigInt.parse(chainId).toString() !=
+            Environment.web3ChainId.toString()) {
+      throw _chainNotSupported;
+    }
     if (proposer == null) {
       throw _proposalNotFound;
     }
@@ -528,6 +534,16 @@ class Wc2Service {
         message = jsonEncode(params[1]);
       } else {
         message = params[1];
+      }
+    }
+
+    if (signType == WCSignType.TYPED_MESSAGE) {
+      final typedData = jsonDecode(message);
+      final domain = typedData['domain'];
+      final chainId = domain?['chainId'];
+      if (chainId != null &&
+          chainId.toString() != Environment.web3ChainId.toString()) {
+        throw _chainNotSupported;
       }
     }
 
