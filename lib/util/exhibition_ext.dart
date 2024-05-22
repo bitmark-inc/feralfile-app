@@ -3,6 +3,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
+import 'package:autonomy_flutter/screen/exhibitions/exhibitions_bloc.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -14,8 +15,13 @@ extension ExhibitionExt on Exhibition {
 
   bool get isGroupExhibition => type == 'group';
 
-  //TODO: implement this
-  bool get isFreeToStream => true;
+  bool get canStream {
+    final exhibitionBloc = injector<ExhibitionBloc>();
+    return exhibitionBloc.state.isSubscribed ||
+        (exhibitionBloc.state.freeExhibitions
+                ?.any((element) => element.exhibition.id == id) ??
+            false);
+  }
 
   //TODO: implement this
   bool get isOnGoing => true;

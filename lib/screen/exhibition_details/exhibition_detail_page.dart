@@ -85,14 +85,17 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
             setState(() {
               _currentIndex = index;
             });
-            final controllingDevice = _canvasDeviceBloc.state.controllingDevice;
-            log.info('onPageChanged: $_currentIndex');
-            if (controllingDevice != null) {
-              final request = _getCastExhibitionRequest(exhibitionDetail);
-              log.info('onPageChanged: request: $request');
-              _canvasDeviceBloc.add(
-                CanvasDeviceCastExhibitionEvent(controllingDevice, request),
-              );
+            if (exhibitionDetail.exhibition.canStream) {
+              final controllingDevice =
+                  _canvasDeviceBloc.state.controllingDevice;
+              log.info('onPageChanged: $_currentIndex');
+              if (controllingDevice != null) {
+                final request = _getCastExhibitionRequest(exhibitionDetail);
+                log.info('onPageChanged: request: $request');
+                _canvasDeviceBloc.add(
+                  CanvasDeviceCastExhibitionEvent(controllingDevice, request),
+                );
+              }
             }
           },
           scrollDirection: Axis.vertical,
@@ -205,9 +208,9 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
       getFFAppBar(
         buildContext,
         onBack: () => Navigator.pop(buildContext),
-        action: exhibitionDetail == null
-            ? null
-            : Padding(
+        action: exhibitionDetail != null &&
+                exhibitionDetail.exhibition.canStream
+            ? Padding(
                 padding: const EdgeInsets.only(right: 14, bottom: 10, top: 10),
                 child: FFCastButton(
                   onDeviceSelected: (device) async {
@@ -217,41 +220,39 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
                     );
                   },
                 ),
-              ),
+              )
+            : null,
       );
 
-  Pair<ExhibitionKatalog, String?> _getCurrentKatalogInfo(
+  Pair<ExhibitionKatalog, String?> _getCurrentCatalogInfo(
       ExhibitionDetail exhibitionDetail) {
-    ExhibitionKatalog? katalog;
-    String? katalogId;
+    ExhibitionKatalog? catalog;
+    String? catalogId;
     switch (_currentIndex) {
       case 0:
-        katalog = ExhibitionKatalog.HOME;
-        break;
+        catalog = ExhibitionKatalog.HOME;
       case 1:
         if (_carouselIndex == 0) {
-          katalog = ExhibitionKatalog.CURATOR_NOTE;
+          catalog = ExhibitionKatalog.CURATOR_NOTE;
         } else {
-          katalog = ExhibitionKatalog.RESOURCE;
-          katalogId =
+          catalog = ExhibitionKatalog.RESOURCE;
+          catalogId =
               exhibitionDetail.exhibition.resources![_carouselIndex - 1].id;
         }
-        break;
       default:
-        katalog = ExhibitionKatalog.ARTWORK;
+        catalog = ExhibitionKatalog.ARTWORK;
         final seriesIndex = _currentIndex - 2;
         final currentArtwork =
             exhibitionDetail.representArtworkByIndex(seriesIndex).id;
-        katalogId = currentArtwork;
-        break;
+        catalogId = currentArtwork;
     }
-    return Pair(katalog, katalogId);
+    return Pair(catalog, catalogId);
   }
 
   CastExhibitionRequest _getCastExhibitionRequest(
       ExhibitionDetail exhibitionDetail) {
     final exhibitionId = exhibitionDetail.exhibition.id;
-    final katalogInfo = _getCurrentKatalogInfo(exhibitionDetail);
+    final katalogInfo = _getCurrentCatalogInfo(exhibitionDetail);
     final katalog = katalogInfo.first;
     final katalogId = katalogInfo.second;
     CastExhibitionRequest request = CastExhibitionRequest(

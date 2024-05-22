@@ -42,7 +42,7 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
   void initState() {
     super.initState();
     _controller = ScrollController();
-    _exhibitionBloc = context.read<ExhibitionBloc>();
+    _exhibitionBloc = injector<ExhibitionBloc>();
     _exhibitionBloc.add(GetAllExhibitionsEvent());
   }
 
@@ -99,13 +99,10 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
         ),
       );
 
-  Widget _exhibitionItem({
-    required BuildContext context,
-    required List<ExhibitionDetail> exhibitionDetails,
-    required int index,
-    required bool isCastable,
-    required int numFree,
-  }) {
+  Widget _exhibitionItem(
+      {required BuildContext context,
+      required List<ExhibitionDetail> exhibitionDetails,
+      required int index}) {
     final theme = Theme.of(context);
     final screenWidth = MediaQuery.sizeOf(context).width;
     final estimatedHeight = (screenWidth - _padding * 2) / 16 * 9;
@@ -149,12 +146,11 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                   _canvasDeviceBloc.add(
                       CanvasDeviceCastExhibitionEvent(device, castRequest));
                 }
-                await Navigator.of(context)
-                    .pushNamed(AppRouter.exhibitionDetailPage,
+                await Navigator.of(context).pushNamed(
+                    AppRouter.exhibitionDetailPage,
                     arguments: ExhibitionDetailPayload(
-                      exhibitions: _exhibitionBloc.state.exhibitions!
-                          .map((e) => e.exhibition)
-                          .toList(),
+                      exhibitions:
+                          exhibitionDetails.map((e) => e.exhibition).toList(),
                       index: index,
                     ));
               },
@@ -166,7 +162,7 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                 Expanded(
                   child: Row(
                     children: [
-                      if (isCastable) ...[
+                      if (!exhibition.canStream) ...[
                         _lockIcon(),
                         const SizedBox(width: 5),
                       ],
@@ -236,8 +232,6 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
             final allExhibitions =
                 state.freeExhibitions! + state.proExhibitions!;
             final isSubscribed = state.isSubscribed;
-            final numFree =
-                isSubscribed ? allExhibitions.length : freeExhibitions.length;
             final divider = addDivider(
                 height: 40, color: AppColor.auQuickSilver, thickness: 0.5);
             return Padding(
@@ -255,11 +249,10 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                   ...freeExhibitions
                       .map((e) => [
                             _exhibitionItem(
-                                context: context,
-                                exhibitionDetails: allExhibitions,
-                                index: allExhibitions.indexOf(e),
-                                isCastable: true,
-                                numFree: numFree),
+                              context: context,
+                              exhibitionDetails: allExhibitions,
+                              index: allExhibitions.indexOf(e),
+                            ),
                             divider,
                           ])
                       .flattened,
@@ -268,11 +261,10 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                   ...proExhibitions
                       .map((e) => [
                             _exhibitionItem(
-                                context: context,
-                                exhibitionDetails: allExhibitions,
-                                index: allExhibitions.indexOf(e),
-                                isCastable: true,
-                                numFree: numFree),
+                              context: context,
+                              exhibitionDetails: allExhibitions,
+                              index: allExhibitions.indexOf(e),
+                            ),
                             divider,
                           ])
                       .flattened,
