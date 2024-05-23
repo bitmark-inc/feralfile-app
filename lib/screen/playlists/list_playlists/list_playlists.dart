@@ -65,7 +65,8 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
           if (value == null) {
             return const SizedBox.shrink();
           }
-          List<PlayListModel> playlists = value.filter(widget.filter);
+          List<PlayListModel> playlists =
+              value.filter(widget.filter).reversed.toList();
           if (playlists.isEmpty && widget.filter.isNotEmpty) {
             return const SizedBox();
           }
