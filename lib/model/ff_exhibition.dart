@@ -2,9 +2,11 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/model/ff_user.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:collection/collection.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class Exhibition {
   final String id;
@@ -275,13 +277,14 @@ enum MediaType {
 extension PostExt on Post {
   MediaType get mediaType {
     final url = Uri.parse(coverURI);
-    if (url.host.contains('youtube.com') || url.host.contains('youtu.be')) {
+    if (youtubeDomains.any((domain) => url.host.contains(domain))) {
       return MediaType.video;
     }
     return MediaType.image;
   }
 
-  String get displayType => type == 'close-up' ? 'Close up' : type.capitalize();
+  String get displayType =>
+      type == 'close-up' ? 'close_up'.tr() : type.capitalize();
 
   String get thumbnailUrl {
     if (mediaType == MediaType.image) {
