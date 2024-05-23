@@ -1,16 +1,20 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
+import 'package:walletconnect_flutter_v2/apis/core/verify/models/verify_context.dart';
 
-extension WalletConnectExt on ConnectionRequest {
-  bool get isSuspiciousDAppName {
+extension ConnectionRequestExt on ConnectionRequest {
+  Validation get validationState {
     final remoteConfig = injector<RemoteConfigService>();
     final denyDAppUrls = remoteConfig.getConfig<List<dynamic>>(
         ConfigGroup.dAppUrls, ConfigKey.denyDAppList, []);
 
-    if (denyDAppUrls.isEmpty) {
-      return false;
+    if (isBeaconConnect &&
+        denyDAppUrls.isNotEmpty &&
+        denyDAppUrls.contains(name)) {
+      return Validation.SCAM;
     }
-    return denyDAppUrls.contains(name);
+
+    return validation ?? Validation.VALID;
   }
 }

@@ -7,6 +7,7 @@
 
 import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:tezart/tezart.dart';
+import 'package:walletconnect_flutter_v2/apis/core/verify/models/verify_context.dart';
 import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
 
 abstract class ConnectionRequest {
@@ -21,6 +22,8 @@ abstract class ConnectionRequest {
   String? get name;
 
   String? get url;
+
+  Validation? get validation;
 }
 
 class BeaconRequest extends ConnectionRequest {
@@ -50,6 +53,9 @@ class BeaconRequest extends ConnectionRequest {
   @override
   String? get url => null;
 
+  @override
+  Validation? get validation => null;
+
   BeaconRequest(
     this._id, {
     this.senderID,
@@ -70,6 +76,7 @@ class Wc2Proposal extends ConnectionRequest {
     this._id, {
     required this.proposer,
     required this.requiredNamespaces,
+    required this.validation,
     this.optionalNamespaces = const {},
   });
 
@@ -101,6 +108,9 @@ class Wc2Proposal extends ConnectionRequest {
 
   @override
   String? get url => proposer.url;
+
+  @override
+  final Validation? validation;
 }
 
 class AppMetadata {
@@ -154,3 +164,4 @@ class Wc2Namespace {
         'events': List<dynamic>.from(events.map((x) => x)),
       };
 }
+

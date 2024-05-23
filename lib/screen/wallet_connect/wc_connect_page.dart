@@ -40,6 +40,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:walletconnect_flutter_v2/apis/core/verify/models/verify_context.dart';
 import 'package:walletconnect_flutter_v2/apis/sign_api/models/sign_client_models.dart';
 
 /*
@@ -49,6 +50,12 @@ import 'package:walletconnect_flutter_v2/apis/sign_api/models/sign_client_models
  => use this page for both WalletConnect & TezosBeacon connect
 import 'package:flutter_svg/flutter_svgconnect
 */
+
+// const scamBtnColor = Color.fromRGBO(255, 71, 71, 1);
+// const warningBtnColor = Color.fromRGBO(255, 128, 10, 1);
+const scamBtnColor = AppColor.feralFileHighlight;
+const warningBtnColor = AppColor.feralFileHighlight;
+
 class WCConnectPage extends StatefulWidget {
   final ConnectionRequest connectionRequest;
 
@@ -72,6 +79,10 @@ class _WCConnectPageState extends State<WCConnectPage>
   late ConnectionRequest connectionRequest;
   final tezosBeaconService = injector<TezosBeaconService>();
   final configurationService = injector<ConfigurationService>();
+
+  late String warningTitle;
+  late String warningContent;
+  late Color warningColor;
 
   bool get _confirmEnable =>
       (categorizedAccounts != null &&
@@ -149,7 +160,7 @@ class _WCConnectPageState extends State<WCConnectPage>
       return;
     }
 
-    dynamic aproveResponse;
+    dynamic approveResponse;
 
     unawaited(
         UIHelper.showLoadingScreen(context, text: 'connecting_wallet'.tr()));
@@ -165,7 +176,7 @@ class _WCConnectPageState extends State<WCConnectPage>
               .findByWalletID(account.uuid);
           final accountNumber =
               walletAddresses.map((e) => e.address).join('||');
-          aproveResponse = await injector<Wc2Service>().approveSession(
+          approveResponse = await injector<Wc2Service>().approveSession(
             connectionRequest as Wc2Proposal,
             accounts: [accountDid.substring('did:key:'.length)],
             connectionKey: account.uuid,
@@ -178,7 +189,7 @@ class _WCConnectPageState extends State<WCConnectPage>
         } else {
           final address = await injector<EthereumService>()
               .getETHAddress(selectedPersona!.wallet, selectedPersona!.index);
-          aproveResponse = await injector<Wc2Service>().approveSession(
+          approveResponse = await injector<Wc2Service>().approveSession(
             connectionRequest as Wc2Proposal,
             accounts: [address],
             connectionKey: address,
@@ -194,7 +205,7 @@ class _WCConnectPageState extends State<WCConnectPage>
         final index = selectedPersona!.index;
         final publicKey = await wallet.getTezosPublicKey(index: index);
         final address = wallet.getTezosAddressFromPubKey(publicKey);
-        aproveResponse =
+        approveResponse =
             await injector<TezosBeaconService>().permissionResponse(
           wallet.uuid,
           index,
@@ -228,8 +239,8 @@ class _WCConnectPageState extends State<WCConnectPage>
       AppRouter.personaConnectionsPage,
       arguments: payload,
     ));
-    if (aproveResponse is ApproveResponse) {
-      injector<Wc2Service>().addApprovedTopic([aproveResponse.topic]);
+    if (approveResponse is ApproveResponse) {
+      injector<Wc2Service>().addApprovedTopic([approveResponse.topic]);
     }
   }
 
@@ -291,7 +302,8 @@ class _WCConnectPageState extends State<WCConnectPage>
                       const SizedBox(height: 32),
                       addDivider(height: 52),
                       const SizedBox(height: 10),
-                      if (connectionRequest.isSuspiciousDAppName &&
+                      if (connectionRequest.validationState !=
+                              Validation.VALID &&
                           !isWarningConfirmed)
                         _suspiciousDappWarning(context)
                       else ...[
@@ -300,7 +312,8 @@ class _WCConnectPageState extends State<WCConnectPage>
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              if (connectionRequest.isSuspiciousDAppName) ...[
+                              if (connectionRequest.validationState !=
+                                  Validation.VALID) ...[
                                 Container(
                                   width: double.infinity,
                                   padding: const EdgeInsets.all(15),
@@ -309,8 +322,7 @@ class _WCConnectPageState extends State<WCConnectPage>
                                     borderRadius: BorderRadius.circular(5),
                                   ),
                                   child: Text(
-                                    'warning_suspicious_dapp_detected_title'
-                                        .tr(),
+                                    warningTitle,
                                     style: theme.textTheme.ppMori700Black14,
                                   ),
                                 ),
@@ -386,7 +398,8 @@ class _WCConnectPageState extends State<WCConnectPage>
                   ),
                 ),
               ),
-              if (connectionRequest.isSuspiciousDAppName && !isWarningConfirmed)
+              if (connectionRequest.validationState != Validation.VALID &&
+                  !isWarningConfirmed)
                 _confirmWarningButton(context)
               else
                 _connect(context)
@@ -419,27 +432,45 @@ class _WCConnectPageState extends State<WCConnectPage>
 
   Widget _suspiciousDappWarning(BuildContext context) {
     final theme = Theme.of(context);
+    switch (connectionRequest.validationState) {
+      case Validation.INVALID:
+        warningTitle = 'invalid_dapp_detected_title'.tr();
+        warningContent = 'invalid_dapp_detected_content'.tr();
+        warningColor = scamBtnColor;
+        break;
+      case Validation.SCAM:
+        warningTitle = 'scam_dapp_detected_title'.tr();
+        warningContent = 'scam_dapp_detected_content'.tr();
+        warningColor = scamBtnColor;
+        break;
+      case Validation.UNKNOWN:
+        warningTitle = 'unverified_dapp_detected_title'.tr();
+        warningContent = 'unverified_dapp_detected_content'.tr();
+        warningColor = warningBtnColor;
+        break;
+      default:
+    }
     return Padding(
       padding: padding,
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.all(15),
         decoration: BoxDecoration(
-          color: AppColor.feralFileHighlight,
+          color: warningColor.withAlpha(50),
           borderRadius: BorderRadius.circular(5),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'warning_suspicious_dapp_detected_title'.tr(),
+              warningTitle,
               style: theme.textTheme.ppMori700Black14,
             ),
             const SizedBox(
               height: 15,
             ),
             Text(
-              'warning_suspicious_dapp_detected_content'.tr(),
+              warningContent,
               style: theme.textTheme.ppMori400Black14,
             ),
           ],
@@ -454,6 +485,7 @@ class _WCConnectPageState extends State<WCConnectPage>
             child: Padding(
               padding: padding,
               child: PrimaryButton(
+                color: warningColor,
                 text: 'continue'.tr(),
                 onTap: confirmWarning,
               ),
