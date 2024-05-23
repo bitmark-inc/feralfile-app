@@ -11,9 +11,7 @@ import android.content.Context
 import android.util.Log
 import androidx.annotation.NonNull
 import com.bitmark.libauk.LibAuk
-import com.google.android.gms.auth.blockstore.Blockstore
-import com.google.android.gms.auth.blockstore.BlockstoreClient
-import com.google.android.gms.auth.blockstore.StoreBytesData
+import com.google.android.gms.auth.blockstore.*
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
@@ -120,12 +118,14 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler, ActivityAware {
     }
 
     private fun restoreKeys(call: MethodCall, result: MethodChannel.Result) {
-        client.retrieveBytes()
+        val retrieveBytesRequestBuilder = RetrieveBytesRequest.Builder()
+            .setRetrieveAll(true)
+        client.retrieveBytes(retrieveBytesRequestBuilder.build())
             .addOnSuccessListener { bytes ->
                 try {
                     val data = jsonKT.decodeFromString(
                         BackupData.serializer(),
-                        bytes.toString(Charsets.UTF_8)
+                        bytes.toString()
                     )
 
                     Observable.fromIterable(data.accounts)
@@ -181,10 +181,9 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler, ActivityAware {
 
 
     private fun deleteKeys(call: MethodCall, result: MethodChannel.Result) {
-        // store empty bytes to blockstore
-        val storeBytesDataBuilder = StoreBytesData.Builder()
-            .setBytes(ByteArray(0))
-        client.storeBytes(storeBytesDataBuilder.build())
+        val deleteRequestBuilder = DeleteBytesRequest.Builder()
+            .setDeleteAll(true)
+        client.deleteBytes(deleteRequestBuilder.build())
             .addOnSuccessListener {
                 result.success("")
             }
