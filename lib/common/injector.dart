@@ -24,6 +24,7 @@ import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/gateway/merchandise_api.dart';
 import 'package:autonomy_flutter/gateway/postcard_api.dart';
 import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
+import 'package:autonomy_flutter/gateway/source_exhibition_api.dart';
 import 'package:autonomy_flutter/gateway/tzkt_api.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/chat/chat_bloc.dart';
@@ -219,6 +220,8 @@ Future<void> setup() async {
   injector.registerLazySingleton(() => BranchApi(dio));
   injector.registerLazySingleton(
       () => PubdocAPI(dio, baseUrl: Environment.pubdocURL));
+  injector.registerLazySingleton(
+      () => SourceExhibitionAPI(dio, baseUrl: Environment.pubdocURL));
   injector.registerLazySingleton<RemoteConfigService>(
       () => RemoteConfigServiceImpl(injector()));
   injector.registerLazySingleton(

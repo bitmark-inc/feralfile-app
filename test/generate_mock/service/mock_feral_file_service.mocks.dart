@@ -85,16 +85,22 @@ class MockFeralFileService extends _i1.Mock implements _i5.FeralFileService {
   }
 
   @override
-  _i6.Future<_i2.FFSeries> getSeries(String? id) => (super.noSuchMethod(
+  _i6.Future<_i2.FFSeries> getSeries(
+    String? id, {
+    String? exhibitionID,
+  }) =>
+      (super.noSuchMethod(
         Invocation.method(
           #getSeries,
           [id],
+          {#exhibitionID: exhibitionID},
         ),
         returnValue: _i6.Future<_i2.FFSeries>.value(_FakeFFSeries_0(
           this,
           Invocation.method(
             #getSeries,
             [id],
+            {#exhibitionID: exhibitionID},
           ),
         )),
       ) as _i6.Future<_i2.FFSeries>);
@@ -181,6 +187,20 @@ class MockFeralFileService extends _i1.Mock implements _i5.FeralFileService {
             <_i4.ExhibitionDetail>[]),
       ) as _i6.Future<List<_i4.ExhibitionDetail>>);
   @override
+  _i6.Future<_i4.Exhibition> getSourceExhibition() => (super.noSuchMethod(
+        Invocation.method(
+          #getSourceExhibition,
+          [],
+        ),
+        returnValue: _i6.Future<_i4.Exhibition>.value(_FakeExhibition_2(
+          this,
+          Invocation.method(
+            #getSourceExhibition,
+            [],
+          ),
+        )),
+      ) as _i6.Future<_i4.Exhibition>);
+  @override
   _i6.Future<_i4.ExhibitionDetail> getFeaturedExhibition() =>
       (super.noSuchMethod(
         Invocation.method(
@@ -212,13 +232,17 @@ class MockFeralFileService extends _i1.Mock implements _i5.FeralFileService {
   @override
   _i6.Future<List<_i3.Artwork>> getSeriesArtworks(
     String? seriesId, {
+    String? exhibitionID,
     bool? withSeries = false,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
           #getSeriesArtworks,
           [seriesId],
-          {#withSeries: withSeries},
+          {
+            #exhibitionID: exhibitionID,
+            #withSeries: withSeries,
+          },
         ),
         returnValue: _i6.Future<List<_i3.Artwork>>.value(<_i3.Artwork>[]),
       ) as _i6.Future<List<_i3.Artwork>>);

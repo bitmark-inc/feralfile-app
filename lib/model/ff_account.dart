@@ -150,18 +150,18 @@ class Artwork {
   final String seriesID;
   final int index;
   final String name;
-  final String category;
-  final String ownerAccountID;
+  final String? category;
+  final String? ownerAccountID;
   final bool? virgin;
   final bool? burned;
-  final String blockchainStatus;
-  final bool isExternal;
+  final String? blockchainStatus;
+  final bool? isExternal;
   final String thumbnailURI;
   final String previewURI;
-  final Map<String, dynamic> metadata;
-  final DateTime mintedAt;
-  final DateTime createdAt;
-  final DateTime updatedAt;
+  final Map<String, dynamic>? metadata;
+  final DateTime? mintedAt;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
   final bool? isArchived;
   final FFSeries? series;
   final ArtworkSwap? swap;
@@ -187,8 +187,37 @@ class Artwork {
       this.series,
       this.swap);
 
-  factory Artwork.fromJson(Map<String, dynamic> json) =>
-      _$ArtworkFromJson(json);
+  factory Artwork.fromJson(Map<String, dynamic> json) => Artwork(
+        json['id'] as String,
+        json['seriesID'] as String,
+        json['index'] as int,
+        json['name'] as String,
+        json['category'] as String?,
+        json['ownerAccountID'] as String?,
+        json['virgin'] as bool?,
+        json['burned'] as bool?,
+        json['blockchainStatus'] as String?,
+        json['isExternal'] as bool?,
+        json['thumbnailURI'] as String,
+        json['previewURI'] as String,
+        json['metadata'] as Map<String, dynamic>?,
+        json['mintedAt'] == null || (json['mintedAt'] as String).isEmpty
+            ? null
+            : DateTime.parse(json['mintedAt'] as String),
+        json['createdAt'] == null
+            ? null
+            : DateTime.parse(json['createdAt'] as String),
+        json['updatedAt'] == null
+            ? null
+            : DateTime.parse(json['updatedAt'] as String),
+        json['isArchived'] as bool?,
+        json['series'] == null
+            ? null
+            : FFSeries.fromJson(json['series'] as Map<String, dynamic>),
+        json['swap'] == null
+            ? null
+            : ArtworkSwap.fromJson(json['swap'] as Map<String, dynamic>),
+      );
 
   Map<String, dynamic> toJson() => _$ArtworkToJson(this);
 
@@ -267,6 +296,7 @@ class Artwork {
           'thumbnailURI',
           'exhibitionID',
           {},
+          null,
           null,
           null,
           null,

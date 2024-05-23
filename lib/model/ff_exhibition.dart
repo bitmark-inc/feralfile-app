@@ -9,6 +9,7 @@ class Exhibition {
   final String title;
   final String slug;
   final DateTime exhibitionStartAt;
+  final int? previewDuration;
 
   final String noteTitle;
   final String noteBrief;
@@ -31,6 +32,7 @@ class Exhibition {
     required this.title,
     required this.slug,
     required this.exhibitionStartAt,
+    required this.previewDuration,
     required this.noteTitle,
     required this.noteBrief,
     required this.note,
@@ -52,6 +54,7 @@ class Exhibition {
         title: json['title'] as String,
         slug: json['slug'] as String,
         exhibitionStartAt: DateTime.parse(json['exhibitionStartAt'] as String),
+        previewDuration: json['previewDuration'] as int?,
         noteTitle: json['noteTitle'] as String,
         noteBrief: json['noteBrief'] as String,
         note: json['note'] as String,
@@ -66,7 +69,7 @@ class Exhibition {
         contracts: (json['contracts'] as List<dynamic>?)
             ?.map((e) => FFContract.fromJson(e as Map<String, dynamic>))
             .toList(),
-        mintBlockchain: json['mintBlockchain'] as String,
+        mintBlockchain: (json['mintBlockchain'] ?? '') as String,
         partner: json['partner'] == null
             ? null
             : FFArtist.fromJson(json['partner'] as Map<String, dynamic>),
@@ -85,6 +88,7 @@ class Exhibition {
         'title': title,
         'slug': slug,
         'exhibitionStartAt': exhibitionStartAt.toIso8601String(),
+        'previewDuration': previewDuration,
         'noteTitle': noteTitle,
         'noteBrief': noteBrief,
         'note': note,
@@ -114,6 +118,7 @@ class Exhibition {
     String? title,
     String? slug,
     DateTime? exhibitionStartAt,
+    int? previewDuration,
     String? noteTitle,
     String? noteBrief,
     String? note,
@@ -134,6 +139,7 @@ class Exhibition {
         title: title ?? this.title,
         slug: slug ?? this.slug,
         exhibitionStartAt: exhibitionStartAt ?? this.exhibitionStartAt,
+        previewDuration: previewDuration ?? this.previewDuration,
         noteTitle: noteTitle ?? this.noteTitle,
         noteBrief: noteBrief ?? this.noteBrief,
         note: note ?? this.note,

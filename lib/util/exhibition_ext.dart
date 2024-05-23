@@ -15,7 +15,13 @@ extension ExhibitionExt on Exhibition {
 
   bool get isGroupExhibition => type == 'group';
 
+  DateTime get exhibitionViewAt =>
+      exhibitionStartAt.subtract(Duration(seconds: previewDuration ?? 0));
+
   bool get canStream {
+    if (id == SOURCE_EXHIBITION_ID) {
+      return false;
+    }
     final exhibitionBloc = injector<ExhibitionBloc>();
     return exhibitionBloc.state.isSubscribed ||
         (exhibitionBloc.state.freeExhibitions
@@ -27,6 +33,9 @@ extension ExhibitionExt on Exhibition {
   bool get isOnGoing => true;
 
   String? get getSeriesArtworkModelText {
+    if (this.series == null || id == SOURCE_EXHIBITION_ID) {
+      return null;
+    }
     const sep = ', ';
     final specifiedSeriesArtworkModelTitle =
         injector<RemoteConfigService>().getConfig<Map<String, dynamic>>(
@@ -35,9 +44,6 @@ extension ExhibitionExt on Exhibition {
       specifiedSeriesTitle,
     );
     final specifiedSeriesIds = specifiedSeriesArtworkModelTitle.keys;
-    if (this.series == null) {
-      return null;
-    }
     final currentSpecifiedSeries = this
         .series!
         .where((element) => specifiedSeriesIds.contains(element.id))

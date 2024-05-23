@@ -71,40 +71,41 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
       Padding(
         padding: const EdgeInsets.only(left: 14, right: 14, bottom: 20),
         child: GridView.builder(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3,
-              crossAxisSpacing: 10,
-              mainAxisSpacing: 10,
-            ),
-            itemBuilder: (context, index) {
-              final artwork = artworks[index];
-              return FFArtworkThumbnailView(
-                artwork: artwork,
-                onTap: () async {
-                  final controllingDevice =
-                      _canvasDeviceBloc.state.controllingDevice;
-                  if (controllingDevice != null) {
-                    final castRequest = CastExhibitionRequest(
-                        exhibitionId: exhibitionDetail!.exhibition.id,
-                        katalog: ExhibitionKatalog.ARTWORK,
-                        katalogId: artwork.id);
-                    _canvasDeviceBloc.add(
-                      CanvasDeviceCastExhibitionEvent(
-                        controllingDevice,
-                        castRequest,
-                      ),
-                    );
-                  }
-                  await Navigator.of(context).pushNamed(
-                    AppRouter.ffArtworkPreviewPage,
-                    arguments: FeralFileArtworkPreviewPagePayload(
-                      artwork: artwork,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            crossAxisSpacing: 10,
+            mainAxisSpacing: 10,
+          ),
+          itemBuilder: (context, index) {
+            final artwork = artworks[index];
+            return FFArtworkThumbnailView(
+              artwork: artwork,
+              onTap: () async {
+                final controllingDevice =
+                    _canvasDeviceBloc.state.controllingDevice;
+                if (controllingDevice != null) {
+                  final castRequest = CastExhibitionRequest(
+                      exhibitionId: exhibitionDetail!.exhibition.id,
+                      katalog: ExhibitionKatalog.ARTWORK,
+                      katalogId: artwork.id);
+                  _canvasDeviceBloc.add(
+                    CanvasDeviceCastExhibitionEvent(
+                      controllingDevice,
+                      castRequest,
                     ),
                   );
-                },
-              );
-            },
-            itemCount: artworks.length),
+                }
+                await Navigator.of(context).pushNamed(
+                  AppRouter.ffArtworkPreviewPage,
+                  arguments: FeralFileArtworkPreviewPagePayload(
+                    artwork: artwork,
+                  ),
+                );
+              },
+            );
+          },
+          itemCount: artworks.length,
+        ),
       );
 }
 

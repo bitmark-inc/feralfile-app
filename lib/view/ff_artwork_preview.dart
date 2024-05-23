@@ -15,6 +15,8 @@ class FeralFileArtworkPreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final artworkNumbers =
+        payload.series.settings?.maxArtwork ?? payload.series.artworks?.length;
     return Column(
       children: [
         Expanded(
@@ -48,7 +50,7 @@ class FeralFileArtworkPreview extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 3),
                   child: Text(
-                    '${payload.artwork.index + 1}/${payload.series.settings?.maxArtwork ?? '--'}',
+                    '${payload.artwork.index + 1}/${artworkNumbers ?? '--'}',
                     style:
                         theme.textTheme.ppMori400White12.copyWith(fontSize: 10),
                   ),

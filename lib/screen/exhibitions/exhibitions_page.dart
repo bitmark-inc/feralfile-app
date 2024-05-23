@@ -10,6 +10,7 @@ import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_pag
 import 'package:autonomy_flutter/screen/exhibitions/exhibitions_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibitions/exhibitions_state.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -119,25 +120,40 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
             GestureDetector(
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(10),
-                child: Image.network(
-                  exhibition.coverUrl,
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) {
-                      return child;
-                    }
-                    return SizedBox(
-                      height: estimatedHeight,
-                      child: const Center(
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          backgroundColor: AppColor.auQuickSilver,
-                          strokeWidth: 2,
+                child: exhibition.id == SOURCE_EXHIBITION_ID
+                    ? SvgPicture.network(
+                        exhibition.coverUrl,
+                        height: estimatedHeight,
+                        placeholderBuilder: (context) => SizedBox(
+                          height: estimatedHeight,
+                          child: const Center(
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              backgroundColor: AppColor.auQuickSilver,
+                              strokeWidth: 2,
+                            ),
+                          ),
                         ),
+                      )
+                    : Image.network(
+                        exhibition.coverUrl,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) {
+                            return child;
+                          }
+                          return SizedBox(
+                            height: estimatedHeight,
+                            child: const Center(
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                backgroundColor: AppColor.auQuickSilver,
+                                strokeWidth: 2,
+                              ),
+                            ),
+                          );
+                        },
+                        fit: BoxFit.fitWidth,
                       ),
-                    );
-                  },
-                  fit: BoxFit.fitWidth,
-                ),
               ),
               onTap: () async {
                 final device = _canvasDeviceBloc.state.controllingDevice;
