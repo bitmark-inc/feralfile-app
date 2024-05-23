@@ -170,6 +170,20 @@ extension SearchKeyExtension on String? {
     }
     return '#';
   }
+
+  int compareSearchKey(String? other) {
+    final a = this ?? '';
+    final b = other ?? '';
+    final aFirstCharacter = firstSearchCharacter;
+    final bFirstCharacter = other.firstSearchCharacter;
+    if (aFirstCharacter == '#' && bFirstCharacter != '#') {
+      return 1;
+    }
+    if (aFirstCharacter != '#' && bFirstCharacter == '#') {
+      return -1;
+    }
+    return a.toUpperCase().compareTo(b.toUpperCase());
+  }
 }
 
 final List<String> listCharacters = [
