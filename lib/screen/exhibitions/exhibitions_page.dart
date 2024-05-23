@@ -250,7 +250,7 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                   if (!isSubscribed && freeExhibitions.isNotEmpty) ...[
                     Text('current_exhibition'.tr(),
                         style: theme.textTheme.ppMori400White14),
-                    Text('free_to_stream'.tr(),
+                    Text('for_essential_members'.tr(),
                         style: theme.textTheme.ppMori400Grey14),
                     const SizedBox(height: 18),
                   ],
@@ -301,7 +301,7 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                 children: [
                   _lockIcon(),
                   const SizedBox(width: 5),
-                  Text('pro_members_only'.tr(),
+                  Text('premium_membership'.tr(),
                       style: theme.textTheme.ppMori400Grey14),
                 ],
               ),
@@ -312,7 +312,7 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
             padding: EdgeInsets.zero,
             elevatedPadding: const EdgeInsets.symmetric(horizontal: 15),
             borderRadius: 20,
-            text: 'go_pro'.tr(),
+            text: 'get_premium'.tr(),
             onTap: () async {
               await Navigator.of(context).pushNamed(AppRouter.subscriptionPage);
             },
