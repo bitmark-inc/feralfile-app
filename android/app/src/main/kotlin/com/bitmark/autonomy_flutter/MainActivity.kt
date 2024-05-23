@@ -174,7 +174,7 @@ class MainActivity : FlutterFragmentActivity() {
     private fun detectFridaPort(): Boolean {
         return try {
             val socket = Socket()
-            socket.connect(InetSocketAddress("127.0.0.1", 27047), 1000)
+            socket.connect(InetSocketAddress("127.0.0.1", 27042), 1000)
             socket.close()
             true
         } catch (e: Exception) {
