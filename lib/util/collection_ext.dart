@@ -8,6 +8,8 @@ extension ListCollectionExt on List<PlayListModel> {
     final lowerFilter = filter.toLowerCase();
     return where(
             (element) => element.getName().toLowerCase().contains(lowerFilter))
+        .toList()
+        .reversed
         .toList();
   }
 }
