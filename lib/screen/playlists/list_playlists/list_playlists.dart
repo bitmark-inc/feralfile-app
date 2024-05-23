@@ -37,12 +37,11 @@ class ListPlaylistsScreen extends StatefulWidget {
 class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
     with RouteAware, WidgetsBindingObserver {
   final isDemo = injector.get<ConfigurationService>().isDemoArtworksMode();
-  late int playlistNumberBreakpoint;
+  static const int _playlistNumberBreakpoint = 6;
 
   @override
   void initState() {
     super.initState();
-    playlistNumberBreakpoint = 6;
     WidgetsBinding.instance.addObserver(this);
   }
 
@@ -78,60 +77,24 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
                 if (widget.filter.isNotEmpty)
                   TitleText(title: 'playlists'.tr()),
                 const SizedBox(height: 30),
-                if ((widget.playlists.value?.length ?? 0) >=
-                    playlistNumberBreakpoint)
-                  playlistHorizontalGridView(context, playlists)
-                else
-                  playlistListView(context, playlists)
+                _playlistHorizontalGridView(context, playlists)
               ],
             ),
           );
         },
       );
 
-  Widget playlistListView(BuildContext context, List<PlayListModel> playlists) {
-    const height = PlaylistItem.height;
-    return SizedBox(
-      height: height,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: playlists.length + 1,
-        itemBuilder: (context, index) {
-          if (index == 0) {
-            if (widget.filter.isNotEmpty) {
-              return const SizedBox();
-            }
-            return AddPlayListItem(
-              onTap: () {
-                widget.onAdd();
-              },
-            );
-          }
-          final item = playlists[index - 1];
-          return SizedBox(
-            height: PlaylistItem.height,
-            child: PlaylistItem(
-                playlist: item,
-                onSelected: () {
-                  onPlaylistTap(item);
-                }),
-          );
-        },
-        separatorBuilder: (context, index) => const SizedBox(width: 15),
-      ),
-    );
-  }
-
-  Widget playlistHorizontalGridView(
+  Widget _playlistHorizontalGridView(
       BuildContext context, List<PlayListModel> playlists) {
-    const height = PlaylistItem.height * 2 + 15;
+    final rowNumber = playlists.length > _playlistNumberBreakpoint ? 2 : 1;
+    final height = PlaylistItem.height * rowNumber + 15 * (rowNumber - 1);
     final length = playlists.length + 1;
     return SizedBox(
       height: height,
       child: GridView.builder(
         scrollDirection: Axis.horizontal,
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: rowNumber,
           crossAxisSpacing: 15,
           mainAxisSpacing: 15,
           childAspectRatio: PlaylistItem.height / PlaylistItem.width,
