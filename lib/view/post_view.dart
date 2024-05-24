@@ -31,6 +31,7 @@ class _ExhibitionPostViewState extends State<ExhibitionPostView> {
     final theme = Theme.of(context);
     final dateFormat = DateFormat('EEEE, MMM d, y');
     final timeFormat = DateFormat('HH:mm');
+    final dateTime = widget.post.dateTime ?? widget.post.createdAt;
     return Center(
       child: Container(
         padding: const EdgeInsets.all(14),
@@ -57,11 +58,11 @@ class _ExhibitionPostViewState extends State<ExhibitionPostView> {
               if (widget.post.type != 'close-up') ...[
                 const SizedBox(height: 20),
                 Text(
-                  'Date: ${dateFormat.format(widget.post.dateTime ?? widget.post.createdAt)}',
+                  'Date: ${dateFormat.format(dateTime)}',
                   style: theme.textTheme.ppMori400White14,
                 ),
                 Text(
-                  'Time: ${timeFormat.format(widget.post.dateTime ?? widget.post.createdAt)}',
+                  'Time: ${timeFormat.format(dateTime)}',
                   style: theme.textTheme.ppMori400White14,
                 ),
               ],
