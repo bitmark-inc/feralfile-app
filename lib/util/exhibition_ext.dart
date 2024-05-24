@@ -11,7 +11,6 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:collection/collection.dart';
 
 extension ExhibitionExt on Exhibition {
-  static const List<String> _unavailableForCastingExhibitionId = [];
 
   String get coverUrl => '${Environment.feralFileAssetURL}/$coverURI';
 
@@ -27,9 +26,6 @@ extension ExhibitionExt on Exhibition {
                 ?.any((element) => element.exhibition.id == id) ??
             false);
   }
-
-  bool get canStream =>
-      canViewDetails && !_unavailableForCastingExhibitionId.contains(id);
 
   //TODO: implement this
   bool get isOnGoing => true;

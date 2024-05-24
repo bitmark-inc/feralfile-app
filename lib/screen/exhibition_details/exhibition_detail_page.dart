@@ -60,20 +60,19 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
   @override
   Widget build(BuildContext context) =>
       BlocConsumer<ExhibitionDetailBloc, ExhibitionDetailState>(
-        builder: (context, state) => Scaffold(
-          appBar: _getAppBar(context, state.exhibitionDetail),
-          backgroundColor: AppColor.primaryBlack,
-          body: _body(context, state),
-        ),
-        listener: (context, state) {},
-        listenWhen: (previous, current) {
-          if (previous.exhibitionDetail == null &&
-              current.exhibitionDetail != null) {
-            _checkAndStream(current.exhibitionDetail!);
-          }
-          return true;
-        }
-      );
+          builder: (context, state) => Scaffold(
+                appBar: _getAppBar(context, state.exhibitionDetail),
+                backgroundColor: AppColor.primaryBlack,
+                body: _body(context, state),
+              ),
+          listener: (context, state) {},
+          listenWhen: (previous, current) {
+            if (previous.exhibitionDetail == null &&
+                current.exhibitionDetail != null) {
+              _stream(current.exhibitionDetail!);
+            }
+            return true;
+          });
 
   Widget _body(BuildContext context, ExhibitionDetailState state) {
     final exhibitionDetail = state.exhibitionDetail;
@@ -94,7 +93,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
               setState(() {
                 _currentIndex = index;
               });
-              _checkAndStream(exhibitionDetail);
+              _stream(exhibitionDetail);
             },
             scrollDirection: Axis.vertical,
             itemCount: itemCount,
@@ -137,18 +136,15 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
     );
   }
 
-  void _checkAndStream(ExhibitionDetail exhibitionDetail) {
-    if (exhibitionDetail.exhibition.canStream) {
-      final controllingDevice =
-          _canvasDeviceBloc.state.controllingDevice;
-      log.info('onPageChanged: $_currentIndex');
-      if (controllingDevice != null) {
-        final request = _getCastExhibitionRequest(exhibitionDetail);
-        log.info('onPageChanged: request: $request');
-        _canvasDeviceBloc.add(
-          CanvasDeviceCastExhibitionEvent(controllingDevice, request),
-        );
-      }
+  void _stream(ExhibitionDetail exhibitionDetail) {
+    final controllingDevice = _canvasDeviceBloc.state.controllingDevice;
+    log.info('onPageChanged: $_currentIndex');
+    if (controllingDevice != null) {
+      final request = _getCastExhibitionRequest(exhibitionDetail);
+      log.info('onPageChanged: request: $request');
+      _canvasDeviceBloc.add(
+        CanvasDeviceCastExhibitionEvent(controllingDevice, request),
+      );
     }
   }
 
@@ -227,8 +223,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
       getFFAppBar(
         buildContext,
         onBack: () => Navigator.pop(buildContext),
-        action: exhibitionDetail != null &&
-                exhibitionDetail.exhibition.canStream
+        action: exhibitionDetail != null
             ? Padding(
                 padding: const EdgeInsets.only(right: 14, bottom: 10, top: 10),
                 child: FFCastButton(
