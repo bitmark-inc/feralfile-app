@@ -34,13 +34,12 @@ class ExhibitionBloc extends AuBloc<ExhibitionsEvent, ExhibitionsState> {
           ' pro ${proExhibitions.length}');
       proExhibitions.removeWhere((element) =>
           element.exhibition.id == featuredExhibition.exhibition.id);
-      proExhibitions =
-          _addSourceExhibitionIfNeeded(proExhibitions, sourceExhibition);
       emit(state.copyWith(
         freeExhibitions: [featuredExhibition],
         proExhibitions: proExhibitions,
         isSubscribed: isSubscribed,
         currentPage: 1,
+        sourceExhibition: ExhibitionDetail(exhibition: sourceExhibition),
       ));
       add(GetNextPageEvent(isLoop: true));
     });
@@ -49,7 +48,8 @@ class ExhibitionBloc extends AuBloc<ExhibitionsEvent, ExhibitionsState> {
       (event, emit) async {
         log.info('[ExhibitionBloc] getNextPageEvent:'
             'offset  ${state.currentPage * limit}');
-        final proExhibitions = await _feralFileService.getAllExhibitions(
+        List<ExhibitionDetail> proExhibitions =
+            await _feralFileService.getAllExhibitions(
           limit: limit,
           offset: state.currentPage * limit,
         );
@@ -58,6 +58,12 @@ class ExhibitionBloc extends AuBloc<ExhibitionsEvent, ExhibitionsState> {
 
         proExhibitions.removeWhere((element) =>
             state.allExhibitionIds.contains(element.exhibition.id));
+        if (state.sourceExhibition != null &&
+            !(state.proExhibitions ?? []).any(
+                (element) => element.exhibition.id == SOURCE_EXHIBITION_ID)) {
+          proExhibitions = _addSourceExhibitionIfNeeded(
+              proExhibitions, state.sourceExhibition!);
+        }
         emit(state.copyWith(
           proExhibitions: [...state.proExhibitions ?? [], ...proExhibitions],
           currentPage: state.currentPage + 1,
@@ -71,7 +77,7 @@ class ExhibitionBloc extends AuBloc<ExhibitionsEvent, ExhibitionsState> {
   }
 
   List<ExhibitionDetail> _addSourceExhibitionIfNeeded(
-      List<ExhibitionDetail> exhibitions, Exhibition sourceExhibition) {
+      List<ExhibitionDetail> exhibitions, ExhibitionDetail sourceExhibition) {
     final isExistSourceExhibition = exhibitions
         .any((exhibition) => exhibition.exhibition.id == SOURCE_EXHIBITION_ID);
     if (isExistSourceExhibition) {
@@ -79,9 +85,11 @@ class ExhibitionBloc extends AuBloc<ExhibitionsEvent, ExhibitionsState> {
     }
     final lastExhibition = exhibitions.last;
     if (lastExhibition.exhibition.exhibitionViewAt
-        .isBefore(sourceExhibition.exhibitionViewAt)) {
+        .isBefore(sourceExhibition.exhibition.exhibitionViewAt)) {
+
+      log.info('[ExhibitionBloc] inserted Source Exhibition');
       exhibitions
-        ..add(ExhibitionDetail(exhibition: sourceExhibition))
+        ..add(sourceExhibition)
         ..sort((a, b) => b.exhibition.exhibitionViewAt
             .compareTo(a.exhibition.exhibitionViewAt));
     }
