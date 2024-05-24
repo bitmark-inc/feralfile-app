@@ -34,6 +34,8 @@ class ExhibitionBloc extends AuBloc<ExhibitionsEvent, ExhibitionsState> {
           ' pro ${proExhibitions.length}');
       proExhibitions.removeWhere((element) =>
           element.exhibition.id == featuredExhibition.exhibition.id);
+      proExhibitions = _addSourceExhibitionIfNeeded(
+          proExhibitions, ExhibitionDetail(exhibition: sourceExhibition));
       emit(state.copyWith(
         freeExhibitions: [featuredExhibition],
         proExhibitions: proExhibitions,
@@ -86,7 +88,6 @@ class ExhibitionBloc extends AuBloc<ExhibitionsEvent, ExhibitionsState> {
     final lastExhibition = exhibitions.last;
     if (lastExhibition.exhibition.exhibitionViewAt
         .isBefore(sourceExhibition.exhibition.exhibitionViewAt)) {
-
       log.info('[ExhibitionBloc] inserted Source Exhibition');
       exhibitions
         ..add(sourceExhibition)
