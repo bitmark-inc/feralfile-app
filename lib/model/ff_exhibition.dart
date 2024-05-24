@@ -295,15 +295,20 @@ extension PostExt on Post {
   String get displayType =>
       type == 'close-up' ? 'close_up'.tr() : type.capitalize();
 
-  String get thumbnailUrl {
+  List<String> get thumbnailUrls {
     if (coverURI == null) {
-      return '';
+      return [];
     }
     if (mediaType == MediaType.image) {
-      return getFFUrl(coverURI!);
+      return [getFFUrl(coverURI!)];
     } else {
+      final List<String> thumbUrls = [];
       final videoId = Uri.parse(coverURI!).queryParameters['v'];
-      return 'https://img.youtube.com/vi/$videoId/maxresdefault.jpg';
+      for (var variant in YOUTUBE_VARIANTS) {
+        final url = 'https://img.youtube.com/vi/$videoId/$variant.jpg';
+        thumbUrls.add(url);
+      }
+      return thumbUrls;
     }
   }
 
