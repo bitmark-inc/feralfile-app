@@ -211,7 +211,7 @@ class Post {
   final String title;
   final String content;
   final int? displayIndex;
-  final String coverURI;
+  final String? coverURI;
   final DateTime createdAt;
   final DateTime updatedAt;
   final DateTime? dateTime;
@@ -281,8 +281,11 @@ enum MediaType {
 }
 
 extension PostExt on Post {
-  MediaType get mediaType {
-    final url = Uri.parse(coverURI);
+  MediaType? get mediaType {
+    if (coverURI == null) {
+      return null;
+    }
+    final url = Uri.parse(coverURI!);
     if (YOUTUBE_DOMAINS.any((domain) => url.host.contains(domain))) {
       return MediaType.video;
     }
@@ -293,19 +296,25 @@ extension PostExt on Post {
       type == 'close-up' ? 'close_up'.tr() : type.capitalize();
 
   String get thumbnailUrl {
+    if (coverURI == null) {
+      return '';
+    }
     if (mediaType == MediaType.image) {
-      return getFFUrl(coverURI);
+      return getFFUrl(coverURI!);
     } else {
-      final videoId = Uri.parse(coverURI).queryParameters['v'];
+      final videoId = Uri.parse(coverURI!).queryParameters['v'];
       return 'https://img.youtube.com/vi/$videoId/maxresdefault.jpg';
     }
   }
 
   String get previewUrl {
+    if (coverURI == null) {
+      return '';
+    }
     if (mediaType == MediaType.image) {
-      return getFFUrl(coverURI);
+      return getFFUrl(coverURI!);
     } else {
-      final videoId = Uri.parse(coverURI).queryParameters['v'];
+      final videoId = Uri.parse(coverURI!).queryParameters['v'];
       return 'https://www.youtube.com/embed/$videoId?autoplay=1&loop=1&controls=0';
     }
   }

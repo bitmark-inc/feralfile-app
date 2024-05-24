@@ -182,9 +182,11 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
                 );
               },
             ),
-            ...exhibition.posts?.map((e) => ExhibitionPostView(
-                      post: e,
-                    )) ??
+            ...exhibition.posts
+                    ?.where((post) => post.coverURI != null)
+                    .map((e) => ExhibitionPostView(
+                          post: e,
+                        )) ??
                 []
           ],
           options: CarouselOptions(

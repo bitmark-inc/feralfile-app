@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
@@ -46,6 +47,7 @@ class ExhibitionNoteView extends StatelessWidget {
               constraints:
                   BoxConstraints(maxHeight: isFull ? double.infinity : 400),
               child: HtmlWidget(
+                customStylesBuilder: auHtmlStyle,
                 text,
                 textStyle: theme.textTheme.ppMori400White14,
               ),
