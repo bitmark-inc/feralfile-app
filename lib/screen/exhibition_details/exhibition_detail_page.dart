@@ -66,6 +66,13 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
           body: _body(context, state),
         ),
         listener: (context, state) {},
+        listenWhen: (previous, current) {
+          if (previous.exhibitionDetail == null &&
+              current.exhibitionDetail != null) {
+            _checkAndStream(current.exhibitionDetail!);
+          }
+          return true;
+        }
       );
 
   Widget _body(BuildContext context, ExhibitionDetailState state) {
@@ -87,18 +94,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
               setState(() {
                 _currentIndex = index;
               });
-              if (exhibitionDetail.exhibition.canStream) {
-                final controllingDevice =
-                    _canvasDeviceBloc.state.controllingDevice;
-                log.info('onPageChanged: $_currentIndex');
-                if (controllingDevice != null) {
-                  final request = _getCastExhibitionRequest(exhibitionDetail);
-                  log.info('onPageChanged: request: $request');
-                  _canvasDeviceBloc.add(
-                    CanvasDeviceCastExhibitionEvent(controllingDevice, request),
-                  );
-                }
-              }
+              _checkAndStream(exhibitionDetail);
             },
             scrollDirection: Axis.vertical,
             itemCount: itemCount,
@@ -139,6 +135,21 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
         if (_currentIndex == 0 || _currentIndex == 1) _nextButton()
       ],
     );
+  }
+
+  void _checkAndStream(ExhibitionDetail exhibitionDetail) {
+    if (exhibitionDetail.exhibition.canStream) {
+      final controllingDevice =
+          _canvasDeviceBloc.state.controllingDevice;
+      log.info('onPageChanged: $_currentIndex');
+      if (controllingDevice != null) {
+        final request = _getCastExhibitionRequest(exhibitionDetail);
+        log.info('onPageChanged: request: $request');
+        _canvasDeviceBloc.add(
+          CanvasDeviceCastExhibitionEvent(controllingDevice, request),
+        );
+      }
+    }
   }
 
   Widget _getPreviewPage(Exhibition exhibition) => Column(
