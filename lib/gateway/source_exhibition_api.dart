@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
+
 part 'source_exhibition_api.g.dart';
 
 const totalSeries = 25;
