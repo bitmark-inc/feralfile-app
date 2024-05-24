@@ -392,24 +392,27 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       subTitle = artistName;
     }
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 15),
+      padding: const EdgeInsets.only(top: 15, bottom: 33),
       child: Row(
         children: [
           const SizedBox(
             width: 15,
           ),
-          ArtworkDetailsHeader(
-            title: asset.displayTitle ?? '',
-            subTitle: subTitle,
-            onSubTitleTap: asset.artistID != null
-                ? () => unawaited(
-                    Navigator.of(context).pushNamed(AppRouter.galleryPage,
-                        arguments: GalleryPagePayload(
-                          address: asset.artistID!,
-                          artistName: artistName!,
-                          artistURL: asset.artistURL,
-                        )))
-                : null,
+          SizedBox(
+            width: MediaQuery.of(context).size.width * 0.7,
+            child: ArtworkDetailsHeader(
+              title: asset.displayTitle ?? '',
+              subTitle: subTitle,
+              onSubTitleTap: asset.artistID != null
+                  ? () => unawaited(
+                      Navigator.of(context).pushNamed(AppRouter.galleryPage,
+                          arguments: GalleryPagePayload(
+                            address: asset.artistID!,
+                            artistName: artistName!,
+                            artistURL: asset.artistURL,
+                          )))
+                  : null,
+            ),
           ),
           const Spacer(),
           _artworkInfoIcon(),
@@ -465,11 +468,14 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
             ),
             Visibility(
               visible: editionSubTitle.isNotEmpty,
-              child: Padding(
-                padding: ResponsiveLayout.getPadding,
-                child: Text(
-                  editionSubTitle,
-                  style: theme.textTheme.ppMori400Grey14,
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Padding(
+                  padding: ResponsiveLayout.getPadding,
+                  child: Text(
+                    editionSubTitle,
+                    style: theme.textTheme.ppMori400Grey14,
+                  ),
                 ),
               ),
             ),
