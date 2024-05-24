@@ -29,7 +29,7 @@ class ExhibitionPreview extends StatelessWidget {
     );
     const _padding = 14.0;
     final screenWidth = MediaQuery.sizeOf(context).width;
-    final estimatedHeight = (screenWidth - _padding * 2) / 16 * 9;
+    final estimatedHeight = (screenWidth - padding * 2) / 16 * 9;
 
     return Container(
       padding: const EdgeInsets.only(left: 14, right: 14, bottom: 20),
