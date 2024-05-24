@@ -44,6 +44,7 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/cast_button.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:backdrop/backdrop.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -76,6 +77,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     with
         AfterLayoutMixin<ArtworkDetailPage>,
         RouteAware,
+        SingleTickerProviderStateMixin,
         WidgetsBindingObserver {
   late ScrollController _scrollController;
   late bool withSharing;
@@ -85,15 +87,23 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   AssetToken? currentAsset;
   final _feralfileService = injector.get<FeralFileService>();
   final _focusNode = FocusNode();
-  double? _infoSize;
-  static const double _infoMaxSize = 450;
+  bool _isInfoExpand = false;
+  static const _infoShrinkPosition = 0.001;
   late ArtworkDetailBloc _bloc;
   late CanvasDeviceBloc _canvasDeviceBloc;
+  late AnimationController _animationController;
 
   @override
   void initState() {
     _scrollController = ScrollController();
     super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+      reverseDuration: const Duration(milliseconds: 400),
+      value: _infoShrinkPosition,
+    );
+    _infoShrink();
     _bloc = context.read<ArtworkDetailBloc>();
     _canvasDeviceBloc = injector.get<CanvasDeviceBloc>();
     _bloc.add(ArtworkDetailGetInfoEvent(
@@ -191,6 +201,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   @override
   void dispose() {
     _scrollController.dispose();
+    _animationController.dispose();
     _focusNode.dispose();
     routeObserver.unsubscribe(this);
     WidgetsBinding.instance.removeObserver(this);
@@ -201,6 +212,14 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       ));
     }
     super.dispose();
+  }
+
+  void _infoShrink() {
+    _animationController.animateTo(_infoShrinkPosition);
+  }
+
+  void _infoExpand() {
+    _animationController.animateTo(1);
   }
 
   @override
@@ -243,7 +262,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 
         return BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
           bloc: _canvasDeviceBloc,
-          builder: (context, canvasState) => Scaffold(
+          builder: (context, canvasState) => BackdropScaffold(
             backgroundColor: AppColor.primaryBlack,
             resizeToAvoidBottomInset: !hasKeyboard,
             appBar: PreferredSize(
@@ -283,85 +302,42 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                 ),
               ),
             ),
-            body: Stack(
+            backLayer: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Hero(
-                        tag: 'detail_${asset.id}',
-                        child: _ArtworkView(
-                          payload: widget.payload,
-                          token: asset,
-                          focusNode: _focusNode,
-                        ),
-                      ),
+                Expanded(
+                  child: Hero(
+                    tag: 'detail_${asset.id}',
+                    child: _ArtworkView(
+                      payload: widget.payload,
+                      token: asset,
+                      focusNode: _focusNode,
                     ),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 15),
-                      child: ArtworkDetailsHeader(
-                        title: 'I',
-                        subTitle: 'I',
-                        color: Colors.transparent,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-                Column(
-                  children: [
-                    if (_infoSize == null)
-                      const Spacer()
-                    else
-                      GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _infoSize = null;
-                          });
-                        },
-                        child: Container(
-                          color: Colors.transparent,
-                          height: MediaQuery.of(context).size.height -
-                              _infoSize! -
-                              kToolbarHeight -
-                              MediaQuery.of(context).padding.top,
-                        ),
-                      ),
-                    GestureDetector(
-                      onVerticalDragEnd: (details) {
-                        final dy = details.velocity.pixelsPerSecond.dy;
-                        const sensibility = 15;
-                        if (dy < 0 - sensibility) {
-                          setState(() {
-                            _infoSize = _infoMaxSize;
-                          });
-                        } else if (dy > sensibility) {
-                          setState(() {
-                            _infoSize = null;
-                          });
-                        }
-                      },
-                      child: AnimatedSize(
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.decelerate,
-                        child: Container(
-                          color: AppColor.primaryBlack,
-                          height: _infoSize,
-                          child: Column(
-                            children: [
-                              _infoHeader(context, asset, artistName,
-                                  state.isViewOnly, canvasState),
-                              if (_infoSize != null)
-                                _infoContent(
-                                    context, identityState, state, artistName),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                )
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 15),
+                  child: ArtworkDetailsHeader(
+                    title: 'I',
+                    subTitle: 'I',
+                    color: Colors.transparent,
+                  ),
+                ),
               ],
+            ),
+            reverseAnimationCurve: Curves.ease,
+            frontLayer: _infoContent(context, identityState, state, artistName),
+            frontLayerBackgroundColor: AppColor.primaryBlack,
+            frontLayerActiveFactor: 0.5,
+            backLayerBackgroundColor: AppColor.primaryBlack,
+            animationController: _animationController,
+            backLayerScrim: Colors.transparent,
+            frontLayerScrim: Colors.transparent,
+            frontLayerShape: const BeveledRectangleBorder(),
+            subHeader: DecoratedBox(
+              decoration: const BoxDecoration(color: AppColor.primaryBlack),
+              child: _infoHeader(
+                  context, asset, artistName, state.isViewOnly, canvasState),
             ),
           ),
         );
@@ -374,12 +350,14 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   Widget _artworkInfoIcon() => Semantics(
         label: 'artworkInfoIcon',
         child: IconButton(
-          onPressed: () => {
+          onPressed: () {
+            _isInfoExpand ? _infoShrink() : _infoExpand();
+
             setState(() {
-              _infoSize = _infoSize == null ? _infoMaxSize : null;
-            })
+              _isInfoExpand = !_isInfoExpand;
+            });
           },
-          icon: SvgPicture.asset(_infoSize == null
+          icon: SvgPicture.asset(!_isInfoExpand
               ? 'assets/images/info_white.svg'
               : 'assets/images/info_white_active.svg'),
         ),
@@ -392,12 +370,9 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       subTitle = artistName;
     }
     return Padding(
-      padding: const EdgeInsets.only(top: 15, bottom: 33),
+      padding: const EdgeInsets.only(top: 15, left: 15, bottom: 33),
       child: Row(
         children: [
-          const SizedBox(
-            width: 15,
-          ),
           SizedBox(
             width: MediaQuery.of(context).size.width * 0.7,
             child: ArtworkDetailsHeader(
@@ -442,8 +417,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     final theme = Theme.of(context);
     final asset = state.assetToken!;
     final editionSubTitle = getEditionSubTitle(asset);
-    return Expanded(
-        child: SingleChildScrollView(
+    return SingleChildScrollView(
       child: SizedBox(
         width: double.infinity,
         child: Column(
@@ -512,7 +486,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
           ],
         ),
       ),
-    ));
+    );
   }
 
   Widget _provenanceView(BuildContext context, List<Provenance> provenances) =>
