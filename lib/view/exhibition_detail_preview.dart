@@ -27,7 +27,7 @@ class ExhibitionPreview extends StatelessWidget {
       decoration: TextDecoration.underline,
       decorationColor: Colors.white,
     );
-    const _padding = 14.0;
+    const padding = 14.0;
     final screenWidth = MediaQuery.sizeOf(context).width;
     final estimatedHeight = (screenWidth - padding * 2) / 16 * 9;
 
