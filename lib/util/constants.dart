@@ -238,6 +238,8 @@ const String collectionListArtworkThumbnailVariant = 'thumbnailList';
 const String POSTCARD_ONSITE_REQUEST_ID = 'moma-postcard-onsite';
 const String POSTCARD_ONLINE_REQUEST_ID = 'moma-postcard-online';
 
+const youtubeDomains = ['youtube.com', 'youtu.be'];
+
 Future<bool> isAppCenterBuild() async {
   final PackageInfo info = await PackageInfo.fromPlatform();
   return info.packageName.contains('inhouse');
