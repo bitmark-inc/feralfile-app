@@ -11,7 +11,7 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:collection/collection.dart';
 
 extension ExhibitionExt on Exhibition {
-  static const List<String> _unavailableForCastingExhibitionId = [SOURCE_EXHIBITION_ID];
+  static const List<String> _unavailableForCastingExhibitionId = [];
 
   String get coverUrl => '${Environment.feralFileAssetURL}/$coverURI';
 
