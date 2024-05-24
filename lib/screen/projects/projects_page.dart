@@ -27,20 +27,11 @@ class _ProjectsPageState extends State<ProjectsPage>
   @override
   Widget build(BuildContext context) => Scaffold(
       appBar: getBackAppBar(context,
-          title: 'projects'.tr(), onBack: () => Navigator.pop(context)),
+          title: 'rnd'.tr(), onBack: () => Navigator.pop(context)),
       body: BlocBuilder<ProjectsBloc, ProjectsState>(
         builder: (context, state) {
           if (state.loading) {
             return Center(child: loadingIndicator());
-          }
-          final padding = EdgeInsets.fromLTRB(
-              ResponsiveLayout.padding, 40, ResponsiveLayout.padding, 32);
-
-          if (state.projects.isEmpty) {
-            return Padding(
-                padding: padding,
-                child: Text('no_project_found'.tr(),
-                    style: Theme.of(context).textTheme.ppMori400Black14));
           }
           return _projectsList(context, state);
         },
@@ -51,18 +42,23 @@ class _ProjectsPageState extends State<ProjectsPage>
     return Column(
       children: [
         addTitleSpace(),
-        ...state.projects.map((e) => TappableForwardRow(
-            padding: EdgeInsets.symmetric(horizontal: ResponsiveLayout.padding),
-            leftWidget: Text(
-              e.title,
-              style: theme.textTheme.ppMori400Black14,
-            ),
-            onTap: () async {
-              await Navigator.of(context).pushNamed(
-                e.route,
-                arguments: e.arguments,
-              );
-            }))
+        ...state.projects.map((e) => Column(
+              children: [
+                TappableForwardRow(
+                    padding: ResponsiveLayout.paddingAll,
+                    leftWidget: Text(
+                      e.title,
+                      style: theme.textTheme.ppMori400Black14,
+                    ),
+                    onTap: () async {
+                      await Navigator.of(context).pushNamed(
+                        e.route,
+                        arguments: e.arguments,
+                      );
+                    }),
+                addDivider()
+              ],
+            ))
       ],
     );
   }
