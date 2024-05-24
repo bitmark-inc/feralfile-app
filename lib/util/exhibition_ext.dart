@@ -11,7 +11,6 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:collection/collection.dart';
 
 extension ExhibitionExt on Exhibition {
-
   String get coverUrl => '${Environment.feralFileAssetURL}/$coverURI';
 
   bool get isGroupExhibition => type == 'group';
