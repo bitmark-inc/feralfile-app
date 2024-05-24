@@ -283,7 +283,7 @@ enum MediaType {
 extension PostExt on Post {
   MediaType get mediaType {
     final url = Uri.parse(coverURI);
-    if (youtubeDomains.any((domain) => url.host.contains(domain))) {
+    if (YOUTUBE_DOMAINS.any((domain) => url.host.contains(domain))) {
       return MediaType.video;
     }
     return MediaType.image;
