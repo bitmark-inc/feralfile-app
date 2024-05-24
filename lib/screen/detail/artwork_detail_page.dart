@@ -215,10 +215,16 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   }
 
   void _infoShrink() {
+    setState(() {
+      _isInfoExpand = false;
+    });
     _animationController.animateTo(_infoShrinkPosition);
   }
 
   void _infoExpand() {
+    setState(() {
+      _isInfoExpand = true;
+    });
     _animationController.animateTo(1);
   }
 
@@ -336,8 +342,18 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
             frontLayerShape: const BeveledRectangleBorder(),
             subHeader: DecoratedBox(
               decoration: const BoxDecoration(color: AppColor.primaryBlack),
-              child: _infoHeader(
-                  context, asset, artistName, state.isViewOnly, canvasState),
+              child: GestureDetector(
+                onVerticalDragEnd: (details) {
+                  final dy = details.primaryVelocity ?? 0;
+                  if (dy <= 0) {
+                    _infoExpand();
+                  } else {
+                    _infoShrink();
+                  }
+                },
+                child: _infoHeader(
+                    context, asset, artistName, state.isViewOnly, canvasState),
+              ),
             ),
           ),
         );
@@ -352,14 +368,14 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
         child: IconButton(
           onPressed: () {
             _isInfoExpand ? _infoShrink() : _infoExpand();
-
-            setState(() {
-              _isInfoExpand = !_isInfoExpand;
-            });
           },
-          icon: SvgPicture.asset(!_isInfoExpand
-              ? 'assets/images/info_white.svg'
-              : 'assets/images/info_white_active.svg'),
+          icon: SvgPicture.asset(
+            !_isInfoExpand
+                ? 'assets/images/info_white.svg'
+                : 'assets/images/info_white_active.svg',
+            width: 22,
+            height: 22,
+          ),
         ),
       );
 
@@ -556,7 +572,10 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
           if (!isViewOnly && irlUrl != null)
             OptionItem(
               title: irlUrl.first,
-              icon: const Icon(AuIcon.microphone),
+              icon: const Icon(
+                AuIcon.microphone,
+                color: AppColor.white,
+              ),
               onTap: () {
                 unawaited(
                   Navigator.pushNamed(
