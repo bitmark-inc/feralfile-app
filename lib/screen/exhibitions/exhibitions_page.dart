@@ -101,22 +101,41 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
         ),
       );
 
-  Widget _exhibitionItem(
-      {required BuildContext context,
-      required List<ExhibitionDetail> exhibitionDetails,
-      required int index}) {
+  Widget _exhibitionItem({
+    required BuildContext context,
+    required List<Exhibition> viewExhibition,
+    required Exhibition exhibition,
+  }) {
     final theme = Theme.of(context);
     final screenWidth = MediaQuery.sizeOf(context).width;
     final estimatedHeight = (screenWidth - _padding * 2) / 16 * 9;
     final estimatedWidth = screenWidth - _padding * 2;
-    final exhibitionDetail = exhibitionDetails[index];
-    final exhibition = exhibitionDetail.exhibition;
+    final index = viewExhibition.indexOf(exhibition);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Column(
           children: [
             GestureDetector(
+              onTap: exhibition.canViewDetails && index >= 0
+                  ? () async {
+                      final device = _canvasDeviceBloc.state.controllingDevice;
+                      if (device != null) {
+                        final castRequest = CastExhibitionRequest(
+                          exhibitionId: exhibition.id,
+                          katalog: ExhibitionKatalog.HOME,
+                        );
+                        _canvasDeviceBloc.add(CanvasDeviceCastExhibitionEvent(
+                            device, castRequest));
+                      }
+                      await Navigator.of(context)
+                          .pushNamed(AppRouter.exhibitionDetailPage,
+                              arguments: ExhibitionDetailPayload(
+                                exhibitions: viewExhibition,
+                                index: index,
+                              ));
+                    }
+                  : null,
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(10),
                 child: Image.network(
@@ -139,24 +158,6 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                   fit: BoxFit.fitWidth,
                 ),
               ),
-              onTap: () async {
-                final device = _canvasDeviceBloc.state.controllingDevice;
-                if (device != null) {
-                  final castRequest = CastExhibitionRequest(
-                    exhibitionId: exhibition.id,
-                    katalog: ExhibitionKatalog.HOME,
-                  );
-                  _canvasDeviceBloc.add(
-                      CanvasDeviceCastExhibitionEvent(device, castRequest));
-                }
-                await Navigator.of(context).pushNamed(
-                    AppRouter.exhibitionDetailPage,
-                    arguments: ExhibitionDetailPayload(
-                      exhibitions:
-                          exhibitionDetails.map((e) => e.exhibition).toList(),
-                      index: index,
-                    ));
-              },
             ),
             const SizedBox(height: 20),
             Row(
@@ -164,13 +165,13 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
               children: [
                 Row(
                   children: [
-                    if (!exhibition.canStream) ...[
+                    if (!exhibition.canViewDetails) ...[
                       _lockIcon(),
                       const SizedBox(width: 5),
                     ],
                     SizedBox(
                       width: (estimatedWidth - _exhibitionInfoDivideWidth) / 2 -
-                          (exhibition.canStream ? 0 : 13 + 5),
+                          (exhibition.canViewDetails ? 0 : 13 + 5),
                       child: AutoSizeText(
                         exhibition.title,
                         style: theme.textTheme.ppMori400White16,
@@ -225,10 +226,8 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
   Widget _listExhibitions(BuildContext context) =>
       BlocConsumer<ExhibitionBloc, ExhibitionsState>(
         builder: (context, state) {
-          final freeExhibitions = state.freeExhibitions;
-          final proExhibitions = state.proExhibitions;
           final theme = Theme.of(context);
-          if (freeExhibitions == null || proExhibitions == null) {
+          if (state.freeExhibitions == null || state.proExhibitions == null) {
             return const Center(
               child: CircularProgressIndicator(
                 color: Colors.white,
@@ -237,9 +236,14 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
               ),
             );
           } else {
-            final allExhibitions =
-                state.freeExhibitions! + state.proExhibitions!;
+            final freeExhibitions =
+                state.freeExhibitions!.map((e) => e.exhibition).toList();
+            final proExhibitions =
+                state.proExhibitions!.map((e) => e.exhibition).toList();
             final isSubscribed = state.isSubscribed;
+            final viewExhibitions = isSubscribed
+                ? freeExhibitions + proExhibitions
+                : freeExhibitions;
             final divider = addDivider(
                 height: 40, color: AppColor.auQuickSilver, thickness: 0.5);
             return Padding(
@@ -258,8 +262,8 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                       .map((e) => [
                             _exhibitionItem(
                               context: context,
-                              exhibitionDetails: allExhibitions,
-                              index: allExhibitions.indexOf(e),
+                              viewExhibition: viewExhibitions,
+                              exhibition: e,
                             ),
                             divider,
                           ])
@@ -270,8 +274,8 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                       .map((e) => [
                             _exhibitionItem(
                               context: context,
-                              exhibitionDetails: allExhibitions,
-                              index: allExhibitions.indexOf(e),
+                              viewExhibition: viewExhibitions,
+                              exhibition: e,
                             ),
                             divider,
                           ])
