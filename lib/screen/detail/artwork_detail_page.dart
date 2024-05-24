@@ -405,8 +405,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       padding: const EdgeInsets.only(top: 15, left: 15, bottom: 33),
       child: Row(
         children: [
-          SizedBox(
-            width: MediaQuery.of(context).size.width * 0.7,
+          Expanded(
             child: ArtworkDetailsHeader(
               title: asset.displayTitle ?? '',
               subTitle: subTitle,
@@ -421,7 +420,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                   : null,
             ),
           ),
-          const Spacer(),
           _artworkInfoIcon(),
           if (!widget.payload.useIndexer)
             Semantics(
