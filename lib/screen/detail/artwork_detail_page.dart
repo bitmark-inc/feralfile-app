@@ -362,7 +362,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               ),
               if (_isInfoExpand)
                 GestureDetector(
-                  behavior: HitTestBehavior.deferToChild,
+                  behavior: HitTestBehavior.translucent,
                   onTap: _infoShrink,
                   child: Container(
                     color: Colors.transparent,
