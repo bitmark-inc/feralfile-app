@@ -7,16 +7,11 @@ import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:rxdart/transformers.dart';
 
 class ExhibitionBloc extends AuBloc<ExhibitionsEvent, ExhibitionsState> {
   final FeralFileService _feralFileService;
 
-  static const limit = 10;
-
-  EventTransformer<Event> debounceSequential<Event>(Duration duration) =>
-      (events, mapper) => events.debounceTime(duration).asyncExpand(mapper);
+  static const limit = 25;
 
   ExhibitionBloc(this._feralFileService) : super(ExhibitionsState()) {
     on<GetAllExhibitionsEvent>((event, emit) async {
@@ -74,7 +69,6 @@ class ExhibitionBloc extends AuBloc<ExhibitionsEvent, ExhibitionsState> {
           add(GetNextPageEvent(isLoop: true));
         }
       },
-      transformer: debounceSequential(const Duration(seconds: 5)),
     );
   }
 
