@@ -11,6 +11,8 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:collection/collection.dart';
 
 extension ExhibitionExt on Exhibition {
+  static const List<String> _unavailableForCastingExhibitionId = [SOURCE_EXHIBITION_ID];
+
   String get coverUrl => '${Environment.feralFileAssetURL}/$coverURI';
 
   bool get isGroupExhibition => type == 'group';
@@ -18,16 +20,16 @@ extension ExhibitionExt on Exhibition {
   DateTime get exhibitionViewAt =>
       exhibitionStartAt.subtract(Duration(seconds: previewDuration ?? 0));
 
-  bool get canStream {
-    if (id == SOURCE_EXHIBITION_ID) {
-      return false;
-    }
+  bool get canViewDetails {
     final exhibitionBloc = injector<ExhibitionBloc>();
     return exhibitionBloc.state.isSubscribed ||
         (exhibitionBloc.state.freeExhibitions
                 ?.any((element) => element.exhibition.id == id) ??
             false);
   }
+
+  bool get canStream =>
+      canViewDetails && !_unavailableForCastingExhibitionId.contains(id);
 
   //TODO: implement this
   bool get isOnGoing => true;
