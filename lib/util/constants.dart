@@ -240,6 +240,10 @@ const String POSTCARD_ONLINE_REQUEST_ID = 'moma-postcard-online';
 
 const String SOURCE_EXHIBITION_ID = 'source';
 const List<String> YOUTUBE_DOMAINS = ['youtube.com', 'youtu.be'];
+const List<String> YOUTUBE_VARIANTS = [
+  'maxresdefault', // Higher quality - May or may not exist
+  'mqdefault', // Lower quality - Guaranteed to exist
+];
 
 Future<bool> isAppCenterBuild() async {
   final PackageInfo info = await PackageInfo.fromPlatform();
