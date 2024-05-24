@@ -74,8 +74,8 @@ class ExhibitionBloc extends AuBloc<ExhibitionsEvent, ExhibitionsState> {
 
   List<ExhibitionDetail> _addSourceExhibitionIfNeeded(
       List<ExhibitionDetail> exhibitions, ExhibitionDetail sourceExhibition) {
-    final isExistSourceExhibition = exhibitions
-        .any((exhibition) => exhibition.exhibition.id == SOURCE_EXHIBITION_ID);
+    final isExistSourceExhibition = exhibitions.any((exhibition) =>
+        exhibition.exhibition.id == sourceExhibition.exhibition.id);
     if (isExistSourceExhibition) {
       return exhibitions;
     }
