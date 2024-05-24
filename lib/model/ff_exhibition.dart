@@ -13,6 +13,7 @@ class Exhibition {
   final String title;
   final String slug;
   final DateTime exhibitionStartAt;
+  final int? previewDuration;
 
   final String noteTitle;
   final String noteBrief;
@@ -35,6 +36,7 @@ class Exhibition {
     required this.title,
     required this.slug,
     required this.exhibitionStartAt,
+    required this.previewDuration,
     required this.noteTitle,
     required this.noteBrief,
     required this.note,
@@ -56,6 +58,7 @@ class Exhibition {
         title: json['title'] as String,
         slug: json['slug'] as String,
         exhibitionStartAt: DateTime.parse(json['exhibitionStartAt'] as String),
+        previewDuration: json['previewDuration'] as int?,
         noteTitle: json['noteTitle'] as String,
         noteBrief: json['noteBrief'] as String,
         note: json['note'] as String,
@@ -70,7 +73,7 @@ class Exhibition {
         contracts: (json['contracts'] as List<dynamic>?)
             ?.map((e) => FFContract.fromJson(e as Map<String, dynamic>))
             .toList(),
-        mintBlockchain: json['mintBlockchain'] as String,
+        mintBlockchain: (json['mintBlockchain'] ?? '') as String,
         partner: json['partner'] == null
             ? null
             : FFArtist.fromJson(json['partner'] as Map<String, dynamic>),
@@ -89,6 +92,7 @@ class Exhibition {
         'title': title,
         'slug': slug,
         'exhibitionStartAt': exhibitionStartAt.toIso8601String(),
+        'previewDuration': previewDuration,
         'noteTitle': noteTitle,
         'noteBrief': noteBrief,
         'note': note,
@@ -118,6 +122,7 @@ class Exhibition {
     String? title,
     String? slug,
     DateTime? exhibitionStartAt,
+    int? previewDuration,
     String? noteTitle,
     String? noteBrief,
     String? note,
@@ -138,6 +143,7 @@ class Exhibition {
         title: title ?? this.title,
         slug: slug ?? this.slug,
         exhibitionStartAt: exhibitionStartAt ?? this.exhibitionStartAt,
+        previewDuration: previewDuration ?? this.previewDuration,
         noteTitle: noteTitle ?? this.noteTitle,
         noteBrief: noteBrief ?? this.noteBrief,
         note: note ?? this.note,
@@ -205,7 +211,7 @@ class Post {
   final String title;
   final String content;
   final int? displayIndex;
-  final String coverURI;
+  final String? coverURI;
   final DateTime createdAt;
   final DateTime updatedAt;
   final DateTime? dateTime;
@@ -275,9 +281,12 @@ enum MediaType {
 }
 
 extension PostExt on Post {
-  MediaType get mediaType {
-    final url = Uri.parse(coverURI);
-    if (youtubeDomains.any((domain) => url.host.contains(domain))) {
+  MediaType? get mediaType {
+    if (coverURI == null) {
+      return null;
+    }
+    final url = Uri.parse(coverURI!);
+    if (YOUTUBE_DOMAINS.any((domain) => url.host.contains(domain))) {
       return MediaType.video;
     }
     return MediaType.image;
@@ -286,20 +295,31 @@ extension PostExt on Post {
   String get displayType =>
       type == 'close-up' ? 'close_up'.tr() : type.capitalize();
 
-  String get thumbnailUrl {
+  List<String> get thumbnailUrls {
+    if (coverURI == null) {
+      return [];
+    }
     if (mediaType == MediaType.image) {
-      return getFFUrl(coverURI);
+      return [getFFUrl(coverURI!)];
     } else {
-      final videoId = Uri.parse(coverURI).queryParameters['v'];
-      return 'https://img.youtube.com/vi/$videoId/maxresdefault.jpg';
+      final List<String> thumbUrls = [];
+      final videoId = Uri.parse(coverURI!).queryParameters['v'];
+      for (var variant in YOUTUBE_VARIANTS) {
+        final url = 'https://img.youtube.com/vi/$videoId/$variant.jpg';
+        thumbUrls.add(url);
+      }
+      return thumbUrls;
     }
   }
 
   String get previewUrl {
+    if (coverURI == null) {
+      return '';
+    }
     if (mediaType == MediaType.image) {
-      return getFFUrl(coverURI);
+      return getFFUrl(coverURI!);
     } else {
-      final videoId = Uri.parse(coverURI).queryParameters['v'];
+      final videoId = Uri.parse(coverURI!).queryParameters['v'];
       return 'https://www.youtube.com/embed/$videoId?autoplay=1&loop=1&controls=0';
     }
   }

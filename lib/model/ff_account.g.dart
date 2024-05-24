@@ -115,18 +115,24 @@ Artwork _$ArtworkFromJson(Map<String, dynamic> json) => Artwork(
       json['seriesID'] as String,
       json['index'] as int,
       json['name'] as String,
-      json['category'] as String,
-      json['ownerAccountID'] as String,
+      json['category'] as String?,
+      json['ownerAccountID'] as String?,
       json['virgin'] as bool?,
       json['burned'] as bool?,
-      json['blockchainStatus'] as String,
-      json['isExternal'] as bool,
+      json['blockchainStatus'] as String?,
+      json['isExternal'] as bool?,
       json['thumbnailURI'] as String,
       json['previewURI'] as String,
-      json['metadata'] as Map<String, dynamic>,
-      DateTime.parse(json['mintedAt'] as String),
-      DateTime.parse(json['createdAt'] as String),
-      DateTime.parse(json['updatedAt'] as String),
+      json['metadata'] as Map<String, dynamic>?,
+      json['mintedAt'] == null
+          ? null
+          : DateTime.parse(json['mintedAt'] as String),
+      json['createdAt'] == null
+          ? null
+          : DateTime.parse(json['createdAt'] as String),
+      json['updatedAt'] == null
+          ? null
+          : DateTime.parse(json['updatedAt'] as String),
       json['isArchived'] as bool?,
       json['series'] == null
           ? null
@@ -150,9 +156,9 @@ Map<String, dynamic> _$ArtworkToJson(Artwork instance) => <String, dynamic>{
       'thumbnailURI': instance.thumbnailURI,
       'previewURI': instance.previewURI,
       'metadata': instance.metadata,
-      'mintedAt': instance.mintedAt.toIso8601String(),
-      'createdAt': instance.createdAt.toIso8601String(),
-      'updatedAt': instance.updatedAt.toIso8601String(),
+      'mintedAt': instance.mintedAt?.toIso8601String(),
+      'createdAt': instance.createdAt?.toIso8601String(),
+      'updatedAt': instance.updatedAt?.toIso8601String(),
       'isArchived': instance.isArchived,
       'series': instance.series,
       'swap': instance.swap,

@@ -124,6 +124,24 @@ class MockConfigurationService extends _i1.Mock
         ),
       ) as _i2.ValueNotifier<bool>);
   @override
+  bool didGetLocalNetworkPermission() => (super.noSuchMethod(
+        Invocation.method(
+          #didGetLocalNetworkPermission,
+          [],
+        ),
+        returnValue: false,
+      ) as bool);
+  @override
+  _i6.Future<void> setDidGetLocalNetworkPermission(bool? value) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #setDidGetLocalNetworkPermission,
+          [value],
+        ),
+        returnValue: _i6.Future<void>.value(),
+        returnValueForMissingStub: _i6.Future<void>.value(),
+      ) as _i6.Future<void>);
+  @override
   _i6.Future<void> setRecordOwners(
     List<String>? owners, {
     bool? override = false,
@@ -1002,6 +1020,23 @@ class MockConfigurationService extends _i1.Mock
   bool getShowPostcardBanner() => (super.noSuchMethod(
         Invocation.method(
           #getShowPostcardBanner,
+          [],
+        ),
+        returnValue: false,
+      ) as bool);
+  @override
+  _i6.Future<void> setShowAddAddressBanner(bool? bool) => (super.noSuchMethod(
+        Invocation.method(
+          #setShowAddAddressBanner,
+          [bool],
+        ),
+        returnValue: _i6.Future<void>.value(),
+        returnValueForMissingStub: _i6.Future<void>.value(),
+      ) as _i6.Future<void>);
+  @override
+  bool getShowAddAddressBanner() => (super.noSuchMethod(
+        Invocation.method(
+          #getShowAddAddressBanner,
           [],
         ),
         returnValue: false,

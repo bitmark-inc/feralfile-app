@@ -282,7 +282,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
       OrganizeHomePage(key: _organizeHomePageKey),
       MultiBlocProvider(providers: [
         BlocProvider.value(
-          value: ExhibitionBloc(injector())..add(GetAllExhibitionsEvent()),
+          value: injector<ExhibitionBloc>()..add(GetAllExhibitionsEvent()),
         ),
       ], child: const ExhibitionsPage()),
       ScanQRPage(
