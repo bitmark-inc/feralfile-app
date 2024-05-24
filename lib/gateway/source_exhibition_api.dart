@@ -14,8 +14,6 @@ import 'package:retrofit/retrofit.dart';
 
 part 'source_exhibition_api.g.dart';
 
-const totalSeries = 25;
-
 @RestApi(baseUrl: '')
 abstract class SourceExhibitionAPI {
   factory SourceExhibitionAPI(Dio dio, {String baseUrl}) = _SourceExhibitionAPI;
