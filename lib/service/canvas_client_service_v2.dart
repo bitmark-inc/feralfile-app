@@ -211,6 +211,18 @@ class CanvasClientServiceV2 {
     return response.ok;
   }
 
+  Future<bool> moveToArtwork(CanvasDevice device,
+      {String? startTime, String? artworkId}) async {
+    final stub = _getStub(device);
+    final artwork = PlayArtworkV2(token: CastAssetToken(id: artworkId!));
+    final request = MoveToArtworkRequest(artwork: artwork);
+    final reply = await _retryWrapper(() => stub.moveToArtwork(
+          request,
+          options: _callOptions,
+        ));
+    return reply.ok;
+  }
+
   Future<bool> previousArtwork(CanvasDevice device, {String? startTime}) async {
     final stub = _getStub(device);
     final request = PreviousArtwortRequest();
