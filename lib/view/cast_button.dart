@@ -1,6 +1,7 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
+import 'package:autonomy_flutter/service/network_service.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/stream_device_view.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -39,8 +40,16 @@ class _FFCastButtonState extends State<FFCastButton> {
       builder: (context, state) {
         final isCasting = state.isCasting;
         return GestureDetector(
-          onTap: () async => {
-            await _showStreamAction(context),
+          onTap: () async {
+            if (!injector.get<NetworkService>().isWifi) {
+              await UIHelper.showRetryDialog(
+                context,
+                description: 'Please connect to the same Wi-Fi network as your TV to cast.',
+                onRetry: () {},
+              );
+              return;
+            }
+            await _showStreamAction(context);
           },
           child: Semantics(
             label: 'cast_icon',

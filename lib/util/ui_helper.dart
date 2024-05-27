@@ -498,6 +498,41 @@ class UIHelper {
     );
   }
 
+  static Future<dynamic> showRetryDialog(BuildContext context,
+      {required String description, dynamic Function()? onRetry}) async {
+    final theme = Theme.of(context);
+
+    return await showDialog(
+      context,
+      'network_issue'.tr(),
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (description.isNotEmpty) ...[
+            Text(
+              description,
+              style: theme.primaryTextTheme.ppMori400White14,
+            ),
+          ],
+          const SizedBox(height: 40),
+          if (onRetry != null) ...[
+            PrimaryButton(
+              onTap: onRetry,
+              text: 'retry_now'.tr(),
+              color: AppColor.feralFileLightBlue,
+            ),
+            const SizedBox(height: 15),
+          ],
+          OutlineButton(
+            onTap: () => Navigator.pop(context),
+            text: 'dismiss'.tr(),
+          ),
+        ],
+      ),
+      isDismissible: true,
+    );
+  }
+
   static Future<void> showFlexibleDialog(
     BuildContext context,
     Widget content, {
