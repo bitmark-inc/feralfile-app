@@ -14,7 +14,6 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/model/backup_versions.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/helpers.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -187,8 +186,7 @@ class BackupService {
 
   Future<String> getAuthToken(WalletStorage account) async {
     try {
-      final wallet = await injector<AccountService>().getDefaultAccount();
-      final jwtV2 = await _iapApi.authV2(await wallet.getDIDRequest());
+      final jwtV2 = await _iapApi.authV2(await account.getDIDRequest());
       log.info('[BackupService] Get jwt V2');
       return jwtV2.jwtToken;
     } catch (e) {
