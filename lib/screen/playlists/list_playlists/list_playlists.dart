@@ -1,15 +1,20 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/collection_ext.dart';
 import 'package:autonomy_flutter/view/image_background.dart';
+import 'package:autonomy_flutter/view/stream_common_widget.dart';
 import 'package:autonomy_flutter/view/title_text.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
+import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter/material.dart';
 
 class ListPlaylistsScreen extends StatefulWidget {
@@ -32,6 +37,7 @@ class ListPlaylistsScreen extends StatefulWidget {
 class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
     with RouteAware, WidgetsBindingObserver {
   final isDemo = injector.get<ConfigurationService>().isDemoArtworksMode();
+  static const int _playlistNumberBreakpoint = 6;
 
   @override
   void initState() {
@@ -59,11 +65,11 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
           if (value == null) {
             return const SizedBox.shrink();
           }
-          List<PlayListModel> playlists = value.filter(widget.filter);
+          List<PlayListModel> playlists =
+              value.filter(widget.filter).reversed.toList();
           if (playlists.isEmpty && widget.filter.isNotEmpty) {
             return const SizedBox();
           }
-          const height = 165.0;
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 15),
             child: Column(
@@ -72,49 +78,80 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
                 if (widget.filter.isNotEmpty)
                   TitleText(title: 'playlists'.tr()),
                 const SizedBox(height: 30),
-                SizedBox(
-                  height: height,
-                  width: 400,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: playlists.length + 1,
-                    itemBuilder: (context, index) {
-                      if (index == playlists.length) {
-                        if (widget.filter.isNotEmpty) {
-                          return const SizedBox();
-                        }
-                        return AddPlayListItem(
-                          onTap: () {
-                            widget.onAdd();
-                          },
-                        );
-                      }
-                      final item = playlists[index];
-                      return PlaylistItem(
-                        playlist: item,
-                        onSelected: () async => Navigator.pushNamed(
-                          context,
-                          AppRouter.viewPlayListPage,
-                          arguments:
-                              ViewPlaylistScreenPayload(playListModel: item),
-                        ),
-                      );
-                    },
-                    separatorBuilder: (context, index) =>
-                        const SizedBox(width: 10),
-                  ),
-                ),
+                _playlistHorizontalGridView(context, playlists)
               ],
             ),
           );
         },
       );
+
+  Widget _playlistHorizontalGridView(
+      BuildContext context, List<PlayListModel> playlists) {
+    final rowNumber = playlists.length > _playlistNumberBreakpoint ? 2 : 1;
+    final height = PlaylistItem.height * rowNumber + 15 * (rowNumber - 1);
+    final length = playlists.length + 1;
+    return SizedBox(
+      height: height,
+      child: GridView.builder(
+        scrollDirection: Axis.horizontal,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: rowNumber,
+          crossAxisSpacing: 15,
+          mainAxisSpacing: 15,
+          childAspectRatio: PlaylistItem.height / PlaylistItem.width,
+        ),
+        itemBuilder: (context, index) {
+          if (index == 0) {
+            return AddPlayListItem(
+              onTap: () {
+                widget.onAdd();
+              },
+            );
+          }
+          final item = playlists[index - 1];
+          return PlaylistItem(
+              key: ValueKey(item.id),
+              playlist: item,
+              onSelected: () {
+                onPlaylistTap(item);
+              });
+        },
+        itemCount: length,
+      ),
+    );
+  }
+
+  void onPlaylistTap(PlayListModel playlist) {
+    unawaited(Navigator.pushNamed(
+      context,
+      AppRouter.viewPlayListPage,
+      arguments: ViewPlaylistScreenPayload(playListModel: playlist),
+    ));
+    final tokenIds = playlist.tokenIDs;
+    if (tokenIds != null && tokenIds.isNotEmpty) {
+      final bloc = injector.get<CanvasDeviceBloc>();
+      final controllingDevice = bloc.state.controllingDevice;
+      if (controllingDevice != null) {
+        final duration = speedValues.values.first;
+        final List<PlayArtworkV2> castArtworks = tokenIds
+            .map((e) => PlayArtworkV2(
+                  token: CastAssetToken(id: e),
+                  duration: duration.inMilliseconds,
+                ))
+            .toList();
+        bloc.add(CanvasDeviceChangeControlDeviceEvent(
+            controllingDevice, castArtworks));
+      }
+    }
+  }
 }
 
 class PlaylistItem extends StatefulWidget {
   final Function()? onSelected;
   final PlayListModel playlist;
   final bool onHold;
+  static const double width = 140;
+  static const double height = 165;
 
   const PlaylistItem({
     required this.playlist,
@@ -134,15 +171,13 @@ class _PlaylistItemState extends State<PlaylistItem> {
     final numberFormatter = NumberFormat('#,###');
     final thumbnailURL = widget.playlist.thumbnailURL;
     final name = widget.playlist.getName();
-    const width = 140.0;
-    const height = 165.0;
     return GestureDetector(
       onTap: widget.onSelected,
       child: Padding(
         padding: EdgeInsets.zero,
         child: Container(
-          width: width,
-          height: height,
+          width: PlaylistItem.width,
+          height: PlaylistItem.height,
           decoration: BoxDecoration(
             color: AppColor.white,
             border: Border.all(

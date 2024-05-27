@@ -17,15 +17,19 @@ import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/iterable_ext.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/token_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/au_radio_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/cast_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_flutter/view/stream_common_widget.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
+import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -100,8 +104,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
       debugTokenIds: isDemo ? widget.payload.playListModel?.tokenIDs : [],
     ));
 
-    _canvasDeviceBloc = context.read<CanvasDeviceBloc>();
-    unawaited(_fetchDevice());
+    _canvasDeviceBloc = injector.get<CanvasDeviceBloc>();
     bloc.add(GetPlayList(playListModel: widget.payload.playListModel));
   }
 
@@ -370,6 +373,23 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
             ),
             actions: [
               const SizedBox(width: 15),
+              FFCastButton(
+                onDeviceSelected: (device) async {
+                  final listTokenIds = playList.tokenIDs;
+                  if (listTokenIds == null) {
+                    log.info('Playlist tokenIds is null');
+                    return;
+                  }
+                  final duration = speedValues.values.first.inMilliseconds;
+                  final listPlayArtwork = listTokenIds
+                      .map((e) => PlayArtworkV2(
+                          token: CastAssetToken(id: e), duration: duration))
+                      .toList();
+                  _canvasDeviceBloc.add(CanvasDeviceChangeControlDeviceEvent(
+                      device, listPlayArtwork));
+                },
+              ),
+              const SizedBox(width: 15),
               GestureDetector(
                 onTap: () async {
                   await _onOrderTap(context, _getAvailableOrders());
@@ -403,21 +423,43 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
           ),
           body: BlocBuilder<NftCollectionBloc, NftCollectionBlocState>(
             bloc: nftBloc,
-            builder: (context, nftState) => NftCollectionGrid(
-              state: nftState.state,
-              tokens: setupPlayList(
-                tokens: nftState.tokens.items,
-                selectedTokens: playList.tokenIDs,
-              ),
-              customGalleryViewBuilder: (context, tokens) => _assetsWidget(
-                context,
-                tokens,
-                accountIdentities: accountIdentities,
-                playControlModel:
-                    playList.playControlModel ?? PlayControlModel(),
-                onShuffleTap: () => _onShufferTap(playList),
-                onTimerTap: () => _onTimerTap(playList),
-              ),
+            builder: (context, nftState) => Column(
+              children: [
+                BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
+                  bloc: _canvasDeviceBloc,
+                  builder: (context, canvasDeviceState) {
+                    final isPlaylistCasting =
+                        _canvasDeviceBloc.state.controllingDevice != null;
+                    if (isPlaylistCasting) {
+                      return const Padding(
+                        padding: EdgeInsets.all(15),
+                        child: PlaylistControl(),
+                      );
+                    } else {
+                      return const SizedBox();
+                    }
+                  },
+                ),
+                Expanded(
+                  child: NftCollectionGrid(
+                    state: nftState.state,
+                    tokens: setupPlayList(
+                      tokens: nftState.tokens.items,
+                      selectedTokens: playList.tokenIDs,
+                    ),
+                    customGalleryViewBuilder: (context, tokens) =>
+                        _assetsWidget(
+                      context,
+                      tokens,
+                      accountIdentities: accountIdentities,
+                      playControlModel:
+                          playList.playControlModel ?? PlayControlModel(),
+                      onShuffleTap: () => _onShufferTap(playList),
+                      onTimerTap: () => _onTimerTap(playList),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         );
@@ -544,12 +586,6 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
         )
       ],
     );
-  }
-
-  Future<void> _fetchDevice() async {
-    _canvasDeviceBloc.add(CanvasDeviceGetDevicesEvent(
-        widget.payload.playListModel?.id ?? '',
-        syncAll: false));
   }
 }
 

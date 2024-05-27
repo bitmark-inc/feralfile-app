@@ -230,11 +230,20 @@ const int LEADERBOARD_PAGE_SIZE = 50;
 
 const int maxCollectionListSize = 3;
 
+const maxRetryCount = 3;
+
 const double collectionListArtworkAspectRatio = 375 / 210.94;
 const String collectionListArtworkThumbnailVariant = 'thumbnailList';
 
 const String POSTCARD_ONSITE_REQUEST_ID = 'moma-postcard-onsite';
 const String POSTCARD_ONLINE_REQUEST_ID = 'moma-postcard-online';
+
+const String SOURCE_EXHIBITION_ID = 'source';
+const List<String> YOUTUBE_DOMAINS = ['youtube.com', 'youtu.be'];
+const List<String> YOUTUBE_VARIANTS = [
+  'maxresdefault', // Higher quality - May or may not exist
+  'mqdefault', // Lower quality - Guaranteed to exist
+];
 
 Future<bool> isAppCenterBuild() async {
   final PackageInfo info = await PackageInfo.fromPlatform();

@@ -8,7 +8,7 @@ class FFSeries {
   final String artistID;
   final String? assetID;
   final String title;
-  final String slug;
+  final String? slug;
   final String medium;
   final String? description;
   final String? thumbnailURI;
@@ -29,6 +29,7 @@ class FFSeries {
   final String? uniqueThumbnailPath;
   final String? uniquePreviewPath;
   final String? onchainID;
+  final List<Artwork>? artworks;
 
   FFSeries(
     this.id,
@@ -56,6 +57,7 @@ class FFSeries {
     this.uniqueThumbnailPath,
     this.uniquePreviewPath,
     this.onchainID,
+    this.artworks,
   );
 
   int get maxEdition => settings?.maxArtwork ?? -1;
@@ -67,7 +69,7 @@ class FFSeries {
         json['artistID'] as String,
         json['assetID'] as String?,
         json['title'] as String,
-        json['slug'] as String,
+        json['slug'] as String?,
         json['medium'] as String,
         json['description'] as String?,
         json['thumbnailURI'] as String?,
@@ -107,6 +109,11 @@ class FFSeries {
         json['uniqueThumbnailPath'] as String?,
         json['uniquePreviewPath'] as String?,
         json['onchainID'] as String?,
+        json['artworks'] == null
+            ? null
+            : (json['artworks'] as List)
+                .map((e) => Artwork.fromJson(e as Map<String, dynamic>))
+                .toList(),
       );
 
   Map<String, dynamic> toJson() => {

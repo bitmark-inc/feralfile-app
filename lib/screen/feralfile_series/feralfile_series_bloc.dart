@@ -14,8 +14,10 @@ class FeralFileSeriesBloc
     on<FeralFileSeriesGetSeriesEvent>((event, emit) async {
       final result = await Future.wait([
         _feralFileService.getExhibition(event.exhibitionId),
-        _feralFileService.getSeriesArtworks(event.seriesId, withSeries: true),
-        _feralFileService.getSeries(event.seriesId),
+        _feralFileService.getSeriesArtworks(event.seriesId,
+            exhibitionID: event.exhibitionId, withSeries: true),
+        _feralFileService.getSeries(event.seriesId,
+            exhibitionID: event.exhibitionId),
       ]);
       final exhibition = result[0] as Exhibition;
       final artworks = result[1] as List<Artwork>;

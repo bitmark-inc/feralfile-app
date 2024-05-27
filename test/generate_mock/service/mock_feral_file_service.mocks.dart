@@ -55,8 +55,19 @@ class _FakeExhibition_2 extends _i1.SmartFake implements _i4.Exhibition {
         );
 }
 
-class _FakeArtwork_3 extends _i1.SmartFake implements _i3.Artwork {
-  _FakeArtwork_3(
+class _FakeExhibitionDetail_3 extends _i1.SmartFake
+    implements _i4.ExhibitionDetail {
+  _FakeExhibitionDetail_3(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeArtwork_4 extends _i1.SmartFake implements _i3.Artwork {
+  _FakeArtwork_4(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -74,16 +85,22 @@ class MockFeralFileService extends _i1.Mock implements _i5.FeralFileService {
   }
 
   @override
-  _i6.Future<_i2.FFSeries> getSeries(String? id) => (super.noSuchMethod(
+  _i6.Future<_i2.FFSeries> getSeries(
+    String? id, {
+    String? exhibitionID,
+  }) =>
+      (super.noSuchMethod(
         Invocation.method(
           #getSeries,
           [id],
+          {#exhibitionID: exhibitionID},
         ),
         returnValue: _i6.Future<_i2.FFSeries>.value(_FakeFFSeries_0(
           this,
           Invocation.method(
             #getSeries,
             [id],
+            {#exhibitionID: exhibitionID},
           ),
         )),
       ) as _i6.Future<_i2.FFSeries>);
@@ -170,19 +187,35 @@ class MockFeralFileService extends _i1.Mock implements _i5.FeralFileService {
             <_i4.ExhibitionDetail>[]),
       ) as _i6.Future<List<_i4.ExhibitionDetail>>);
   @override
-  _i6.Future<_i4.Exhibition> getFeaturedExhibition() => (super.noSuchMethod(
+  _i6.Future<_i4.Exhibition> getSourceExhibition() => (super.noSuchMethod(
+        Invocation.method(
+          #getSourceExhibition,
+          [],
+        ),
+        returnValue: _i6.Future<_i4.Exhibition>.value(_FakeExhibition_2(
+          this,
+          Invocation.method(
+            #getSourceExhibition,
+            [],
+          ),
+        )),
+      ) as _i6.Future<_i4.Exhibition>);
+  @override
+  _i6.Future<_i4.ExhibitionDetail> getFeaturedExhibition() =>
+      (super.noSuchMethod(
         Invocation.method(
           #getFeaturedExhibition,
           [],
         ),
-        returnValue: _i6.Future<_i4.Exhibition>.value(_FakeExhibition_2(
+        returnValue:
+            _i6.Future<_i4.ExhibitionDetail>.value(_FakeExhibitionDetail_3(
           this,
           Invocation.method(
             #getFeaturedExhibition,
             [],
           ),
         )),
-      ) as _i6.Future<_i4.Exhibition>);
+      ) as _i6.Future<_i4.ExhibitionDetail>);
   @override
   _i6.Future<List<_i3.Artwork>> getExhibitionArtworks(
     String? exhibitionId, {
@@ -199,13 +232,17 @@ class MockFeralFileService extends _i1.Mock implements _i5.FeralFileService {
   @override
   _i6.Future<List<_i3.Artwork>> getSeriesArtworks(
     String? seriesId, {
+    String? exhibitionID,
     bool? withSeries = false,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
           #getSeriesArtworks,
           [seriesId],
-          {#withSeries: withSeries},
+          {
+            #exhibitionID: exhibitionID,
+            #withSeries: withSeries,
+          },
         ),
         returnValue: _i6.Future<List<_i3.Artwork>>.value(<_i3.Artwork>[]),
       ) as _i6.Future<List<_i3.Artwork>>);
@@ -249,7 +286,7 @@ class MockFeralFileService extends _i1.Mock implements _i5.FeralFileService {
           #getArtwork,
           [artworkId],
         ),
-        returnValue: _i6.Future<_i3.Artwork>.value(_FakeArtwork_3(
+        returnValue: _i6.Future<_i3.Artwork>.value(_FakeArtwork_4(
           this,
           Invocation.method(
             #getArtwork,

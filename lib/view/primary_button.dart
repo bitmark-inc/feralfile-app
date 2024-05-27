@@ -12,6 +12,9 @@ class PrimaryButton extends StatelessWidget {
   final bool isProcessing;
   final bool enabled;
   final Color? indicatorColor;
+  final EdgeInsetsGeometry padding;
+  final EdgeInsetsGeometry? elevatedPadding;
+  final double borderRadius;
 
   const PrimaryButton({
     super.key,
@@ -24,6 +27,9 @@ class PrimaryButton extends StatelessWidget {
     this.enabled = true,
     this.isProcessing = false,
     this.indicatorColor,
+    this.padding = const EdgeInsets.symmetric(vertical: 13),
+    this.elevatedPadding,
+    this.borderRadius = 32,
   });
 
   @override
@@ -36,16 +42,17 @@ class PrimaryButton extends StatelessWidget {
         style: ElevatedButton.styleFrom(
           backgroundColor:
               enabled ? color ?? AppColor.feralFileHighlight : disabledColor,
+          padding: elevatedPadding,
           shadowColor: Colors.transparent,
           disabledForegroundColor: disabledColor,
           disabledBackgroundColor: disabledColor,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(32),
+            borderRadius: BorderRadius.circular(borderRadius),
           ),
         ),
         onPressed: enabled ? onTap : null,
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 13),
+          padding: padding,
           child: Center(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
