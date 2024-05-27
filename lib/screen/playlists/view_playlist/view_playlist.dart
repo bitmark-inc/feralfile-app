@@ -157,6 +157,9 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
 
   Future<void> _onOrderTap(BuildContext context, List<SortOrder> orders) async {
     final theme = Theme.of(context);
+    final textStyle = theme.textTheme.ppMori400Black14.copyWith(
+      color: AppColor.white,
+    );
     await showModalBottomSheet<dynamic>(
       context: context,
       backgroundColor: Colors.transparent,
@@ -169,7 +172,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
       isScrollControlled: true,
       builder: (context) => StatefulBuilder(
           builder: (context, setState) => Container(
-                color: AppColor.feralFileHighlight,
+                color: AppColor.auGreyBackground,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -183,7 +186,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                               padding: const EdgeInsets.only(top: 3, left: 37),
                               child: Text(
                                 'sort_by'.tr(),
-                                style: theme.textTheme.ppMori400Black14,
+                                style: textStyle,
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
@@ -199,7 +202,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                                 icon: const Icon(
                                   AuIcon.close,
                                   size: 18,
-                                  color: AppColor.primaryBlack,
+                                  color: AppColor.white,
                                   weight: 2,
                                 ),
                               ),
@@ -208,7 +211,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                         ],
                       ),
                     ),
-                    addOnlyDivider(color: AppColor.white),
+                    addOnlyDivider(color: AppColor.primaryBlack),
                     const SizedBox(height: 20),
                     ListView.separated(
                       itemBuilder: (context, index) {
@@ -236,7 +239,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                                   Expanded(
                                     child: Text(
                                       order.text,
-                                      style: theme.textTheme.ppMori400Black14,
+                                      style: textStyle,
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),

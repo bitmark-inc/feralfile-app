@@ -554,232 +554,227 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     }
     final isHidden = _isHidden(asset);
     _focusNode.unfocus();
-    unawaited(UIHelper.showDrawerAction(context,
-        options: [
+    unawaited(UIHelper.showDrawerAction(
+      context,
+      options: [
+        OptionItem(
+            title: 'full_screen'.tr(),
+            icon: SvgPicture.asset('assets/images/fullscreen_icon.svg'),
+            onTap: () {
+              Navigator.of(context).popAndPushNamed(
+                  AppRouter.artworkPreviewPage,
+                  arguments: widget.payload);
+            }),
+        if (showKeyboard)
           OptionItem(
-              title: 'full_screen'.tr(),
-              icon: SvgPicture.asset('assets/images/fullscreen_icon.svg'),
-              onTap: () {
-                Navigator.of(context).popAndPushNamed(
-                    AppRouter.artworkPreviewPage,
-                    arguments: widget.payload);
-              }),
-          if (showKeyboard)
-            OptionItem(
-              title: 'keyboard'.tr(),
-              icon: SvgPicture.asset('assets/images/keyboard_icon.svg'),
-              onTap: () {
-                Navigator.of(context).pop();
-                if (canvasDeviceState.isCasting) {
-                  unawaited(Navigator.of(context).pushNamed(
-                    AppRouter.keyboardControlPage,
-                    arguments: KeyboardControlPagePayload(
-                      asset,
-                      [canvasDeviceState.controllingDevice!],
-                    ),
-                  ));
-                } else {
-                  FocusScope.of(context).requestFocus(_focusNode);
-                }
-              },
-            ),
-          if (!isViewOnly && irlUrl != null)
-            OptionItem(
-              title: irlUrl.first,
-              icon: const Icon(
-                AuIcon.microphone,
-                color: AppColor.white,
-              ),
-              onTap: () {
-                unawaited(
-                  Navigator.pushNamed(
-                    context,
-                    AppRouter.irlWebView,
-                    arguments: IRLWebScreenPayload(irlUrl.second),
-                  ),
-                );
-              },
-            ),
-          if (asset.secondaryMarketURL.isNotEmpty)
-            OptionItem(
-              title: 'view_on_'.tr(args: [asset.secondaryMarketName]),
-              icon: SvgPicture.asset(
-                'assets/images/external_link_white.svg',
-                width: 18,
-                height: 18,
-              ),
-              onTap: () {
-                unawaited(
-                  Navigator.pushNamed(
-                    context,
-                    AppRouter.inappWebviewPage,
-                    arguments: InAppWebViewPayload(asset.secondaryMarketURL),
-                  ),
-                );
-              },
-            ),
-          OptionItem(
-            title: isHidden ? 'unhide_aw'.tr() : 'hide_aw'.tr(),
-            icon: SvgPicture.asset('assets/images/hide_artwork_white.svg'),
-            onTap: () async {
-              await injector<ConfigurationService>()
-                  .updateTempStorageHiddenTokenIDs([asset.id], !isHidden);
-              unawaited(injector<SettingsDataService>().backup());
-
-              if (!context.mounted) {
-                return;
-              }
-              NftCollectionBloc.eventController.add(ReloadEvent());
+            title: 'keyboard'.tr(),
+            icon: SvgPicture.asset('assets/images/keyboard_icon.svg'),
+            onTap: () {
               Navigator.of(context).pop();
-              unawaited(UIHelper.showHideArtworkResultDialog(context, !isHidden,
-                  onOK: () {
-                Navigator.of(context).popUntil((route) =>
-                    route.settings.name == AppRouter.homePage ||
-                    route.settings.name == AppRouter.homePageNoTransition);
-              }));
+              if (canvasDeviceState.isCasting) {
+                unawaited(Navigator.of(context).pushNamed(
+                  AppRouter.keyboardControlPage,
+                  arguments: KeyboardControlPagePayload(
+                    asset,
+                    [canvasDeviceState.controllingDevice!],
+                  ),
+                ));
+              } else {
+                FocusScope.of(context).requestFocus(_focusNode);
+              }
             },
           ),
-          if (asset.shouldShowDownloadArtwork && !isViewOnly)
-            OptionItem(
-              title: 'download_artwork'.tr(),
-              icon:
-                  SvgPicture.asset('assets/images/download_artwork_white.svg'),
-              iconOnDisable: SvgPicture.asset(
-                'assets/images/download_artwork.svg',
-                colorFilter: const ColorFilter.mode(
-                  AppColor.disabledColor,
-                  BlendMode.srcIn,
-                ),
-              ),
-              iconOnProcessing: ValueListenableBuilder(
-                  valueListenable: downloadProgress,
-                  builder: (context, double value, child) => SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          value: value <= 0 ? null : value,
-                          valueColor: value <= 0
-                              ? null
-                              : const AlwaysStoppedAnimation<Color>(
-                                  Colors.blue),
-                          backgroundColor:
-                              value <= 0 ? null : AppColor.disabledColor,
-                          color: AppColor.disabledColor,
-                          strokeWidth: 2,
-                        ),
-                      )),
-              onTap: () async {
-                try {
-                  final file = await _feralfileService.downloadFeralfileArtwork(
-                      asset, onReceiveProgress: (received, total) {
-                    setState(() {
-                      downloadProgress.value = received / total;
-                    });
-                  });
-                  if (!context.mounted) {
-                    return;
-                  }
-                  setState(() {
-                    downloadProgress.value = 0;
-                  });
-                  Navigator.of(context).pop();
-                  if (file != null) {
-                    await FileHelper.shareFile(file, deleteAfterShare: true);
-                  } else {
-                    unawaited(
-                        UIHelper.showFeralfileArtworkSavedFailed(context));
-                  }
-                } catch (e) {
-                  if (!context.mounted) {
-                    return;
-                  }
-                  setState(() {
-                    downloadProgress.value = 0;
-                  });
-                  log.info('Download artwork failed: $e');
-                  if (e is DioException) {
-                    unawaited(
-                        UIHelper.showFeralfileArtworkSavedFailed(context));
-                  }
-                }
-              },
+        if (!isViewOnly && irlUrl != null)
+          OptionItem(
+            title: irlUrl.first,
+            icon: const Icon(
+              AuIcon.microphone,
+              color: AppColor.white,
             ),
-          if (ownerWallet != null && asset.isTransferable) ...[
-            OptionItem(
-              title: 'send_artwork'.tr(),
-              icon: SvgPicture.asset('assets/images/send_white.svg'),
-              onTap: () async {
-                final payload = await Navigator.of(context).popAndPushNamed(
-                    AppRouter.sendArtworkPage,
-                    arguments: SendArtworkPayload(
-                        asset,
-                        ownerWallet,
-                        addressIndex!,
-                        ownerWallet.getOwnedQuantity(asset))) as Map?;
-                if (payload == null) {
-                  return;
-                }
+            onTap: () {
+              unawaited(
+                Navigator.pushNamed(
+                  context,
+                  AppRouter.irlWebView,
+                  arguments: IRLWebScreenPayload(irlUrl.second),
+                ),
+              );
+            },
+          ),
+        if (asset.secondaryMarketURL.isNotEmpty)
+          OptionItem(
+            title: 'view_on_'.tr(args: [asset.secondaryMarketName]),
+            icon: SvgPicture.asset(
+              'assets/images/external_link_white.svg',
+              width: 18,
+              height: 18,
+            ),
+            onTap: () {
+              unawaited(
+                Navigator.pushNamed(
+                  context,
+                  AppRouter.inappWebviewPage,
+                  arguments: InAppWebViewPayload(asset.secondaryMarketURL),
+                ),
+              );
+            },
+          ),
+        OptionItem(
+          title: isHidden ? 'unhide_aw'.tr() : 'hide_aw'.tr(),
+          icon: SvgPicture.asset('assets/images/hide_artwork_white.svg'),
+          onTap: () async {
+            await injector<ConfigurationService>()
+                .updateTempStorageHiddenTokenIDs([asset.id], !isHidden);
+            unawaited(injector<SettingsDataService>().backup());
 
-                final sentQuantity = payload['sentQuantity'] as int;
-                final isSentAll = payload['isSentAll'] as bool;
-                unawaited(injector<ConfigurationService>()
-                    .updateRecentlySentToken([
-                  SentArtwork(asset.id, asset.owner, DateTime.now(),
-                      sentQuantity, isSentAll)
-                ]));
-                if (isHidden) {
-                  await injector<ConfigurationService>()
-                      .updateTempStorageHiddenTokenIDs([asset.id], false);
-                  unawaited(injector<SettingsDataService>().backup());
-                }
+            if (!context.mounted) {
+              return;
+            }
+            NftCollectionBloc.eventController.add(ReloadEvent());
+            Navigator.of(context).pop();
+            unawaited(UIHelper.showHideArtworkResultDialog(context, !isHidden,
+                onOK: () {
+              Navigator.of(context).popUntil((route) =>
+                  route.settings.name == AppRouter.homePage ||
+                  route.settings.name == AppRouter.homePageNoTransition);
+            }));
+          },
+        ),
+        if (asset.shouldShowDownloadArtwork && !isViewOnly)
+          OptionItem(
+            title: 'download_artwork'.tr(),
+            icon: SvgPicture.asset('assets/images/download_artwork_white.svg'),
+            iconOnDisable: SvgPicture.asset(
+              'assets/images/download_artwork.svg',
+              colorFilter: const ColorFilter.mode(
+                AppColor.disabledColor,
+                BlendMode.srcIn,
+              ),
+            ),
+            iconOnProcessing: ValueListenableBuilder(
+                valueListenable: downloadProgress,
+                builder: (context, double value, child) => SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        value: value <= 0 ? null : value,
+                        valueColor: value <= 0
+                            ? null
+                            : const AlwaysStoppedAnimation<Color>(Colors.blue),
+                        backgroundColor:
+                            value <= 0 ? null : AppColor.disabledColor,
+                        color: AppColor.disabledColor,
+                        strokeWidth: 2,
+                      ),
+                    )),
+            onTap: () async {
+              try {
+                final file = await _feralfileService.downloadFeralfileArtwork(
+                    asset, onReceiveProgress: (received, total) {
+                  setState(() {
+                    downloadProgress.value = received / total;
+                  });
+                });
                 if (!context.mounted) {
                   return;
                 }
-                setState(() {});
-                if (!payload['isTezos']) {
-                  if (isSentAll) {
-                    unawaited(Navigator.of(context)
-                        .popAndPushNamed(AppRouter.homePage));
-                  }
+                setState(() {
+                  downloadProgress.value = 0;
+                });
+                Navigator.of(context).pop();
+                if (file != null) {
+                  await FileHelper.shareFile(file, deleteAfterShare: true);
+                } else {
+                  unawaited(UIHelper.showFeralfileArtworkSavedFailed(context));
+                }
+              } catch (e) {
+                if (!context.mounted) {
                   return;
                 }
-                unawaited(UIHelper.showMessageAction(
-                  context,
-                  'success'.tr(),
-                  'send_success_des'.tr(),
-                  closeButton: 'close'.tr(),
-                  onClose: () => isSentAll
-                      ? Navigator.of(context).popAndPushNamed(
-                          AppRouter.homePage,
-                        )
-                      : null,
-                ));
-              },
-            ),
-          ],
+                setState(() {
+                  downloadProgress.value = 0;
+                });
+                log.info('Download artwork failed: $e');
+                if (e is DioException) {
+                  unawaited(UIHelper.showFeralfileArtworkSavedFailed(context));
+                }
+              }
+            },
+          ),
+        if (ownerWallet != null && asset.isTransferable) ...[
           OptionItem(
-            title: 'refresh_metadata'.tr(),
-            icon: SvgPicture.asset(
-              'assets/images/refresh_metadata_white.svg',
-              width: 20,
-              height: 20,
-            ),
+            title: 'send_artwork'.tr(),
+            icon: SvgPicture.asset('assets/images/send_white.svg'),
             onTap: () async {
-              await injector<TokensService>().fetchManualTokens([asset.id]);
+              final payload = await Navigator.of(context).popAndPushNamed(
+                  AppRouter.sendArtworkPage,
+                  arguments: SendArtworkPayload(
+                      asset,
+                      ownerWallet,
+                      addressIndex!,
+                      ownerWallet.getOwnedQuantity(asset))) as Map?;
+              if (payload == null) {
+                return;
+              }
+
+              final sentQuantity = payload['sentQuantity'] as int;
+              final isSentAll = payload['isSentAll'] as bool;
+              unawaited(injector<ConfigurationService>()
+                  .updateRecentlySentToken([
+                SentArtwork(asset.id, asset.owner, DateTime.now(), sentQuantity,
+                    isSentAll)
+              ]));
+              if (isHidden) {
+                await injector<ConfigurationService>()
+                    .updateTempStorageHiddenTokenIDs([asset.id], false);
+                unawaited(injector<SettingsDataService>().backup());
+              }
               if (!context.mounted) {
                 return;
               }
-              Navigator.of(context).pop();
-              await Navigator.of(context).pushReplacementNamed(
-                  AppRouter.artworkDetailsPage,
-                  arguments: widget.payload.copyWith());
+              setState(() {});
+              if (!payload['isTezos']) {
+                if (isSentAll) {
+                  unawaited(Navigator.of(context)
+                      .popAndPushNamed(AppRouter.homePage));
+                }
+                return;
+              }
+              unawaited(UIHelper.showMessageAction(
+                context,
+                'success'.tr(),
+                'send_success_des'.tr(),
+                closeButton: 'close'.tr(),
+                onClose: () => isSentAll
+                    ? Navigator.of(context).popAndPushNamed(
+                        AppRouter.homePage,
+                      )
+                    : null,
+              ));
             },
           ),
-          OptionItem.emptyOptionItem,
         ],
-        color: AppColor.white,
-        backgroundColor: AppColor.auGreyBackground,
-        separatorColor: AppColor.primaryBlack));
+        OptionItem(
+          title: 'refresh_metadata'.tr(),
+          icon: SvgPicture.asset(
+            'assets/images/refresh_metadata_white.svg',
+            width: 20,
+            height: 20,
+          ),
+          onTap: () async {
+            await injector<TokensService>().fetchManualTokens([asset.id]);
+            if (!context.mounted) {
+              return;
+            }
+            Navigator.of(context).pop();
+            await Navigator.of(context).pushReplacementNamed(
+                AppRouter.artworkDetailsPage,
+                arguments: widget.payload.copyWith());
+          },
+        ),
+        OptionItem.emptyOptionItem,
+      ],
+    ));
   }
 }
 
