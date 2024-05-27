@@ -3,6 +3,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
+import 'package:autonomy_flutter/screen/exhibitions/exhibitions_bloc.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -14,13 +15,24 @@ extension ExhibitionExt on Exhibition {
 
   bool get isGroupExhibition => type == 'group';
 
-  //TODO: implement this
-  bool get isFreeToStream => true;
+  DateTime get exhibitionViewAt =>
+      exhibitionStartAt.subtract(Duration(seconds: previewDuration ?? 0));
+
+  bool get canViewDetails {
+    final exhibitionBloc = injector<ExhibitionBloc>();
+    return exhibitionBloc.state.isSubscribed ||
+        (exhibitionBloc.state.freeExhibitions
+                ?.any((element) => element.exhibition.id == id) ??
+            false);
+  }
 
   //TODO: implement this
   bool get isOnGoing => true;
 
   String? get getSeriesArtworkModelText {
+    if (this.series == null || id == SOURCE_EXHIBITION_ID) {
+      return null;
+    }
     const sep = ', ';
     final specifiedSeriesArtworkModelTitle =
         injector<RemoteConfigService>().getConfig<Map<String, dynamic>>(
@@ -29,9 +41,6 @@ extension ExhibitionExt on Exhibition {
       specifiedSeriesTitle,
     );
     final specifiedSeriesIds = specifiedSeriesArtworkModelTitle.keys;
-    if (this.series == null) {
-      return null;
-    }
     final currentSpecifiedSeries = this
         .series!
         .where((element) => specifiedSeriesIds.contains(element.id))
@@ -104,6 +113,21 @@ extension ExhibitionDetailExt on ExhibitionDetail {
 
   List<Artwork> get representArtworks =>
       seriesIds.map((e) => representArtwork(e)).whereNotNull().toList();
+
+  Artwork representArtworkByIndex(int seriesIndex) {
+    if (seriesIndex < 0 || seriesIndex >= representArtworks.length) {
+      throw Exception('Invalid series index');
+    }
+    return representArtworks[seriesIndex];
+  }
+
+  FFSeries getSeriesByIndex(int seriesIndex) {
+    if (seriesIndex < 0 || seriesIndex >= seriesIds.length) {
+      throw Exception('Invalid series index');
+    }
+    return exhibition.series!
+        .firstWhere((e) => e.id == representArtworks[seriesIndex].seriesID);
+  }
 
   String? getArtworkTokenId(Artwork artwork) {
     if (artwork.swap != null) {

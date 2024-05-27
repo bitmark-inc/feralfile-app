@@ -21,19 +21,24 @@ class ProjectsBloc extends AuBloc<ProjectsEvent, ProjectsState> {
       : super(ProjectsState()) {
     on<GetProjectsEvent>((event, emit) async {
       final List<TapNavigate> newProjects = [];
-      final showYokoOno = await _doUserHaveYokoOnoRecord();
-      if (showYokoOno) {
-        final config = _remoteConfigService.getConfig<Map<String, dynamic>>(
-            ConfigGroup.exhibition, ConfigKey.yokoOnoPublic, {});
-        final artwork = Artwork.createFake(config['public_version_thumbnail'],
-            config['public_version_preview'], 'software');
-        newProjects.add(TapNavigate(
-            title: 'yoko_ono_public_version'.tr(),
-            route: AppRouter.ffArtworkPreviewPage,
-            arguments: FeralFileArtworkPreviewPagePayload(
-              artwork: artwork,
-            )));
-      }
+      try {
+        final showYokoOno = await _doUserHaveYokoOnoRecord();
+        if (showYokoOno) {
+          final config = _remoteConfigService.getConfig<Map<String, dynamic>>(
+              ConfigGroup.exhibition, ConfigKey.yokoOnoPublic, {});
+          final artwork = Artwork.createFake(config['public_version_thumbnail'],
+              config['public_version_preview'], 'software');
+          newProjects.add(TapNavigate(
+              title: 'yoko_ono_public_version'.tr(),
+              route: AppRouter.ffArtworkPreviewPage,
+              arguments: FeralFileArtworkPreviewPagePayload(
+                artwork: artwork,
+              )));
+        }
+      } catch (_) {}
+
+      newProjects.add(TapNavigate(
+          title: 'moma_postcard'.tr(), route: AppRouter.momaPostcardPage));
 
       emit(state.copyWith(loading: false, projects: newProjects));
     });
@@ -58,13 +63,13 @@ class ProjectsBloc extends AuBloc<ProjectsEvent, ProjectsState> {
     const count = 20;
     int currentIndex = startIndex;
     final List<String> recordOwners = [];
-
+    List<String> owners = [];
     do {
-      final owners = await _ethereumService.getPublicRecordOwners(
+      owners = await _ethereumService.getPublicRecordOwners(
           BigInt.from(currentIndex), BigInt.from(count));
       recordOwners.addAll(owners);
-      currentIndex += owners.length;
-    } while (recordOwners.length >= count);
+      currentIndex += count;
+    } while (owners.length >= count);
     return recordOwners;
   }
 }

@@ -159,3 +159,59 @@ extension StringExtension on String {
     return RegExp(r'^[0-9a-fA-F]+$').hasMatch(hexString);
   }
 }
+
+extension SearchKeyExtension on String? {
+  String get firstSearchCharacter {
+    if (this == null || this!.isEmpty) {
+      return '#';
+    }
+    if (listCharacters.contains(this![0].toUpperCase())) {
+      return this![0].toUpperCase();
+    }
+    return '#';
+  }
+
+  int compareSearchKey(String? other) {
+    final a = this ?? '';
+    final b = other ?? '';
+    final aFirstCharacter = firstSearchCharacter;
+    final bFirstCharacter = other.firstSearchCharacter;
+    if (aFirstCharacter == '#' && bFirstCharacter != '#') {
+      return 1;
+    }
+    if (aFirstCharacter != '#' && bFirstCharacter == '#') {
+      return -1;
+    }
+    return a.toUpperCase().compareTo(b.toUpperCase());
+  }
+}
+
+final List<String> listCharacters = [
+  'A',
+  'B',
+  'C',
+  'D',
+  'E',
+  'F',
+  'G',
+  'H',
+  'I',
+  'J',
+  'K',
+  'L',
+  'M',
+  'N',
+  'O',
+  'P',
+  'Q',
+  'R',
+  'S',
+  'T',
+  'U',
+  'V',
+  'W',
+  'X',
+  'Y',
+  'Z',
+  '#'
+];
