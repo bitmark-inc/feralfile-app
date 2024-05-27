@@ -7,6 +7,7 @@ import 'package:autonomy_flutter/screen/exhibitions/exhibitions_bloc.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/http_helper.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:collection/collection.dart';
 
@@ -171,6 +172,17 @@ extension ArtworkExt on Artwork {
   }
 
   String get metricTokenId => '${seriesID}_$id';
+
+  Future<String> renderingType() async {
+    final medium = series?.medium ?? 'unknown';
+    final mediumType = FeralfileMediumTypes.fromString(medium);
+    if (mediumType == FeralfileMediumTypes.image) {
+      final contentType = await HttpHelper.contentType(previewURL);
+      return contentType;
+    } else {
+      return mediumType.toRenderingType;
+    }
+  }
 }
 
 String getFFUrl(String uri) {
