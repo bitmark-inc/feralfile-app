@@ -14,6 +14,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
       # Set build number
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.22.1"
+          channel: stable
       - name: Set env
         run: |
           echo "FLUTTER_VERSION_NAME=0.100.0" >> $GITHUB_ENV
