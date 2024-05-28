@@ -524,7 +524,7 @@ class UIHelper {
             const SizedBox(height: 15),
           ],
           OutlineButton(
-            onTap: () => Navigator.pop(context),
+            onTap: () => hideInfoDialog(context),
             text: 'dismiss'.tr(),
           ),
         ],

@@ -80,7 +80,6 @@ import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:autonomy_flutter/util/dio_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:dio/dio.dart';
-import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart';
 import 'package:logging/logging.dart';
@@ -163,20 +162,9 @@ Future<void> setup() async {
   final authenticatedDio = Dio(); // Authenticated dio instance for AU servers
   authenticatedDio.interceptors.add(AutonomyAuthInterceptor());
   authenticatedDio.interceptors.add(LoggingInterceptor());
+  authenticatedDio.interceptors.add(ConnectingExceptionInterceptor());
   (authenticatedDio.transformer as SyncTransformer).jsonDecodeCallback =
       parseJson;
-  dio.interceptors.add(RetryInterceptor(
-    dio: dio,
-    logPrint: (message) {
-      log.warning('[request retry] $message');
-    },
-    retryDelays: const [
-      // set delays between retries
-      Duration(seconds: 1),
-      Duration(seconds: 2),
-      Duration(seconds: 3),
-    ],
-  ));
   authenticatedDio.addSentry();
   authenticatedDio.options = dioOptions;
 
