@@ -105,7 +105,8 @@ class _SupportListPageState extends State<SupportListPage>
               case Issue:
                 final issue = chatThread as Issue;
                 final status = issue.status;
-                final lastMessage = getLastMessage(issue);
+                final lastMessage =
+                    _getDisplayMessage(issue, issue.lastMessage);
                 final isRated = (lastMessage.contains(STAR_RATING) ||
                         lastMessage.contains(RATING_MESSAGE_START)) &&
                     issue.rating > 0;
@@ -194,11 +195,38 @@ class _SupportListPageState extends State<SupportListPage>
         const SizedBox(height: 17),
         Padding(
           padding: const EdgeInsets.only(right: 14),
-          child: Text(
-            getPreviewMessage(issue),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.ppMori400Black14,
+          child: Row(
+            children: [
+              if (issue.status == 'closed') ...[
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(64),
+                    border: Border.all(
+                      color: AppColor.auQuickSilver,
+                    ),
+                  ),
+                  child: Text(
+                    'resolved'.tr(),
+                    style: theme.textTheme.ppMori400FFQuickSilver12,
+                  ),
+                ),
+                const SizedBox(
+                  width: 14,
+                )
+              ],
+              Expanded(
+                child: Text(
+                  getPreviewMessage(issue),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.ppMori400Black14,
+                ),
+              ),
+            ],
           ),
         ),
         if (hasDivider)
@@ -212,20 +240,14 @@ class _SupportListPageState extends State<SupportListPage>
   }
 
   String getPreviewMessage(Issue issue) {
-    final lastMessage = getLastMessage(issue);
     if (issue.status == 'closed') {
-      if (lastMessage.contains(RATING_MESSAGE_START)) {
-        return lastMessage.substring(RATING_MESSAGE_START.length);
-      }
-      if (!lastMessage.contains(STAR_RATING)) {
-        return 'rate_issue'.tr();
-      }
+      return _getDisplayMessage(issue, issue.firstMessage);
+    } else {
+      return _getDisplayMessage(issue, issue.lastMessage);
     }
-    return lastMessage;
   }
 
-  String getLastMessage(Issue issue) {
-    var lastMessage = issue.lastMessage;
+  String _getDisplayMessage(Issue issue, Message? message) {
     if (issue.draft != null) {
       final draft = issue.draft!;
       final draftData = draft.draftData;
@@ -243,7 +265,7 @@ class _SupportListPageState extends State<SupportListPage>
             .toList();
       }
 
-      lastMessage = Message(
+      message = Message(
         id: random.nextInt(100000),
         read: true,
         from: 'did:key:user',
@@ -253,17 +275,17 @@ class _SupportListPageState extends State<SupportListPage>
       );
     }
 
-    if (lastMessage == null) {
+    if (message == null) {
       return '';
     }
 
-    if (lastMessage.filteredMessage.isNotEmpty) {
-      return lastMessage.filteredMessage;
+    if (message.filteredMessage.isNotEmpty) {
+      return message.filteredMessage;
     }
-    if (lastMessage.attachments.isEmpty) {
+    if (message.attachments.isEmpty) {
       return '';
     }
-    final attachment = lastMessage.attachments.last;
+    final attachment = message.attachments.last;
     final attachmentTitle =
         ReceiveAttachment.extractSizeAndRealTitle(attachment.title)[1];
     if (attachment.contentType.contains('image')) {

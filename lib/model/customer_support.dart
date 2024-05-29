@@ -30,6 +30,8 @@ class Issue implements ChatThread {
   int rating;
   @JsonKey(name: 'last_message')
   Message? lastMessage;
+  @JsonKey(name: 'first_message')
+  Message? firstMessage;
   // only on local
   @JsonKey(includeFromJson: false, includeToJson: false)
   DraftCustomerSupport? draft;
@@ -47,6 +49,7 @@ class Issue implements ChatThread {
     required this.total,
     required this.unread,
     required this.lastMessage,
+    required this.firstMessage,
     this.draft,
     required this.rating,
     this.announcementID,
@@ -56,16 +59,13 @@ class Issue implements ChatThread {
 
   Map<String, dynamic> toJson() => _$IssueToJson(this);
 
-  String get reportIssueType {
-    return ReportIssueType.getList
-            .firstWhereOrNull((element) => tags.contains(element)) ??
-        "";
-  }
+  String get reportIssueType =>
+      ReportIssueType.getList
+          .firstWhereOrNull((element) => tags.contains(element)) ??
+      '';
 
   @override
-  String getListTitle() {
-    return ReportIssueType.toTitle(reportIssueType);
-  }
+  String getListTitle() => ReportIssueType.toTitle(reportIssueType);
 }
 
 @JsonSerializable()
