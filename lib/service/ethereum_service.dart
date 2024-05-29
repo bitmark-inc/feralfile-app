@@ -170,7 +170,13 @@ class EthereumServiceImpl extends EthereumService {
       EthereumAddress to, BigInt value, String? data,
       {required FeeOption feeOption}) async {
     log.info('[EthereumService] sendTransaction - to: $to - amount $value');
+    return await _networkIssueManager.retryOnConnectIssue<String>(() =>
+        _sendTransaction(wallet, index, to, value, data, feeOption: feeOption));
+  }
 
+  Future<String> _sendTransaction(WalletStorage wallet, int index,
+      EthereumAddress to, BigInt value, String? data,
+      {required FeeOption feeOption}) async {
     final sender =
         EthereumAddress.fromHex(await wallet.getETHEip55Address(index: index));
     final nonce = await _web3Client.getTransactionCount(sender,
@@ -191,8 +197,7 @@ class EthereumServiceImpl extends EthereumService {
         data: data ?? '',
         chainId: chainId,
         index: index);
-    final tx = await _networkIssueManager.retryOnConnectIssue<String>(
-        () => _web3Client.sendRawTransaction(signedTransaction));
+    final tx = await _web3Client.sendRawTransaction(signedTransaction);
 
     final deductValue = sender == to ? BigInt.zero : value;
     final deductFee = gasLimit * fee.maxFeePerGas.getInWei;

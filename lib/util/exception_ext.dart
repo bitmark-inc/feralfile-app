@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:http/http.dart';
 import 'package:tezart/tezart.dart';
 
 extension ExceptionExt on Exception {
@@ -20,6 +21,10 @@ extension ExceptionExt on Exception {
     if (this is TezartHttpError) {
       final e = this as TezartHttpError;
       return e.clientError.isNetworkIssue;
+    }
+
+    if (this is ClientException) {
+      return true;
     }
 
     return false;
