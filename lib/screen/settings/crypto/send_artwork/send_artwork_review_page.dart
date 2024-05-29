@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
+import 'package:autonomy_flutter/util/exception_ext.dart';
 import 'package:autonomy_flutter/util/fee_util.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -170,15 +171,17 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
         };
         Navigator.of(context).pop(payload);
       }
-    } catch (e) {
+    } on Exception catch (e) {
       if (!mounted) {
         return;
       }
-      unawaited(UIHelper.showMessageAction(
-        context,
-        'transaction_failed'.tr(),
-        'try_later'.tr(),
-      ));
+      if (!e.isNetworkIssue) {
+        unawaited(UIHelper.showMessageAction(
+          context,
+          'transaction_failed'.tr(),
+          'try_later'.tr(),
+        ));
+      }
     }
     setState(() {
       _isSending = false;

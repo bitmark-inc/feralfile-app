@@ -13,6 +13,7 @@ import 'dart:typed_data';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/retry_utils.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:tezart/src/crypto/crypto.dart' as crypto;
@@ -54,16 +55,15 @@ class TezosServiceImpl extends TezosService {
 
   @override
   Future<int> getBalance(String address) {
-    log.info("TezosService.getBalance: $address");
-    return _retryOnNodeError<int>((client) async {
-      return client.getBalance(address: address);
-    });
+    log.info('TezosService.getBalance: $address');
+    return _retryOnNodeError<int>(
+        (client) async => client.getBalance(address: address));
   }
 
   @override
   Future<int> estimateOperationFee(String publicKey, List<Operation> operations,
       {int? baseOperationCustomFee}) async {
-    log.info("TezosService.estimateOperationFee");
+    log.info('TezosService.estimateOperationFee');
 
     return _retryOnNodeError<int>((client) async {
       var operationList = OperationsList(
@@ -79,8 +79,8 @@ class TezosServiceImpl extends TezosService {
         operationList.prependOperation(RevealOperation());
       }
 
-      log.info(
-          "TezosService.estimateOperationFee: ${operationList.operations.map((e) => e.toJson()).toList()}");
+      log.info('TezosService.estimateOperationFee: '
+          '${operationList.operations.map((e) => e.toJson()).toList()}');
 
       await operationList.estimate(
           baseOperationCustomFee: baseOperationCustomFee);
@@ -95,7 +95,7 @@ class TezosServiceImpl extends TezosService {
   Future<String?> sendOperationTransaction(
       WalletStorage wallet, int index, List<Operation> operations,
       {int? baseOperationCustomFee}) async {
-    log.info("TezosService.sendOperationTransaction");
+    log.info('TezosService.sendOperationTransaction');
     return _retryOnNodeError<String?>((client) async {
       var operationList = OperationsList(
           publicKey: await wallet.getTezosPublicKey(index: index),
@@ -116,7 +116,7 @@ class TezosServiceImpl extends TezosService {
           baseOperationCustomFee: baseOperationCustomFee);
 
       log.info(
-          "TezosService.sendOperationTransaction: ${operationList.result.id}");
+          'TezosService.sendOperationTransaction: ${operationList.result.id}');
       return operationList.result.id;
     });
   }
@@ -124,8 +124,7 @@ class TezosServiceImpl extends TezosService {
   @override
   Future<int> estimateFee(String publicKey, String to, int amount,
       {int? baseOperationCustomFee}) async {
-    log.info("TezosService.estimateFee: $to, $amount");
-
+    log.info('TezosService.estimateFee: $to, $amount');
     return _retryOnNodeError<int>((client) async {
       final operation = await client.transferOperation(
         publicKey: publicKey,
@@ -144,18 +143,20 @@ class TezosServiceImpl extends TezosService {
   Future<String?> sendTransaction(
       WalletStorage wallet, int index, String to, int amount,
       {int? baseOperationCustomFee}) async {
-    log.info("TezosService.sendTransaction: $to, $amount");
-    return _retryOnNodeError<String?>((client) async {
-      final operation = await client.transferOperation(
-        publicKey: await wallet.getTezosPublicKey(index: index),
-        destination: to,
-        amount: amount,
-      );
-      await operation.execute(
-          (forgedHex) => wallet.tezosSignTransaction(forgedHex, index: index),
-          baseOperationCustomFee: baseOperationCustomFee);
-      return operation.result.id;
-    });
+    log.info('TezosService.sendTransaction: $to, $amount');
+    return RetryUtils.retryOnConnectIssue<String?>(
+        () => _retryOnNodeError<String?>((client) async {
+              final operation = await client.transferOperation(
+                publicKey: await wallet.getTezosPublicKey(index: index),
+                destination: to,
+                amount: amount,
+              );
+              await operation.execute(
+                  (forgedHex) =>
+                      wallet.tezosSignTransaction(forgedHex, index: index),
+                  baseOperationCustomFee: baseOperationCustomFee);
+              return operation.result.id;
+            }));
   }
 
   @override
@@ -171,22 +172,22 @@ class TezosServiceImpl extends TezosService {
       String to, String tokenId, int quantity) async {
     final params = [
       {
-        "prim": "Pair",
-        "args": [
-          {"string": from},
+        'prim': 'Pair',
+        'args': [
+          {'string': from},
           [
             {
-              "args": [
-                {"string": to},
+              'args': [
+                {'string': to},
                 {
-                  "prim": "Pair",
-                  "args": [
-                    {"int": tokenId},
-                    {"int": "$quantity"}
+                  'prim': 'Pair',
+                  'args': [
+                    {'int': tokenId},
+                    {'int': '$quantity'}
                   ]
                 }
               ],
-              "prim": "Pair"
+              'prim': 'Pair'
             }
           ]
         ]
@@ -196,7 +197,7 @@ class TezosServiceImpl extends TezosService {
     return TransactionOperation(
         amount: 0,
         destination: contract,
-        entrypoint: "transfer",
+        entrypoint: 'transfer',
         params: params);
   }
 

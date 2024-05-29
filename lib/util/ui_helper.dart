@@ -498,8 +498,8 @@ class UIHelper {
     );
   }
 
-  static Future<dynamic> showRetryDialog(BuildContext context,
-      {required String description, dynamic Function()? onRetry}) async {
+  static Future<T?> showRetryDialog<T>(BuildContext context,
+      {required String description, FutureOr<T> Function()? onRetry}) async {
     final theme = Theme.of(context);
 
     return await showDialog(
@@ -517,7 +517,9 @@ class UIHelper {
           const SizedBox(height: 40),
           if (onRetry != null) ...[
             PrimaryButton(
-              onTap: onRetry,
+              onTap: () {
+                hideDialogWithResult<FutureOr<T>>(context, onRetry());
+              },
               text: 'retry_now'.tr(),
               color: AppColor.feralFileLightBlue,
             ),
@@ -803,6 +805,11 @@ class UIHelper {
     try {
       Navigator.popUntil(context, (route) => route.settings.name != null);
     } catch (_) {}
+  }
+
+  static void hideDialogWithResult<T>(BuildContext context, T result) {
+    currentDialogTitle = '';
+    Navigator.pop(context, result);
   }
 
   // MARK: - Connection

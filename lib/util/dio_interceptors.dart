@@ -13,13 +13,12 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/service/network_issue_manager.dart';
+import 'package:autonomy_flutter/util/exception_ext.dart';
 import 'package:autonomy_flutter/util/isolated_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:web3dart/crypto.dart';
 
@@ -243,23 +242,11 @@ class HmacAuthInterceptor extends Interceptor {
 }
 
 class ConnectingExceptionInterceptor extends Interceptor {
-  static const Duration _throttleDuration = Duration(minutes: 2);
-
-  DateTime _lastErrorTime = DateTime.fromMicrosecondsSinceEpoch(0);
-
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
-    if (err.type == DioExceptionType.connectionError ||
-        err.type == DioExceptionType.receiveTimeout ||
-        err.type == DioExceptionType.sendTimeout) {
-      log.warning('Connection timeout');
-      final context = injector<NavigationService>().navigatorKey.currentContext;
-      if (context != null &&
-          DateTime.now().difference(_lastErrorTime) > _throttleDuration) {
-        _lastErrorTime = DateTime.now();
-        unawaited(UIHelper.showRetryDialog(context,
-            description: 'network_error_desc'.tr()));
-      }
+    if (err.isNetworkIssue) {
+      log.warning('ConnectingExceptionInterceptor timeout');
+      unawaited(injector<NetworkIssueManager>().showNetworkIssueWarning());
     }
     handler.next(err);
   }

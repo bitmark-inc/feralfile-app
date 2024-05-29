@@ -64,6 +64,7 @@ import 'package:autonomy_flutter/service/merchandise_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/service/network_issue_manager.dart';
 import 'package:autonomy_flutter/service/network_service.dart';
 import 'package:autonomy_flutter/service/notification_service.dart';
 import 'package:autonomy_flutter/service/pending_token_service.dart';
@@ -133,6 +134,11 @@ Future<void> setup() async {
       .addMigrations(cloudDatabaseMigrations)
       .build();
 
+  injector.registerLazySingleton(() => NavigationService());
+
+  injector
+      .registerLazySingleton<NetworkIssueManager>(() => NetworkIssueManager());
+
   final BaseOptions dioOptions = BaseOptions(
     followRedirects: true,
     connectTimeout: const Duration(seconds: 3),
@@ -175,7 +181,6 @@ Future<void> setup() async {
       ConfigurationServiceImpl(sharedPreferences));
 
   injector.registerLazySingleton(() => Client());
-  injector.registerLazySingleton(() => NavigationService());
   injector.registerLazySingleton<AutonomyService>(
       () => AutonomyServiceImpl(injector(), injector()));
   injector

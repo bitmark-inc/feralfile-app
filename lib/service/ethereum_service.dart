@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/ether_amount_ext.dart';
 import 'package:autonomy_flutter/util/fee_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/retry_utils.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:flutter/services.dart';
 import 'package:libauk_dart/libauk_dart.dart';
@@ -189,8 +190,8 @@ class EthereumServiceImpl extends EthereumService {
         data: data ?? '',
         chainId: chainId,
         index: index);
-
-    final tx = await _web3Client.sendRawTransaction(signedTransaction);
+    final tx = await RetryUtils.retryOnConnectIssue<String>(
+        () => _web3Client.sendRawTransaction(signedTransaction));
 
     final deductValue = sender == to ? BigInt.zero : value;
     final deductFee = gasLimit * fee.maxFeePerGas.getInWei;
