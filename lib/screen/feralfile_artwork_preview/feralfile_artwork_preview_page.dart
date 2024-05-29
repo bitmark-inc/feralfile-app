@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
@@ -46,22 +48,7 @@ class _FeralFileArtworkPreviewPageState
           context,
           onBack: () => Navigator.pop(context),
           action: FFCastButton(
-            onDeviceSelected: (device) {
-              final exhibitionId = widget.payload.artwork.series?.exhibitionID;
-              if (exhibitionId == null) {
-                Sentry.captureMessage(
-                    'Exhibition ID is null for artwork ${widget.payload.artwork.id}');
-              } else {
-                final artworkId = widget.payload.artwork.id;
-                final request = CastExhibitionRequest(
-                  exhibitionId: exhibitionId,
-                  katalog: ExhibitionKatalog.ARTWORK,
-                  katalogId: artworkId,
-                );
-                _canvasDeviceBloc
-                    .add(CanvasDeviceCastExhibitionEvent(device, request));
-              }
-            },
+            onDeviceSelected: _onDeviceSelected,
           ),
         ),
         backgroundColor: AppColor.primaryBlack,
@@ -79,6 +66,22 @@ class _FeralFileArtworkPreviewPageState
           ],
         ),
       );
+
+  Future<void> _onDeviceSelected(CanvasDevice device) async {
+    final exhibitionId = widget.payload.artwork.series?.exhibitionID;
+    if (exhibitionId == null) {
+      await Sentry.captureMessage('Exhibition ID is null for artwork '
+          '${widget.payload.artwork.id}');
+    } else {
+      final artworkId = widget.payload.artwork.id;
+      final request = CastExhibitionRequest(
+        exhibitionId: exhibitionId,
+        katalog: ExhibitionKatalog.ARTWORK,
+        katalogId: artworkId,
+      );
+      _canvasDeviceBloc.add(CanvasDeviceCastExhibitionEvent(device, request));
+    }
+  }
 }
 
 class FeralFileArtworkPreviewPagePayload {
