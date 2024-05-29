@@ -11,9 +11,9 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:autonomy_flutter/common/environment.dart';
+import 'package:autonomy_flutter/service/network_issue_manager.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/retry_utils.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:tezart/src/crypto/crypto.dart' as crypto;
@@ -50,8 +50,9 @@ abstract class TezosService {
 
 class TezosServiceImpl extends TezosService {
   final TezartClient _tezartClient;
+  final NetworkIssueManager _networkIssueManager;
 
-  TezosServiceImpl(this._tezartClient);
+  TezosServiceImpl(this._tezartClient, this._networkIssueManager);
 
   @override
   Future<int> getBalance(String address) {
@@ -144,7 +145,7 @@ class TezosServiceImpl extends TezosService {
       WalletStorage wallet, int index, String to, int amount,
       {int? baseOperationCustomFee}) async {
     log.info('TezosService.sendTransaction: $to, $amount');
-    return RetryUtils.retryOnConnectIssue<String?>(
+    return _networkIssueManager.retryOnConnectIssue<String?>(
         () => _retryOnNodeError<String?>((client) async {
               final operation = await client.transferOperation(
                 publicKey: await wallet.getTezosPublicKey(index: index),

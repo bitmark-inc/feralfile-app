@@ -11,12 +11,12 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/gateway/etherchain_api.dart';
 import 'package:autonomy_flutter/model/eth_pending_tx_amount.dart';
 import 'package:autonomy_flutter/service/hive_service.dart';
+import 'package:autonomy_flutter/service/network_issue_manager.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/ether_amount_ext.dart';
 import 'package:autonomy_flutter/util/fee_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/retry_utils.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:flutter/services.dart';
 import 'package:libauk_dart/libauk_dart.dart';
@@ -81,9 +81,10 @@ class EthereumServiceImpl extends EthereumService {
   final EtherchainApi _etherchainApi;
   final HiveService _hiveService;
   final RemoteConfigService _remoteConfigService;
+  final NetworkIssueManager _networkIssueManager;
 
   EthereumServiceImpl(this._web3Client, this._etherchainApi, this._hiveService,
-      this._remoteConfigService);
+      this._remoteConfigService, this._networkIssueManager);
 
   @override
   Future<FeeOptionValue> estimateFee(WalletStorage wallet, int index,
@@ -190,7 +191,7 @@ class EthereumServiceImpl extends EthereumService {
         data: data ?? '',
         chainId: chainId,
         index: index);
-    final tx = await RetryUtils.retryOnConnectIssue<String>(
+    final tx = await _networkIssueManager.retryOnConnectIssue<String>(
         () => _web3Client.sendRawTransaction(signedTransaction));
 
     final deductValue = sender == to ? BigInt.zero : value;

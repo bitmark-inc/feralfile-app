@@ -1,9 +1,11 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
+import 'package:autonomy_flutter/service/network_issue_manager.dart';
 import 'package:autonomy_flutter/service/network_service.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/stream_device_view.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:feralfile_app_tv_proto/models/canvas_device.dart';
 import 'package:flutter/material.dart';
@@ -42,11 +44,18 @@ class _FFCastButtonState extends State<FFCastButton> {
         return GestureDetector(
           onTap: () async {
             if (!injector.get<NetworkService>().isWifi) {
-              await UIHelper.showRetryDialog(
+              final isRetry =
+                  await injector<NetworkIssueManager>().showRetryDialog(
                 context,
-                description: 'Please connect to the same Wi-Fi network as your TV to cast.',
-                onRetry: () {},
+                description: 'network_error_canvas_desc'.tr(),
+                dynamicRetryNotifier: injector<NetworkService>().isWifiNotifier,
+                onRetry: () async => true,
               );
+              if (!(isRetry ?? false)) {
+                return;
+              }
+            }
+            if (!context.mounted) {
               return;
             }
             await _showStreamAction(context);

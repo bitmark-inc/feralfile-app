@@ -499,9 +499,11 @@ class UIHelper {
   }
 
   static Future<T?> showRetryDialog<T>(BuildContext context,
-      {required String description, FutureOr<T> Function()? onRetry}) async {
+      {required String description,
+      FutureOr<T> Function()? onRetry,
+      ValueNotifier<bool>? dynamicRetryNotifier}) async {
     final theme = Theme.of(context);
-
+    final hasRetry = onRetry != null;
     return await showDialog(
       context,
       'network_issue'.tr(),
@@ -515,15 +517,25 @@ class UIHelper {
             ),
           ],
           const SizedBox(height: 40),
-          if (onRetry != null) ...[
-            PrimaryButton(
-              onTap: () {
-                hideDialogWithResult<FutureOr<T>>(context, onRetry());
-              },
-              text: 'retry_now'.tr(),
-              color: AppColor.feralFileLightBlue,
+          if (hasRetry) ...[
+            ValueListenableBuilder(
+              valueListenable: dynamicRetryNotifier ?? ValueNotifier(true),
+              builder: (context, value, child) => value
+                  ? Column(
+                      children: [
+                        PrimaryButton(
+                          onTap: () {
+                            hideDialogWithResult<FutureOr<T>>(
+                                context, onRetry());
+                          },
+                          text: 'retry_now'.tr(),
+                          color: AppColor.feralFileLightBlue,
+                        ),
+                        const SizedBox(height: 15),
+                      ],
+                    )
+                  : const SizedBox.shrink(),
             ),
-            const SizedBox(height: 15),
           ],
           OutlineButton(
             onTap: () => hideInfoDialog(context),

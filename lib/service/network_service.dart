@@ -9,6 +9,8 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
 class NetworkService {
@@ -16,6 +18,7 @@ class NetworkService {
   final Connectivity _connectivity = Connectivity();
   final Map<String, StreamSubscription<ConnectivityResult>> _listener = {};
   ConnectivityResult _connectivityResult = ConnectivityResult.none;
+  final ValueNotifier<bool> isWifiNotifier = ValueNotifier(false);
 
   static const String canvasBlocListenerId = 'canvasBlocListenerId';
 
@@ -23,6 +26,7 @@ class NetworkService {
     addListener((result) {
       log.info('[NetworkService] Network changed: $result');
       _connectivityResult = result;
+      isWifiNotifier.value = result == ConnectivityResult.wifi;
     }, id: _defaultListenerId);
   }
 

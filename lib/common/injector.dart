@@ -311,11 +311,11 @@ Future<void> setup() async {
   injector.registerLazySingleton<IndexerService>(
       () => IndexerService(indexerClient));
 
-  injector.registerLazySingleton<EthereumService>(() =>
-      EthereumServiceImpl(injector(), injector(), injector(), injector()));
+  injector.registerLazySingleton<EthereumService>(() => EthereumServiceImpl(
+      injector(), injector(), injector(), injector(), injector()));
   injector.registerLazySingleton<HiveService>(() => HiveServiceImpl());
-  injector
-      .registerLazySingleton<TezosService>(() => TezosServiceImpl(injector()));
+  injector.registerLazySingleton<TezosService>(
+      () => TezosServiceImpl(injector(), injector()));
   injector.registerLazySingleton<AppDatabase>(() => mainnetDB);
   injector.registerLazySingleton<PlaylistService>(
       () => PlayListServiceImp(injector(), injector(), injector(), injector()));
