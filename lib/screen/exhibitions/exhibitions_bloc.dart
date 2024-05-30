@@ -15,7 +15,7 @@ class ExhibitionBloc extends AuBloc<ExhibitionsEvent, ExhibitionsState> {
 
   ExhibitionBloc(this._feralFileService) : super(ExhibitionsState()) {
     on<GetAllExhibitionsEvent>((event, emit) async {
-      if (!event.forceUpdate && state.allExhibitionIds.isNotEmpty) {
+      if (state.allExhibitionIds.isNotEmpty) {
         return;
       }
       final result = await Future.wait([
@@ -30,10 +30,10 @@ class ExhibitionBloc extends AuBloc<ExhibitionsEvent, ExhibitionsState> {
       final sourceExhibition = result[3] as Exhibition;
       log.info('[ExhibitionBloc] getAllExhibitionsEvent:'
           ' pro ${proExhibitions.length}');
-      proExhibitions.removeWhere((element) =>
-          element.id == featuredExhibition.id);
-      proExhibitions = _addSourceExhibitionIfNeeded(
-          proExhibitions, sourceExhibition);
+      proExhibitions
+          .removeWhere((element) => element.id == featuredExhibition.id);
+      proExhibitions =
+          _addSourceExhibitionIfNeeded(proExhibitions, sourceExhibition);
       emit(state.copyWith(
         freeExhibitions: [featuredExhibition],
         proExhibitions: proExhibitions,
@@ -56,11 +56,11 @@ class ExhibitionBloc extends AuBloc<ExhibitionsEvent, ExhibitionsState> {
         final resultLength = proExhibitions.length;
         log.info('[ExhibitionBloc] getNextPageEvent: $resultLength');
 
-        proExhibitions.removeWhere((element) =>
-            state.allExhibitionIds.contains(element.id));
+        proExhibitions.removeWhere(
+            (element) => state.allExhibitionIds.contains(element.id));
         if (state.sourceExhibition != null &&
-            !(state.proExhibitions ?? []).any(
-                (element) => element.id == SOURCE_EXHIBITION_ID)) {
+            !(state.proExhibitions ?? [])
+                .any((element) => element.id == SOURCE_EXHIBITION_ID)) {
           proExhibitions = _addSourceExhibitionIfNeeded(
               proExhibitions, state.sourceExhibition!);
         }
@@ -77,8 +77,8 @@ class ExhibitionBloc extends AuBloc<ExhibitionsEvent, ExhibitionsState> {
 
   List<Exhibition> _addSourceExhibitionIfNeeded(
       List<Exhibition> exhibitions, Exhibition sourceExhibition) {
-    final isExistSourceExhibition = exhibitions.any((exhibition) =>
-        exhibition.id == sourceExhibition.id);
+    final isExistSourceExhibition =
+        exhibitions.any((exhibition) => exhibition.id == sourceExhibition.id);
     if (isExistSourceExhibition) {
       return exhibitions;
     }
@@ -88,8 +88,7 @@ class ExhibitionBloc extends AuBloc<ExhibitionsEvent, ExhibitionsState> {
       log.info('[ExhibitionBloc] inserted Source Exhibition');
       exhibitions
         ..add(sourceExhibition)
-        ..sort((a, b) => b.exhibitionViewAt
-            .compareTo(a.exhibitionViewAt));
+        ..sort((a, b) => b.exhibitionViewAt.compareTo(a.exhibitionViewAt));
     }
     return exhibitions;
   }

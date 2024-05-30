@@ -71,11 +71,11 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
   @override
   void didPopNext() {
     super.didPopNext();
-    refreshExhibitions(force: false);
+    refreshExhibitions();
   }
 
-  void refreshExhibitions({bool force = true}) {
-    _exhibitionBloc.add(GetAllExhibitionsEvent(forceUpdate: force));
+  void refreshExhibitions() {
+    _exhibitionBloc.add(GetAllExhibitionsEvent());
   }
 
   @override

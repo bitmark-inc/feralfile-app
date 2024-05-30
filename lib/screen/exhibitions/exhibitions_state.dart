@@ -2,11 +2,7 @@ import 'package:autonomy_flutter/model/ff_exhibition.dart';
 
 class ExhibitionsEvent {}
 
-class GetAllExhibitionsEvent extends ExhibitionsEvent {
-  final bool forceUpdate;
-
-  GetAllExhibitionsEvent({this.forceUpdate = true});
-}
+class GetAllExhibitionsEvent extends ExhibitionsEvent {}
 
 class GetNextPageEvent extends ExhibitionsEvent {
   final bool isLoop;
