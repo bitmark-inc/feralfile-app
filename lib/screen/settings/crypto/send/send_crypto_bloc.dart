@@ -81,7 +81,8 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
         case CryptoType.XTZ:
           final address =
               await event.wallet.getTezosAddress(index: event.index);
-          final balance = await _tezosService.getBalance(address, doRetry: true);
+          final balance =
+              await _tezosService.getBalance(address, doRetry: true);
 
           newState.balance = BigInt.from(balance);
           if (state.feeOptionValue != null) {
