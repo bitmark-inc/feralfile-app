@@ -81,8 +81,6 @@ class _WalletPageState extends State<WalletPage>
         title: 'create_a_new_wallet'.tr(),
         icon: SvgPicture.asset(
           'assets/images/joinFile.svg',
-          colorFilter:
-              const ColorFilter.mode(AppColor.primaryBlack, BlendMode.srcIn),
           height: 24,
         ),
         onTap: () {
@@ -92,8 +90,8 @@ class _WalletPageState extends State<WalletPage>
       ),
       OptionItem(
         title: 'add_an_existing_wallet'.tr(),
-        icon: Image.asset(
-          'assets/images/icon_save.png',
+        icon: SvgPicture.asset(
+          'assets/images/icon_save.svg',
           height: 24,
         ),
         onTap: () {
@@ -106,8 +104,6 @@ class _WalletPageState extends State<WalletPage>
         title: 'view_existing_address'.tr().toLowerCase().capitalize(),
         icon: SvgPicture.asset(
           'assets/images/unhide.svg',
-          colorFilter:
-              const ColorFilter.mode(AppColor.primaryBlack, BlendMode.srcIn),
           height: 24,
         ),
         onTap: () {
