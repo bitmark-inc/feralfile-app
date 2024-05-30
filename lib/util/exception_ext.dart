@@ -9,7 +9,6 @@ extension ExceptionExt on Exception {
     if (this is DioException) {
       final e = this as DioException;
       return e.type == DioExceptionType.connectionError ||
-          e.type == DioExceptionType.receiveTimeout ||
           e.type == DioExceptionType.sendTimeout ||
           e.error is SocketException;
     }

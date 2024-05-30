@@ -8,7 +8,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 class NetworkIssueManager {
-  static const Duration _throttleDuration = Duration(minutes: 2);
+  static const Duration _throttleDuration = Duration(seconds: 30);
   DateTime _lastErrorTime = DateTime.fromMillisecondsSinceEpoch(0);
   bool _isShowingDialog = false;
 
