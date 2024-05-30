@@ -573,9 +573,11 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                   child: Center(
                     child: AddButton(
                       icon: SvgPicture.asset(
-                        'assets/images/Add.svg',
+                        'assets/images/joinFile.svg',
                         width: 30,
                         height: 30,
+                        colorFilter: const ColorFilter.mode(
+                            AppColor.primaryBlack, BlendMode.srcIn),
                       ),
                       onTap: () async {
                         await moveToAddNftToCollection(context);
