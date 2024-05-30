@@ -202,8 +202,6 @@ Widget tokenGalleryThumbnailWidget(
                   unawaited(injector<NetworkIssueManager>()
                       .showNetworkIssueWarning());
                 }
-                unawaited(
-                    injector<NetworkIssueManager>().showNetworkIssueWarning());
                 return const GalleryThumbnailErrorWidget();
               }),
             ),
