@@ -19,6 +19,7 @@ class NetworkService {
   final Map<String, StreamSubscription<ConnectivityResult>> _listener = {};
   ConnectivityResult _connectivityResult = ConnectivityResult.none;
   final ValueNotifier<bool> isWifiNotifier = ValueNotifier(false);
+  Timer? _timer;
 
   static const String canvasBlocListenerId = 'canvasBlocListenerId';
 
@@ -26,7 +27,11 @@ class NetworkService {
     addListener((result) {
       log.info('[NetworkService] Network changed: $result');
       _connectivityResult = result;
-      isWifiNotifier.value = result == ConnectivityResult.wifi;
+
+      _timer?.cancel();
+      _timer = Timer(const Duration(seconds: 1), () {
+        isWifiNotifier.value = result == ConnectivityResult.wifi;
+      });
     }, id: _defaultListenerId);
   }
 
