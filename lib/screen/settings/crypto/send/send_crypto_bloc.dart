@@ -65,7 +65,8 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
         case CryptoType.ETH:
           final ownerAddress =
               await event.wallet.getETHEip55Address(index: event.index);
-          final balance = await _ethereumService.getBalance(ownerAddress);
+          final balance =
+              await _ethereumService.getBalance(ownerAddress, doRetry: true);
 
           newState.balance = balance.getInWei;
 
@@ -80,7 +81,7 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
         case CryptoType.XTZ:
           final address =
               await event.wallet.getTezosAddress(index: event.index);
-          final balance = await _tezosService.getBalance(address);
+          final balance = await _tezosService.getBalance(address, doRetry: true);
 
           newState.balance = BigInt.from(balance);
           if (state.feeOptionValue != null) {
@@ -99,7 +100,8 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
 
           final balance = await _ethereumService.getERC20TokenBalance(
               contractAddress, ownerAddress);
-          final ethBalance = await _ethereumService.getBalance(address);
+          final ethBalance =
+              await _ethereumService.getBalance(address, doRetry: true);
 
           newState.balance = balance;
           newState.ethBalance = ethBalance.getInWei;

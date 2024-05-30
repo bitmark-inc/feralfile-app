@@ -25,7 +25,7 @@ const baseOperationCustomFeeMedium = 150;
 const baseOperationCustomFeeHigh = 200;
 
 abstract class TezosService {
-  Future<int> getBalance(String address);
+  Future<int> getBalance(String address, {bool doRetry = false});
 
   Future<int> estimateOperationFee(String publicKey, List<Operation> operations,
       {int? baseOperationCustomFee});
@@ -55,10 +55,12 @@ class TezosServiceImpl extends TezosService {
   TezosServiceImpl(this._tezartClient, this._networkIssueManager);
 
   @override
-  Future<int> getBalance(String address) {
+  Future<int> getBalance(String address, {bool doRetry = false}) {
     log.info('TezosService.getBalance: $address');
-    return _retryOnNodeError<int>(
-        (client) async => client.getBalance(address: address));
+    return _networkIssueManager.retryOnConnectIssue(
+        () => _retryOnNodeError<int>(
+            (client) async => client.getBalance(address: address)),
+        maxRetries: doRetry ? 3 : 0);
   }
 
   @override
@@ -97,47 +99,51 @@ class TezosServiceImpl extends TezosService {
       WalletStorage wallet, int index, List<Operation> operations,
       {int? baseOperationCustomFee}) async {
     log.info('TezosService.sendOperationTransaction');
-    return _retryOnNodeError<String?>((client) async {
-      var operationList = OperationsList(
-          publicKey: await wallet.getTezosPublicKey(index: index),
-          rpcInterface: client.rpcInterface);
+    return _networkIssueManager
+        .retryOnConnectIssue(() => _retryOnNodeError<String?>((client) async {
+              var operationList = OperationsList(
+                  publicKey: await wallet.getTezosPublicKey(index: index),
+                  rpcInterface: client.rpcInterface);
 
-      for (var element in operations) {
-        operationList.appendOperation(element);
-      }
+              for (var element in operations) {
+                operationList.appendOperation(element);
+              }
 
-      final isReveal = await client
-          .isKeyRevealed(await wallet.getTezosAddress(index: index));
-      if (!isReveal) {
-        operationList.prependOperation(RevealOperation());
-      }
+              final isReveal = await client
+                  .isKeyRevealed(await wallet.getTezosAddress(index: index));
+              if (!isReveal) {
+                operationList.prependOperation(RevealOperation());
+              }
 
-      await operationList.execute(
-          (forgedHex) => wallet.tezosSignTransaction(forgedHex, index: index),
-          baseOperationCustomFee: baseOperationCustomFee);
+              await operationList.execute(
+                  (forgedHex) =>
+                      wallet.tezosSignTransaction(forgedHex, index: index),
+                  baseOperationCustomFee: baseOperationCustomFee);
 
-      log.info(
-          'TezosService.sendOperationTransaction: ${operationList.result.id}');
-      return operationList.result.id;
-    });
+              log.info('TezosService.sendOperationTransaction:'
+                  ' ${operationList.result.id}');
+              return operationList.result.id;
+            }));
   }
 
   @override
   Future<int> estimateFee(String publicKey, String to, int amount,
       {int? baseOperationCustomFee}) async {
     log.info('TezosService.estimateFee: $to, $amount');
-    return _retryOnNodeError<int>((client) async {
-      final operation = await client.transferOperation(
-        publicKey: publicKey,
-        destination: to,
-        amount: amount,
-      );
-      await operation.estimate(baseOperationCustomFee: baseOperationCustomFee);
+    return _networkIssueManager
+        .retryOnConnectIssue(() => _retryOnNodeError<int>((client) async {
+              final operation = await client.transferOperation(
+                publicKey: publicKey,
+                destination: to,
+                amount: amount,
+              );
+              await operation.estimate(
+                  baseOperationCustomFee: baseOperationCustomFee);
 
-      return operation.operations
-          .map((e) => e.totalFee)
-          .reduce((value, element) => value + element);
-    });
+              return operation.operations
+                  .map((e) => e.totalFee)
+                  .reduce((value, element) => value + element);
+            }));
   }
 
   @override

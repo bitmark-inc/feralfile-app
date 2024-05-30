@@ -28,7 +28,7 @@ const double gWeiFactor = 1000000000;
 abstract class EthereumService {
   Future<String> getETHAddress(WalletStorage wallet, int index);
 
-  Future<EtherAmount> getBalance(String address);
+  Future<EtherAmount> getBalance(String address, {bool doRetry = false});
 
   Future<String> signPersonalMessage(
       WalletStorage wallet, int index, Uint8List message);
@@ -98,14 +98,16 @@ class EthereumServiceImpl extends EthereumService {
     final fee = await getEthereumFee(feeOption);
 
     try {
-      BigInt gas = await _web3Client.estimateGas(
-        sender: sender,
-        to: to,
-        value: amount,
-        maxFeePerGas: fee.maxFeePerGas,
-        maxPriorityFeePerGas: fee.maxPriorityFeePerGas,
-        data: (data != null && data.isNotEmpty) ? hexToBytes(data) : null,
-      );
+      BigInt gas = await _networkIssueManager
+          .retryOnConnectIssue(() => _web3Client.estimateGas(
+                sender: sender,
+                to: to,
+                value: amount,
+                maxFeePerGas: fee.maxFeePerGas,
+                maxPriorityFeePerGas: fee.maxPriorityFeePerGas,
+                data:
+                    (data != null && data.isNotEmpty) ? hexToBytes(data) : null,
+              ));
       return gasPrice.multipleBy(gas);
     } catch (err) {
       if (data != null && data.isNotEmpty) {
@@ -129,13 +131,15 @@ class EthereumServiceImpl extends EthereumService {
   }
 
   @override
-  Future<EtherAmount> getBalance(String address) async {
+  Future<EtherAmount> getBalance(String address, {bool doRetry = false}) async {
     if (address == '') {
       return EtherAmount.zero();
     }
 
     final ethAddress = EthereumAddress.fromHex(address);
-    final amount = await _web3Client.getBalance(ethAddress);
+    final amount = await _networkIssueManager.retryOnConnectIssue(
+        () => _web3Client.getBalance(ethAddress),
+        maxRetries: doRetry ? 3 : 0);
     final tx = await _hiveService.getEthPendingTxAmounts(address);
     final List<EthereumPendingTxAmount> pendingTx = [];
     for (final element in tx) {

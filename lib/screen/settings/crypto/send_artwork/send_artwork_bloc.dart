@@ -65,7 +65,8 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
         case CryptoType.ETH:
           final ownerAddress =
               await event.wallet.getETHEip55Address(index: event.index);
-          final balance = await _ethereumService.getBalance(ownerAddress);
+          final balance =
+              await _ethereumService.getBalance(ownerAddress, doRetry: true);
 
           newState.balance = balance.getInWei;
           newState.isValid = _isValid(newState);
@@ -73,7 +74,8 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
         case CryptoType.XTZ:
           final address =
               await event.wallet.getTezosAddress(index: event.index);
-          final balance = await _tezosService.getBalance(address);
+          final balance =
+              await _tezosService.getBalance(address, doRetry: true);
 
           newState.balance = BigInt.from(balance);
           newState.isValid = _isValid(newState);

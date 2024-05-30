@@ -209,7 +209,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
               feeOption.tezosBaseOperationCustomFee +
               baseOperationCustomFeeHigh));
       balance = await injector<TezosService>()
-          .getBalance(await wallet.getTezosAddress(index: index));
+          .getBalance(await wallet.getTezosAddress(index: index), doRetry: true);
       setState(() {
         _fee = fee;
       });
