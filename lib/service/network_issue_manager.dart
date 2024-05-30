@@ -6,11 +6,13 @@ import 'package:autonomy_flutter/util/exception_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:synchronized/synchronized.dart';
 
 class NetworkIssueManager {
   static const Duration _throttleDuration = Duration(seconds: 30);
   DateTime _lastErrorTime = DateTime.fromMillisecondsSinceEpoch(0);
   bool _isShowingDialog = false;
+  final _txDialogLock = Lock();
 
   Future<void> showNetworkIssueWarning() async {
     if (_isShowingDialog) {
@@ -38,8 +40,13 @@ class NetworkIssueManager {
     return result;
   }
 
-  Future<T> retryOnConnectIssue<T>(FutureOr<T> Function() fn,
-      {int maxRetries = 3}) async {
+  Future<T> retryOnConnectIssueTx<T>(FutureOr<T> Function() fn,
+          {int maxRetries = 3}) =>
+      _txDialogLock.synchronized(() =>
+          _retryOnConnectIssue(fn, maxRetries: maxRetries));
+
+  Future<T> _retryOnConnectIssue<T>(FutureOr<T> Function() fn,
+      {int maxRetries = 3, String? description}) async {
     try {
       return await fn();
     } on Exception catch (e) {
@@ -47,10 +54,12 @@ class NetworkIssueManager {
         final context =
             injector<NavigationService>().navigatorKey.currentContext;
         if (context != null) {
+          final desc = description ?? 'network_error_desc'.tr();
           final dialogResult = await showRetryDialog<FutureOr<T>>(
             context,
-            description: 'network_error_desc'.tr(),
-            onRetry: () => retryOnConnectIssue(fn, maxRetries: maxRetries - 1),
+            description: desc,
+            onRetry: () => _retryOnConnectIssue(fn,
+                maxRetries: maxRetries - 1, description: desc),
           );
           if (dialogResult is FutureOr<T>) {
             return await dialogResult;

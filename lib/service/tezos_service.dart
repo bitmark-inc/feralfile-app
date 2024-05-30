@@ -57,10 +57,9 @@ class TezosServiceImpl extends TezosService {
   @override
   Future<int> getBalance(String address, {bool doRetry = false}) {
     log.info('TezosService.getBalance: $address');
-    return _networkIssueManager.retryOnConnectIssue(
-        () => _retryOnNodeError<int>(
-            (client) async => client.getBalance(address: address)),
-        maxRetries: doRetry ? 3 : 0);
+    return _retryOnError<int>(
+        (client) async => client.getBalance(address: address),
+        doRetry: doRetry);
   }
 
   @override
@@ -68,7 +67,7 @@ class TezosServiceImpl extends TezosService {
       {int? baseOperationCustomFee}) async {
     log.info('TezosService.estimateOperationFee');
 
-    return _retryOnNodeError<int>((client) async {
+    return _retryOnError<int>((client) async {
       var operationList = OperationsList(
           publicKey: publicKey, rpcInterface: client.rpcInterface);
 
@@ -99,51 +98,47 @@ class TezosServiceImpl extends TezosService {
       WalletStorage wallet, int index, List<Operation> operations,
       {int? baseOperationCustomFee}) async {
     log.info('TezosService.sendOperationTransaction');
-    return _networkIssueManager
-        .retryOnConnectIssue(() => _retryOnNodeError<String?>((client) async {
-              var operationList = OperationsList(
-                  publicKey: await wallet.getTezosPublicKey(index: index),
-                  rpcInterface: client.rpcInterface);
+    return _retryOnError<String?>((client) async {
+      var operationList = OperationsList(
+          publicKey: await wallet.getTezosPublicKey(index: index),
+          rpcInterface: client.rpcInterface);
 
-              for (var element in operations) {
-                operationList.appendOperation(element);
-              }
+      for (var element in operations) {
+        operationList.appendOperation(element);
+      }
 
-              final isReveal = await client
-                  .isKeyRevealed(await wallet.getTezosAddress(index: index));
-              if (!isReveal) {
-                operationList.prependOperation(RevealOperation());
-              }
+      final isReveal = await client
+          .isKeyRevealed(await wallet.getTezosAddress(index: index));
+      if (!isReveal) {
+        operationList.prependOperation(RevealOperation());
+      }
 
-              await operationList.execute(
-                  (forgedHex) =>
-                      wallet.tezosSignTransaction(forgedHex, index: index),
-                  baseOperationCustomFee: baseOperationCustomFee);
+      await operationList.execute(
+          (forgedHex) => wallet.tezosSignTransaction(forgedHex, index: index),
+          baseOperationCustomFee: baseOperationCustomFee);
 
-              log.info('TezosService.sendOperationTransaction:'
-                  ' ${operationList.result.id}');
-              return operationList.result.id;
-            }));
+      log.info('TezosService.sendOperationTransaction:'
+          ' ${operationList.result.id}');
+      return operationList.result.id;
+    });
   }
 
   @override
   Future<int> estimateFee(String publicKey, String to, int amount,
       {int? baseOperationCustomFee}) async {
     log.info('TezosService.estimateFee: $to, $amount');
-    return _networkIssueManager
-        .retryOnConnectIssue(() => _retryOnNodeError<int>((client) async {
-              final operation = await client.transferOperation(
-                publicKey: publicKey,
-                destination: to,
-                amount: amount,
-              );
-              await operation.estimate(
-                  baseOperationCustomFee: baseOperationCustomFee);
+    return _retryOnError<int>((client) async {
+      final operation = await client.transferOperation(
+        publicKey: publicKey,
+        destination: to,
+        amount: amount,
+      );
+      await operation.estimate(baseOperationCustomFee: baseOperationCustomFee);
 
-              return operation.operations
-                  .map((e) => e.totalFee)
-                  .reduce((value, element) => value + element);
-            }));
+      return operation.operations
+          .map((e) => e.totalFee)
+          .reduce((value, element) => value + element);
+    });
   }
 
   @override
@@ -151,19 +146,17 @@ class TezosServiceImpl extends TezosService {
       WalletStorage wallet, int index, String to, int amount,
       {int? baseOperationCustomFee}) async {
     log.info('TezosService.sendTransaction: $to, $amount');
-    return _networkIssueManager.retryOnConnectIssue<String?>(
-        () => _retryOnNodeError<String?>((client) async {
-              final operation = await client.transferOperation(
-                publicKey: await wallet.getTezosPublicKey(index: index),
-                destination: to,
-                amount: amount,
-              );
-              await operation.execute(
-                  (forgedHex) =>
-                      wallet.tezosSignTransaction(forgedHex, index: index),
-                  baseOperationCustomFee: baseOperationCustomFee);
-              return operation.result.id;
-            }));
+    return _retryOnError<String?>((client) async {
+      final operation = await client.transferOperation(
+        publicKey: await wallet.getTezosPublicKey(index: index),
+        destination: to,
+        amount: amount,
+      );
+      await operation.execute(
+          (forgedHex) => wallet.tezosSignTransaction(forgedHex, index: index),
+          baseOperationCustomFee: baseOperationCustomFee);
+      return operation.result.id;
+    });
   }
 
   @override
@@ -207,6 +200,11 @@ class TezosServiceImpl extends TezosService {
         entrypoint: 'transfer',
         params: params);
   }
+
+  Future<T> _retryOnError<T>(Future<T> Function(TezartClient) func,
+          {bool doRetry = true}) =>
+      _networkIssueManager.retryOnConnectIssueTx(() => _retryOnNodeError(func),
+          maxRetries: doRetry ? 3 : 0);
 
   Future<T> _retryOnNodeError<T>(Future<T> Function(TezartClient) func) async {
     try {

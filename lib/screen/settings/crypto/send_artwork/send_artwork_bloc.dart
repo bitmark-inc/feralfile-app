@@ -40,6 +40,7 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
   final DomainAddressService _domainAddressService;
   String? cachedAddress;
   BigInt? cachedBalance;
+  final _estimateLock = Lock();
 
   final _safeBuffer = BigInt.from(10);
 
@@ -56,39 +57,39 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
     final type =
         _asset.blockchain == 'ethereum' ? CryptoType.ETH : CryptoType.XTZ;
     on<GetBalanceEvent>((event, emit) async {
-      final newState = state.clone()..wallet = event.wallet;
+      await _estimateLock.synchronized(() async {
+        final newState = state.clone()..wallet = event.wallet;
 
-      final exchangeRate = await _currencyService.getExchangeRates();
-      newState.exchangeRate = exchangeRate;
+        final exchangeRate = await _currencyService.getExchangeRates();
+        newState.exchangeRate = exchangeRate;
 
-      switch (type) {
-        case CryptoType.ETH:
-          final ownerAddress =
-              await event.wallet.getETHEip55Address(index: event.index);
-          final balance =
-              await _ethereumService.getBalance(ownerAddress, doRetry: true);
+        switch (type) {
+          case CryptoType.ETH:
+            final ownerAddress =
+                await event.wallet.getETHEip55Address(index: event.index);
+            final balance =
+                await _ethereumService.getBalance(ownerAddress, doRetry: true);
 
-          newState.balance = balance.getInWei;
-          newState.isValid = _isValid(newState);
-          break;
-        case CryptoType.XTZ:
-          final address =
-              await event.wallet.getTezosAddress(index: event.index);
-          final balance =
-              await _tezosService.getBalance(address, doRetry: true);
+            newState.balance = balance.getInWei;
+            newState.isValid = _isValid(newState);
+          case CryptoType.XTZ:
+            final address =
+                await event.wallet.getTezosAddress(index: event.index);
+            final balance =
+                await _tezosService.getBalance(address, doRetry: true);
 
-          newState.balance = BigInt.from(balance);
-          newState.isValid = _isValid(newState);
-          break;
-        default:
-          break;
-      }
+            newState.balance = BigInt.from(balance);
+            newState.isValid = _isValid(newState);
+          default:
+            break;
+        }
 
-      cachedBalance = newState.balance;
-      emit(newState);
+        cachedBalance = newState.balance;
+        emit(newState);
+      });
     });
 
-    on<QuantityUpdateEvent>((event, emit) async {
+    on<QuantityUpdateEvent>((event, emit) {
       log.info('[SendArtworkBloc] QuantityUpdateEvent: ${event.quantity}');
       final newState = state.clone()
         ..quantity = event.quantity
@@ -139,150 +140,150 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
     });
 
     on<EstimateFeeEvent>((event, emit) async {
-      log.info('[SendArtworkBloc] Estimate fee: ${event.quantity}');
-      emit(state.copyWith(isEstimating: true));
+      await _estimateLock.synchronized(() async {
+        log.info('[SendArtworkBloc] Estimate fee: ${event.quantity}');
+        emit(state.copyWith(isEstimating: true));
 
-      BigInt? fee;
-      FeeOptionValue? feeOptionValue;
-      switch (type) {
-        case CryptoType.ETH:
-          final wallet = state.wallet;
-          final index = event.index;
-          if (wallet == null) {
-            return;
-          }
-
-          final contractAddress =
-              EthereumAddress.fromHex(event.contractAddress);
-          final to = EthereumAddress.fromHex(event.address);
-          final from = EthereumAddress.fromHex(
-              await state.wallet!.getETHEip55Address(index: index));
-
-          final data = _asset.contractType == 'erc1155'
-              ? await _ethereumService.getERC1155TransferTransactionData(
-                  contractAddress, from, to, event.tokenId, event.quantity,
-                  feeOption: state.feeOption)
-              : await _ethereumService.getERC721TransferTransactionData(
-                  contractAddress, from, to, event.tokenId,
-                  feeOption: state.feeOption);
-
-          try {
-            feeOptionValue = await _ethereumService.estimateFee(
-                wallet, index, contractAddress, EtherAmount.zero(), data);
-            fee = feeOptionValue.getFee(state.feeOption);
-          } on RPCError catch (e) {
-            log.info('[SendArtworkBloc] RPCError: '
-                'errorCode: ${e.errorCode} '
-                'message: ${e.message}'
-                'data: ${e.data}');
-            _navigationService.showErrorDialog(
-                ErrorEvent(e, 'estimation_failed'.tr(), e.errorMessage,
-                    ErrorItemState.tryAgain), cancelAction: () {
-              _navigationService.hideInfoDialog();
+        BigInt? fee;
+        FeeOptionValue? feeOptionValue;
+        switch (type) {
+          case CryptoType.ETH:
+            final wallet = state.wallet;
+            final index = event.index;
+            if (wallet == null) {
               return;
-            }, defaultAction: () {
-              add(event);
-            });
-          } catch (e) {
-            log.info('[SendArtworkBloc] Error: $e');
-            _navigationService.showErrorDialog(
-                ErrorEvent(e, 'estimation_failed'.tr(), e.toString(),
-                    ErrorItemState.tryAgain), cancelAction: () {
-              _navigationService.hideInfoDialog();
+            }
+
+            final contractAddress =
+                EthereumAddress.fromHex(event.contractAddress);
+            final to = EthereumAddress.fromHex(event.address);
+            final from = EthereumAddress.fromHex(
+                await state.wallet!.getETHEip55Address(index: index));
+
+            final data = _asset.contractType == 'erc1155'
+                ? await _ethereumService.getERC1155TransferTransactionData(
+                    contractAddress, from, to, event.tokenId, event.quantity,
+                    feeOption: state.feeOption)
+                : await _ethereumService.getERC721TransferTransactionData(
+                    contractAddress, from, to, event.tokenId,
+                    feeOption: state.feeOption);
+
+            try {
+              feeOptionValue = await _ethereumService.estimateFee(
+                  wallet, index, contractAddress, EtherAmount.zero(), data);
+              fee = feeOptionValue.getFee(state.feeOption);
+            } on RPCError catch (e) {
+              log.info('[SendArtworkBloc] RPCError: '
+                  'errorCode: ${e.errorCode} '
+                  'message: ${e.message}'
+                  'data: ${e.data}');
+              _navigationService.showErrorDialog(
+                  ErrorEvent(e, 'estimation_failed'.tr(), e.errorMessage,
+                      ErrorItemState.tryAgain), cancelAction: () {
+                _navigationService.hideInfoDialog();
+                return;
+              }, defaultAction: () {
+                add(event);
+              });
+            } catch (e) {
+              log.info('[SendArtworkBloc] Error: $e');
+              _navigationService.showErrorDialog(
+                  ErrorEvent(e, 'estimation_failed'.tr(), e.toString(),
+                      ErrorItemState.tryAgain), cancelAction: () {
+                _navigationService.hideInfoDialog();
+                return;
+              }, defaultAction: () {
+                add(event);
+              });
+            }
+          case CryptoType.XTZ:
+            final wallet = state.wallet;
+            final index = event.index;
+            if (wallet == null) {
               return;
-            }, defaultAction: () {
-              add(event);
-            });
-          }
-          break;
-        case CryptoType.XTZ:
-          final wallet = state.wallet;
-          final index = event.index;
-          if (wallet == null) {
-            return;
-          }
-          try {
-            final operation = await _tezosService.getFa2TransferOperation(
-                event.contractAddress,
-                await wallet.getTezosAddress(index: index),
-                event.address,
-                event.tokenId,
-                event.quantity);
-            final tezosFee = await _tezosService.estimateOperationFee(
-                await wallet.getTezosPublicKey(index: index), [operation],
-                baseOperationCustomFee:
-                    state.feeOption.tezosBaseOperationCustomFee);
-            fee = BigInt.from(tezosFee);
-            feeOptionValue = FeeOptionValue(
-                BigInt.from(tezosFee -
-                    state.feeOption.tezosBaseOperationCustomFee +
-                    baseOperationCustomFeeLow),
-                BigInt.from(tezosFee -
-                    state.feeOption.tezosBaseOperationCustomFee +
-                    baseOperationCustomFeeMedium),
-                BigInt.from(tezosFee -
-                    state.feeOption.tezosBaseOperationCustomFee +
-                    baseOperationCustomFeeHigh));
-          } on TezartNodeError catch (err) {
-            if (!emit.isDone) {
-              if (_navigationService.mounted) {
+            }
+            try {
+              final operation = await _tezosService.getFa2TransferOperation(
+                  event.contractAddress,
+                  await wallet.getTezosAddress(index: index),
+                  event.address,
+                  event.tokenId,
+                  event.quantity);
+              final tezosFee = await _tezosService.estimateOperationFee(
+                  await wallet.getTezosPublicKey(index: index), [operation],
+                  baseOperationCustomFee:
+                      state.feeOption.tezosBaseOperationCustomFee);
+              fee = BigInt.from(tezosFee);
+              feeOptionValue = FeeOptionValue(
+                  BigInt.from(tezosFee -
+                      state.feeOption.tezosBaseOperationCustomFee +
+                      baseOperationCustomFeeLow),
+                  BigInt.from(tezosFee -
+                      state.feeOption.tezosBaseOperationCustomFee +
+                      baseOperationCustomFeeMedium),
+                  BigInt.from(tezosFee -
+                      state.feeOption.tezosBaseOperationCustomFee +
+                      baseOperationCustomFeeHigh));
+            } on TezartNodeError catch (err) {
+              if (!emit.isDone) {
+                if (_navigationService.context.mounted) {
+                  unawaited(UIHelper.showInfoDialog(
+                    _navigationService.context,
+                    'estimation_failed'.tr(),
+                    getTezosErrorMessage(err),
+                    isDismissible: true,
+                  ));
+                }
+                fee = BigInt.zero;
+                feeOptionValue =
+                    FeeOptionValue(BigInt.zero, BigInt.zero, BigInt.zero);
+              }
+            } on TezartHttpError catch (err) {
+              log.info(err);
+              if (_navigationService.context.mounted) {
                 unawaited(UIHelper.showInfoDialog(
                   _navigationService.context,
                   'estimation_failed'.tr(),
-                  getTezosErrorMessage(err),
+                  'cannot_connect_to_rpc'.tr(),
                   isDismissible: true,
+                  closeButton: 'try_again'.tr(),
+                  onClose: () {
+                    add(event);
+                    Navigator.of(_navigationService.context).pop();
+                  },
                 ));
+              }
+            } catch (err) {
+              if (!emit.isDone) {
+                unawaited(showErrorDialogFromException(err));
               }
               fee = BigInt.zero;
               feeOptionValue =
                   FeeOptionValue(BigInt.zero, BigInt.zero, BigInt.zero);
             }
-          } on TezartHttpError catch (err) {
-            log.info(err);
-            if (_navigationService.mounted) {
-              unawaited(UIHelper.showInfoDialog(
-                _navigationService.context,
-                'estimation_failed'.tr(),
-                'cannot_connect_to_rpc'.tr(),
-                isDismissible: true,
-                closeButton: 'try_again'.tr(),
-                onClose: () {
-                  add(event);
-                  Navigator.of(_navigationService.context).pop();
-                },
-              ));
-            }
-          } catch (err) {
-            if (!emit.isDone) {
-              unawaited(showErrorDialogFromException(err));
-            }
+          default:
             fee = BigInt.zero;
             feeOptionValue =
                 FeeOptionValue(BigInt.zero, BigInt.zero, BigInt.zero);
-          }
-          break;
-        default:
-          fee = BigInt.zero;
-          feeOptionValue =
-              FeeOptionValue(BigInt.zero, BigInt.zero, BigInt.zero);
-          break;
-      }
+            break;
+        }
 
-      if (!emit.isDone) {
-        final newState =
-            event.newState == null ? state.clone() : event.newState!.clone()
-              ..fee = fee
-              ..feeOptionValue = feeOptionValue
-              ..isEstimating = false;
-        newState.isValid = _isValid(newState);
-        emit(newState);
-      }
+        if (!emit.isDone) {
+          final newState =
+              event.newState == null ? state.clone() : event.newState!.clone()
+                ..fee = fee
+                ..feeOptionValue = feeOptionValue
+                ..isEstimating = false;
+          newState.isValid = _isValid(newState);
+          emit(newState);
+        }
+      });
     },
         transformer: (events, mapper) => events
             .debounceTime(const Duration(milliseconds: 300))
             .switchMap(mapper));
 
-    on<FeeOptionChangedEvent>((event, emit) async {
+    on<FeeOptionChangedEvent>((event, emit) {
       final newState = state.clone()..feeOption = event.feeOption;
       newState.fee = newState.feeOptionValue?.getFee(event.feeOption);
       emit(newState);

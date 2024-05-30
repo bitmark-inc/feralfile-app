@@ -543,7 +543,6 @@ class UIHelper {
           ),
         ],
       ),
-      isDismissible: true,
     );
   }
 

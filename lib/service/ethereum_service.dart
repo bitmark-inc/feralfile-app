@@ -72,8 +72,6 @@ abstract class EthereumService {
 
   Future<String> getFeralFileTokenMetadata(
       EthereumAddress contract, Uint8List data);
-
-  Future<FeeOptionValue> getFeeOptionValue();
 }
 
 class EthereumServiceImpl extends EthereumService {
@@ -92,14 +90,14 @@ class EthereumServiceImpl extends EthereumService {
       {FeeOption feeOption = DEFAULT_FEE_OPTION}) async {
     log.info('[EthereumService] estimateFee - to: $to - amount $amount');
 
-    final gasPrice = await getFeeOptionValue();
+    final gasPrice = await _getFeeOptionValue();
     final sender =
         EthereumAddress.fromHex(await wallet.getETHEip55Address(index: index));
-    final fee = await getEthereumFee(feeOption);
+    final fee = await _getEthereumFee(feeOption);
 
     try {
       BigInt gas = await _networkIssueManager
-          .retryOnConnectIssue(() => _web3Client.estimateGas(
+          .retryOnConnectIssueTx(() => _web3Client.estimateGas(
                 sender: sender,
                 to: to,
                 value: amount,
@@ -137,7 +135,7 @@ class EthereumServiceImpl extends EthereumService {
     }
 
     final ethAddress = EthereumAddress.fromHex(address);
-    final amount = await _networkIssueManager.retryOnConnectIssue(
+    final amount = await _networkIssueManager.retryOnConnectIssueTx(
         () => _web3Client.getBalance(ethAddress),
         maxRetries: doRetry ? 3 : 0);
     final tx = await _hiveService.getEthPendingTxAmounts(address);
@@ -174,7 +172,7 @@ class EthereumServiceImpl extends EthereumService {
       EthereumAddress to, BigInt value, String? data,
       {required FeeOption feeOption}) async {
     log.info('[EthereumService] sendTransaction - to: $to - amount $value');
-    return await _networkIssueManager.retryOnConnectIssue<String>(() =>
+    return await _networkIssueManager.retryOnConnectIssueTx<String>(() =>
         _sendTransaction(wallet, index, to, value, data, feeOption: feeOption));
   }
 
@@ -189,7 +187,7 @@ class EthereumServiceImpl extends EthereumService {
         await _estimateGasLimit(sender, to, EtherAmount.inWei(value), data);
     final chainId = Environment.web3ChainId;
     Uint8List signedTransaction;
-    final fee = await getEthereumFee(feeOption);
+    final fee = await _getEthereumFee(feeOption);
 
     signedTransaction = await wallet.ethSignTransaction1559(
         nonce: nonce,
@@ -227,6 +225,16 @@ class EthereumServiceImpl extends EthereumService {
 
   @override
   Future<String?> getERC721TransferTransactionData(
+          EthereumAddress contractAddress,
+          EthereumAddress from,
+          EthereumAddress to,
+          String tokenId,
+          {FeeOption? feeOption}) =>
+      _networkIssueManager.retryOnConnectIssueTx(() =>
+          _getERC721TransferTransactionData(contractAddress, from, to, tokenId,
+              feeOption: feeOption));
+
+  Future<String?> _getERC721TransferTransactionData(
       EthereumAddress contractAddress,
       EthereumAddress from,
       EthereumAddress to,
@@ -241,7 +249,7 @@ class EthereumServiceImpl extends EthereumService {
         atBlock: const BlockNum.pending());
     Transaction transaction;
     if (feeOption != null) {
-      final fee = await getEthereumFee(feeOption);
+      final fee = await _getEthereumFee(feeOption);
       transaction = Transaction.callContract(
         contract: contract,
         function: transferFrom(),
@@ -268,6 +276,18 @@ class EthereumServiceImpl extends EthereumService {
 
   @override
   Future<String?> getERC1155TransferTransactionData(
+          EthereumAddress contractAddress,
+          EthereumAddress from,
+          EthereumAddress to,
+          String tokenId,
+          int quantity,
+          {FeeOption? feeOption}) =>
+      _networkIssueManager.retryOnConnectIssueTx(() =>
+          _getERC1155TransferTransactionData(
+              contractAddress, from, to, tokenId, quantity,
+              feeOption: feeOption));
+
+  Future<String?> _getERC1155TransferTransactionData(
       EthereumAddress contractAddress,
       EthereumAddress from,
       EthereumAddress to,
@@ -285,7 +305,7 @@ class EthereumServiceImpl extends EthereumService {
 
     Transaction transaction;
     if (feeOption != null) {
-      final fee = await getEthereumFee(feeOption);
+      final fee = await _getEthereumFee(feeOption);
       transaction = Transaction.callContract(
         contract: contract,
         function: transferFrom(),
@@ -324,23 +344,38 @@ class EthereumServiceImpl extends EthereumService {
 
   @override
   Future<BigInt> getERC20TokenBalance(
-      EthereumAddress contractAddress, EthereumAddress owner) async {
+    EthereumAddress contractAddress,
+    EthereumAddress owner, {
+    bool doRetry = false,
+  }) async {
     final contractJson = await rootBundle.loadString('assets/erc20-abi.json');
     final contract = DeployedContract(
         ContractAbi.fromJson(contractJson, 'ERC20'), contractAddress);
     ContractFunction balanceFunction() => contract.function('balanceOf');
 
-    var response = await _web3Client.call(
-      contract: contract,
-      function: balanceFunction(),
-      params: [owner],
-    );
+    var response = await _networkIssueManager.retryOnConnectIssueTx(
+        () => _web3Client.call(
+              contract: contract,
+              function: balanceFunction(),
+              params: [owner],
+            ),
+        maxRetries: doRetry ? 3 : 0);
 
     return response.first as BigInt;
   }
 
   @override
   Future<String?> getERC20TransferTransactionData(
+          EthereumAddress contractAddress,
+          EthereumAddress from,
+          EthereumAddress to,
+          BigInt quantity,
+          {FeeOption? feeOption}) =>
+      _networkIssueManager.retryOnConnectIssueTx(() =>
+          _getERC20TransferTransactionData(contractAddress, from, to, quantity,
+              feeOption: feeOption));
+
+  Future<String?> _getERC20TransferTransactionData(
       EthereumAddress contractAddress,
       EthereumAddress from,
       EthereumAddress to,
@@ -356,7 +391,7 @@ class EthereumServiceImpl extends EthereumService {
 
     Transaction transaction;
     if (feeOption != null) {
-      final fee = await getEthereumFee(feeOption);
+      final fee = await _getEthereumFee(feeOption);
       transaction = Transaction.callContract(
         contract: contract,
         function: transferFrom(),
@@ -485,7 +520,7 @@ class EthereumServiceImpl extends EthereumService {
     }
   }
 
-  Future<EthereumFee> getEthereumFee(FeeOption feeOption) async {
+  Future<EthereumFee> _getEthereumFee(FeeOption feeOption) async {
     final baseFee = await _getBaseFee();
     final priorityFee = feeOption.getEthereumPriorityFee;
     final buffer = BigInt.from(baseFee / BigInt.from(8));
@@ -507,7 +542,7 @@ class EthereumServiceImpl extends EthereumService {
   }
 
   @override
-  Future<FeeOptionValue> getFeeOptionValue() async {
+  Future<FeeOptionValue> _getFeeOptionValue() async {
     final baseFee = await _getBaseFee();
     final buffer = BigInt.from(baseFee / BigInt.from(8));
     return FeeOptionValue(

@@ -14,7 +14,6 @@ import 'package:autonomy_flutter/service/local_auth_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
-import 'package:autonomy_flutter/util/exception_ext.dart';
 import 'package:autonomy_flutter/util/fee_util.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -79,7 +78,6 @@ class _SendReviewPageState extends State<SendReviewPage> {
             'hash': txHash,
           };
           Navigator.of(context).pop(payload);
-          break;
         case CryptoType.XTZ:
           final opHash = await injector<TezosService>().sendTransaction(
               widget.payload.wallet,
@@ -96,7 +94,6 @@ class _SendReviewPageState extends State<SendReviewPage> {
             'hash': opHash,
           };
           Navigator.of(context).pop(payload);
-          break;
         case CryptoType.USDC:
           final address = await widget.payload.wallet
               .getETHEip55Address(index: widget.payload.index);
@@ -125,21 +122,18 @@ class _SendReviewPageState extends State<SendReviewPage> {
             'hash': txHash,
           };
           Navigator.of(context).pop(payload);
-          break;
         default:
           break;
       }
-    } on Exception catch (e) {
+    } on Exception catch (_) {
       if (!mounted) {
         return;
       }
-      if (!e.isNetworkIssue) {
-        unawaited(UIHelper.showMessageAction(
-          context,
-          'transaction_failed'.tr(),
-          'try_later'.tr(),
-        ));
-      }
+      unawaited(UIHelper.showMessageAction(
+        context,
+        'transaction_failed'.tr(),
+        'try_later'.tr(),
+      ));
     }
     setState(() {
       _isSending = false;
