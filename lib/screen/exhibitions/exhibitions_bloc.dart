@@ -15,28 +15,31 @@ class ExhibitionBloc extends AuBloc<ExhibitionsEvent, ExhibitionsState> {
 
   ExhibitionBloc(this._feralFileService) : super(ExhibitionsState()) {
     on<GetAllExhibitionsEvent>((event, emit) async {
+      if (!event.forceUpdate && state.allExhibitionIds.isNotEmpty) {
+        return;
+      }
       final result = await Future.wait([
         injector.get<IAPService>().isSubscribed(),
         _feralFileService.getFeaturedExhibition(),
         _feralFileService.getAllExhibitions(limit: limit),
-        _feralFileService.getSourceExhibition(),
+        _feralFileService.getSourceExhibition(withSeries: false),
       ]);
       final isSubscribed = result[0] as bool;
-      final featuredExhibition = result[1] as ExhibitionDetail;
-      var proExhibitions = result[2] as List<ExhibitionDetail>;
+      final featuredExhibition = result[1] as Exhibition;
+      var proExhibitions = result[2] as List<Exhibition>;
       final sourceExhibition = result[3] as Exhibition;
       log.info('[ExhibitionBloc] getAllExhibitionsEvent:'
           ' pro ${proExhibitions.length}');
       proExhibitions.removeWhere((element) =>
-          element.exhibition.id == featuredExhibition.exhibition.id);
+          element.id == featuredExhibition.id);
       proExhibitions = _addSourceExhibitionIfNeeded(
-          proExhibitions, ExhibitionDetail(exhibition: sourceExhibition));
+          proExhibitions, sourceExhibition);
       emit(state.copyWith(
         freeExhibitions: [featuredExhibition],
         proExhibitions: proExhibitions,
         isSubscribed: isSubscribed,
         currentPage: 1,
-        sourceExhibition: ExhibitionDetail(exhibition: sourceExhibition),
+        sourceExhibition: sourceExhibition,
       ));
       add(GetNextPageEvent(isLoop: true));
     });
@@ -45,7 +48,7 @@ class ExhibitionBloc extends AuBloc<ExhibitionsEvent, ExhibitionsState> {
       (event, emit) async {
         log.info('[ExhibitionBloc] getNextPageEvent:'
             'offset  ${state.currentPage * limit}');
-        List<ExhibitionDetail> proExhibitions =
+        List<Exhibition> proExhibitions =
             await _feralFileService.getAllExhibitions(
           limit: limit,
           offset: state.currentPage * limit,
@@ -54,10 +57,10 @@ class ExhibitionBloc extends AuBloc<ExhibitionsEvent, ExhibitionsState> {
         log.info('[ExhibitionBloc] getNextPageEvent: $resultLength');
 
         proExhibitions.removeWhere((element) =>
-            state.allExhibitionIds.contains(element.exhibition.id));
+            state.allExhibitionIds.contains(element.id));
         if (state.sourceExhibition != null &&
             !(state.proExhibitions ?? []).any(
-                (element) => element.exhibition.id == SOURCE_EXHIBITION_ID)) {
+                (element) => element.id == SOURCE_EXHIBITION_ID)) {
           proExhibitions = _addSourceExhibitionIfNeeded(
               proExhibitions, state.sourceExhibition!);
         }
@@ -72,21 +75,21 @@ class ExhibitionBloc extends AuBloc<ExhibitionsEvent, ExhibitionsState> {
     );
   }
 
-  List<ExhibitionDetail> _addSourceExhibitionIfNeeded(
-      List<ExhibitionDetail> exhibitions, ExhibitionDetail sourceExhibition) {
+  List<Exhibition> _addSourceExhibitionIfNeeded(
+      List<Exhibition> exhibitions, Exhibition sourceExhibition) {
     final isExistSourceExhibition = exhibitions.any((exhibition) =>
-        exhibition.exhibition.id == sourceExhibition.exhibition.id);
+        exhibition.id == sourceExhibition.id);
     if (isExistSourceExhibition) {
       return exhibitions;
     }
     final lastExhibition = exhibitions.last;
-    if (lastExhibition.exhibition.exhibitionViewAt
-        .isBefore(sourceExhibition.exhibition.exhibitionViewAt)) {
+    if (lastExhibition.exhibitionViewAt
+        .isBefore(sourceExhibition.exhibitionViewAt)) {
       log.info('[ExhibitionBloc] inserted Source Exhibition');
       exhibitions
         ..add(sourceExhibition)
-        ..sort((a, b) => b.exhibition.exhibitionViewAt
-            .compareTo(a.exhibition.exhibitionViewAt));
+        ..sort((a, b) => b.exhibitionViewAt
+            .compareTo(a.exhibitionViewAt));
     }
     return exhibitions;
   }
