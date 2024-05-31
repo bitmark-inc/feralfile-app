@@ -20,7 +20,6 @@ import 'package:autonomy_flutter/util/download_helper.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
-import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:nft_collection/models/asset_token.dart';
@@ -134,18 +133,16 @@ abstract class FeralFileService {
 
   Future<Exhibition> getExhibition(String id);
 
-  Future<List<ExhibitionDetail>> getAllExhibitions({
+  Future<List<Exhibition>> getAllExhibitions({
     String sortBy = 'openAt',
     String sortOrder = 'DESC',
     int limit = 8,
     int offset = 0,
-    bool withArtworks = false,
-    bool withSeries = false,
   });
 
-  Future<Exhibition> getSourceExhibition();
+  Future<Exhibition> getSourceExhibition({bool withSeries = true});
 
-  Future<ExhibitionDetail> getFeaturedExhibition();
+  Future<Exhibition> getFeaturedExhibition();
 
   Future<List<Artwork>> getExhibitionArtworks(String exhibitionId,
       {bool withSeries = false});
@@ -215,13 +212,11 @@ class FeralFileServiceImpl extends FeralFileService {
   }
 
   @override
-  Future<List<ExhibitionDetail>> getAllExhibitions({
+  Future<List<Exhibition>> getAllExhibitions({
     String sortBy = 'openAt',
     String sortOrder = 'DESC',
     int limit = 8,
     int offset = 0,
-    bool withArtworks = false,
-    bool withSeries = false,
   }) async {
     final exhibitions = await _feralFileApi.getAllExhibitions(
         sortBy: sortBy, sortOrder: sortOrder, limit: limit, offset: offset);
@@ -230,37 +225,13 @@ class FeralFileServiceImpl extends FeralFileService {
       ..info('[FeralFileService] Get all exhibitions: ${listExhibition.length}')
       ..info('[FeralFileService] Get all exhibitions: '
           '${listExhibition.map((e) => e.id).toList()}');
-    final listExhibitionDetail =
-        listExhibition.map((e) => ExhibitionDetail(exhibition: e)).toList();
-    if (withArtworks) {
-      try {
-        await Future.wait(listExhibitionDetail.map((e) async {
-          final artworks =
-              await getExhibitionArtworks(e.exhibition.id, withSeries: true);
-          e.artworks = artworks;
-        }));
-      } catch (e) {
-        log.info('[FeralFileService] Get artworks failed $e');
-      }
-    }
-    if (withSeries) {
-      try {
-        await Future.wait(listExhibitionDetail.mapIndexed((index, e) async {
-          final series = await getListSeries(e.exhibition.id);
-          listExhibitionDetail[index] =
-              e.copyWith(exhibition: e.exhibition.copyWith(series: series));
-        }));
-      } catch (e) {
-        log.info('[FeralFileService] Get series failed $e');
-      }
-    }
-    return listExhibitionDetail;
+    return listExhibition;
   }
 
   @override
-  Future<ExhibitionDetail> getFeaturedExhibition() async {
+  Future<Exhibition> getFeaturedExhibition() async {
     final exhibitionResponse = await _feralFileApi.getFeaturedExhibition();
-    return ExhibitionDetail(exhibition: exhibitionResponse.result);
+    return exhibitionResponse.result;
   }
 
   Future<List<Artwork>> _getExhibitionArtworkByDirectApi(String exhibitionId,
@@ -529,12 +500,16 @@ class FeralFileServiceImpl extends FeralFileService {
 
   // Source Exhibition
   @override
-  Future<Exhibition> getSourceExhibition() async {
+  Future<Exhibition> getSourceExhibition({bool withSeries = true}) async {
     if (sourceExhibition != null) {
       return sourceExhibition!;
     }
 
     final exhibition = await _sourceExhibitionAPI.getSourceExhibitionInfo();
+    if (!withSeries) {
+      sourceExhibition = exhibition;
+      return sourceExhibition!;
+    }
     final series = await _sourceExhibitionAPI.getSourceExhibitionSeries();
     sourceExhibition = exhibition.copyWith(series: series);
     return sourceExhibition!;

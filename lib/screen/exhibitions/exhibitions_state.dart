@@ -21,18 +21,18 @@ class ExhibitionsState {
     this.sourceExhibition,
   });
 
-  final List<ExhibitionDetail>? freeExhibitions;
-  final List<ExhibitionDetail>? proExhibitions;
-  final ExhibitionDetail? sourceExhibition;
+  final List<Exhibition>? freeExhibitions;
+  final List<Exhibition>? proExhibitions;
+  final Exhibition? sourceExhibition;
   final bool isSubscribed;
   final int currentPage;
 
   ExhibitionsState copyWith({
-    List<ExhibitionDetail>? freeExhibitions,
-    final List<ExhibitionDetail>? proExhibitions,
+    List<Exhibition>? freeExhibitions,
+    final List<Exhibition>? proExhibitions,
     bool? isSubscribed,
     int? currentPage,
-    ExhibitionDetail? sourceExhibition,
+    Exhibition? sourceExhibition,
   }) =>
       ExhibitionsState(
         freeExhibitions: freeExhibitions ?? this.freeExhibitions,
@@ -43,7 +43,7 @@ class ExhibitionsState {
       );
 
   List<String> get allExhibitionIds => [
-        ...freeExhibitions?.map((e) => e.exhibition.id) ?? [],
-        ...proExhibitions?.map((e) => e.exhibition.id) ?? [],
+        ...freeExhibitions?.map((e) => e.id) ?? [],
+        ...proExhibitions?.map((e) => e.id) ?? [],
       ];
 }

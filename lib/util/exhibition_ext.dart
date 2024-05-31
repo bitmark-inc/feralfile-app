@@ -22,7 +22,7 @@ extension ExhibitionExt on Exhibition {
     final exhibitionBloc = injector<ExhibitionBloc>();
     return exhibitionBloc.state.isSubscribed ||
         (exhibitionBloc.state.freeExhibitions
-                ?.any((element) => element.exhibition.id == id) ??
+                ?.any((element) => element.id == id) ??
             false);
   }
 
