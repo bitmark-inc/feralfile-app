@@ -541,7 +541,6 @@ class EthereumServiceImpl extends EthereumService {
     }
   }
 
-  @override
   Future<FeeOptionValue> _getFeeOptionValue() async {
     final baseFee = await _getBaseFee();
     final buffer = BigInt.from(baseFee / BigInt.from(8));
