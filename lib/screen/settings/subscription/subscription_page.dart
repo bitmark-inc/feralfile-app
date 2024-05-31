@@ -101,18 +101,21 @@ class _SubscriptionPageState extends State<SubscriptionPage>
     UpgradeState state,
   ) {
     final theme = Theme.of(context);
+    final titleStyle = theme.textTheme.ppMori400Black16;
+    final contentStyle = theme.textTheme.ppMori400Black14;
     IAPProductStatus status = state.status;
     switch (status) {
       case IAPProductStatus.completed:
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('subscribed'.tr(), style: theme.textTheme.ppMori400Black16),
-            const SizedBox(height: 16),
-            Text('thank_support'.tr(args: [_subscriptionsManagementLocation]),
-                style: theme.textTheme.ppMori400Black14),
+            Text('subscribed'.tr(), style: titleStyle),
+            Text(
+              'thank_support'.tr(),
+              style: contentStyle,
+            ),
             const SizedBox(height: 10),
-            _benefitImage(context),
+            _benefitImage(context, status),
             const SizedBox(height: 30),
           ],
         );
@@ -120,16 +123,15 @@ class _SubscriptionPageState extends State<SubscriptionPage>
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('sub_30_days'.tr(), //"Subscribed (30-day free trial)",
-                style: theme.textTheme.ppMori400Black16),
-            const SizedBox(height: 16),
             Text(
-                'to_cancel_your_subscription'.tr(
-                    namedArgs: {'location': _subscriptionsManagementLocation}),
-                //"You will be charged ${state.productDetails?.price ?? "US\$4.99"}/month starting $trialExpireDate. To cancel your subscription, go to $_subscriptionsManagementLocation",
-                style: theme.textTheme.ppMori400Black14),
-            const SizedBox(height: 10),
-            _benefitImage(context),
+              'sub_30_days'.tr(),
+              style: titleStyle,
+            ),
+            Text(
+              'you_are_enjoying_a_free_trial'.tr(),
+              style: contentStyle,
+            ),
+            _benefitImage(context, status),
             const SizedBox(height: 30),
           ],
         );
@@ -145,28 +147,39 @@ class _SubscriptionPageState extends State<SubscriptionPage>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'your_subscription_has_expired'.tr(),
-              style: theme.textTheme.ppMori400Black14,
+              'free_user'.tr(),
+              style: titleStyle,
             ),
-            _benefitImage(context),
+            Text(
+              'your_subscription_has_expired'.tr(),
+              style: contentStyle,
+            ),
+            _benefitImage(context, status),
             const SizedBox(height: 30),
           ],
         );
       case IAPProductStatus.notPurchased:
         return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'upgrade_to_use'.tr(),
-              style: theme.textTheme.ppMori400Black14,
+              'free_user'.tr(),
+              style: titleStyle,
             ),
-            _benefitImage(context),
+            Text(
+              'upgrade_to_use'.tr(),
+              style: contentStyle,
+            ),
+            _benefitImage(context, status),
             const SizedBox(height: 30),
           ],
         );
       case IAPProductStatus.error:
-        return Text('error_loading_sub'.tr(),
-            //"Error when loading your subscription.",
-            style: theme.textTheme.ppMori400Black12);
+        return Text(
+          'error_loading_sub'.tr(),
+          //"Error when loading your subscription.",
+          style: theme.textTheme.ppMori400Black12,
+        );
     }
   }
 
@@ -187,17 +200,18 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                   children: [
                     PrimaryButton(
                         text: 'subscribed'.tr(), color: theme.disableColor),
-                    const SizedBox(height: 6),
+                    const SizedBox(
+                      height: 10,
+                    ),
                     Text(
-                      'you_will_be_charged'.tr(
+                      '${'you_are_subscribed_at'.tr(
                         namedArgs: {
                           'price':
                               state.productDetails?.price ?? '4.99usd'.tr(),
-                          'date': '',
-                          'location': _subscriptionsManagementLocation
                         },
-                      ),
+                      )}\n${'auto_renews_unless_cancelled'.tr()}',
                       style: theme.textTheme.ppMori400Black12,
+                      textAlign: TextAlign.center,
                     ),
                   ],
                 ))
@@ -215,21 +229,22 @@ class _SubscriptionPageState extends State<SubscriptionPage>
               child: Column(
                 children: [
                   PrimaryButton(
-                      onTap: () {
-                        onPressSubscribe(context);
-                      },
-                      text: 'sub_then_price'.tr()),
-                  const SizedBox(height: 6),
+                    text: 'sub_then_price'.tr(),
+                    color: theme.disableColor,
+                  ),
+                  const SizedBox(
+                    height: 10,
+                  ),
                   Text(
-                    'you_will_be_charged_starting'.tr(
+                    '${'after_trial'.tr(
                       namedArgs: {
                         'price': state.productDetails?.price ?? '4.99usd'.tr(),
                         'date': trialExpireDate,
                       },
-                    ),
+                    )}\n${'auto_renews_unless_cancelled'.tr()}',
                     style: theme.textTheme.ppMori400Black12,
                     textAlign: TextAlign.center,
-                  )
+                  ),
                 ],
               ),
             ),
@@ -250,13 +265,20 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                     onTap: () {
                       onPressSubscribe(context);
                     },
-                    text: 'renew_for'.tr(
+                    text: 'renew_feralfile_pro'.tr(),
+                  ),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  Text(
+                    '${'renew_for'.tr(
                       namedArgs: {
                         'price': state.productDetails?.price ?? '4.99usd'.tr(),
                       },
-                    ),
+                    )}\n${'auto_renews_unless_cancelled'.tr()}',
+                    style: theme.textTheme.ppMori400Black12,
+                    textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 6),
                 ],
               ),
             )
@@ -275,13 +297,14 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                       },
                       text: 'sub_then_price'.tr()),
                   const SizedBox(
-                    height: 6,
+                    height: 10,
                   ),
                   Text(
-                    'then_price'.tr(
+                    '${'then_price'.tr(
                       args: [state.productDetails?.price ?? '4.99usd'.tr()],
-                    ),
+                    )}\n${'auto_renews_unless_cancelled'.tr()}',
                     style: theme.textTheme.ppMori400Black12,
+                    textAlign: TextAlign.center,
                   ),
                 ],
               ),
@@ -289,17 +312,22 @@ class _SubscriptionPageState extends State<SubscriptionPage>
           ],
         );
       case IAPProductStatus.error:
-        return Text('error_loading_sub'.tr(),
-            //"Error when loading your subscription.",
-            style: theme.textTheme.headlineMedium);
+        return Text(
+          'error_loading_sub'.tr(),
+          //"Error when loading your subscription.",
+          style: theme.textTheme.headlineMedium,
+        );
     }
   }
 
-  Widget _benefitImage(BuildContext context) => Column(
+  Widget _benefitImage(BuildContext context, IAPProductStatus status) => Column(
         children: [
           Center(
             child: SvgPicture.asset(
-              'assets/images/premium_comparation_light.svg',
+              [IAPProductStatus.trial, IAPProductStatus.completed]
+                      .contains(status)
+                  ? 'assets/images/premium_comparation_subscribed.svg'
+                  : 'assets/images/premium_comparation_free_user.svg',
               height: 320,
             ),
           ),
