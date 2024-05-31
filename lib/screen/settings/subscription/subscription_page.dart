@@ -6,7 +6,6 @@
 //
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
@@ -83,17 +82,6 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                 )),
       ),
     );
-  }
-
-  static String get _subscriptionsManagementLocation {
-    if (Platform.isIOS) {
-      return 'set_apl_sub'.tr(); //"Settings > Apple ID > Subscriptions.";
-    } else if (Platform.isAndroid) {
-      return 'pla_pay_sub'
-          .tr(); //"Play Store -> Payments & subscriptions -> Subscriptions.";
-    } else {
-      return '';
-    }
   }
 
   Widget _statusSection(
