@@ -1147,12 +1147,7 @@ class UIHelper {
   }
 
   static Future<void> showDrawerAction(BuildContext context,
-      {required List<OptionItem> options,
-      Color? color,
-      Color? backgroundColor,
-      Color? separatorColor}) async {
-    final theme = Theme.of(context);
-
+      {required List<OptionItem> options}) async {
     await showModalBottomSheet<dynamic>(
         context: context,
         backgroundColor: Colors.transparent,
@@ -1164,7 +1159,7 @@ class UIHelper {
         barrierColor: Colors.black.withOpacity(0.5),
         isScrollControlled: true,
         builder: (context) => Container(
-              color: backgroundColor ?? AppColor.feralFileHighlight,
+              color: AppColor.auGreyBackground,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -1172,10 +1167,10 @@ class UIHelper {
                     alignment: Alignment.centerRight,
                     child: IconButton(
                       onPressed: () => Navigator.pop(context),
-                      icon: Icon(
+                      icon: const Icon(
                         AuIcon.close,
                         size: 18,
-                        color: color ?? AppColor.secondaryDimGrey,
+                        color: AppColor.white,
                       ),
                     ),
                   ),
@@ -1189,14 +1184,14 @@ class UIHelper {
                       }
                       return DrawerItem(
                         item: option,
-                        color: color,
+                        color: AppColor.white,
                       );
                     },
                     itemCount: options.length,
-                    separatorBuilder: (context, index) => Divider(
+                    separatorBuilder: (context, index) => const Divider(
                       height: 1,
                       thickness: 1,
-                      color: separatorColor ?? theme.colorScheme.secondary,
+                      color: AppColor.primaryBlack,
                     ),
                   ),
                 ],

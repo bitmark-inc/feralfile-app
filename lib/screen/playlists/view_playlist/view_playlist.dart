@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_state.dart';
+import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
@@ -69,6 +70,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
   late CanvasDeviceBloc _canvasDeviceBloc;
   late SortOrder _sortOrder;
   late bool editable;
+  final _canvasClientServiceV2 = injector<CanvasClientServiceV2>();
 
   List<SortOrder> _getAvailableOrders() {
     switch (widget.payload.collectionType) {
@@ -157,6 +159,9 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
 
   Future<void> _onOrderTap(BuildContext context, List<SortOrder> orders) async {
     final theme = Theme.of(context);
+    final textStyle = theme.textTheme.ppMori400Black14.copyWith(
+      color: AppColor.white,
+    );
     await showModalBottomSheet<dynamic>(
       context: context,
       backgroundColor: Colors.transparent,
@@ -169,7 +174,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
       isScrollControlled: true,
       builder: (context) => StatefulBuilder(
           builder: (context, setState) => Container(
-                color: AppColor.feralFileHighlight,
+                color: AppColor.auGreyBackground,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -183,7 +188,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                               padding: const EdgeInsets.only(top: 3, left: 37),
                               child: Text(
                                 'sort_by'.tr(),
-                                style: theme.textTheme.ppMori400Black14,
+                                style: textStyle,
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
@@ -199,7 +204,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                                 icon: const Icon(
                                   AuIcon.close,
                                   size: 18,
-                                  color: AppColor.primaryBlack,
+                                  color: AppColor.white,
                                   weight: 2,
                                 ),
                               ),
@@ -208,7 +213,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                         ],
                       ),
                     ),
-                    addOnlyDivider(color: AppColor.white),
+                    addOnlyDivider(color: AppColor.primaryBlack),
                     const SizedBox(height: 20),
                     ListView.separated(
                       itemBuilder: (context, index) {
@@ -236,7 +241,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                                   Expanded(
                                     child: Text(
                                       order.text,
-                                      style: theme.textTheme.ppMori400Black14,
+                                      style: textStyle,
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
@@ -483,6 +488,15 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
     });
   }
 
+  Future<bool> _moveToArtwork(CompactedAssetToken compactedAssetToken) {
+    final controllingDevice = _canvasDeviceBloc.state.controllingDevice;
+    if (controllingDevice != null) {
+      return _canvasClientServiceV2.moveToArtwork(controllingDevice,
+          artworkId: compactedAssetToken.id);
+    }
+    return Future.value(false);
+  }
+
   Widget _assetsWidget(
     BuildContext context,
     List<CompactedAssetToken> tokens, {
@@ -534,6 +548,9 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                             .where((e) => e.pending != true || e.hasMetadata)
                             .toList()
                             .indexOf(asset);
+
+                        unawaited(_moveToArtwork(asset));
+
                         final payload = asset.isPostcard
                             ? PostcardDetailPagePayload(
                                 accountIdentities,
@@ -570,9 +587,11 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                   child: Center(
                     child: AddButton(
                       icon: SvgPicture.asset(
-                        'assets/images/Add.svg',
+                        'assets/images/joinFile.svg',
                         width: 30,
                         height: 30,
+                        colorFilter: const ColorFilter.mode(
+                            AppColor.primaryBlack, BlendMode.srcIn),
                       ),
                       onTap: () async {
                         await moveToAddNftToCollection(context);
