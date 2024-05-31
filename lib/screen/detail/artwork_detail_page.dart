@@ -370,7 +370,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                     onTap: _infoShrink,
                     child: Container(
                       color: Colors.transparent,
-                      height: MediaQuery.of(context).size.height / 2,
+                      height: MediaQuery.of(context).size.height / 2 -
+                          (_appBarBottomDy ?? 80),
                       width: MediaQuery.of(context).size.width,
                     ),
                   ),
