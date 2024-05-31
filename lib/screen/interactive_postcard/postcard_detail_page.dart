@@ -79,7 +79,7 @@ class PostcardDetailPagePayload extends ArtworkDetailPayload {
     super.identities,
     super.currentIndex, {
     super.key,
-    super.playControl,
+    super.playlist,
     super.twitterCaption,
     this.isFromLeaderboard = false,
     super.useIndexer,
@@ -1078,10 +1078,9 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                   }
                   Navigator.of(context).pop();
                   switch (e.runtimeType) {
-                    case MediaPermissionException:
+                    case MediaPermissionException _:
                       await UIHelper.showPostcardStampPhotoAccessFailed(
                           context);
-                      break;
                     default:
                       if (!mounted) {
                         return;
@@ -1130,9 +1129,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                   }
                   Navigator.of(context).pop();
                   switch (e.runtimeType) {
-                    case MediaPermissionException:
+                    case MediaPermissionException _:
                       await UIHelper.showPostcardPhotoAccessFailed(context);
-                      break;
                     default:
                       if (!mounted) {
                         return;
