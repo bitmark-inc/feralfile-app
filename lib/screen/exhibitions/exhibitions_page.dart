@@ -156,6 +156,7 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                       )
                     : Image.network(
                         exhibition.coverUrl,
+                        height: estimatedHeight,
                         loadingBuilder: (context, child, loadingProgress) {
                           if (loadingProgress == null) {
                             return child;
@@ -252,10 +253,8 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
               ),
             );
           } else {
-            final freeExhibitions =
-                state.freeExhibitions!.map((e) => e.exhibition).toList();
-            final proExhibitions =
-                state.proExhibitions!.map((e) => e.exhibition).toList();
+            final freeExhibitions = state.freeExhibitions!;
+            final proExhibitions = state.proExhibitions!;
             final isSubscribed = state.isSubscribed;
             final viewExhibitions = isSubscribed
                 ? freeExhibitions + proExhibitions
@@ -284,7 +283,7 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                             divider,
                           ])
                       .flattened,
-                  if (!isSubscribed && freeExhibitions.isNotEmpty)
+                  if (!isSubscribed && proExhibitions.isNotEmpty)
                     _pastExhibitionHeader(context),
                   ...proExhibitions
                       .map((e) => [

@@ -214,7 +214,7 @@ class CanvasClientServiceV2 {
   Future<bool> moveToArtwork(CanvasDevice device,
       {String? startTime, String? artworkId}) async {
     final stub = _getStub(device);
-    final artwork = PlayArtworkV2(token: CastAssetToken(id: artworkId!));
+    final artwork = PlayArtworkV2(token: CastAssetToken(id: artworkId));
     final request = MoveToArtworkRequest(artwork: artwork);
     final reply = await _retryWrapper(() => stub.moveToArtwork(
           request,

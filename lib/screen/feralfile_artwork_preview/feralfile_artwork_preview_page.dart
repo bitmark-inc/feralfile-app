@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
@@ -11,6 +13,7 @@ import 'package:autonomy_flutter/view/feralfile_artwork_preview_widget.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter/material.dart';
+import 'package:sentry/sentry.dart';
 
 class FeralFileArtworkPreviewPage extends StatefulWidget {
   const FeralFileArtworkPreviewPage({required this.payload, super.key});
@@ -45,18 +48,7 @@ class _FeralFileArtworkPreviewPageState
           context,
           onBack: () => Navigator.pop(context),
           action: FFCastButton(
-            onDeviceSelected: (device) {
-              final exhibitionId =
-                  widget.payload.artwork.series?.exhibition?.id;
-              final artworkId = widget.payload.artwork.id;
-              final request = CastExhibitionRequest(
-                exhibitionId: exhibitionId,
-                katalog: ExhibitionKatalog.ARTWORK,
-                katalogId: artworkId,
-              );
-              _canvasDeviceBloc
-                  .add(CanvasDeviceCastExhibitionEvent(device, request));
-            },
+            onDeviceSelected: _onDeviceSelected,
           ),
         ),
         backgroundColor: AppColor.primaryBlack,
@@ -74,6 +66,22 @@ class _FeralFileArtworkPreviewPageState
           ],
         ),
       );
+
+  Future<void> _onDeviceSelected(CanvasDevice device) async {
+    final exhibitionId = widget.payload.artwork.series?.exhibitionID;
+    if (exhibitionId == null) {
+      await Sentry.captureMessage('Exhibition ID is null for artwork '
+          '${widget.payload.artwork.id}');
+    } else {
+      final artworkId = widget.payload.artwork.id;
+      final request = CastExhibitionRequest(
+        exhibitionId: exhibitionId,
+        katalog: ExhibitionKatalog.ARTWORK,
+        katalogId: artworkId,
+      );
+      _canvasDeviceBloc.add(CanvasDeviceCastExhibitionEvent(device, request));
+    }
+  }
 }
 
 class FeralFileArtworkPreviewPagePayload {

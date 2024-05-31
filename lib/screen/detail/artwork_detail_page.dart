@@ -92,6 +92,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   late ArtworkDetailBloc _bloc;
   late CanvasDeviceBloc _canvasDeviceBloc;
   late AnimationController _animationController;
+  double? _appBarBottomDy;
 
   @override
   void initState() {
@@ -117,6 +118,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   @override
   void afterFirstLayout(BuildContext context) {
     WidgetsBinding.instance.addObserver(this);
+    _appBarBottomDy ??= MediaQuery.of(context).padding.top + kToolbarHeight;
   }
 
   @override
@@ -361,13 +363,17 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                 ),
               ),
               if (_isInfoExpand)
-                GestureDetector(
-                  behavior: HitTestBehavior.translucent,
-                  onTap: _infoShrink,
-                  child: Container(
-                    color: Colors.transparent,
-                    height: MediaQuery.of(context).size.height / 2,
-                    width: MediaQuery.of(context).size.width,
+                Positioned(
+                  top: _appBarBottomDy ?? 80,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.translucent,
+                    onTap: _infoShrink,
+                    child: Container(
+                      color: Colors.transparent,
+                      height: MediaQuery.of(context).size.height / 2 -
+                          (_appBarBottomDy ?? 80),
+                      width: MediaQuery.of(context).size.width,
+                    ),
                   ),
                 ),
             ],
@@ -381,11 +387,11 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 
   Widget _artworkInfoIcon() => Semantics(
         label: 'artworkInfoIcon',
-        child: IconButton(
-          onPressed: () {
+        child: GestureDetector(
+          onTap: () {
             _isInfoExpand ? _infoShrink() : _infoExpand();
           },
-          icon: SvgPicture.asset(
+          child: SvgPicture.asset(
             !_isInfoExpand
                 ? 'assets/images/info_white.svg'
                 : 'assets/images/info_white_active.svg',
@@ -402,7 +408,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       subTitle = artistName;
     }
     return Padding(
-      padding: const EdgeInsets.only(top: 15, left: 15, bottom: 33),
+      padding: const EdgeInsets.fromLTRB(15, 15, 15, 33),
       child: Row(
         children: [
           Expanded(
@@ -424,16 +430,15 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
           if (!widget.payload.useIndexer)
             Semantics(
               label: 'artworkDotIcon',
-              child: IconButton(
-                onPressed: () async => _showArtworkOptionsDialog(
-                    context, asset, isViewOnly, canvasState),
-                constraints: const BoxConstraints(
-                  maxWidth: 44,
-                  maxHeight: 44,
-                ),
-                icon: SvgPicture.asset(
-                  'assets/images/more_circle.svg',
-                  width: 22,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 20),
+                child: GestureDetector(
+                  onTap: () async => _showArtworkOptionsDialog(
+                      context, asset, isViewOnly, canvasState),
+                  child: SvgPicture.asset(
+                    'assets/images/more_circle.svg',
+                    width: 22,
+                  ),
                 ),
               ),
             ),

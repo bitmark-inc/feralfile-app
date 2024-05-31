@@ -83,9 +83,7 @@ class _FeralfileArtworkPreviewWidgetState
   Widget build(BuildContext context) {
     final previewUrl = widget.payload.artwork.previewURL;
     final thumbnailUrl = widget.payload.artwork.thumbnailURL;
-    final feralfileMedium = FeralfileMediumTypes.fromString(
-        widget.payload.artwork.series?.medium ?? '');
-    final medium = feralfileMedium.toRenderingType;
+    final artwork = widget.payload.artwork;
     return BlocProvider(
       create: (_) => RetryCubit(),
       child: BlocBuilder<RetryCubit, int>(
@@ -94,37 +92,45 @@ class _FeralfileArtworkPreviewWidgetState
             _renderingWidget?.dispose();
             _renderingWidget = null;
           }
-          _renderingWidget ??= buildFeralfileRenderingWidget(
-            context,
-            attempt: attempt > 0 ? attempt : null,
-            isMute: widget.payload.isMute,
-            mimeType: medium,
-            previewURL: previewUrl,
-            thumbnailURL: thumbnailUrl,
-            isScrollable: widget.payload.isScrollable,
+          return FutureBuilder<String>(
+            future: artwork.renderingType(),
+            builder: (context, snapshot) {
+              final medium = snapshot.data;
+              if (medium == null) {
+                return const SizedBox();
+              }
+              _renderingWidget ??= buildFeralfileRenderingWidget(
+                context,
+                attempt: attempt > 0 ? attempt : null,
+                isMute: widget.payload.isMute,
+                mimeType: medium,
+                previewURL: previewUrl,
+                thumbnailURL: thumbnailUrl,
+                isScrollable: widget.payload.isScrollable,
+              );
+              switch (medium) {
+                case RenderingType.image:
+                case RenderingType.video:
+                case RenderingType.gif:
+                case RenderingType.svg:
+                  return InteractiveViewer(
+                    minScale: 1,
+                    maxScale: 4,
+                    child: Center(
+                      child: _artworkView(context),
+                    ),
+                  );
+                case RenderingType.pdf:
+                  return Center(
+                    child: _artworkView(context),
+                  );
+                default:
+                  return Center(
+                    child: _artworkView(context),
+                  );
+              }
+            },
           );
-
-          switch (medium) {
-            case RenderingType.image:
-            case RenderingType.video:
-            case RenderingType.gif:
-            case RenderingType.svg:
-              return InteractiveViewer(
-                minScale: 1,
-                maxScale: 4,
-                child: Center(
-                  child: _artworkView(context),
-                ),
-              );
-            case RenderingType.pdf:
-              return Center(
-                child: _artworkView(context),
-              );
-            default:
-              return Center(
-                child: _artworkView(context),
-              );
-          }
         },
       ),
     );
