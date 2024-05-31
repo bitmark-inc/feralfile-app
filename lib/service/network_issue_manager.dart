@@ -41,9 +41,14 @@ class NetworkIssueManager {
   }
 
   Future<T> retryOnConnectIssueTx<T>(FutureOr<T> Function() fn,
-          {int maxRetries = 3}) =>
-      _txDialogLock.synchronized(() =>
+          {int maxRetries = 3}) async {
+    if (maxRetries > 0) {
+      return await _txDialogLock.synchronized(() =>
           _retryOnConnectIssue(fn, maxRetries: maxRetries));
+    } else {
+      return await fn();
+    }
+  }
 
   Future<T> _retryOnConnectIssue<T>(FutureOr<T> Function() fn,
       {int maxRetries = 3, String? description}) async {
