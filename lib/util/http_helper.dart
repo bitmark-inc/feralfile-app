@@ -1,9 +1,11 @@
 import 'dart:convert';
 
+import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:eth_sig_util/util/utils.dart';
 import 'package:http/http.dart' as http;
+import 'package:nft_rendering/nft_rendering.dart';
 
 class HttpHelper {
   static Map<String, String> _getHmac(
@@ -75,6 +77,24 @@ class HttpHelper {
       headers: headers,
     );
     return response;
+  }
+
+  static Future<String> contentType(String link) async {
+    String renderingType = RenderingType.webview;
+    final uri = Uri.tryParse(link);
+    if (uri != null) {
+      try {
+        final res =
+            await http.head(uri).timeout(const Duration(milliseconds: 10000));
+        renderingType =
+            res.headers['content-type']?.toMimeType ?? RenderingType.webview;
+      } catch (e) {
+        renderingType = RenderingType.webview;
+      }
+    } else {
+      renderingType = RenderingType.webview;
+    }
+    return renderingType;
   }
 }
 
