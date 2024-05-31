@@ -316,15 +316,11 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                                 log.info('Playlist tokenIds is null');
                                 return;
                               }
-                              final currentTokenId = asset.id;
-                              // move currentTokenId to first in listTokenIds
-                              listTokenIds
-                                ..remove(currentTokenId)
-                                ..insert(0, currentTokenId);
 
                               final duration =
                                   speedValues.values.first.inMilliseconds;
                               final listPlayArtwork = listTokenIds
+                                  .rotateListByItem(asset.id)
                                   .map((e) => PlayArtworkV2(
                                       token: CastAssetToken(id: e),
                                       duration: duration))
