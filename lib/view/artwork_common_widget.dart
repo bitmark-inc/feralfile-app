@@ -24,6 +24,7 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/image_background.dart';
+import 'package:autonomy_flutter/view/loading.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
@@ -371,36 +372,7 @@ class GalleryThumbnailPlaceholder extends StatelessWidget {
   }
 }
 
-Widget placeholder(BuildContext context) {
-  final theme = Theme.of(context);
-  return AspectRatio(
-    aspectRatio: 1,
-    child: Container(
-      color: AppColor.primaryBlack,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            GifView.asset(
-              'assets/images/loading_white.gif',
-              height: 52,
-              frameRate: 12,
-            ),
-            const SizedBox(
-              height: 12,
-            ),
-            Text(
-              'loading...'.tr(),
-              style: ResponsiveLayout.isMobile
-                  ? theme.textTheme.ppMori400White12
-                  : theme.textTheme.ppMori400White14,
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
-}
+Widget placeholder(BuildContext context) => const LoadingWidget();
 
 INFTRenderingWidget buildRenderingWidget(
   BuildContext context,
@@ -639,34 +611,7 @@ class PreviewPlaceholder extends StatefulWidget {
 
 class _PreviewPlaceholderState extends State<PreviewPlaceholder> {
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Center(
-      child: AspectRatio(
-        aspectRatio: 1,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            GifView.asset(
-              'assets/images/loading_white.gif',
-              height: 52,
-              frameRate: 12,
-            ),
-            const SizedBox(
-              height: 13,
-            ),
-            Text(
-              'loading...'.tr(),
-              style: ResponsiveLayout.isMobile
-                  ? theme.textTheme.ppMori400White12
-                  : theme.textTheme.ppMori400White14,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => const LoadingWidget();
 }
 
 Widget debugInfoWidget(BuildContext context, AssetToken? token) {
