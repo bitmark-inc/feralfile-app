@@ -160,15 +160,14 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
             final from = EthereumAddress.fromHex(
                 await state.wallet!.getETHEip55Address(index: index));
 
-            final data = _asset.contractType == 'erc1155'
-                ? await _ethereumService.getERC1155TransferTransactionData(
-                    contractAddress, from, to, event.tokenId, event.quantity,
-                    feeOption: state.feeOption)
-                : await _ethereumService.getERC721TransferTransactionData(
-                    contractAddress, from, to, event.tokenId,
-                    feeOption: state.feeOption);
-
             try {
+              final data = _asset.contractType == 'erc1155'
+                  ? await _ethereumService.getERC1155TransferTransactionData(
+                      contractAddress, from, to, event.tokenId, event.quantity,
+                      feeOption: state.feeOption)
+                  : await _ethereumService.getERC721TransferTransactionData(
+                      contractAddress, from, to, event.tokenId,
+                      feeOption: state.feeOption);
               feeOptionValue = await _ethereumService.estimateFee(
                   wallet, index, contractAddress, EtherAmount.zero(), data);
               fee = feeOptionValue.getFee(state.feeOption);

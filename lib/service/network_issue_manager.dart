@@ -13,6 +13,7 @@ class NetworkIssueManager {
   DateTime _lastErrorTime = DateTime.fromMillisecondsSinceEpoch(0);
   bool _isShowingDialog = false;
   final _txDialogLock = Lock();
+  static const maxRetries = 10;
 
   Future<void> showNetworkIssueWarning() async {
     if (_isShowingDialog) {
@@ -41,7 +42,7 @@ class NetworkIssueManager {
   }
 
   Future<T> retryOnConnectIssueTx<T>(FutureOr<T> Function() fn,
-      {int maxRetries = 3}) async {
+      {int maxRetries = maxRetries}) async {
     if (maxRetries > 0) {
       return await _txDialogLock
           .synchronized(() => _retryOnConnectIssue(fn, maxRetries: maxRetries));
@@ -51,7 +52,7 @@ class NetworkIssueManager {
   }
 
   Future<T> _retryOnConnectIssue<T>(FutureOr<T> Function() fn,
-      {int maxRetries = 3, String? description}) async {
+      {int maxRetries = maxRetries, String? description}) async {
     try {
       return await fn();
     } on Exception catch (e) {
@@ -60,14 +61,14 @@ class NetworkIssueManager {
             injector<NavigationService>().navigatorKey.currentContext;
         if (context != null) {
           final desc = description ?? 'network_error_desc'.tr();
-          final dialogResult = await showRetryDialog<FutureOr<T>>(
+          final dialogResult = await showRetryDialog(
             context,
             description: desc,
-            onRetry: () => _retryOnConnectIssue(fn,
-                maxRetries: maxRetries - 1, description: desc),
+            onRetry: () => true,
           );
-          if (dialogResult is FutureOr<T>) {
-            return await dialogResult;
+          if (dialogResult == true) {
+            return await _retryOnConnectIssue(fn,
+                maxRetries: maxRetries - 1, description: desc);
           } else {
             rethrow;
           }

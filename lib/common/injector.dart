@@ -174,6 +174,7 @@ Future<void> setup() async {
   authenticatedDio.addSentry();
   authenticatedDio.options = dioOptions;
 
+  injector.registerLazySingleton<NetworkService>(() => NetworkService());
   // Services
   final auditService = AuditServiceImpl(cloudDB);
 
@@ -320,7 +321,6 @@ Future<void> setup() async {
   injector.registerLazySingleton<PlaylistService>(
       () => PlayListServiceImp(injector(), injector(), injector(), injector()));
 
-  injector.registerLazySingleton<NetworkService>(() => NetworkService());
   injector.registerLazySingleton<CanvasChannelService>(
       () => CanvasChannelService(injector()));
   injector.registerLazySingleton<DeviceInfoService>(() => DeviceInfoService());

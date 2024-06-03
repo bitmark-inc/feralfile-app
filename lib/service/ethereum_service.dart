@@ -137,7 +137,7 @@ class EthereumServiceImpl extends EthereumService {
     final ethAddress = EthereumAddress.fromHex(address);
     final amount = await _networkIssueManager.retryOnConnectIssueTx(
         () => _web3Client.getBalance(ethAddress),
-        maxRetries: doRetry ? 3 : 0);
+        maxRetries: doRetry ? NetworkIssueManager.maxRetries : 0);
     final tx = await _hiveService.getEthPendingTxAmounts(address);
     final List<EthereumPendingTxAmount> pendingTx = [];
     for (final element in tx) {
@@ -359,7 +359,7 @@ class EthereumServiceImpl extends EthereumService {
               function: balanceFunction(),
               params: [owner],
             ),
-        maxRetries: doRetry ? 3 : 0);
+        maxRetries: doRetry ? NetworkIssueManager.maxRetries : 0);
 
     return response.first as BigInt;
   }

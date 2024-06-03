@@ -22,6 +22,7 @@ class NetworkService {
   Timer? _timer;
 
   static const String canvasBlocListenerId = 'canvasBlocListenerId';
+  static const String beaconListenerId = 'beaconListenerId';
 
   NetworkService() {
     addListener((result) {
