@@ -217,7 +217,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
               child: Column(
                 children: [
                   PrimaryButton(
-                    text: 'sub_then_price'.tr(),
+                    text: 'subscribed_for_a_30_day'.tr(),
                     color: theme.disableColor,
                   ),
                   const SizedBox(
@@ -283,7 +283,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                       onTap: () {
                         onPressSubscribe(context);
                       },
-                      text: 'sub_then_price'.tr()),
+                      text: 'subscribe_for_a_30_day'.tr()),
                   const SizedBox(
                     height: 10,
                   ),
