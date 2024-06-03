@@ -801,7 +801,6 @@ class _ArtworkView extends StatelessWidget {
     final mimeType = token.getMimeType;
     final artworkWidget = ArtworkPreviewWidget(
       identity: payload.identities[payload.currentIndex],
-      isMute: true,
       useIndexer: payload.useIndexer,
       focusNode: focusNode,
     );
