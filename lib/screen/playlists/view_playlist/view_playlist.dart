@@ -119,7 +119,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
     injector<NavigationService>().popUntilHomeOrSettings();
   }
 
-  List<CompactedAssetToken> setupPlayList({
+  List<CompactedAssetToken> _setupPlayList({
     required List<CompactedAssetToken> tokens,
     List<String>? selectedTokens,
   }) {
@@ -332,10 +332,11 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
       bloc: bloc,
       listener: (context, state) {},
       builder: (context, state) {
-        final playList = state.playListModel;
-        if (playList == null) {
+        if (state.playListModel == null) {
           return const SizedBox();
         }
+
+        final playList = state.playListModel!;
         return Scaffold(
           appBar: AppBar(
             systemOverlayStyle: systemUiOverlayLightStyle(AppColor.white),
@@ -351,7 +352,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
             ),
             leadingWidth: editable ? 90 : 55,
             titleSpacing: 0,
-            backgroundColor: theme.colorScheme.background,
+            backgroundColor: AppColor.white,
             automaticallyImplyLeading: false,
             centerTitle: true,
             title: Row(
@@ -448,7 +449,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                 Expanded(
                   child: NftCollectionGrid(
                     state: nftState.state,
-                    tokens: setupPlayList(
+                    tokens: _setupPlayList(
                       tokens: nftState.tokens.items,
                       selectedTokens: playList.tokenIDs,
                     ),
@@ -457,8 +458,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                       context,
                       tokens,
                       accountIdentities: accountIdentities,
-                      playControlModel:
-                          playList.playControlModel ?? PlayControlModel(),
+                      playlist: playList,
                       onShuffleTap: () => _onShufferTap(playList),
                       onTimerTap: () => _onTimerTap(playList),
                     ),
@@ -501,7 +501,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
     BuildContext context,
     List<CompactedAssetToken> tokens, {
     required List<ArtworkIdentity> accountIdentities,
-    required PlayControlModel playControlModel,
+    required PlayListModel playlist,
     Function()? onShuffleTap,
     Function()? onTimerTap,
   }) {
@@ -555,12 +555,12 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                             ? PostcardDetailPagePayload(
                                 accountIdentities,
                                 index,
-                                playControl: playControlModel,
+                                playlist: playlist,
                               )
                             : ArtworkDetailPayload(
                                 accountIdentities,
                                 index,
-                                playControl: playControlModel,
+                                playlist: playlist,
                               );
                         final pageName = asset.isPostcard
                             ? AppRouter.claimedPostcardDetailsPage

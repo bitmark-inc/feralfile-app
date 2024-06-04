@@ -13,7 +13,7 @@ import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/model/play_control_model.dart';
+import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/sent_artwork.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
@@ -44,6 +44,7 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/cast_button.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_flutter/view/stream_common_widget.dart';
 import 'package:backdrop/backdrop.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -79,7 +80,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
         RouteAware,
         SingleTickerProviderStateMixin,
         WidgetsBindingObserver {
-  late ScrollController _scrollController;
+  ScrollController? _scrollController;
   late bool withSharing;
   ValueNotifier<double> downloadProgress = ValueNotifier(0);
 
@@ -96,7 +97,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 
   @override
   void initState() {
-    _scrollController = ScrollController();
     super.initState();
     _animationController = AnimationController(
       vsync: this,
@@ -202,7 +202,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 
   @override
   void dispose() {
-    _scrollController.dispose();
+    _scrollController?.dispose();
     _animationController.dispose();
     _focusNode.dispose();
     routeObserver.unsubscribe(this);
@@ -224,6 +224,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   }
 
   void _infoExpand() {
+    _scrollController?.jumpTo(0);
+    _scrollController ??= ScrollController();
     setState(() {
       _isInfoExpand = true;
     });
@@ -301,12 +303,33 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                       actions: [
                         FFCastButton(
                           onDeviceSelected: (device) {
-                            final artwork = PlayArtworkV2(
-                              token: CastAssetToken(id: asset.id),
-                            );
-                            _canvasDeviceBloc.add(
-                                CanvasDeviceCastListArtworkEvent(
-                                    device, [artwork]));
+                            if (widget.payload.playlist == null) {
+                              final artwork = PlayArtworkV2(
+                                token: CastAssetToken(id: asset.id),
+                              );
+                              _canvasDeviceBloc.add(
+                                  CanvasDeviceCastListArtworkEvent(
+                                      device, [artwork]));
+                            } else {
+                              final playlist = widget.payload.playlist!;
+                              final listTokenIds = playlist.tokenIDs;
+                              if (listTokenIds == null) {
+                                log.info('Playlist tokenIds is null');
+                                return;
+                              }
+
+                              final duration =
+                                  speedValues.values.first.inMilliseconds;
+                              final listPlayArtwork = listTokenIds
+                                  .rotateListByItem(asset.id)
+                                  .map((e) => PlayArtworkV2(
+                                      token: CastAssetToken(id: e),
+                                      duration: duration))
+                                  .toList();
+                              _canvasDeviceBloc.add(
+                                  CanvasDeviceChangeControlDeviceEvent(
+                                      device, listPlayArtwork));
+                            }
                           },
                         ),
                       ],
@@ -453,6 +476,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     final asset = state.assetToken!;
     final editionSubTitle = getEditionSubTitle(asset);
     return SingleChildScrollView(
+      controller: _scrollController,
       child: SizedBox(
         width: double.infinity,
         child: Column(
@@ -799,7 +823,6 @@ class _ArtworkView extends StatelessWidget {
     final mimeType = token.getMimeType;
     final artworkWidget = ArtworkPreviewWidget(
       identity: payload.identities[payload.currentIndex],
-      isMute: true,
       useIndexer: payload.useIndexer,
       focusNode: focusNode,
     );
@@ -829,7 +852,7 @@ class ArtworkDetailPayload {
   final Key? key;
   final List<ArtworkIdentity> identities;
   final int currentIndex;
-  final PlayControlModel? playControl;
+  final PlayListModel? playlist;
   final String? twitterCaption;
   final bool useIndexer; // set true when navigate from discover/gallery page
 
@@ -837,7 +860,7 @@ class ArtworkDetailPayload {
     this.identities,
     this.currentIndex, {
     this.twitterCaption,
-    this.playControl,
+    this.playlist,
     this.useIndexer = false,
     this.key,
   });
@@ -845,14 +868,14 @@ class ArtworkDetailPayload {
   ArtworkDetailPayload copyWith(
           {List<ArtworkIdentity>? ids,
           int? currentIndex,
-          PlayControlModel? playControl,
+          PlayListModel? playlist,
           String? twitterCaption,
           bool? useIndexer}) =>
       ArtworkDetailPayload(
         ids ?? identities,
         currentIndex ?? this.currentIndex,
         twitterCaption: twitterCaption ?? this.twitterCaption,
-        playControl: playControl ?? this.playControl,
+        playlist: playlist ?? this.playlist,
         useIndexer: useIndexer ?? this.useIndexer,
       );
 }
