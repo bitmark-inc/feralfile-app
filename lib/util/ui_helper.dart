@@ -498,6 +498,54 @@ class UIHelper {
     );
   }
 
+  static Future<T?> showRetryDialog<T>(BuildContext context,
+      {required String description,
+      FutureOr<T> Function()? onRetry,
+      ValueNotifier<bool>? dynamicRetryNotifier}) async {
+    final theme = Theme.of(context);
+    final hasRetry = onRetry != null;
+    return await showDialog(
+      context,
+      'network_issue'.tr(),
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (description.isNotEmpty) ...[
+            Text(
+              description,
+              style: theme.primaryTextTheme.ppMori400White14,
+            ),
+          ],
+          const SizedBox(height: 40),
+          if (hasRetry) ...[
+            ValueListenableBuilder(
+              valueListenable: dynamicRetryNotifier ?? ValueNotifier(true),
+              builder: (context, value, child) => value
+                  ? Column(
+                      children: [
+                        PrimaryButton(
+                          onTap: () {
+                            hideDialogWithResult<FutureOr<T>>(
+                                context, onRetry());
+                          },
+                          text: 'retry_now'.tr(),
+                          color: AppColor.feralFileLightBlue,
+                        ),
+                        const SizedBox(height: 15),
+                      ],
+                    )
+                  : const SizedBox.shrink(),
+            ),
+          ],
+          OutlineButton(
+            onTap: () => hideInfoDialog(context),
+            text: 'dismiss'.tr(),
+          ),
+        ],
+      ),
+    );
+  }
+
   static Future<void> showFlexibleDialog(
     BuildContext context,
     Widget content, {
@@ -768,6 +816,11 @@ class UIHelper {
     try {
       Navigator.popUntil(context, (route) => route.settings.name != null);
     } catch (_) {}
+  }
+
+  static void hideDialogWithResult<T>(BuildContext context, T result) {
+    currentDialogTitle = '';
+    Navigator.pop(context, result);
   }
 
   // MARK: - Connection

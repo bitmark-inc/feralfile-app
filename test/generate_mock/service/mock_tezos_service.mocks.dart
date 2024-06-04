@@ -44,10 +44,15 @@ class MockTezosService extends _i1.Mock implements _i3.TezosService {
   }
 
   @override
-  _i4.Future<int> getBalance(String? address) => (super.noSuchMethod(
+  _i4.Future<int> getBalance(
+    String? address, {
+    bool? doRetry = false,
+  }) =>
+      (super.noSuchMethod(
         Invocation.method(
           #getBalance,
           [address],
+          {#doRetry: doRetry},
         ),
         returnValue: _i4.Future<int>.value(0),
       ) as _i4.Future<int>);

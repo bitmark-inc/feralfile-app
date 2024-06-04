@@ -170,7 +170,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
         };
         Navigator.of(context).pop(payload);
       }
-    } catch (e) {
+    } on Exception catch (_) {
       if (!mounted) {
         return;
       }
