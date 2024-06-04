@@ -5,10 +5,13 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
 import 'package:autonomy_flutter/screen/exhibitions/exhibitions_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibitions/exhibitions_state.dart';
+import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
@@ -34,8 +37,10 @@ class ExhibitionsPage extends StatefulWidget {
 
 class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
   late ExhibitionBloc _exhibitionBloc;
+  late SubscriptionBloc _subscriptionBloc;
   late ScrollController _controller;
   final _navigationService = injector<NavigationService>();
+  final _iapService = injector<IAPService>();
   static const _padding = 14.0;
   final _canvasDeviceBloc = injector<CanvasDeviceBloc>();
   static const _exhibitionInfoDivideWidth = 20.0;
@@ -46,7 +51,9 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
     super.initState();
     _controller = ScrollController();
     _exhibitionBloc = injector<ExhibitionBloc>();
+    _subscriptionBloc = injector<SubscriptionBloc>();
     _exhibitionBloc.add(GetAllExhibitionsEvent());
+    _subscriptionBloc.add(GetSubscriptionEvent());
   }
 
   void scrollToTop() {
@@ -76,6 +83,7 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
 
   void refreshExhibitions() {
     _exhibitionBloc.add(GetAllExhibitionsEvent());
+    _subscriptionBloc.add(GetSubscriptionEvent());
   }
 
   @override
@@ -118,25 +126,36 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
         Column(
           children: [
             GestureDetector(
-              onTap: exhibition.canViewDetails && index >= 0
-                  ? () async {
-                      final device = _canvasDeviceBloc.state.controllingDevice;
-                      if (device != null) {
-                        final castRequest = CastExhibitionRequest(
-                          exhibitionId: exhibition.id,
-                          katalog: ExhibitionKatalog.HOME,
-                        );
-                        _canvasDeviceBloc.add(CanvasDeviceCastExhibitionEvent(
-                            device, castRequest));
+              onTap: () async {
+                if (exhibition.canViewDetails) {
+                  _subscriptionBloc.add(GetSubscriptionEvent());
+                  final isSubscribed = await _iapService.isSubscribed();
+                  if (!isSubscribed) {
+                    return;
+                  }
+                }
+
+                exhibition.canViewDetails && index >= 0
+                    ? () async {
+                        final device =
+                            _canvasDeviceBloc.state.controllingDevice;
+                        if (device != null) {
+                          final castRequest = CastExhibitionRequest(
+                            exhibitionId: exhibition.id,
+                            katalog: ExhibitionKatalog.HOME,
+                          );
+                          _canvasDeviceBloc.add(CanvasDeviceCastExhibitionEvent(
+                              device, castRequest));
+                        }
+                        await Navigator.of(context)
+                            .pushNamed(AppRouter.exhibitionDetailPage,
+                                arguments: ExhibitionDetailPayload(
+                                  exhibitions: viewExhibition,
+                                  index: index,
+                                ));
                       }
-                      await Navigator.of(context)
-                          .pushNamed(AppRouter.exhibitionDetailPage,
-                              arguments: ExhibitionDetailPayload(
-                                exhibitions: viewExhibition,
-                                index: index,
-                              ));
-                    }
-                  : null,
+                    : null;
+              },
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(10),
                 child: exhibition.id == SOURCE_EXHIBITION_ID
@@ -241,67 +260,70 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
   }
 
   Widget _listExhibitions(BuildContext context) =>
-      BlocConsumer<ExhibitionBloc, ExhibitionsState>(
-        builder: (context, state) {
-          final theme = Theme.of(context);
-          if (state.freeExhibitions == null || state.proExhibitions == null) {
-            return const Center(
-              child: CircularProgressIndicator(
-                color: Colors.white,
-                backgroundColor: AppColor.auQuickSilver,
-                strokeWidth: 2,
-              ),
-            );
-          } else {
-            final freeExhibitions = state.freeExhibitions!;
-            final proExhibitions = state.proExhibitions!;
-            final isSubscribed = state.isSubscribed;
-            final viewExhibitions = isSubscribed
-                ? freeExhibitions + proExhibitions
-                : freeExhibitions;
-            final divider = addDivider(
-                height: 40, color: AppColor.auQuickSilver, thickness: 0.5);
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: _padding),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (!isSubscribed && freeExhibitions.isNotEmpty) ...[
-                    Text('current_exhibition'.tr(),
-                        style: theme.textTheme.ppMori400White14),
-                    Text('for_essential_members'.tr(),
-                        style: theme.textTheme.ppMori400Grey14),
-                    const SizedBox(height: 18),
+      BlocBuilder<ExhibitionBloc, ExhibitionsState>(
+        builder: (context, exhibitionsState) =>
+            BlocBuilder<SubscriptionBloc, SubscriptionState>(
+          builder: (context, subscriptionState) {
+            final theme = Theme.of(context);
+            if (exhibitionsState.freeExhibitions == null ||
+                exhibitionsState.proExhibitions == null) {
+              return const Center(
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  backgroundColor: AppColor.auQuickSilver,
+                  strokeWidth: 2,
+                ),
+              );
+            } else {
+              final freeExhibitions = exhibitionsState.freeExhibitions!;
+              final proExhibitions = exhibitionsState.proExhibitions!;
+              final isSubscribed = subscriptionState.isSubscribed;
+              final viewExhibitions = isSubscribed
+                  ? freeExhibitions + proExhibitions
+                  : freeExhibitions;
+              final divider = addDivider(
+                  height: 40, color: AppColor.auQuickSilver, thickness: 0.5);
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: _padding),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (!isSubscribed && freeExhibitions.isNotEmpty) ...[
+                      Text('current_exhibition'.tr(),
+                          style: theme.textTheme.ppMori400White14),
+                      Text('for_essential_members'.tr(),
+                          style: theme.textTheme.ppMori400Grey14),
+                      const SizedBox(height: 18),
+                    ],
+                    ...freeExhibitions
+                        .map((e) => [
+                              _exhibitionItem(
+                                context: context,
+                                viewExhibition: viewExhibitions,
+                                exhibition: e,
+                              ),
+                              divider,
+                            ])
+                        .flattened,
+                    if (!isSubscribed && proExhibitions.isNotEmpty)
+                      _pastExhibitionHeader(context),
+                    ...proExhibitions
+                        .map((e) => [
+                              _exhibitionItem(
+                                context: context,
+                                viewExhibition: viewExhibitions,
+                                exhibition: e,
+                              ),
+                              divider,
+                            ])
+                        .flattened,
+                    const SizedBox(height: 40)
                   ],
-                  ...freeExhibitions
-                      .map((e) => [
-                            _exhibitionItem(
-                              context: context,
-                              viewExhibition: viewExhibitions,
-                              exhibition: e,
-                            ),
-                            divider,
-                          ])
-                      .flattened,
-                  if (!isSubscribed && proExhibitions.isNotEmpty)
-                    _pastExhibitionHeader(context),
-                  ...proExhibitions
-                      .map((e) => [
-                            _exhibitionItem(
-                              context: context,
-                              viewExhibition: viewExhibitions,
-                              exhibition: e,
-                            ),
-                            divider,
-                          ])
-                      .flattened,
-                  const SizedBox(height: 40)
-                ],
-              ),
-            );
-          }
-        },
-        listener: (context, state) {},
+                ),
+              );
+            }
+          },
+        ),
       );
 
   Widget _pastExhibitionHeader(BuildContext context) {

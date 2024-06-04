@@ -14,6 +14,8 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/announcement_local.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
@@ -283,6 +285,9 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
       MultiBlocProvider(providers: [
         BlocProvider.value(
           value: injector<ExhibitionBloc>()..add(GetAllExhibitionsEvent()),
+        ),
+        BlocProvider.value(
+          value: injector<SubscriptionBloc>()..add(GetSubscriptionEvent()),
         ),
       ], child: const ExhibitionsPage()),
       ScanQRPage(
