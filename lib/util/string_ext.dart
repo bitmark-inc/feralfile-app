@@ -186,6 +186,17 @@ extension SearchKeyExtension on String? {
   }
 }
 
+extension ListStringExtension on List<String> {
+  List<String> rotateListByItem(String item) {
+    final index = indexOf(item);
+    if (index == -1) {
+      return this;
+    }
+    final newList = sublist(index)..addAll(sublist(0, index));
+    return newList;
+  }
+}
+
 final List<String> listCharacters = [
   'A',
   'B',
