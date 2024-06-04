@@ -80,7 +80,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
         RouteAware,
         SingleTickerProviderStateMixin,
         WidgetsBindingObserver {
-  late ScrollController _scrollController;
+  ScrollController? _scrollController;
   late bool withSharing;
   ValueNotifier<double> downloadProgress = ValueNotifier(0);
 
@@ -97,7 +97,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 
   @override
   void initState() {
-    _scrollController = ScrollController();
     super.initState();
     _animationController = AnimationController(
       vsync: this,
@@ -203,7 +202,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 
   @override
   void dispose() {
-    _scrollController.dispose();
+    _scrollController?.dispose();
     _animationController.dispose();
     _focusNode.dispose();
     routeObserver.unsubscribe(this);
@@ -225,6 +224,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   }
 
   void _infoExpand() {
+    _scrollController?.jumpTo(0);
+    _scrollController ??= ScrollController();
     setState(() {
       _isInfoExpand = true;
     });
@@ -475,6 +476,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     final asset = state.assetToken!;
     final editionSubTitle = getEditionSubTitle(asset);
     return SingleChildScrollView(
+      controller: _scrollController,
       child: SizedBox(
         width: double.infinity,
         child: Column(
@@ -821,7 +823,6 @@ class _ArtworkView extends StatelessWidget {
     final mimeType = token.getMimeType;
     final artworkWidget = ArtworkPreviewWidget(
       identity: payload.identities[payload.currentIndex],
-      isMute: true,
       useIndexer: payload.useIndexer,
       focusNode: focusNode,
     );
