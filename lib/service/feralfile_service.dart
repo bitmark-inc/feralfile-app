@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/gateway/feralfile_api.dart';
 import 'package:autonomy_flutter/gateway/source_exhibition_api.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
+import 'package:autonomy_flutter/model/ff_list_response.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -147,8 +148,8 @@ abstract class FeralFileService {
   Future<List<Artwork>> getExhibitionArtworks(String exhibitionId,
       {bool withSeries = false});
 
-  Future<List<Artwork>> getSeriesArtworks(String seriesId,
-      {String? exhibitionID, bool withSeries = false});
+  Future<FeralFileListResponse<Artwork>> getSeriesArtworks(String seriesId,
+      {String? exhibitionID, bool withSeries = false, int? offset, int? limit});
 
   Future<String> getFeralfileActionMessage(
       {required String address, required FeralfileAction action});
@@ -403,30 +404,45 @@ class FeralFileServiceImpl extends FeralFileService {
   }
 
   @override
-  Future<List<Artwork>> getSeriesArtworks(String seriesId,
-      {String? exhibitionID, bool withSeries = false}) async {
+  Future<FeralFileListResponse<Artwork>> getSeriesArtworks(String seriesId,
+      {String? exhibitionID,
+      bool withSeries = false,
+      int? offset,
+      int? limit}) async {
     if (exhibitionID == SOURCE_EXHIBITION_ID) {
-      return await _getSourceSeriesArtworks(seriesId);
+      final artworks = await _getSourceSeriesArtworks(seriesId);
+      return FeralFileListResponse(
+          result: artworks,
+          paging: Paging(
+              offset: 0, limit: artworks.length, total: artworks.length));
     }
 
-    final artworks = await _feralFileApi.getListArtworks(seriesId: seriesId);
-    List<Artwork> listArtwork = artworks.result;
-    if (listArtwork.isEmpty) {
+    FeralFileListResponse<Artwork> artworksResponse = await _feralFileApi
+        .getListArtworks(seriesId: seriesId, offset: offset, limit: limit);
+    if (artworksResponse.result.isEmpty) {
       final series = await getSeries(seriesId);
-      listArtwork = await _fakeSeriesArtworks(series, series.exhibition!);
+      final fakeArtwork = await _fakeSeriesArtworks(series, series.exhibition!);
+      artworksResponse.copyWith(
+          result: fakeArtwork,
+          paging: Paging(
+              offset: 0, limit: fakeArtwork.length, total: fakeArtwork.length));
     } else if (withSeries) {
       final series = await getSeries(seriesId);
-      listArtwork = listArtwork.map((e) => e.copyWith(series: series)).toList();
+      artworksResponse.copyWith(
+          result: artworksResponse.result
+              .map((e) => e.copyWith(series: series))
+              .toList());
     }
     log
       ..info(
-        '[FeralFileService] Get series artworks: ${listArtwork.length}',
+        '[FeralFileService] Get series artworks:'
+        ' ${artworksResponse.result.length}, offset $offset, limit $limit',
       )
       ..info(
         '[FeralFileService] Get series artworks: '
-        '${listArtwork.map((e) => e.id).toList()}',
+        '${artworksResponse.result.map((e) => e.id).toList()}',
       );
-    return listArtwork;
+    return artworksResponse;
   }
 
   @override

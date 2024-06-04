@@ -3,16 +3,17 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i6;
-import 'dart:io' as _i8;
+import 'dart:async' as _i7;
+import 'dart:io' as _i9;
 
 import 'package:autonomy_flutter/model/ff_account.dart' as _i3;
 import 'package:autonomy_flutter/model/ff_exhibition.dart' as _i4;
+import 'package:autonomy_flutter/model/ff_list_response.dart' as _i5;
 import 'package:autonomy_flutter/model/ff_series.dart' as _i2;
-import 'package:autonomy_flutter/service/feralfile_service.dart' as _i5;
+import 'package:autonomy_flutter/service/feralfile_service.dart' as _i6;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:mockito/src/dummies.dart' as _i7;
-import 'package:nft_collection/models/asset_token.dart' as _i9;
+import 'package:mockito/src/dummies.dart' as _i8;
+import 'package:nft_collection/models/asset_token.dart' as _i10;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -58,8 +59,19 @@ class _FakeExhibition_2 extends _i1.SmartFake implements _i4.Exhibition {
         );
 }
 
-class _FakeArtwork_3 extends _i1.SmartFake implements _i3.Artwork {
-  _FakeArtwork_3(
+class _FakeFeralFileListResponse_3<T> extends _i1.SmartFake
+    implements _i5.FeralFileListResponse<T> {
+  _FakeFeralFileListResponse_3(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeArtwork_4 extends _i1.SmartFake implements _i3.Artwork {
+  _FakeArtwork_4(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -71,13 +83,13 @@ class _FakeArtwork_3 extends _i1.SmartFake implements _i3.Artwork {
 /// A class which mocks [FeralFileService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockFeralFileService extends _i1.Mock implements _i5.FeralFileService {
+class MockFeralFileService extends _i1.Mock implements _i6.FeralFileService {
   MockFeralFileService() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i6.Future<_i2.FFSeries> getSeries(
+  _i7.Future<_i2.FFSeries> getSeries(
     String? id, {
     String? exhibitionID,
   }) =>
@@ -87,7 +99,7 @@ class MockFeralFileService extends _i1.Mock implements _i5.FeralFileService {
           [id],
           {#exhibitionID: exhibitionID},
         ),
-        returnValue: _i6.Future<_i2.FFSeries>.value(_FakeFFSeries_0(
+        returnValue: _i7.Future<_i2.FFSeries>.value(_FakeFFSeries_0(
           this,
           Invocation.method(
             #getSeries,
@@ -95,33 +107,33 @@ class MockFeralFileService extends _i1.Mock implements _i5.FeralFileService {
             {#exhibitionID: exhibitionID},
           ),
         )),
-      ) as _i6.Future<_i2.FFSeries>);
+      ) as _i7.Future<_i2.FFSeries>);
   @override
-  _i6.Future<List<_i2.FFSeries>> getListSeries(String? exhibitionId) =>
+  _i7.Future<List<_i2.FFSeries>> getListSeries(String? exhibitionId) =>
       (super.noSuchMethod(
         Invocation.method(
           #getListSeries,
           [exhibitionId],
         ),
-        returnValue: _i6.Future<List<_i2.FFSeries>>.value(<_i2.FFSeries>[]),
-      ) as _i6.Future<List<_i2.FFSeries>>);
+        returnValue: _i7.Future<List<_i2.FFSeries>>.value(<_i2.FFSeries>[]),
+      ) as _i7.Future<List<_i2.FFSeries>>);
   @override
-  _i6.Future<_i4.Exhibition?> getExhibitionFromTokenID(String? artworkID) =>
+  _i7.Future<_i4.Exhibition?> getExhibitionFromTokenID(String? artworkID) =>
       (super.noSuchMethod(
         Invocation.method(
           #getExhibitionFromTokenID,
           [artworkID],
         ),
-        returnValue: _i6.Future<_i4.Exhibition?>.value(),
-      ) as _i6.Future<_i4.Exhibition?>);
+        returnValue: _i7.Future<_i4.Exhibition?>.value(),
+      ) as _i7.Future<_i4.Exhibition?>);
   @override
-  _i6.Future<_i3.FeralFileResaleInfo> getResaleInfo(String? exhibitionID) =>
+  _i7.Future<_i3.FeralFileResaleInfo> getResaleInfo(String? exhibitionID) =>
       (super.noSuchMethod(
         Invocation.method(
           #getResaleInfo,
           [exhibitionID],
         ),
-        returnValue: _i6.Future<_i3.FeralFileResaleInfo>.value(
+        returnValue: _i7.Future<_i3.FeralFileResaleInfo>.value(
             _FakeFeralFileResaleInfo_1(
           this,
           Invocation.method(
@@ -129,32 +141,32 @@ class MockFeralFileService extends _i1.Mock implements _i5.FeralFileService {
             [exhibitionID],
           ),
         )),
-      ) as _i6.Future<_i3.FeralFileResaleInfo>);
+      ) as _i7.Future<_i3.FeralFileResaleInfo>);
   @override
-  _i6.Future<String?> getPartnerFullName(String? exhibitionId) =>
+  _i7.Future<String?> getPartnerFullName(String? exhibitionId) =>
       (super.noSuchMethod(
         Invocation.method(
           #getPartnerFullName,
           [exhibitionId],
         ),
-        returnValue: _i6.Future<String?>.value(),
-      ) as _i6.Future<String?>);
+        returnValue: _i7.Future<String?>.value(),
+      ) as _i7.Future<String?>);
   @override
-  _i6.Future<_i4.Exhibition> getExhibition(String? id) => (super.noSuchMethod(
+  _i7.Future<_i4.Exhibition> getExhibition(String? id) => (super.noSuchMethod(
         Invocation.method(
           #getExhibition,
           [id],
         ),
-        returnValue: _i6.Future<_i4.Exhibition>.value(_FakeExhibition_2(
+        returnValue: _i7.Future<_i4.Exhibition>.value(_FakeExhibition_2(
           this,
           Invocation.method(
             #getExhibition,
             [id],
           ),
         )),
-      ) as _i6.Future<_i4.Exhibition>);
+      ) as _i7.Future<_i4.Exhibition>);
   @override
-  _i6.Future<List<_i4.Exhibition>> getAllExhibitions({
+  _i7.Future<List<_i4.Exhibition>> getAllExhibitions({
     String? sortBy = r'openAt',
     String? sortOrder = r'DESC',
     int? limit = 8,
@@ -171,38 +183,41 @@ class MockFeralFileService extends _i1.Mock implements _i5.FeralFileService {
             #offset: offset,
           },
         ),
-        returnValue: _i6.Future<List<_i4.Exhibition>>.value(<_i4.Exhibition>[]),
-      ) as _i6.Future<List<_i4.Exhibition>>);
+        returnValue: _i7.Future<List<_i4.Exhibition>>.value(<_i4.Exhibition>[]),
+      ) as _i7.Future<List<_i4.Exhibition>>);
   @override
-  _i6.Future<_i4.Exhibition> getSourceExhibition() => (super.noSuchMethod(
+  _i7.Future<_i4.Exhibition> getSourceExhibition({bool? withSeries = true}) =>
+      (super.noSuchMethod(
         Invocation.method(
           #getSourceExhibition,
           [],
+          {#withSeries: withSeries},
         ),
-        returnValue: _i6.Future<_i4.Exhibition>.value(_FakeExhibition_2(
+        returnValue: _i7.Future<_i4.Exhibition>.value(_FakeExhibition_2(
           this,
           Invocation.method(
             #getSourceExhibition,
             [],
+            {#withSeries: withSeries},
           ),
         )),
-      ) as _i6.Future<_i4.Exhibition>);
+      ) as _i7.Future<_i4.Exhibition>);
   @override
-  _i6.Future<_i4.Exhibition> getFeaturedExhibition() => (super.noSuchMethod(
+  _i7.Future<_i4.Exhibition> getFeaturedExhibition() => (super.noSuchMethod(
         Invocation.method(
           #getFeaturedExhibition,
           [],
         ),
-        returnValue: _i6.Future<_i4.Exhibition>.value(_FakeExhibition_2(
+        returnValue: _i7.Future<_i4.Exhibition>.value(_FakeExhibition_2(
           this,
           Invocation.method(
             #getFeaturedExhibition,
             [],
           ),
         )),
-      ) as _i6.Future<_i4.Exhibition>);
+      ) as _i7.Future<_i4.Exhibition>);
   @override
-  _i6.Future<List<_i3.Artwork>> getExhibitionArtworks(
+  _i7.Future<List<_i3.Artwork>> getExhibitionArtworks(
     String? exhibitionId, {
     bool? withSeries = false,
   }) =>
@@ -212,13 +227,15 @@ class MockFeralFileService extends _i1.Mock implements _i5.FeralFileService {
           [exhibitionId],
           {#withSeries: withSeries},
         ),
-        returnValue: _i6.Future<List<_i3.Artwork>>.value(<_i3.Artwork>[]),
-      ) as _i6.Future<List<_i3.Artwork>>);
+        returnValue: _i7.Future<List<_i3.Artwork>>.value(<_i3.Artwork>[]),
+      ) as _i7.Future<List<_i3.Artwork>>);
   @override
-  _i6.Future<List<_i3.Artwork>> getSeriesArtworks(
+  _i7.Future<_i5.FeralFileListResponse<_i3.Artwork>> getSeriesArtworks(
     String? seriesId, {
     String? exhibitionID,
     bool? withSeries = false,
+    int? offset = 0,
+    int? limit = 300,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -227,14 +244,29 @@ class MockFeralFileService extends _i1.Mock implements _i5.FeralFileService {
           {
             #exhibitionID: exhibitionID,
             #withSeries: withSeries,
+            #offset: offset,
+            #limit: limit,
           },
         ),
-        returnValue: _i6.Future<List<_i3.Artwork>>.value(<_i3.Artwork>[]),
-      ) as _i6.Future<List<_i3.Artwork>>);
+        returnValue: _i7.Future<_i5.FeralFileListResponse<_i3.Artwork>>.value(
+            _FakeFeralFileListResponse_3<_i3.Artwork>(
+          this,
+          Invocation.method(
+            #getSeriesArtworks,
+            [seriesId],
+            {
+              #exhibitionID: exhibitionID,
+              #withSeries: withSeries,
+              #offset: offset,
+              #limit: limit,
+            },
+          ),
+        )),
+      ) as _i7.Future<_i5.FeralFileListResponse<_i3.Artwork>>);
   @override
-  _i6.Future<String> getFeralfileActionMessage({
+  _i7.Future<String> getFeralfileActionMessage({
     required String? address,
-    required _i5.FeralfileAction? action,
+    required _i6.FeralfileAction? action,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -245,7 +277,7 @@ class MockFeralFileService extends _i1.Mock implements _i5.FeralFileService {
             #action: action,
           },
         ),
-        returnValue: _i6.Future<String>.value(_i7.dummyValue<String>(
+        returnValue: _i7.Future<String>.value(_i8.dummyValue<String>(
           this,
           Invocation.method(
             #getFeralfileActionMessage,
@@ -256,9 +288,9 @@ class MockFeralFileService extends _i1.Mock implements _i5.FeralFileService {
             },
           ),
         )),
-      ) as _i6.Future<String>);
+      ) as _i7.Future<String>);
   @override
-  _i6.Future<String> getFeralfileArtworkDownloadUrl({
+  _i7.Future<String> getFeralfileArtworkDownloadUrl({
     required String? artworkId,
     required String? owner,
     required String? signature,
@@ -273,7 +305,7 @@ class MockFeralFileService extends _i1.Mock implements _i5.FeralFileService {
             #signature: signature,
           },
         ),
-        returnValue: _i6.Future<String>.value(_i7.dummyValue<String>(
+        returnValue: _i7.Future<String>.value(_i8.dummyValue<String>(
           this,
           Invocation.method(
             #getFeralfileArtworkDownloadUrl,
@@ -285,24 +317,24 @@ class MockFeralFileService extends _i1.Mock implements _i5.FeralFileService {
             },
           ),
         )),
-      ) as _i6.Future<String>);
+      ) as _i7.Future<String>);
   @override
-  _i6.Future<_i3.Artwork> getArtwork(String? artworkId) => (super.noSuchMethod(
+  _i7.Future<_i3.Artwork> getArtwork(String? artworkId) => (super.noSuchMethod(
         Invocation.method(
           #getArtwork,
           [artworkId],
         ),
-        returnValue: _i6.Future<_i3.Artwork>.value(_FakeArtwork_3(
+        returnValue: _i7.Future<_i3.Artwork>.value(_FakeArtwork_4(
           this,
           Invocation.method(
             #getArtwork,
             [artworkId],
           ),
         )),
-      ) as _i6.Future<_i3.Artwork>);
+      ) as _i7.Future<_i3.Artwork>);
   @override
-  _i6.Future<_i8.File?> downloadFeralfileArtwork(
-    _i9.AssetToken? assetToken, {
+  _i7.Future<_i9.File?> downloadFeralfileArtwork(
+    _i10.AssetToken? assetToken, {
     dynamic Function(
       int,
       int,
@@ -314,6 +346,6 @@ class MockFeralFileService extends _i1.Mock implements _i5.FeralFileService {
           [assetToken],
           {#onReceiveProgress: onReceiveProgress},
         ),
-        returnValue: _i6.Future<_i8.File?>.value(),
-      ) as _i6.Future<_i8.File?>);
+        returnValue: _i7.Future<_i9.File?>.value(),
+      ) as _i7.Future<_i9.File?>);
 }

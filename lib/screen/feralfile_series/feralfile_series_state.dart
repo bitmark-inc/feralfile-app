@@ -1,4 +1,3 @@
-import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
 
@@ -12,28 +11,20 @@ class FeralFileSeriesGetSeriesEvent extends FeralFileSeriesEvent {
 }
 
 class FeralFileSeriesState {
-  final ExhibitionDetail? exhibitionDetail;
+  final Exhibition? exhibition;
   final FFSeries? series;
-  final List<Artwork> artworks;
-  final List<String> tokenIds;
 
   FeralFileSeriesState({
-    this.exhibitionDetail,
+    this.exhibition,
     this.series,
-    this.artworks = const [],
-    this.tokenIds = const [],
   });
 
   FeralFileSeriesState copyWith({
-    ExhibitionDetail? exhibitionDetail,
+    Exhibition? exhibition,
     FFSeries? series,
-    List<Artwork>? artworks,
-    List<String>? tokenIds,
   }) =>
       FeralFileSeriesState(
-        exhibitionDetail: exhibitionDetail ?? this.exhibitionDetail,
+        exhibition: exhibition ?? this.exhibition,
         series: series ?? this.series,
-        artworks: artworks ?? this.artworks,
-        tokenIds: tokenIds ?? this.tokenIds,
       );
 }
