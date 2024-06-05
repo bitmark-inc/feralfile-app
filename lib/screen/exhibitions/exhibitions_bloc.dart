@@ -19,7 +19,7 @@ class ExhibitionBloc extends AuBloc<ExhibitionsEvent, ExhibitionsState> {
       final result = await Future.wait([
         _feralFileService.getFeaturedExhibition(),
         _feralFileService.getAllExhibitions(limit: limit),
-        _feralFileService.getSourceExhibition(withSeries: false),
+        _feralFileService.getSourceExhibition(),
       ]);
       final featuredExhibition = result[0] as Exhibition;
       var proExhibitions = result[1] as List<Exhibition>;

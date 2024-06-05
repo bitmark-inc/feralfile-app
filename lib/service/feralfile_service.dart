@@ -141,7 +141,7 @@ abstract class FeralFileService {
     int offset = 0,
   });
 
-  Future<Exhibition> getSourceExhibition({bool withSeries = true});
+  Future<Exhibition> getSourceExhibition();
 
   Future<Exhibition> getFeaturedExhibition();
 
@@ -532,16 +532,12 @@ class FeralFileServiceImpl extends FeralFileService {
 
   // Source Exhibition
   @override
-  Future<Exhibition> getSourceExhibition({bool withSeries = true}) async {
+  Future<Exhibition> getSourceExhibition() async {
     if (sourceExhibition != null) {
       return sourceExhibition!;
     }
 
     final exhibition = await _sourceExhibitionAPI.getSourceExhibitionInfo();
-    if (!withSeries) {
-      sourceExhibition = exhibition;
-      return sourceExhibition!;
-    }
     final series = await _sourceExhibitionAPI.getSourceExhibitionSeries();
     sourceExhibition = exhibition.copyWith(series: series);
     return sourceExhibition!;
