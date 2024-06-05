@@ -27,6 +27,7 @@ import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
 import 'package:autonomy_flutter/gateway/source_exhibition_api.dart';
 import 'package:autonomy_flutter/gateway/tzkt_api.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
 import 'package:autonomy_flutter/screen/chat/chat_bloc.dart';
 import 'package:autonomy_flutter/screen/collection_pro/collection_pro_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
@@ -390,4 +391,6 @@ Future<void> setup() async {
       () => CanvasDeviceBloc(injector(), injector(), injector()));
   injector
       .registerLazySingleton<ExhibitionBloc>(() => ExhibitionBloc(injector()));
+  injector.registerLazySingleton<SubscriptionBloc>(
+      () => SubscriptionBloc(injector()));
 }

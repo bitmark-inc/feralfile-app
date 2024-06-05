@@ -22,8 +22,19 @@ class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
     on<UpgradeQueryInfoEvent>((event, emit) async {
       final jwt = _configurationService.getIAPJWT();
       if (jwt != null) {
-        if (jwt.isValid(withSubscription: true)) {
-          emit(UpgradeState(IAPProductStatus.completed, null));
+        final subscriptionStatus = jwt.getSubscriptionStatus();
+        if (subscriptionStatus.isPremium) {
+          if (subscriptionStatus.isTrial) {
+            emit(
+              UpgradeState(
+                IAPProductStatus.trial,
+                null,
+                trialExpiredDate: subscriptionStatus.expireDate,
+              ),
+            );
+          } else {
+            emit(UpgradeState(IAPProductStatus.completed, null));
+          }
         } else {
           final result = await _iapService.renewJWT();
           emit(UpgradeState(
