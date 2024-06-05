@@ -114,6 +114,7 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
     required BuildContext context,
     required List<Exhibition> viewExhibition,
     required Exhibition exhibition,
+    required bool isProExhibition,
   }) {
     final theme = Theme.of(context);
     final screenWidth = MediaQuery.sizeOf(context).width;
@@ -127,7 +128,7 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
           children: [
             GestureDetector(
               onTap: () async {
-                if (exhibition.canViewDetails) {
+                if (exhibition.canViewDetails && isProExhibition) {
                   _subscriptionBloc.add(GetSubscriptionEvent());
                   final isSubscribed = await _iapService.isSubscribed();
                   if (!isSubscribed) {
@@ -301,6 +302,7 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                                 context: context,
                                 viewExhibition: viewExhibitions,
                                 exhibition: e,
+                                isProExhibition: false,
                               ),
                               divider,
                             ])
@@ -313,6 +315,7 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                                 context: context,
                                 viewExhibition: viewExhibitions,
                                 exhibition: e,
+                                isProExhibition: true,
                               ),
                               divider,
                             ])
