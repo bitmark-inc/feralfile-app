@@ -123,6 +123,16 @@ String get casaBatlloContractAddress => Environment.appTestnetConfig
     ? CASA_BATLLO_CONTRACT_ADDRESS_TESTNET
     : CASA_BATLLO_CONTRACT_ADDRESS_MAINNET;
 
+const JohnGerrardContractAddressMainnet =
+    '0x9D57f2e1A8c864009ed0C980E2d31aa5EB42f820';
+
+const JohnGerrardContractAddressTestnet =
+    '0x9D57f2e1A8c864009ed0C980E2d31aa5EB42f820';
+
+String get johnGerrardContractAddress => Environment.appTestnetConfig
+    ? JohnGerrardContractAddressTestnet
+    : JohnGerrardContractAddressMainnet;
+
 List<String> tranferNotAllowContractAddresses = [
   casaBatlloContractAddress,
 ];

@@ -313,6 +313,11 @@ extension AssetTokenExtension on AssetToken {
 
   bool get isPostcard => contractAddress == Environment.postcardContractAddress;
 
+  String? get contractAddress {
+    final splitted = id.split('-');
+    return splitted.length > 1 ? splitted[1] : null;
+  }
+
   String? get feralfileArtworkId {
     if (!isFeralfile) {
       return null;
@@ -474,10 +479,24 @@ extension CompactedAssetTokenExtension on CompactedAssetToken {
   }
 
   bool get isPostcard {
-    final splitted = id.split('-');
-    return splitted.length > 1 &&
-        splitted[1] == Environment.postcardContractAddress;
+    return contractAddress == Environment.postcardContractAddress;
   }
+
+  String? get contractAddress {
+    final splitted = id.split('-');
+    return splitted.length > 1 ? splitted[1] : null;
+  }
+
+  bool get isFeralfile => source == 'feralfile';
+
+  bool get isJohnGerrardArtwork {
+    final contractAddress = this.contractAddress;
+    return isFeralfile && contractAddress == johnGerrardContractAddress;
+  }
+
+  bool get isAvailableToView => true;
+
+  bool get shouldCacheThumbnail => isJohnGerrardArtwork && isAvailableToView;
 
   String get getMimeType {
     switch (mimeType) {
