@@ -136,26 +136,26 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                   }
                 }
 
-                exhibition.canViewDetails && index >= 0
-                    ? () async {
-                        final device =
-                            _canvasDeviceBloc.state.controllingDevice;
-                        if (device != null) {
-                          final castRequest = CastExhibitionRequest(
-                            exhibitionId: exhibition.id,
-                            katalog: ExhibitionKatalog.HOME,
-                          );
-                          _canvasDeviceBloc.add(CanvasDeviceCastExhibitionEvent(
-                              device, castRequest));
-                        }
-                        await Navigator.of(context)
-                            .pushNamed(AppRouter.exhibitionDetailPage,
-                                arguments: ExhibitionDetailPayload(
-                                  exhibitions: viewExhibition,
-                                  index: index,
-                                ));
-                      }
-                    : null;
+                if (exhibition.canViewDetails && index >= 0) {
+                  final device = _canvasDeviceBloc.state.controllingDevice;
+                  if (device != null) {
+                    final castRequest = CastExhibitionRequest(
+                      exhibitionId: exhibition.id,
+                      katalog: ExhibitionKatalog.HOME,
+                    );
+                    _canvasDeviceBloc.add(
+                        CanvasDeviceCastExhibitionEvent(device, castRequest));
+                  }
+                  if (!context.mounted) {
+                    return;
+                  }
+                  await Navigator.of(context)
+                      .pushNamed(AppRouter.exhibitionDetailPage,
+                          arguments: ExhibitionDetailPayload(
+                            exhibitions: viewExhibition,
+                            index: index,
+                          ));
+                }
               },
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(10),
