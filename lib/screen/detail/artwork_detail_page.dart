@@ -376,11 +376,14 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                 frontLayer: _isFullScreen
                     ? const SizedBox()
                     : _infoContent(context, identityState, state, artistName),
-                frontLayerBackgroundColor: AppColor.primaryBlack,
+                frontLayerBackgroundColor:
+                    _isFullScreen ? Colors.transparent : AppColor.primaryBlack,
                 backLayerBackgroundColor: AppColor.primaryBlack,
                 animationController: _animationController,
                 revealBackLayerAtStart: true,
                 frontLayerScrim: Colors.transparent,
+                backLayerScrim: Colors.transparent,
+                subHeaderAlwaysActive: false,
                 frontLayerShape: const BeveledRectangleBorder(),
                 subHeader: _isFullScreen
                     ? null
