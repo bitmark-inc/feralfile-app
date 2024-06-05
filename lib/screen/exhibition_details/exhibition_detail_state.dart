@@ -8,6 +8,13 @@ class GetExhibitionDetailEvent extends ExhibitionDetailEvent {
   final String exhibitionId;
 }
 
+class LoadMoreArtworkEvent extends ExhibitionDetailEvent {
+  final int offset;
+  final int limit;
+
+  LoadMoreArtworkEvent(this.offset, this.limit);
+}
+
 class ExhibitionDetailState {
   ExhibitionDetailState({this.exhibitionDetail});
 

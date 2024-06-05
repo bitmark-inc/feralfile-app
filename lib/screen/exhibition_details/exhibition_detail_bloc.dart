@@ -3,12 +3,16 @@
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
+import 'package:autonomy_flutter/model/ff_list_response.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_state.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
+import 'package:autonomy_flutter/util/log.dart';
 
 class ExhibitionDetailBloc
     extends AuBloc<ExhibitionDetailEvent, ExhibitionDetailState> {
   final FeralFileService _feralFileService;
+
+  static const int _limit = 300;
 
   ExhibitionDetailBloc(this._feralFileService)
       : super(ExhibitionDetailState()) {
@@ -16,12 +20,35 @@ class ExhibitionDetailBloc
       final result = await Future.wait([
         _feralFileService.getExhibition(event.exhibitionId),
         _feralFileService.getExhibitionArtworks(event.exhibitionId,
-            withSeries: true)
+            withSeries: true, offset: 0, limit: _limit)
       ]);
-      final exhibitionDetail = ExhibitionDetail(
-          exhibition: result[0] as Exhibition,
-          artworks: result[1] as List<Artwork>);
+      final exhibition = result[0] as Exhibition;
+      final artworks = result[1] as FeralFileListResponse<Artwork>;
+      final exhibitionDetail =
+          ExhibitionDetail(exhibition: exhibition, artworks: artworks.result);
       emit(state.copyWith(exhibitionDetail: exhibitionDetail));
+
+      if (artworks.paging.total > _limit) {
+        add(LoadMoreArtworkEvent(_limit, _limit));
+      }
+    });
+
+    on<LoadMoreArtworkEvent>((event, emit) async {
+      log.info(
+          'LoadMoreArtworkEvent: offset=${event.offset}, limit=${event.limit}');
+      final result = await _feralFileService.getExhibitionArtworks(
+          state.exhibitionDetail!.exhibition.id,
+          withSeries: true,
+          offset: event.offset,
+          limit: event.limit);
+      final exhibitionDetail = state.exhibitionDetail!.copyWith(
+        artworks: state.exhibitionDetail!.artworks! + result.result,
+      );
+      emit(state.copyWith(exhibitionDetail: exhibitionDetail));
+
+      if (result.paging.total > result.paging.offset + event.limit) {
+        add(LoadMoreArtworkEvent(event.offset + event.limit, event.limit));
+      }
     });
   }
 }

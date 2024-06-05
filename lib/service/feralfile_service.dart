@@ -145,8 +145,11 @@ abstract class FeralFileService {
 
   Future<Exhibition> getFeaturedExhibition();
 
-  Future<List<Artwork>> getExhibitionArtworks(String exhibitionId,
-      {bool withSeries = false});
+  Future<FeralFileListResponse<Artwork>> getExhibitionArtworks(
+      String exhibitionId,
+      {bool withSeries = false,
+      int? offset,
+      int? limit});
 
   Future<FeralFileListResponse<Artwork>> getSeriesArtworks(String seriesId,
       {String? exhibitionID, bool withSeries = false, int? offset, int? limit});
@@ -235,30 +238,34 @@ class FeralFileServiceImpl extends FeralFileService {
     return exhibitionResponse.result;
   }
 
-  Future<List<Artwork>> _getExhibitionArtworkByDirectApi(String exhibitionId,
-      {bool withSeries = false}) async {
-    final artworks =
-        await _feralFileApi.getListArtworks(exhibitionId: exhibitionId);
-    List<Artwork> listArtwork = artworks.result;
+  Future<FeralFileListResponse<Artwork>> _getExhibitionArtworkByDirectApi(
+      String exhibitionId,
+      {bool withSeries = false,
+      int? offset,
+      int? limit}) async {
+    FeralFileListResponse<Artwork> artworksResponse =
+        await _feralFileApi.getListArtworks(
+            exhibitionId: exhibitionId, offset: offset, limit: limit);
     log
       ..info(
         '[FeralFileService] [_getExhibitionByDirectApi] '
-        'Get exhibition artworks: ${listArtwork.length}',
+        'Get exhibition artworks: ${artworksResponse.result.length}',
       )
       ..info(
         '[FeralFileService] [_getExhibitionByDirectApi] '
         'Get exhibition artworks: '
-        '${listArtwork.map((e) => e.id).toList()}',
+        '${artworksResponse.result.map((e) => e.id).toList()}',
       );
     if (withSeries) {
       final listSeries = await getListSeries(exhibitionId);
       final seriesMap =
           Map.fromEntries(listSeries.map((e) => MapEntry(e.id, e)));
-      listArtwork = listArtwork
-          .map((e) => e.copyWith(series: seriesMap[e.seriesID]))
-          .toList();
+      artworksResponse = artworksResponse.copyWith(
+          result: artworksResponse.result
+              .map((e) => e.copyWith(series: seriesMap[e.seriesID]))
+              .toList());
     }
-    return listArtwork;
+    return artworksResponse;
   }
 
   Future<List<Artwork>> _getExhibitionFakeArtworks(String exhibitionId) async {
@@ -386,21 +393,30 @@ class FeralFileServiceImpl extends FeralFileService {
   }
 
   @override
-  Future<List<Artwork>> getExhibitionArtworks(String exhibitionId,
-      {bool withSeries = false}) async {
+  Future<FeralFileListResponse<Artwork>> getExhibitionArtworks(
+      String exhibitionId,
+      {bool withSeries = false,
+      int? offset,
+      int? limit}) async {
     if (exhibitionId == SOURCE_EXHIBITION_ID) {
-      return await _getSourceArtworks();
+      final artworks = await _getSourceArtworks();
+      return FeralFileListResponse(
+          result: artworks,
+          paging: Paging(
+              offset: 0, limit: artworks.length, total: artworks.length));
     }
 
-    List<Artwork> listArtworks = [];
-    listArtworks = await _getExhibitionArtworkByDirectApi(exhibitionId,
-        withSeries: withSeries);
-    if (listArtworks.isNotEmpty) {
-      return listArtworks;
+    final res = await _getExhibitionArtworkByDirectApi(exhibitionId,
+        withSeries: withSeries, offset: offset, limit: limit);
+    if (res.result.isNotEmpty) {
+      return res;
     } else {
-      listArtworks = await _getExhibitionFakeArtworks(exhibitionId);
+      final artworks = await _getExhibitionFakeArtworks(exhibitionId);
+      return FeralFileListResponse(
+          result: artworks,
+          paging: Paging(
+              offset: 0, limit: artworks.length, total: artworks.length));
     }
-    return listArtworks;
   }
 
   @override
