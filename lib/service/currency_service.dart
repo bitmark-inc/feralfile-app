@@ -19,9 +19,13 @@ class CurrencyServiceImpl extends CurrencyService {
 
   @override
   Future<CurrencyExchangeRate> getExchangeRates() async {
-    final response = await _currencyExchangeApi.getExchangeRates();
+    try {
+      final response = await _currencyExchangeApi.getExchangeRates();
 
-    return response["data"]?.rates ??
-        const CurrencyExchangeRate(eth: "1.0", xtz: "1.0");
+      return response['data']?.rates ??
+          const CurrencyExchangeRate(eth: '1.0', xtz: '1.0');
+    } catch (_) {
+      return const CurrencyExchangeRate(eth: '1.0', xtz: '1.0');
+    }
   }
 }

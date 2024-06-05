@@ -47,9 +47,8 @@ class CurrencyTypeChangedEvent extends SendCryptoEvent {
 class EstimateFeeEvent extends SendCryptoEvent {
   final String address;
   final BigInt amount;
-  final SendCryptoState? newState;
 
-  EstimateFeeEvent(this.address, this.amount, {this.newState});
+  EstimateFeeEvent(this.address, this.amount);
 }
 
 class SendCryptoState {
