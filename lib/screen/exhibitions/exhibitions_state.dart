@@ -16,7 +16,6 @@ class ExhibitionsState {
   ExhibitionsState({
     this.freeExhibitions,
     this.proExhibitions,
-    this.isSubscribed = false,
     this.currentPage = 0,
     this.sourceExhibition,
   });
@@ -24,7 +23,6 @@ class ExhibitionsState {
   final List<Exhibition>? freeExhibitions;
   final List<Exhibition>? proExhibitions;
   final Exhibition? sourceExhibition;
-  final bool isSubscribed;
   final int currentPage;
 
   ExhibitionsState copyWith({
@@ -37,7 +35,6 @@ class ExhibitionsState {
       ExhibitionsState(
         freeExhibitions: freeExhibitions ?? this.freeExhibitions,
         proExhibitions: proExhibitions ?? this.proExhibitions,
-        isSubscribed: isSubscribed ?? this.isSubscribed,
         currentPage: currentPage ?? this.currentPage,
         sourceExhibition: sourceExhibition ?? this.sourceExhibition,
       );

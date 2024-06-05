@@ -3,6 +3,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
+import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibitions/exhibitions_bloc.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
@@ -21,7 +22,8 @@ extension ExhibitionExt on Exhibition {
 
   bool get canViewDetails {
     final exhibitionBloc = injector<ExhibitionBloc>();
-    return exhibitionBloc.state.isSubscribed ||
+    final subscriptionBloc = injector<SubscriptionBloc>();
+    return subscriptionBloc.state.isSubscribed ||
         (exhibitionBloc.state.freeExhibitions
                 ?.any((element) => element.id == id) ??
             false);
