@@ -369,8 +369,8 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
   Widget _lockIcon() => SizedBox(
         width: 13,
         height: 13,
-        child: SvgPicture.asset('assets/images/lock_icon.svg',
-            colorFilter: const ColorFilter.mode(
-                AppColor.auQuickSilver, BlendMode.srcIn)),
+        child: SvgPicture.asset(
+          'assets/images/exhibition_lock_icon.svg',
+        ),
       );
 }
