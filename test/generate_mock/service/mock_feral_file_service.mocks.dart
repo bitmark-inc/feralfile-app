@@ -186,19 +186,16 @@ class MockFeralFileService extends _i1.Mock implements _i6.FeralFileService {
         returnValue: _i7.Future<List<_i4.Exhibition>>.value(<_i4.Exhibition>[]),
       ) as _i7.Future<List<_i4.Exhibition>>);
   @override
-  _i7.Future<_i4.Exhibition> getSourceExhibition({bool? withSeries = true}) =>
-      (super.noSuchMethod(
+  _i7.Future<_i4.Exhibition> getSourceExhibition() => (super.noSuchMethod(
         Invocation.method(
           #getSourceExhibition,
           [],
-          {#withSeries: withSeries},
         ),
         returnValue: _i7.Future<_i4.Exhibition>.value(_FakeExhibition_2(
           this,
           Invocation.method(
             #getSourceExhibition,
             [],
-            {#withSeries: withSeries},
           ),
         )),
       ) as _i7.Future<_i4.Exhibition>);
@@ -217,25 +214,43 @@ class MockFeralFileService extends _i1.Mock implements _i6.FeralFileService {
         )),
       ) as _i7.Future<_i4.Exhibition>);
   @override
-  _i7.Future<List<_i3.Artwork>> getExhibitionArtworks(
+  _i7.Future<_i5.FeralFileListResponse<_i3.Artwork>> getExhibitionArtworks(
     String? exhibitionId, {
     bool? withSeries = false,
+    int? offset,
+    int? limit,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
           #getExhibitionArtworks,
           [exhibitionId],
-          {#withSeries: withSeries},
+          {
+            #withSeries: withSeries,
+            #offset: offset,
+            #limit: limit,
+          },
         ),
-        returnValue: _i7.Future<List<_i3.Artwork>>.value(<_i3.Artwork>[]),
-      ) as _i7.Future<List<_i3.Artwork>>);
+        returnValue: _i7.Future<_i5.FeralFileListResponse<_i3.Artwork>>.value(
+            _FakeFeralFileListResponse_3<_i3.Artwork>(
+          this,
+          Invocation.method(
+            #getExhibitionArtworks,
+            [exhibitionId],
+            {
+              #withSeries: withSeries,
+              #offset: offset,
+              #limit: limit,
+            },
+          ),
+        )),
+      ) as _i7.Future<_i5.FeralFileListResponse<_i3.Artwork>>);
   @override
   _i7.Future<_i5.FeralFileListResponse<_i3.Artwork>> getSeriesArtworks(
     String? seriesId, {
     String? exhibitionID,
     bool? withSeries = false,
-    int? offset = 0,
-    int? limit = 300,
+    int? offset,
+    int? limit,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
