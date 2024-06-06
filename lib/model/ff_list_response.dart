@@ -53,3 +53,7 @@ class Paging {
         'total': total,
       };
 }
+
+extension PagingExtension on Paging {
+  bool get shouldLoadMore => offset + limit < total;
+}

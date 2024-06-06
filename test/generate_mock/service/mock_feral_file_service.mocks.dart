@@ -217,8 +217,8 @@ class MockFeralFileService extends _i1.Mock implements _i6.FeralFileService {
   _i7.Future<_i5.FeralFileListResponse<_i3.Artwork>> getExhibitionArtworks(
     String? exhibitionId, {
     bool? withSeries = false,
-    int? offset,
-    int? limit,
+    int? offset = 0,
+    int? limit = 300,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -246,18 +246,20 @@ class MockFeralFileService extends _i1.Mock implements _i6.FeralFileService {
       ) as _i7.Future<_i5.FeralFileListResponse<_i3.Artwork>>);
   @override
   _i7.Future<_i5.FeralFileListResponse<_i3.Artwork>> getSeriesArtworks(
-    String? seriesId, {
-    String? exhibitionID,
+    String? seriesId,
+    String? exhibitionID, {
     bool? withSeries = false,
-    int? offset,
-    int? limit,
+    int? offset = 0,
+    int? limit = 300,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
           #getSeriesArtworks,
-          [seriesId],
+          [
+            seriesId,
+            exhibitionID,
+          ],
           {
-            #exhibitionID: exhibitionID,
             #withSeries: withSeries,
             #offset: offset,
             #limit: limit,
@@ -268,9 +270,11 @@ class MockFeralFileService extends _i1.Mock implements _i6.FeralFileService {
           this,
           Invocation.method(
             #getSeriesArtworks,
-            [seriesId],
+            [
+              seriesId,
+              exhibitionID,
+            ],
             {
-              #exhibitionID: exhibitionID,
               #withSeries: withSeries,
               #offset: offset,
               #limit: limit,

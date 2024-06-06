@@ -1,6 +1,6 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
-import 'package:autonomy_flutter/model/ff_exhibition.dart';
+import 'package:autonomy_flutter/model/ff_list_response.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
@@ -49,11 +49,10 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
     try {
       final newItems = await injector<FeralFileService>().getSeriesArtworks(
           widget.payload.seriesId,
-          exhibitionID: widget.payload.exhibitionId,
+          widget.payload.exhibitionId,
           withSeries: true,
-          offset: pageKey,
-          limit: _pageSize);
-      final isLastPage = newItems.paging.total - pageKey <= _pageSize;
+          offset: pageKey);
+      final isLastPage = !newItems.paging.shouldLoadMore;
       if (isLastPage) {
         _pagingController.appendLastPage(newItems.result);
       } else {
@@ -77,7 +76,7 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
           builder: (context, state) => Scaffold(
               appBar: _getAppBar(context, state.series),
               backgroundColor: AppColor.primaryBlack,
-              body: _body(context, state)),
+              body: _body(context)),
           listener: (context, state) {});
 
   AppBar _getAppBar(BuildContext buildContext, FFSeries? series) => getFFAppBar(
@@ -91,13 +90,7 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
                 crossAxisAlignment: CrossAxisAlignment.center),
       );
 
-  Widget _body(BuildContext context, FeralFileSeriesState state) {
-    final series = state.series;
-    if (series == null) {
-      return _loadingIndicator();
-    }
-    return _artworkSliverGrid(context, state.exhibition);
-  }
+  Widget _body(BuildContext context) => _artworkSliverGrid(context);
 
   Widget _loadingIndicator() => Center(
         child: Padding(
@@ -106,7 +99,7 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
         ),
       );
 
-  Widget _artworkSliverGrid(BuildContext context, Exhibition? exhibition) =>
+  Widget _artworkSliverGrid(BuildContext context) =>
       Padding(
         padding: const EdgeInsets.only(left: 14, right: 14, bottom: 20),
         child: CustomScrollView(
@@ -129,7 +122,7 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
                         _canvasDeviceBloc.state.controllingDevice;
                     if (controllingDevice != null) {
                       final castRequest = CastExhibitionRequest(
-                          exhibitionId: exhibition!.id,
+                          exhibitionId: artwork.series!.exhibitionID,
                           katalog: ExhibitionKatalog.ARTWORK,
                           katalogId: artwork.id);
                       _canvasDeviceBloc.add(

@@ -10,15 +10,9 @@ class FeralFileSeriesBloc
 
   FeralFileSeriesBloc(this._feralFileService) : super(FeralFileSeriesState()) {
     on<FeralFileSeriesGetSeriesEvent>((event, emit) async {
-      final result = await Future.wait([
-        _feralFileService.getExhibition(event.exhibitionId),
-        _feralFileService.getSeries(event.seriesId,
-            exhibitionID: event.exhibitionId),
-      ]);
-      final exhibition = result[0] as Exhibition;
-      final series = result[1] as FFSeries;
+      final series = await _feralFileService.getSeries(event.seriesId,
+          exhibitionID: event.exhibitionId);
       emit(state.copyWith(
-        exhibition: exhibition,
         series: series,
       ));
     });

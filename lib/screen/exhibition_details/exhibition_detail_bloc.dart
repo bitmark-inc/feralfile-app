@@ -20,7 +20,7 @@ class ExhibitionDetailBloc
       final result = await Future.wait([
         _feralFileService.getExhibition(event.exhibitionId),
         _feralFileService.getExhibitionArtworks(event.exhibitionId,
-            withSeries: true, offset: 0, limit: _limit)
+            withSeries: true)
       ]);
       final exhibition = result[0] as Exhibition;
       final artworks = result[1] as FeralFileListResponse<Artwork>;
@@ -28,8 +28,8 @@ class ExhibitionDetailBloc
           ExhibitionDetail(exhibition: exhibition, artworks: artworks.result);
       emit(state.copyWith(exhibitionDetail: exhibitionDetail));
 
-      if (artworks.paging.total > _limit) {
-        add(LoadMoreArtworkEvent(_limit, _limit));
+      if (artworks.paging.shouldLoadMore) {
+        add(LoadMoreArtworkEvent(artworks.paging.limit, _limit));
       }
     });
 
@@ -46,7 +46,7 @@ class ExhibitionDetailBloc
       );
       emit(state.copyWith(exhibitionDetail: exhibitionDetail));
 
-      if (result.paging.total > result.paging.offset + event.limit) {
+      if (result.paging.shouldLoadMore) {
         add(LoadMoreArtworkEvent(event.offset + event.limit, event.limit));
       }
     });
