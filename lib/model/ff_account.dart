@@ -521,3 +521,23 @@ enum FeralfileMediumTypes {
     }
   }
 }
+
+// Support for John Gerrard show
+class BeforeMintingArtworkInfo {
+  final int index;
+  final String viewableAt;
+  final String artworkTitle;
+
+  BeforeMintingArtworkInfo({
+    required this.index,
+    required this.viewableAt,
+    required this.artworkTitle,
+  });
+
+  factory BeforeMintingArtworkInfo.fromJson(Map<String, dynamic> json) =>
+      BeforeMintingArtworkInfo(
+        index: json['index'],
+        viewableAt: json['viewableAt'],
+        artworkTitle: json['artworkTitle'],
+      );
+}

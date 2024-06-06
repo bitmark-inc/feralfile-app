@@ -7,7 +7,9 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
+import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/feralfile_api.dart';
 import 'package:autonomy_flutter/gateway/source_exhibition_api.dart';
@@ -22,6 +24,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 import 'package:nft_collection/models/asset_token.dart';
 
 enum ArtworkModel {
@@ -169,6 +172,7 @@ class FeralFileServiceImpl extends FeralFileService {
   final FeralFileApi _feralFileApi;
   final SourceExhibitionAPI _sourceExhibitionAPI;
   Exhibition? sourceExhibition;
+  List<BeforeMintingArtworkInfo> beforeMintingArtworkInfos = [];
 
   FeralFileServiceImpl(
     this._feralFileApi,
@@ -264,6 +268,15 @@ class FeralFileServiceImpl extends FeralFileService {
     List<Artwork> listArtworks = [];
     final exhibition = await getExhibition(exhibitionId);
     final series = await getListSeries(exhibitionId);
+
+    if (exhibitionId == JOHN_GERRARD_EXHIBITION_ID) {
+      return await _getJohnGerrardFakeArtworks(
+        series: series.first,
+        offset: 0,
+        limit: 1,
+      );
+    }
+
     await Future.wait(series.map((e) => _fakeSeriesArtworks(e, exhibition)))
         .then((value) {
       listArtworks.addAll(value.expand((element) => element));
@@ -413,7 +426,15 @@ class FeralFileServiceImpl extends FeralFileService {
     List<Artwork> listArtwork = artworks.result;
     if (listArtwork.isEmpty) {
       final series = await getSeries(seriesId);
-      listArtwork = await _fakeSeriesArtworks(series, series.exhibition!);
+      if (series.exhibition?.id == JOHN_GERRARD_EXHIBITION_ID) {
+        listArtwork = await _getJohnGerrardFakeArtworks(
+          series: series,
+          offset: 0,
+          onlySignedArtwork: true,
+        );
+      } else {
+        listArtwork = await _fakeSeriesArtworks(series, series.exhibition!);
+      }
     } else if (withSeries) {
       final series = await getSeries(seriesId);
       listArtwork = listArtwork.map((e) => e.copyWith(series: series)).toList();
@@ -545,6 +566,99 @@ class FeralFileServiceImpl extends FeralFileService {
       listArtwork.addAll(artworks);
     }
     return listArtwork;
+  }
+
+  // John Gerrard exhibition
+  Future<List<BeforeMintingArtworkInfo>> _getBeforeMintingArtworkInfos(
+      FFSeries series) async {
+    if (beforeMintingArtworkInfos.isNotEmpty) {
+      return beforeMintingArtworkInfos;
+    }
+
+    try {
+      final artworkInfoLink =
+          '${Environment.feralFileAssetURL}/previews/${series.id}/${series.previewFile?.version ?? ''}/info.json';
+      final response = await http.get(Uri.parse(artworkInfoLink));
+      if (response.statusCode == 200) {
+        final body = json.decode(response.body) as List;
+        beforeMintingArtworkInfos = body.map((dynamic json) {
+          final map = json as Map<String, dynamic>;
+          return BeforeMintingArtworkInfo.fromJson(map);
+        }).toList();
+        return beforeMintingArtworkInfos;
+      } else {
+        throw Exception('Failed to load SOURCE series');
+      }
+    } catch (e) {
+      throw Exception('Failed to load SOURCE series');
+    }
+  }
+
+  Future<List<Artwork>> _getJohnGerrardFakeArtworks({
+    required FFSeries series,
+    required int offset,
+    bool onlySignedArtwork = false,
+    int limit = 50,
+  }) async {
+    int maxArtwork;
+    if (onlySignedArtwork) {
+      maxArtwork = series.metadata?['currentSignedIndex'] == null
+          ? 0
+          : ((series.metadata!['currentSignedIndex'] ?? 0) + 1);
+    } else {
+      maxArtwork = series.settings?.maxArtwork ?? 0;
+    }
+
+    if (maxArtwork == 0) {
+      return [];
+    }
+
+    final endIndex = min(offset + limit, maxArtwork);
+    if (offset >= endIndex) {
+      return [];
+    }
+
+    List<Artwork> fakeArtworks = [];
+    for (var index = offset; index < endIndex; index++) {
+      final fakeArtwork = await _getJohnGerrardArtworkByIndex(index, series);
+      fakeArtworks.insert(0, fakeArtwork);
+    }
+
+    return fakeArtworks;
+  }
+
+  Future<Artwork> _getJohnGerrardArtworkByIndex(
+      int index, FFSeries series) async {
+    final beforeMintingArtworkInfos =
+        await _getBeforeMintingArtworkInfos(series);
+    final artworkId = getFeralfileTokenId(
+      seriesOnchainID: series.onchainID ?? '',
+      exhibitionID: series.exhibitionID,
+      artworkIndex: index,
+    );
+    return Artwork(
+      artworkId,
+      series.id,
+      index,
+      beforeMintingArtworkInfos[index].artworkTitle,
+      '',
+      null,
+      null,
+      null,
+      '',
+      false,
+      'previews/${series.id}/${series.previewFile?.version}/generated_images/crystal_${index + MAGIC_NUMBER}_img.jpeg',
+      'previews/${series.id}/${series.previewFile?.version}/nft.html?hourIdx=${index + MAGIC_NUMBER}',
+      {
+        'viewableAt': beforeMintingArtworkInfos[index].viewableAt,
+      },
+      DateTime.now(),
+      DateTime.now(),
+      DateTime.now(),
+      null,
+      series,
+      null,
+    );
   }
 }
 
