@@ -560,7 +560,11 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                   const SizedBox(height: 80),
                 ],
               ),
-            )
+            ),
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.5 -
+                  (_appBarBottomDy ?? 80),
+            ),
           ],
         ),
       ),
