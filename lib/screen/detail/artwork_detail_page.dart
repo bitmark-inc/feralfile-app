@@ -7,7 +7,6 @@
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:io';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/environment.dart';
@@ -60,8 +59,10 @@ import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/provenance.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:nft_collection/services/tokens_service.dart';
+import 'package:shake/shake.dart';
 import 'package:social_share/social_share.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 part 'artwork_detail_page.g.dart';
 
@@ -90,10 +91,13 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   final _focusNode = FocusNode();
   bool _isInfoExpand = false;
   static const _infoShrinkPosition = 0.001;
+  static const _infoExpandPosition = 0.29;
   late ArtworkDetailBloc _bloc;
   late CanvasDeviceBloc _canvasDeviceBloc;
   late AnimationController _animationController;
   double? _appBarBottomDy;
+  bool _isFullScreen = false;
+  ShakeDetector? _detector;
 
   @override
   void initState() {
@@ -103,6 +107,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       duration: const Duration(milliseconds: 300),
       reverseDuration: const Duration(milliseconds: 300),
       value: _infoShrinkPosition,
+      upperBound: _infoExpandPosition,
     );
     _infoShrink();
     _bloc = context.read<ArtworkDetailBloc>();
@@ -119,6 +124,12 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   void afterFirstLayout(BuildContext context) {
     WidgetsBinding.instance.addObserver(this);
     _appBarBottomDy ??= MediaQuery.of(context).padding.top + kToolbarHeight;
+    _detector = ShakeDetector.autoStart(
+      onPhoneShake: () async {
+        await _exitFullScreen();
+      },
+    );
+    _detector?.startListening();
   }
 
   @override
@@ -205,14 +216,15 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     _scrollController?.dispose();
     _animationController.dispose();
     _focusNode.dispose();
+    unawaited(disableLandscapeMode());
+    unawaited(WakelockPlus.disable());
+    _detector?.stopListening();
     routeObserver.unsubscribe(this);
     WidgetsBinding.instance.removeObserver(this);
-    if (Platform.isAndroid) {
-      unawaited(SystemChrome.setEnabledSystemUIMode(
-        SystemUiMode.manual,
-        overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom],
-      ));
-    }
+    unawaited(SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.manual,
+      overlays: SystemUiOverlay.values,
+    ));
     super.dispose();
   }
 
@@ -229,7 +241,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     setState(() {
       _isInfoExpand = true;
     });
-    _animationController.animateTo(1);
+    _animationController.animateTo(_infoExpandPosition);
   }
 
   @override
@@ -277,115 +289,122 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               BackdropScaffold(
                 backgroundColor: AppColor.primaryBlack,
                 resizeToAvoidBottomInset: !hasKeyboard,
-                appBar: PreferredSize(
-                  preferredSize: const Size.fromHeight(kToolbarHeight),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
-                    child: AppBar(
-                      systemOverlayStyle: systemUiOverlayDarkStyle,
-                      leadingWidth: 44,
-                      leading: Semantics(
-                        label: 'BACK',
-                        child: IconButton(
-                          onPressed: () => Navigator.pop(context),
-                          constraints: const BoxConstraints(
-                            maxWidth: 34,
-                            maxHeight: 34,
+                appBar: _isFullScreen
+                    ? null
+                    : PreferredSize(
+                        preferredSize: const Size.fromHeight(kToolbarHeight),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 14),
+                          child: AppBar(
+                            systemOverlayStyle: systemUiOverlayDarkStyle,
+                            leadingWidth: 44,
+                            leading: Semantics(
+                              label: 'BACK',
+                              child: IconButton(
+                                onPressed: () => Navigator.pop(context),
+                                constraints: const BoxConstraints(
+                                  maxWidth: 34,
+                                  maxHeight: 34,
+                                ),
+                                icon: SvgPicture.asset(
+                                  'assets/images/ff_back_dark.svg',
+                                ),
+                                padding: const EdgeInsets.all(0),
+                              ),
+                            ),
+                            centerTitle: false,
+                            backgroundColor: Colors.transparent,
+                            actions: [
+                              FFCastButton(
+                                onDeviceSelected: (device) {
+                                  if (widget.payload.playlist == null) {
+                                    final artwork = PlayArtworkV2(
+                                      token: CastAssetToken(id: asset.id),
+                                    );
+                                    _canvasDeviceBloc.add(
+                                        CanvasDeviceCastListArtworkEvent(
+                                            device, [artwork]));
+                                  } else {
+                                    final playlist = widget.payload.playlist!;
+                                    final listTokenIds = playlist.tokenIDs;
+                                    if (listTokenIds == null) {
+                                      log.info('Playlist tokenIds is null');
+                                      return;
+                                    }
+
+                                    final duration =
+                                        speedValues.values.first.inMilliseconds;
+                                    final listPlayArtwork = listTokenIds
+                                        .rotateListByItem(asset.id)
+                                        .map((e) => PlayArtworkV2(
+                                            token: CastAssetToken(id: e),
+                                            duration: duration))
+                                        .toList();
+                                    _canvasDeviceBloc.add(
+                                        CanvasDeviceChangeControlDeviceEvent(
+                                            device, listPlayArtwork));
+                                  }
+                                },
+                              ),
+                            ],
                           ),
-                          icon: SvgPicture.asset(
-                            'assets/images/ff_back_dark.svg',
-                          ),
-                          padding: const EdgeInsets.all(0),
                         ),
                       ),
-                      centerTitle: false,
-                      backgroundColor: Colors.transparent,
-                      actions: [
-                        FFCastButton(
-                          onDeviceSelected: (device) {
-                            if (widget.payload.playlist == null) {
-                              final artwork = PlayArtworkV2(
-                                token: CastAssetToken(id: asset.id),
-                              );
-                              _canvasDeviceBloc.add(
-                                  CanvasDeviceCastListArtworkEvent(
-                                      device, [artwork]));
-                            } else {
-                              final playlist = widget.payload.playlist!;
-                              final listTokenIds = playlist.tokenIDs;
-                              if (listTokenIds == null) {
-                                log.info('Playlist tokenIds is null');
-                                return;
-                              }
-
-                              final duration =
-                                  speedValues.values.first.inMilliseconds;
-                              final listPlayArtwork = listTokenIds
-                                  .rotateListByItem(asset.id)
-                                  .map((e) => PlayArtworkV2(
-                                      token: CastAssetToken(id: e),
-                                      duration: duration))
-                                  .toList();
-                              _canvasDeviceBloc.add(
-                                  CanvasDeviceChangeControlDeviceEvent(
-                                      device, listPlayArtwork));
-                            }
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
                 backLayer: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
-                      child: Hero(
-                        tag: 'detail_${asset.id}',
-                        child: _ArtworkView(
-                          payload: widget.payload,
-                          token: asset,
-                          focusNode: _focusNode,
+                      child: ArtworkPreviewWidget(
+                        focusNode: _focusNode,
+                        useIndexer: widget.payload.useIndexer,
+                        identity: widget
+                            .payload.identities[widget.payload.currentIndex],
+                      ),
+                    ),
+                    if (!_isFullScreen)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 18),
+                        child: ArtworkDetailsHeader(
+                          title: 'I',
+                          subTitle: 'I',
+                          color: Colors.transparent,
                         ),
                       ),
-                    ),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 15),
-                      child: ArtworkDetailsHeader(
-                        title: 'I',
-                        subTitle: 'I',
-                        color: Colors.transparent,
-                      ),
-                    ),
                   ],
                 ),
                 reverseAnimationCurve: Curves.ease,
-                frontLayer:
-                    _infoContent(context, identityState, state, artistName),
-                frontLayerBackgroundColor: AppColor.primaryBlack,
-                frontLayerActiveFactor: 0.5,
+                frontLayer: _isFullScreen
+                    ? const SizedBox()
+                    : _infoContent(context, identityState, state, artistName),
+                frontLayerBackgroundColor:
+                    _isFullScreen ? Colors.transparent : AppColor.primaryBlack,
                 backLayerBackgroundColor: AppColor.primaryBlack,
                 animationController: _animationController,
-                backLayerScrim: Colors.transparent,
+                revealBackLayerAtStart: true,
                 frontLayerScrim: Colors.transparent,
+                backLayerScrim: Colors.transparent,
+                subHeaderAlwaysActive: false,
                 frontLayerShape: const BeveledRectangleBorder(),
-                subHeader: DecoratedBox(
-                  decoration: const BoxDecoration(color: AppColor.primaryBlack),
-                  child: GestureDetector(
-                    onVerticalDragEnd: (details) {
-                      final dy = details.primaryVelocity ?? 0;
-                      if (dy <= 0) {
-                        _infoExpand();
-                      } else {
-                        _infoShrink();
-                      }
-                    },
-                    child: _infoHeader(context, asset, artistName,
-                        state.isViewOnly, canvasState),
-                  ),
-                ),
+                subHeader: _isFullScreen
+                    ? null
+                    : DecoratedBox(
+                        decoration:
+                            const BoxDecoration(color: AppColor.primaryBlack),
+                        child: GestureDetector(
+                          onVerticalDragEnd: (details) {
+                            final dy = details.primaryVelocity ?? 0;
+                            if (dy <= 0) {
+                              _infoExpand();
+                            } else {
+                              _infoShrink();
+                            }
+                          },
+                          child: _infoHeader(context, asset, artistName,
+                              state.isViewOnly, canvasState),
+                        ),
+                      ),
               ),
-              if (_isInfoExpand)
+              if (_isInfoExpand && !_isFullScreen)
                 Positioned(
                   top: _appBarBottomDy ?? 80,
                   child: GestureDetector(
@@ -590,9 +609,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
             title: 'full_screen'.tr(),
             icon: SvgPicture.asset('assets/images/fullscreen_icon.svg'),
             onTap: () {
-              Navigator.of(context).popAndPushNamed(
-                  AppRouter.artworkPreviewPage,
-                  arguments: widget.payload);
+              Navigator.of(context).pop();
+              _setFullScreen();
             }),
         if (showKeyboard)
           OptionItem(
@@ -805,46 +823,50 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       ],
     ));
   }
-}
 
-class _ArtworkView extends StatelessWidget {
-  const _ArtworkView({
-    required this.payload,
-    required this.token,
-    this.focusNode,
-  });
-
-  final ArtworkDetailPayload payload;
-  final AssetToken token;
-  final FocusNode? focusNode;
-
-  @override
-  Widget build(BuildContext context) {
-    final mimeType = token.getMimeType;
-    final artworkWidget = ArtworkPreviewWidget(
-      identity: payload.identities[payload.currentIndex],
-      useIndexer: payload.useIndexer,
-      focusNode: focusNode,
-    );
-    switch (mimeType) {
-      case 'image':
-      case 'gif':
-      case 'audio':
-      case 'video':
-        return Center(
-          child: IntrinsicHeight(
-            child: artworkWidget,
-          ),
-        );
-
-      default:
-        return AspectRatio(
-          aspectRatio: 1,
-          child: Center(
-            child: artworkWidget,
-          ),
-        );
+  Future<void> _setFullScreen() async {
+    unawaited(_openSnackBar(context));
+    if (_isInfoExpand) {
+      _infoShrink();
     }
+    await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    unawaited(WakelockPlus.enable());
+    setState(() {
+      _isFullScreen = true;
+    });
+  }
+
+  Future<void> _exitFullScreen() async {
+    await SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.manual,
+      overlays: SystemUiOverlay.values,
+    );
+    unawaited(WakelockPlus.disable());
+    setState(() {
+      _isFullScreen = false;
+    });
+  }
+
+  Future<void> _openSnackBar(BuildContext context) async {
+    final theme = Theme.of(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Container(
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 10),
+          decoration: BoxDecoration(
+            color: AppColor.feralFileHighlight.withOpacity(0.9),
+            borderRadius: BorderRadius.circular(64),
+          ),
+          child: Text(
+            'shake_exit'.tr(),
+            textAlign: TextAlign.center,
+            style: theme.textTheme.ppMori600Black12,
+          ),
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
+    );
   }
 }
 

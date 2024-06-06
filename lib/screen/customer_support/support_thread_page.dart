@@ -19,10 +19,12 @@ import 'package:autonomy_flutter/model/customer_support.dart' as app;
 import 'package:autonomy_flutter/model/customer_support.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
+import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
+import 'package:autonomy_flutter/util/jwt.dart';
 import 'package:autonomy_flutter/util/log.dart' as log_util;
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -124,6 +126,8 @@ class _SupportThreadPageState extends State<SupportThreadPage>
   final _customerSupportService = injector<CustomerSupportService>();
   final _feralFileService = injector<FeralFileService>();
 
+  String? _userId;
+
   types.TextMessage get _introMessenger => types.TextMessage(
         author: _bitmark,
         id: _introMessengerID,
@@ -152,6 +156,7 @@ class _SupportThreadPageState extends State<SupportThreadPage>
 
   @override
   void initState() {
+    unawaited(_getUserId());
     unawaited(_fetchCustomerSupportAvailability());
     unawaited(injector<CustomerSupportService>().processMessages());
     injector<CustomerSupportService>()
@@ -203,6 +208,16 @@ class _SupportThreadPageState extends State<SupportThreadPage>
     if (_issueID != null && !_issueID!.startsWith('TEMP')) {
       unawaited(_loadIssueDetails());
     }
+  }
+
+  Future<String> _getUserId() async {
+    if (_userId != null) {
+      return _userId!;
+    }
+    final jwt = await injector<AuthService>().getAuthToken();
+    final data = parseJwt(jwt.jwtToken);
+    _userId = data['sub'] ?? '';
+    return _userId!;
   }
 
   @override
@@ -682,7 +697,7 @@ class _SupportThreadPageState extends State<SupportThreadPage>
       return;
     }
     final issueDetails = await _customerSupportService.getDetails(_issueID!);
-
+    await _getUserId();
     final parsedMessages = (await Future.wait(
             issueDetails.messages.map((e) => _convertChatMessage(e, null))))
         .expand((i) => i)
@@ -934,7 +949,7 @@ class _SupportThreadPageState extends State<SupportThreadPage>
     Map<String, dynamic> metadata = {};
     if (message is app.Message) {
       id = tempID ?? '${message.id}';
-      author = message.from.contains('did:key') ? _user : _bitmark;
+      author = message.from == _userId ? _user : _bitmark;
       status = types.Status.delivered;
       createdAt = message.timestamp;
       text = message.filteredMessage;

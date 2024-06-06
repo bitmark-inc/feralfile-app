@@ -17,7 +17,6 @@ import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/account_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
-import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/crypto_view.dart';
@@ -83,14 +82,17 @@ Widget accountItem(BuildContext context, Account account,
                 child: Row(children: [
                   LogoCrypto(cryptoType: account.cryptoType, size: 24),
                   const SizedBox(width: 10),
-                  Text(
-                    account.name.maskIfNeeded(),
-                    style: theme.textTheme.ppMori700Black16,
+                  Expanded(
+                    child: Text(
+                      account.name,
+                      style: theme.textTheme.ppMori700Black16,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                  const Expanded(child: SizedBox()),
                 ]),
               ),
               if (account.isHidden) ...[
+                const SizedBox(width: 10),
                 SvgPicture.asset(
                   'assets/images/hide.svg',
                   colorFilter: ColorFilter.mode(
