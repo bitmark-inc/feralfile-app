@@ -1711,6 +1711,11 @@ class UIHelper {
       await _showPostcardError(context,
           message: '_save_failed'.tr(args: [title]),
           icon: SvgPicture.asset('assets/images/exit.svg'));
+
+  static Future<void> showConnectFailed(BuildContext context,
+          {required String message}) async =>
+      await showErrorDialog(
+          context, 'connect_failed'.tr(), message, 'close'.tr());
 }
 
 Widget loadingScreen(ThemeData theme, String text) => Scaffold(
