@@ -27,7 +27,7 @@ extension ImageExt on Image {
     Map<String, String>? headers,
     int? cacheWidth,
     int? cacheHeight,
-    required bool shouldRefreshCache,
+    bool shouldRefreshCache = false,
   }) {
     if (shouldRefreshCache) {
       ImageCacheManager.cleanCacheByUrl(src, includeLiveImages: true);

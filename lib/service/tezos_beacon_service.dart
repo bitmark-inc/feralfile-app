@@ -7,7 +7,9 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/main.dart';
@@ -17,12 +19,14 @@ import 'package:autonomy_flutter/model/p2p_peer.dart';
 import 'package:autonomy_flutter/model/tezos_connection.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/service/network_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/tezos_beacon_channel.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:collection/collection.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 
@@ -41,6 +45,20 @@ class TezosBeaconService implements BeaconHandler {
   TezosBeaconService(this._navigationService, this._cloudDB) {
     _beaconChannel = TezosBeaconChannel(handler: this);
     unawaited(_beaconChannel.connect());
+    if (Platform.isIOS) {
+      injector<NetworkService>().addListener(
+        (result) {
+          if (result == ConnectivityResult.none) {
+            unawaited(_beaconChannel.pause());
+            log.info('TezosBeaconService: pause');
+          } else {
+            unawaited(_beaconChannel.resume());
+            log.info('TezosBeaconService: resume');
+          }
+        },
+        id: NetworkService.beaconListenerId,
+      );
+    }
   }
 
   void _addedConnection() {
@@ -163,6 +181,14 @@ class TezosBeaconService implements BeaconHandler {
       unawaited(_navigationService.navigateTo(AppRouter.tbSendTransactionPage,
           arguments: request));
     }
+  }
+
+  Future<void> pause() async {
+    await _beaconChannel.pause();
+  }
+
+  Future<void> resume() async {
+    await _beaconChannel.resume();
   }
 
   @override

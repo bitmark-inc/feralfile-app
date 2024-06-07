@@ -11,12 +11,14 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/service/network_issue_manager.dart';
 import 'package:autonomy_flutter/util/address_utils.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/dio_util.dart';
+import 'package:autonomy_flutter/util/exception_ext.dart';
 import 'package:autonomy_flutter/util/image_ext.dart';
 import 'package:autonomy_flutter/util/moma_style_color.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -96,7 +98,7 @@ class PendingTokenWidget extends StatelessWidget {
       {super.key,
       this.thumbnail,
       this.tokenId,
-      required this.shouldRefreshCache});
+      this.shouldRefreshCache = false});
 
   @override
   Widget build(BuildContext context) {
@@ -190,7 +192,8 @@ Widget tokenGalleryThumbnailWidget(
                 return galleryThumbnailPlaceholder ??
                     const GalleryThumbnailPlaceholder();
               },
-              errorBuilder: (context, url, error) => ImageExt.customNetwork(
+              errorBuilder: (context, error, stacktrace) =>
+                  ImageExt.customNetwork(
                 token.getGalleryThumbnailUrl(usingThumbnailID: false) ?? '',
                 fit: BoxFit.cover,
                 cacheWidth: cachedImageSize,
@@ -202,8 +205,13 @@ Widget tokenGalleryThumbnailWidget(
                   return galleryThumbnailPlaceholder ??
                       const GalleryThumbnailPlaceholder();
                 },
-                errorBuilder: (context, url, error) =>
-                    const GalleryThumbnailErrorWidget(),
+                errorBuilder: (context, error, stacktrace) {
+                  if (error is Exception && error.isNetworkIssue) {
+                    unawaited(injector<NetworkIssueManager>()
+                        .showNetworkIssueWarning());
+                  }
+                  return const GalleryThumbnailErrorWidget();
+                },
                 shouldRefreshCache: shouldRefreshCache,
               ),
               shouldRefreshCache: shouldRefreshCache,
