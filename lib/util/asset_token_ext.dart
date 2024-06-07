@@ -479,9 +479,7 @@ extension CompactedAssetTokenExtension on CompactedAssetToken {
     return mintedAt != null ? '$title (${mintedAt!.year})' : title;
   }
 
-  bool get isPostcard {
-    return contractAddress == Environment.postcardContractAddress;
-  }
+  bool get isPostcard => contractAddress == Environment.postcardContractAddress;
 
   String? get contractAddress {
     final splitted = id.split('-');
