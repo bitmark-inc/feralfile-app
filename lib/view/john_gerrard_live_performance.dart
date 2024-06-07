@@ -31,6 +31,8 @@ class _JohnGerrardLivePerformanceWidgetState
   @override
   void dispose() {
     _renderingWidget?.dispose();
+    routeObserver.unsubscribe(this);
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
