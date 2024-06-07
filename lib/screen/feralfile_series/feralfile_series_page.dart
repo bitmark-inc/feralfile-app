@@ -27,6 +27,8 @@ class FeralFileSeriesPage extends StatefulWidget {
 class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
   late final FeralFileSeriesBloc _feralFileSeriesBloc;
   final _canvasDeviceBloc = injector.get<CanvasDeviceBloc>();
+  static const _padding = 14.0;
+  static const _axisSpacing = 10.0;
 
   @override
   void initState() {
@@ -69,17 +71,22 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
   Widget _artworkGridView(BuildContext context,
           ExhibitionDetail? exhibitionDetail, List<Artwork> artworks) =>
       Padding(
-        padding: const EdgeInsets.only(left: 14, right: 14, bottom: 20),
+        padding:
+            const EdgeInsets.only(left: _padding, right: _padding, bottom: 20),
         child: GridView.builder(
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 3,
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 10,
+            crossAxisSpacing: _axisSpacing,
+            mainAxisSpacing: _axisSpacing,
           ),
           itemBuilder: (context, index) {
             final artwork = artworks[index];
             return FFArtworkThumbnailView(
               artwork: artwork,
+              cacheSize: (MediaQuery.sizeOf(context).width -
+                      _padding * 2 -
+                      _axisSpacing * 2) ~/
+                  3,
               onTap: () async {
                 final controllingDevice =
                     _canvasDeviceBloc.state.controllingDevice;
