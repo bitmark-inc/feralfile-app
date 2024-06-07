@@ -48,10 +48,8 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
   Future<void> _fetchPage(int pageKey) async {
     try {
       final newItems = await injector<FeralFileService>().getSeriesArtworks(
-          widget.payload.seriesId,
-          widget.payload.exhibitionId,
-          withSeries: true,
-          offset: pageKey);
+          widget.payload.seriesId, widget.payload.exhibitionId,
+          withSeries: true, offset: pageKey);
       final isLastPage = !newItems.paging.shouldLoadMore;
       if (isLastPage) {
         _pagingController.appendLastPage(newItems.result);
@@ -99,8 +97,7 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
         ),
       );
 
-  Widget _artworkSliverGrid(BuildContext context) =>
-      Padding(
+  Widget _artworkSliverGrid(BuildContext context) => Padding(
         padding: const EdgeInsets.only(left: 14, right: 14, bottom: 20),
         child: CustomScrollView(
           slivers: [
