@@ -505,7 +505,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               child: Align(
                 alignment: Alignment.centerRight,
                 child: Padding(
-                  padding: const EdgeInsets.only(left: 16, right: 16, top: 40),
+                  padding: const EdgeInsets.only(
+                      left: 16, right: 16, top: 20, bottom: 20),
                   child: OutlineButton(
                     color: Colors.transparent,
                     text: 'web3_glossary'.tr(),
@@ -560,7 +561,11 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                   const SizedBox(height: 80),
                 ],
               ),
-            )
+            ),
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.5 -
+                  (_appBarBottomDy ?? 80),
+            ),
           ],
         ),
       ),
