@@ -30,7 +30,9 @@ extension ImageExt on Image {
     bool shouldRefreshCache = false,
   }) {
     if (shouldRefreshCache) {
-      ImageCacheManager.cleanCacheByUrl(src, includeLiveImages: true);
+      final imageProvider = ResizeImage.resizeIfNeeded(cacheWidth, cacheHeight,
+          NetworkImage(src, scale: scale, headers: headers));
+      ImageCacheManager.cleanCacheByKey(imageProvider);
     }
     return Image.network(
       src,

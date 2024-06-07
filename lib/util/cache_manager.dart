@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 class CacheManager {
@@ -13,8 +15,7 @@ class ImageCacheManager {
       ..clearLiveImages();
   }
 
-  static void cleanCacheByUrl(String url, {bool includeLiveImages = false}) {
-    PaintingBinding.instance.imageCache
-        .evict(Uri.parse(url), includeLive: includeLiveImages);
+  static void cleanCacheByKey(ImageProvider<Object> image) {
+    unawaited(image.evict(cache: PaintingBinding.instance.imageCache));
   }
 }
