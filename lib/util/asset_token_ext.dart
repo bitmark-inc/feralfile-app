@@ -20,6 +20,7 @@ import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
+import 'package:autonomy_flutter/util/john_gerrard_hepler.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -491,12 +492,11 @@ extension CompactedAssetTokenExtension on CompactedAssetToken {
 
   bool get isJohnGerrardArtwork {
     final contractAddress = this.contractAddress;
+    final johnGerrardContractAddress = JohnGerrardHelper.contractAddress;
     return isFeralfile && contractAddress == johnGerrardContractAddress;
   }
 
-  bool get isAvailableToView => true;
-
-  bool get shouldCacheThumbnail => isJohnGerrardArtwork && isAvailableToView;
+  bool get shouldRefreshThumbnailCache => isJohnGerrardArtwork;
 
   String get getMimeType {
     switch (mimeType) {

@@ -452,6 +452,7 @@ class CollectionHomePageState extends State<CollectionHomePage>
           ? PendingTokenWidget(
               thumbnail: asset.galleryThumbnailURL,
               tokenId: asset.tokenId,
+              shouldRefreshCache: asset.shouldRefreshThumbnailCache,
             )
           : tokenGalleryThumbnailWidget(
               context,

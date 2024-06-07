@@ -154,6 +154,7 @@ class _MoMAPostcardPageState extends State<MoMAPostcardPage> {
                   ? PendingTokenWidget(
                       thumbnail: asset.galleryThumbnailURL,
                       tokenId: asset.tokenId,
+                      shouldRefreshCache: asset.shouldRefreshThumbnailCache,
                     )
                   : tokenGalleryThumbnailWidget(
                       context,

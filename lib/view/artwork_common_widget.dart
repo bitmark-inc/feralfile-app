@@ -17,13 +17,13 @@ import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/dio_util.dart';
+import 'package:autonomy_flutter/util/image_ext.dart';
 import 'package:autonomy_flutter/util/moma_style_color.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/image_background.dart';
 import 'package:autonomy_flutter/view/loading.dart';
-import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -36,7 +36,6 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
-import 'package:gif_view/gif_view.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/models/provenance.dart';
 import 'package:nft_rendering/nft_rendering.dart';
@@ -91,8 +90,13 @@ class MintTokenWidget extends StatelessWidget {
 class PendingTokenWidget extends StatelessWidget {
   final String? thumbnail;
   final String? tokenId;
+  final bool shouldRefreshCache;
 
-  const PendingTokenWidget({super.key, this.thumbnail, this.tokenId});
+  const PendingTokenWidget(
+      {super.key,
+      this.thumbnail,
+      this.tokenId,
+      required this.shouldRefreshCache});
 
   @override
   Widget build(BuildContext context) {
@@ -108,9 +112,10 @@ class PendingTokenWidget extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 height: double.infinity,
-                child: Image.network(
+                child: ImageExt.customNetwork(
                   thumbnail!,
                   fit: BoxFit.cover,
+                  shouldRefreshCache: shouldRefreshCache,
                 ),
               )
             ] else ...[
@@ -157,7 +162,7 @@ Widget tokenGalleryThumbnailWidget(
   }
 
   final ext = p.extension(thumbnailUrl);
-
+  final shouldRefreshCache = token.shouldRefreshThumbnailCache;
   return Semantics(
     label: 'gallery_artwork_${token.id}',
     child: Hero(
@@ -173,7 +178,7 @@ Widget tokenGalleryThumbnailWidget(
               unsupportWidgetBuilder: (context) =>
                   const GalleryUnSupportThumbnailWidget(),
             )
-          : Image.network(
+          : ImageExt.customNetwork(
               thumbnailUrl,
               fit: BoxFit.cover,
               cacheWidth: cachedImageSize,
@@ -185,7 +190,7 @@ Widget tokenGalleryThumbnailWidget(
                 return galleryThumbnailPlaceholder ??
                     const GalleryThumbnailPlaceholder();
               },
-              errorBuilder: (context, url, error) => Image.network(
+              errorBuilder: (context, url, error) => ImageExt.customNetwork(
                 token.getGalleryThumbnailUrl(usingThumbnailID: false) ?? '',
                 fit: BoxFit.cover,
                 cacheWidth: cachedImageSize,
@@ -199,7 +204,9 @@ Widget tokenGalleryThumbnailWidget(
                 },
                 errorBuilder: (context, url, error) =>
                     const GalleryThumbnailErrorWidget(),
+                shouldRefreshCache: shouldRefreshCache,
               ),
+              shouldRefreshCache: shouldRefreshCache,
             ),
     ),
   );
