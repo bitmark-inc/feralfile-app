@@ -21,6 +21,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/download_helper.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/series_ext.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
@@ -602,9 +603,9 @@ class FeralFileServiceImpl extends FeralFileService {
   }) async {
     int maxArtwork;
     if (onlySignedArtwork) {
-      maxArtwork = series.metadata?['currentSignedIndex'] == null
+      maxArtwork = series.latestRevealedArtworkIndex == null
           ? 0
-          : ((series.metadata!['currentSignedIndex'] ?? 0) + 1);
+          : ((series.latestRevealedArtworkIndex ?? 0) + 1);
     } else {
       maxArtwork = series.settings?.maxArtwork ?? 0;
     }
