@@ -6,16 +6,20 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class FFArtworkThumbnailView extends StatelessWidget {
-  const FFArtworkThumbnailView({required this.artwork, super.key, this.onTap});
+  const FFArtworkThumbnailView(
+      {required this.artwork, this.cacheSize = 0, super.key, this.onTap});
 
   final Artwork artwork;
   final Function? onTap;
+  final int cacheSize;
 
   @override
   Widget build(BuildContext context) => GestureDetector(
         onTap: () => onTap?.call(),
         child: Image.network(
           artwork.thumbnailURL,
+          cacheWidth: cacheSize,
+          cacheHeight: cacheSize,
           fit: BoxFit.cover,
           loadingBuilder: (context, child, loadingProgress) {
             if (loadingProgress == null) {
