@@ -531,6 +531,8 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                           ? PendingTokenWidget(
                               thumbnail: asset.galleryThumbnailURL,
                               tokenId: asset.tokenId,
+                              shouldRefreshCache:
+                                  asset.shouldRefreshThumbnailCache,
                             )
                           : tokenGalleryThumbnailWidget(
                               context,
