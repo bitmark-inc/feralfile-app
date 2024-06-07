@@ -76,7 +76,11 @@ class ExhibitionPreview extends StatelessWidget {
             ),
           ],
           const SizedBox(height: 10),
-          Text('group_exhibition'.tr(), style: subTextStyle),
+          Text(
+              exhibition.isGroupExhibition
+                  ? 'group_exhibition'.tr()
+                  : 'solo_exhibition'.tr(),
+              style: subTextStyle),
           const SizedBox(height: 3),
           RichText(
             text: TextSpan(
