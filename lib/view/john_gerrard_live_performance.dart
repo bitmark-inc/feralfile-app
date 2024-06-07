@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
+import 'package:autonomy_flutter/util/series_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -70,7 +71,7 @@ class _JohnGerrardLivePerformanceWidgetState
 
   @override
   Widget build(BuildContext context) {
-    final previewUrl = widget.exhibition.series!.first.metadata!['galleryURL'];
+    final previewUrl = widget.exhibition.series!.first.galleryURL;
     final thumbnailUrl = widget.exhibition.series!.first.thumbnailURI;
     return BlocProvider(
       create: (_) => RetryCubit(),

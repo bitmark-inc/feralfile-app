@@ -5,4 +5,6 @@ extension FFSeriesExt on FFSeries {
     final year = mintedAt?.year ?? createdAt?.year;
     return year != null ? '$title ($year)' : title;
   }
+
+  String get galleryURL => (metadata?['galleryURL'] ?? '') as String;
 }
