@@ -581,9 +581,9 @@ class FeralFileServiceImpl extends FeralFileService {
           '${Environment.feralFileAssetURL}/previews/${series.id}/${series.previewFile?.version ?? ''}/info.json';
       final response = await http.get(Uri.parse(artworkInfoLink));
       if (response.statusCode == 200) {
-        final body = json.decode(response.body) as List;
-        beforeMintingArtworkInfos = body.map((dynamic json) {
-          final map = json as Map<String, dynamic>;
+        final body = json.decode(response.body) as Map<String, dynamic>;
+        beforeMintingArtworkInfos = body.entries.map((entry) {
+          final map = entry.value as Map<String, dynamic>;
           return BeforeMintingArtworkInfo.fromJson(map);
         }).toList();
         return beforeMintingArtworkInfos;
