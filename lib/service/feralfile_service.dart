@@ -605,7 +605,7 @@ class FeralFileServiceImpl extends FeralFileService {
     if (onlySignedArtwork) {
       maxArtwork = series.latestRevealedArtworkIndex == null
           ? 0
-          : ((series.latestRevealedArtworkIndex ?? 0) + 1);
+          : (series.latestRevealedArtworkIndex! + 1);
     } else {
       maxArtwork = series.settings?.maxArtwork ?? 0;
     }
@@ -622,7 +622,7 @@ class FeralFileServiceImpl extends FeralFileService {
     List<Artwork> fakeArtworks = [];
     for (var index = offset; index < endIndex; index++) {
       final fakeArtwork = await _getJohnGerrardArtworkByIndex(index, series);
-      fakeArtworks.insert(0, fakeArtwork);
+      fakeArtworks.add(fakeArtwork);
     }
 
     return fakeArtworks;
