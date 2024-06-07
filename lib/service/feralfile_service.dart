@@ -275,7 +275,7 @@ class FeralFileServiceImpl extends FeralFileService {
       String exhibitionId,
       {required int offset,
       required int limit}) async {
-    final cacheArtworks = await _cacheFakeArtworks(exhibitionId);
+    final cacheArtworks = await _getCacheFakeArtworks(exhibitionId);
     final total = cacheArtworks.length;
     final List<Artwork> listArtworks =
         cacheArtworks.sublist(offset, min(offset + limit, total));
@@ -284,7 +284,7 @@ class FeralFileServiceImpl extends FeralFileService {
         paging: Paging(offset: offset, limit: limit, total: total));
   }
 
-  Future<List<Artwork>> _cacheFakeArtworks(String exhibitionId) async {
+  Future<List<Artwork>> _getCacheFakeArtworks(String exhibitionId) async {
     if (_cachedFakeArtwork.containsKey(exhibitionId)) {
       return _cachedFakeArtwork[exhibitionId]!;
     }
@@ -417,7 +417,7 @@ class FeralFileServiceImpl extends FeralFileService {
       String seriesId, String exhibitionId,
       {required int offset, required int limit}) async {
     final List<Artwork> seriesArtworks =
-        (await _cacheFakeArtworks(exhibitionId))
+        (await _getCacheFakeArtworks(exhibitionId))
             .where((e) => e.series?.id == seriesId)
             .toList();
     final total = seriesArtworks.length;
@@ -437,9 +437,8 @@ class FeralFileServiceImpl extends FeralFileService {
     if (exhibitionId == SOURCE_EXHIBITION_ID) {
       final artworks = await _getSourceArtworks();
       return FeralFileListResponse(
-          result: artworks,
-          paging: Paging(
-              offset: 0, limit: artworks.length, total: artworks.length));
+          result: artworks.sublist(limit, min(artworks.length, offset + limit)),
+          paging: Paging(offset: offset, limit: limit, total: artworks.length));
     }
 
     final res = await _getExhibitionArtworkByDirectApi(exhibitionId,
@@ -459,9 +458,8 @@ class FeralFileServiceImpl extends FeralFileService {
     if (exhibitionID == SOURCE_EXHIBITION_ID) {
       final artworks = await _getSourceSeriesArtworks(seriesId);
       return FeralFileListResponse(
-          result: artworks,
-          paging: Paging(
-              offset: 0, limit: artworks.length, total: artworks.length));
+          result: artworks.sublist(limit, min(artworks.length, offset + limit)),
+          paging: Paging(offset: 0, limit: limit, total: artworks.length));
     }
 
     FeralFileListResponse<Artwork> artworksResponse = await _feralFileApi
