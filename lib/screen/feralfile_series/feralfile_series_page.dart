@@ -30,6 +30,8 @@ class FeralFileSeriesPage extends StatefulWidget {
 class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
   late final FeralFileSeriesBloc _feralFileSeriesBloc;
   final _canvasDeviceBloc = injector.get<CanvasDeviceBloc>();
+  static const _padding = 14.0;
+  static const _axisSpacing = 10.0;
   final PagingController<int, Artwork> _pagingController =
       PagingController(firstPageKey: 0);
   static const _pageSize = 300;
@@ -98,7 +100,8 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
       );
 
   Widget _artworkSliverGrid(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(left: 14, right: 14, bottom: 20),
+        padding:
+            const EdgeInsets.only(left: _padding, right: _padding, bottom: 20),
         child: CustomScrollView(
           slivers: [
             PagedSliverGrid<int, Artwork>(
@@ -106,14 +109,18 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
               showNewPageErrorIndicatorAsGridChild: false,
               showNewPageProgressIndicatorAsGridChild: false,
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisSpacing: 10,
-                mainAxisSpacing: 10,
+                crossAxisSpacing: _axisSpacing,
+                mainAxisSpacing: _axisSpacing,
                 crossAxisCount: 3,
               ),
               builderDelegate: PagedChildBuilderDelegate<Artwork>(
                 itemBuilder: (context, artwork, index) =>
                     FFArtworkThumbnailView(
                   artwork: artwork,
+                  cacheSize: (MediaQuery.sizeOf(context).width -
+                          _padding * 2 -
+                          _axisSpacing * 2) ~/
+                      3,
                   onTap: () async {
                     final controllingDevice =
                         _canvasDeviceBloc.state.controllingDevice;
