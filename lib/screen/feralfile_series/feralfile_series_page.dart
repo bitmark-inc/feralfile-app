@@ -51,7 +51,10 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
     try {
       final newItems = await injector<FeralFileService>().getSeriesArtworks(
           widget.payload.seriesId, widget.payload.exhibitionId,
-          withSeries: true, offset: pageKey);
+          withSeries: true,
+          offset: pageKey,
+          // ignore: avoid_redundant_argument_values
+          limit: _pageSize);
       final isLastPage = !newItems.paging.shouldLoadMore;
       if (isLastPage) {
         _pagingController.appendLastPage(newItems.result);

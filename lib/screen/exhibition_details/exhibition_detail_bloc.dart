@@ -29,7 +29,7 @@ class ExhibitionDetailBloc
       emit(state.copyWith(exhibitionDetail: exhibitionDetail));
 
       if (artworks.paging.shouldLoadMore) {
-        add(LoadMoreArtworkEvent(artworks.paging.limit, _limit));
+        //add(LoadMoreArtworkEvent(artworks.paging.limit, _limit));
       }
     });
 
