@@ -10,7 +10,6 @@ import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_blo
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_state.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/cast_button.dart';
@@ -61,29 +60,27 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
   Widget build(BuildContext context) =>
       BlocConsumer<ExhibitionDetailBloc, ExhibitionDetailState>(
           builder: (context, state) => Scaffold(
-                appBar: _getAppBar(context, state.exhibitionDetail),
+                appBar: _getAppBar(context, state.exhibition),
                 backgroundColor: AppColor.primaryBlack,
                 body: _body(context, state),
               ),
           listener: (context, state) {},
           listenWhen: (previous, current) {
-            if (previous.exhibitionDetail == null &&
-                current.exhibitionDetail != null) {
-              _stream(current.exhibitionDetail!);
+            if (previous.exhibition == null && current.exhibition != null) {
+              _stream(current.exhibition!);
             }
             return true;
           });
 
   Widget _body(BuildContext context, ExhibitionDetailState state) {
-    final exhibitionDetail = state.exhibitionDetail;
-    if (exhibitionDetail == null) {
+    final exhibition = state.exhibition;
+    if (exhibition == null) {
       return const Center(
         child: CircularProgressIndicator(),
       );
     }
 
-    final viewingArtworks = exhibitionDetail.representArtworks;
-    final itemCount = viewingArtworks.length + 3;
+    final itemCount = (exhibition.series?.length ?? 0) + 3;
     return Column(
       children: [
         Expanded(
@@ -93,7 +90,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
               setState(() {
                 _currentIndex = index;
               });
-              _stream(exhibitionDetail);
+              _stream(exhibition);
             },
             scrollDirection: Axis.vertical,
             itemCount: itemCount,
@@ -110,14 +107,16 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
 
               switch (index) {
                 case 0:
-                  return _getPreviewPage(exhibitionDetail.exhibition);
+                  return _getPreviewPage(exhibition);
                 case 1:
-                  return _notePage(exhibitionDetail);
+                  return _notePage(exhibition);
                 default:
                   final seriesIndex = index - 2;
-                  final series = exhibitionDetail.getSeriesByIndex(seriesIndex);
-                  final artwork =
-                      exhibitionDetail.representArtworkByIndex(seriesIndex);
+                  final series = exhibition.series![seriesIndex];
+                  final artwork = series.artwork;
+                  if (artwork == null) {
+                    return const SizedBox();
+                  }
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 40),
                     child: FeralFileArtworkPreview(
@@ -136,11 +135,11 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
     );
   }
 
-  void _stream(ExhibitionDetail exhibitionDetail) {
+  void _stream(Exhibition exhibition) {
     final controllingDevice = _canvasDeviceBloc.state.controllingDevice;
     log.info('onPageChanged: $_currentIndex');
     if (controllingDevice != null) {
-      final request = _getCastExhibitionRequest(exhibitionDetail);
+      final request = _getCastExhibitionRequest(exhibition);
       log.info('onPageChanged: request: $request');
       _canvasDeviceBloc.add(
         CanvasDeviceCastExhibitionEvent(controllingDevice, request),
@@ -173,62 +172,58 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
         ),
       );
 
-  Widget _notePage(ExhibitionDetail exhibitionDetail) {
-    final exhibition = exhibitionDetail.exhibition;
-    return LayoutBuilder(
-      builder: (context, constraints) => Center(
-        child: CarouselSlider(
-          items: [
-            ExhibitionNoteView(
-              exhibition: exhibition,
-              onReadMore: () async {
-                await Navigator.pushNamed(
-                  context,
-                  AppRouter.exhibitionNotePage,
-                  arguments: exhibition,
-                );
+  Widget _notePage(Exhibition exhibition) => LayoutBuilder(
+        builder: (context, constraints) => Center(
+          child: CarouselSlider(
+            items: [
+              ExhibitionNoteView(
+                exhibition: exhibition,
+                onReadMore: () async {
+                  await Navigator.pushNamed(
+                    context,
+                    AppRouter.exhibitionNotePage,
+                    arguments: exhibition,
+                  );
+                },
+              ),
+              ...exhibition.posts
+                      ?.where((post) => post.coverURI != null)
+                      .map((e) => ExhibitionPostView(
+                            post: e,
+                          )) ??
+                  []
+            ],
+            options: CarouselOptions(
+              aspectRatio: constraints.maxWidth / constraints.maxHeight,
+              viewportFraction: 0.76,
+              enableInfiniteScroll: false,
+              enlargeCenterPage: true,
+              onPageChanged: (index, reason) {
+                _carouselIndex = index;
+                final controllingDevice =
+                    _canvasDeviceBloc.state.controllingDevice;
+                final request = _getCastExhibitionRequest(exhibition);
+                if (controllingDevice != null) {
+                  _canvasDeviceBloc.add(
+                    CanvasDeviceCastExhibitionEvent(controllingDevice, request),
+                  );
+                }
               },
             ),
-            ...exhibition.posts
-                    ?.where((post) => post.coverURI != null)
-                    .map((e) => ExhibitionPostView(
-                          post: e,
-                        )) ??
-                []
-          ],
-          options: CarouselOptions(
-            aspectRatio: constraints.maxWidth / constraints.maxHeight,
-            viewportFraction: 0.76,
-            enableInfiniteScroll: false,
-            enlargeCenterPage: true,
-            onPageChanged: (index, reason) {
-              _carouselIndex = index;
-              final controllingDevice =
-                  _canvasDeviceBloc.state.controllingDevice;
-              final request = _getCastExhibitionRequest(exhibitionDetail);
-              if (controllingDevice != null) {
-                _canvasDeviceBloc.add(
-                  CanvasDeviceCastExhibitionEvent(controllingDevice, request),
-                );
-              }
-            },
           ),
         ),
-      ),
-    );
-  }
+      );
 
-  AppBar _getAppBar(
-          BuildContext buildContext, ExhibitionDetail? exhibitionDetail) =>
+  AppBar _getAppBar(BuildContext buildContext, Exhibition? exhibition) =>
       getFFAppBar(
         buildContext,
         onBack: () => Navigator.pop(buildContext),
-        action: exhibitionDetail != null
+        action: exhibition != null
             ? Padding(
                 padding: const EdgeInsets.only(right: 14, bottom: 10, top: 10),
                 child: FFCastButton(
                   onDeviceSelected: (device) async {
-                    final request = _getCastExhibitionRequest(exhibitionDetail);
+                    final request = _getCastExhibitionRequest(exhibition);
                     _canvasDeviceBloc.add(
                       CanvasDeviceCastExhibitionEvent(device, request),
                     );
@@ -239,7 +234,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
       );
 
   Pair<ExhibitionKatalog, String?> _getCurrentCatalogInfo(
-      ExhibitionDetail exhibitionDetail) {
+      Exhibition exhibition) {
     ExhibitionKatalog? catalog;
     String? catalogId;
     switch (_currentIndex) {
@@ -250,22 +245,20 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
           catalog = ExhibitionKatalog.CURATOR_NOTE;
         } else {
           catalog = ExhibitionKatalog.RESOURCE;
-          catalogId = exhibitionDetail.exhibition.posts![_carouselIndex - 1].id;
+          catalogId = exhibition.posts![_carouselIndex - 1].id;
         }
       default:
         catalog = ExhibitionKatalog.ARTWORK;
         final seriesIndex = _currentIndex - 2;
-        final currentArtwork =
-            exhibitionDetail.representArtworkByIndex(seriesIndex).id;
+        final currentArtwork = exhibition.series?[seriesIndex].id;
         catalogId = currentArtwork;
     }
     return Pair(catalog, catalogId);
   }
 
-  CastExhibitionRequest _getCastExhibitionRequest(
-      ExhibitionDetail exhibitionDetail) {
-    final exhibitionId = exhibitionDetail.exhibition.id;
-    final katalogInfo = _getCurrentCatalogInfo(exhibitionDetail);
+  CastExhibitionRequest _getCastExhibitionRequest(Exhibition exhibition) {
+    final exhibitionId = exhibition.id;
+    final katalogInfo = _getCurrentCatalogInfo(exhibition);
     final katalog = katalogInfo.first;
     final katalogId = katalogInfo.second;
     CastExhibitionRequest request = CastExhibitionRequest(

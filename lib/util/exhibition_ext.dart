@@ -108,30 +108,6 @@ extension ListExhibitionDetailExt on List<ExhibitionDetail> {
 }
 
 extension ExhibitionDetailExt on ExhibitionDetail {
-  List<String> get seriesIds =>
-      artworks?.map((e) => e.seriesID).toSet().toList() ?? [];
-
-  Artwork? representArtwork(String seriesId) =>
-      artworks!.firstWhereOrNull((e) => e.seriesID == seriesId);
-
-  List<Artwork> get representArtworks =>
-      seriesIds.map((e) => representArtwork(e)).whereNotNull().toList();
-
-  Artwork representArtworkByIndex(int seriesIndex) {
-    if (seriesIndex < 0 || seriesIndex >= representArtworks.length) {
-      throw Exception('Invalid series index');
-    }
-    return representArtworks[seriesIndex];
-  }
-
-  FFSeries getSeriesByIndex(int seriesIndex) {
-    if (seriesIndex < 0 || seriesIndex >= seriesIds.length) {
-      throw Exception('Invalid series index');
-    }
-    return exhibition.series!
-        .firstWhere((e) => e.id == representArtworks[seriesIndex].seriesID);
-  }
-
   String? getArtworkTokenId(Artwork artwork) {
     if (artwork.swap != null) {
       if (artwork.swap!.token == null) {

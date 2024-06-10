@@ -89,6 +89,7 @@ class _FeralFileApi implements FeralFileApi {
     String? sortBy,
     String? sortOrder,
     bool includeArtist = true,
+    bool includeFirstArtwork = false,
     bool includeUniqueFilePath = true,
   }) async {
     const _extra = <String, dynamic>{};
@@ -97,6 +98,7 @@ class _FeralFileApi implements FeralFileApi {
       r'sortBy': sortBy,
       r'sortOrder': sortOrder,
       r'includeArtist': includeArtist,
+      r'includeFirstArtwork': includeFirstArtwork,
       r'includeUniqueFilePath': includeUniqueFilePath,
     };
     queryParameters.removeWhere((k, v) => v == null);

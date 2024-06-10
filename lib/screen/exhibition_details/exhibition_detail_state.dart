@@ -8,20 +8,11 @@ class GetExhibitionDetailEvent extends ExhibitionDetailEvent {
   final String exhibitionId;
 }
 
-class LoadMoreArtworkEvent extends ExhibitionDetailEvent {
-  final int offset;
-  final int limit;
-
-  LoadMoreArtworkEvent(this.offset, this.limit);
-}
-
 class ExhibitionDetailState {
-  ExhibitionDetailState({this.exhibitionDetail});
+  ExhibitionDetailState({this.exhibition});
 
-  final ExhibitionDetail? exhibitionDetail;
+  final Exhibition? exhibition;
 
-  ExhibitionDetailState copyWith({ExhibitionDetail? exhibitionDetail}) =>
-      ExhibitionDetailState(
-        exhibitionDetail: exhibitionDetail ?? this.exhibitionDetail,
-      );
+  ExhibitionDetailState copyWith({Exhibition? exhibition}) =>
+      ExhibitionDetailState(exhibition: exhibition ?? this.exhibition);
 }

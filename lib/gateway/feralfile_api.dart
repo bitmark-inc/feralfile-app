@@ -37,6 +37,7 @@ abstract class FeralFileApi {
     @Query('sortBy') String? sortBy,
     @Query('sortOrder') String? sortOrder,
     @Query('includeArtist') bool includeArtist = true,
+    @Query('includeFirstArtwork') bool includeFirstArtwork = false,
     @Query('includeUniqueFilePath') bool includeUniqueFilePath = true,
   });
 

@@ -79,7 +79,7 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
           builder: (context, state) => Scaffold(
               appBar: _getAppBar(context, state.series),
               backgroundColor: AppColor.primaryBlack,
-              body: _body(context)),
+              body: _body(context, state.series)),
           listener: (context, state) {});
 
   AppBar _getAppBar(BuildContext buildContext, FFSeries? series) => getFFAppBar(
@@ -93,7 +93,12 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
                 crossAxisAlignment: CrossAxisAlignment.center),
       );
 
-  Widget _body(BuildContext context) => _artworkSliverGrid(context);
+  Widget _body(BuildContext context, FFSeries? series) {
+    if (series == null) {
+      return _loadingIndicator();
+    }
+    return _artworkSliverGrid(context, series);
+  }
 
   Widget _loadingIndicator() => Center(
         child: Padding(
@@ -102,7 +107,7 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
         ),
       );
 
-  Widget _artworkSliverGrid(BuildContext context) => Padding(
+  Widget _artworkSliverGrid(BuildContext context, FFSeries series) => Padding(
         padding:
             const EdgeInsets.only(left: _padding, right: _padding, bottom: 20),
         child: CustomScrollView(
@@ -142,7 +147,7 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
                     await Navigator.of(context).pushNamed(
                       AppRouter.ffArtworkPreviewPage,
                       arguments: FeralFileArtworkPreviewPagePayload(
-                        artwork: artwork,
+                        artwork: artwork.copyWith(series: series),
                       ),
                     );
                   },
