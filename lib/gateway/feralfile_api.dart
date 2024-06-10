@@ -7,7 +7,7 @@
 
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
-import 'package:autonomy_flutter/model/ff_exhibition_artworks_response.dart';
+import 'package:autonomy_flutter/model/ff_list_response.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
@@ -37,6 +37,7 @@ abstract class FeralFileApi {
     @Query('sortBy') String? sortBy,
     @Query('sortOrder') String? sortOrder,
     @Query('includeArtist') bool includeArtist = true,
+    @Query('includeFirstArtwork') bool includeFirstArtwork = false,
     @Query('includeUniqueFilePath') bool includeUniqueFilePath = true,
   });
 
@@ -64,9 +65,11 @@ abstract class FeralFileApi {
   Future<ExhibitionResponse> getFeaturedExhibition();
 
   @GET('/api/artworks')
-  Future<ArtworksResponse> getListArtworks({
+  Future<FeralFileListResponse<Artwork>> getListArtworks({
     @Query('exhibitionID') String? exhibitionId,
     @Query('seriesID') String? seriesId,
+    @Query('offset') int? offset,
+    @Query('limit') int? limit,
     @Query('includeActiveSwap') bool includeActiveSwap = true,
     @Query('sortBy') String sortBy = 'index',
     @Query('sortOrder') String sortOrder = 'ASC',

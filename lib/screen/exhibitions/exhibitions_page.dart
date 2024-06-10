@@ -307,8 +307,8 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                               divider,
                             ])
                         .flattened,
-                    if (!isSubscribed && proExhibitions.isNotEmpty)
-                      _pastExhibitionHeader(context),
+                    if (proExhibitions.isNotEmpty)
+                      _pastExhibitionHeader(context, isSubscribed),
                     ...proExhibitions
                         .map((e) => [
                               _exhibitionItem(
@@ -329,7 +329,7 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
         ),
       );
 
-  Widget _pastExhibitionHeader(BuildContext context) {
+  Widget _pastExhibitionHeader(BuildContext context, bool isSubscribed) {
     final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 18),
@@ -343,24 +343,28 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                   style: theme.textTheme.ppMori400White14),
               Row(
                 children: [
-                  _lockIcon(),
-                  const SizedBox(width: 5),
+                  if (!isSubscribed) ...[
+                    _lockIcon(),
+                    const SizedBox(width: 5),
+                  ],
                   Text('premium_membership'.tr(),
                       style: theme.textTheme.ppMori400Grey14),
                 ],
               ),
             ],
           ),
-          PrimaryButton(
-            color: AppColor.feralFileLightBlue,
-            padding: EdgeInsets.zero,
-            elevatedPadding: const EdgeInsets.symmetric(horizontal: 15),
-            borderRadius: 20,
-            text: 'get_premium'.tr(),
-            onTap: () async {
-              await Navigator.of(context).pushNamed(AppRouter.subscriptionPage);
-            },
-          ),
+          if (!isSubscribed)
+            PrimaryButton(
+              color: AppColor.feralFileLightBlue,
+              padding: EdgeInsets.zero,
+              elevatedPadding: const EdgeInsets.symmetric(horizontal: 15),
+              borderRadius: 20,
+              text: 'get_premium'.tr(),
+              onTap: () async {
+                await Navigator.of(context)
+                    .pushNamed(AppRouter.subscriptionPage);
+              },
+            ),
         ],
       ),
     );

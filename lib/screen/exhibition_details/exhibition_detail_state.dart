@@ -9,12 +9,10 @@ class GetExhibitionDetailEvent extends ExhibitionDetailEvent {
 }
 
 class ExhibitionDetailState {
-  ExhibitionDetailState({this.exhibitionDetail});
+  ExhibitionDetailState({this.exhibition});
 
-  final ExhibitionDetail? exhibitionDetail;
+  final Exhibition? exhibition;
 
-  ExhibitionDetailState copyWith({ExhibitionDetail? exhibitionDetail}) =>
-      ExhibitionDetailState(
-        exhibitionDetail: exhibitionDetail ?? this.exhibitionDetail,
-      );
+  ExhibitionDetailState copyWith({Exhibition? exhibition}) =>
+      ExhibitionDetailState(exhibition: exhibition ?? this.exhibition);
 }

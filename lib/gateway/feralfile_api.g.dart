@@ -89,6 +89,7 @@ class _FeralFileApi implements FeralFileApi {
     String? sortBy,
     String? sortOrder,
     bool includeArtist = true,
+    bool includeFirstArtwork = false,
     bool includeUniqueFilePath = true,
   }) async {
     const _extra = <String, dynamic>{};
@@ -97,6 +98,7 @@ class _FeralFileApi implements FeralFileApi {
       r'sortBy': sortBy,
       r'sortOrder': sortOrder,
       r'includeArtist': includeArtist,
+      r'includeFirstArtwork': includeFirstArtwork,
       r'includeUniqueFilePath': includeUniqueFilePath,
     };
     queryParameters.removeWhere((k, v) => v == null);
@@ -252,9 +254,11 @@ class _FeralFileApi implements FeralFileApi {
   }
 
   @override
-  Future<ArtworksResponse> getListArtworks({
+  Future<FeralFileListResponse<Artwork>> getListArtworks({
     String? exhibitionId,
     String? seriesId,
+    int? offset,
+    int? limit,
     bool includeActiveSwap = true,
     String sortBy = 'index',
     String sortOrder = 'ASC',
@@ -263,6 +267,8 @@ class _FeralFileApi implements FeralFileApi {
     final queryParameters = <String, dynamic>{
       r'exhibitionID': exhibitionId,
       r'seriesID': seriesId,
+      r'offset': offset,
+      r'limit': limit,
       r'includeActiveSwap': includeActiveSwap,
       r'sortBy': sortBy,
       r'sortOrder': sortOrder,
@@ -270,8 +276,8 @@ class _FeralFileApi implements FeralFileApi {
     queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
     final Map<String, dynamic>? _data = null;
-    final _result = await _dio
-        .fetch<Map<String, dynamic>>(_setStreamType<ArtworksResponse>(Options(
+    final _result = await _dio.fetch<Map<String, dynamic>>(
+        _setStreamType<FeralFileListResponse<Artwork>>(Options(
       method: 'GET',
       headers: _headers,
       extra: _extra,
@@ -287,7 +293,8 @@ class _FeralFileApi implements FeralFileApi {
               _dio.options.baseUrl,
               baseUrl,
             ))));
-    final value = ArtworksResponse.fromJson(_result.data!);
+    final value = FeralFileListResponse<Artwork>.fromJson(
+        _result.data!, Artwork.fromJson);
     return value;
   }
 

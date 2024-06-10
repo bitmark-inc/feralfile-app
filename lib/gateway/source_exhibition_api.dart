@@ -38,7 +38,7 @@ extension SourceExhibitionAPIHelper on SourceExhibitionAPI {
               ?.map((element) => FFSeries.fromJson(element))
               .toList() ??
           [];
-      return series;
+      return series.map((e) => e.copyWith(artwork: e.artworks!.first)).toList();
     } catch (e) {
       return [];
     }
