@@ -270,7 +270,7 @@ class FeralFileServiceImpl extends FeralFileService {
     final exhibition = await getExhibition(exhibitionId);
     final series = await getListSeries(exhibitionId);
 
-    if (exhibitionId == JOHN_GERRARD_EXHIBITION_ID) {
+    if (exhibition.isJohnGerrardShow) {
       return await _getJohnGerrardFakeArtworks(
         series: series.first,
         offset: 0,
@@ -427,7 +427,7 @@ class FeralFileServiceImpl extends FeralFileService {
     List<Artwork> listArtwork = artworks.result;
     if (listArtwork.isEmpty) {
       final series = await getSeries(seriesId);
-      if (series.exhibition?.id == JOHN_GERRARD_EXHIBITION_ID) {
+      if (series.exhibition?.isJohnGerrardShow == true) {
         listArtwork = await _getJohnGerrardFakeArtworks(
           series: series,
           offset: 0,

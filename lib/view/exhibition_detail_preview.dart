@@ -95,7 +95,7 @@ class ExhibitionPreview extends StatelessWidget {
   Widget _buildExhibitionMedia(BuildContext context, Exhibition exhibition) {
     if (exhibition.id == SOURCE_EXHIBITION_ID) {
       return _buildSourceExhibitionCover(context);
-    } else if (exhibition.id == JOHN_GERRARD_EXHIBITION_ID) {
+    } else if (exhibition.isJohnGerrardShow) {
       return _buildJohnGerrardExhibitionLivePerformance(context);
     } else {
       return Image.network(
