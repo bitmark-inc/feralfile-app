@@ -1,4 +1,6 @@
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
+import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -34,7 +36,9 @@ class ExhibitionNoteView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'curators_note'.tr(),
+              exhibition.isJohnGerrardShow
+                  ? 'artist_note'.tr()
+                  : 'curators_note'.tr(),
               style: theme.textTheme.ppMori400White12,
             ),
             const SizedBox(height: 30),
