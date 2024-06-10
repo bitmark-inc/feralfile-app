@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_blo
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_state.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -75,13 +76,17 @@ class _ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
 
   @override
   void didPopNext() {
-    _renderingWidget?.didPopNext();
+    if (!UIHelper.isShowingDrawerAction) {
+      _renderingWidget?.didPopNext();
+    }
     super.didPopNext();
   }
 
   @override
   void didPushNext() {
-    unawaited(_renderingWidget?.clearPrevious());
+    if (!UIHelper.isShowingDrawerAction) {
+      unawaited(_renderingWidget?.clearPrevious());
+    }
     super.didPushNext();
   }
 

@@ -607,6 +607,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     }
     final isHidden = _isHidden(asset);
     _focusNode.unfocus();
+    Function? callBack;
     unawaited(UIHelper.showDrawerAction(
       context,
       options: [
@@ -644,13 +645,14 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               color: AppColor.white,
             ),
             onTap: () {
-              unawaited(
-                Navigator.pushNamed(
+              Navigator.of(context).pop();
+              callBack = () async {
+                await Navigator.pushNamed(
                   context,
                   AppRouter.irlWebView,
                   arguments: IRLWebScreenPayload(irlUrl.second),
-                ),
-              );
+                );
+              };
             },
           ),
         if (asset.secondaryMarketURL.isNotEmpty)
@@ -662,13 +664,14 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               height: 18,
             ),
             onTap: () {
-              unawaited(
-                Navigator.pushNamed(
+              Navigator.of(context).pop();
+              callBack = () async {
+                await Navigator.pushNamed(
                   context,
                   AppRouter.inappWebviewPage,
                   arguments: InAppWebViewPayload(asset.secondaryMarketURL),
-                ),
-              );
+                );
+              };
             },
           ),
         OptionItem(
@@ -826,7 +829,9 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
         ),
         OptionItem.emptyOptionItem,
       ],
-    ));
+    ).then((_) {
+      callBack?.call();
+    }));
   }
 
   Future<void> _setFullScreen() async {
