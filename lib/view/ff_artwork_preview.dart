@@ -43,13 +43,10 @@ class FeralFileArtworkPreview extends StatelessWidget {
                     child: SeriesTitleView(
                         series: payload.series, artist: payload.series.artist),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 3),
-                    child: SvgPicture.asset(
-                      'assets/images/icon_series.svg',
-                      width: 22,
-                      height: 22,
-                    ),
+                  SvgPicture.asset(
+                    'assets/images/icon_series.svg',
+                    width: 22,
+                    height: 22,
                   )
                 ],
               ),
