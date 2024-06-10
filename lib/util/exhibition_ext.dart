@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/http_helper.dart';
+import 'package:autonomy_flutter/util/john_gerrard_hepler.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:collection/collection.dart';
 
@@ -17,7 +18,7 @@ extension ExhibitionExt on Exhibition {
 
   bool get isGroupExhibition => type == 'group';
 
-  bool get isJohnGerrardShow => id == JOHN_GERRARD_EXHIBITION_ID;
+  bool get isJohnGerrardShow => id == JohnGerrardHelper.exhibitionID;
 
   DateTime get exhibitionViewAt =>
       exhibitionStartAt.subtract(Duration(seconds: previewDuration ?? 0));

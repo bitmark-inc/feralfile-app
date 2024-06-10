@@ -1,10 +1,11 @@
 import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/john_gerrard_hepler.dart';
 
 extension FFSeriesExt on FFSeries {
   String get displayTitle {
     final year = mintedAt?.year ?? createdAt?.year;
-    return (year != null && exhibitionID != JOHN_GERRARD_EXHIBITION_ID)
+    return (year != null && exhibitionID != JohnGerrardHelper.exhibitionID)
         ? '$title ($year)'
         : title;
   }

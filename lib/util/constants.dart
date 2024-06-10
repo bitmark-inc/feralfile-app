@@ -245,8 +245,6 @@ const List<String> YOUTUBE_VARIANTS = [
   'mqdefault', // Lower quality - Guaranteed to exist
 ];
 
-const String JOHN_GERRARD_EXHIBITION_ID =
-    '46a0f68b-a657-4364-92a0-32a88b65fbd9';
 const MAGIC_NUMBER = 168;
 
 Future<bool> isAppCenterBuild() async {
