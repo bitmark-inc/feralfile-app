@@ -615,7 +615,7 @@ class FeralFileServiceImpl extends FeralFileService {
       null,
       '',
       false,
-      'previews/${series.id}/${series.previewFile?.version}/generated_images/crystal_${index + MAGIC_NUMBER}_img.jpeg',
+      'previews/${series.id}/${series.previewFile?.version}/generated_images/crystal_${index + MAGIC_NUMBER}_img.jpg',
       'previews/${series.id}/${series.previewFile?.version}/nft.html?hourIdx=${index + MAGIC_NUMBER}',
       {
         'viewableAt': beforeMintingArtworkInfos[index].viewableAt,

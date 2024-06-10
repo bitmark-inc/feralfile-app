@@ -57,6 +57,10 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
             'previews/d15cc1f3-c2f1-4b9c-837d-7c131583bf40/1710123470/index.html',
         'public_version_thumbnail':
             'thumbnails/d15cc1f3-c2f1-4b9c-837d-7c131583bf40/1710123327'
+      },
+      'john_gerrard': {
+        'contract_address': '0x9D57f2e1A8c864009ed0C980E2d31aa5EB42f820',
+        'exhibition_id': '50fb6756-80a9-46e4-b70c-380c32dfcc77',
       }
     },
   };
