@@ -1,5 +1,4 @@
 import 'package:autonomy_flutter/model/ff_series.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/john_gerrard_hepler.dart';
 
 extension FFSeriesExt on FFSeries {
