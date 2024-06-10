@@ -198,72 +198,64 @@ class _InAppWebViewPageState extends State<InAppWebViewPage> {
     });
   }
 
-  Future<bool> canGoBack() async =>
-      await webViewController?.canGoBack() ?? false;
-
-  Future<bool> canGoForward() async =>
-      await webViewController?.canGoForward() ?? false;
-
-  Widget _bottomBar(BuildContext context) {
-    return Container(
-      color: AppColor.white,
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 50),
-      child: Row(
-        children: [
-          IconButton(
-            icon: Icon(AuIcon.chevron,
-                color: _canGoBack
-                    ? AppColor.primaryBlack
-                    : AppColor.disabledColor),
-            onPressed: () async {
-              if (await webViewController?.canGoBack() ?? false) {
-                await webViewController?.goBack();
-                await refreshAppBarStatus();
-              }
-            },
-          ),
-          const Spacer(),
-          IconButton(
-            icon: RotatedBox(
-                quarterTurns: 2,
-                child: Icon(
-                  AuIcon.chevron,
-                  color: _canGoForward
+  Widget _bottomBar(BuildContext context) => Container(
+        color: AppColor.white,
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 50),
+        child: Row(
+          children: [
+            IconButton(
+              icon: Icon(AuIcon.chevron,
+                  color: _canGoBack
                       ? AppColor.primaryBlack
-                      : AppColor.disabledColor,
-                )),
-            onPressed: () async {
-              if (await webViewController?.canGoForward() ?? false) {
-                await webViewController?.goForward();
+                      : AppColor.disabledColor),
+              onPressed: () async {
+                if (await webViewController?.canGoBack() ?? false) {
+                  await webViewController?.goBack();
+                  await refreshAppBarStatus();
+                }
+              },
+            ),
+            const Spacer(),
+            IconButton(
+              icon: RotatedBox(
+                  quarterTurns: 2,
+                  child: Icon(
+                    AuIcon.chevron,
+                    color: _canGoForward
+                        ? AppColor.primaryBlack
+                        : AppColor.disabledColor,
+                  )),
+              onPressed: () async {
+                if (await webViewController?.canGoForward() ?? false) {
+                  await webViewController?.goForward();
+                  await refreshAppBarStatus();
+                }
+              },
+            ),
+            const Spacer(),
+            IconButton(
+              icon: SvgPicture.asset('assets/images/Reload.svg'),
+              onPressed: () async {
+                await webViewController?.reload();
                 await refreshAppBarStatus();
-              }
-            },
-          ),
-          const Spacer(),
-          IconButton(
-            icon: SvgPicture.asset('assets/images/Reload.svg'),
-            onPressed: () async {
-              webViewController?.reload();
-              await refreshAppBarStatus();
-            },
-          ),
-          const Spacer(),
-          IconButton(
-            icon: SvgPicture.asset('assets/images/Share.svg'),
-            onPressed: () async {
-              final currentUrl = await webViewController?.getUrl();
-              if (currentUrl != null) {
-                unawaited(launchUrl(
-                  currentUrl,
-                  mode: LaunchMode.externalApplication,
-                ));
-              }
-            },
-          ),
-        ],
-      ),
-    );
-  }
+              },
+            ),
+            const Spacer(),
+            IconButton(
+              icon: SvgPicture.asset('assets/images/Share.svg'),
+              onPressed: () async {
+                final currentUrl = await webViewController?.getUrl();
+                if (currentUrl != null) {
+                  unawaited(launchUrl(
+                    currentUrl,
+                    mode: LaunchMode.externalApplication,
+                  ));
+                }
+              },
+            ),
+          ],
+        ),
+      );
 }
 
 class InAppWebViewPayload {
