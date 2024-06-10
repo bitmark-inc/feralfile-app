@@ -196,8 +196,7 @@ class FeralFileServiceImpl extends FeralFileService {
 
     if (includeFirstArtwork && series.artwork == null) {
       final exhibition = await getExhibition(series.exhibitionID);
-      final artworks = await _getFakeSeriesArtworks(
-          exhibition, series, 0, 1);
+      final artworks = await _getFakeSeriesArtworks(exhibition, series, 0, 1);
       return series.copyWith(artwork: artworks.first);
     }
 
@@ -390,7 +389,9 @@ class FeralFileServiceImpl extends FeralFileService {
     final series = await getSeries(seriesId);
     final List<Artwork> seriesArtworks =
         await _getFakeSeriesArtworks(exhibition, series, offset, limit);
-    final total = series.maxEdition;
+    final total = series.latestRevealedArtworkIndex == null
+        ? series.maxEdition
+        : series.latestRevealedArtworkIndex! + 1;
     return FeralFileListResponse(
         result: seriesArtworks,
         paging: Paging(offset: offset, limit: limit, total: total));

@@ -51,7 +51,6 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
     try {
       final newItems = await injector<FeralFileService>().getSeriesArtworks(
           widget.payload.seriesId, widget.payload.exhibitionId,
-          withSeries: true,
           offset: pageKey,
           // ignore: avoid_redundant_argument_values
           limit: _pageSize);
@@ -76,11 +75,18 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
   @override
   Widget build(BuildContext context) =>
       BlocConsumer<FeralFileSeriesBloc, FeralFileSeriesState>(
-          builder: (context, state) => Scaffold(
-              appBar: _getAppBar(context, state.series),
-              backgroundColor: AppColor.primaryBlack,
-              body: _body(context, state.series)),
-          listener: (context, state) {});
+        builder: (context, state) => Scaffold(
+            appBar: _getAppBar(context, state.series),
+            backgroundColor: AppColor.primaryBlack,
+            body: _body(context, state.series)),
+        listener: (context, state) {
+          _pagingController.addPageRequestListener((pageKey) async {
+            await _fetchPage(pageKey);
+          });
+        },
+        listenWhen: (previous, current) =>
+            previous.series == null && current.series != null,
+      );
 
   AppBar _getAppBar(BuildContext buildContext, FFSeries? series) => getFFAppBar(
         buildContext,
