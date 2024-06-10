@@ -7,4 +7,10 @@ class JohnGerrardHelper {
         .getConfig(ConfigGroup.exhibition, ConfigKey.johnGerrard, {});
     return config['contract_address'];
   }
+
+  static String? get exhibitionID {
+    final config = injector<RemoteConfigService>()
+        .getConfig(ConfigGroup.exhibition, ConfigKey.johnGerrard, {});
+    return config['exhibition_id'];
+  }
 }
