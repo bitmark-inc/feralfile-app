@@ -512,26 +512,18 @@ class FeralFileServiceImpl extends FeralFileService {
 
     final exhibition = await _sourceExhibitionAPI.getSourceExhibitionInfo();
     final series = await _sourceExhibitionAPI.getSourceExhibitionSeries();
-
-    /// because we cache the source exhibition, and we use that everywhere
-    /// so automatically get artwork would reduce complexity a lot
-    final seriesWithArtworks = await Future.wait(series.map((s) async {
-      final artworks = await _getSourceSeriesArtworks(s.id);
-      return s.copyWith(artworks: artworks, artwork: artworks.first);
-    }));
-    sourceExhibition = exhibition.copyWith(series: seriesWithArtworks);
+    sourceExhibition = exhibition.copyWith(series: series);
     return sourceExhibition!;
   }
 
   Future<FFSeries> _getSourceSeries(String seriesID) async {
     if (sourceExhibition != null && sourceExhibition!.series != null) {
       return sourceExhibition!.series!
-          .where((series) => series.id == seriesID)
-          .first;
+          .firstWhere((series) => series.id == seriesID);
     }
 
     final listSeries = await _sourceExhibitionAPI.getSourceExhibitionSeries();
-    return listSeries.where((series) => series.id == seriesID).first;
+    return listSeries.firstWhere((series) => series.id == seriesID);
   }
 
   Future<List<Artwork>> _getSourceSeriesArtworks(String seriesID) async {
