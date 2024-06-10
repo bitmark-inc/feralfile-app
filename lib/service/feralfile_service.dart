@@ -402,7 +402,7 @@ class FeralFileServiceImpl extends FeralFileService {
     if (exhibitionID == SOURCE_EXHIBITION_ID) {
       final artworks = await _getSourceSeriesArtworks(seriesId);
       return FeralFileListResponse(
-          result: artworks.sublist(limit, min(artworks.length, offset + limit)),
+          result: artworks.sublist(offset, min(artworks.length, offset + limit)),
           paging: Paging(offset: 0, limit: limit, total: artworks.length));
     }
 
