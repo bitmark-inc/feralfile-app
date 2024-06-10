@@ -92,28 +92,39 @@ class MockFeralFileService extends _i1.Mock implements _i6.FeralFileService {
   _i7.Future<_i2.FFSeries> getSeries(
     String? id, {
     String? exhibitionID,
+    bool? includeFirstArtwork = false,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
           #getSeries,
           [id],
-          {#exhibitionID: exhibitionID},
+          {
+            #exhibitionID: exhibitionID,
+            #includeFirstArtwork: includeFirstArtwork,
+          },
         ),
         returnValue: _i7.Future<_i2.FFSeries>.value(_FakeFFSeries_0(
           this,
           Invocation.method(
             #getSeries,
             [id],
-            {#exhibitionID: exhibitionID},
+            {
+              #exhibitionID: exhibitionID,
+              #includeFirstArtwork: includeFirstArtwork,
+            },
           ),
         )),
       ) as _i7.Future<_i2.FFSeries>);
   @override
-  _i7.Future<List<_i2.FFSeries>> getListSeries(String? exhibitionId) =>
+  _i7.Future<List<_i2.FFSeries>> getListSeries(
+    String? exhibitionId, {
+    bool? includeFirstArtwork = false,
+  }) =>
       (super.noSuchMethod(
         Invocation.method(
           #getListSeries,
           [exhibitionId],
+          {#includeFirstArtwork: includeFirstArtwork},
         ),
         returnValue: _i7.Future<List<_i2.FFSeries>>.value(<_i2.FFSeries>[]),
       ) as _i7.Future<List<_i2.FFSeries>>);
@@ -213,37 +224,6 @@ class MockFeralFileService extends _i1.Mock implements _i6.FeralFileService {
           ),
         )),
       ) as _i7.Future<_i4.Exhibition>);
-  @override
-  _i7.Future<_i5.FeralFileListResponse<_i3.Artwork>> getExhibitionArtworks(
-    String? exhibitionId, {
-    bool? withSeries = false,
-    int? offset = 0,
-    int? limit = 300,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #getExhibitionArtworks,
-          [exhibitionId],
-          {
-            #withSeries: withSeries,
-            #offset: offset,
-            #limit: limit,
-          },
-        ),
-        returnValue: _i7.Future<_i5.FeralFileListResponse<_i3.Artwork>>.value(
-            _FakeFeralFileListResponse_3<_i3.Artwork>(
-          this,
-          Invocation.method(
-            #getExhibitionArtworks,
-            [exhibitionId],
-            {
-              #withSeries: withSeries,
-              #offset: offset,
-              #limit: limit,
-            },
-          ),
-        )),
-      ) as _i7.Future<_i5.FeralFileListResponse<_i3.Artwork>>);
   @override
   _i7.Future<_i5.FeralFileListResponse<_i3.Artwork>> getSeriesArtworks(
     String? seriesId,
