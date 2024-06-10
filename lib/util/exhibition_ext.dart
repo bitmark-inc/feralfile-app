@@ -17,6 +17,8 @@ extension ExhibitionExt on Exhibition {
 
   bool get isGroupExhibition => type == 'group';
 
+  bool get isJohnGerrardShow => id == JOHN_GERRARD_EXHIBITION_ID;
+
   DateTime get exhibitionViewAt =>
       exhibitionStartAt.subtract(Duration(seconds: previewDuration ?? 0));
 

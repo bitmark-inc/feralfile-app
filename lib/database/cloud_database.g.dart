@@ -717,6 +717,29 @@ class _$WalletAddressDao extends WalletAddressDao {
   }
 
   @override
+  Future<void> deleteAddressesByPersona(String uuid) async {
+    await _queryAdapter.queryNoReturn(
+        'DELETE FROM WalletAddress WHERE uuid = ?1',
+        arguments: [uuid]);
+  }
+
+  @override
+  Future<List<WalletAddress>> getAddressesByPersona(String uuid) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM WalletAddress WHERE uuid = ?1',
+        mapper: (Map<String, Object?> row) => WalletAddress(
+            address: row['address'] as String,
+            uuid: row['uuid'] as String,
+            index: row['index'] as int,
+            cryptoType: row['cryptoType'] as String,
+            createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
+            isHidden: (row['isHidden'] as int) != 0,
+            name: row['name'] as String?,
+            accountOrder: row['accountOrder'] as int?),
+        arguments: [uuid]);
+  }
+
+  @override
   Future<void> insertAddress(WalletAddress address) async {
     await _walletAddressInsertionAdapter.insert(
         address, OnConflictStrategy.replace);

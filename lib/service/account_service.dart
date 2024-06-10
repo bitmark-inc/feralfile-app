@@ -436,6 +436,11 @@ class AccountServiceImpl extends AccountService {
       for (var persona in currentPersonas) {
         if (!(await persona.wallet().isWalletCreated())) {
           await _cloudDB.personaDao.deletePersona(persona);
+          final addresses =
+              await _cloudDB.addressDao.getAddressesByPersona(persona.uuid);
+          await _addressService
+              .deleteAddresses(addresses.map((e) => e.address).toList());
+          await _cloudDB.addressDao.deleteAddressesByPersona(persona.uuid);
           shouldBackup = true;
         }
       }
