@@ -141,7 +141,6 @@ class MigrationUtil {
 
     //Cleanup broken personas
     final currentPersonas = await _cloudDB.personaDao.getPersonas();
-    final allAddresses = await _cloudDB.addressDao.getAllAddresses();
     for (var persona in currentPersonas) {
       if (!(await persona.wallet().isWalletCreated())) {
         final addresses =
