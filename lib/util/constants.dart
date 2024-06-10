@@ -246,7 +246,7 @@ const List<String> YOUTUBE_VARIANTS = [
 ];
 
 const String JOHN_GERRARD_EXHIBITION_ID =
-    '50fb6756-80a9-46e4-b70c-380c32dfcc77';
+    '46a0f68b-a657-4364-92a0-32a88b65fbd9';
 const MAGIC_NUMBER = 168;
 
 Future<bool> isAppCenterBuild() async {
