@@ -23,15 +23,19 @@ class InAppWebViewPage extends StatefulWidget {
 }
 
 class _InAppWebViewPageState extends State<InAppWebViewPage> {
-  late InAppWebViewController webViewController;
+  InAppWebViewController? webViewController;
   late String title;
   late bool isLoading;
   final _configurationService = injector<ConfigurationService>();
+  late bool _canGoBack;
+  late bool _canGoForward;
 
   @override
   void initState() {
     title = Uri.parse(widget.payload.url).host;
     isLoading = false;
+    _canGoBack = false;
+    _canGoForward = false;
     super.initState();
   }
 
@@ -52,47 +56,53 @@ class _InAppWebViewPageState extends State<InAppWebViewPage> {
             child: Stack(
               children: [
                 InAppWebView(
-                  initialUrlRequest:
-                      URLRequest(url: WebUri(widget.payload.url)),
-                  initialSettings: InAppWebViewSettings(
-                    userAgent: 'user_agent'.tr(namedArgs: {'version': version}),
-                  ),
-                  onPermissionRequest: (InAppWebViewController controller,
-                      permissionRequest) async {
-                    if (permissionRequest.resources
-                        .contains(PermissionResourceType.MICROPHONE)) {
-                      await Permission.microphone.request();
-                      final status = await Permission.microphone.status;
-                      if (status.isPermanentlyDenied || status.isDenied) {
+                    initialUrlRequest:
+                        URLRequest(url: WebUri(widget.payload.url)),
+                    initialSettings: InAppWebViewSettings(
+                      userAgent:
+                          'user_agent'.tr(namedArgs: {'version': version}),
+                    ),
+                    onPermissionRequest: (InAppWebViewController controller,
+                        permissionRequest) async {
+                      if (permissionRequest.resources
+                          .contains(PermissionResourceType.MICROPHONE)) {
+                        await Permission.microphone.request();
+                        final status = await Permission.microphone.status;
+                        if (status.isPermanentlyDenied || status.isDenied) {
+                          return PermissionResponse(
+                              resources: permissionRequest.resources);
+                        }
                         return PermissionResponse(
-                            resources: permissionRequest.resources);
+                            resources: permissionRequest.resources,
+                            action: PermissionResponseAction.GRANT);
                       }
                       return PermissionResponse(
-                          resources: permissionRequest.resources,
-                          action: PermissionResponseAction.GRANT);
-                    }
-                    return PermissionResponse(
-                        resources: permissionRequest.resources);
-                  },
-                  onWebViewCreated: (controller) {
-                    if (widget.payload.onWebViewCreated != null) {
-                      widget.payload.onWebViewCreated!(controller);
-                    }
-                    webViewController = controller;
-                  },
-                  onConsoleMessage: widget.payload.onConsoleMessage,
-                  onLoadStart: (controller, uri) {
-                    setState(() {
-                      isLoading = true;
-                      title = uri!.host;
-                    });
-                  },
-                  onLoadStop: (controller, uri) {
-                    setState(() {
-                      isLoading = false;
-                    });
-                  },
-                ),
+                          resources: permissionRequest.resources);
+                    },
+                    onWebViewCreated: (controller) {
+                      if (widget.payload.onWebViewCreated != null) {
+                        widget.payload.onWebViewCreated!(controller);
+                      }
+                      webViewController = controller;
+                    },
+                    onConsoleMessage: widget.payload.onConsoleMessage,
+                    onLoadStart: (controller, uri) {
+                      setState(() {
+                        isLoading = true;
+                        title = uri!.host;
+                      });
+                    },
+                    onLoadStop: (controller, uri) {
+                      setState(() {
+                        isLoading = false;
+                      });
+                    },
+                    onUpdateVisitedHistory: (controller, uri, _) {
+                      setState(() {
+                        title = uri!.host;
+                      });
+                      unawaited(refreshAppBarStatus());
+                    }),
                 if (isLoading)
                   Container(
                     color: AppColor.white,
@@ -179,52 +189,81 @@ class _InAppWebViewPageState extends State<InAppWebViewPage> {
     );
   }
 
-  Widget _bottomBar(BuildContext context) => Container(
-        color: AppColor.white,
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 50),
-        child: Row(
-          children: [
-            IconButton(
-              icon: const Icon(AuIcon.chevron),
-              onPressed: () async {
-                if (await webViewController.canGoBack()) {
-                  await webViewController.goBack();
-                }
-              },
-            ),
-            const Spacer(),
-            IconButton(
-              icon: const RotatedBox(
-                  quarterTurns: 2, child: Icon(AuIcon.chevron)),
-              onPressed: () async {
-                if (await webViewController.canGoForward()) {
-                  await webViewController.goForward();
-                }
-              },
-            ),
-            const Spacer(),
-            IconButton(
-              icon: SvgPicture.asset('assets/images/Reload.svg'),
-              onPressed: () {
-                unawaited(webViewController.reload());
-              },
-            ),
-            const Spacer(),
-            IconButton(
-              icon: SvgPicture.asset('assets/images/Share.svg'),
-              onPressed: () async {
-                final currentUrl = await webViewController.getUrl();
-                if (currentUrl != null) {
-                  unawaited(launchUrl(
-                    currentUrl,
-                    mode: LaunchMode.externalApplication,
-                  ));
-                }
-              },
-            ),
-          ],
-        ),
-      );
+  Future<void> refreshAppBarStatus() async {
+    final canGoBack = await webViewController?.canGoBack() ?? false;
+    final canGoForward = await webViewController?.canGoForward() ?? false;
+    setState(() {
+      _canGoBack = canGoBack;
+      _canGoForward = canGoForward;
+    });
+  }
+
+  Future<bool> canGoBack() async =>
+      await webViewController?.canGoBack() ?? false;
+
+  Future<bool> canGoForward() async =>
+      await webViewController?.canGoForward() ?? false;
+
+  Widget _bottomBar(BuildContext context) {
+    return Container(
+      color: AppColor.white,
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 50),
+      child: Row(
+        children: [
+          IconButton(
+            icon: Icon(AuIcon.chevron,
+                color: _canGoBack
+                    ? AppColor.primaryBlack
+                    : AppColor.disabledColor),
+            onPressed: () async {
+              if (await webViewController?.canGoBack() ?? false) {
+                await webViewController?.goBack();
+                await refreshAppBarStatus();
+              }
+            },
+          ),
+          const Spacer(),
+          IconButton(
+            icon: RotatedBox(
+                quarterTurns: 2,
+                child: Icon(
+                  AuIcon.chevron,
+                  color: _canGoForward
+                      ? AppColor.primaryBlack
+                      : AppColor.disabledColor,
+                )),
+            onPressed: () async {
+              if (await webViewController?.canGoForward() ?? false) {
+                await webViewController?.goForward();
+                await refreshAppBarStatus();
+              }
+            },
+          ),
+          const Spacer(),
+          IconButton(
+            icon: SvgPicture.asset('assets/images/Reload.svg'),
+            onPressed: () async {
+              webViewController?.reload();
+              await refreshAppBarStatus();
+            },
+          ),
+          const Spacer(),
+          IconButton(
+            icon: SvgPicture.asset('assets/images/Share.svg'),
+            onPressed: () async {
+              final currentUrl = await webViewController?.getUrl();
+              if (currentUrl != null) {
+                unawaited(launchUrl(
+                  currentUrl,
+                  mode: LaunchMode.externalApplication,
+                ));
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class InAppWebViewPayload {
