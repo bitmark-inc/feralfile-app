@@ -79,13 +79,7 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
             appBar: _getAppBar(context, state.series),
             backgroundColor: AppColor.primaryBlack,
             body: _body(context, state.series)),
-        listener: (context, state) {
-          _pagingController.addPageRequestListener((pageKey) async {
-            await _fetchPage(pageKey);
-          });
-        },
-        listenWhen: (previous, current) =>
-            previous.series == null && current.series != null,
+        listener: (context, state) {},
       );
 
   AppBar _getAppBar(BuildContext buildContext, FFSeries? series) => getFFAppBar(
