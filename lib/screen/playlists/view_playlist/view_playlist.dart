@@ -15,7 +15,6 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
-import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/iterable_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -23,7 +22,6 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/token_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
-import 'package:autonomy_flutter/view/au_radio_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/cast_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -68,35 +66,11 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
   bool isDemo = injector.get<ConfigurationService>().isDemoArtworksMode();
   final _focusNode = FocusNode();
   late CanvasDeviceBloc _canvasDeviceBloc;
-  late SortOrder _sortOrder;
   late bool editable;
   final _canvasClientServiceV2 = injector<CanvasClientServiceV2>();
 
-  List<SortOrder> _getAvailableOrders() {
-    switch (widget.payload.collectionType) {
-      case CollectionType.artist:
-        return [
-          SortOrder.title,
-          SortOrder.newest,
-        ];
-      case CollectionType.medium:
-        return [
-          SortOrder.title,
-          SortOrder.artist,
-          SortOrder.newest,
-        ];
-      default:
-        return [
-          SortOrder.manual,
-          SortOrder.title,
-          SortOrder.artist,
-        ];
-    }
-  }
-
   @override
   void initState() {
-    _sortOrder = _getAvailableOrders().first;
     editable = widget.payload.collectionType == CollectionType.manual &&
         !(widget.payload.playListModel?.isDefault ?? true);
     super.initState();
@@ -132,11 +106,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
         []
       ..removeWhere((element) => element == null);
 
-    tokensPlaylist = List.from(temp)
-      ..sort((a, b) {
-        final x = _sortOrder.compare(a, b);
-        return x;
-      });
+    tokensPlaylist = List.from(temp);
 
     accountIdentities = tokensPlaylist
         .where((e) => e.pending != true || e.hasMetadata)
@@ -149,119 +119,6 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
   void dispose() {
     _focusNode.dispose();
     super.dispose();
-  }
-
-  void _onSelectOrder(SortOrder order) {
-    setState(() {
-      _sortOrder = order;
-    });
-  }
-
-  Future<void> _onOrderTap(BuildContext context, List<SortOrder> orders) async {
-    final theme = Theme.of(context);
-    final textStyle = theme.textTheme.ppMori400Black14.copyWith(
-      color: AppColor.white,
-    );
-    await showModalBottomSheet<dynamic>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      enableDrag: false,
-      constraints: BoxConstraints(
-          maxWidth: ResponsiveLayout.isMobile
-              ? double.infinity
-              : Constants.maxWidthModalTablet),
-      barrierColor: Colors.black.withOpacity(0.5),
-      isScrollControlled: true,
-      builder: (context) => StatefulBuilder(
-          builder: (context, setState) => Container(
-                color: AppColor.auGreyBackground,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(15, 17, 15, 20),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.only(top: 3, left: 37),
-                              child: Text(
-                                'sort_by'.tr(),
-                                style: textStyle,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ),
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: SizedBox(
-                              height: 28,
-                              width: 28,
-                              child: IconButton(
-                                onPressed: () => Navigator.pop(context),
-                                padding: const EdgeInsets.all(0),
-                                icon: const Icon(
-                                  AuIcon.close,
-                                  size: 18,
-                                  color: AppColor.white,
-                                  weight: 2,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    addOnlyDivider(color: AppColor.primaryBlack),
-                    const SizedBox(height: 20),
-                    ListView.separated(
-                      itemBuilder: (context, index) {
-                        final order = orders[index];
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 15),
-                          child: GestureDetector(
-                            onTap: () {
-                              Navigator.pop(context);
-                              _onSelectOrder(order);
-                            },
-                            child: Container(
-                              color: Colors.transparent,
-                              child: Row(
-                                children: [
-                                  AuRadio<SortOrder>(
-                                    onTap: (order) {
-                                      Navigator.pop(context);
-                                      _onSelectOrder(order);
-                                    },
-                                    value: order,
-                                    groupValue: _sortOrder,
-                                  ),
-                                  const SizedBox(width: 15),
-                                  Expanded(
-                                    child: Text(
-                                      order.text,
-                                      style: textStyle,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                      itemCount: orders.length,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      separatorBuilder: (BuildContext context, int index) =>
-                          const SizedBox(height: 15),
-                    ),
-                    const SizedBox(height: 65),
-                  ],
-                ),
-              )),
-    );
   }
 
   Future<void> _onMoreTap(BuildContext context, PlayListModel? playList) async {
@@ -394,19 +251,6 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                   _canvasDeviceBloc.add(CanvasDeviceChangeControlDeviceEvent(
                       device, listPlayArtwork));
                 },
-              ),
-              const SizedBox(width: 15),
-              GestureDetector(
-                onTap: () async {
-                  await _onOrderTap(context, _getAvailableOrders());
-                },
-                child: SvgPicture.asset(
-                  'assets/images/sort.svg',
-                  colorFilter:
-                      ColorFilter.mode(theme.primaryColor, BlendMode.srcIn),
-                  width: 22,
-                  height: 22,
-                ),
               ),
               if (editable) ...[
                 const SizedBox(width: 15),
@@ -607,39 +451,6 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
         )
       ],
     );
-  }
-}
-
-enum SortOrder {
-  title,
-  artist,
-  newest,
-  manual;
-
-  String get text {
-    switch (this) {
-      case SortOrder.title:
-        return tr('sort_by_title');
-      case SortOrder.artist:
-        return tr('sort_by_artist');
-      case SortOrder.newest:
-        return tr('sort_by_newest');
-      case SortOrder.manual:
-        return tr('sort_by_manual');
-    }
-  }
-
-  int compare(CompactedAssetToken a, CompactedAssetToken b) {
-    switch (this) {
-      case SortOrder.title:
-        return a.title?.compareTo(b.title ?? '') ?? 1;
-      case SortOrder.artist:
-        return a.artistID?.compareTo(b.artistID ?? '') ?? 1;
-      case SortOrder.newest:
-        return b.lastActivityTime.compareTo(a.lastActivityTime);
-      case SortOrder.manual:
-        return -1;
-    }
   }
 }
 
