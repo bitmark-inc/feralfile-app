@@ -121,8 +121,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
                     padding: const EdgeInsets.only(bottom: 40),
                     child: FeralFileArtworkPreview(
                       payload: FeralFileArtworkPreviewPayload(
-                        artwork: artwork,
-                        series: series,
+                        artwork: artwork.copyWith(series: series),
                       ),
                     ),
                   );

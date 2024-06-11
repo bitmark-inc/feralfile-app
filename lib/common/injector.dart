@@ -7,8 +7,6 @@
 
 // ignore_for_file: cascade_invocations
 
-import 'dart:math';
-
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
@@ -77,7 +75,6 @@ import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:autonomy_flutter/util/dio_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -92,7 +89,6 @@ import 'package:nft_collection/services/indexer_service.dart';
 import 'package:nft_collection/services/tokens_service.dart';
 import 'package:sentry_dio/sentry_dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:tezart/tezart.dart';
 import 'package:web3dart/web3dart.dart';
 
 final injector = GetIt.instance;
@@ -292,11 +288,6 @@ Future<void> setup() async {
 
   injector.registerLazySingleton<ClientTokenService>(
       () => ClientTokenService(injector(), injector(), injector(), injector()));
-
-  final tezosNodeClientURL = Environment.appTestnetConfig
-      ? Environment.tezosNodeClientTestnetURL
-      : publicTezosNodes[Random().nextInt(publicTezosNodes.length)];
-  injector.registerLazySingleton(() => TezartClient(tezosNodeClientURL));
   injector.registerLazySingleton<FeralFileApi>(() => FeralFileApi(
       feralFileDio(dioOptions),
       baseUrl: Environment.feralFileAPIURL));
@@ -316,8 +307,8 @@ Future<void> setup() async {
   injector.registerLazySingleton<EthereumService>(() => EthereumServiceImpl(
       injector(), injector(), injector(), injector(), injector()));
   injector.registerLazySingleton<HiveService>(() => HiveServiceImpl());
-  injector.registerLazySingleton<TezosService>(
-      () => TezosServiceImpl(injector(), injector()));
+  injector
+      .registerLazySingleton<TezosService>(() => TezosServiceImpl(injector()));
   injector.registerLazySingleton<AppDatabase>(() => mainnetDB);
   injector.registerLazySingleton<PlaylistService>(
       () => PlayListServiceImp(injector(), injector(), injector(), injector()));

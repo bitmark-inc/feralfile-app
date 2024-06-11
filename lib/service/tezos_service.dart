@@ -11,8 +11,9 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:autonomy_flutter/common/environment.dart';
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/network_issue_manager.dart';
-import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:libauk_dart/libauk_dart.dart';
@@ -49,10 +50,32 @@ abstract class TezosService {
 }
 
 class TezosServiceImpl extends TezosService {
-  final TezartClient _tezartClient;
+  TezartClient get _tezartClient => _getClient();
   final NetworkIssueManager _networkIssueManager;
 
-  TezosServiceImpl(this._tezartClient, this._networkIssueManager);
+  TezosServiceImpl(this._networkIssueManager);
+
+  String _nodeUrl = '';
+
+  TezartClient _getClient() {
+    if (Environment.appTestnetConfig) {
+      return TezartClient(Environment.tezosNodeClientTestnetURL);
+    }
+    if (_nodeUrl.isEmpty) {
+      _changeNode();
+    }
+    return TezartClient(_nodeUrl);
+  }
+
+  void _changeNode() {
+    final publicTezosNodes = injector<RemoteConfigService>()
+        .getConfig(ConfigGroup.dAppUrls, ConfigKey.tezosNodes, [])
+      ..remove(_nodeUrl);
+    if (publicTezosNodes.isEmpty) {
+      return;
+    }
+    _nodeUrl = publicTezosNodes[Random().nextInt(publicTezosNodes.length)];
+  }
 
   @override
   Future<int> getBalance(String address, {bool doRetry = false}) {
@@ -213,11 +236,8 @@ class TezosServiceImpl extends TezosService {
       if (Environment.appTestnetConfig) {
         rethrow;
       }
-
-      final retryTezosNodeClientURL =
-          publicTezosNodes[Random().nextInt(publicTezosNodes.length)];
-      final clientToRetry = TezartClient(retryTezosNodeClientURL);
-      return await func(clientToRetry);
+      _changeNode();
+      return await func(_tezartClient);
     }
   }
 }

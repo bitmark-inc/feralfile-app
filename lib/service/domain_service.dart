@@ -11,7 +11,9 @@ abstract class DomainService {
 class DomainServiceImpl implements DomainService {
   static const String _tnsDomain = 'https://api.tezos.domains/graphql';
   static const String _ensDomain =
-      'https://api.thegraph.com/subgraphs/name/ensdomains/ens';
+      'https://gateway-arbitrum.network.thegraph.com/api/'
+      '780901e32f46e70908727c94d3119788/subgraphs/id/'
+      '5XqPmWe6gjyrJtFn9cLy237i4cWw2j9HcUJEXsP5qGtH';
   static const String _tnsQuery = '''
     { domains(where: { name: { in: ["<var>"] } }) { items { address name} } }
   ''';
