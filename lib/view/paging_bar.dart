@@ -25,18 +25,19 @@ class PagingBar extends StatelessWidget {
 
   static const _height = 30.0;
   static const _sensitivity = 5;
+  static const _dragAreaRatio = 4.0;
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
+    final width = MediaQuery.of(context).size.width - 30;
     final int characterWidth = (width / listCharacters.length).floor() - 2;
     final theme = Theme.of(context);
     final index = selectedCharacter == null
         ? 0
         : listCharacters.indexOf(selectedCharacter ?? listCharacters.first);
     final delta = width / listCharacters.length;
-    final dragWidth = characterWidth * 1.5;
-    final double dx = delta * index - characterWidth * 0.25;
+    final dragWidth = characterWidth * _dragAreaRatio;
+    final double dx = delta * index - characterWidth * (_dragAreaRatio - 1) / 2;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: SizedBox(
