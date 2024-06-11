@@ -63,6 +63,13 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
         'exhibition_id': '50fb6756-80a9-46e4-b70c-380c32dfcc77',
       }
     },
+    'dApp_urls': {
+      'tezos_nodes': [
+        'https://mainnet.api.tez.ie',
+        'https://rpc.tzbeta.net',
+        'https://mainnet.tezos.marigold.dev'
+      ]
+    }
   };
 
   static Map<String, dynamic>? _configs;
@@ -117,6 +124,7 @@ enum ConfigGroup {
   postcardAction,
   feralfileArtworkAction,
   exhibition,
+  dAppUrls,
 }
 
 // ConfigGroup getString extension
@@ -137,6 +145,8 @@ extension ConfigGroupExtension on ConfigGroup {
         return 'feralfile_artwork_action';
       case ConfigGroup.exhibition:
         return 'exhibition';
+      case ConfigGroup.dAppUrls:
+        return 'dApp_urls';
     }
   }
 }
@@ -165,6 +175,7 @@ enum ConfigKey {
   yokoOnoPublic,
   johnGerrard,
   yokoOnoPrivateTokenIds,
+  tezosNodes,
 }
 
 // ConfigKey getString extension
@@ -217,6 +228,8 @@ extension ConfigKeyExtension on ConfigKey {
         return 'john_gerrard';
       case ConfigKey.yokoOnoPrivateTokenIds:
         return 'yoko_ono_private_token_ids';
+      case ConfigKey.tezosNodes:
+        return 'tezos_nodes';
     }
   }
 }
