@@ -188,7 +188,10 @@ class FeralFileServiceImpl extends FeralFileService {
   Future<FFSeries> getSeries(String id,
       {String? exhibitionID, bool includeFirstArtwork = false}) async {
     if (exhibitionID == SOURCE_EXHIBITION_ID) {
-      return await _getSourceSeries(id);
+      return await _getSourceSeries(
+        id,
+        includeFirstArtwork: includeFirstArtwork,
+      );
     }
     final series = (await _feralFileApi.getSeries(
             seriesId: id, includeFirstArtwork: includeFirstArtwork))
@@ -197,13 +200,10 @@ class FeralFileServiceImpl extends FeralFileService {
     if (includeFirstArtwork && series.artwork == null) {
       final exhibition = await getExhibition(series.exhibitionID);
       final artworks = await _getFakeSeriesArtworks(exhibition, series, 0, 1);
-      final firstArtwork = artworks.first.copyWith(series: series);
-      return series.copyWith(artwork: firstArtwork);
+      return series.copyWith(artwork: artworks.first);
     }
 
-    final firstArtwork = series.artwork!.copyWith(series: series);
-
-    return series.copyWith(artwork: firstArtwork);
+    return series;
   }
 
   @override
@@ -419,7 +419,9 @@ class FeralFileServiceImpl extends FeralFileService {
     if (artworksResponse.result.isEmpty) {
       return await _fakeSeriesArtworks(seriesId, exhibitionID,
           offset: offset, limit: limit);
-    } else if (withSeries) {
+    }
+
+    if (withSeries) {
       final series = await getSeries(seriesId);
       artworksResponse.copyWith(
           result: artworksResponse.result
@@ -524,16 +526,22 @@ class FeralFileServiceImpl extends FeralFileService {
     return sourceExhibition!;
   }
 
-  Future<FFSeries> _getSourceSeries(String seriesID) async {
+  Future<FFSeries> _getSourceSeries(String seriesID,
+      {bool includeFirstArtwork = false}) async {
+    late List<FFSeries> listSeries;
     if (sourceExhibition != null && sourceExhibition!.series != null) {
-      final series = sourceExhibition!.series!
-          .firstWhere((series) => series.id == seriesID);
+      listSeries = sourceExhibition!.series!;
+    } else {
+      listSeries = await _sourceExhibitionAPI.getSourceExhibitionSeries();
+    }
+
+    final series = listSeries.firstWhere((series) => series.id == seriesID);
+    if (includeFirstArtwork) {
       final firstArtwork = series.artworks!.first;
       return series.copyWith(artwork: firstArtwork);
     }
 
-    final listSeries = await _sourceExhibitionAPI.getSourceExhibitionSeries();
-    return listSeries.firstWhere((series) => series.id == seriesID);
+    return series;
   }
 
   Future<List<Artwork>> _getSourceSeriesArtworks(String seriesID) async {
