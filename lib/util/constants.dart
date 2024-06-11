@@ -201,12 +201,6 @@ String get usdcContractAddress => Environment.appTestnetConfig
     ? USDC_CONTRACT_ADDRESS_GOERLI
     : USDC_CONTRACT_ADDRESS;
 
-const publicTezosNodes = [
-  'https://mainnet.api.tez.ie',
-  'https://rpc.tzbeta.net',
-  'https://mainnet.tezos.marigold.dev',
-];
-
 const TV_APP_STORE_URL =
     'https://play.google.com/store/apps/details?id=com.bitmark.autonomy_tv';
 

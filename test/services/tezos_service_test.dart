@@ -9,8 +9,7 @@ import 'package:tezart/tezart.dart';
 import 'package:uuid/uuid.dart';
 
 void main() {
-  final client = TezartClient('https://ghostnet.tezos.marigold.dev');
-  final tezosService = TezosServiceImpl(client, NetworkIssueManager());
+  final tezosService = TezosServiceImpl(NetworkIssueManager());
   final walletStorage = MockWalletStorage(const Uuid().v4());
 
   const publicKey = 'edpkvB8a5H6uwbzKysXRzZ96EqT5pVouZFvz6Qye67sgcZFkSZS92x';
