@@ -197,14 +197,10 @@ class FeralFileServiceImpl extends FeralFileService {
             seriesId: id, includeFirstArtwork: includeFirstArtwork))
         .result;
 
-    if (includeFirstArtwork) {
-      if (series.artwork == null) {
-        final exhibition = await getExhibition(series.exhibitionID);
-        final artworks = await _getFakeSeriesArtworks(exhibition, series, 0, 1);
-        return series.copyWith(artwork: artworks.first);
-      } else {
-        return series.copyWith(artwork: series.artwork);
-      }
+    if (includeFirstArtwork && series.artwork == null) {
+      final exhibition = await getExhibition(series.exhibitionID);
+      final artworks = await _getFakeSeriesArtworks(exhibition, series, 0, 1);
+      return series.copyWith(artwork: artworks.first);
     }
 
     return series;
@@ -535,9 +531,10 @@ class FeralFileServiceImpl extends FeralFileService {
     late List<FFSeries> listSeries;
     if (sourceExhibition != null && sourceExhibition!.series != null) {
       listSeries = sourceExhibition!.series!;
+    } else {
+      listSeries = await _sourceExhibitionAPI.getSourceExhibitionSeries();
     }
 
-    listSeries = await _sourceExhibitionAPI.getSourceExhibitionSeries();
     final series = listSeries.firstWhere((series) => series.id == seriesID);
     if (includeFirstArtwork) {
       final firstArtwork = series.artworks!.first;
