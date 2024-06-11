@@ -1203,7 +1203,6 @@ class UIHelper {
   static Future<void> showDrawerAction(BuildContext context,
       {required List<OptionItem> options}) async {
     isShowingDrawerAction = true;
-    print('---------set isShowingDrawerAction to true');
     await showModalBottomSheet<dynamic>(
         context: context,
         backgroundColor: Colors.transparent,
@@ -1254,7 +1253,6 @@ class UIHelper {
               ),
             ));
     isShowingDrawerAction = false;
-    print('---------set isShowingDrawerAction to false');
   }
 
   static Future<void> showAutoDismissDialog(BuildContext context,
