@@ -450,7 +450,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       subTitle = artistName;
     }
     return Padding(
-      padding: const EdgeInsets.fromLTRB(15, 15, 15, 33),
+      padding: const EdgeInsets.fromLTRB(15, 15, 15, 20),
       child: Row(
         children: [
           Expanded(
@@ -502,20 +502,16 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
           children: [
             Visibility(
               visible: checkWeb3ContractAddress.contains(asset.contractAddress),
-              child: Align(
-                alignment: Alignment.centerRight,
-                child: Padding(
-                  padding: const EdgeInsets.only(
-                      left: 16, right: 16, top: 20, bottom: 20),
-                  child: OutlineButton(
-                    color: Colors.transparent,
-                    text: 'web3_glossary'.tr(),
-                    onTap: () {
-                      unawaited(Navigator.pushNamed(
-                          context, AppRouter.previewPrimerPage,
-                          arguments: asset));
-                    },
-                  ),
+              child: Padding(
+                padding: const EdgeInsets.only(left: 16, right: 16, bottom: 20),
+                child: OutlineButton(
+                  color: Colors.transparent,
+                  text: 'web3_glossary'.tr(),
+                  onTap: () {
+                    unawaited(Navigator.pushNamed(
+                        context, AppRouter.previewPrimerPage,
+                        arguments: asset));
+                  },
                 ),
               ),
             ),
