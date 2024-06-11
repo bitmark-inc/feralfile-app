@@ -1,5 +1,4 @@
 import 'package:autonomy_flutter/model/ff_account.dart';
-import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_page.dart';
 import 'package:autonomy_flutter/view/feralfile_artwork_preview_widget.dart';
@@ -30,8 +29,8 @@ class FeralFileArtworkPreview extends StatelessWidget {
               onTap: () async => Navigator.of(context).pushNamed(
                 AppRouter.feralFileSeriesPage,
                 arguments: FeralFileSeriesPagePayload(
-                  seriesId: payload.series.id,
-                  exhibitionId: payload.series.exhibitionID,
+                  seriesId: payload.artwork.series!.id,
+                  exhibitionId: payload.artwork.series!.exhibitionID,
                 ),
               ),
               child: Row(
@@ -41,7 +40,8 @@ class FeralFileArtworkPreview extends StatelessWidget {
                   Flexible(
                     flex: 5,
                     child: SeriesTitleView(
-                        series: payload.series, artist: payload.series.artist),
+                        series: payload.artwork.series!,
+                        artist: payload.artwork.series!.artist),
                   ),
                   SvgPicture.asset(
                     'assets/images/icon_series.svg',
@@ -57,11 +57,9 @@ class FeralFileArtworkPreview extends StatelessWidget {
 }
 
 class FeralFileArtworkPreviewPayload {
-  final FFSeries series;
   final Artwork artwork;
 
   const FeralFileArtworkPreviewPayload({
-    required this.series,
     required this.artwork,
   });
 }
