@@ -364,6 +364,47 @@ AppBar getCustomDoneAppBar(
   );
 }
 
+AppBar getPlaylistAppBar(
+  BuildContext context, {
+  required Widget title,
+  required List<Widget> actions,
+}) =>
+    AppBar(
+      systemOverlayStyle: systemUiOverlayDarkStyle,
+      elevation: 0,
+      shadowColor: Colors.transparent,
+      leading: Row(
+        children: [
+          const SizedBox(width: 15),
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: AppColor.auGreyBackground,
+              borderRadius: BorderRadius.circular(50),
+            ),
+            padding: const EdgeInsets.all(10),
+            child: backButton(
+              context,
+              onBack: () => Navigator.pop(context),
+              color: AppColor.white,
+            ),
+          ),
+        ],
+      ),
+      leadingWidth: 70,
+      titleSpacing: 0,
+      backgroundColor: AppColor.primaryBlack,
+      automaticallyImplyLeading: false,
+      centerTitle: true,
+      title: title,
+      actions: actions,
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(0.25),
+        child: addOnlyDivider(color: AppColor.auQuickSilver, border: 0.25),
+      ),
+    );
+
 AppBar getFFAppBar(
   BuildContext context, {
   required Function()? onBack,
@@ -412,7 +453,9 @@ Widget backButton(BuildContext context,
       label: 'BACK',
       child: IconButton(
         onPressed: onBack,
-        constraints: const BoxConstraints(maxWidth: 36),
+        constraints: const BoxConstraints(),
+        padding: const EdgeInsets.all(0),
+        iconSize: 11,
         icon: SvgPicture.asset(
           'assets/images/icon_back.svg',
           colorFilter:
