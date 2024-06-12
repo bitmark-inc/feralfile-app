@@ -296,7 +296,7 @@ AppBar getDoneAppBar(
         ),
       ),
     ],
-    backgroundColor: theme.colorScheme.background,
+    backgroundColor: theme.colorScheme.surface,
     automaticallyImplyLeading: false,
     centerTitle: true,
     title: Text(
@@ -356,7 +356,7 @@ AppBar getCustomDoneAppBar(
         ),
       ),
     ],
-    backgroundColor: theme.colorScheme.background,
+    backgroundColor: theme.colorScheme.surface,
     automaticallyImplyLeading: false,
     centerTitle: true,
     title: title,
@@ -389,7 +389,7 @@ AppBar getFFAppBar(
                 icon: SvgPicture.asset(
                   'assets/images/ff_back_dark.svg',
                 ),
-                padding: const EdgeInsets.all(0),
+                padding: const EdgeInsets.only(left: 15),
               ))
           : const SizedBox(width: 36),
       automaticallyImplyLeading: false,

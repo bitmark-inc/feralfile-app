@@ -85,48 +85,50 @@ class _ArtistsListPageState extends State<ArtistsListPage> {
         action: const SizedBox(),
       );
 
-  Widget _body(BuildContext context) => Column(
-        children: [
-          ValueListenableBuilder<String?>(
-              valueListenable: _selectedCharacter,
-              builder: (context, value, child) => PagingBar(
-                    onTap: (a) async {
-                      final index = _items.indexWhere(
-                          (element) => element.name.firstSearchCharacter == a);
-                      if (index == -1) {
-                        final nearestIndex = _items.lastIndexWhere((element) =>
-                            element.name.firstSearchCharacter
-                                .compareSearchKey(a) <
-                            0);
-                        if (nearestIndex == -1) {
-                          await _scrollTo(0);
+  Widget _body(BuildContext context) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 15),
+        child: Column(
+          children: [
+            ValueListenableBuilder<String?>(
+                valueListenable: _selectedCharacter,
+                builder: (context, value, child) => PagingBar(
+                      onTap: (a) async {
+                        final index = _items.indexWhere((element) =>
+                            element.name.firstSearchCharacter == a);
+                        if (index == -1) {
+                          final nearestIndex = _items.lastIndexWhere(
+                              (element) =>
+                                  element.name.firstSearchCharacter
+                                      .compareSearchKey(a) <
+                                  0);
+                          if (nearestIndex == -1) {
+                            await _scrollTo(0);
+                          } else {
+                            await _scrollTo(nearestIndex * _itemHeight);
+                          }
                         } else {
-                          await _scrollTo(nearestIndex * _itemHeight);
+                          await _scrollTo(index * _itemHeight);
                         }
-                      } else {
-                        await _scrollTo(index * _itemHeight);
-                      }
-                      Future.delayed(const Duration(milliseconds: _scrollLag),
-                          () {
-                        _selectedCharacter.value = a;
-                      });
-                    },
-                    onDragEnd: () {
-                      Future.delayed(
-                          const Duration(
-                              milliseconds: _scrollDuration + _scrollLag), () {
-                        _isDragging = false;
-                      });
-                    },
-                    onDragging: () {
-                      _isDragging = true;
-                    },
-                    selectedCharacter: value,
-                  )),
-          Expanded(
-              child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 5),
-            child: ListView.separated(
+                        Future.delayed(const Duration(milliseconds: _scrollLag),
+                            () {
+                          _selectedCharacter.value = a;
+                        });
+                      },
+                      onDragEnd: () {
+                        Future.delayed(
+                            const Duration(
+                                milliseconds: _scrollDuration + _scrollLag),
+                            () {
+                          _isDragging = false;
+                        });
+                      },
+                      onDragging: () {
+                        _isDragging = true;
+                      },
+                      selectedCharacter: value,
+                    )),
+            Expanded(
+                child: ListView.separated(
               controller: _scrollController,
               itemCount: _items.length,
               itemBuilder: (context, index) {
@@ -139,9 +141,9 @@ class _ArtistsListPageState extends State<ArtistsListPage> {
               },
               separatorBuilder: (BuildContext context, int index) =>
                   addOnlyDivider(color: AppColor.auGreyBackground),
-            ),
-          )),
-        ],
+            )),
+          ],
+        ),
       );
 
   Future<void> _scrollTo(double offset) async {
