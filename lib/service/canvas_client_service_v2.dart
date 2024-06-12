@@ -171,15 +171,6 @@ class CanvasClientServiceV2 {
     }
   }
 
-  Future<bool> cancelCasting(CanvasDevice device) async {
-    final stub = _getStub(device);
-    final response = await _retryWrapper(() => stub.cancelCasting(
-          CancelCastingRequest(),
-          options: _callOptions,
-        ));
-    return response.ok;
-  }
-
   Future<bool> pauseCasting(CanvasDevice device) async {
     final stub = _getStub(device);
     final response = await _retryWrapper(() => stub.pauseCasting(
@@ -315,10 +306,6 @@ class CanvasClientServiceV2 {
       log.info('CanvasClientService: Caught error: $e');
       return null;
     }
-  }
-
-  Future<void> addLocalDevice(CanvasDevice device) async {
-    await _db.canvasDeviceDao.insertCanvasDevice(device);
   }
 
   Future<T> _retryWrapper<T>(FutureOr<T> Function() fn) =>

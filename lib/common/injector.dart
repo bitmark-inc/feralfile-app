@@ -319,7 +319,7 @@ Future<void> setup() async {
       () => CanvasChannelService(injector()));
   injector.registerLazySingleton<DeviceInfoService>(() => DeviceInfoService());
   injector.registerLazySingleton<CanvasClientService>(
-      () => CanvasClientService(injector(), injector(), injector()));
+      () => CanvasClientService(injector()));
   injector.registerLazySingleton<MDnsService>(() => MDnsService(injector()));
   injector.registerLazySingleton<CanvasClientServiceV2>(() =>
       CanvasClientServiceV2(injector(), injector(), injector(), injector()));
