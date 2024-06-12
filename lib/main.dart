@@ -13,7 +13,6 @@ import 'dart:ui';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/model/display_device.dart';
 import 'package:autonomy_flutter/model/eth_pending_tx_amount.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -24,6 +23,7 @@ import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/notification_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
+import 'package:autonomy_flutter/util/canvas_device_adapter.dart';
 import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
@@ -116,7 +116,7 @@ void _registerHiveAdapter() {
   Hive
     ..registerAdapter(EthereumPendingTxAmountAdapter())
     ..registerAdapter(EthereumPendingTxListAdapter())
-    ..registerAdapter(DisplayDeviceAdapter());
+    ..registerAdapter(CanvasDeviceAdapter());
 }
 
 Future<void> _setupApp() async {

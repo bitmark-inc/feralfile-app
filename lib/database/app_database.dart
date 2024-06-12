@@ -8,14 +8,12 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/database/dao/announcement_dao.dart';
-import 'package:autonomy_flutter/database/dao/canvas_device_dao.dart';
 import 'package:autonomy_flutter/database/dao/draft_customer_support_dao.dart';
 import 'package:autonomy_flutter/database/dao/identity_dao.dart';
 import 'package:autonomy_flutter/database/entity/announcement_local.dart';
 import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
 import 'package:autonomy_flutter/database/entity/identity.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:floor/floor.dart';
 import 'package:nft_collection/models/token.dart';
 import 'package:sqflite/sqflite.dart' as sqflite;
@@ -25,12 +23,10 @@ import 'package:sqflite/sqflite.dart' as sqflite;
 part 'app_database.g.dart'; // the generated code will be there
 
 @TypeConverters([DateTimeConverter, TokenOwnersConverter])
-@Database(version: 17, entities: [
+@Database(version: 19, entities: [
   Identity,
   DraftCustomerSupport,
   AnnouncementLocal,
-  CanvasDevice,
-  Scene,
 ])
 abstract class AppDatabase extends FloorDatabase {
   IdentityDao get identityDao;
@@ -39,16 +35,10 @@ abstract class AppDatabase extends FloorDatabase {
 
   AnnouncementLocalDao get announcementDao;
 
-  CanvasDeviceDao get canvasDeviceDao;
-
-  SceneDao get sceneDao;
-
   Future<dynamic> removeAll() async {
     await identityDao.removeAll();
     await draftCustomerSupportDao.removeAll();
     await announcementDao.removeAll();
-    await canvasDeviceDao.removeAll();
-    await sceneDao.removeAll();
   }
 }
 
@@ -163,4 +153,9 @@ final migrateV16ToV17 = Migration(16, 17, (database) async {
 final migrateV17ToV18 = Migration(17, 18, (database) async {
   await database.execute('DROP TABLE IF EXISTS Followee;');
   log.info('Migrated App database from version 17 to 18');
+});
+
+final migrateV18ToV19 = Migration(18, 19, (database) async {
+  await database.execute('DROP TABLE IF EXISTS CanvasDevice;');
+  await database.execute('DROP TABLE IF EXISTS Scene;');
 });

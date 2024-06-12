@@ -24,7 +24,6 @@ import 'package:autonomy_flutter/gateway/postcard_api.dart';
 import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
 import 'package:autonomy_flutter/gateway/source_exhibition_api.dart';
 import 'package:autonomy_flutter/gateway/tzkt_api.dart';
-import 'package:autonomy_flutter/model/display_device.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
 import 'package:autonomy_flutter/screen/chat/chat_bloc.dart';
@@ -81,8 +80,8 @@ import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:autonomy_flutter/util/dio_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:dio/dio.dart';
+import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:get_it/get_it.dart';
-import 'package:http/http.dart';
 import 'package:logging/logging.dart';
 import 'package:nft_collection/data/api/indexer_api.dart';
 import 'package:nft_collection/graphql/clients/indexer_client.dart';
@@ -126,6 +125,7 @@ Future<void> setup() async {
     migrateV15ToV16,
     migrateV16ToV17,
     migrateV17ToV18,
+    migrateV18ToV19,
   ]).build();
 
   final cloudDB = await $FloorCloudDatabase
@@ -180,7 +180,6 @@ Future<void> setup() async {
   injector.registerSingleton<ConfigurationService>(
       ConfigurationServiceImpl(sharedPreferences));
 
-  injector.registerLazySingleton(() => Client());
   injector.registerLazySingleton<AutonomyService>(
       () => AutonomyServiceImpl(injector(), injector()));
   injector
@@ -387,7 +386,7 @@ Future<void> setup() async {
   injector.registerLazySingleton<SubscriptionBloc>(
       () => SubscriptionBloc(injector()));
 
-  injector.registerLazySingleton<HiveStoreObjectService<DisplayDevice>>(
-      () => HiveStoreObjectServiceImpl('local.display_device'));
-  injector<HiveStoreObjectService<DisplayDevice>>();
+  injector.registerLazySingleton<HiveStoreObjectService<CanvasDevice>>(
+      () => HiveStoreObjectServiceImpl('local.canvas_device'));
+  injector<HiveStoreObjectService<CanvasDevice>>();
 }

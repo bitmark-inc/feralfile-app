@@ -8,7 +8,6 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/service/canvas_channel_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -100,25 +99,3 @@ class CanvasClientService {
     await stub.setCursorOffset(request);
   }
 }
-
-enum CanvasServerStatus {
-  open,
-  connected,
-  playing,
-  notServing,
-  error;
-
-  DeviceStatus get toDeviceStatus {
-    switch (this) {
-      case CanvasServerStatus.error:
-      case CanvasServerStatus.notServing:
-      case CanvasServerStatus.open:
-      case CanvasServerStatus.connected:
-        return DeviceStatus.connected;
-      case CanvasServerStatus.playing:
-        return DeviceStatus.playing;
-    }
-  }
-}
-
-extension CanvasServerStatusExt on CanvasServerStatus {}

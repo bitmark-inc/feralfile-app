@@ -76,8 +76,8 @@ class _FeralFileArtworkPreviewPageState
       final artworkId = widget.payload.artwork.id;
       final request = CastExhibitionRequest(
         exhibitionId: exhibitionId,
-        katalog: ExhibitionKatalog.ARTWORK,
-        katalogId: artworkId,
+        catalog: ExhibitionCatalog.artwork,
+        catalogId: artworkId,
       );
       _canvasDeviceBloc.add(CanvasDeviceCastExhibitionEvent(device, request));
     }

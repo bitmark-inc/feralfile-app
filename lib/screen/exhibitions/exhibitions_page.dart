@@ -141,7 +141,7 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                   if (device != null) {
                     final castRequest = CastExhibitionRequest(
                       exhibitionId: exhibition.id,
-                      katalog: ExhibitionKatalog.HOME,
+                      catalog: ExhibitionCatalog.home,
                     );
                     _canvasDeviceBloc.add(
                         CanvasDeviceCastExhibitionEvent(device, castRequest));
