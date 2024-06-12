@@ -13,6 +13,7 @@ import 'dart:ui';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/display_device.dart';
 import 'package:autonomy_flutter/model/eth_pending_tx_amount.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -114,7 +115,8 @@ Future<void> runFeralFileApp() async {
 void _registerHiveAdapter() {
   Hive
     ..registerAdapter(EthereumPendingTxAmountAdapter())
-    ..registerAdapter(EthereumPendingTxListAdapter());
+    ..registerAdapter(EthereumPendingTxListAdapter())
+    ..registerAdapter(DisplayDeviceAdapter());
 }
 
 Future<void> _setupApp() async {
@@ -152,10 +154,8 @@ Future<void> _setupApp() async {
 
   Sentry.configureScope((scope) async {
     final deviceID = await getDeviceID();
-    if (deviceID != null) {
-      scope.setUser(SentryUser(id: deviceID));
-    }
-  });
+    scope.setUser(SentryUser(id: deviceID));
+    });
 
   //safe delay to wait for onboarding finished
   Future.delayed(const Duration(seconds: 2), () async {
