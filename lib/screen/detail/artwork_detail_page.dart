@@ -603,7 +603,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     }
     final isHidden = _isHidden(asset);
     _focusNode.unfocus();
-    Function? callBack;
     unawaited(UIHelper.showDrawerAction(
       context,
       options: [
@@ -640,15 +639,12 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               AuIcon.microphone,
               color: AppColor.white,
             ),
-            onTap: () {
-              Navigator.of(context).pop();
-              callBack = () async {
-                await Navigator.pushNamed(
-                  context,
-                  AppRouter.irlWebView,
-                  arguments: IRLWebScreenPayload(irlUrl.second),
-                );
-              };
+            onTap: () async {
+              await Navigator.popAndPushNamed(
+                context,
+                AppRouter.irlWebView,
+                arguments: IRLWebScreenPayload(irlUrl.second),
+              );
             },
           ),
         if (asset.secondaryMarketURL.isNotEmpty)
@@ -659,15 +655,12 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               width: 18,
               height: 18,
             ),
-            onTap: () {
-              Navigator.of(context).pop();
-              callBack = () async {
-                await Navigator.pushNamed(
-                  context,
-                  AppRouter.inappWebviewPage,
-                  arguments: InAppWebViewPayload(asset.secondaryMarketURL),
-                );
-              };
+            onTap: () async {
+              await Navigator.popAndPushNamed(
+                context,
+                AppRouter.inappWebviewPage,
+                arguments: InAppWebViewPayload(asset.secondaryMarketURL),
+              );
             },
           ),
         OptionItem(
@@ -825,9 +818,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
         ),
         OptionItem.emptyOptionItem,
       ],
-    ).then((_) {
-      callBack?.call();
-    }));
+    ));
   }
 
   Future<void> _setFullScreen() async {

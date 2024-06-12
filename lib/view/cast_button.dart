@@ -118,7 +118,6 @@ class _FFCastButtonState extends State<FFCastButton> {
 
   Future<void> _showStreamAction(BuildContext context) async {
     keyboardManagerKey.currentState?.hideKeyboard();
-    UIHelper.isShowingDrawerAction = true;
     await UIHelper.showFlexibleDialog(
       context,
       BlocProvider.value(
@@ -129,6 +128,5 @@ class _FFCastButtonState extends State<FFCastButton> {
       ),
       isDismissible: true,
     );
-    UIHelper.isShowingDrawerAction = false;
   }
 }

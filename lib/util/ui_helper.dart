@@ -99,7 +99,7 @@ Future askForNotification() async {
 class UIHelper {
   static String currentDialogTitle = '';
   static final metricClient = injector.get<MetricClientService>();
-  static bool isShowingDrawerAction = false;
+  static const String ignoreBackLayerPopUpRouteName = 'ignoreBackLayerPopUp';
 
   static Future<dynamic> showDialog(
     BuildContext context,
@@ -137,6 +137,7 @@ class UIHelper {
               : Constants.maxWidthModalTablet),
       isScrollControlled: true,
       barrierColor: Colors.black.withOpacity(0.5),
+      routeSettings: const RouteSettings(name: ignoreBackLayerPopUpRouteName),
       builder: (context) => Container(
         color: Colors.transparent,
         child: ClipPath(
@@ -578,6 +579,7 @@ class UIHelper {
               : Constants.maxWidthModalTablet),
       isScrollControlled: true,
       barrierColor: Colors.black.withOpacity(0.5),
+      routeSettings: const RouteSettings(name: ignoreBackLayerPopUpRouteName),
       builder: (context) => ClipPath(
         clipper: isRoundCorner ? null : AutonomyTopRightRectangleClipper(),
         child: Container(
@@ -1202,7 +1204,6 @@ class UIHelper {
 
   static Future<void> showDrawerAction(BuildContext context,
       {required List<OptionItem> options}) async {
-    isShowingDrawerAction = true;
     await showModalBottomSheet<dynamic>(
         context: context,
         backgroundColor: Colors.transparent,
@@ -1213,6 +1214,7 @@ class UIHelper {
                 : Constants.maxWidthModalTablet),
         barrierColor: Colors.black.withOpacity(0.5),
         isScrollControlled: true,
+        routeSettings: const RouteSettings(name: ignoreBackLayerPopUpRouteName),
         builder: (context) => Container(
               color: AppColor.auGreyBackground,
               child: Column(
@@ -1252,7 +1254,6 @@ class UIHelper {
                 ],
               ),
             ));
-    isShowingDrawerAction = false;
   }
 
   static Future<void> showAutoDismissDialog(BuildContext context,
