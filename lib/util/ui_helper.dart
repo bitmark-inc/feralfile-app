@@ -99,6 +99,7 @@ Future askForNotification() async {
 class UIHelper {
   static String currentDialogTitle = '';
   static final metricClient = injector.get<MetricClientService>();
+  static const String ignoreBackLayerPopUpRouteName = 'ignoreBackLayerPopUp';
 
   static Future<dynamic> showDialog(
     BuildContext context,
@@ -136,6 +137,7 @@ class UIHelper {
               : Constants.maxWidthModalTablet),
       isScrollControlled: true,
       barrierColor: Colors.black.withOpacity(0.5),
+      routeSettings: const RouteSettings(name: ignoreBackLayerPopUpRouteName),
       builder: (context) => Container(
         color: Colors.transparent,
         child: ClipPath(
@@ -577,6 +579,7 @@ class UIHelper {
               : Constants.maxWidthModalTablet),
       isScrollControlled: true,
       barrierColor: Colors.black.withOpacity(0.5),
+      routeSettings: const RouteSettings(name: ignoreBackLayerPopUpRouteName),
       builder: (context) => ClipPath(
         clipper: isRoundCorner ? null : AutonomyTopRightRectangleClipper(),
         child: Container(
@@ -1211,6 +1214,7 @@ class UIHelper {
                 : Constants.maxWidthModalTablet),
         barrierColor: Colors.black.withOpacity(0.5),
         isScrollControlled: true,
+        routeSettings: const RouteSettings(name: ignoreBackLayerPopUpRouteName),
         builder: (context) => Container(
               color: AppColor.auGreyBackground,
               child: Column(

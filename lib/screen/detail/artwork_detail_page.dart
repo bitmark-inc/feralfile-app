@@ -639,13 +639,11 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               AuIcon.microphone,
               color: AppColor.white,
             ),
-            onTap: () {
-              unawaited(
-                Navigator.pushNamed(
-                  context,
-                  AppRouter.irlWebView,
-                  arguments: IRLWebScreenPayload(irlUrl.second),
-                ),
+            onTap: () async {
+              await Navigator.popAndPushNamed(
+                context,
+                AppRouter.irlWebView,
+                arguments: IRLWebScreenPayload(irlUrl.second),
               );
             },
           ),
@@ -657,13 +655,11 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               width: 18,
               height: 18,
             ),
-            onTap: () {
-              unawaited(
-                Navigator.pushNamed(
-                  context,
-                  AppRouter.inappWebviewPage,
-                  arguments: InAppWebViewPayload(asset.secondaryMarketURL),
-                ),
+            onTap: () async {
+              await Navigator.popAndPushNamed(
+                context,
+                AppRouter.inappWebviewPage,
+                arguments: InAppWebViewPayload(asset.secondaryMarketURL),
               );
             },
           ),
