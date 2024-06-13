@@ -87,7 +87,7 @@ class CanvasClientServiceV2 {
       final response = await connect(device);
       return response.ok;
     } catch (e) {
-      log.info('CanvasClientService: Caught error: $e');
+      log.info('CanvasClientService: connectToDevice error: $e');
       return false;
     }
   }
@@ -110,7 +110,7 @@ class CanvasClientServiceV2 {
       final response = await stub.castListArtwork(castRequest);
       return response.ok;
     } catch (e) {
-      log.info('CanvasClientService: Caught error: $e');
+      log.info('CanvasClientService: castListArtwork error: $e');
       return false;
     }
   }
@@ -164,7 +164,10 @@ class CanvasClientServiceV2 {
 
   Future<bool> castExhibition(
       CanvasDevice device, CastExhibitionRequest castRequest) async {
-    await connectToDevice(device);
+    final canConnect = await connectToDevice(device);
+    if (!canConnect) {
+      return false;
+    }
     final stub = _getStub(device);
     final response = await stub.castExhibition(castRequest);
     return response.ok;
@@ -215,7 +218,7 @@ class CanvasClientServiceV2 {
       final status = await _getDeviceCastingStatus(device);
       return Pair(device, status);
     } catch (e) {
-      log.info('CanvasClientService: Caught error: $e');
+      log.info('CanvasClientService: _getDeviceStatus error: $e');
       return null;
     }
   }

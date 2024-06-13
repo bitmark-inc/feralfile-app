@@ -663,8 +663,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "4b82976bfe00845b376594bdd8583bd9a6198f22"
-      resolved-ref: "4b82976bfe00845b376594bdd8583bd9a6198f22"
+      ref: e4a4b711ca5d2a2cd7177c58c7f11cdb432cdf81
+      resolved-ref: e4a4b711ca5d2a2cd7177c58c7f11cdb432cdf81
       url: "https://github.com/autonomy-system/feralfile-app-tv-proto-communication"
     source: git
     version: "0.0.1"

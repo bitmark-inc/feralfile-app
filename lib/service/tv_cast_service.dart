@@ -46,11 +46,14 @@ class TvCastServiceImpl implements TvCastService {
 
   TvCastServiceImpl(this._api, this._device);
 
-  Future<dynamic> _cast(Map<String, dynamic> body) => _api.cast(
-        locationId: _device.locationId,
-        topicId: _device.topicId,
-        body: body,
-      );
+  Future<dynamic> _cast(Map<String, dynamic> body) async {
+    final result = await _api.cast(
+      locationId: _device.locationId,
+      topicId: _device.topicId,
+      body: body,
+    );
+    return result['message'];
+  }
 
   Map<String, dynamic> _getBody(Request request) =>
       RequestBody(request).toJson();

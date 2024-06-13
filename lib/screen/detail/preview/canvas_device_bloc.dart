@@ -9,12 +9,10 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
-import 'package:autonomy_flutter/service/network_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/device_status_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:collection/collection.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rxdart/transformers.dart';
@@ -210,31 +208,15 @@ EventTransformer<Event> debounceSequential<Event>(Duration duration) =>
 
 class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
   final CanvasClientServiceV2 _canvasClientServiceV2;
-  final NetworkService _networkService;
 
   final Map<String, int> _deviceRetryCount = {};
 
   // constructor
-  CanvasDeviceBloc(this._canvasClientServiceV2, this._networkService)
+  CanvasDeviceBloc(this._canvasClientServiceV2)
       : super(CanvasDeviceState(devices: [])) {
     on<CanvasDeviceGetDevicesEvent>(
       (event, emit) async {
-        if (!_networkService.isWifi) {
-          if (event.retry) {
-            _networkService.addListener((result) {
-              if (result == ConnectivityResult.wifi) {
-                log.info('CanvasDeviceBloc: retry get devices');
-                add(CanvasDeviceGetDevicesEvent());
-              }
-            }, id: NetworkService.canvasBlocListenerId);
-          }
-
-          log.info('CanvasDeviceBloc: not using wifi, skip getting devices');
-          return;
-        }
         log.info('CanvasDeviceBloc: adding devices');
-        unawaited(_networkService
-            .removeListener(NetworkService.canvasBlocListenerId));
         try {
           final devices = await _canvasClientServiceV2.scanDevices();
 
@@ -261,8 +243,13 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
           log.info('CanvasDeviceBloc: get devices: ${newState.devices.length}, '
               'controllingDeviceStatus: ${newState.controllingDeviceStatus}');
           emit(newState);
-          await _canvasClientServiceV2.connectToDevice(
-              newState.controllingDevices.map((e) => e.device).toList().first);
+
+          final controlledCanvasDevices =
+              newState.controllingDevices.map((e) => e.device).toList();
+          if (controlledCanvasDevices.isNotEmpty) {
+            await _canvasClientServiceV2
+                .connectToDevice(controlledCanvasDevices.first);
+          }
         } catch (e) {
           log.info('CanvasDeviceBloc: error while get devices: $e');
           unawaited(Sentry.captureException(e));
