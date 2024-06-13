@@ -176,6 +176,8 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                     : Image.network(
                         exhibition.coverUrl,
                         height: estimatedHeight,
+                        cacheWidth: estimatedWidth.toInt(),
+                        cacheHeight: estimatedHeight.toInt(),
                         loadingBuilder: (context, child, loadingProgress) {
                           if (loadingProgress == null) {
                             return child;
