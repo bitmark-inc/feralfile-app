@@ -155,7 +155,7 @@ Future<void> _setupApp() async {
   Sentry.configureScope((scope) async {
     final deviceID = await getDeviceID();
     scope.setUser(SentryUser(id: deviceID));
-    });
+  });
 
   //safe delay to wait for onboarding finished
   Future.delayed(const Duration(seconds: 2), () async {

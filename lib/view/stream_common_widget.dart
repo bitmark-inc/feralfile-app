@@ -321,7 +321,7 @@ class _ArtworkDurationControlState extends State<ArtworkDurationControl> {
     if (canvasStatus == null) {
       return;
     }
-    final playArtworks = canvasStatus.artworks ?? [];
+    final playArtworks = canvasStatus.artworks;
     final playArtworkWithNewDuration = playArtworks
         .map((e) =>
             e.copy(duration: Duration(milliseconds: duration.inMilliseconds)))
