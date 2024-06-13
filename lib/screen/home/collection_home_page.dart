@@ -225,7 +225,7 @@ class CollectionHomePageState extends State<CollectionHomePage>
 
   void castToken(CanvasDevice device, String tokenId) {
     final token = CastAssetToken(id: tokenId);
-    final playArtwork = PlayArtworkV2(token: token);
+    final playArtwork = PlayArtworkV2(token: token, duration: 0);
     _canvasDeviceBloc.add(CanvasDeviceChangeControlDeviceEvent(
       device,
       [playArtwork],

@@ -5,7 +5,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/preview/touchpad_page.dart';
-import 'package:autonomy_flutter/service/canvas_client_service.dart';
+import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -157,7 +157,7 @@ class _KeyboardControlPageState extends State<KeyboardControlPage>
                             final code = text[text.length - 1];
                             _textController.text = '';
                             final devices = widget.payload.devices;
-                            await injector<CanvasClientService>()
+                            await injector<CanvasClientServiceV2>()
                                 .sendKeyBoard(devices, code.codeUnitAt(0));
                           },
                         ),
