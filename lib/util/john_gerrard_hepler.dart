@@ -20,4 +20,11 @@ class JohnGerrardHelper {
             ConfigGroup.johnGerrard, ConfigKey.seriesIds, []);
     return listSeriesIds ?? [];
   }
+
+  static List<dynamic> get assetIDs {
+    final listAssetIds = injector<RemoteConfigService>()
+        .getConfig<List<dynamic>?>(
+            ConfigGroup.johnGerrard, ConfigKey.assetIds, []);
+    return listAssetIds ?? [];
+  }
 }

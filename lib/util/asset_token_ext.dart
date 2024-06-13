@@ -56,7 +56,13 @@ extension AssetTokenExtension on AssetToken {
       return null;
     }
 
-    return mintedAt != null ? '$title (${mintedAt!.year})' : title;
+    final isJohnGerrardSeries = asset?.assetID != null &&
+        JohnGerrardHelper.assetIDs
+            .any((id) => asset?.assetID!.startsWith(id) ?? false);
+
+    return mintedAt != null && !isJohnGerrardSeries
+        ? '$title (${mintedAt!.year})'
+        : title;
   }
 
   bool get hasMetadata => galleryThumbnailURL != null;
@@ -476,7 +482,13 @@ extension CompactedAssetTokenExtension on CompactedAssetToken {
       return null;
     }
 
-    return mintedAt != null ? '$title (${mintedAt!.year})' : title;
+    final isJohnGerrardSeries = assetID != null &&
+        JohnGerrardHelper.assetIDs
+            .any((id) => assetID?.startsWith(id) ?? false);
+
+    return mintedAt != null && !isJohnGerrardSeries
+        ? '$title (${mintedAt!.year})'
+        : title;
   }
 
   bool get isPostcard => contractAddress == Environment.postcardContractAddress;

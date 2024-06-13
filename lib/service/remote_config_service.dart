@@ -180,6 +180,7 @@ enum ConfigKey {
   yokoOnoPrivateTokenIds,
   tezosNodes,
   seriesIds,
+  assetIds,
 }
 
 // ConfigKey getString extension
@@ -236,6 +237,8 @@ extension ConfigKeyExtension on ConfigKey {
         return 'tezos_nodes';
       case ConfigKey.seriesIds:
         return 'series_ids';
+      case ConfigKey.assetIds:
+        return 'asset_ids';
     }
   }
 }
