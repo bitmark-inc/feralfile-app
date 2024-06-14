@@ -243,9 +243,6 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
           log.info('CanvasDeviceBloc: get devices: ${newState.devices.length}, '
               'controllingDeviceStatus: ${newState.controllingDeviceStatus}');
           emit(newState);
-
-          final controlledCanvasDevices =
-              newState.controllingDevices.map((e) => e.device).toList();
         } catch (e) {
           log.info('CanvasDeviceBloc: error while get devices: $e');
           unawaited(Sentry.captureException(e));
