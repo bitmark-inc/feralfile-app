@@ -19,7 +19,6 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
-import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
@@ -105,7 +104,7 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                 title: 'exhibitions'.tr(),
               ),
             ),
-            SliverToBoxAdapter(child: _listExhibitions(context))
+            _listExhibitions(context),
           ],
         ),
       );
@@ -141,7 +140,7 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                   if (device != null) {
                     final castRequest = CastExhibitionRequest(
                       exhibitionId: exhibition.id,
-                      katalog: ExhibitionKatalog.HOME,
+                      catalog: ExhibitionCatalog.home,
                     );
                     _canvasDeviceBloc.add(
                         CanvasDeviceCastExhibitionEvent(device, castRequest));
@@ -177,6 +176,8 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                     : Image.network(
                         exhibition.coverUrl,
                         height: estimatedHeight,
+                        cacheWidth: estimatedWidth.toInt(),
+                        cacheHeight: estimatedHeight.toInt(),
                         loadingBuilder: (context, child, loadingProgress) {
                           if (loadingProgress == null) {
                             return child;
@@ -268,11 +269,13 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
             final theme = Theme.of(context);
             if (exhibitionsState.freeExhibitions == null ||
                 exhibitionsState.proExhibitions == null) {
-              return const Center(
-                child: CircularProgressIndicator(
-                  color: Colors.white,
-                  backgroundColor: AppColor.auQuickSilver,
-                  strokeWidth: 2,
+              return const SliverToBoxAdapter(
+                child: Center(
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    backgroundColor: AppColor.auQuickSilver,
+                    strokeWidth: 2,
+                  ),
                 ),
               );
             } else {
@@ -284,44 +287,52 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                   : freeExhibitions;
               final divider = addDivider(
                   height: 40, color: AppColor.auQuickSilver, thickness: 0.5);
-              return Padding(
+              return SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: _padding),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (!isSubscribed && freeExhibitions.isNotEmpty) ...[
-                      Text('current_exhibition'.tr(),
-                          style: theme.textTheme.ppMori400White14),
-                      Text('for_essential_members'.tr(),
-                          style: theme.textTheme.ppMori400Grey14),
-                      const SizedBox(height: 18),
-                    ],
-                    ...freeExhibitions
-                        .map((e) => [
-                              _exhibitionItem(
-                                context: context,
-                                viewExhibition: viewExhibitions,
-                                exhibition: e,
-                                isProExhibition: false,
-                              ),
-                              divider,
-                            ])
-                        .flattened,
-                    if (proExhibitions.isNotEmpty)
-                      _pastExhibitionHeader(context, isSubscribed),
-                    ...proExhibitions
-                        .map((e) => [
-                              _exhibitionItem(
-                                context: context,
-                                viewExhibition: viewExhibitions,
-                                exhibition: e,
-                                isProExhibition: true,
-                              ),
-                              divider,
-                            ])
-                        .flattened,
-                    const SizedBox(height: 40)
-                  ],
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final exhibition = [
+                        ...freeExhibitions,
+                        ...proExhibitions,
+                      ][index];
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (index == 0 &&
+                              !isSubscribed &&
+                              freeExhibitions.isNotEmpty) ...[
+                            Text('current_exhibition'.tr(),
+                                style: theme.textTheme.ppMori400White14),
+                            Text('for_essential_members'.tr(),
+                                style: theme.textTheme.ppMori400Grey14),
+                            const SizedBox(height: 18),
+                          ],
+                          if (index == freeExhibitions.length)
+                            _pastExhibitionHeader(context, isSubscribed),
+                          _exhibitionItem(
+                            context: context,
+                            viewExhibition: viewExhibitions,
+                            exhibition: exhibition,
+                            isProExhibition:
+                                proExhibitions.contains(exhibition),
+                          ),
+                          divider,
+                          if (index ==
+                              [
+                                    ...freeExhibitions,
+                                    ...proExhibitions,
+                                  ].length -
+                                  1)
+                            const SizedBox(height: 40),
+                        ],
+                      );
+                    },
+                    childCount: [
+                      ...freeExhibitions,
+                      ...proExhibitions,
+                    ].length,
+                  ),
                 ),
               );
             }

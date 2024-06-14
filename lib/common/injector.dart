@@ -23,6 +23,7 @@ import 'package:autonomy_flutter/gateway/merchandise_api.dart';
 import 'package:autonomy_flutter/gateway/postcard_api.dart';
 import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
 import 'package:autonomy_flutter/gateway/source_exhibition_api.dart';
+import 'package:autonomy_flutter/gateway/tv_cast_api.dart';
 import 'package:autonomy_flutter/gateway/tzkt_api.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
@@ -41,8 +42,6 @@ import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
-import 'package:autonomy_flutter/service/canvas_channel_service.dart';
-import 'package:autonomy_flutter/service/canvas_client_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/chat_auth_service.dart';
 import 'package:autonomy_flutter/service/chat_service.dart';
@@ -57,8 +56,8 @@ import 'package:autonomy_flutter/service/domain_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/hive_service.dart';
+import 'package:autonomy_flutter/service/hive_store_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
-import 'package:autonomy_flutter/service/mdns_service.dart';
 import 'package:autonomy_flutter/service/merchandise_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
@@ -79,8 +78,9 @@ import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:autonomy_flutter/util/dio_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:dio/dio.dart';
+import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:get_it/get_it.dart';
-import 'package:http/http.dart';
+import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:nft_collection/data/api/indexer_api.dart';
 import 'package:nft_collection/graphql/clients/indexer_client.dart';
@@ -124,6 +124,7 @@ Future<void> setup() async {
     migrateV15ToV16,
     migrateV16ToV17,
     migrateV17ToV18,
+    migrateV18ToV19,
   ]).build();
 
   final cloudDB = await $FloorCloudDatabase
@@ -177,8 +178,7 @@ Future<void> setup() async {
 
   injector.registerSingleton<ConfigurationService>(
       ConfigurationServiceImpl(sharedPreferences));
-
-  injector.registerLazySingleton(() => Client());
+  injector.registerLazySingleton(() => http.Client());
   injector.registerLazySingleton<AutonomyService>(
       () => AutonomyServiceImpl(injector(), injector()));
   injector
@@ -244,6 +244,8 @@ Future<void> setup() async {
   injector.registerLazySingleton<IAPService>(
       () => IAPServiceImpl(injector(), injector()));
 
+  injector.registerLazySingleton(() =>
+      TvCastApi(tvCastDio(dioOptions), baseUrl: Environment.tvCastApiUrl));
   injector.registerLazySingleton(() => Wc2Service(
         injector(),
         injector(),
@@ -312,13 +314,11 @@ Future<void> setup() async {
   injector.registerLazySingleton<AppDatabase>(() => mainnetDB);
   injector.registerLazySingleton<PlaylistService>(
       () => PlayListServiceImp(injector(), injector(), injector(), injector()));
-
-  injector.registerLazySingleton<CanvasChannelService>(
-      () => CanvasChannelService(injector()));
   injector.registerLazySingleton<DeviceInfoService>(() => DeviceInfoService());
-  injector.registerLazySingleton<CanvasClientService>(
-      () => CanvasClientService(injector(), injector(), injector()));
-  injector.registerLazySingleton<MDnsService>(() => MDnsService(injector()));
+
+  injector.registerLazySingleton<HiveStoreObjectService<CanvasDevice>>(
+      () => HiveStoreObjectServiceImpl('local.canvas_device'));
+  injector<HiveStoreObjectService<CanvasDevice>>();
   injector.registerLazySingleton<CanvasClientServiceV2>(() =>
       CanvasClientServiceV2(injector(), injector(), injector(), injector()));
 
@@ -379,7 +379,7 @@ Future<void> setup() async {
       () => IdentityBloc(injector(), injector()));
   injector.registerFactory<AuChatBloc>(() => AuChatBloc(injector()));
   injector.registerLazySingleton<CanvasDeviceBloc>(
-      () => CanvasDeviceBloc(injector(), injector(), injector()));
+      () => CanvasDeviceBloc(injector()));
   injector
       .registerLazySingleton<ExhibitionBloc>(() => ExhibitionBloc(injector()));
   injector.registerLazySingleton<SubscriptionBloc>(

@@ -51,7 +51,7 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
         final connectedDevice = state.devices
             .where((element) =>
                 state.controllingDeviceStatus?.keys
-                    .contains(element.device.id) ??
+                    .contains(element.device.deviceId) ??
                 false)
             .firstOrNull;
         return Padding(
@@ -109,7 +109,7 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
                           item: OptionItem(
                               title: device.name,
                               onTap: () {
-                                log.info('device selected: ${device.id}');
+                                log.info('device selected: ${device.deviceId}');
                                 widget.onDeviceSelected?.call(device);
                               }),
                           backgroundColor: connectedDevice == null

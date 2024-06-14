@@ -14,7 +14,6 @@ import 'package:autonomy_flutter/model/blockchain.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
-import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
@@ -37,15 +36,12 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/token_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
-import 'package:autonomy_flutter/view/cast_button.dart';
 import 'package:autonomy_flutter/view/get_started_banner.dart';
 import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_flutter/view/stream_common_widget.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
-import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
@@ -77,7 +73,6 @@ class CollectionHomePageState extends State<CollectionHomePage>
   final nftBloc = injector<ClientTokenService>().nftBloc;
   late bool _showPostcardBanner;
   final _identityBloc = injector<IdentityBloc>();
-  late CanvasDeviceBloc _canvasDeviceBloc;
 
   @override
   void initState() {
@@ -89,7 +84,6 @@ class CollectionHomePageState extends State<CollectionHomePage>
     _controller = ScrollController()..addListener(_scrollListenerToLoadMore);
     unawaited(_configurationService.setAutoShowPostcard(true));
     context.read<HomeBloc>().add(CheckReviewAppEvent());
-    _canvasDeviceBloc = injector.get<CanvasDeviceBloc>();
     unawaited(injector<IAPService>().setup());
   }
 
@@ -223,34 +217,12 @@ class CollectionHomePageState extends State<CollectionHomePage>
     );
   }
 
-  void castToken(CanvasDevice device, String tokenId) {
-    final token = CastAssetToken(id: tokenId);
-    final playArtwork = PlayArtworkV2(token: token);
-    _canvasDeviceBloc.add(CanvasDeviceChangeControlDeviceEvent(
-      device,
-      [playArtwork],
-    ));
-  }
-
   Widget _header(BuildContext context) {
     final paddingTop = MediaQuery.of(context).viewPadding.top;
     return Padding(
       padding: EdgeInsets.only(top: paddingTop),
       child: HeaderView(
         title: 'collection'.tr(),
-        action: FFCastButton(
-          onDeviceSelected: (device) async {
-            try {
-              final firstTokens =
-                  _updateTokens(nftBloc.state.tokens.items).firstOrNull;
-              if (firstTokens != null) {
-                castToken(device, firstTokens.id);
-              }
-            } catch (e) {
-              log.info('Failed to cast artwork: $e');
-            }
-          },
-        ),
       ),
     );
   }
@@ -465,18 +437,6 @@ class CollectionHomePageState extends State<CollectionHomePage>
       onTap: () {
         if (asset.pending == true && !asset.hasMetadata) {
           return;
-        }
-
-        final id = asset.id;
-        final duration = speedValues.values.first.inMilliseconds;
-        final playArtwork =
-            PlayArtworkV2(token: CastAssetToken(id: id), duration: duration);
-        final device = _canvasDeviceBloc.state.controllingDevice;
-        if (device != null) {
-          _canvasDeviceBloc.add(CanvasDeviceChangeControlDeviceEvent(
-            device,
-            [playArtwork],
-          ));
         }
 
         final index = tokens

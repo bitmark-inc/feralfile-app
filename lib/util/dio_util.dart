@@ -30,6 +30,14 @@ Dio postcardDio(BaseOptions options) {
   return dio;
 }
 
+Dio tvCastDio(BaseOptions options) {
+  final dio = Dio(options);
+  dio.interceptors.add(TVKeyInterceptor(Environment.tvKey));
+  dio.interceptors.add(LoggingInterceptor());
+  dio.interceptors.add(ConnectingExceptionInterceptor());
+  return dio;
+}
+
 Dio chatDio(BaseOptions options) {
   final dio = baseDio(options);
   dio.interceptors.add(HmacAuthInterceptor(Environment.chatServerHmacKey));

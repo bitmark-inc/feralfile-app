@@ -38,7 +38,6 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
     with AfterLayoutMixin {
   late final ExhibitionDetailBloc _exBloc;
 
-  // late final CanvasDeviceBloc _canvasDeviceBloc;
   final _metricClientService = injector<MetricClientService>();
   final _canvasDeviceBloc = injector<CanvasDeviceBloc>();
 
@@ -232,22 +231,22 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
             : null,
       );
 
-  Pair<ExhibitionKatalog, String?> _getCurrentCatalogInfo(
+  Pair<ExhibitionCatalog, String?> _getCurrentCatalogInfo(
       Exhibition exhibition) {
-    ExhibitionKatalog? catalog;
+    ExhibitionCatalog? catalog;
     String? catalogId;
     switch (_currentIndex) {
       case 0:
-        catalog = ExhibitionKatalog.HOME;
+        catalog = ExhibitionCatalog.home;
       case 1:
         if (_carouselIndex == 0) {
-          catalog = ExhibitionKatalog.CURATOR_NOTE;
+          catalog = ExhibitionCatalog.curatorNote;
         } else {
-          catalog = ExhibitionKatalog.RESOURCE;
+          catalog = ExhibitionCatalog.resource;
           catalogId = exhibition.posts![_carouselIndex - 1].id;
         }
       default:
-        catalog = ExhibitionKatalog.ARTWORK;
+        catalog = ExhibitionCatalog.artwork;
         final seriesIndex = _currentIndex - 2;
         final currentArtwork = exhibition.series?[seriesIndex].artwork?.id;
         catalogId = currentArtwork;
@@ -257,56 +256,16 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
 
   CastExhibitionRequest _getCastExhibitionRequest(Exhibition exhibition) {
     final exhibitionId = exhibition.id;
-    final katalogInfo = _getCurrentCatalogInfo(exhibition);
-    final katalog = katalogInfo.first;
-    final katalogId = katalogInfo.second;
+    final catalogInfo = _getCurrentCatalogInfo(exhibition);
+    final catalog = catalogInfo.first;
+    final catalogId = catalogInfo.second;
     CastExhibitionRequest request = CastExhibitionRequest(
       exhibitionId: exhibitionId,
-      katalog: katalog,
-      katalogId: katalogId,
+      catalog: catalog,
+      catalogId: catalogId,
     );
     return request;
   }
-
-  // Future<void> _onCastTap(
-  //     BuildContext context, ExhibitionDetail exhibitionDetail) async {
-  //   if (exhibitionDetail.artworks == null ||
-  //       exhibitionDetail.artworks!.isEmpty) {
-  //     return;
-  //   }
-  //   final tokenIds = exhibitionDetail.artworks
-  //       ?.map((e) => exhibitionDetail.getArtworkTokenId(e)!)
-  //       .toList();
-  //   final sceneId = exhibitionDetail.exhibition.id;
-  //   final playlistModel = PlayListModel(
-  //     name: exhibitionDetail.exhibition.title,
-  //     id: sceneId,
-  //     thumbnailURL: exhibitionDetail.exhibition.coverUrl,
-  //     tokenIDs: tokenIds,
-  //     playControlModel: PlayControlModel(timer: 30),
-  //   );
-  //   await UIHelper.showFlexibleDialog(
-  //     context,
-  //     BlocProvider.value(
-  //       value: _canvasDeviceBloc,
-  //       child: CanvasDeviceView(
-  //         sceneId: sceneId,
-  //         isCollection: true,
-  //         playlist: playlistModel,
-  //         onClose: () {
-  //           Navigator.of(context).pop();
-  //         },
-  //       ),
-  //     ),
-  //     isDismissible: true,
-  //   );
-  //   await _fetchDevice(sceneId);
-  // }
-
-  // Future<void> _fetchDevice(String exhibitionId) async {
-  //   _canvasDeviceBloc
-  //       .add(CanvasDeviceGetDevicesEvent(exhibitionId, syncAll: false));
-  // }
 
   @override
   FutureOr<void> afterFirstLayout(BuildContext context) {

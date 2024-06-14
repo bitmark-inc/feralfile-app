@@ -72,7 +72,6 @@ class PlaylistControl extends StatefulWidget {
 }
 
 class _PlaylistControlState extends State<PlaylistControl> {
-  late double _currentSliderValue;
   Timer? _timer;
   late CanvasDeviceBloc _canvasDeviceBloc;
 
@@ -80,11 +79,6 @@ class _PlaylistControlState extends State<PlaylistControl> {
   void initState() {
     super.initState();
     _canvasDeviceBloc = injector.get<CanvasDeviceBloc>();
-    final castingDuration = _canvasDeviceBloc.state.castingSpeed;
-    final index = castingDuration != null
-        ? speedValues.values.toList().indexOf(castingDuration)
-        : 0;
-    _currentSliderValue = index.toDouble();
   }
 
   @override
@@ -95,19 +89,8 @@ class _PlaylistControlState extends State<PlaylistControl> {
 
   @override
   Widget build(BuildContext context) =>
-      BlocConsumer<CanvasDeviceBloc, CanvasDeviceState>(
+      BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
         bloc: _canvasDeviceBloc,
-        listener: (context, state) {
-          final castingSpeed = state.controllingDeviceStatus?.values.firstOrNull
-              ?.artworks.firstOrNull?.duration;
-          if (castingSpeed != null) {
-            final castingDuration = Duration(milliseconds: castingSpeed);
-            final index = speedValues.values.toList().indexOf(castingDuration);
-            setState(() {
-              _currentSliderValue = index.toDouble();
-            });
-          }
-        },
         builder: (context, state) => Container(
             padding: const EdgeInsets.all(15),
             decoration: BoxDecoration(

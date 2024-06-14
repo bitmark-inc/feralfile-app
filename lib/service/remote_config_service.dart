@@ -124,6 +124,7 @@ enum ConfigGroup {
   postcardAction,
   feralfileArtworkAction,
   exhibition,
+  johnGerrard,
   dAppUrls,
 }
 
@@ -145,6 +146,8 @@ extension ConfigGroupExtension on ConfigGroup {
         return 'feralfile_artwork_action';
       case ConfigGroup.exhibition:
         return 'exhibition';
+      case ConfigGroup.johnGerrard:
+        return 'john_gerrard';
       case ConfigGroup.dAppUrls:
         return 'dApp_urls';
     }
@@ -176,6 +179,8 @@ enum ConfigKey {
   johnGerrard,
   yokoOnoPrivateTokenIds,
   tezosNodes,
+  seriesIds,
+  assetIds,
 }
 
 // ConfigKey getString extension
@@ -230,6 +235,10 @@ extension ConfigKeyExtension on ConfigKey {
         return 'yoko_ono_private_token_ids';
       case ConfigKey.tezosNodes:
         return 'tezos_nodes';
+      case ConfigKey.seriesIds:
+        return 'series_ids';
+      case ConfigKey.assetIds:
+        return 'asset_ids';
     }
   }
 }

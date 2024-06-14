@@ -320,6 +320,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                                   if (widget.payload.playlist == null) {
                                     final artwork = PlayArtworkV2(
                                       token: CastAssetToken(id: asset.id),
+                                      duration: 0,
                                     );
                                     _canvasDeviceBloc.add(
                                         CanvasDeviceCastListArtworkEvent(

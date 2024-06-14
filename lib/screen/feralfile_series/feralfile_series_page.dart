@@ -135,8 +135,8 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
                     if (controllingDevice != null) {
                       final castRequest = CastExhibitionRequest(
                           exhibitionId: series.exhibitionID,
-                          katalog: ExhibitionKatalog.ARTWORK,
-                          katalogId: artwork.id);
+                          catalog: ExhibitionCatalog.artwork,
+                          catalogId: artwork.id);
                       _canvasDeviceBloc.add(
                         CanvasDeviceCastExhibitionEvent(
                           controllingDevice,

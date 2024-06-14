@@ -8,15 +8,11 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/au_bloc.dart';
-import 'package:autonomy_flutter/model/play_list_model.dart';
-import 'package:autonomy_flutter/service/canvas_client_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
-import 'package:autonomy_flutter/service/network_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/device_status_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:collection/collection.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rxdart/transformers.dart';
@@ -35,35 +31,6 @@ class CanvasDeviceAppendDeviceEvent extends CanvasDeviceEvent {
   final CanvasDevice device;
 
   CanvasDeviceAppendDeviceEvent(this.device);
-}
-
-class CanvasDeviceGetControllingStatusEvent extends CanvasDeviceEvent {}
-
-class CanvasDeviceAddEvent extends CanvasDeviceEvent {
-  final DeviceState device;
-
-  CanvasDeviceAddEvent(this.device);
-}
-
-class CanvasDeviceCastSingleEvent extends CanvasDeviceEvent {
-  final CanvasDevice device;
-  final String tokenId;
-
-  CanvasDeviceCastSingleEvent(this.device, this.tokenId);
-}
-
-class CanvasDeviceCastCollectionEvent extends CanvasDeviceEvent {
-  final CanvasDevice device;
-  final PlayListModel playlist;
-
-  CanvasDeviceCastCollectionEvent(this.device, this.playlist);
-}
-
-class CanvasDeviceUnCastingEvent extends CanvasDeviceEvent {
-  final CanvasDevice device;
-  final bool isCollection;
-
-  CanvasDeviceUnCastingEvent(this.device, this.isCollection);
 }
 
 class CanvasDeviceRotateEvent extends CanvasDeviceEvent {
@@ -102,12 +69,6 @@ class CanvasDeviceChangeControlDeviceEvent extends CanvasDeviceEvent {
   final List<PlayArtworkV2> artwork;
 
   CanvasDeviceChangeControlDeviceEvent(this.newDevice, this.artwork);
-}
-
-class CanvasDeviceCancelCastingEvent extends CanvasDeviceEvent {
-  final CanvasDevice device;
-
-  CanvasDeviceCancelCastingEvent(this.device);
 }
 
 class CanvasDevicePauseCastingEvent extends CanvasDeviceEvent {
@@ -196,12 +157,12 @@ class CanvasDeviceState {
 
   CanvasDevice? get controllingDevice => devices
       .firstWhereOrNull((deviceState) =>
-          controllingDeviceStatus?.keys.contains(deviceState.device.id) ??
+          controllingDeviceStatus?.keys.contains(deviceState.device.deviceId) ??
           false)
       ?.device;
 
   bool isDeviceControlling(CanvasDevice device) =>
-      controllingDeviceStatus?.keys.contains(device.id) ?? false;
+      controllingDeviceStatus?.keys.contains(device.deviceId) ?? false;
 
   List<DeviceState> get controllingDevices =>
       devices.where((element) => isDeviceControlling(element.device)).toList();
@@ -246,47 +207,29 @@ EventTransformer<Event> debounceSequential<Event>(Duration duration) =>
     (events, mapper) => events.throttleTime(duration).asyncExpand(mapper);
 
 class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
-  final CanvasClientService _canvasClientService;
   final CanvasClientServiceV2 _canvasClientServiceV2;
-  final NetworkService _networkService;
 
   final Map<String, int> _deviceRetryCount = {};
 
   // constructor
-  CanvasDeviceBloc(this._canvasClientService, this._canvasClientServiceV2,
-      this._networkService)
+  CanvasDeviceBloc(this._canvasClientServiceV2)
       : super(CanvasDeviceState(devices: [])) {
     on<CanvasDeviceGetDevicesEvent>(
       (event, emit) async {
-        if (!_networkService.isWifi) {
-          if (event.retry) {
-            _networkService.addListener((result) {
-              if (result == ConnectivityResult.wifi) {
-                log.info('CanvasDeviceBloc: retry get devices');
-                add(CanvasDeviceGetDevicesEvent());
-              }
-            }, id: NetworkService.canvasBlocListenerId);
-          }
-
-          log.info('CanvasDeviceBloc: not using wifi, skip getting devices');
-          return;
-        }
         log.info('CanvasDeviceBloc: adding devices');
-        unawaited(_networkService
-            .removeListener(NetworkService.canvasBlocListenerId));
         try {
           final devices = await _canvasClientServiceV2.scanDevices();
 
           final stateControllingDeviceStatus = state.controllingDeviceStatus;
 
-          final controllingdevice = state.controllingDevice;
+          final controllingDevice = state.controllingDevice;
           Map<String, CheckDeviceStatusReply>? controllingDeviceStatus = {};
 
-          if (controllingdevice == null) {
+          if (controllingDevice == null) {
             controllingDeviceStatus = devices.controllingDevices;
           } else {
-            if (devices
-                .any((element) => element.first.id == controllingdevice.id)) {
+            if (devices.any((element) =>
+                element.first.deviceId == controllingDevice.deviceId)) {
               controllingDeviceStatus = stateControllingDeviceStatus;
             } else {
               controllingDeviceStatus = devices.controllingDevices;
@@ -300,8 +243,13 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
           log.info('CanvasDeviceBloc: get devices: ${newState.devices.length}, '
               'controllingDeviceStatus: ${newState.controllingDeviceStatus}');
           emit(newState);
-          await _canvasClientServiceV2.connectToDevice(
-              newState.controllingDevices.map((e) => e.device).toList().first);
+
+          final controlledCanvasDevices =
+              newState.controllingDevices.map((e) => e.device).toList();
+          if (controlledCanvasDevices.isNotEmpty) {
+            await _canvasClientServiceV2
+                .connectToDevice(controlledCanvasDevices.first);
+          }
         } catch (e) {
           log.info('CanvasDeviceBloc: error while get devices: $e');
           unawaited(Sentry.captureException(e));
@@ -314,80 +262,16 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
     on<CanvasDeviceAppendDeviceEvent>((event, emit) async {
       final newState = state.copyWith(
           devices: state.devices
-            ..removeWhere((element) => element.device.id == event.device.id)
+            ..removeWhere(
+                (element) => element.device.deviceId == event.device.deviceId)
             ..add(DeviceState(device: event.device)));
       emit(newState);
-    });
-
-    on<CanvasDeviceAddEvent>((event, emit) async {
-      final newState = state.copyWith(
-          devices: state.devices
-            ..removeWhere(
-                (element) => element.device.id == event.device.device.id)
-            ..add(DeviceState(device: event.device.device, isPlaying: false)));
-      emit(newState);
-    });
-
-    on<CanvasDeviceCastSingleEvent>((event, emit) async {
-      final device = event.device;
-      try {
-        emit(state.replaceDeviceState(
-            device: device,
-            deviceState: DeviceState(
-              device: device,
-            )));
-        final connected = await _canvasClientService.connectToDevice(device);
-        if (!connected) {
-          throw Exception('Failed to connect to device');
-        }
-        final ok =
-            await _canvasClientService.castSingleArtwork(device, event.tokenId);
-        if (!ok) {
-          throw Exception('Failed to cast to device');
-        }
-        emit(state.replaceDeviceState(
-            device: device, deviceState: DeviceState(device: device)));
-      } catch (_) {
-        emit(state.replaceDeviceState(
-            device: device, deviceState: DeviceState(device: device)));
-      }
-    });
-
-    on<CanvasDeviceCastCollectionEvent>((event, emit) async {
-      final device = event.device;
-      try {
-        emit(state.replaceDeviceState(
-            device: device, deviceState: DeviceState(device: device)));
-        final connected = await _canvasClientService.connectToDevice(device);
-        if (!connected) {
-          throw Exception('Failed to connect to device');
-        }
-        final ok =
-            await _canvasClientService.castCollection(device, event.playlist);
-        if (!ok) {
-          throw Exception('Failed to cast to device');
-        }
-        emit(state.replaceDeviceState(
-            device: device, deviceState: DeviceState(device: device)));
-      } catch (_) {
-        emit(state.replaceDeviceState(
-            device: device, deviceState: DeviceState(device: device)));
-      }
-    });
-
-    on<CanvasDeviceUnCastingEvent>((event, emit) async {
-      final device = event.device;
-      try {
-        await _canvasClientService.unCastSingleArtwork(device);
-        emit(state.replaceDeviceState(
-            device: device, deviceState: DeviceState(device: device)));
-      } catch (_) {}
     });
 
     on<CanvasDeviceRotateEvent>((event, emit) async {
       final device = event.device;
       try {
-        await _canvasClientService.rotateCanvas(device,
+        await _canvasClientServiceV2.rotateCanvas(device,
             clockwise: event.clockwise);
       } catch (_) {}
     });
@@ -401,7 +285,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
       await Future.forEach<CanvasDevice>(devices, (device) async {
         try {
           log.info('CanvasDeviceBloc: disconnect device: '
-              '${device.id}, ${device.name}, ${device.ip}');
+              '${device.deviceId}, ${device.name}, ${device.deviceId}');
           if (event.callRPC) {
             await _canvasClientServiceV2.disconnectDevice(device);
           }
@@ -415,16 +299,16 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
 
     on<CanvasDeviceOnRPCErrorEvent>((event, emit) async {
       final controllingDevice = event.device;
-      final numberOfRetry = _deviceRetryCount[controllingDevice.id] ?? 0;
+      final numberOfRetry = _deviceRetryCount[controllingDevice.deviceId] ?? 0;
       log.info('CanvasDeviceBloc: retry connect to device: $numberOfRetry');
       if (numberOfRetry < maxRetryCount) {
         await Future.delayed(const Duration(milliseconds: 500));
-        _deviceRetryCount[controllingDevice.id] = numberOfRetry + 1;
+        _deviceRetryCount[controllingDevice.deviceId] = numberOfRetry + 1;
         final isSuccess =
             await _canvasClientServiceV2.connectToDevice(controllingDevice);
         log.info('CanvasDeviceBloc: retry connect to device: $isSuccess');
         if (isSuccess) {
-          _deviceRetryCount.remove(controllingDevice.id);
+          _deviceRetryCount.remove(controllingDevice.deviceId);
         } else {
           add(CanvasDeviceDisconnectEvent([controllingDevice]));
         }
@@ -441,8 +325,8 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
         if (!ok) {
           throw Exception('Failed to cast to device');
         }
-        final currentDeviceState = state.devices
-            .firstWhereOrNull((element) => element.device.id == device.id);
+        final currentDeviceState = state.devices.firstWhereOrNull(
+            (element) => element.device.deviceId == device.deviceId);
         if (currentDeviceState == null) {
           throw Exception('Device not found');
         }
@@ -453,7 +337,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
               .replaceDeviceState(
                   device: device,
                   deviceState: currentDeviceState.copyWith(isPlaying: true))
-              .copyWith(controllingDeviceStatus: {device.id: status}),
+              .copyWith(controllingDeviceStatus: {device.deviceId: status}),
         );
       } catch (_) {
         emit(state.replaceDeviceState(
@@ -469,8 +353,8 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
         if (!ok) {
           throw Exception('Failed to cast to device');
         }
-        final currentDeviceState = state.devices
-            .firstWhereOrNull((element) => element.device.id == device.id);
+        final currentDeviceState = state.devices.firstWhereOrNull(
+            (element) => element.device.deviceId == device.deviceId);
         if (currentDeviceState == null) {
           throw Exception('Device not found');
         }
@@ -481,7 +365,7 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
               .replaceDeviceState(
                   device: device,
                   deviceState: currentDeviceState.copyWith(isPlaying: true))
-              .copyWith(controllingDeviceStatus: {device.id: status}),
+              .copyWith(controllingDeviceStatus: {device.deviceId: status}),
         );
       } catch (_) {
         emit(state.replaceDeviceState(
@@ -489,26 +373,11 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
       }
     });
 
-    on<CanvasDeviceCancelCastingEvent>((event, emit) async {
-      final device = event.device;
-      try {
-        final currentDeviceState = state.devices
-            .firstWhereOrNull((element) => element.device.id == device.id);
-        if (currentDeviceState == null) {
-          throw Exception('Device not found');
-        }
-        await _canvasClientServiceV2.cancelCasting(device);
-        emit(state.replaceDeviceState(
-            device: device,
-            deviceState: currentDeviceState.copyWith(isPlaying: false)));
-      } catch (_) {}
-    });
-
     on<CanvasDeviceNextArtworkEvent>((event, emit) async {
       final device = event.device;
       try {
-        final currentDeviceState = state.devices
-            .firstWhereOrNull((element) => element.device.id == device.id);
+        final currentDeviceState = state.devices.firstWhereOrNull(
+            (element) => element.device.deviceId == device.deviceId);
         if (currentDeviceState == null) {
           throw Exception('Device not found');
         }
@@ -522,8 +391,8 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
     on<CanvasDevicePreviousArtworkEvent>((event, emit) async {
       final device = event.device;
       try {
-        final currentDeviceState = state.devices
-            .firstWhereOrNull((element) => element.device.id == device.id);
+        final currentDeviceState = state.devices.firstWhereOrNull(
+            (element) => element.device.deviceId == device.deviceId);
         if (currentDeviceState == null) {
           throw Exception('Device not found');
         }
@@ -537,8 +406,8 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
     on<CanvasDevicePauseCastingEvent>((event, emit) async {
       final device = event.device;
       try {
-        final currentDeviceState = state.devices
-            .firstWhereOrNull((element) => element.device.id == device.id);
+        final currentDeviceState = state.devices.firstWhereOrNull(
+            (element) => element.device.deviceId == device.deviceId);
         if (currentDeviceState == null) {
           throw Exception('Device not found');
         }
@@ -552,8 +421,8 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
     on<CanvasDeviceResumeCastingEvent>((event, emit) async {
       final device = event.device;
       try {
-        final currentDeviceState = state.devices
-            .firstWhereOrNull((element) => element.device.id == device.id);
+        final currentDeviceState = state.devices.firstWhereOrNull(
+            (element) => element.device.deviceId == device.deviceId);
         if (currentDeviceState == null) {
           throw Exception('Device not found');
         }
@@ -574,25 +443,23 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
       try {
         final response =
             await _canvasClientServiceV2.updateDuration(device, artworks);
-        final currentDeviceState = state.devices
-            .firstWhereOrNull((element) => element.device.id == device.id);
+        final currentDeviceState = state.devices.firstWhereOrNull(
+            (element) => element.device.deviceId == device.deviceId);
         if (currentDeviceState == null) {
           throw Exception('Device not found');
         }
-        final controllingStatus = state.controllingDeviceStatus?[device.id];
+        final controllingStatus =
+            state.controllingDeviceStatus?[device.deviceId];
         if (controllingStatus == null) {
           throw Exception('Device not found');
         }
-        final newControllingStatus = CheckDeviceStatusReply();
-        newControllingStatus.artworks.clear();
-        newControllingStatus.artworks.addAll(artworks);
-        newControllingStatus
+        final newControllingStatus = CheckDeviceStatusReply(artworks: artworks)
           ..startTime = response.startTime
           ..connectedDevice = controllingStatus.connectedDevice;
 
         final controllingDeviceStatus =
             state.controllingDeviceStatus?.map((key, value) {
-          if (key == device.id) {
+          if (key == device.deviceId) {
             return MapEntry(key, newControllingStatus);
           }
           return MapEntry(key, value);

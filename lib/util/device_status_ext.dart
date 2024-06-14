@@ -11,8 +11,8 @@ extension ListDeviceStatusExtension
     final thisDevice = canvasClientServiceV2.clientDeviceInfo;
     for (final devicePair in this) {
       final status = devicePair.second;
-      if (status.connectedDevice.deviceId == thisDevice.deviceId) {
-        controllingDeviceStatus[devicePair.first.id] = status;
+      if (status.connectedDevice?.deviceId == thisDevice.deviceId) {
+        controllingDeviceStatus[devicePair.first.deviceId] = status;
         break;
       }
     }
