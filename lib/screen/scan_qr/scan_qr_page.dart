@@ -795,6 +795,7 @@ class QRScanViewState extends State<QRScanView>
             child: const StreamDeviceView(),
           ),
           isDismissible: true,
+          autoDismissAfter: 3,
         );
       }
       injector<CanvasDeviceBloc>().add(CanvasDeviceAppendDeviceEvent(device));

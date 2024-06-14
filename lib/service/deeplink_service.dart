@@ -8,7 +8,6 @@
 // ignore_for_file: cascade_invocations
 
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
@@ -417,7 +416,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
       case 'feralfile_display':
         final payload = data['device'];
-        final device = CanvasDevice.fromJson(jsonDecode(payload));
+        final device = CanvasDevice.fromJson(payload);
         final canvasClient = injector<CanvasClientServiceV2>();
         final result = await canvasClient.addQrDevice(device);
         final isSuccessful = result != null;
@@ -432,6 +431,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
               child: const StreamDeviceView(),
             ),
             isDismissible: true,
+            autoDismissAfter: 3,
           );
         }
         injector<CanvasDeviceBloc>().add(CanvasDeviceAppendDeviceEvent(device));
