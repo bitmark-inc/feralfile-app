@@ -60,20 +60,38 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              RichText(
-                text: TextSpan(
-                  children: <TextSpan>[
-                    TextSpan(
-                      text: 'connect_and_control'.tr(),
-                      style: theme.textTheme.ppMori700White24,
-                    ),
-                    if (connectedDevice != null)
-                      TextSpan(
-                        text: ' ${connectedDevice.device.name}',
-                        style: theme.textTheme.ppMori400White24,
+              Row(
+                children: [
+                  Expanded(
+                    child: RichText(
+                      text: TextSpan(
+                        children: <TextSpan>[
+                          TextSpan(
+                            text: 'connect_and_control'.tr(),
+                            style: theme.textTheme.ppMori700White24,
+                          ),
+                          if (connectedDevice != null)
+                            TextSpan(
+                              text: ' ${connectedDevice.device.name}',
+                              style: theme.textTheme.ppMori400White24,
+                            ),
+                        ],
                       ),
-                  ],
-                ),
+                    ),
+                  ),
+                  const Spacer(),
+                  if (connectedDevice != null)
+                    GestureDetector(
+                      onTap: () async {
+                        await onRotate(context);
+                      },
+                      child: const Icon(
+                        Icons.rotate_right,
+                        color: AppColor.white,
+                        size: 30,
+                      ),
+                    )
+                ],
               ),
               const SizedBox(height: 40),
               ListView.builder(
@@ -104,7 +122,7 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
                       if (index < devices.length - 1)
                         const SizedBox(
                           height: 15,
-                        )
+                        ),
                     ],
                   );
                 },
@@ -172,6 +190,13 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
         );
       },
     );
+  }
+
+  Future<void> onRotate(BuildContext context) async {
+    final controllingDevice = _canvasDeviceBloc.state.controllingDevice;
+    if (controllingDevice != null) {
+      _canvasDeviceBloc.add(CanvasDeviceRotateEvent(controllingDevice));
+    }
   }
 
   Future<void> scanToAddMore(BuildContext context) async {
