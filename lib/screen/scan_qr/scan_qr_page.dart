@@ -6,7 +6,6 @@
 //
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
@@ -18,10 +17,8 @@ import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart'
 import 'package:autonomy_flutter/screen/bloc/ethereum/ethereum_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
-import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/global_receive/receive_page.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
-import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -31,21 +28,17 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/route_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
-import 'package:autonomy_flutter/view/stream_device_view.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
-import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
-import 'package:synchronized/synchronized.dart';
 
 // ignore_for_file: constant_identifier_names
 
@@ -280,7 +273,6 @@ enum ScannerItem {
   BEACON_CONNECT,
   ETH_ADDRESS,
   XTZ_ADDRESS,
-  CANVAS_DEVICE,
   GLOBAL
 }
 
@@ -304,8 +296,6 @@ class QRScanViewState extends State<QRScanView>
   bool? _cameraPermission;
   String? currentCode;
   final metricClient = injector<MetricClientService>();
-  final _navigationService = injector<NavigationService>();
-  late Lock _lock;
   Timer? _timer;
 
   late bool _shouldPop;
@@ -315,7 +305,6 @@ class QRScanViewState extends State<QRScanView>
     super.initState();
     _shouldPop = !(widget.scannerItem == ScannerItem.GLOBAL);
     unawaited(_checkPermission());
-    _lock = Lock();
   }
 
   @override
@@ -634,8 +623,6 @@ class QRScanViewState extends State<QRScanView>
             Text('scan_qr'.tr(), style: theme.primaryTextTheme.labelLarge),
           ],
         );
-      case ScannerItem.CANVAS_DEVICE:
-        return const SizedBox();
     }
   }
 
@@ -688,7 +675,6 @@ class QRScanViewState extends State<QRScanView>
             } else {
               _handleError(code);
             }
-            break;
 
           case ScannerItem.BEACON_CONNECT:
             if (code.startsWith('tezos://')) {
@@ -696,7 +682,6 @@ class QRScanViewState extends State<QRScanView>
             } else {
               _handleError(code);
             }
-            break;
 
           case ScannerItem.ETH_ADDRESS:
           case ScannerItem.XTZ_ADDRESS:
@@ -711,40 +696,14 @@ class QRScanViewState extends State<QRScanView>
               Navigator.pop(context, code);
             }
             await Future.delayed(const Duration(milliseconds: 300));
-            break;
           case ScannerItem.GLOBAL:
             if (code.startsWith('wc:')) {
               await _handleAutonomyConnect(code);
             } else if (code.startsWith('tezos:')) {
               await _handleBeaconConnect(code);
-              /* TODO: Remove or support for multiple wallets
-          } else if (code.startsWith("tz1")) {
-            Navigator.of(context).popAndPushNamed(SendCryptoPage.tag,
-                arguments: SendData(CryptoType.XTZ, code));
-          } else {
-            try {
-              final _ = EthereumAddress.fromHex(code);
-              Navigator.of(context).popAndPushNamed(SendCryptoPage.tag,
-                  arguments: SendData(CryptoType.ETH, code));
-            } catch (err) {
-              log(err.toString());
-            }
-            */
-            } else if (_isCanvasQrCode(code)) {
-              unawaited(_lock.synchronized(() async {
-                await _handleCanvasQrCode(code);
-              }));
             } else {
               _handleError(code);
             }
-            break;
-          case ScannerItem.CANVAS_DEVICE:
-            if (_isCanvasQrCode(code)) {
-              unawaited(_lock.synchronized(() => _handleCanvasQrCode(code)));
-            } else {
-              _handleError(code);
-            }
-            break;
         }
         if (mounted) {
           await resumeCamera();
@@ -757,64 +716,6 @@ class QRScanViewState extends State<QRScanView>
         }
       }
     });
-  }
-
-  bool _isCanvasQrCode(String code) {
-    try {
-      CanvasDevice.fromJson(jsonDecode(code));
-      return true;
-    } catch (err) {
-      return false;
-    }
-  }
-
-  Future<bool> _handleCanvasQrCode(String code) async {
-    log.info('Canvas device scanned: $code');
-    setState(() {
-      _isLoading = true;
-    });
-    await pauseCamera();
-    if (!mounted) {
-      return false;
-    }
-    try {
-      final device = CanvasDevice.fromJson(jsonDecode(code));
-      final canvasClient = injector<CanvasClientServiceV2>();
-      final result = await canvasClient.addQrDevice(device);
-      final isSuccessful = result != null;
-      if (!mounted) {
-        return false;
-      }
-      if (_shouldPop) {
-        Navigator.pop(context, isSuccessful);
-      } else {
-        await UIHelper.showFlexibleDialog(
-          context,
-          BlocProvider.value(
-            value: injector<CanvasDeviceBloc>(),
-            child: const StreamDeviceView(),
-          ),
-          isDismissible: true,
-          autoDismissAfter: 3,
-        );
-      }
-      injector<CanvasDeviceBloc>().add(CanvasDeviceAppendDeviceEvent(device));
-      return isSuccessful;
-    } catch (e) {
-      if (mounted) {
-        if (_shouldPop) {
-          Navigator.pop(context, false);
-        }
-        if (e.toString().contains('DEADLINE_EXCEEDED') || true) {
-          await UIHelper.showInfoDialog(
-              _navigationService.navigatorKey.currentContext!,
-              'failed_to_connect'.tr(),
-              'canvas_ip_fail'.tr(),
-              closeButton: 'close'.tr());
-        }
-      }
-    }
-    return false;
   }
 
   void _handleError(String data) {
