@@ -38,7 +38,6 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
     with AfterLayoutMixin {
   late final ExhibitionDetailBloc _exBloc;
 
-  // late final CanvasDeviceBloc _canvasDeviceBloc;
   final _metricClientService = injector<MetricClientService>();
   final _canvasDeviceBloc = injector<CanvasDeviceBloc>();
 
@@ -267,46 +266,6 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
     );
     return request;
   }
-
-  // Future<void> _onCastTap(
-  //     BuildContext context, ExhibitionDetail exhibitionDetail) async {
-  //   if (exhibitionDetail.artworks == null ||
-  //       exhibitionDetail.artworks!.isEmpty) {
-  //     return;
-  //   }
-  //   final tokenIds = exhibitionDetail.artworks
-  //       ?.map((e) => exhibitionDetail.getArtworkTokenId(e)!)
-  //       .toList();
-  //   final sceneId = exhibitionDetail.exhibition.id;
-  //   final playlistModel = PlayListModel(
-  //     name: exhibitionDetail.exhibition.title,
-  //     id: sceneId,
-  //     thumbnailURL: exhibitionDetail.exhibition.coverUrl,
-  //     tokenIDs: tokenIds,
-  //     playControlModel: PlayControlModel(timer: 30),
-  //   );
-  //   await UIHelper.showFlexibleDialog(
-  //     context,
-  //     BlocProvider.value(
-  //       value: _canvasDeviceBloc,
-  //       child: CanvasDeviceView(
-  //         sceneId: sceneId,
-  //         isCollection: true,
-  //         playlist: playlistModel,
-  //         onClose: () {
-  //           Navigator.of(context).pop();
-  //         },
-  //       ),
-  //     ),
-  //     isDismissible: true,
-  //   );
-  //   await _fetchDevice(sceneId);
-  // }
-
-  // Future<void> _fetchDevice(String exhibitionId) async {
-  //   _canvasDeviceBloc
-  //       .add(CanvasDeviceGetDevicesEvent(exhibitionId, syncAll: false));
-  // }
 
   @override
   FutureOr<void> afterFirstLayout(BuildContext context) {
