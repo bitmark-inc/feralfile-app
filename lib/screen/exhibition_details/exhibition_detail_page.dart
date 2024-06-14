@@ -43,7 +43,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
 
   late final PageController _controller;
   int _currentIndex = 0;
-  late int _carouselIndex;
+  int _carouselIndex = 0;
 
   @override
   void initState() {
@@ -52,7 +52,6 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
     _exBloc.add(GetExhibitionDetailEvent(
         widget.payload.exhibitions[widget.payload.index].id));
     _controller = PageController();
-    _carouselIndex = 0;
   }
 
   @override
@@ -196,6 +195,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
               viewportFraction: 0.76,
               enableInfiniteScroll: false,
               enlargeCenterPage: true,
+              initialPage: _carouselIndex,
               onPageChanged: (index, reason) {
                 _carouselIndex = index;
                 final controllingDevice =
