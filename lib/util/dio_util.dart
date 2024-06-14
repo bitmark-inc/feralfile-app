@@ -31,8 +31,9 @@ Dio postcardDio(BaseOptions options) {
 }
 
 Dio tvCastDio(BaseOptions options) {
-  final dio = baseDio(options);
+  final dio = Dio(options);
   dio.interceptors.add(TVKeyInterceptor(Environment.tvKey));
+  dio.interceptors.add(LoggingInterceptor());
   dio.interceptors.add(ConnectingExceptionInterceptor());
   return dio;
 }
