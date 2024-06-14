@@ -35,6 +35,7 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
+import 'package:autonomy_flutter/view/stream_device_view.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
@@ -786,6 +787,15 @@ class QRScanViewState extends State<QRScanView>
       }
       if (_shouldPop) {
         Navigator.pop(context, isSuccessful);
+      } else {
+        await UIHelper.showFlexibleDialog(
+          context,
+          BlocProvider.value(
+            value: injector<CanvasDeviceBloc>(),
+            child: const StreamDeviceView(),
+          ),
+          isDismissible: true,
+        );
       }
       injector<CanvasDeviceBloc>().add(CanvasDeviceAppendDeviceEvent(device));
       return isSuccessful;
