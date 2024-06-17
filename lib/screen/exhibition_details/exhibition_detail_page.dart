@@ -181,6 +181,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
                       ?.where((post) => post.coverURI != null)
                       .map((e) => ExhibitionPostView(
                             post: e,
+                            exhibitionID: exhibition.id,
                           )) ??
                   []
             ],

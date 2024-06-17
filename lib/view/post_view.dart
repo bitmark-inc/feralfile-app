@@ -1,13 +1,17 @@
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 
 class ExhibitionPostView extends StatefulWidget {
   final Post post;
+  final String exhibitionID;
 
   const ExhibitionPostView({
     required this.post,
+    required this.exhibitionID,
     super.key,
   });
 
@@ -75,7 +79,10 @@ class _ExhibitionPostViewState extends State<ExhibitionPostView> {
               ],
               const SizedBox(height: 20),
               GestureDetector(
-                onTap: () async {},
+                onTap: () async {
+                  await injector<NavigationService>()
+                      .openFeralFilePostPage(widget.post, widget.exhibitionID);
+                },
                 child: Text(
                   widget.post.type == 'close-up'
                       ? 'read_more'.tr()
