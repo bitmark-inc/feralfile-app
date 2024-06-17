@@ -77,7 +77,7 @@ jobs:
       - name: Create env file
         run: |
           touch .env
-          ${{ inputs.testnet == true }} && echo -e "${{ secrets.DEV_ENV }}" | sed 's/\\n/\n/g' >> .env || echo -e "${{ secrets.STAGING_ENV }}" | sed 's/\\n/\n/g' >> .env
+          ${{ inputs.testnet == true }} && echo -e "${{ secrets.DEV_ENV_VARS }}" | sed 's/\\n/\n/g' >> .env || echo -e "${{ secrets.STAGING_ENV_VARS }}" | sed 's/\\n/\n/g' >> .env
           cat .env
 
       - name: Create env secret file

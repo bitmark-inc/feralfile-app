@@ -49,7 +49,7 @@ jobs:
       - name: Create env file
         run: |
           touch .env
-          echo -e "${{ secrets.PRODUCTION_ENV }}" | sed 's/\\n/\n/g' >> .env
+          echo -e "${{ secrets.PRODUCTION_ENV_VARS }}" | sed 's/\\n/\n/g' >> .env
           cat .env
 
       - name: Create env secret file
