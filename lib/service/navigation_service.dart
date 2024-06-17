@@ -7,6 +7,7 @@
 
 import 'dart:async';
 
+import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
@@ -336,6 +337,16 @@ class NavigationService {
         arguments: InAppWebViewPayload(url));
   }
 
+  Future<void> openFeralFileCuratorPage(String alias) async {
+    if (alias.contains(',') || alias.isEmpty) {
+      return;
+    }
+    final url = FeralFileHelper.getCuratorUrl(alias);
+    await Navigator.of(navigatorKey.currentContext!).pushNamed(
+        AppRouter.inappWebviewPage,
+        arguments: InAppWebViewPayload(url));
+  }
+
   Future<void> openFeralFileExhibitionNotePage(String exhibitionSlug) async {
     if (exhibitionSlug.isEmpty) {
       return;
@@ -347,13 +358,14 @@ class NavigationService {
     );
   }
 
-  Future<void> openFeralFileCuratorPage(String alias) async {
-    if (alias.contains(',') || alias.isEmpty) {
+  Future<void> openFeralFilePostPage(Post post, String exhibitionID) async {
+    if (post.slug.isEmpty || exhibitionID.isEmpty) {
       return;
     }
-    final url = FeralFileHelper.getCuratorUrl(alias);
+    final url = FeralFileHelper.getPostUrl(post, exhibitionID);
     await Navigator.of(navigatorKey.currentContext!).pushNamed(
-        AppRouter.inappWebviewPage,
-        arguments: InAppWebViewPayload(url));
+      AppRouter.inappWebviewPage,
+      arguments: InAppWebViewPayload(url),
+    );
   }
 }
