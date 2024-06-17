@@ -84,7 +84,7 @@ jobs:
         run: |
           touch .env.secret
           ${{ inputs.testnet == true }} && echo -e "${{ secrets.DEV_ENV_SECRET }}" | sed 's/\\n/\n/g' >> .env.secret || echo -e "${{ secrets.STAGING_ENV_SECRET }}" | sed 's/\\n/\n/g' >> .env.secret
-          cat .env
+          cat .env.secret
 
       - name: Submoudles update
         run: git -c submodule.auto-test.update=none submodule update --init --recursive
