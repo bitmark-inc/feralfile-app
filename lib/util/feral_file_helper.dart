@@ -6,4 +6,6 @@ class FeralFileHelper {
   static String getArtistUrl(String alias) => '$_baseUrl/artists/$alias';
 
   static String getCuratorUrl(String alias) => '$_baseUrl/curators/$alias';
+
+  static String getExhibitionNoteUrl(String exhibitionSlug) => '$_baseUrl/exhibitions/$exhibitionSlug/overview#note';
 }

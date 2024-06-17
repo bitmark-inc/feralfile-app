@@ -1,4 +1,6 @@
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -7,22 +9,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 
 class ExhibitionNoteView extends StatelessWidget {
-  const ExhibitionNoteView(
-      {required this.exhibition,
-      this.width,
-      super.key,
-      this.onReadMore,
-      this.isFull = false});
+  const ExhibitionNoteView({required this.exhibition, this.width, super.key});
 
   final Exhibition exhibition;
   final double? width;
-  final Function? onReadMore;
-  final bool isFull;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final text = isFull ? exhibition.note : exhibition.noteBrief;
     return Center(
       child: Container(
         padding: const EdgeInsets.all(14),
@@ -47,19 +41,19 @@ class ExhibitionNoteView extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             ConstrainedBox(
-              constraints:
-                  BoxConstraints(maxHeight: isFull ? double.infinity : 400),
+              constraints: const BoxConstraints(maxHeight: 400),
               child: HtmlWidget(
                 customStylesBuilder: auHtmlStyle,
-                text,
+                exhibition.noteBrief,
                 textStyle: theme.textTheme.ppMori400White14,
               ),
             ),
             const SizedBox(height: 20),
-            if (onReadMore != null)
+            if (exhibition.noteBrief != exhibition.note)
               GestureDetector(
                 onTap: () async {
-                  await onReadMore!();
+                  await injector<NavigationService>()
+                      .openFeralFileExhibitionNotePage(exhibition.slug);
                 },
                 child: Text(
                   'read_more'.tr(),
