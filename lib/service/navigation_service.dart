@@ -336,6 +336,17 @@ class NavigationService {
         arguments: InAppWebViewPayload(url));
   }
 
+  Future<void> openFeralFileExhibitionNotePage(String exhibitionSlug) async {
+    if (exhibitionSlug.isEmpty) {
+      return;
+    }
+    final url = FeralFileHelper.getExhibitionNoteUrl(exhibitionSlug);
+    await Navigator.of(navigatorKey.currentContext!).pushNamed(
+      AppRouter.inappWebviewPage,
+      arguments: InAppWebViewPayload(url),
+    );
+  }
+
   Future<void> openFeralFileCuratorPage(String alias) async {
     if (alias.contains(',') || alias.isEmpty) {
       return;
