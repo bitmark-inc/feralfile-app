@@ -60,9 +60,7 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
     _controller.addListener(_scrollListenerToShowSearchBar);
     nftBloc.add(RefreshNftCollectionByIDs(ids: widget.playListModel?.tokenIDs));
     bloc.add(InitPlayList(
-      playListModel: widget.playListModel?.copyWith(
-        tokenIDs: List.from(widget.playListModel?.tokenIDs ?? []),
-      ),
+      playListModel: widget.playListModel,
     ));
   }
 
@@ -160,13 +158,7 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
       bloc: bloc,
       listener: (context, state) async {
         if (state.isAddSuccess ?? false) {
-          injector<NavigationService>().popUntilHomeOrSettings();
-          await Navigator.pushNamed(
-            context,
-            AppRouter.viewPlayListPage,
-            arguments:
-                ViewPlaylistScreenPayload(playListModel: state.playListModel),
-          );
+          Navigator.pop(context, state.playListModel);
         }
       },
       builder: (context, state) {
@@ -413,10 +405,16 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
     await Navigator.pushNamed(
       context,
       AppRouter.addToCollectionPage,
-      arguments: widget.playListModel,
+      arguments: bloc.state.playListModel?.copyWith(
+        tokenIDs: bloc.state.playListModel?.tokenIDs,
+      ),
     ).then((value) {
       if (value != null && value is PlayListModel) {
-        bloc.add(SavePlaylist());
+        bloc.state.playListModel = bloc.state.playListModel?.copyWith(
+          tokenIDs: value.tokenIDs?.toList(),
+          name: value.name,
+        );
+        bloc.add(UpdateNamePlaylist(name: value.name ?? ''));
         nftBloc.add(RefreshNftCollectionByIDs(
           ids: isDemo ? [] : value.tokenIDs,
           debugTokenIds: isDemo ? value.tokenIDs : [],

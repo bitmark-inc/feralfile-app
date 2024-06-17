@@ -131,16 +131,28 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
             'assets/images/rename_icon.svg',
             width: 24,
           ),
-          onTap: () {
+          onTap: () async {
             Navigator.pop(context);
             if (isDemo) {
               return;
             }
-            Navigator.pushNamed(
+            await Navigator.pushNamed(
               context,
               AppRouter.editPlayListPage,
-              arguments: playList,
-            );
+              arguments: playList?.copyWith(
+                tokenIDs: playList.tokenIDs?.toList(),
+              ),
+            ).then((value) {
+              if (value != null) {
+                final playListModel = value as PlayListModel;
+                bloc.state.playListModel?.tokenIDs = playListModel.tokenIDs;
+                bloc.add(SavePlaylist(name: playListModel.name));
+                nftBloc.add(RefreshNftCollectionByIDs(
+                  ids: isDemo ? [] : value.tokenIDs,
+                  debugTokenIds: isDemo ? value.tokenIDs : [],
+                ));
+              }
+            });
           },
         ),
         OptionItem(
