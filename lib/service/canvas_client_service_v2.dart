@@ -199,7 +199,7 @@ class CanvasClientServiceV2 {
   Future<List<Pair<CanvasDevice, CheckDeviceStatusReply>>> _getDeviceStatuses(
       List<CanvasDevice> devices) async {
     final List<Pair<CanvasDevice, CheckDeviceStatusReply>> statuses = [];
-    await Future.forEach<CanvasDevice>(devices, (device) async {
+    for (var device in devices) {
       try {
         final status = await _getDeviceStatus(device);
         if (status != null) {
@@ -208,7 +208,7 @@ class CanvasClientServiceV2 {
       } catch (e) {
         log.info('CanvasClientService: _getDeviceStatus error: $e');
       }
-    });
+    }
     return statuses;
   }
 
