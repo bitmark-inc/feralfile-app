@@ -76,7 +76,7 @@ jobs:
         run: |
           touch .env.secret
           ${{ inputs.testnet == true }} && echo -e "${{ secrets.DEV_ENV_SECRET }}" | sed 's/\\n/\n/g' >> .env.secret || echo -e "${{ secrets.STAGING_ENV_SECRET }}" | sed 's/\\n/\n/g' >> .env.secret
-          cat .env
+          cat .env.secret
 
       - name: Flutter doctor
         run: flutter doctor
