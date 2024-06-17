@@ -36,7 +36,7 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
   void initState() {
     super.initState();
     _canvasDeviceBloc = injector.get<CanvasDeviceBloc>();
-    unawaited(_fetchDevice());
+   // unawaited(_fetchDevice());
   }
 
   Future<void> _fetchDevice() async {
@@ -50,12 +50,9 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
       bloc: _canvasDeviceBloc,
       builder: (context, state) {
         final devices = state.devices;
-        final connectedDevice = state.devices
-            .where((element) =>
-                state.controllingDeviceStatus?.keys
-                    .contains(element.device.deviceId) ??
-                false)
-            .firstOrNull;
+        final connectedDevice = widget.displayKey == null
+            ? null
+            : state.isCastingForKey(widget.displayKey!);
         return Padding(
           padding: ResponsiveLayout.pageHorizontalEdgeInsets,
           child: Column(
@@ -71,7 +68,7 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
                     ),
                     if (connectedDevice != null)
                       TextSpan(
-                        text: ' ${connectedDevice.device.name}',
+                        text: ' ${connectedDevice.name}',
                         style: theme.textTheme.ppMori400White24,
                       ),
                   ],
@@ -85,9 +82,8 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
                 itemCount: devices.length,
                 itemBuilder: (BuildContext context, int index) {
                   final device = devices[index].device;
-                  final isControlling = widget.displayKey != null
-                      ? state.isControllingOf(device, widget.displayKey!)
-                      : false;
+                  final isControlling =
+                      device.deviceId == connectedDevice?.deviceId;
                   return Column(
                     children: [
                       Builder(

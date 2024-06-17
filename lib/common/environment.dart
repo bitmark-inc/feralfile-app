@@ -44,7 +44,7 @@ class Environment {
 
   static String get auClaimSecretKey => dotenv.env['AU_CLAIM_SECRET_KEY'] ?? '';
 
-  static String get tvKey => dotenv.env['TV_API_KEY'] ?? 'your-api-key';
+  static String get tvKey => dotenv.env['TV_API_KEY'] ?? '';
 
   static String get tvCastApiUrl => dotenv.env['TV_CAST_API_URL'] ?? '';
 
