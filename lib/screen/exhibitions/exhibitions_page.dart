@@ -135,19 +135,10 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                   }
                 }
 
+                if (!context.mounted) {
+                  return;
+                }
                 if (exhibition.canViewDetails && index >= 0) {
-                  final device = _canvasDeviceBloc.state.controllingDevice;
-                  if (device != null) {
-                    final castRequest = CastExhibitionRequest(
-                      exhibitionId: exhibition.id,
-                      catalog: ExhibitionCatalog.home,
-                    );
-                    _canvasDeviceBloc.add(
-                        CanvasDeviceCastExhibitionEvent(device, castRequest));
-                  }
-                  if (!context.mounted) {
-                    return;
-                  }
                   await Navigator.of(context)
                       .pushNamed(AppRouter.exhibitionDetailPage,
                           arguments: ExhibitionDetailPayload(

@@ -48,6 +48,9 @@ class _FeralFileArtworkPreviewPageState
           context,
           onBack: () => Navigator.pop(context),
           action: FFCastButton(
+            /// can not get url of PlayArtworkV2,
+            /// so use exhibitionId as a temporary solution
+            displayKey: widget.payload.artwork.series?.exhibitionID ?? '',
             onDeviceSelected: _onDeviceSelected,
           ),
         ),

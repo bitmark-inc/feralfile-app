@@ -19,3 +19,32 @@ extension ListDeviceStatusExtension
     return controllingDeviceStatus;
   }
 }
+
+extension DeviceStatusExtension on CheckDeviceStatusReply {
+  String? get playingArtworkKey {
+    if (artworks.isEmpty && exhibitionId == null) {
+      return null;
+    }
+    if (exhibitionId != null) {
+      return exhibitionId.toString();
+    }
+
+    final hashCode = artworks.playArtworksHashCode;
+    return hashCode.toString();
+  }
+}
+
+extension PlayArtworksExtension on List<PlayArtworkV2> {
+  int get playArtworksHashCode {
+    final hashCodes = map((e) => e.playArtworkHashCode);
+    final hashCode = hashCodes.reduce((value, element) => value ^ element);
+    return hashCode;
+  }
+}
+
+extension PlayArtworkExtension on PlayArtworkV2 {
+  int get playArtworkHashCode {
+    final id = token?.id ?? artwork?.url ?? '';
+    return id.hashCode;
+  }
+}

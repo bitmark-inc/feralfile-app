@@ -316,6 +316,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                             backgroundColor: Colors.transparent,
                             actions: [
                               FFCastButton(
+                                displayKey: _getDisplayKey(asset),
                                 onDeviceSelected: (device) {
                                   if (widget.payload.playlist == null) {
                                     final artwork = PlayArtworkV2(
@@ -426,6 +427,17 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
         return const SizedBox();
       }
     });
+  }
+
+  String _getDisplayKey(AssetToken asset) {
+    if (widget.payload.playlist != null) {
+      final playlist = widget.payload.playlist!;
+      final listTokenIds = playlist.tokenIDs ?? [];
+      final hashCodes = listTokenIds.map((e) => e.hashCode).toList();
+      final hashCode = hashCodes.reduce((value, element) => value ^ element);
+      return hashCode.toString();
+    }
+    return asset.id.hashCode.toString();
   }
 
   Widget _artworkInfoIcon() => Semantics(
@@ -597,7 +609,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     final showKeyboard = (asset.medium == 'software' ||
             asset.medium == 'other' ||
             (asset.medium?.isEmpty ?? true) ||
-            canvasDeviceState.isCasting) &&
+            canvasDeviceState.isCastingForKey(_getDisplayKey(asset)) != null) &&
         !asset.isPostcard;
     if (!context.mounted) {
       return;
@@ -620,12 +632,14 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
             icon: SvgPicture.asset('assets/images/keyboard_icon.svg'),
             onTap: () {
               Navigator.of(context).pop();
-              if (canvasDeviceState.isCasting) {
+              final castingDevice =
+                  canvasDeviceState.isCastingForKey(_getDisplayKey(asset));
+              if (castingDevice != null) {
                 unawaited(Navigator.of(context).pushNamed(
                   AppRouter.keyboardControlPage,
                   arguments: KeyboardControlPagePayload(
                     asset,
-                    [canvasDeviceState.controllingDevice!],
+                    [castingDevice],
                   ),
                 ));
               } else {

@@ -10,6 +10,7 @@ import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_blo
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_state.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/device_status_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/cast_button.dart';
@@ -136,6 +137,11 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
     final controllingDevice = _canvasDeviceBloc.state.controllingDevice;
     log.info('onPageChanged: $_currentIndex');
     if (controllingDevice != null) {
+      final status = _canvasDeviceBloc.state.statusOf(controllingDevice);
+      if (status?.playingArtworkKey != exhibition.id) {
+        return;
+      }
+
       final request = _getCastExhibitionRequest(exhibition);
       log.info('onPageChanged: request: $request');
       _canvasDeviceBloc.add(
@@ -198,14 +204,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
               initialPage: _carouselIndex,
               onPageChanged: (index, reason) {
                 _carouselIndex = index;
-                final controllingDevice =
-                    _canvasDeviceBloc.state.controllingDevice;
-                final request = _getCastExhibitionRequest(exhibition);
-                if (controllingDevice != null) {
-                  _canvasDeviceBloc.add(
-                    CanvasDeviceCastExhibitionEvent(controllingDevice, request),
-                  );
-                }
+                _stream(exhibition);
               },
             ),
           ),
@@ -220,6 +219,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
             ? Padding(
                 padding: const EdgeInsets.only(right: 14, bottom: 10, top: 10),
                 child: FFCastButton(
+                  displayKey: exhibition.id,
                   onDeviceSelected: (device) async {
                     final request = _getCastExhibitionRequest(exhibition);
                     _canvasDeviceBloc.add(

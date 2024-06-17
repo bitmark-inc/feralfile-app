@@ -11,11 +11,16 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 class FFCastButton extends StatefulWidget {
   final Function(CanvasDevice device)? onDeviceSelected;
+  final String displayKey;
   final String? text;
   final String? type;
 
   const FFCastButton(
-      {this.type = '', super.key, this.onDeviceSelected, this.text});
+      {required this.displayKey,
+      this.type = '',
+      super.key,
+      this.onDeviceSelected,
+      this.text});
 
   @override
   State<FFCastButton> createState() => _FFCastButtonState();
@@ -37,10 +42,10 @@ class _FFCastButtonState extends State<FFCastButton> {
     return BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
       bloc: _canvasDeviceBloc,
       builder: (context, state) {
-        final isCasting = state.isCasting;
+        final castingDevice = state.isCastingForKey(widget.displayKey);
         return GestureDetector(
           onTap: () async {
-            await _showStreamAction(context);
+            await _showStreamAction(context, widget.displayKey);
           },
           child: Semantics(
             label: 'cast_icon',
@@ -73,7 +78,7 @@ class _FFCastButtonState extends State<FFCastButton> {
                         BlendMode.srcIn,
                       ),
                     ),
-                    if (isCasting) ...[
+                    if (castingDevice != null) ...[
                       const SizedBox(
                         width: 3,
                         height: 20,
@@ -98,13 +103,14 @@ class _FFCastButtonState extends State<FFCastButton> {
     );
   }
 
-  Future<void> _showStreamAction(BuildContext context) async {
+  Future<void> _showStreamAction(BuildContext context, String displayKey) async {
     keyboardManagerKey.currentState?.hideKeyboard();
     await UIHelper.showFlexibleDialog(
       context,
       BlocProvider.value(
         value: _canvasDeviceBloc,
         child: StreamDeviceView(
+          displayKey: displayKey,
           onDeviceSelected: widget.onDeviceSelected,
         ),
       ),

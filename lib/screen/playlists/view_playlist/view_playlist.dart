@@ -336,7 +336,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
           return const SizedBox();
         }
 
-        final playList = state.playListModel!;
+        final PlayListModel playList = state.playListModel!;
         return Scaffold(
           appBar: AppBar(
             systemOverlayStyle: systemUiOverlayLightStyle(AppColor.white),
@@ -378,23 +378,26 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
               ],
             ),
             actions: [
-              const SizedBox(width: 15),
-              FFCastButton(
-                onDeviceSelected: (device) async {
-                  final listTokenIds = playList.tokenIDs;
-                  if (listTokenIds == null) {
-                    log.info('Playlist tokenIds is null');
-                    return;
-                  }
-                  final duration = speedValues.values.first.inMilliseconds;
-                  final listPlayArtwork = listTokenIds
-                      .map((e) => PlayArtworkV2(
-                          token: CastAssetToken(id: e), duration: duration))
-                      .toList();
-                  _canvasDeviceBloc.add(CanvasDeviceChangeControlDeviceEvent(
-                      device, listPlayArtwork));
-                },
-              ),
+              if (_getDisplayKey(playList) != null) ...[
+                const SizedBox(width: 15),
+                FFCastButton(
+                  displayKey: _getDisplayKey(playList)!,
+                  onDeviceSelected: (device) async {
+                    final listTokenIds = playList.tokenIDs;
+                    if (listTokenIds == null) {
+                      log.info('Playlist tokenIds is null');
+                      return;
+                    }
+                    final duration = speedValues.values.first.inMilliseconds;
+                    final listPlayArtwork = listTokenIds
+                        .map((e) => PlayArtworkV2(
+                            token: CastAssetToken(id: e), duration: duration))
+                        .toList();
+                    _canvasDeviceBloc.add(CanvasDeviceChangeControlDeviceEvent(
+                        device, listPlayArtwork));
+                  },
+                ),
+              ],
               const SizedBox(width: 15),
               GestureDetector(
                 onTap: () async {
@@ -434,12 +437,16 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                 BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
                   bloc: _canvasDeviceBloc,
                   builder: (context, canvasDeviceState) {
+                    final displayKey = _getDisplayKey(playList);
                     final isPlaylistCasting =
-                        _canvasDeviceBloc.state.controllingDevice != null;
+                        canvasDeviceState.isCastingForKey(displayKey ?? '') !=
+                            null;
                     if (isPlaylistCasting) {
-                      return const Padding(
-                        padding: EdgeInsets.all(15),
-                        child: PlaylistControl(),
+                      return Padding(
+                        padding: const EdgeInsets.all(15),
+                        child: PlaylistControl(
+                          displayKey: displayKey!,
+                        ),
                       );
                     } else {
                       return const SizedBox();
@@ -470,6 +477,16 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
         );
       },
     );
+  }
+
+  String? _getDisplayKey(PlayListModel playList) {
+    final listTokenIds = playList.tokenIDs;
+    if (listTokenIds == null || listTokenIds.isEmpty) {
+      return null;
+    }
+    final hashCodes = listTokenIds.map((e) => e.hashCode);
+    final hashCode = hashCodes.reduce((value, element) => value ^ element);
+    return hashCode.toString();
   }
 
   Future<void> moveToAddNftToCollection(BuildContext context) async {

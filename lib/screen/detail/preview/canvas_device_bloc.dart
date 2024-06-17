@@ -161,14 +161,31 @@ class CanvasDeviceState {
           false)
       ?.device;
 
+  CheckDeviceStatusReply? statusOf(CanvasDevice device) =>
+      controllingDeviceStatus?[device.deviceId];
+
+  bool isControllingOf(CanvasDevice device, String key) {
+    final status = statusOf(device);
+    if (status == null) {
+      return false;
+    }
+    return status.playingArtworkKey == key;
+  }
+
   bool isDeviceControlling(CanvasDevice device) =>
       controllingDeviceStatus?.keys.contains(device.deviceId) ?? false;
 
   List<DeviceState> get controllingDevices =>
       devices.where((element) => isDeviceControlling(element.device)).toList();
 
-  bool get isCasting =>
-      devices.any((element) => element.device == controllingDevice);
+  CanvasDevice? isCastingForKey(String key) {
+    final id = controllingDeviceStatus?.entries
+        .firstWhereOrNull((element) => element.value.playingArtworkKey == key)
+        ?.key;
+    return devices
+        .firstWhereOrNull((element) => element.device.deviceId == id)
+        ?.device;
+  }
 }
 
 class DeviceState {

@@ -65,7 +65,9 @@ class StreamDrawerItem extends StatelessWidget {
 }
 
 class PlaylistControl extends StatefulWidget {
-  const PlaylistControl({super.key});
+  final String displayKey;
+
+  const PlaylistControl({required this.displayKey, super.key});
 
   @override
   State<PlaylistControl> createState() => _PlaylistControlState();
@@ -74,6 +76,7 @@ class PlaylistControl extends StatefulWidget {
 class _PlaylistControlState extends State<PlaylistControl> {
   Timer? _timer;
   late CanvasDeviceBloc _canvasDeviceBloc;
+  CanvasDevice? _controllingDevice;
 
   @override
   void initState() {
@@ -91,19 +94,22 @@ class _PlaylistControlState extends State<PlaylistControl> {
   Widget build(BuildContext context) =>
       BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
         bloc: _canvasDeviceBloc,
-        builder: (context, state) => Container(
-            padding: const EdgeInsets.all(15),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              color: AppColor.auGreyBackground,
-            ),
-            child: Column(
-              children: [
-                _buildPlayControls(context, state),
-                const SizedBox(height: 15),
-                _buildSpeedControl(context, state),
-              ],
-            )),
+        builder: (context, state) {
+          _controllingDevice = state.isCastingForKey(widget.displayKey);
+          return Container(
+              padding: const EdgeInsets.all(15),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                color: AppColor.auGreyBackground,
+              ),
+              child: Column(
+                children: [
+                  _buildPlayControls(context, state),
+                  const SizedBox(height: 15),
+                  _buildSpeedControl(context, state),
+                ],
+              ));
+        },
       );
 
   Widget _buildPlayButton({required String icon, required Function() onTap}) =>
@@ -132,7 +138,7 @@ class _PlaylistControlState extends State<PlaylistControl> {
       );
 
   Widget _buildPlayControls(BuildContext context, CanvasDeviceState state) {
-    final isCasting = state.isCasting;
+    final isCasting = _controllingDevice != null;
     return Row(
       children: [
         _buildPlayButton(
@@ -181,40 +187,37 @@ class _PlaylistControlState extends State<PlaylistControl> {
       );
 
   void onPrevious(BuildContext context) {
-    final controllingDevice = _canvasDeviceBloc.state.controllingDevice;
-    if (controllingDevice == null) {
+    if (_controllingDevice == null) {
       return;
     }
-    _canvasDeviceBloc.add(CanvasDevicePreviousArtworkEvent(controllingDevice));
+    _canvasDeviceBloc
+        .add(CanvasDevicePreviousArtworkEvent(_controllingDevice!));
   }
 
   void onNext(BuildContext context) {
-    final controllingDevice = _canvasDeviceBloc.state.controllingDevice;
-    if (controllingDevice == null) {
+    if (_controllingDevice == null) {
       return;
     }
-    _canvasDeviceBloc.add(CanvasDeviceNextArtworkEvent(controllingDevice));
+    _canvasDeviceBloc.add(CanvasDeviceNextArtworkEvent(_controllingDevice!));
   }
 
   void onPause(BuildContext context) {
-    final controllingDevice = _canvasDeviceBloc.state.controllingDevice;
-    if (controllingDevice == null) {
+    if (_controllingDevice == null) {
       return;
     }
-    _canvasDeviceBloc.add(CanvasDevicePauseCastingEvent(controllingDevice));
+    _canvasDeviceBloc.add(CanvasDevicePauseCastingEvent(_controllingDevice!));
   }
 
   void onResume(BuildContext context) {
-    final controllingDevice = _canvasDeviceBloc.state.controllingDevice;
-    if (controllingDevice == null) {
+    if (_controllingDevice == null) {
       return;
     }
-    _canvasDeviceBloc.add(CanvasDeviceResumeCastingEvent(controllingDevice));
+    _canvasDeviceBloc.add(CanvasDeviceResumeCastingEvent(_controllingDevice!));
   }
 
   void onPauseOrResume(BuildContext context) {
     // final _canvasDeviceBloc = context.read<CanvasDeviceBloc>();
-    final isCasting = _canvasDeviceBloc.state.isCasting;
+    final isCasting = _controllingDevice != null;
     if (isCasting) {
       onPause(context);
     } else {

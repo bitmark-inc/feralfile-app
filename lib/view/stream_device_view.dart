@@ -17,10 +17,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 class StreamDeviceView extends StatefulWidget {
   final Function(CanvasDevice device)? onDeviceSelected;
+  final String? displayKey;
 
   const StreamDeviceView({
     super.key,
     this.onDeviceSelected,
+    this.displayKey,
   });
 
   @override
@@ -83,7 +85,9 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
                 itemCount: devices.length,
                 itemBuilder: (BuildContext context, int index) {
                   final device = devices[index].device;
-                  final isControlling = state.isDeviceControlling(device);
+                  final isControlling = widget.displayKey != null
+                      ? state.isControllingOf(device, widget.displayKey!)
+                      : false;
                   return Column(
                     children: [
                       Builder(
