@@ -103,7 +103,8 @@ class _FFCastButtonState extends State<FFCastButton> {
     );
   }
 
-  Future<void> _showStreamAction(BuildContext context, String displayKey) async {
+  Future<void> _showStreamAction(
+      BuildContext context, String displayKey) async {
     keyboardManagerKey.currentState?.hideKeyboard();
     await UIHelper.showFlexibleDialog(
       context,
