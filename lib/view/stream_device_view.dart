@@ -36,7 +36,7 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
   void initState() {
     super.initState();
     _canvasDeviceBloc = injector.get<CanvasDeviceBloc>();
-   // unawaited(_fetchDevice());
+    unawaited(_fetchDevice());
   }
 
   Future<void> _fetchDevice() async {

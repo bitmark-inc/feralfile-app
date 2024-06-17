@@ -13,7 +13,6 @@ extension ListDeviceStatusExtension
       final status = devicePair.second;
       if (status.connectedDevice?.deviceId == thisDevice.deviceId) {
         controllingDeviceStatus[devicePair.first.deviceId] = status;
-        break;
       }
     }
     return controllingDeviceStatus;
