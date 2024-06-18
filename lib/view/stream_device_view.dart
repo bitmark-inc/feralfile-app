@@ -63,7 +63,7 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
                 text: TextSpan(
                   children: <TextSpan>[
                     TextSpan(
-                      text: 'connect_and_control'.tr(),
+                      text: 'display'.tr(),
                       style: theme.textTheme.ppMori700White24,
                     ),
                     if (connectedDevice != null)
