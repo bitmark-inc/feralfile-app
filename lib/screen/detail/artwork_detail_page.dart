@@ -34,6 +34,7 @@ import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/file_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/playlist_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -430,12 +431,9 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   }
 
   String _getDisplayKey(AssetToken asset) {
-    if (widget.payload.playlist != null) {
-      final playlist = widget.payload.playlist!;
-      final listTokenIds = playlist.tokenIDs ?? [];
-      final hashCodes = listTokenIds.map((e) => e.hashCode).toList();
-      final hashCode = hashCodes.reduce((value, element) => value ^ element);
-      return hashCode.toString();
+    final playlistDisplayKey = widget.payload.playlist?.displayKey;
+    if (playlistDisplayKey != null) {
+      return playlistDisplayKey;
     }
     return asset.id.hashCode.toString();
   }
@@ -609,7 +607,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     final showKeyboard = (asset.medium == 'software' ||
             asset.medium == 'other' ||
             (asset.medium?.isEmpty ?? true) ||
-            canvasDeviceState.isCastingForKey(_getDisplayKey(asset)) != null) &&
+            canvasDeviceState.castingDeviceForKey(_getDisplayKey(asset)) !=
+                null) &&
         !asset.isPostcard;
     if (!context.mounted) {
       return;
@@ -633,7 +632,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
             onTap: () {
               Navigator.of(context).pop();
               final castingDevice =
-                  canvasDeviceState.isCastingForKey(_getDisplayKey(asset));
+                  canvasDeviceState.castingDeviceForKey(_getDisplayKey(asset));
               if (castingDevice != null) {
                 unawaited(Navigator.of(context).pushNamed(
                   AppRouter.keyboardControlPage,

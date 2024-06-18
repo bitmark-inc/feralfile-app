@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/iterable_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/playlist_ext.dart';
 import 'package:autonomy_flutter/util/token_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
@@ -281,9 +282,9 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                   bloc: _canvasDeviceBloc,
                   builder: (context, canvasDeviceState) {
                     final displayKey = _getDisplayKey(playList);
-                    final isPlaylistCasting =
-                        canvasDeviceState.isCastingForKey(displayKey ?? '') !=
-                            null;
+                    final isPlaylistCasting = canvasDeviceState
+                            .castingDeviceForKey(displayKey ?? '') !=
+                        null;
                     if (isPlaylistCasting) {
                       return Padding(
                         padding: const EdgeInsets.all(15),
@@ -322,15 +323,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
     );
   }
 
-  String? _getDisplayKey(PlayListModel playList) {
-    final listTokenIds = playList.tokenIDs;
-    if (listTokenIds == null || listTokenIds.isEmpty) {
-      return null;
-    }
-    final hashCodes = listTokenIds.map((e) => e.hashCode);
-    final hashCode = hashCodes.reduce((value, element) => value ^ element);
-    return hashCode.toString();
-  }
+  String? _getDisplayKey(PlayListModel playList) => playList.displayKey;
 
   Future<bool> _moveToArtwork(CompactedAssetToken compactedAssetToken) {
     final controllingDevice = _canvasDeviceBloc.state.controllingDevice;

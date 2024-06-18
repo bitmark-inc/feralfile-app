@@ -183,7 +183,7 @@ class CanvasDeviceState {
   List<DeviceState> get controllingDevices =>
       devices.where((element) => isDeviceControlling(element.device)).toList();
 
-  CanvasDevice? isCastingForKey(String key) {
+  CanvasDevice? castingDeviceForKey(String key) {
     final id = controllingDeviceStatus?.entries
         .firstWhereOrNull((element) => element.value.playingArtworkKey == key)
         ?.key;

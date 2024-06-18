@@ -95,7 +95,7 @@ class _PlaylistControlState extends State<PlaylistControl> {
       BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
         bloc: _canvasDeviceBloc,
         builder: (context, state) {
-          _controllingDevice = state.isCastingForKey(widget.displayKey);
+          _controllingDevice = state.castingDeviceForKey(widget.displayKey);
           return Container(
               padding: const EdgeInsets.all(15),
               decoration: BoxDecoration(

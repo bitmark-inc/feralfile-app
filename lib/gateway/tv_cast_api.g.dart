@@ -19,7 +19,7 @@ class _TvCastApi implements TvCastApi {
   String? baseUrl;
 
   @override
-  Future<dynamic> cast({
+  Future<dynamic> request({
     required String locationId,
     required String topicId,
     required Map<String, dynamic> body,

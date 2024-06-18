@@ -52,7 +52,7 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
         final devices = state.devices;
         final connectedDevice = widget.displayKey == null
             ? null
-            : state.isCastingForKey(widget.displayKey!);
+            : state.castingDeviceForKey(widget.displayKey!);
         return Padding(
           padding: ResponsiveLayout.pageHorizontalEdgeInsets,
           child: Column(
