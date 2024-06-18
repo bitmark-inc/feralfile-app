@@ -180,7 +180,7 @@ class _PlaylistControlState extends State<PlaylistControl> {
               color: AppColor.primaryBlack,
             ),
             child: ArtworkDurationControl(
-              duration: state.castingSpeed,
+              duration: state.castingSpeed(widget.displayKey),
             ),
           )
         ],

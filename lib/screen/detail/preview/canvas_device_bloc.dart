@@ -143,20 +143,14 @@ class CanvasDeviceState {
     return copyWith(devices: newDeviceState);
   }
 
-  Duration? get castingSpeed {
+  Duration? castingSpeed(String key) {
     final controllingDevice = (controllingDeviceStatus ?? {})
         .entries
-        .firstWhereOrNull((element) =>
-            element.value.artworks.isNotEmpty &&
-            element.value.artworks.first.duration != 0)
-        ?.key;
+        .firstWhereOrNull((element) => element.value.playingArtworkKey == key);
     if (controllingDevice == null) {
       return null;
     }
-    final status = controllingDeviceStatus![controllingDevice];
-    if (status == null || status.artworks.isEmpty) {
-      return null;
-    }
+    final status = controllingDevice.value;
     return Duration(milliseconds: status.artworks.first.duration);
   }
 
