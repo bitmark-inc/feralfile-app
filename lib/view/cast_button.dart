@@ -43,6 +43,7 @@ class _FFCastButtonState extends State<FFCastButton> {
       bloc: _canvasDeviceBloc,
       builder: (context, state) {
         final castingDevice = state.isCastingForKey(widget.displayKey);
+        final isCasting = castingDevice != null;
         return GestureDetector(
           onTap: () async {
             await _showStreamAction(context, widget.displayKey);
@@ -55,8 +56,8 @@ class _FFCastButtonState extends State<FFCastButton> {
                 color: AppColor.feralFileLightBlue,
               ),
               child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+                padding: const EdgeInsets.symmetric(vertical: 9)
+                    .copyWith(left: 16, right: isCasting ? 9 : 16),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -78,7 +79,7 @@ class _FFCastButtonState extends State<FFCastButton> {
                         BlendMode.srcIn,
                       ),
                     ),
-                    if (castingDevice != null) ...[
+                    if (isCasting) ...[
                       const SizedBox(
                         width: 3,
                         height: 20,

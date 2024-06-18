@@ -15,15 +15,12 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
-import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/iterable_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/token_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
-import 'package:autonomy_flutter/view/au_radio_button.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/cast_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -68,35 +65,11 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
   bool isDemo = injector.get<ConfigurationService>().isDemoArtworksMode();
   final _focusNode = FocusNode();
   late CanvasDeviceBloc _canvasDeviceBloc;
-  late SortOrder _sortOrder;
   late bool editable;
   final _canvasClientServiceV2 = injector<CanvasClientServiceV2>();
 
-  List<SortOrder> _getAvailableOrders() {
-    switch (widget.payload.collectionType) {
-      case CollectionType.artist:
-        return [
-          SortOrder.title,
-          SortOrder.newest,
-        ];
-      case CollectionType.medium:
-        return [
-          SortOrder.title,
-          SortOrder.artist,
-          SortOrder.newest,
-        ];
-      default:
-        return [
-          SortOrder.manual,
-          SortOrder.title,
-          SortOrder.artist,
-        ];
-    }
-  }
-
   @override
   void initState() {
-    _sortOrder = _getAvailableOrders().first;
     editable = widget.payload.collectionType == CollectionType.manual &&
         !(widget.payload.playListModel?.isDefault ?? true);
     super.initState();
@@ -132,11 +105,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
         []
       ..removeWhere((element) => element == null);
 
-    tokensPlaylist = List.from(temp)
-      ..sort((a, b) {
-        final x = _sortOrder.compare(a, b);
-        return x;
-      });
+    tokensPlaylist = List.from(temp);
 
     accountIdentities = tokensPlaylist
         .where((e) => e.pending != true || e.hasMetadata)
@@ -151,119 +120,6 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
     super.dispose();
   }
 
-  void _onSelectOrder(SortOrder order) {
-    setState(() {
-      _sortOrder = order;
-    });
-  }
-
-  Future<void> _onOrderTap(BuildContext context, List<SortOrder> orders) async {
-    final theme = Theme.of(context);
-    final textStyle = theme.textTheme.ppMori400Black14.copyWith(
-      color: AppColor.white,
-    );
-    await showModalBottomSheet<dynamic>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      enableDrag: false,
-      constraints: BoxConstraints(
-          maxWidth: ResponsiveLayout.isMobile
-              ? double.infinity
-              : Constants.maxWidthModalTablet),
-      barrierColor: Colors.black.withOpacity(0.5),
-      isScrollControlled: true,
-      builder: (context) => StatefulBuilder(
-          builder: (context, setState) => Container(
-                color: AppColor.auGreyBackground,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(15, 17, 15, 20),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.only(top: 3, left: 37),
-                              child: Text(
-                                'sort_by'.tr(),
-                                style: textStyle,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ),
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: SizedBox(
-                              height: 28,
-                              width: 28,
-                              child: IconButton(
-                                onPressed: () => Navigator.pop(context),
-                                padding: const EdgeInsets.all(0),
-                                icon: const Icon(
-                                  AuIcon.close,
-                                  size: 18,
-                                  color: AppColor.white,
-                                  weight: 2,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    addOnlyDivider(color: AppColor.primaryBlack),
-                    const SizedBox(height: 20),
-                    ListView.separated(
-                      itemBuilder: (context, index) {
-                        final order = orders[index];
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 15),
-                          child: GestureDetector(
-                            onTap: () {
-                              Navigator.pop(context);
-                              _onSelectOrder(order);
-                            },
-                            child: Container(
-                              color: Colors.transparent,
-                              child: Row(
-                                children: [
-                                  AuRadio<SortOrder>(
-                                    onTap: (order) {
-                                      Navigator.pop(context);
-                                      _onSelectOrder(order);
-                                    },
-                                    value: order,
-                                    groupValue: _sortOrder,
-                                  ),
-                                  const SizedBox(width: 15),
-                                  Expanded(
-                                    child: Text(
-                                      order.text,
-                                      style: textStyle,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                      itemCount: orders.length,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      separatorBuilder: (BuildContext context, int index) =>
-                          const SizedBox(height: 15),
-                    ),
-                    const SizedBox(height: 65),
-                  ],
-                ),
-              )),
-    );
-  }
-
   Future<void> _onMoreTap(BuildContext context, PlayListModel? playList) async {
     final theme = Theme.of(context);
     await UIHelper.showDrawerAction(
@@ -275,16 +131,28 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
             'assets/images/rename_icon.svg',
             width: 24,
           ),
-          onTap: () {
+          onTap: () async {
             Navigator.pop(context);
             if (isDemo) {
               return;
             }
-            Navigator.pushNamed(
+            await Navigator.pushNamed(
               context,
               AppRouter.editPlayListPage,
-              arguments: playList,
-            );
+              arguments: playList?.copyWith(
+                tokenIDs: playList.tokenIDs?.toList(),
+              ),
+            ).then((value) {
+              if (value != null) {
+                final playListModel = value as PlayListModel;
+                bloc.state.playListModel?.tokenIDs = playListModel.tokenIDs;
+                bloc.add(SavePlaylist(name: playListModel.name));
+                nftBloc.add(RefreshNftCollectionByIDs(
+                  ids: isDemo ? [] : value.tokenIDs,
+                  debugTokenIds: isDemo ? value.tokenIDs : [],
+                ));
+              }
+            });
           },
         ),
         OptionItem(
@@ -325,9 +193,70 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
         UpdatePlayControl(playControlModel: playControlModel.onChangeTime()));
   }
 
+  Widget _appBarTitle(BuildContext context, PlayListModel playList) {
+    final theme = Theme.of(context);
+    return Row(
+      children: [
+        if (widget.payload.titleIcon != null) ...[
+          SizedBox(width: 22, height: 22, child: widget.payload.titleIcon),
+          const SizedBox(width: 10),
+          Text(
+            playList.getName(),
+            style: theme.textTheme.ppMori700Black36
+                .copyWith(color: AppColor.white),
+          ),
+        ] else ...[
+          Expanded(
+            child: Text(
+              playList.getName(),
+              style: theme.textTheme.ppMori700Black36
+                  .copyWith(color: AppColor.white),
+              textAlign: TextAlign.left,
+            ),
+          ),
+        ]
+      ],
+    );
+  }
+
+  List<Widget> _appBarAction(BuildContext context, PlayListModel playList) => [
+        if (editable) ...[
+          const SizedBox(width: 15),
+          GestureDetector(
+              onTap: () async => _onMoreTap(context, playList),
+              child: SvgPicture.asset(
+                'assets/images/more_circle.svg',
+                colorFilter:
+                    const ColorFilter.mode(AppColor.white, BlendMode.srcIn),
+                width: 24,
+              )),
+        ],
+        if (_getDisplayKey(playList) != null) ...[
+          const SizedBox(width: 15),
+          FFCastButton(
+            displayKey: _getDisplayKey(playList)!,
+            onDeviceSelected: (device) async {
+              final listTokenIds = playList.tokenIDs;
+              if (listTokenIds == null) {
+                log.info('Playlist tokenIds is null');
+                return;
+              }
+              final duration = speedValues.values.first.inMilliseconds;
+              final listPlayArtwork = listTokenIds
+                  .map((e) => PlayArtworkV2(
+                      token: CastAssetToken(id: e), duration: duration))
+                  .toList();
+              _canvasDeviceBloc.add(CanvasDeviceChangeControlDeviceEvent(
+                  device, listPlayArtwork));
+            },
+          ),
+        ],
+        const SizedBox(width: 15),
+      ];
+
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    Theme.of(context);
     return BlocConsumer<ViewPlaylistBloc, ViewPlaylistState>(
       bloc: bloc,
       listener: (context, state) {},
@@ -338,97 +267,11 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
 
         final PlayListModel playList = state.playListModel!;
         return Scaffold(
-          appBar: AppBar(
-            systemOverlayStyle: systemUiOverlayLightStyle(AppColor.white),
-            elevation: 0,
-            shadowColor: Colors.transparent,
-            leading: Row(
-              children: [
-                backButton(
-                  context,
-                  onBack: () => Navigator.pop(context),
-                ),
-              ],
-            ),
-            leadingWidth: editable ? 90 : 55,
-            titleSpacing: 0,
-            backgroundColor: AppColor.white,
-            automaticallyImplyLeading: false,
-            centerTitle: true,
-            title: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (widget.payload.titleIcon != null) ...[
-                  SizedBox(
-                      width: 22, height: 22, child: widget.payload.titleIcon),
-                  const SizedBox(width: 10),
-                  Text(
-                    playList.getName(),
-                    style: theme.textTheme.ppMori400Black16,
-                  ),
-                ] else ...[
-                  Expanded(
-                    child: Text(
-                      playList.getName(),
-                      style: theme.textTheme.ppMori400Black16,
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ]
-              ],
-            ),
-            actions: [
-              if (_getDisplayKey(playList) != null) ...[
-                const SizedBox(width: 15),
-                FFCastButton(
-                  displayKey: _getDisplayKey(playList)!,
-                  onDeviceSelected: (device) async {
-                    final listTokenIds = playList.tokenIDs;
-                    if (listTokenIds == null) {
-                      log.info('Playlist tokenIds is null');
-                      return;
-                    }
-                    final duration = speedValues.values.first.inMilliseconds;
-                    final listPlayArtwork = listTokenIds
-                        .map((e) => PlayArtworkV2(
-                            token: CastAssetToken(id: e), duration: duration))
-                        .toList();
-                    _canvasDeviceBloc.add(CanvasDeviceChangeControlDeviceEvent(
-                        device, listPlayArtwork));
-                  },
-                ),
-              ],
-              const SizedBox(width: 15),
-              GestureDetector(
-                onTap: () async {
-                  await _onOrderTap(context, _getAvailableOrders());
-                },
-                child: SvgPicture.asset(
-                  'assets/images/sort.svg',
-                  colorFilter:
-                      ColorFilter.mode(theme.primaryColor, BlendMode.srcIn),
-                  width: 22,
-                  height: 22,
-                ),
-              ),
-              if (editable) ...[
-                const SizedBox(width: 15),
-                GestureDetector(
-                    onTap: () async => _onMoreTap(context, playList),
-                    child: SvgPicture.asset(
-                      'assets/images/more_circle.svg',
-                      colorFilter:
-                          ColorFilter.mode(theme.primaryColor, BlendMode.srcIn),
-                      width: 24,
-                    )),
-              ],
-              const SizedBox(width: 15),
-            ],
-            bottom: PreferredSize(
-              preferredSize: const Size.fromHeight(0.25),
-              child:
-                  addOnlyDivider(color: AppColor.auQuickSilver, border: 0.25),
-            ),
+          backgroundColor: AppColor.primaryBlack,
+          appBar: getPlaylistAppBar(
+            context,
+            title: _appBarTitle(context, playList),
+            actions: _appBarAction(context, playList),
           ),
           body: BlocBuilder<NftCollectionBloc, NftCollectionBlocState>(
             bloc: nftBloc,
@@ -487,22 +330,6 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
     final hashCodes = listTokenIds.map((e) => e.hashCode);
     final hashCode = hashCodes.reduce((value, element) => value ^ element);
     return hashCode.toString();
-  }
-
-  Future<void> moveToAddNftToCollection(BuildContext context) async {
-    await Navigator.pushNamed(
-      context,
-      AppRouter.addToCollectionPage,
-      arguments: widget.payload.playListModel,
-    ).then((value) {
-      if (value != null && value is PlayListModel) {
-        bloc.add(SavePlaylist(name: value.name));
-        nftBloc.add(RefreshNftCollectionByIDs(
-          ids: isDemo ? [] : value.tokenIDs,
-          debugTokenIds: isDemo ? value.tokenIDs : [],
-        ));
-      }
-    });
   }
 
   Future<bool> _moveToArtwork(CompactedAssetToken compactedAssetToken) {
@@ -594,85 +421,27 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
             ),
           ],
         ),
-        Positioned(
-          bottom: 0,
-          left: 0,
-          right: 0,
-          child: Column(
-            children: [
-              if (editable)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 20),
-                  child: Center(
-                    child: AddButton(
-                      icon: SvgPicture.asset(
-                        'assets/images/joinFile.svg',
-                        width: 30,
-                        height: 30,
-                        colorFilter: const ColorFilter.mode(
-                            AppColor.primaryBlack, BlendMode.srcIn),
-                      ),
-                      onTap: () async {
-                        await moveToAddNftToCollection(context);
-                      },
-                    ),
-                  ),
-                ),
-              const SizedBox(height: 22),
-            ],
-          ),
-        )
       ],
     );
   }
 }
 
-enum SortOrder {
-  title,
-  artist,
-  newest,
-  manual;
-
-  String get text {
-    switch (this) {
-      case SortOrder.title:
-        return tr('sort_by_title');
-      case SortOrder.artist:
-        return tr('sort_by_artist');
-      case SortOrder.newest:
-        return tr('sort_by_newest');
-      case SortOrder.manual:
-        return tr('sort_by_manual');
-    }
-  }
-
-  int compare(CompactedAssetToken a, CompactedAssetToken b) {
-    switch (this) {
-      case SortOrder.title:
-        return a.title?.compareTo(b.title ?? '') ?? 1;
-      case SortOrder.artist:
-        return a.artistID?.compareTo(b.artistID ?? '') ?? 1;
-      case SortOrder.newest:
-        return b.lastActivityTime.compareTo(a.lastActivityTime);
-      case SortOrder.manual:
-        return -1;
-    }
-  }
-}
-
 class AddButton extends StatelessWidget {
   final Widget icon;
+  final Widget? iconOnDisabled;
   final void Function() onTap;
+  final bool isEnable;
 
   const AddButton({
     required this.icon,
     required this.onTap,
     super.key,
+    this.iconOnDisabled,
+    this.isEnable = true,
   });
 
   @override
   Widget build(BuildContext context) => GestureDetector(
-        onTap: onTap,
-        child: icon,
-      );
+      onTap: isEnable ? onTap : null,
+      child: isEnable ? icon : iconOnDisabled ?? icon);
 }

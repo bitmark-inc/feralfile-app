@@ -166,7 +166,7 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen>
         final isDone =
             playlistName.isNotEmpty && selectedIDs?.isNotEmpty == true;
         return Scaffold(
-          backgroundColor: theme.colorScheme.background,
+          backgroundColor: AppColor.white,
           appBar: getCustomDoneAppBar(
             context,
             title: TextFieldWidget(
