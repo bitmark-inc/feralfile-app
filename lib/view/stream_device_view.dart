@@ -125,7 +125,7 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
                     ),
                     recognizer: TapGestureRecognizer()
                       ..onTap = () async {
-                        await scanToAddMore(context);
+                        await _scanToAddMore(context);
                       },
                   ),
                   TextSpan(
@@ -174,9 +174,9 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
     );
   }
 
-  Future<void> scanToAddMore(BuildContext context) async {
+  Future<void> _scanToAddMore(BuildContext context) async {
     final device = await Navigator.of(context)
-        .pushNamed(AppRouter.scanQRPage, arguments: ScannerItem.GLOBAL);
+        .pushNamed(AppRouter.scanQRPage, arguments: ScannerItem.CANVAS);
     log.info('device selected: $device');
     _canvasDeviceBloc.add(CanvasDeviceGetDevicesEvent());
   }

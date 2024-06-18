@@ -273,7 +273,8 @@ enum ScannerItem {
   BEACON_CONNECT,
   ETH_ADDRESS,
   XTZ_ADDRESS,
-  GLOBAL
+  GLOBAL,
+  CANVAS,
 }
 
 class QRScanView extends StatefulWidget {
@@ -615,7 +616,23 @@ class QRScanViewState extends State<QRScanView>
             ),
           ),
         );
-
+      case ScannerItem.CANVAS:
+        return RichText(
+          text: TextSpan(
+            text: 'display_with_ff'.tr(),
+            children: [
+              TextSpan(
+                text: ' ',
+                style: theme.textTheme.ppMori400Grey14,
+              ),
+              TextSpan(
+                text: 'on_tv_or_desktop'.tr(),
+                style: theme.textTheme.ppMori400Grey14,
+              ),
+            ],
+            style: theme.textTheme.ppMori400White14,
+          ),
+        );
       case ScannerItem.ETH_ADDRESS:
       case ScannerItem.XTZ_ADDRESS:
         return Column(
@@ -669,6 +686,9 @@ class QRScanViewState extends State<QRScanView>
         return;
       } else {
         switch (widget.scannerItem) {
+          case ScannerItem.CANVAS:
+
+          /// handled with deeplink
           case ScannerItem.WALLET_CONNECT:
             if (code.startsWith('wc:')) {
               await _handleAutonomyConnect(code);
