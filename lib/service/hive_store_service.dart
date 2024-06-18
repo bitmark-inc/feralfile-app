@@ -4,6 +4,8 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 abstract class HiveStoreObjectService<T> {
+  Future<void> init(String key);
+
   Future<void> save(T obj, String objId);
 
   Future<void> delete(String objId);
@@ -16,10 +18,7 @@ abstract class HiveStoreObjectService<T> {
 class HiveStoreObjectServiceImpl<T> implements HiveStoreObjectService<T> {
   late Box<T> _box;
 
-  HiveStoreObjectServiceImpl(String key) {
-    unawaited(init(key));
-  }
-
+  @override
   Future<void> init(String key) async {
     _box = await Hive.openBox<T>(key);
   }

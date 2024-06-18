@@ -317,8 +317,9 @@ Future<void> setup() async {
   injector.registerLazySingleton<DeviceInfoService>(() => DeviceInfoService());
 
   injector.registerLazySingleton<HiveStoreObjectService<CanvasDevice>>(
-      () => HiveStoreObjectServiceImpl('local.canvas_device'));
-  injector<HiveStoreObjectService<CanvasDevice>>();
+      () => HiveStoreObjectServiceImpl());
+  await injector<HiveStoreObjectService<CanvasDevice>>()
+      .init('local.canvas_device');
   injector.registerLazySingleton<CanvasClientServiceV2>(() =>
       CanvasClientServiceV2(injector(), injector(), injector(), injector()));
 
