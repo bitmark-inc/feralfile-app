@@ -37,6 +37,7 @@ import 'package:autonomy_flutter/view/stream_device_view.dart';
 import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
 import 'package:feralfile_app_tv_proto/models/canvas_device.dart';
+import 'package:feralfile_app_tv_proto/models/model.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_branch_sdk/flutter_branch_sdk.dart';
@@ -347,7 +348,11 @@ class DeeplinkServiceImpl extends DeeplinkService {
         .firstWhereOrNull((prefix) => link.startsWith(prefix));
     if (callingBranchDeepLinkPrefix != null) {
       final response = await _branchApi.getParams(Environment.branchKey, link);
-      await handleBranchDeeplinkData(response['data']);
+      try {
+        await handleBranchDeeplinkData(response['data']);
+      } catch (e) {
+        log.info('[DeeplinkService] _handleBranchDeeplink error $e');
+      }
       return true;
     }
     return false;
@@ -416,7 +421,9 @@ class DeeplinkServiceImpl extends DeeplinkService {
         await _walletConnect2Service.connect(decodedWcUri);
 
       case 'feralfile_display':
-        final payload = data['device'];
+        final payload = data['device'] as Map<String, dynamic>;
+        payload
+            .addEntries([MapEntry('platform', DevicePlatform.androidTV.index)]);
         final device = CanvasDevice.fromJson(payload);
         final canvasClient = injector<CanvasClientServiceV2>();
         final result = await canvasClient.addQrDevice(device);
