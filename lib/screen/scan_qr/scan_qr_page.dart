@@ -304,7 +304,11 @@ class QRScanViewState extends State<QRScanView>
   @override
   void initState() {
     super.initState();
-    _shouldPop = !(widget.scannerItem == ScannerItem.GLOBAL);
+    _shouldPop = !(widget.scannerItem == ScannerItem.GLOBAL ||
+
+        /// handle canvas deeplink will pop the screen,
+        /// therefore no need to pop here
+        widget.scannerItem == ScannerItem.CANVAS);
     unawaited(_checkPermission());
   }
 
