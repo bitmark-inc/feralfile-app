@@ -949,7 +949,9 @@ class _SupportThreadPageState extends State<SupportThreadPage>
     Map<String, dynamic> metadata = {};
     if (message is app.Message) {
       id = tempID ?? '${message.id}';
-      author = message.from == _userId ? _user : _bitmark;
+      author = (message.from == _userId || message.from.contains('did:key'))
+          ? _user
+          : _bitmark;
       status = types.Status.delivered;
       createdAt = message.timestamp;
       text = message.filteredMessage;
