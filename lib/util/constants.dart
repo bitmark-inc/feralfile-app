@@ -590,6 +590,3 @@ final chatPrivateBannerMessage = SystemMessage(
   text: 'chat_is_private'.tr(),
   status: Status.delivered,
 );
-
-String getFeralFileAccountMessage(String address, String timestamp) =>
-    'feralfile-account: {"requester":"$address","timestamp":"$timestamp"}';

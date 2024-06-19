@@ -1,7 +1,7 @@
 import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-//import 'package:autonomy_flutter/service/auth_service.dart';
+import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:libauk_dart/libauk_dart.dart';
@@ -16,7 +16,7 @@ void main() async {
   late IAPApi authApi;
   late AccountService accountService;
   late ConfigurationService configService;
-  //late AuthService authService;
+  late AuthService authService;
   const jwt =
       '''eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c''';
 
@@ -25,7 +25,7 @@ void main() async {
       authApi = MockIAPApi();
       accountService = MockAccountService();
       configService = MockConfigurationService();
-      //authService = AuthService(authApi, accountService, configService);
+      authService = AuthService(authApi, accountService, configService);
     }
 
     test('get auth token', () async {
@@ -41,9 +41,9 @@ void main() async {
         'signature': 'signature',
       })).thenAnswer((_) async => JWT(jwtToken: jwt));
 
-      //final token = await authService.getAuthToken();
-      /// this is no longer correct
-      //expect(token.jwtToken, jwt);
+      final token = await authService.getAuthToken(messageToSign: message);
+
+      expect(token.jwtToken, jwt);
     });
 
     test('get auth token with force update', () async {
@@ -59,8 +59,9 @@ void main() async {
         'signature': 'signature',
       })).thenAnswer((_) async => JWT(jwtToken: jwt));
 
-      //final token1 = await authService.getAuthToken();
-      //final token2 = await authService.getAuthToken(forceRefresh: true);
+      final token1 = await authService.getAuthToken(messageToSign: message);
+      final token2 = await authService.getAuthToken(
+          messageToSign: message, forceRefresh: true);
 
       verify(accountService.getDefaultAccount()).called(2);
       verify(configService.getIAPReceipt()).called(2);
@@ -70,9 +71,8 @@ void main() async {
         'signature': 'signature',
       })).called(2);
 
-      /// this is no longer correct
-      //expect(token1.jwtToken, jwt);
-      //expect(token2.jwtToken, jwt);
+      expect(token1.jwtToken, jwt);
+      expect(token2.jwtToken, jwt);
     });
   });
 }

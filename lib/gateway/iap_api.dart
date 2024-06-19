@@ -7,7 +7,6 @@
 
 import 'dart:io';
 
-import 'package:autonomy_flutter/model/account_v2_request.dart';
 import 'package:autonomy_flutter/model/backup_versions.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:dio/dio.dart';
@@ -15,11 +14,9 @@ import 'package:retrofit/retrofit.dart';
 
 part 'iap_api.g.dart';
 
-@RestApi(baseUrl: '')
+@RestApi(baseUrl: "")
 abstract class IAPApi {
-  static const authenticationPath = '/apis/v1/auth';
-  static const authenticationV2Path = '/apis/v2/authenticate';
-  static const createAccountPath = '/apis/v2/accounts';
+  static const authenticationPath = "/apis/v1/auth";
 
   factory IAPApi(Dio dio, {String baseUrl}) = _IAPApi;
 
@@ -27,50 +24,36 @@ abstract class IAPApi {
   Future<JWT> auth(@Body() Map<String, dynamic> body);
 
   @MultiPart()
-  @POST('/apis/v1/premium/profile-data')
+  @POST("/apis/v1/premium/profile-data")
   Future<dynamic> uploadProfile(
-    @Header('requester') String requester,
-    @Part(name: 'filename') String filename,
-    @Part(name: 'appVersion') String appVersion,
-    @Part(name: 'data') File data,
+    @Header("requester") String requester,
+    @Part(name: "filename") String filename,
+    @Part(name: "appVersion") String appVersion,
+    @Part(name: "data") File data,
   );
 
-  @GET('/apis/v1/premium/profile-data/versions')
+  @GET("/apis/v1/premium/profile-data/versions")
   Future<BackupVersions> getProfileVersions(
-    @Header('requester') String requester,
-    @Query('filename') String filename,
+    @Header("requester") String requester,
+    @Query("filename") String filename,
   );
 
-  @GET('/apis/v1/premium/profile-data')
+  @GET("/apis/v1/premium/profile-data")
   Future<dynamic> getProfileData(
-    @Header('requester') String requester,
-    @Query('filename') String filename,
-    @Query('appVersion') String version,
+    @Header("requester") String requester,
+    @Query("filename") String filename,
+    @Query("appVersion") String version,
   );
 
-  @DELETE('/apis/v1/premium/profile-data')
+  @DELETE("/apis/v1/premium/profile-data")
   Future deleteAllProfiles(
-    @Header('requester') String requester,
+    @Header("requester") String requester,
   );
 
-  @DELETE('/apis/v1/me')
+  @DELETE("/apis/v1/me")
   Future deleteUserData();
 
-  @POST('/apis/v1/me/identity-hash')
+  @POST("/apis/v1/me/identity-hash")
   Future<OnesignalIdentityHash> generateIdentityHash(
       @Body() Map<String, String> body);
-
-  //// Account V2
-
-  @POST('/apis/v2/accounts/identities')
-  Future<dynamic> addIdentity(@Body() AccountV2Request body);
-
-  @POST(authenticationV2Path)
-  Future<JWT> authV2(@Body() AccountV2Request body);
-
-  @POST(createAccountPath)
-  Future<dynamic> createAccount(@Body() AccountV2Request body);
-
-  @DELETE('/apis/v2/accounts/identities/{address}')
-  Future<dynamic> deleteIdentity(@Path('address') String address);
 }
