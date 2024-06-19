@@ -113,7 +113,10 @@ class _FFCastButtonState extends State<FFCastButton> {
         value: _canvasDeviceBloc,
         child: StreamDeviceView(
           displayKey: displayKey,
-          onDeviceSelected: widget.onDeviceSelected,
+          onDeviceSelected: (canvasDevice) {
+            widget.onDeviceSelected?.call(canvasDevice);
+            Navigator.pop(context);
+          },
         ),
       ),
       isDismissible: true,
