@@ -27,9 +27,7 @@ extension ExhibitionExt on Exhibition {
     final exhibitionBloc = injector<ExhibitionBloc>();
     final subscriptionBloc = injector<SubscriptionBloc>();
     return subscriptionBloc.state.isSubscribed ||
-        (exhibitionBloc.state.freeExhibitions
-                ?.any((element) => element.id == id) ??
-            false);
+        id == exhibitionBloc.state.featuredExhibition?.id;
   }
 
   //TODO: implement this
