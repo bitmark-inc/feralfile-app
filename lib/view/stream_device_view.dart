@@ -79,19 +79,17 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
                       ),
                     ),
                   ),
-                  if (connectedDevice != null)
-                    Padding(
-                      padding: const EdgeInsets.only(left: 10),
-                      child: GestureDetector(
-                        child: SvgPicture.asset('assets/images/closeCycle.svg',
-                            height: 24,
-                            colorFilter: const ColorFilter.mode(
-                              AppColor.white,
-                              BlendMode.srcIn,
-                            )),
-                        onTap: () => Navigator.of(context).pop(),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 10),
+                    child: GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: SvgPicture.asset(
+                        'assets/images/circle_close.svg',
+                        width: 22,
+                        height: 22,
                       ),
-                    )
+                    ),
+                  )
                 ],
               ),
               const SizedBox(height: 40),
