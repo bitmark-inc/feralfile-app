@@ -31,13 +31,13 @@ final speedValues = {
   '24hr': const Duration(hours: 24),
 };
 
-const double rotateIconSize = 22;
-
 class StreamDrawerItem extends StatelessWidget {
   final OptionItem item;
   final Color backgroundColor;
   final Function()? onRotateClicked;
   final bool isControlling;
+
+  static const double rotateIconSize = 22;
 
   const StreamDrawerItem({
     required this.item,
