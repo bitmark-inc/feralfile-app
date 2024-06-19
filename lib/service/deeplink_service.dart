@@ -431,16 +431,14 @@ class DeeplinkServiceImpl extends DeeplinkService {
             /// scan with navigation home page does not go to this flow
             _navigationService.goBack(result: device);
           } else {
-            print('-------------');
             await UIHelper.showFlexibleDialog(
-              _navigationService.context,
-              BlocProvider.value(
-                value: injector<CanvasDeviceBloc>(),
-                child: const StreamDeviceView(),
-              ),
-              isDismissible: true,
-              autoDismissAfter: 3
-            );
+                _navigationService.context,
+                BlocProvider.value(
+                  value: injector<CanvasDeviceBloc>(),
+                  child: const StreamDeviceView(),
+                ),
+                isDismissible: true,
+                autoDismissAfter: 3);
           }
         }
 
