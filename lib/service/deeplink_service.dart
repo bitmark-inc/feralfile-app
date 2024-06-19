@@ -431,6 +431,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
             /// scan with navigation home page does not go to this flow
             _navigationService.goBack(result: device);
           } else {
+            print('-------------');
             await UIHelper.showFlexibleDialog(
               _navigationService.context,
               BlocProvider.value(
@@ -438,6 +439,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
                 child: const StreamDeviceView(),
               ),
               isDismissible: true,
+              autoDismissAfter: 3
             );
           }
         }

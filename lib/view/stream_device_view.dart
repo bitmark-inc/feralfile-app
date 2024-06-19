@@ -14,6 +14,7 @@ import 'package:feralfile_app_tv_proto/models/canvas_device.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class StreamDeviceView extends StatefulWidget {
   final Function(CanvasDevice device)? onDeviceSelected;
@@ -59,20 +60,39 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              RichText(
-                text: TextSpan(
-                  children: <TextSpan>[
-                    TextSpan(
-                      text: 'display'.tr(),
-                      style: theme.textTheme.ppMori700White24,
-                    ),
-                    if (connectedDevice != null)
-                      TextSpan(
-                        text: ' ${connectedDevice.name}',
-                        style: theme.textTheme.ppMori400White24,
+              Row(
+                children: [
+                  Expanded(
+                    child: RichText(
+                      text: TextSpan(
+                        children: <TextSpan>[
+                          TextSpan(
+                            text: 'display'.tr(),
+                            style: theme.textTheme.ppMori700White24,
+                          ),
+                          if (connectedDevice != null)
+                            TextSpan(
+                              text: ' ${connectedDevice.name}',
+                              style: theme.textTheme.ppMori400White24,
+                            ),
+                        ],
                       ),
-                  ],
-                ),
+                    ),
+                  ),
+                  if (connectedDevice != null)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 10),
+                      child: GestureDetector(
+                        child: SvgPicture.asset('assets/images/closeCycle.svg',
+                            height: 24,
+                            colorFilter: const ColorFilter.mode(
+                              AppColor.white,
+                              BlendMode.srcIn,
+                            )),
+                        onTap: () => Navigator.of(context).pop(),
+                      ),
+                    )
+                ],
               ),
               const SizedBox(height: 40),
               ListView.builder(
