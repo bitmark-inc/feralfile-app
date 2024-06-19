@@ -516,19 +516,18 @@ class FeralFileServiceImpl extends FeralFileService {
         includeFirstArtwork: includeFirstArtwork);
     if (includeFirstArtwork &&
         response.result.any((element) => element.artwork == null)) {
-      final series = response.result.first;
-      final fakeArtwork = await _getFakeSeriesArtworks(
-        await getExhibition(exhibitionId),
-        series,
-        0,
-        1,
-      );
-      return response.result.map((e) {
-        if (e.id == series.id) {
-          return e.copyWith(artwork: fakeArtwork.first);
+      final List<FFSeries> newSeries = [];
+      final exhibition = await getExhibition(exhibitionId);
+      for (final series in response.result) {
+        if (series.artwork == null) {
+          final fakeArtwork =
+              await _getFakeSeriesArtworks(exhibition, series, 0, 1);
+          newSeries.add(series.copyWith(artwork: fakeArtwork.first));
+        } else {
+          newSeries.add(series);
         }
-        return e;
-      }).toList();
+      }
+      return newSeries;
     }
     return response.result;
   }
