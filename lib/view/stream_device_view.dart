@@ -119,6 +119,8 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
                               : isControlling
                                   ? AppColor.feralFileLightBlue
                                   : AppColor.disabledColor,
+                          isControlling: isControlling,
+                          onRotateClicked: () => onRotate(context),
                         ),
                       ),
                       if (index < devices.length - 1)
@@ -192,6 +194,13 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
         );
       },
     );
+  }
+
+  void onRotate(BuildContext context) {
+    final controllingDevice = _canvasDeviceBloc.state.controllingDevice;
+    if (controllingDevice != null) {
+      _canvasDeviceBloc.add(CanvasDeviceRotateEvent(controllingDevice));
+    }
   }
 
   Future<void> _scanToAddMore(BuildContext context) async {

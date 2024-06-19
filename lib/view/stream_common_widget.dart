@@ -4,6 +4,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/util/range_input_formatter.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
@@ -30,12 +31,21 @@ final speedValues = {
   '24hr': const Duration(hours: 24),
 };
 
+const double rotateIconSize = 22;
+
 class StreamDrawerItem extends StatelessWidget {
   final OptionItem item;
   final Color backgroundColor;
+  final Function()? onRotateClicked;
+  final bool isControlling;
 
-  const StreamDrawerItem(
-      {required this.item, required this.backgroundColor, super.key});
+  const StreamDrawerItem({
+    required this.item,
+    required this.backgroundColor,
+    required this.isControlling,
+    super.key,
+    this.onRotateClicked,
+  });
 
   @override
   Widget build(BuildContext context) => Container(
@@ -46,19 +56,45 @@ class StreamDrawerItem extends StatelessWidget {
         width: MediaQuery.of(context).size.width,
         child: Material(
           type: MaterialType.transparency,
-          child: InkWell(
-            splashFactory: InkSparkle.splashFactory,
-            borderRadius: BorderRadius.circular(50),
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Center(
-                child: Text(
-                  item.title ?? '',
-                  style: Theme.of(context).textTheme.ppMori400Black14,
+          child: Stack(
+            children: [
+              InkWell(
+                splashFactory: InkSparkle.splashFactory,
+                borderRadius: BorderRadius.circular(50),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    vertical: 12,
+                    horizontal: ResponsiveLayout.padding + rotateIconSize + 10,
+                  ),
+                  child: Center(
+                    child: Text(
+                      item.title ?? '',
+                      style: Theme.of(context).textTheme.ppMori400Black14,
+                    ),
+                  ),
                 ),
+                onTap: () => item.onTap?.call(),
               ),
-            ),
-            onTap: () => item.onTap?.call(),
+              if (isControlling)
+                Positioned(
+                  top: 0,
+                  bottom: 0,
+                  right: ResponsiveLayout.padding,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      GestureDetector(
+                        onTap: onRotateClicked,
+                        child: SvgPicture.asset(
+                          'assets/images/icon_rotate.svg',
+                          width: rotateIconSize,
+                          height: rotateIconSize,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+            ],
           ),
         ),
       );
