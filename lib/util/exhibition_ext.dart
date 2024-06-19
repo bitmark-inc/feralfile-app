@@ -165,8 +165,16 @@ extension ArtworkExt on Artwork {
 }
 
 String getFFUrl(String uri) {
+  // case 1: cloudflare
+  if (uri.startsWith(cloudFlarePrefix)) {
+    return '$uri/thumbnailLarge';
+  }
+
+  // case 2 => full cdn
   if (uri.startsWith('http')) {
     return uri;
   }
+
+  //case 3 => cdn
   return '${Environment.feralFileAssetURL}/$uri';
 }
