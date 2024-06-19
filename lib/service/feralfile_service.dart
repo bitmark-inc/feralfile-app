@@ -152,6 +152,8 @@ abstract class FeralFileService {
 
   Future<Exhibition> getSourceExhibition();
 
+  Future<Exhibition?> getUpcomingExhibition();
+
   Future<Exhibition> getFeaturedExhibition();
 
   Future<FeralFileListResponse<Artwork>> getSeriesArtworks(
@@ -213,7 +215,7 @@ class FeralFileServiceImpl extends FeralFileService {
     }
 
     final resp = await _feralFileApi.getExhibition(id);
-    return resp.result;
+    return resp.result!;
   }
 
   @override
@@ -225,7 +227,7 @@ class FeralFileServiceImpl extends FeralFileService {
   @override
   Future<String?> getPartnerFullName(String exhibitionId) async {
     final exhibition = await _feralFileApi.getExhibition(exhibitionId);
-    return exhibition.result.partner?.fullName;
+    return exhibition.result!.partner?.fullName;
   }
 
   @override
@@ -252,9 +254,15 @@ class FeralFileServiceImpl extends FeralFileService {
   }
 
   @override
+  Future<Exhibition?> getUpcomingExhibition() async {
+    final exhibitionResponse = await _feralFileApi.getUpcomingExhibition();
+    return exhibitionResponse.result;
+  }
+
+  @override
   Future<Exhibition> getFeaturedExhibition() async {
     final exhibitionResponse = await _feralFileApi.getFeaturedExhibition();
-    return exhibitionResponse.result;
+    return exhibitionResponse.result!;
   }
 
   Future<List<Artwork>> _getFakeSeriesArtworks(
