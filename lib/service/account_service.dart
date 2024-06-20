@@ -18,7 +18,6 @@ import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_state.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
-import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -144,9 +143,6 @@ class AccountServiceImpl extends AccountService {
     await androidBackupKeys();
     await _auditService.auditPersonaAction('create', persona);
     unawaited(_autonomyService.postLinkedAddresses());
-    if (isDefault) {
-      await injector<AuthService>().createAccount(walletStorage);
-    }
     log.info('[AccountService] Created persona ${persona.uuid}}');
     return persona;
   }
@@ -603,9 +599,6 @@ class AccountServiceImpl extends AccountService {
     await _cloudDB.addressDao.insertAddresses(walletAddresses);
     await _addressService
         .addAddresses(addresses.map((e) => e.address).toList());
-    for (var add in walletAddresses) {
-      await injector<AuthService>().addIdentity(add);
-    }
     return result;
   }
 
@@ -637,7 +630,6 @@ class AccountServiceImpl extends AccountService {
   Future<void> deleteAddressPersona(
       Persona persona, WalletAddress walletAddress) async {
     await _cloudDB.addressDao.deleteAddress(walletAddress);
-    await injector<AuthService>().removeIdentity(walletAddress.address);
     await _addressService.deleteAddresses([walletAddress.address]);
     switch (CryptoType.fromSource(walletAddress.cryptoType)) {
       case CryptoType.ETH:
