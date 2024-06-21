@@ -19,7 +19,7 @@ extension ImageExt on CachedNetworkImage {
     bool shouldRefreshCache = false,
   }) {
     if (shouldRefreshCache) {
-      unawaited(cacheManager?.downloadFile(src, force: true));
+      unawaited(cacheManager?.removeFile(src));
     }
     return CachedNetworkImage(
       imageUrl: src,
