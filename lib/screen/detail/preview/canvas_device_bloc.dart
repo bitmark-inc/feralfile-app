@@ -140,6 +140,7 @@ class CanvasDeviceState {
 
   CanvasDeviceState updateOnCast(
       {required CanvasDevice device, required String displayKey}) {
+    lastSelectedActiveDeviceMap.removeWhere((key, value) => value == device);
     lastSelectedActiveDeviceMap[displayKey] = device;
     return copyWith(
       lastActiveDevice: lastSelectedActiveDeviceMap,
@@ -160,7 +161,11 @@ class CanvasDeviceState {
   CanvasDevice? lastSelectedActiveDeviceForKey(String key) {
     final lastActiveDevice = lastSelectedActiveDeviceMap[key];
     if (lastActiveDevice != null) {
-      return lastActiveDevice;
+      if (isDeviceAlive(lastActiveDevice)) {
+        return lastActiveDevice;
+      } else {
+        lastSelectedActiveDeviceMap.remove(key);
+      }
     }
     final activeDevice = _activeDeviceForKey(key);
     if (activeDevice != null) {
@@ -183,6 +188,11 @@ class CanvasDeviceState {
 
   CheckDeviceStatusReply? statusOf(CanvasDevice device) =>
       canvasDeviceStatus[device.deviceId];
+
+  bool isDeviceAlive(CanvasDevice device) {
+    final status = statusOf(device);
+    return status != null;
+  }
 
   CanvasDevice? _activeDeviceForKey(String key) {
     final id = canvasDeviceStatus.entries
