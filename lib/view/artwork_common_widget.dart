@@ -24,7 +24,6 @@ import 'package:autonomy_flutter/util/moma_style_color.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/view/image_background.dart';
 import 'package:autonomy_flutter/view/loading.dart';
 import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
@@ -34,6 +33,7 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -144,6 +144,8 @@ class PendingTokenWidget extends StatelessWidget {
   }
 }
 
+final Map<String, Future<bool>> _cachingStates = {};
+
 Widget tokenGalleryThumbnailWidget(
   BuildContext context,
   CompactedAssetToken token,
@@ -162,6 +164,20 @@ Widget tokenGalleryThumbnailWidget(
       assetToken: token,
     );
   }
+
+  final cacheManager = injector<CacheManager>();
+
+  Future<bool> cachingState = _cachingStates[thumbnailUrl] ??
+      // ignore: discarded_futures
+      cacheManager.store.retrieveCacheData(thumbnailUrl).then((cachedObject) {
+        final cached = cachedObject != null;
+        if (cached) {
+          _cachingStates[thumbnailUrl] = Future.value(true);
+        }
+        return cached;
+      });
+  final memCacheWidth = cachedImageSize;
+  final memCacheHeight = memCacheWidth ~/ ratio;
 
   final ext = p.extension(thumbnailUrl);
   final shouldRefreshCache = token.shouldRefreshThumbnailCache;
@@ -182,38 +198,45 @@ Widget tokenGalleryThumbnailWidget(
             )
           : ImageExt.customNetwork(
               thumbnailUrl,
+              fadeInDuration: Duration.zero,
               fit: BoxFit.cover,
-              cacheWidth: cachedImageSize,
-              cacheHeight: cachedImageSize,
-              loadingBuilder: (context, child, loadingProgress) {
-                if (loadingProgress == null) {
-                  return ImageBackground(child: child);
+              memCacheHeight: memCacheHeight,
+              memCacheWidth: memCacheWidth,
+              maxWidthDiskCache: cachedImageSize,
+              maxHeightDiskCache: cachedImageSize,
+              cacheManager: cacheManager,
+              placeholder: (context, index) => FutureBuilder<bool>(
+                  future: cachingState,
+                  builder: (context, snapshot) =>
+                      galleryThumbnailPlaceholder ??
+                      GalleryThumbnailPlaceholder(
+                        loading: !(snapshot.data ?? true),
+                      )),
+              errorWidget: (context, url, error) {
+                if (error is Exception && error.isNetworkIssue) {
+                  unawaited(injector<NetworkIssueManager>()
+                      .showNetworkIssueWarning());
                 }
-                return galleryThumbnailPlaceholder ??
-                    const GalleryThumbnailPlaceholder();
+                return ImageExt.customNetwork(
+                  token.getGalleryThumbnailUrl(usingThumbnailID: false) ?? '',
+                  fadeInDuration: Duration.zero,
+                  fit: BoxFit.cover,
+                  memCacheHeight: cachedImageSize,
+                  memCacheWidth: cachedImageSize,
+                  maxWidthDiskCache: cachedImageSize,
+                  maxHeightDiskCache: cachedImageSize,
+                  cacheManager: cacheManager,
+                  placeholder: (context, index) => FutureBuilder<bool>(
+                      future: cachingState,
+                      builder: (context, snapshot) =>
+                          galleryThumbnailPlaceholder ??
+                          GalleryThumbnailPlaceholder(
+                            loading: !(snapshot.data ?? true),
+                          )),
+                  errorWidget: (context, url, error) =>
+                      const GalleryThumbnailErrorWidget(),
+                );
               },
-              errorBuilder: (context, error, stacktrace) =>
-                  ImageExt.customNetwork(
-                token.getGalleryThumbnailUrl(usingThumbnailID: false) ?? '',
-                fit: BoxFit.cover,
-                cacheWidth: cachedImageSize,
-                cacheHeight: cachedImageSize,
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) {
-                    return ImageBackground(child: child);
-                  }
-                  return galleryThumbnailPlaceholder ??
-                      const GalleryThumbnailPlaceholder();
-                },
-                errorBuilder: (context, error, stacktrace) {
-                  if (error is Exception && error.isNetworkIssue) {
-                    unawaited(injector<NetworkIssueManager>()
-                        .showNetworkIssueWarning());
-                  }
-                  return const GalleryThumbnailErrorWidget();
-                },
-                shouldRefreshCache: shouldRefreshCache,
-              ),
               shouldRefreshCache: shouldRefreshCache,
             ),
     ),
