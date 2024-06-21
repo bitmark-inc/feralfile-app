@@ -99,7 +99,7 @@ Future askForNotification() async {
 class UIHelper {
   static String currentDialogTitle = '';
   static final metricClient = injector.get<MetricClientService>();
-  static const String ignoreBackLayerPopUpRouteName = 'ignoreBackLayerPopUp';
+  static const String ignoreBackLayerPopUpRouteName = 'popUp.ignoreBackLayer';
 
   static Future<dynamic> showDialog(
     BuildContext context,
@@ -817,7 +817,11 @@ class UIHelper {
   static void hideInfoDialog(BuildContext context) {
     currentDialogTitle = '';
     try {
-      Navigator.popUntil(context, (route) => route.settings.name != null);
+      Navigator.popUntil(
+          context,
+          (route) =>
+              route.settings.name != null &&
+              !route.settings.name!.toLowerCase().contains('popup'));
     } catch (_) {}
   }
 
