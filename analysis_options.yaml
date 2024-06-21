@@ -27,6 +27,7 @@ linter:
     always_put_control_body_on_new_line: true
     always_put_required_named_parameters_first: true
     annotate_overrides: true
+    avoid_annotating_with_dynamic: true
     avoid_escaping_inner_quotes: true
     avoid_function_literals_in_foreach_calls: true
     avoid_init_to_null: true

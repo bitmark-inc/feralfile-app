@@ -50,7 +50,6 @@ import 'package:autonomy_flutter/screen/detail/preview_primer.dart';
 import 'package:autonomy_flutter/screen/detail/royalty/royalty_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
-import 'package:autonomy_flutter/screen/exhibition_note/exhibition_note_page.dart';
 import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artwork_preview_page.dart';
 import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_bloc.dart';
 import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_page.dart';
@@ -131,7 +130,6 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/view/transparent_router.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:page_transition/page_transition.dart';
@@ -226,7 +224,6 @@ class AppRouter {
   static const collectionPage = 'collection_page';
   static const organizePage = 'organize_page';
   static const exhibitionsPage = 'exhibitions_page';
-  static const exhibitionNotePage = 'exhibition_note_page';
   static const projectsList = 'projects_list';
   static const addEthereumChainPage = 'add_ethereum_chain_page';
   static const artistsListPage = 'artists_list_page';
@@ -1157,13 +1154,6 @@ class AppRouter {
           settings: settings,
           builder: (context) => AddToCollectionScreen(
             playList: settings.arguments! as PlayListModel,
-          ),
-        );
-
-      case exhibitionNotePage:
-        return MaterialPageRoute(
-          builder: (context) => ExhibitionNotePage(
-            exhibition: settings.arguments! as Exhibition,
           ),
         );
 

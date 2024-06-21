@@ -7,6 +7,7 @@
 
 import 'dart:async';
 
+import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
@@ -344,5 +345,27 @@ class NavigationService {
     await Navigator.of(navigatorKey.currentContext!).pushNamed(
         AppRouter.inappWebviewPage,
         arguments: InAppWebViewPayload(url));
+  }
+
+  Future<void> openFeralFileExhibitionNotePage(String exhibitionSlug) async {
+    if (exhibitionSlug.isEmpty) {
+      return;
+    }
+    final url = FeralFileHelper.getExhibitionNoteUrl(exhibitionSlug);
+    await Navigator.of(navigatorKey.currentContext!).pushNamed(
+      AppRouter.inappWebviewPage,
+      arguments: InAppWebViewPayload(url),
+    );
+  }
+
+  Future<void> openFeralFilePostPage(Post post, String exhibitionID) async {
+    if (post.slug.isEmpty || exhibitionID.isEmpty) {
+      return;
+    }
+    final url = FeralFileHelper.getPostUrl(post, exhibitionID);
+    await Navigator.of(navigatorKey.currentContext!).pushNamed(
+      AppRouter.inappWebviewPage,
+      arguments: InAppWebViewPayload(url),
+    );
   }
 }

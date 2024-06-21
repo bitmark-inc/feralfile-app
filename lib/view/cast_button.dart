@@ -68,8 +68,8 @@ class _FFCastButtonState extends State<FFCastButton> {
                 color: AppColor.feralFileLightBlue,
               ),
               child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+                padding: const EdgeInsets.symmetric(vertical: 9)
+                    .copyWith(left: 16, right: isCasting ? 9 : 16),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
