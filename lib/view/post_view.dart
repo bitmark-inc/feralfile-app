@@ -1,9 +1,11 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 
 class ExhibitionPostView extends StatefulWidget {
   final Post post;
@@ -100,10 +102,11 @@ class _ExhibitionPostViewState extends State<ExhibitionPostView> {
     );
   }
 
-  Widget _buildThumbnailWidget() => Image.network(
-        thumbnailUrl!,
+  Widget _buildThumbnailWidget() => CachedNetworkImage(
+        imageUrl: thumbnailUrl!,
         fit: BoxFit.fitWidth,
-        errorBuilder: (context, error, stackTrace) {
+        cacheManager: injector<CacheManager>(),
+        errorWidget: (context, url, error) {
           loadThumbnailFailedCount++;
           if (loadThumbnailFailedCount >= widget.post.thumbnailUrls.length) {
             return const SizedBox();

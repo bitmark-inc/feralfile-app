@@ -9,13 +9,15 @@ import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.da
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/collection_ext.dart';
-import 'package:autonomy_flutter/view/image_background.dart';
+import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/stream_common_widget.dart';
 import 'package:autonomy_flutter/view/title_text.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 
 class ListPlaylistsScreen extends StatefulWidget {
   final ValueNotifier<List<PlayListModel>?> playlists;
@@ -220,12 +222,13 @@ class _PlaylistItemState extends State<PlaylistItem> {
                           height: double.infinity,
                           color: theme.disableColor,
                         )
-                      : Image.network(
-                          thumbnailURL,
+                      : CachedNetworkImage(
+                          imageUrl: thumbnailURL,
                           fit: BoxFit.cover,
-                          loadingBuilder: (context, child, loadingProgress) =>
-                              ImageBackground(child: child),
-                          errorBuilder: (context, url, error) => Container(
+                          cacheManager: injector<CacheManager>(),
+                          placeholder: (context, url) =>
+                              const GalleryThumbnailPlaceholder(),
+                          errorWidget: (context, url, error) => Container(
                             width: double.infinity,
                             height: double.infinity,
                             color: theme.disableColor,
