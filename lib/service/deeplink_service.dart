@@ -347,7 +347,11 @@ class DeeplinkServiceImpl extends DeeplinkService {
         .firstWhereOrNull((prefix) => link.startsWith(prefix));
     if (callingBranchDeepLinkPrefix != null) {
       final response = await _branchApi.getParams(Environment.branchKey, link);
-      await handleBranchDeeplinkData(response['data']);
+      try {
+        await handleBranchDeeplinkData(response['data']);
+      } catch (e) {
+        log.info('[DeeplinkService] _handleBranchDeeplink error $e');
+      }
       return true;
     }
     return false;
@@ -416,7 +420,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
         await _walletConnect2Service.connect(decodedWcUri);
 
       case 'feralfile_display':
-        final payload = data['device'];
+        final payload = data['device'] as Map<String, dynamic>;
         final device = CanvasDevice.fromJson(payload);
         final canvasClient = injector<CanvasClientServiceV2>();
         final result = await canvasClient.addQrDevice(device);
