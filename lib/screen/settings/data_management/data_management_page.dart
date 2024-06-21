@@ -130,6 +130,7 @@ class _DataManagementPageState extends State<DataManagementPage> {
       () async {
         await injector<TokensService>().purgeCachedGallery();
         await injector<CacheManager>().emptyCache();
+        await DefaultCacheManager().emptyCache();
         await injector<ClientTokenService>().refreshTokens(syncAddresses: true);
         NftCollectionBloc.eventController
             .add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
