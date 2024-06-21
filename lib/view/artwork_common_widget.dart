@@ -170,11 +170,11 @@ Widget tokenGalleryThumbnailWidget(
   Future<bool> cachingState = _cachingStates[thumbnailUrl] ??
       // ignore: discarded_futures
       cacheManager.store.retrieveCacheData(thumbnailUrl).then((cachedObject) {
-        final cached = cachedObject != null;
-        if (cached) {
+        final isCached = cachedObject != null;
+        if (isCached) {
           _cachingStates[thumbnailUrl] = Future.value(true);
         }
-        return cached;
+        return isCached;
       });
   final memCacheWidth = cachedImageSize;
   final memCacheHeight = memCacheWidth ~/ ratio;
