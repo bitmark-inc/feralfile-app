@@ -7,7 +7,7 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 extension ImageExt on CachedNetworkImage {
   static CachedNetworkImage customNetwork(
     String src, {
-    Duration fadeInDuration = const Duration(milliseconds: 500),
+    Duration fadeInDuration = const Duration(milliseconds: 300),
     BoxFit? fit,
     int? memCacheHeight,
     int? memCacheWidth,
