@@ -23,6 +23,7 @@ import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -230,11 +231,11 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
     return Row(
       children: [
         if (request.icon != null)
-          Image.network(
-            request.icon!,
+          CachedNetworkImage(
+            imageUrl: request.icon!,
             width: 64,
             height: 64,
-            errorBuilder: (context, url, error) => SvgPicture.asset(
+            errorWidget: (context, url, error) => SvgPicture.asset(
               'assets/images/tezos_social_icon.svg',
               width: 64,
               height: 64,
