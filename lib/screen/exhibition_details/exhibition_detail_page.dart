@@ -10,7 +10,7 @@ import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_blo
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_state.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/device_status_ext.dart';
+import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/cast_button.dart';
@@ -134,18 +134,15 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
   }
 
   void _stream(Exhibition exhibition) {
-    final controllingDevice = _canvasDeviceBloc.state.controllingDevice;
     log.info('onPageChanged: $_currentIndex');
-    if (controllingDevice != null) {
-      final status = _canvasDeviceBloc.state.statusOf(controllingDevice);
-      if (status?.playingArtworkKey != exhibition.id) {
-        return;
-      }
-
+    final displayKey = exhibition.displayKey;
+    final lastSelectedDevice =
+        _canvasDeviceBloc.state.lastSelectedActiveDeviceForKey(displayKey);
+    if (lastSelectedDevice != null) {
       final request = _getCastExhibitionRequest(exhibition);
       log.info('onPageChanged: request: $request');
       _canvasDeviceBloc.add(
-        CanvasDeviceCastExhibitionEvent(controllingDevice, request),
+        CanvasDeviceCastExhibitionEvent(lastSelectedDevice, request),
       );
     }
   }

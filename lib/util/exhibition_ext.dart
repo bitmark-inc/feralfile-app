@@ -32,6 +32,8 @@ extension ExhibitionExt on Exhibition {
             false);
   }
 
+  String get displayKey => id;
+
   //TODO: implement this
   bool get isOnGoing => true;
 

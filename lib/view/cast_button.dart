@@ -42,7 +42,8 @@ class _FFCastButtonState extends State<FFCastButton> {
     return BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
       bloc: _canvasDeviceBloc,
       builder: (context, state) {
-        final castingDevice = state.castingDeviceForKey(widget.displayKey);
+        final castingDevice =
+            state.lastSelectedActiveDeviceForKey(widget.displayKey);
         final isCasting = castingDevice != null;
         return GestureDetector(
           onTap: () async {

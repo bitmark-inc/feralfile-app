@@ -607,7 +607,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     final showKeyboard = (asset.medium == 'software' ||
             asset.medium == 'other' ||
             (asset.medium?.isEmpty ?? true) ||
-            canvasDeviceState.castingDeviceForKey(_getDisplayKey(asset)) !=
+            canvasDeviceState
+                    .lastSelectedActiveDeviceForKey(_getDisplayKey(asset)) !=
                 null) &&
         !asset.isPostcard;
     if (!context.mounted) {
@@ -631,8 +632,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
             icon: SvgPicture.asset('assets/images/keyboard_icon.svg'),
             onTap: () {
               Navigator.of(context).pop();
-              final castingDevice =
-                  canvasDeviceState.castingDeviceForKey(_getDisplayKey(asset));
+              final castingDevice = canvasDeviceState
+                  .lastSelectedActiveDeviceForKey(_getDisplayKey(asset));
               if (castingDevice != null) {
                 unawaited(Navigator.of(context).pushNamed(
                   AppRouter.keyboardControlPage,

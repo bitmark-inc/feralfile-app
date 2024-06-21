@@ -131,7 +131,8 @@ class _PlaylistControlState extends State<PlaylistControl> {
       BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
         bloc: _canvasDeviceBloc,
         builder: (context, state) {
-          _controllingDevice = state.castingDeviceForKey(widget.displayKey);
+          _controllingDevice =
+              state.lastSelectedActiveDeviceForKey(widget.displayKey);
           return Container(
               padding: const EdgeInsets.all(15),
               decoration: BoxDecoration(
@@ -217,6 +218,7 @@ class _PlaylistControlState extends State<PlaylistControl> {
             ),
             child: ArtworkDurationControl(
               duration: state.castingSpeed(widget.displayKey),
+              displayKey: widget.displayKey,
             ),
           )
         ],
@@ -264,8 +266,10 @@ class _PlaylistControlState extends State<PlaylistControl> {
 
 class ArtworkDurationControl extends StatefulWidget {
   final Duration? duration;
+  final String displayKey;
 
-  const ArtworkDurationControl({super.key, this.duration});
+  const ArtworkDurationControl(
+      {required this.displayKey, super.key, this.duration});
 
   @override
   State<ArtworkDurationControl> createState() => _ArtworkDurationControlState();
@@ -351,12 +355,13 @@ class _ArtworkDurationControlState extends State<ArtworkDurationControl> {
   }
 
   void changeSpeed(Duration duration) {
-    final controllingDevice = _canvasDeviceBloc.state.controllingDevice;
-    if (controllingDevice == null) {
+    final lastSelectedCanvasDevice = _canvasDeviceBloc.state
+        .lastSelectedActiveDeviceForKey(widget.displayKey);
+    if (lastSelectedCanvasDevice == null) {
       return;
     }
     final canvasStatus =
-        _canvasDeviceBloc.state.controllingDeviceStatus?.values.firstOrNull;
+        _canvasDeviceBloc.state.statusOf(lastSelectedCanvasDevice);
     if (canvasStatus == null) {
       return;
     }
@@ -366,7 +371,7 @@ class _ArtworkDurationControlState extends State<ArtworkDurationControl> {
             e.copy(duration: Duration(milliseconds: duration.inMilliseconds)))
         .toList();
     _canvasDeviceBloc.add(CanvasDeviceUpdateDurationEvent(
-        controllingDevice, playArtworkWithNewDuration));
+        lastSelectedCanvasDevice, playArtworkWithNewDuration));
   }
 
   @override

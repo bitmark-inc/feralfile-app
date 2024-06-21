@@ -53,7 +53,7 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
         final devices = state.devices;
         final connectedDevice = widget.displayKey == null
             ? null
-            : state.castingDeviceForKey(widget.displayKey!);
+            : state.lastSelectedActiveDeviceForKey(widget.displayKey!);
         return Padding(
           padding: ResponsiveLayout.pageHorizontalEdgeInsets,
           child: Column(
@@ -195,9 +195,10 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
   }
 
   void onRotate(BuildContext context) {
-    final controllingDevice = _canvasDeviceBloc.state.controllingDevice;
-    if (controllingDevice != null) {
-      _canvasDeviceBloc.add(CanvasDeviceRotateEvent(controllingDevice));
+    final lastSelectedCanvasDevice = _canvasDeviceBloc.state
+        .lastSelectedActiveDeviceForKey(widget.displayKey!);
+    if (lastSelectedCanvasDevice != null) {
+      _canvasDeviceBloc.add(CanvasDeviceRotateEvent(lastSelectedCanvasDevice));
     }
   }
 
