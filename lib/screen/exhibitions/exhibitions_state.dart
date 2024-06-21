@@ -14,33 +14,38 @@ class GetOpeningExhibitionsEvent extends ExhibitionsEvent {}
 
 class ExhibitionsState {
   ExhibitionsState({
-    this.freeExhibitions,
-    this.proExhibitions,
     this.currentPage = 0,
     this.sourceExhibition,
+    this.upcomingExhibition,
+    this.featuredExhibition,
+    this.pastExhibitions,
   });
 
-  final List<Exhibition>? freeExhibitions;
-  final List<Exhibition>? proExhibitions;
-  final Exhibition? sourceExhibition;
   final int currentPage;
+  final Exhibition? sourceExhibition;
+  final Exhibition? upcomingExhibition;
+  final Exhibition? featuredExhibition;
+  final List<Exhibition>? pastExhibitions;
 
   ExhibitionsState copyWith({
-    List<Exhibition>? freeExhibitions,
-    final List<Exhibition>? proExhibitions,
+    Exhibition? sourceExhibition,
+    final Exhibition? upcomingExhibition,
+    final Exhibition? featuredExhibition,
+    final List<Exhibition>? pastExhibitions,
     bool? isSubscribed,
     int? currentPage,
-    Exhibition? sourceExhibition,
   }) =>
       ExhibitionsState(
-        freeExhibitions: freeExhibitions ?? this.freeExhibitions,
-        proExhibitions: proExhibitions ?? this.proExhibitions,
         currentPage: currentPage ?? this.currentPage,
         sourceExhibition: sourceExhibition ?? this.sourceExhibition,
+        upcomingExhibition: upcomingExhibition ?? this.upcomingExhibition,
+        featuredExhibition: featuredExhibition ?? this.featuredExhibition,
+        pastExhibitions: pastExhibitions ?? this.pastExhibitions,
       );
 
   List<String> get allExhibitionIds => [
-        ...freeExhibitions?.map((e) => e.id) ?? [],
-        ...proExhibitions?.map((e) => e.id) ?? [],
+        if (featuredExhibition != null) featuredExhibition!.id,
+        if (upcomingExhibition != null) upcomingExhibition!.id,
+        ...pastExhibitions?.map((e) => e.id) ?? [],
       ];
 }

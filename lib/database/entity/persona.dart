@@ -9,7 +9,6 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/wallet_address.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/wallet_utils.dart';
@@ -182,9 +181,6 @@ class Persona {
     await injector<CloudDatabase>().addressDao.insertAddresses(addresses);
     await injector<AddressService>()
         .addAddresses(addresses.map((e) => e.address).toList());
-    for (var address in addresses) {
-      await injector<AuthService>().addIdentity(address);
-    }
     return addresses;
   }
 

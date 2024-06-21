@@ -27,9 +27,7 @@ extension ExhibitionExt on Exhibition {
     final exhibitionBloc = injector<ExhibitionBloc>();
     final subscriptionBloc = injector<SubscriptionBloc>();
     return subscriptionBloc.state.isSubscribed ||
-        (exhibitionBloc.state.freeExhibitions
-                ?.any((element) => element.id == id) ??
-            false);
+        id == exhibitionBloc.state.featuredExhibition?.id;
   }
 
   //TODO: implement this
@@ -167,8 +165,16 @@ extension ArtworkExt on Artwork {
 }
 
 String getFFUrl(String uri) {
+  // case 1: cloudflare
+  if (uri.startsWith(cloudFlarePrefix)) {
+    return '$uri/thumbnailLarge';
+  }
+
+  // case 2 => full cdn
   if (uri.startsWith('http')) {
     return uri;
   }
+
+  //case 3 => cdn
   return '${Environment.feralFileAssetURL}/$uri';
 }

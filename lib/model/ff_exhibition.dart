@@ -162,13 +162,15 @@ class Exhibition {
 }
 
 class ExhibitionResponse {
-  final Exhibition result;
+  final Exhibition? result;
 
   ExhibitionResponse(this.result);
 
   factory ExhibitionResponse.fromJson(Map<String, dynamic> json) =>
       ExhibitionResponse(
-        Exhibition.fromJson(json['result'] as Map<String, dynamic>),
+        json['result'] == null
+            ? null
+            : Exhibition.fromJson(json['result'] as Map<String, dynamic>),
       );
 
   Map<String, dynamic> toJson() => {

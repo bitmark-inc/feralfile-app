@@ -254,6 +254,33 @@ class _FeralFileApi implements FeralFileApi {
   }
 
   @override
+  Future<ExhibitionResponse> getUpcomingExhibition() async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
+    final _result = await _dio
+        .fetch<Map<String, dynamic>>(_setStreamType<ExhibitionResponse>(Options(
+      method: 'GET',
+      headers: _headers,
+      extra: _extra,
+    )
+            .compose(
+              _dio.options,
+              '/api/exhibitions/upcoming',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(
+                baseUrl: _combineBaseUrls(
+              _dio.options.baseUrl,
+              baseUrl,
+            ))));
+    final value = ExhibitionResponse.fromJson(_result.data!);
+    return value;
+  }
+
+  @override
   Future<FeralFileListResponse<Artwork>> getListArtworks({
     String? exhibitionId,
     String? seriesId,

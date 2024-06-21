@@ -821,7 +821,7 @@ class UIHelper {
           context,
           (route) =>
               route.settings.name != null &&
-              !route.settings.name!.contains('popUp'));
+              !route.settings.name!.toLowerCase().contains('popup'));
     } catch (_) {}
   }
 

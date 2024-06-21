@@ -67,10 +67,6 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
       for (var persona in personas) {
         await _accountService.deletePersona(persona);
       }
-      final addresses = await _cloudDatabase.addressDao.getAllAddresses();
-      for (var address in addresses) {
-        await _authService.removeIdentity(address.address);
-      }
 
       await _cloudDatabase.removeAll();
       await _appDatabase.removeAll();

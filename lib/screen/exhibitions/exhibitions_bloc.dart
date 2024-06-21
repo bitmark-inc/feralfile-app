@@ -2,7 +2,6 @@ import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/screen/exhibitions/exhibitions_state.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 
@@ -17,24 +16,30 @@ class ExhibitionBloc extends AuBloc<ExhibitionsEvent, ExhibitionsState> {
         return;
       }
       final result = await Future.wait([
+        _feralFileService.getUpcomingExhibition(),
         _feralFileService.getFeaturedExhibition(),
         _feralFileService.getAllExhibitions(limit: limit),
         _feralFileService.getSourceExhibition(),
       ]);
-      final featuredExhibition = result[0] as Exhibition;
-      var proExhibitions = result[1] as List<Exhibition>;
-      final sourceExhibition = result[2] as Exhibition;
+      final upcomingExhibition = result[0] as Exhibition?;
+      final featuredExhibition = result[1]! as Exhibition;
+      final allExhibitions = result[2]! as List<Exhibition>;
+      final sourceExhibition = result[3]! as Exhibition;
       log.info('[ExhibitionBloc] getAllExhibitionsEvent:'
-          ' pro ${proExhibitions.length}');
-      proExhibitions
-          .removeWhere((element) => element.id == featuredExhibition.id);
-      proExhibitions =
-          _addSourceExhibitionIfNeeded(proExhibitions, sourceExhibition);
+          ' pro ${allExhibitions.length}');
+      var pastExhibitions = allExhibitions
+          .where((exhibition) =>
+              exhibition.id != featuredExhibition.id &&
+              exhibition.id != upcomingExhibition?.id)
+          .toList();
+      pastExhibitions =
+          _addSourceExhibitionIfNeeded(pastExhibitions, sourceExhibition);
       emit(state.copyWith(
-        freeExhibitions: [featuredExhibition],
-        proExhibitions: proExhibitions,
         currentPage: 1,
         sourceExhibition: sourceExhibition,
+        upcomingExhibition: upcomingExhibition,
+        featuredExhibition: featuredExhibition,
+        pastExhibitions: pastExhibitions,
       ));
       add(GetNextPageEvent(isLoop: true));
     });
@@ -43,24 +48,23 @@ class ExhibitionBloc extends AuBloc<ExhibitionsEvent, ExhibitionsState> {
       (event, emit) async {
         log.info('[ExhibitionBloc] getNextPageEvent:'
             'offset  ${state.currentPage * limit}');
-        List<Exhibition> proExhibitions =
+        List<Exhibition> exhibitions =
             await _feralFileService.getAllExhibitions(
           limit: limit,
           offset: state.currentPage * limit,
         );
-        final resultLength = proExhibitions.length;
+        final resultLength = exhibitions.length;
         log.info('[ExhibitionBloc] getNextPageEvent: $resultLength');
 
-        proExhibitions.removeWhere(
+        exhibitions.removeWhere(
             (element) => state.allExhibitionIds.contains(element.id));
         if (state.sourceExhibition != null &&
-            !(state.proExhibitions ?? [])
-                .any((element) => element.id == SOURCE_EXHIBITION_ID)) {
-          proExhibitions = _addSourceExhibitionIfNeeded(
-              proExhibitions, state.sourceExhibition!);
+            (state.pastExhibitions ?? []).isNotEmpty) {
+          exhibitions = _addSourceExhibitionIfNeeded(
+              exhibitions, state.sourceExhibition!);
         }
         emit(state.copyWith(
-          proExhibitions: [...state.proExhibitions ?? [], ...proExhibitions],
+          pastExhibitions: [...?state.pastExhibitions, ...exhibitions],
           currentPage: state.currentPage + 1,
         ));
         if (event.isLoop && resultLength == limit) {
