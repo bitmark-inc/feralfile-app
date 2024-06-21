@@ -17,7 +17,6 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
-import 'package:autonomy_flutter/view/image_background.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -165,7 +164,7 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
                                       const GalleryUnSupportThumbnailWidget(),
                                 )
                               : CachedNetworkImage(
-                                  imageUrl:  thumbnailUrl,
+                                  imageUrl: thumbnailUrl,
                                   width: double.infinity,
                                   height: double.infinity,
                                   fit: BoxFit.cover,
@@ -223,6 +222,6 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
     );
   }
 
-  Widget _loadingBuilder(
-      BuildContext context, url) => const GalleryThumbnailPlaceholder();
+  Widget _loadingBuilder(BuildContext context, url) =>
+      const GalleryThumbnailPlaceholder();
 }
