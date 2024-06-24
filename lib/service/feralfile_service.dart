@@ -513,11 +513,30 @@ class FeralFileServiceImpl extends FeralFileService {
   @override
   Future<List<FFSeries>> getListSeries(String exhibitionId,
       {bool includeFirstArtwork = false}) async {
+    if (exhibitionId == SOURCE_EXHIBITION_ID) {
+      final exhibition = await getSourceExhibition();
+      return exhibition.series ?? [];
+    }
     final response = await _feralFileApi.getListSeries(
         exhibitionID: exhibitionId,
         sortBy: 'displayIndex',
         sortOrder: 'ASC',
         includeFirstArtwork: includeFirstArtwork);
+    if (includeFirstArtwork &&
+        response.result.any((element) => element.artwork == null)) {
+      final List<FFSeries> newSeries = [];
+      final exhibition = await getExhibition(exhibitionId);
+      for (final series in response.result) {
+        if (series.artwork == null) {
+          final fakeArtwork =
+              await _getFakeSeriesArtworks(exhibition, series, 0, 1);
+          newSeries.add(series.copyWith(artwork: fakeArtwork.first));
+        } else {
+          newSeries.add(series);
+        }
+      }
+      return newSeries;
+    }
     return response.result;
   }
 
