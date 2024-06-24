@@ -284,11 +284,12 @@ class _FeralFileApi implements FeralFileApi {
   Future<FeralFileListResponse<Artwork>> getListArtworks({
     String? exhibitionId,
     String? seriesId,
-    int? offset,
-    int? limit,
+    int? offset = 0,
+    int? limit = 1,
     bool includeActiveSwap = true,
     String sortBy = 'index',
     String sortOrder = 'ASC',
+    bool? isViewable,
   }) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
@@ -299,6 +300,7 @@ class _FeralFileApi implements FeralFileApi {
       r'includeActiveSwap': includeActiveSwap,
       r'sortBy': sortBy,
       r'sortOrder': sortOrder,
+      r'isViewable': isViewable,
     };
     queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};

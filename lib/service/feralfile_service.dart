@@ -160,6 +160,8 @@ abstract class FeralFileService {
       String seriesId, String exhibitionID,
       {bool withSeries = false, int offset = offset, int limit = limit});
 
+  Future<Artwork?> getFirstViewableArtwork(String seriesId);
+
   Future<String> getFeralfileActionMessage(
       {required String address, required FeralfileAction action});
 
@@ -446,6 +448,17 @@ class FeralFileServiceImpl extends FeralFileService {
         '${artworksResponse.result.map((e) => e.id).toList()}',
       );
     return artworksResponse;
+  }
+
+  @override
+  Future<Artwork?> getFirstViewableArtwork(String seriesId) async {
+    final response = await _feralFileApi.getListArtworks(
+      seriesId: seriesId,
+      includeActiveSwap: false,
+      sortOrder: 'DESC',
+      isViewable: true,
+    );
+    return response.result.firstOrNull;
   }
 
   @override

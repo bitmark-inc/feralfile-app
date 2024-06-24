@@ -71,11 +71,12 @@ abstract class FeralFileApi {
   Future<FeralFileListResponse<Artwork>> getListArtworks({
     @Query('exhibitionID') String? exhibitionId,
     @Query('seriesID') String? seriesId,
-    @Query('offset') int? offset,
-    @Query('limit') int? limit,
+    @Query('offset') int? offset = 0,
+    @Query('limit') int? limit = 1,
     @Query('includeActiveSwap') bool includeActiveSwap = true,
     @Query('sortBy') String sortBy = 'index',
     @Query('sortOrder') String sortOrder = 'ASC',
+    @Query('isViewable') bool? isViewable,
   });
 
   @POST('/api/web3/messages/action')
