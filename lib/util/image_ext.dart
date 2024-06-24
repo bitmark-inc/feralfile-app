@@ -1,11 +1,10 @@
-import 'dart:async';
-
+import 'package:autonomy_flutter/view/image_background.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 
 extension ImageExt on CachedNetworkImage {
-  static CachedNetworkImage customNetwork(
+  static Widget customNetwork(
     String src, {
     Duration fadeInDuration = const Duration(milliseconds: 300),
     BoxFit? fit,
@@ -19,8 +18,25 @@ extension ImageExt on CachedNetworkImage {
     bool shouldRefreshCache = false,
   }) {
     if (shouldRefreshCache) {
-      unawaited(cacheManager?.removeFile(src));
+      Image.network(
+        src,
+        fit: fit,
+        errorBuilder: (context, error, stackTrace) =>
+            errorWidget!(context, src, error),
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) {
+            return ImageBackground(child: child);
+          }
+          if (placeholder != null) {
+            return placeholder(context, src);
+          }
+          return const ImageBackground(child: SizedBox());
+        },
+        cacheHeight: memCacheHeight,
+        cacheWidth: memCacheWidth,
+      );
     }
+
     return CachedNetworkImage(
       imageUrl: src,
       fadeInDuration: Duration.zero,
