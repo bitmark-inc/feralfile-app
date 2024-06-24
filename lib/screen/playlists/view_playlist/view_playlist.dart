@@ -283,7 +283,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                   builder: (context, canvasDeviceState) {
                     final displayKey = _getDisplayKey(playList);
                     final isPlaylistCasting = canvasDeviceState
-                            .castingDeviceForKey(displayKey ?? '') !=
+                            .lastSelectedActiveDeviceForKey(displayKey ?? '') !=
                         null;
                     if (isPlaylistCasting) {
                       return Padding(
@@ -326,9 +326,16 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
   String? _getDisplayKey(PlayListModel playList) => playList.displayKey;
 
   Future<bool> _moveToArtwork(CompactedAssetToken compactedAssetToken) {
-    final controllingDevice = _canvasDeviceBloc.state.controllingDevice;
-    if (controllingDevice != null) {
-      return _canvasClientServiceV2.moveToArtwork(controllingDevice,
+    final playlist = this.widget.payload.playListModel;
+    final displayKey = playlist?.displayKey;
+    if (displayKey == null) {
+      return Future.value(false);
+    }
+
+    final lastSelectedCanvasDevice =
+        _canvasDeviceBloc.state.lastSelectedActiveDeviceForKey(displayKey);
+    if (lastSelectedCanvasDevice != null) {
+      return _canvasClientServiceV2.moveToArtwork(lastSelectedCanvasDevice,
           artworkId: compactedAssetToken.id);
     }
     return Future.value(false);
