@@ -165,6 +165,8 @@ dependencies:
 
   network_info_plus: ^5.0.3
   backdrop: ^0.9.1
+  cached_network_image: ^3.3.1
+  flutter_cache_manager: ^3.3.1
 dependency_overrides:
   intl: 0.18.0
 

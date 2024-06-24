@@ -19,12 +19,14 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class ExhibitionsPage extends StatefulWidget {
@@ -176,26 +178,24 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                           ),
                         ),
                       )
-                    : Image.network(
-                        exhibition.coverUrl,
+                    : CachedNetworkImage(
+                        imageUrl: exhibition.coverUrl,
                         height: estimatedHeight,
-                        cacheWidth: estimatedWidth.toInt(),
-                        cacheHeight: estimatedHeight.toInt(),
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) {
-                            return child;
-                          }
-                          return SizedBox(
-                            height: estimatedHeight,
-                            child: const Center(
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                backgroundColor: AppColor.auQuickSilver,
-                                strokeWidth: 2,
-                              ),
+                        maxWidthDiskCache: estimatedWidth.toInt(),
+                        memCacheWidth: estimatedWidth.toInt(),
+                        memCacheHeight: estimatedHeight.toInt(),
+                        maxHeightDiskCache: estimatedHeight.toInt(),
+                        cacheManager: injector<CacheManager>(),
+                        placeholder: (context, url) => SizedBox(
+                          height: estimatedHeight,
+                          child: const Center(
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              backgroundColor: AppColor.auQuickSilver,
+                              strokeWidth: 2,
                             ),
-                          );
-                        },
+                          ),
+                        ),
                         fit: BoxFit.fitWidth,
                       ),
               ),
