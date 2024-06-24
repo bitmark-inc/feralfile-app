@@ -326,7 +326,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
   String? _getDisplayKey(PlayListModel playList) => playList.displayKey;
 
   Future<bool> _moveToArtwork(CompactedAssetToken compactedAssetToken) {
-    final playlist = this.widget.payload.playListModel;
+    final playlist = widget.payload.playListModel;
     final displayKey = playlist?.displayKey;
     if (displayKey == null) {
       return Future.value(false);
