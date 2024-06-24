@@ -70,6 +70,8 @@ const MOMA_MEMENTO_EXHIBITION_IDS = [
   '3ee3e8a4-90dd-4843-8ec3-858e6bea1965'
 ];
 
+const cloudFlarePrefix = 'https://imagedelivery.net/';
+
 const POSTCARD_IPFS_PREFIX_TEST = 'https://ipfs.test.bitmark.com/ipfs';
 const POSTCARD_IPFS_PREFIX_PROD = 'https://ipfs.bitmark.com/ipfs';
 
@@ -590,6 +592,3 @@ final chatPrivateBannerMessage = SystemMessage(
   text: 'chat_is_private'.tr(),
   status: Status.delivered,
 );
-
-String getFeralFileAccountMessage(String address, String timestamp) =>
-    'feralfile-account: {"requester":"$address","timestamp":"$timestamp"}';

@@ -111,15 +111,15 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
 
   Widget _exhibitionItem({
     required BuildContext context,
-    required List<Exhibition> viewExhibition,
+    required List<Exhibition> viewableExhibitions,
     required Exhibition exhibition,
-    required bool isProExhibition,
+    required bool isFeaturedExhibition,
   }) {
     final theme = Theme.of(context);
     final screenWidth = MediaQuery.sizeOf(context).width;
     final estimatedHeight = (screenWidth - _padding * 2) / 16 * 9;
     final estimatedWidth = screenWidth - _padding * 2;
-    final index = viewExhibition.indexOf(exhibition);
+    final index = viewableExhibitions.indexOf(exhibition);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -127,7 +127,7 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
           children: [
             GestureDetector(
               onTap: () async {
-                if (exhibition.canViewDetails && isProExhibition) {
+                if (exhibition.canViewDetails && !isFeaturedExhibition) {
                   _subscriptionBloc.add(GetSubscriptionEvent());
                   final isSubscribed = await _iapService.isSubscribed();
                   if (!isSubscribed) {
@@ -139,12 +139,13 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                   return;
                 }
                 if (exhibition.canViewDetails && index >= 0) {
-                  await Navigator.of(context)
-                      .pushNamed(AppRouter.exhibitionDetailPage,
-                          arguments: ExhibitionDetailPayload(
-                            exhibitions: viewExhibition,
-                            index: index,
-                          ));
+                  await Navigator.of(context).pushNamed(
+                    AppRouter.exhibitionDetailPage,
+                    arguments: ExhibitionDetailPayload(
+                      exhibitions: viewableExhibitions,
+                      index: index,
+                    ),
+                  );
                 }
               },
               child: ClipRRect(
@@ -258,8 +259,7 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
             BlocBuilder<SubscriptionBloc, SubscriptionState>(
           builder: (context, subscriptionState) {
             final theme = Theme.of(context);
-            if (exhibitionsState.freeExhibitions == null ||
-                exhibitionsState.proExhibitions == null) {
+            if (exhibitionsState.currentPage == 0) {
               return const SliverToBoxAdapter(
                 child: Center(
                   child: CircularProgressIndicator(
@@ -270,12 +270,22 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                 ),
               );
             } else {
-              final freeExhibitions = exhibitionsState.freeExhibitions!;
-              final proExhibitions = exhibitionsState.proExhibitions!;
+              final featureExhibition = exhibitionsState.featuredExhibition;
+              final upcomingExhibition = exhibitionsState.upcomingExhibition;
+              final pastExhibitions = exhibitionsState.pastExhibitions;
               final isSubscribed = subscriptionState.isSubscribed;
-              final viewExhibitions = isSubscribed
-                  ? freeExhibitions + proExhibitions
-                  : freeExhibitions;
+
+              final allExhibition = [
+                if (featureExhibition != null) featureExhibition,
+                if (upcomingExhibition != null) upcomingExhibition,
+                ...?pastExhibitions,
+              ];
+              final viewableExhibitions = isSubscribed
+                  ? allExhibition
+                  : featureExhibition != null
+                      ? [featureExhibition]
+                      : <Exhibition>[];
+
               final divider = addDivider(
                   height: 40, color: AppColor.auQuickSilver, thickness: 0.5);
               return SliverPadding(
@@ -283,46 +293,44 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                 sliver: SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
-                      final exhibition = [
-                        ...freeExhibitions,
-                        ...proExhibitions,
-                      ][index];
+                      final exhibition = allExhibition[index];
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (index == 0 &&
-                              !isSubscribed &&
-                              freeExhibitions.isNotEmpty) ...[
+                          if (featureExhibition != null && index == 0) ...[
                             Text('current_exhibition'.tr(),
                                 style: theme.textTheme.ppMori400White14),
                             Text('for_essential_members'.tr(),
                                 style: theme.textTheme.ppMori400Grey14),
                             const SizedBox(height: 18),
                           ],
-                          if (index == freeExhibitions.length)
-                            _pastExhibitionHeader(context, isSubscribed),
+                          if (upcomingExhibition != null && index == 1) ...[
+                            _exhibitionGroupHeader(
+                              context,
+                              isSubscribed,
+                              'upcoming_exhibition'.tr(),
+                            ),
+                          ],
+                          if (exhibition.id == pastExhibitions?.first.id)
+                            _exhibitionGroupHeader(
+                              context,
+                              isSubscribed,
+                              'past_exhibition'.tr(),
+                            ),
                           _exhibitionItem(
                             context: context,
-                            viewExhibition: viewExhibitions,
+                            viewableExhibitions: viewableExhibitions,
                             exhibition: exhibition,
-                            isProExhibition:
-                                proExhibitions.contains(exhibition),
+                            isFeaturedExhibition:
+                                exhibition.id == featureExhibition?.id,
                           ),
                           divider,
-                          if (index ==
-                              [
-                                    ...freeExhibitions,
-                                    ...proExhibitions,
-                                  ].length -
-                                  1)
+                          if (index == allExhibition.length - 1)
                             const SizedBox(height: 40),
                         ],
                       );
                     },
-                    childCount: [
-                      ...freeExhibitions,
-                      ...proExhibitions,
-                    ].length,
+                    childCount: allExhibition.length,
                   ),
                 ),
               );
@@ -331,7 +339,8 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
         ),
       );
 
-  Widget _pastExhibitionHeader(BuildContext context, bool isSubscribed) {
+  Widget _exhibitionGroupHeader(
+      BuildContext context, bool isSubscribed, String title) {
     final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 18),
@@ -341,8 +350,10 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('past_exhibition'.tr(),
-                  style: theme.textTheme.ppMori400White14),
+              Text(
+                title,
+                style: theme.textTheme.ppMori400White14,
+              ),
               Row(
                 children: [
                   if (!isSubscribed) ...[

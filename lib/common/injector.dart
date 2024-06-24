@@ -261,7 +261,13 @@ Future<void> setup() async {
   injector.registerLazySingleton<CustomerSupportService>(
       () => CustomerSupportServiceImpl(
             mainnetDB.draftCustomerSupportDao,
-            CustomerSupportApi(authenticatedDio,
+            CustomerSupportApi(
+                customerSupportDio(
+                  dioOptions.copyWith(
+                    connectTimeout: const Duration(seconds: 10),
+                    receiveTimeout: const Duration(seconds: 10),
+                  ),
+                ),
                 baseUrl: Environment.customerSupportURL),
             injector(),
             mainnetDB.announcementDao,

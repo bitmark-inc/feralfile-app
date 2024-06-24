@@ -64,6 +64,9 @@ abstract class FeralFileApi {
   @GET('/api/exhibitions/featured')
   Future<ExhibitionResponse> getFeaturedExhibition();
 
+  @GET('/api/exhibitions/upcoming')
+  Future<ExhibitionResponse> getUpcomingExhibition();
+
   @GET('/api/artworks')
   Future<FeralFileListResponse<Artwork>> getListArtworks({
     @Query('exhibitionID') String? exhibitionId,

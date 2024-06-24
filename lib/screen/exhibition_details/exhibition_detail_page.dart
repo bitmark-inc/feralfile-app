@@ -4,7 +4,6 @@ import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/pair.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_state.dart';
@@ -178,18 +177,12 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
             items: [
               ExhibitionNoteView(
                 exhibition: exhibition,
-                onReadMore: () async {
-                  await Navigator.pushNamed(
-                    context,
-                    AppRouter.exhibitionNotePage,
-                    arguments: exhibition,
-                  );
-                },
               ),
               ...exhibition.posts
                       ?.where((post) => post.coverURI != null)
                       .map((e) => ExhibitionPostView(
                             post: e,
+                            exhibitionID: exhibition.id,
                           )) ??
                   []
             ],

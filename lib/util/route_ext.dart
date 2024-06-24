@@ -403,12 +403,6 @@ extension RouteExt on Route {
           MixpanelProp.recipientAddress: payload.transaction.to,
         };
         break;
-      case AppRouter.exhibitionNotePage:
-        final payload = settings.arguments! as Exhibition;
-        data = {
-          MixpanelProp.exhibitionId: payload.id,
-        };
-        break;
       default:
         break;
     }
@@ -496,7 +490,6 @@ final screenNameMap = {
   AppRouter.feralFileSeriesPage: 'Series Detail',
   AppRouter.ffArtworkPreviewPage: 'Feral File Artwork Preview',
   AppRouter.exhibitionDetailPage: 'Exhibition Detail',
-  AppRouter.exhibitionNotePage: 'Exhibition Note',
   AppRouter.previewPrimerPage: 'Preview Primer',
   AppRouter.projectsList: 'Projects',
   AppRouter.artistsListPage: 'Artists list',

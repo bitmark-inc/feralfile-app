@@ -23,6 +23,8 @@ class CanvasClientServiceV2 {
   final DeviceInfoService _deviceInfoService;
   final TvCastApi _tvCastApi;
   final NavigationService _navigationService;
+  Timer? _timer;
+  final dragOffsets = <CursorOffset>[];
 
   CanvasClientServiceV2(this._db, this._deviceInfoService, this._tvCastApi,
       this._navigationService);
@@ -259,16 +261,23 @@ class CanvasClientServiceV2 {
 
   Future<void> drag(
       List<CanvasDevice> devices, Offset offset, Size touchpadSize) async {
-    final dragRequest = DragGestureRequest(
+    final dragOffset = CursorOffset(
         dx: offset.dx,
         dy: offset.dy,
         coefficientX: 1 / touchpadSize.width,
         coefficientY: 1 / touchpadSize.height);
 
     currentCursorOffset += offset;
-    for (var device in devices) {
-      final stub = _getStub(device);
-      await stub.drag(dragRequest);
+    dragOffsets.add(dragOffset);
+    if (_timer == null || !_timer!.isActive) {
+      _timer = Timer(const Duration(milliseconds: 300), () {
+        for (var device in devices) {
+          final stub = _getStub(device);
+          final dragRequest = DragGestureRequest(cursorOffsets: dragOffsets);
+          stub.drag(dragRequest);
+        }
+        dragOffsets.clear();
+      });
     }
   }
 

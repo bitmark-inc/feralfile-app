@@ -148,12 +148,7 @@ class AutonomyAuthInterceptor extends Interceptor {
   @override
   Future<void> onRequest(
       RequestOptions options, RequestInterceptorHandler handler) async {
-    const excludePaths = [
-      IAPApi.authenticationPath,
-      IAPApi.authenticationV2Path,
-      IAPApi.createAccountPath,
-    ];
-    if (!excludePaths.contains(options.path)) {
+    if (options.path != IAPApi.authenticationPath) {
       final jwt = await injector<AuthService>().getAuthToken();
       options.headers['Authorization'] = 'Bearer ${jwt.jwtToken}';
     }

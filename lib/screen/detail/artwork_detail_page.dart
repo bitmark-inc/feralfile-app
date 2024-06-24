@@ -628,7 +628,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
             }),
         if (showKeyboard)
           OptionItem(
-            title: 'keyboard'.tr(),
+            title: 'interact'.tr(),
             icon: SvgPicture.asset('assets/images/keyboard_icon.svg'),
             onTap: () {
               Navigator.of(context).pop();
