@@ -29,10 +29,6 @@ import 'package:uuid/uuid.dart';
 //ignore_for_file: constant_identifier_names
 
 abstract class ConfigurationService {
-  bool didGetLocalNetworkPermission();
-
-  Future<void> setDidGetLocalNetworkPermission(bool value);
-
   Future<void> setRecordOwners(List<String> owners, {bool override = false});
 
   List<String> getRecordOwners();
@@ -281,8 +277,6 @@ abstract class ConfigurationService {
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
-  static const String keyDidGetLocalNetWorkPermission =
-      'did_get_local_network_permission';
   static const String keyRecordOwners = 'yoko_ono_record_owners';
   static const String KEY_HAS_MERCHANDISE_SUPPORT_INDEX_ID =
       'has_merchandise_support';
@@ -1226,15 +1220,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
       final currentOwners = getRecordOwners()..addAll(owners);
       await _preferences.setStringList(keyRecordOwners, currentOwners.toList());
     }
-  }
-
-  @override
-  bool didGetLocalNetworkPermission() =>
-      _preferences.getBool(keyDidGetLocalNetWorkPermission) ?? false;
-
-  @override
-  Future<void> setDidGetLocalNetworkPermission(bool value) async {
-    await _preferences.setBool(keyDidGetLocalNetWorkPermission, value);
   }
 }
 

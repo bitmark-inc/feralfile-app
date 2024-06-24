@@ -1,11 +1,8 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
-import 'package:autonomy_flutter/service/network_issue_manager.dart';
-import 'package:autonomy_flutter/service/network_service.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/stream_device_view.dart';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:feralfile_app_tv_proto/models/canvas_device.dart';
 import 'package:flutter/material.dart';
@@ -14,11 +11,16 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 class FFCastButton extends StatefulWidget {
   final Function(CanvasDevice device)? onDeviceSelected;
+  final String displayKey;
   final String? text;
   final String? type;
 
   const FFCastButton(
-      {this.type = '', super.key, this.onDeviceSelected, this.text});
+      {required this.displayKey,
+      this.type = '',
+      super.key,
+      this.onDeviceSelected,
+      this.text});
 
   @override
   State<FFCastButton> createState() => _FFCastButtonState();
@@ -40,25 +42,12 @@ class _FFCastButtonState extends State<FFCastButton> {
     return BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
       bloc: _canvasDeviceBloc,
       builder: (context, state) {
-        final isCasting = state.isCasting;
+        final castingDevice =
+            state.lastSelectedActiveDeviceForKey(widget.displayKey);
+        final isCasting = castingDevice != null;
         return GestureDetector(
           onTap: () async {
-            if (!injector.get<NetworkService>().isWifi) {
-              final isRetry =
-                  await injector<NetworkIssueManager>().showRetryDialog(
-                context,
-                description: 'network_error_canvas_desc'.tr(),
-                dynamicRetryNotifier: injector<NetworkService>().isWifiNotifier,
-                onRetry: () async => true,
-              );
-              if (!(isRetry ?? false)) {
-                return;
-              }
-            }
-            if (!context.mounted) {
-              return;
-            }
-            await _showStreamAction(context);
+            await _showStreamAction(context, widget.displayKey);
           },
           child: Semantics(
             label: 'cast_icon',
@@ -116,14 +105,19 @@ class _FFCastButtonState extends State<FFCastButton> {
     );
   }
 
-  Future<void> _showStreamAction(BuildContext context) async {
+  Future<void> _showStreamAction(
+      BuildContext context, String displayKey) async {
     keyboardManagerKey.currentState?.hideKeyboard();
     await UIHelper.showFlexibleDialog(
       context,
       BlocProvider.value(
         value: _canvasDeviceBloc,
         child: StreamDeviceView(
-          onDeviceSelected: widget.onDeviceSelected,
+          displayKey: displayKey,
+          onDeviceSelected: (canvasDevice) {
+            widget.onDeviceSelected?.call(canvasDevice);
+            Navigator.pop(context);
+          },
         ),
       ),
       isDismissible: true,

@@ -30,6 +30,8 @@ extension ExhibitionExt on Exhibition {
         id == exhibitionBloc.state.featuredExhibition?.id;
   }
 
+  String get displayKey => id;
+
   //TODO: implement this
   bool get isOnGoing => true;
 

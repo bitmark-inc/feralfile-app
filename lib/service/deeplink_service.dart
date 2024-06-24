@@ -16,8 +16,10 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/otp.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -26,12 +28,17 @@ import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/dio_exception_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/view/stream_device_view.dart';
 import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
+import 'package:feralfile_app_tv_proto/models/canvas_device.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_branch_sdk/flutter_branch_sdk.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uni_links/uni_links.dart';
@@ -150,11 +157,9 @@ class DeeplinkServiceImpl extends DeeplinkService {
       switch (data) {
         case 'home':
           _navigationService.restorablePushHomePage();
-          break;
         case 'support':
           unawaited(
               _navigationService.navigateTo(AppRouter.supportCustomerPage));
-          break;
         default:
           return false;
       }
@@ -342,7 +347,11 @@ class DeeplinkServiceImpl extends DeeplinkService {
         .firstWhereOrNull((prefix) => link.startsWith(prefix));
     if (callingBranchDeepLinkPrefix != null) {
       final response = await _branchApi.getParams(Environment.branchKey, link);
-      await handleBranchDeeplinkData(response['data']);
+      try {
+        await handleBranchDeeplinkData(response['data']);
+      } catch (e) {
+        log.info('[DeeplinkService] _handleBranchDeeplink error $e');
+      }
       return true;
     }
     return false;
@@ -393,7 +402,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
           log.info('[DeeplinkService] _handlePostcardDeeplink $sharedCode');
           await _handlePostcardDeeplink(sharedCode);
         }
-        break;
 
       case 'autonomy_irl':
         final url = data['irl_url'];
@@ -402,17 +410,42 @@ class DeeplinkServiceImpl extends DeeplinkService {
           await _handleIRL(url);
           memoryValues.irlLink.value = null;
         }
-        break;
 
       case 'moma_postcard_purchase':
         await _handlePayToMint();
-        break;
 
       case 'autonomy_connect':
         final wcUri = data['uri'];
         final decodedWcUri = Uri.decodeFull(wcUri);
         await _walletConnect2Service.connect(decodedWcUri);
-        break;
+
+      case 'feralfile_display':
+        final payload = data['device'] as Map<String, dynamic>;
+        final device = CanvasDevice.fromJson(payload);
+        final canvasClient = injector<CanvasClientServiceV2>();
+        final result = await canvasClient.addQrDevice(device);
+        final isSuccessful = result != null;
+        if (!_navigationService.context.mounted) {
+          return;
+        }
+        if (isSuccessful) {
+          if (CustomRouteObserver.currentRoute?.settings.name ==
+              AppRouter.scanQRPage) {
+            /// in case scan when open scanQRPage,
+            /// scan with navigation home page does not go to this flow
+            _navigationService.goBack(result: device);
+          } else {
+            await UIHelper.showFlexibleDialog(
+                _navigationService.context,
+                BlocProvider.value(
+                  value: injector<CanvasDeviceBloc>(),
+                  child: const StreamDeviceView(),
+                ),
+                isDismissible: true,
+                autoDismissAfter: 3);
+          }
+        }
+
       default:
         memoryValues.branchDeeplinkData.value = null;
     }

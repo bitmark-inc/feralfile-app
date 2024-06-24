@@ -24,6 +24,7 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/notification_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/au_file_service.dart';
+import 'package:autonomy_flutter/util/canvas_device_adapter.dart';
 import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
@@ -116,7 +117,8 @@ Future<void> runFeralFileApp() async {
 void _registerHiveAdapter() {
   Hive
     ..registerAdapter(EthereumPendingTxAmountAdapter())
-    ..registerAdapter(EthereumPendingTxListAdapter());
+    ..registerAdapter(EthereumPendingTxListAdapter())
+    ..registerAdapter(CanvasDeviceAdapter());
 }
 
 Future<void> _setupApp() async {
@@ -154,9 +156,7 @@ Future<void> _setupApp() async {
 
   Sentry.configureScope((scope) async {
     final deviceID = await getDeviceID();
-    if (deviceID != null) {
-      scope.setUser(SentryUser(id: deviceID));
-    }
+    scope.setUser(SentryUser(id: deviceID));
   });
 
   //safe delay to wait for onboarding finished

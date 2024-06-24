@@ -6,69 +6,62 @@
 //
 
 import 'dart:async';
-import 'dart:io';
 
-import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/app_database.dart';
+import 'package:autonomy_flutter/gateway/tv_cast_api.dart';
 import 'package:autonomy_flutter/model/pair.dart';
-import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
-import 'package:autonomy_flutter/service/canvas_channel_service.dart';
 import 'package:autonomy_flutter/service/device_info_service.dart';
-import 'package:autonomy_flutter/service/mdns_service.dart';
+import 'package:autonomy_flutter/service/hive_store_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/service/tv_cast_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart' as my_device;
 import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
-import 'package:fixnum/fixnum.dart' as $fixnum;
 import 'package:flutter/material.dart';
-import 'package:retry/retry.dart';
 
 class CanvasClientServiceV2 {
-  final AppDatabase _db;
-  final MDnsService _mdnsService;
+  final HiveStoreObjectService<CanvasDevice> _db;
   final DeviceInfoService _deviceInfoService;
-  final CanvasChannelService _channelService;
+  final TvCastApi _tvCastApi;
+  final NavigationService _navigationService;
+  Timer? _timer;
+  final dragOffsets = <CursorOffset>[];
 
-  CanvasClientServiceV2(this._db, this._mdnsService, this._deviceInfoService,
-      this._channelService);
-
-  final _retry = const RetryOptions(maxAttempts: 3);
+  CanvasClientServiceV2(this._db, this._deviceInfoService, this._tvCastApi,
+      this._navigationService);
 
   Offset currentCursorOffset = Offset.zero;
 
-  CallOptions get _callOptions => CallOptions(
-      compression: const IdentityCodec(),
-      timeout: const Duration(seconds: 60),
-      providers: [_grpcLoggingProvider]);
+  DeviceInfoV2 get clientDeviceInfo => DeviceInfoV2(
+        deviceId: _deviceInfoService.deviceId,
+        deviceName: _deviceInfoService.deviceName,
+        platform: _platform,
+      );
 
-  DeviceInfoV2 get clientDeviceInfo => DeviceInfoV2()
-    ..deviceId = _deviceInfoService.deviceId
-    ..deviceName = _deviceInfoService.deviceName
-    ..platform = _platform;
-
-  CanvasControlV2Client _getStub(CanvasDevice device) =>
-      _channelService.getStubV2(device);
+  TvCastService _getStub(CanvasDevice device) =>
+      TvCastServiceImpl(_tvCastApi, device);
 
   Future<CheckDeviceStatusReply> getDeviceCastingStatus(
+          CanvasDevice device) async =>
+      _getDeviceCastingStatus(device);
+
+  Future<CheckDeviceStatusReply> _getDeviceCastingStatus(
       CanvasDevice device) async {
     final stub = _getStub(device);
     final request = CheckDeviceStatusRequest();
-    final response = await _retryWrapper(() => stub.status(
-          request,
-          options: _callOptions,
-        ));
+    final response = await stub.status(request);
     log.info(
-        'CanvasClientService2 status ok: ${response.connectedDevice.deviceId}');
+        'CanvasClientService2 status: ${response.connectedDevice?.deviceId}');
     return response;
   }
 
-  DeviceInfoV2_DevicePlatform get _platform {
+  DevicePlatform get _platform {
     final device = my_device.DeviceInfo.instance;
     if (device.isAndroid) {
-      return DeviceInfoV2_DevicePlatform.ANDROID;
+      return DevicePlatform.android;
     } else if (device.isIOS) {
-      return DeviceInfoV2_DevicePlatform.IOS;
+      return DevicePlatform.iOS;
     } else {
-      return DeviceInfoV2_DevicePlatform.OTHER;
+      return DevicePlatform.other;
     }
   }
 
@@ -76,257 +69,243 @@ class CanvasClientServiceV2 {
       CanvasDevice device) async {
     final deviceStatus = await _getDeviceStatus(device);
     if (deviceStatus != null) {
-      await _db.canvasDeviceDao.insertCanvasDevice(device);
+      await _db.save(device, device.deviceId);
       log.info('CanvasClientService: Added device to db ${device.name}');
       return deviceStatus;
     }
     return null;
   }
 
-  Future<ResponseStream<ConnectReplyV2>> connect(
-    CanvasDevice device, {
-    Function(CanvasDevice device, ConnectReplyV2 reply)? onEvent,
-    Function(CanvasDevice device)? onDone,
-    Function(CanvasDevice device)? onError,
-  }) async {
+  Future<ConnectReplyV2> connect(CanvasDevice device) async {
     final stub = _getStub(device);
     final deviceInfo = clientDeviceInfo;
-    final request = ConnectRequestV2()..clientDevice = deviceInfo;
-    final response = await _retryWrapper<ResponseStream<ConnectReplyV2>>(
-        () => stub.connect(request, options: _callOptions));
-    response.listen((reply) {
-      log.info('CanvasClientService: connect $reply');
-      onEvent?.call(device, reply);
-    }, onDone: () {
-      log.info('CanvasClientService: onDone');
-      onDone?.call(device);
-    }, onError: (e) {
-      log.info('CanvasClientService: onError $e');
-      onError?.call(device);
-    });
+    final request = ConnectRequestV2(clientDevice: deviceInfo);
+    final response = await stub.connect(request);
     return response;
   }
 
   Future<bool> connectToDevice(CanvasDevice device) async {
-    final completer = Completer<bool>();
     try {
-      await connect(
-        device,
-        onEvent: (device, event) {
-          if (event.ok) {
-            completer.complete(true);
-          } else {
-            injector<CanvasDeviceBloc>().add(
-              CanvasDeviceDisconnectEvent(
-                [device],
-                callRPC: false,
-              ),
-            );
-            completer.complete(false);
-          }
-        },
-        onDone: (device) {
-          completer.complete(true);
-        },
-        onError: (device) {
-          injector<CanvasDeviceBloc>().add(
-            CanvasDeviceOnRPCErrorEvent(device),
-          );
-          completer.complete(false);
-        },
-      );
-      return completer.future;
+      final response = await connect(device);
+      return response.ok;
     } catch (e) {
-      log.info('CanvasClientService: Caught error: $e');
-      rethrow;
+      log.info('CanvasClientService: connectToDevice error: $e');
+      return false;
     }
   }
 
   Future<void> disconnectDevice(CanvasDevice device) async {
     final stub = _getStub(device);
-    final response = await _retryWrapper(() => stub.disconnect(
-          DisconnectRequestV2(),
-          options: _callOptions,
-        ));
-    if (response.ok) {
-      //TODO: implement on disconnected
-    }
+    await stub.disconnect(DisconnectRequestV2());
   }
 
   Future<bool> castListArtwork(
       CanvasDevice device, List<PlayArtworkV2> artworks) async {
     try {
-      await connectToDevice(device);
+      final canConnect = await connectToDevice(device);
+      if (!canConnect) {
+        return false;
+      }
       final stub = _getStub(device);
-      final castRequest = CastListArtworkRequest()..artworks.addAll(artworks);
+      final castRequest = CastListArtworkRequest(artworks: artworks);
 
-      final response = await _retryWrapper(() => stub.castListArtwork(
-            castRequest,
-            options: _callOptions,
-          ));
+      final response = await stub.castListArtwork(castRequest);
       return response.ok;
     } catch (e) {
-      log.info('CanvasClientService: Caught error: $e');
+      log.info('CanvasClientService: castListArtwork error: $e');
       return false;
     }
   }
 
-  Future<bool> cancelCasting(CanvasDevice device) async {
-    final stub = _getStub(device);
-    final response = await _retryWrapper(() => stub.cancelCasting(
-          CancelCastingRequest(),
-          options: _callOptions,
-        ));
-    return response.ok;
-  }
-
   Future<bool> pauseCasting(CanvasDevice device) async {
     final stub = _getStub(device);
-    final response = await _retryWrapper(() => stub.pauseCasting(
-          PauseCastingRequest(),
-          options: _callOptions,
-        ));
+    final response = await stub.pauseCasting(PauseCastingRequest());
     return response.ok;
   }
 
   Future<bool> resumeCasting(CanvasDevice device) async {
     final stub = _getStub(device);
-    final response = await _retryWrapper(() => stub.resumeCasting(
-          ResumeCastingRequest(),
-          options: _callOptions,
-        ));
+    final response = await stub.resumeCasting(ResumeCastingRequest());
     return response.ok;
   }
 
   Future<bool> nextArtwork(CanvasDevice device, {String? startTime}) async {
     final stub = _getStub(device);
-    final request = NextArtworkRequest();
-    if (startTime != null) {
-      request.startTime = $fixnum.Int64(int.parse(startTime));
-    }
-    final response = await _retryWrapper(() => stub.nextArtwork(
-          request,
-          options: _callOptions,
-        ));
+    final request = NextArtworkRequest(
+        startTime: startTime == null ? null : int.tryParse(startTime));
+
+    final response = await stub.nextArtwork(request);
     return response.ok;
   }
 
   Future<bool> moveToArtwork(CanvasDevice device,
-      {String? startTime, String? artworkId}) async {
+      {required String artworkId, String? startTime}) async {
     final stub = _getStub(device);
-    final artwork = PlayArtworkV2(token: CastAssetToken(id: artworkId));
+    final artwork =
+        PlayArtworkV2(token: CastAssetToken(id: artworkId), duration: 0);
     final request = MoveToArtworkRequest(artwork: artwork);
-    final reply = await _retryWrapper(() => stub.moveToArtwork(
-          request,
-          options: _callOptions,
-        ));
+    final reply = await stub.moveToArtwork(request);
     return reply.ok;
   }
 
   Future<bool> previousArtwork(CanvasDevice device, {String? startTime}) async {
     final stub = _getStub(device);
-    final request = PreviousArtwortRequest();
-    if (startTime != null) {
-      request.startTime = $fixnum.Int64(int.parse(startTime));
-    }
-    final response = await _retryWrapper(() => stub.previousArtwork(
-          request,
-          options: _callOptions,
-        ));
+    final request = PreviousArtworkRequest(
+        startTime: startTime == null ? null : int.tryParse(startTime));
+    final response = await stub.previousArtwork(request);
     return response.ok;
   }
 
   Future<bool> appendListArtwork(
       CanvasDevice device, List<PlayArtworkV2> artworks) async {
     final stub = _getStub(device);
-    final response = await _retryWrapper(() => stub.appendListArtwork(
-          AppendArtworkToCastingListRequest()..artworks.addAll(artworks),
-          options: _callOptions,
-        ));
+    final response = await stub.appendListArtwork(
+        AppendArtworkToCastingListRequest(artworks: artworks));
     return response.ok;
   }
 
   Future<bool> castExhibition(
       CanvasDevice device, CastExhibitionRequest castRequest) async {
-    await connectToDevice(device);
+    final canConnect = await connectToDevice(device);
+    if (!canConnect) {
+      return false;
+    }
     final stub = _getStub(device);
-    final response = await _retryWrapper(() => stub.castExhibition(
-          castRequest,
-          options: _callOptions,
-        ));
+    final response = await stub.castExhibition(castRequest);
     return response.ok;
   }
 
   Future<UpdateDurationReply> updateDuration(
       CanvasDevice device, List<PlayArtworkV2> artworks) async {
     final stub = _getStub(device);
-    final response = await _retryWrapper(() => stub.updateDuration(
-          UpdateDurationRequest()..artworks.addAll(artworks),
-          options: _callOptions,
-        ));
+    final response =
+        await stub.updateDuration(UpdateDurationRequest(artworks: artworks));
     return response;
   }
 
-  Future<List<CanvasDevice>> _findRawDevices() async {
-    final devices = <CanvasDevice>[];
-    final futures = await Future.wait(
-        [_mdnsService.findCanvas(), _db.canvasDeviceDao.getCanvasDevices()]);
-    final localDevices = futures[1];
-    final discoverDevices = futures[0];
-    localDevices.removeWhere((l) => discoverDevices.any((d) => d.ip == l.ip));
-    devices
-      ..addAll(discoverDevices)
-      ..addAll(localDevices);
+  List<CanvasDevice> _findRawDevices() {
+    final devices = _db.getAll();
     return devices;
   }
 
   /// This method will get devices via mDNS and local db, for local db devices
   /// it will check the status of the device by calling grpc
   Future<List<Pair<CanvasDevice, CheckDeviceStatusReply>>> scanDevices() async {
-    final rawDevices = await _findRawDevices();
+    final rawDevices = _findRawDevices();
     final List<Pair<CanvasDevice, CheckDeviceStatusReply>> devices =
-        await getDeviceStatuses(rawDevices);
+        await _getDeviceStatuses(rawDevices);
     devices.sort((a, b) => a.first.name.compareTo(b.first.name));
     return devices;
   }
 
-  Future<List<Pair<CanvasDevice, CheckDeviceStatusReply>>> getDeviceStatuses(
+  Future<List<Pair<CanvasDevice, CheckDeviceStatusReply>>> _getDeviceStatuses(
       List<CanvasDevice> devices) async {
     final List<Pair<CanvasDevice, CheckDeviceStatusReply>> statuses = [];
-    await Future.forEach<CanvasDevice>(devices, (device) async {
+    await Future.wait(devices.map((device) async {
       try {
         final status = await _getDeviceStatus(device);
         if (status != null) {
           statuses.add(status);
         }
       } catch (e) {
-        log.info('CanvasClientService: Caught error: $e');
+        log.info('CanvasClientService: _getDeviceStatus error: $e');
       }
-    });
+    }));
     return statuses;
   }
 
   Future<Pair<CanvasDevice, CheckDeviceStatusReply>?> _getDeviceStatus(
       CanvasDevice device) async {
     try {
-      final status = await getDeviceCastingStatus(device);
+      final status = await _getDeviceCastingStatus(device);
       return Pair(device, status);
     } catch (e) {
-      log.info('CanvasClientService: Caught error: $e');
+      log.info('CanvasClientService: _getDeviceStatus error: $e');
       return null;
     }
   }
 
-  Future<void> addLocalDevice(CanvasDevice device) async {
-    await _db.canvasDeviceDao.insertCanvasDevice(device);
+  Future<void> sendKeyBoard(List<CanvasDevice> devices, int code) async {
+    for (var device in devices) {
+      final stub = _getStub(device);
+      final sendKeyboardRequest = KeyboardEventRequest(code: code);
+      final response = await stub.keyboardEvent(sendKeyboardRequest);
+      if (response.ok) {
+        log.info('CanvasClientService: Keyboard Event Success $code');
+      } else {
+        log.info('CanvasClientService: Keyboard Event Failed $code');
+      }
+    }
   }
 
-  Future<T> _retryWrapper<T>(FutureOr<T> Function() fn) =>
-      _retry.retry(() => fn.call(),
-          retryIf: (e) => e is SocketException || e is TimeoutException,
-          onRetry: (e) => log.info('CanvasClientService retry stub error $e'));
+  // function to rotate canvas
+  Future<void> rotateCanvas(CanvasDevice device,
+      {bool clockwise = true}) async {
+    final stub = _getStub(device);
+    final rotateCanvasRequest = RotateRequest(clockwise: clockwise);
+    try {
+      final response = await stub.rotate(rotateCanvasRequest);
+      log.info('CanvasClientService: Rotate Canvas Success ${response.degree}');
+    } catch (e) {
+      log.info('CanvasClientService: Rotate Canvas Failed');
+    }
+  }
 
-  void _grpcLoggingProvider(Map<String, String> metadata, String uri) {
-    log.info('CanvasClientService call gRPC: metadata: $metadata, uri: $uri}');
+  Future<void> tap(List<CanvasDevice> devices) async {
+    for (var device in devices) {
+      final stub = _getStub(device);
+      final tapRequest = TapGestureRequest();
+      await stub.tap(tapRequest);
+    }
+  }
+
+  Future<void> drag(
+      List<CanvasDevice> devices, Offset offset, Size touchpadSize) async {
+    final dragOffset = CursorOffset(
+        dx: offset.dx,
+        dy: offset.dy,
+        coefficientX: 1 / touchpadSize.width,
+        coefficientY: 1 / touchpadSize.height);
+
+    currentCursorOffset += offset;
+    dragOffsets.add(dragOffset);
+    if (_timer == null || !_timer!.isActive) {
+      _timer = Timer(const Duration(milliseconds: 300), () {
+        for (var device in devices) {
+          final stub = _getStub(device);
+          final dragRequest = DragGestureRequest(cursorOffsets: dragOffsets);
+          stub.drag(dragRequest);
+        }
+        dragOffsets.clear();
+      });
+    }
+  }
+
+  Future<Offset> getCursorOffset(CanvasDevice device) async {
+    final stub = _getStub(device);
+    final response = await stub.getCursorOffset(GetCursorOffsetRequest());
+    final size =
+        MediaQuery.of(_navigationService.navigatorKey.currentContext!).size;
+    final cursorOffset = response.cursorOffset;
+    final dx = size.width * cursorOffset.coefficientX * cursorOffset.dx;
+    final dy = size.height * cursorOffset.coefficientY * cursorOffset.dy;
+    return Offset(dx, dy);
+  }
+
+  Future<void> setCursorOffset(CanvasDevice device) async {
+    final stub = _getStub(device);
+    final size =
+        MediaQuery.of(_navigationService.navigatorKey.currentContext!).size;
+    final dx = currentCursorOffset.dx / size.width;
+    final dy = currentCursorOffset.dy / size.height;
+    final cursorOffset = CursorOffset(
+        dx: dx,
+        dy: dy,
+        coefficientX: 1 / size.width,
+        coefficientY: 1 / size.height);
+
+    final request = SetCursorOffsetRequest(cursorOffset: cursorOffset);
+
+    await stub.setCursorOffset(request);
   }
 }

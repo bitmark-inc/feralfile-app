@@ -251,3 +251,15 @@ class ConnectingExceptionInterceptor extends Interceptor {
     handler.next(err);
   }
 }
+
+class TVKeyInterceptor extends Interceptor {
+  final String tvKey;
+
+  TVKeyInterceptor(this.tvKey);
+
+  @override
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+    options.headers['API-KEY'] = tvKey;
+    handler.next(options);
+  }
+}

@@ -7,7 +7,6 @@ import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dart';
-import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
 import 'package:autonomy_flutter/screen/exhibitions/exhibitions_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibitions/exhibitions_state.dart';
@@ -22,7 +21,6 @@ import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
-import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -43,7 +41,6 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
   final _navigationService = injector<NavigationService>();
   final _iapService = injector<IAPService>();
   static const _padding = 14.0;
-  final _canvasDeviceBloc = injector<CanvasDeviceBloc>();
   static const _exhibitionInfoDivideWidth = 20.0;
 
   // initState
@@ -137,21 +134,10 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                   }
                 }
 
+                if (!context.mounted) {
+                  return;
+                }
                 if (exhibition.canViewDetails && index >= 0) {
-                  final device = _canvasDeviceBloc.state.controllingDevice;
-                  if (device != null) {
-                    final castRequest = CastExhibitionRequest(
-                      exhibitionId: exhibition.id,
-                      katalog: ExhibitionKatalog.HOME,
-                    );
-                    _canvasDeviceBloc.add(
-                        CanvasDeviceCastExhibitionEvent(device, castRequest));
-                  }
-
-                  if (!context.mounted) {
-                    return;
-                  }
-
                   await Navigator.of(context).pushNamed(
                     AppRouter.exhibitionDetailPage,
                     arguments: ExhibitionDetailPayload(

@@ -8,6 +8,7 @@ import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artw
 import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_bloc.dart';
 import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_state.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
+import 'package:autonomy_flutter/util/series_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/ff_artwork_thumbnail_view.dart';
@@ -130,16 +131,18 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
                           _axisSpacing * 2) ~/
                       3,
                   onTap: () async {
-                    final controllingDevice =
-                        _canvasDeviceBloc.state.controllingDevice;
-                    if (controllingDevice != null) {
+                    final displayKey = series.displayKey;
+                    final lastSelectedCanvasDevice = _canvasDeviceBloc.state
+                        .lastSelectedActiveDeviceForKey(displayKey);
+
+                    if (lastSelectedCanvasDevice != null) {
                       final castRequest = CastExhibitionRequest(
                           exhibitionId: series.exhibitionID,
-                          katalog: ExhibitionKatalog.ARTWORK,
-                          katalogId: artwork.id);
+                          catalog: ExhibitionCatalog.artwork,
+                          catalogId: artwork.id);
                       _canvasDeviceBloc.add(
                         CanvasDeviceCastExhibitionEvent(
-                          controllingDevice,
+                          lastSelectedCanvasDevice,
                           castRequest,
                         ),
                       );
