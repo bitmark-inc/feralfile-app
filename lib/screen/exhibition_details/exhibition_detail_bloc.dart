@@ -13,13 +13,10 @@ class ExhibitionDetailBloc
     on<GetExhibitionDetailEvent>((event, emit) async {
       final exhibition =
           await _feralFileService.getExhibition(event.exhibitionId);
+      final listSeries = await _feralFileService
+          .getListSeries(event.exhibitionId, includeFirstArtwork: true);
 
-      final seriesDetails = await Future.wait(exhibition.series!.map((e) =>
-          _feralFileService.getSeries(e.id,
-              exhibitionID: event.exhibitionId, includeFirstArtwork: true)));
-
-      emit(state.copyWith(
-          exhibition: exhibition.copyWith(series: seriesDetails)));
+      emit(state.copyWith(exhibition: exhibition.copyWith(series: listSeries)));
     });
   }
 }

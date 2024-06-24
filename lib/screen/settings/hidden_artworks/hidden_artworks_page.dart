@@ -17,12 +17,13 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
-import 'package:autonomy_flutter/view/image_background.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:nft_rendering/nft_rendering.dart';
@@ -162,15 +163,18 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
                                   unsupportWidgetBuilder: (context) =>
                                       const GalleryUnSupportThumbnailWidget(),
                                 )
-                              : Image.network(
-                                  thumbnailUrl,
+                              : CachedNetworkImage(
+                                  imageUrl: thumbnailUrl,
                                   width: double.infinity,
                                   height: double.infinity,
                                   fit: BoxFit.cover,
-                                  cacheHeight: _cachedImageSize,
-                                  cacheWidth: _cachedImageSize,
-                                  loadingBuilder: _loadingBuilder,
-                                  errorBuilder: (context, url, error) =>
+                                  cacheManager: injector<CacheManager>(),
+                                  maxHeightDiskCache: _cachedImageSize,
+                                  maxWidthDiskCache: _cachedImageSize,
+                                  memCacheHeight: _cachedImageSize,
+                                  memCacheWidth: _cachedImageSize,
+                                  placeholder: _loadingBuilder,
+                                  errorWidget: (context, url, error) =>
                                       const GalleryThumbnailErrorWidget(),
                                 ),
                         ),
@@ -218,11 +222,6 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
     );
   }
 
-  Widget _loadingBuilder(
-      BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
-    if (loadingProgress == null) {
-      return ImageBackground(child: child);
-    }
-    return const GalleryThumbnailPlaceholder();
-  }
+  Widget _loadingBuilder(BuildContext context, url) =>
+      const GalleryThumbnailPlaceholder();
 }
