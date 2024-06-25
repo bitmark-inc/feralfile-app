@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -43,13 +44,13 @@ class MigrationUtil {
 
   Future<void> migrateIfNeeded() async {
     if (Platform.isIOS) {
-      await _migrationiOS();
+      await _migrationIOS();
     } else {
       await _migrationAndroid();
     }
 
     if ((await _cloudDB.personaDao.getDefaultPersonas()).isNotEmpty) {
-      _iapService.restore();
+      unawaited(_iapService.restore());
     }
     await _migrateViewOnlyAddresses();
     log.info('[migration] finished');
@@ -87,7 +88,7 @@ class MigrationUtil {
           .addAddresses(checksumConnections.map((e) => e.key).toList());
     }
 
-    _configurationService.setDidMigrateAddress(true);
+    await _configurationService.setDidMigrateAddress(true);
   }
 
   String _tryChecksum(String address) {
@@ -167,10 +168,10 @@ class MigrationUtil {
     }
   }
 
-  Future _migrationiOS() async {
+  Future _migrationIOS() async {
     log.info('[_migrationIOS] start');
     final String jsonString =
-        await _channel.invokeMethod('getIOSMigrationData', {});
+        await _channel.invokeMethod('getiOSMigrationData', {});
     if (jsonString.isEmpty) {
       return;
     }
@@ -213,9 +214,10 @@ class MigrationUtil {
         await _cloudDB.addressDao.deleteAddressesByPersona(persona.uuid);
       }
     }
-    final List<FFAccount> ffAccounts = [];
-    ffAccounts.addAll(migrationData.ffTokenConnections.map((e) => e.ffAccount));
-    ffAccounts.addAll(migrationData.ffWeb3Connections.map((e) => e.ffAccount));
+    final List<FFAccount> ffAccounts = [
+      ...migrationData.ffTokenConnections.map((e) => e.ffAccount),
+      ...migrationData.ffWeb3Connections.map((e) => e.ffAccount)
+    ];
     final List<Connection> connections = [];
     for (var account in ffAccounts) {
       final ethConnection =
@@ -246,7 +248,7 @@ class MigrationUtil {
   Future _migrationAndroid() async {
     final previousBuildNumber = _configurationService.getPreviousBuildNumber();
     final packageInfo = await PackageInfo.fromPlatform();
-    _configurationService.setPreviousBuildNumber(packageInfo.buildNumber);
+    await _configurationService.setPreviousBuildNumber(packageInfo.buildNumber);
     if (previousBuildNumber == null) {
       return;
     }
@@ -257,8 +259,9 @@ class MigrationUtil {
 
     if (previousBuildNumberInt < requiredAndroidMigrationVersion) {
       final packageInfo = await PackageInfo.fromPlatform();
-      _configurationService.setPreviousBuildNumber(packageInfo.buildNumber);
-      _accountService.androidBackupKeys();
+      await _configurationService
+          .setPreviousBuildNumber(packageInfo.buildNumber);
+      await _accountService.androidBackupKeys();
     }
   }
 }

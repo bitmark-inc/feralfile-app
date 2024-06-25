@@ -101,4 +101,21 @@ class SystemChannelHandler: NSObject {
 
         result(id)
     }
+    
+    func setPrimaryAddress(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+                  let data = args["data"] as? String else {
+                result(false)
+                return
+            }
+        let keychain = Keychain()
+        do {
+                try keychain.set(data, key: Constant.primaryAddressKey)
+                result(nil) // Indicate success with a null result
+            } catch let error {
+                result(false)
+            }
+    }
+    
+    
 }
