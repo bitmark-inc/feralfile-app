@@ -52,11 +52,13 @@ class MigrationUtil {
       _iapService.restore();
     }
     await _migrateViewOnlyAddresses();
-    log.info("[migration] finished");
+    log.info('[migration] finished');
   }
 
   Future<void> _migrateViewOnlyAddresses() async {
-    if (_configurationService.getDidMigrateAddress()) return;
+    if (_configurationService.getDidMigrateAddress()) {
+      return;
+    }
 
     final manualConnections = await _cloudDB.connectionDao
         .getConnectionsByType(ConnectionType.manuallyAddress.rawValue);
@@ -97,7 +99,9 @@ class MigrationUtil {
   }
 
   Future<void> migrationFromKeychain() async {
-    if (!Platform.isIOS) return;
+    if (!Platform.isIOS) {
+      return;
+    }
     final List personaUUIDs =
         await _channel.invokeMethod('getWalletUUIDsFromKeychain', {});
 
@@ -110,7 +114,7 @@ class MigrationUtil {
     }
 
     log.info(
-        "[_migrationFromKeychain] personaUUIDs from Keychain: $personaUUIDs");
+        '[_migrationFromKeychain] personaUUIDs from Keychain: $personaUUIDs');
     for (var personaUUID in personaUUIDs) {
       //Cleanup duplicated persona
       final oldPersona = await _cloudDB.personaDao.findById(personaUUID);
@@ -155,7 +159,7 @@ class MigrationUtil {
 
   static Future<String?> getBackupDeviceID() async {
     if (Platform.isIOS) {
-      final String? deviceId = await _channel.invokeMethod("getDeviceID", {});
+      final String? deviceId = await _channel.invokeMethod('getDeviceID', {});
 
       return deviceId ?? await getDeviceID();
     } else {
@@ -164,12 +168,14 @@ class MigrationUtil {
   }
 
   Future _migrationiOS() async {
-    log.info('[_migrationiOS] start');
+    log.info('[_migrationIOS] start');
     final String jsonString =
-        await _channel.invokeMethod('getiOSMigrationData', {});
-    if (jsonString.isEmpty) return;
+        await _channel.invokeMethod('getIOSMigrationData', {});
+    if (jsonString.isEmpty) {
+      return;
+    }
 
-    log.info('[_migrationiOS] get jsonString $jsonString');
+    log.info('[_migrationIOS] get jsonString $jsonString');
 
     final jsonData = json.decode(jsonString);
     final migrationData = MigrationData.fromJson(jsonData);
@@ -181,7 +187,9 @@ class MigrationUtil {
         final wallet = Persona.newPersona(uuid: uuid).wallet();
         final address = await wallet.getETHEip55Address();
 
-        if (address.isEmpty) continue;
+        if (address.isEmpty) {
+          continue;
+        }
         final name = await wallet.getName();
 
         final persona =
@@ -223,7 +231,7 @@ class MigrationUtil {
       connections.add(Connection(
           key: address,
           name: con.name,
-          data: "",
+          data: '',
           connectionType: ConnectionType.manuallyAddress.rawValue,
           accountNumber: address,
           createdAt: DateTime.now()));
@@ -231,7 +239,7 @@ class MigrationUtil {
 
     await _cloudDB.connectionDao.insertConnections(connections);
 
-    await _channel.invokeMethod("cleariOSMigrationData", {});
+    await _channel.invokeMethod('cleariOSMigrationData', {});
     log.info('[_migrationIOS] Done');
   }
 
@@ -239,9 +247,13 @@ class MigrationUtil {
     final previousBuildNumber = _configurationService.getPreviousBuildNumber();
     final packageInfo = await PackageInfo.fromPlatform();
     _configurationService.setPreviousBuildNumber(packageInfo.buildNumber);
-    if (previousBuildNumber == null) return;
+    if (previousBuildNumber == null) {
+      return;
+    }
     final previousBuildNumberInt = int.tryParse(previousBuildNumber);
-    if (previousBuildNumberInt == null) return;
+    if (previousBuildNumberInt == null) {
+      return;
+    }
 
     if (previousBuildNumberInt < requiredAndroidMigrationVersion) {
       final packageInfo = await PackageInfo.fromPlatform();

@@ -13,15 +13,14 @@ import 'package:flutter/services.dart';
 class AndroidBackupChannel {
   static const MethodChannel _channel = MethodChannel('backup');
 
-  Future<bool?> isEndToEndEncryptionAvailable() async {
-    return await _channel.invokeMethod('isEndToEndEncryptionAvailable', {});
-  }
+  Future<bool?> isEndToEndEncryptionAvailable() async =>
+      await _channel.invokeMethod('isEndToEndEncryptionAvailable', {});
 
   Future backupKeys(List<String> uuids) async {
     try {
-      await _channel.invokeMethod('backupKeys', {"uuids": uuids});
+      await _channel.invokeMethod('backupKeys', {'uuids': uuids});
     } catch (e) {
-      log.warning("Android cloud backup error", e);
+      log.warning('Android cloud backup error', e);
     }
   }
 
@@ -34,8 +33,40 @@ class AndroidBackupChannel {
       final backupData = json.decode(data);
       return BackupData.fromJson(backupData).accounts;
     } catch (e) {
-      log.warning("Android cloud backup error", e);
+      log.warning('Android cloud backup error', e);
       return [];
+    }
+  }
+
+  Future<void> setPrimaryAddress(PrimaryAddressInfo info) async {
+    try {
+      await _channel.invokeMethod('setPrimaryAddress', info.toJson());
+    } catch (e) {
+      log.warning('Android cloud backup error', e);
+    }
+  }
+
+  Future<PrimaryAddressInfo?> getPrimaryAddress() async {
+    try {
+      String data = await _channel.invokeMethod('getPrimaryAddress', {});
+      if (data.isEmpty) {
+        return null;
+      }
+      final primaryAddressInfo = json.decode(data);
+      return PrimaryAddressInfo.fromJson(primaryAddressInfo);
+    } catch (e) {
+      log.warning('Android cloud backup error', e);
+      return null;
+    }
+  }
+
+  Future<bool> clearPrimaryAddress() async {
+    try {
+      final result = await _channel.invokeMethod('clearPrimaryAddress', {});
+      return result;
+    } catch (e) {
+      log.warning('Android cloud backup error', e);
+      return false;
     }
   }
 }
@@ -49,11 +80,11 @@ class BackupData {
 
   factory BackupData.fromJson(Map<String, dynamic> json) => BackupData(
         accounts: List<BackupAccount>.from(
-            json["accounts"].map((x) => BackupAccount.fromJson(x))),
+            json['accounts'].map((x) => BackupAccount.fromJson(x))),
       );
 
   Map<String, dynamic> toJson() => {
-        "accounts": accounts,
+        'accounts': accounts,
       };
 }
 
@@ -67,12 +98,35 @@ class BackupAccount {
   String name;
 
   factory BackupAccount.fromJson(Map<String, dynamic> json) => BackupAccount(
-        uuid: json["uuid"],
-        name: json["name"],
+        uuid: json['uuid'],
+        name: json['name'],
       );
 
   Map<String, dynamic> toJson() => {
-        "uuid": uuid,
-        "name": name,
+        'uuid': uuid,
+        'name': name,
       };
+}
+
+class PrimaryAddressInfo {
+  final String uuid;
+  final String chain;
+  final int index;
+
+  PrimaryAddressInfo(this.uuid, this.chain, this.index);
+
+  Map<String, dynamic> toJson() => {
+        'uuid': uuid,
+    'chain': chain,
+        'index': index,
+      };
+
+  factory PrimaryAddressInfo.fromJson(Map<String, dynamic> json) =>
+      PrimaryAddressInfo(
+        json['uuid'],
+        json['chain'],
+        json['index'],
+      );
+
+  bool get isEthereum => chain == 'ethereum';
 }
