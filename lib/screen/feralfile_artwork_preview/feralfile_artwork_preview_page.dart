@@ -7,6 +7,8 @@ import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
+import 'package:autonomy_flutter/util/john_gerrard_hepler.dart';
+import 'package:autonomy_flutter/view/artwork_title_view.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/cast_button.dart';
 import 'package:autonomy_flutter/view/feralfile_artwork_preview_widget.dart';
@@ -29,12 +31,20 @@ class _FeralFileArtworkPreviewPageState
     extends State<FeralFileArtworkPreviewPage> with AfterLayoutMixin {
   final _metricClient = injector.get<MetricClientService>();
   final _canvasDeviceBloc = injector.get<CanvasDeviceBloc>();
+  late bool isCrystallineWork;
 
   void _sendViewArtworkEvent(Artwork artwork) {
     final data = {
       MixpanelProp.tokenId: artwork.metricTokenId,
     };
     _metricClient.addEvent(MixpanelEvent.viewArtwork, data: data);
+  }
+
+  @override
+  void initState() {
+    isCrystallineWork = widget.payload.artwork.series?.exhibitionID ==
+        JohnGerrardHelper.exhibitionID;
+    super.initState();
   }
 
   @override
@@ -58,17 +68,56 @@ class _FeralFileArtworkPreviewPageState
         body: Column(
           children: [
             Expanded(
-              child: FeralfileArtworkPreviewWidget(
-                payload: FeralFileArtworkPreviewWidgetPayload(
-                  artwork: widget.payload.artwork,
-                  isMute: false,
-                  isScrollable: widget.payload.artwork.isScrollablePreviewURL,
+              child: _buildArtworkPreview(),
+            ),
+            if (isCrystallineWork) ...[
+              const SizedBox(height: 20),
+              Padding(
+                padding: const EdgeInsets.only(left: 14, right: 14, bottom: 60),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Flexible(
+                      flex: 5,
+                      child: ArtworkTitleView(artwork: widget.payload.artwork),
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.only(left: 60),
+                      child: SizedBox(
+                        width: 22,
+                        height: 22,
+                      ),
+                    )
+                  ],
                 ),
               ),
-            ),
+            ]
           ],
         ),
       );
+
+  Widget _buildArtworkPreview() {
+    final artworkPreviewWidget = FeralfileArtworkPreviewWidget(
+      payload: FeralFileArtworkPreviewWidgetPayload(
+        artwork: widget.payload.artwork,
+        isMute: false,
+        isScrollable: widget.payload.artwork.isScrollablePreviewURL,
+      ),
+    );
+    if (isCrystallineWork) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        child: Center(
+          child: AspectRatio(
+            aspectRatio: 1,
+            child: artworkPreviewWidget,
+          ),
+        ),
+      );
+    }
+    return artworkPreviewWidget;
+  }
 
   Future<void> _onDeviceSelected(CanvasDevice device) async {
     final exhibitionId = widget.payload.artwork.series?.exhibitionID;
