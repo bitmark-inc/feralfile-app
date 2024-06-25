@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/feralfile_api.dart';
 import 'package:autonomy_flutter/gateway/source_exhibition_api.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/ff_list_response.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
@@ -313,6 +314,7 @@ class FeralFileServiceImpl extends FeralFileService {
         DateTime.now(),
         null,
         series,
+        null,
         null,
       );
       artworks.add(fakeArtwork);
@@ -658,28 +660,28 @@ class FeralFileServiceImpl extends FeralFileService {
       artworkIndex: index,
     );
     return Artwork(
-      artworkId,
-      series.id,
-      index,
-      beforeMintingArtworkInfos[index].artworkTitle,
-      '',
-      null,
-      null,
-      null,
-      '',
-      false,
-      'previews/${series.id}/${series.previewFile?.version}/generated_images/crystal_${index + MAGIC_NUMBER}_img.jpg',
-      'previews/${series.id}/${series.previewFile?.version}/nft.html?hourIdx=${index + MAGIC_NUMBER}',
-      {
-        'viewableAt': beforeMintingArtworkInfos[index].viewableAt,
-      },
-      DateTime.now(),
-      DateTime.now(),
-      DateTime.now(),
-      null,
-      series,
-      null,
-    );
+        artworkId,
+        series.id,
+        index,
+        beforeMintingArtworkInfos[index].artworkTitle,
+        '',
+        null,
+        null,
+        null,
+        '',
+        false,
+        'previews/${series.id}/${series.previewFile?.version}/generated_images/crystal_${index + MAGIC_NUMBER}_img.jpg',
+        'previews/${series.id}/${series.previewFile?.version}/nft.html?hourIdx=${index + MAGIC_NUMBER}',
+        {
+          'viewableAt': beforeMintingArtworkInfos[index].viewableAt,
+        },
+        DateTime.now(),
+        DateTime.now(),
+        DateTime.now(),
+        null,
+        series,
+        null,
+        null);
   }
 }
 

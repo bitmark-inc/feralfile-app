@@ -1,6 +1,6 @@
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
@@ -163,6 +163,16 @@ extension ArtworkExt on Artwork {
     } else {
       return mediumType.toRenderingType;
     }
+  }
+
+  String? get attributesString {
+    if (artworkAttributes == null) {
+      return null;
+    }
+
+    return artworkAttributes!
+        .map((e) => '${e.traitType}: ${e.value}')
+        .join('. ');
   }
 }
 
