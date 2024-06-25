@@ -37,38 +37,6 @@ class AndroidBackupChannel {
       return [];
     }
   }
-
-  Future<void> setPrimaryAddress(PrimaryAddressInfo info) async {
-    try {
-      await _channel.invokeMethod('setPrimaryAddress', info.toJson());
-    } catch (e) {
-      log.warning('Android cloud backup error', e);
-    }
-  }
-
-  Future<PrimaryAddressInfo?> getPrimaryAddress() async {
-    try {
-      String data = await _channel.invokeMethod('getPrimaryAddress', {});
-      if (data.isEmpty) {
-        return null;
-      }
-      final primaryAddressInfo = json.decode(data);
-      return PrimaryAddressInfo.fromJson(primaryAddressInfo);
-    } catch (e) {
-      log.warning('Android cloud backup error', e);
-      return null;
-    }
-  }
-
-  Future<bool> clearPrimaryAddress() async {
-    try {
-      final result = await _channel.invokeMethod('clearPrimaryAddress', {});
-      return result;
-    } catch (e) {
-      log.warning('Android cloud backup error', e);
-      return false;
-    }
-  }
 }
 
 class BackupData {
@@ -106,27 +74,4 @@ class BackupAccount {
         'uuid': uuid,
         'name': name,
       };
-}
-
-class PrimaryAddressInfo {
-  final String uuid;
-  final String chain;
-  final int index;
-
-  PrimaryAddressInfo(this.uuid, this.chain, this.index);
-
-  Map<String, dynamic> toJson() => {
-        'uuid': uuid,
-    'chain': chain,
-        'index': index,
-      };
-
-  factory PrimaryAddressInfo.fromJson(Map<String, dynamic> json) =>
-      PrimaryAddressInfo(
-        json['uuid'],
-        json['chain'],
-        json['index'],
-      );
-
-  bool get isEthereum => chain == 'ethereum';
 }

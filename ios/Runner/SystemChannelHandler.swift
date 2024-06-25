@@ -110,11 +110,30 @@ class SystemChannelHandler: NSObject {
             }
         let keychain = Keychain()
         do {
-                try keychain.set(data, key: Constant.primaryAddressKey)
+            try keychain.set(data.data(using: .utf8), key: Constant.primaryAddressKey)
                 result(nil) // Indicate success with a null result
             } catch let error {
                 result(false)
             }
+    }
+    
+    func getPrimaryAddress(call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let keychain = Keychain()
+        
+        guard let data = keychain.getData(Constant.primaryAddressKey, isSync: true),
+              let primaryAddress = String(data: data, encoding: .utf8) else {
+                result("")
+                return
+              }
+
+        result(primaryAddress)
+    }
+    
+    func clearPrimaryAddress(call: FlutterMethodCall) {
+        let keychain = Keychain()
+        
+        keychain.remove(key: Constant.primaryAddressKey, isSync: true),
+        return
     }
     
     

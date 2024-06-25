@@ -178,16 +178,11 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler {
     }
 
     private fun setPrimaryAddress(call: MethodCall, result: MethodChannel.Result) {
-        val uuid: String = call.argument("uuid") ?: return
-        val chain: String = call.argument("chain") ?: "ethereum"
-        val index: Int = call.argument("index") ?: return
+        val data: String = call.argument("data") ?: return
 
-        // Assuming primaryAddressInfo is obtained from somewhere in your application context
-        val primaryAddressInfo = PrimaryAddressInfo(uuid, chain, index)
-        val backupJson = jsonKT.encodeToString(PrimaryAddressInfo.serializer(), primaryAddressInfo)
         val storeBytesBuilder = StoreBytesData.Builder()
             .setKey(primaryAddressStoreKey)
-            .setBytes(backupJson.toByteArray(Charsets.UTF_8))
+            .setBytes(data.toByteArray(Charsets.UTF_8))
 
 
         Log.e("setPrimaryAddress", "Primary address setting");
@@ -228,24 +223,8 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler {
                         val jsonString = bytes.toString(Charsets.UTF_8)
                         Log.d("getPrimaryAddress", "Retrieved JSON: $jsonString")
 
-                        val data = jsonKT.decodeFromString(
-                            PrimaryAddressInfo.serializer(),
-                            jsonString
-                        )
 
-                        // Validate if the required fields are present
-                        if (data.uuid.isNotBlank()) {
-                            val resultData =
-                                jsonKT.encodeToString(PrimaryAddressInfo.serializer(), data)
-                            result.success(resultData)
-                        } else {
-                            Log.e("getPrimaryAddress", "Missing required fields in JSON data")
-                            result.error(
-                                "getPrimaryAddress error",
-                                "Missing required fields in JSON data",
-                                null
-                            )
-                        }
+                        result.success(jsonString)
                     } else {
                         Log.e("getPrimaryAddress", "No data found for the key")
                         result.success(null)
@@ -290,14 +269,4 @@ data class BackupAccount(
     val mnemonic: String,
     @SerialName("name")
     val name: String,
-)
-
-@Serializable
-data class PrimaryAddressInfo(
-    @SerialName("uuid")
-    val uuid: String,
-    @SerialName("chain")
-    val chain: String,
-    @SerialName("index")
-    val index: Int,
 )
