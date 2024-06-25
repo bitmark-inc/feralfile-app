@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 
 class JohnGerrardHelper {
@@ -31,5 +32,15 @@ class JohnGerrardHelper {
   static String getIndexID(String tokenId) {
     final contractAddress = JohnGerrardHelper.contractAddress;
     return 'eth-$contractAddress-$tokenId';
+  }
+
+  static List<AdditionalInfo> get additionalInfo {
+    final listAdditionalInfo = injector<RemoteConfigService>()
+        .getConfig<List<dynamic>?>(
+            ConfigGroup.johnGerrard, ConfigKey.additionalInfo, []);
+    return listAdditionalInfo
+            ?.map((e) => AdditionalInfo.fromJson(e))
+            .toList() ??
+        [];
   }
 }

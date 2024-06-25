@@ -278,6 +278,20 @@ class Post {
       };
 }
 
+class AdditionalInfo {
+  final String title;
+  final String content;
+  final bool? readMore;
+
+  AdditionalInfo({required this.title, required this.content, this.readMore});
+
+  factory AdditionalInfo.fromJson(Map<String, dynamic> json) => AdditionalInfo(
+        title: json['title'],
+        content: json['content'],
+        readMore: json['readMore'] ?? false,
+      );
+}
+
 enum MediaType {
   image,
   video,

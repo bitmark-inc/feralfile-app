@@ -181,6 +181,7 @@ enum ConfigKey {
   tezosNodes,
   seriesIds,
   assetIds,
+  additionalInfo,
 }
 
 // ConfigKey getString extension
@@ -239,6 +240,8 @@ extension ConfigKeyExtension on ConfigKey {
         return 'series_ids';
       case ConfigKey.assetIds:
         return 'asset_ids';
+      case ConfigKey.additionalInfo:
+        return 'additional_info';
     }
   }
 }
