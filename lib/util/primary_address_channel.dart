@@ -17,8 +17,8 @@ class PrimaryAddressChannel {
 
   Future<void> setPrimaryAddress(AddressInfo info) async {
     try {
-      await _channel.invokeMethod(
-          'setPrimaryAddress', {'data': info.toString()});
+      await _channel
+          .invokeMethod('setPrimaryAddress', {'data': info.toString()});
     } catch (e) {
       log.info('setPrimaryAddress error', e);
     }
