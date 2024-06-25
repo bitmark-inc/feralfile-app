@@ -109,10 +109,9 @@ class SystemChannelHandler: NSObject {
                 return
             }
         let keychain = Keychain()
-        do {
-            try keychain.set(data.data(using: .utf8), key: Constant.primaryAddressKey)
-                result(nil) // Indicate success with a null result
-            } catch let error {
+        if keychain.set(data.data(using: .utf8)!, forKey: Constant.primaryAddressKey) {
+                result(true)
+            } else {
                 result(false)
             }
     }
@@ -132,7 +131,7 @@ class SystemChannelHandler: NSObject {
     func clearPrimaryAddress(call: FlutterMethodCall) {
         let keychain = Keychain()
         
-        keychain.remove(key: Constant.primaryAddressKey, isSync: true),
+        keychain.remove(key: Constant.primaryAddressKey, isSync: true)
         return
     }
     

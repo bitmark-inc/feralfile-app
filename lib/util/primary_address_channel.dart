@@ -20,7 +20,7 @@ class PrimaryAddressChannel {
       await _channel.invokeMethod(
           'setPrimaryAddress', {'data': info.toString()});
     } catch (e) {
-      log.warning('setPrimaryAddress error', e);
+      log.info('setPrimaryAddress error', e);
     }
   }
 
@@ -33,7 +33,7 @@ class PrimaryAddressChannel {
       final primaryAddressInfo = json.decode(data);
       return AddressInfo.fromJson(primaryAddressInfo);
     } catch (e) {
-      log.warning('getPrimaryAddress error', e);
+      log.info('getPrimaryAddress error', e);
       return null;
     }
   }
@@ -43,7 +43,7 @@ class PrimaryAddressChannel {
       final result = await _channel.invokeMethod('clearPrimaryAddress', {});
       return result;
     } catch (e) {
-      log.warning('clearPrimaryAddress error', e);
+      log.info('clearPrimaryAddress error', e);
       return false;
     }
   }
