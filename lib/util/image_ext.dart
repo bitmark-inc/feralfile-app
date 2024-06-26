@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:autonomy_flutter/view/image_background.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -20,12 +18,7 @@ extension ImageExt on CachedNetworkImage {
     bool shouldRefreshCache = false,
   }) {
     if (shouldRefreshCache) {
-      final imageProvider = ResizeImage.resizeIfNeeded(
-          memCacheWidth, memCacheHeight, NetworkImage(src));
-      unawaited(
-          imageProvider.evict(cache: PaintingBinding.instance.imageCache));
-
-      Image.network(
+      return Image.network(
         src,
         fit: fit,
         errorBuilder: (context, error, stackTrace) =>
