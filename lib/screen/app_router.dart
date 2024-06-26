@@ -48,6 +48,7 @@ import 'package:autonomy_flutter/screen/detail/preview/keyboard_control_page.dar
 import 'package:autonomy_flutter/screen/detail/preview/touchpad_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview_primer.dart';
 import 'package:autonomy_flutter/screen/detail/royalty/royalty_bloc.dart';
+import 'package:autonomy_flutter/screen/exhibition_additional_info/exhibition_addition_info_page.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
 import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artwork_preview_page.dart';
@@ -130,6 +131,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/view/transparent_router.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:page_transition/page_transition.dart';
@@ -227,6 +229,7 @@ class AppRouter {
   static const projectsList = 'projects_list';
   static const addEthereumChainPage = 'add_ethereum_chain_page';
   static const artistsListPage = 'artists_list_page';
+  static const exhibitionAdditionalInfo = 'exhibition_additional_info';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector(), injector());
@@ -1154,6 +1157,13 @@ class AppRouter {
           settings: settings,
           builder: (context) => AddToCollectionScreen(
             playList: settings.arguments! as PlayListModel,
+          ),
+        );
+
+      case exhibitionAdditionalInfo:
+        return MaterialPageRoute(
+          builder: (context) => ExhibitionAdditionalInfoPage(
+            info: settings.arguments! as AdditionalInfo,
           ),
         );
 
