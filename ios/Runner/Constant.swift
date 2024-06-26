@@ -33,4 +33,5 @@ struct Constant {
     }()
     
     static let deviceIDKey: String = "device_id_key"
+    static let primaryAddressKey: String = "primary_address_key"
 }
