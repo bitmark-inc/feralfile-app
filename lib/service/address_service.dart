@@ -7,15 +7,23 @@
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
+import 'package:autonomy_flutter/util/primary_address_channel.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:eth_sig_util/util/utils.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 
 class AddressService {
-  Future<AddressInfo> getPrimaryAddressInfo() async =>
-      AddressInfo('uuid', 'chain', 0);
+  final PrimaryAddressChannel _primaryAddressChannel;
+
+  AddressService(this._primaryAddressChannel);
+
+  Future<AddressInfo?> getPrimaryAddressInfo() async {
+    final addressInfo = await _primaryAddressChannel.getPrimaryAddress();
+    return addressInfo;
+  }
 
   Future<bool> setPrimaryAddressInfo({required AddressInfo info}) async {
+    await _primaryAddressChannel.setPrimaryAddress(info);
     return true;
   }
 
@@ -38,8 +46,11 @@ class AddressService {
     }
   }
 
-  Future<String> getPrimaryAddress() async {
+  Future<String?> getPrimaryAddress() async {
     final addressInfo = await getPrimaryAddressInfo();
+    if (addressInfo == null) {
+      return null;
+    }
     return getAddress(info: addressInfo);
   }
 
@@ -61,8 +72,11 @@ class AddressService {
     return signature;
   }
 
-  Future<String> getPrimaryAddressSignature({required String message}) async {
+  Future<String?> getPrimaryAddressSignature({required String message}) async {
     final addressInfo = await getPrimaryAddressInfo();
+    if (addressInfo == null) {
+      return null;
+    }
     return getAddressSignature(addressInfo: addressInfo, message: message);
   }
 
@@ -84,32 +98,13 @@ class AddressService {
 
   Future<String> getPrimaryAddressPublicKey() async {
     final addressInfo = await getPrimaryAddressInfo();
+    if (addressInfo == null) {
+      throw UnsupportedError('Primary address not found');
+    }
     return getAddressPublicKey(addressInfo: addressInfo);
   }
 
   String getFeralfileAccountMessage(
           {required String address, required String timestamp}) =>
       'feralfile-account: {"requester":"$address","timestamp":"$timestamp"}';
-}
-
-class AddressInfo {
-  final String uuid;
-  final String chain;
-  final int index;
-
-  AddressInfo(this.uuid, this.chain, this.index);
-
-  Map<String, dynamic> toJson() => {
-        'uuid': uuid,
-        'chain': chain,
-        'index': index,
-      };
-
-  factory AddressInfo.fromJson(Map<String, dynamic> json) => AddressInfo(
-        json['uuid'],
-        json['chain'],
-        json['index'],
-      );
-
-  bool get isEthereum => chain == 'ethereum';
 }

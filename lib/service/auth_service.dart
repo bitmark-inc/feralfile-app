@@ -14,6 +14,8 @@ import 'package:autonomy_flutter/model/jwt.dart'; // import 'package:autonomy_fl
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/util/primary_address_channel.dart';
+import 'package:sentry/sentry.dart';
 
 class AuthService {
   final IAPApi _authApi;
@@ -38,15 +40,18 @@ class AuthService {
     if (!forceRefresh && _jwt != null && _jwt!.isValid()) {
       return _jwt!;
     }
-
+    final primaryAddressInfo = await _addressService.getPrimaryAddressInfo();
+    if (primaryAddressInfo == null) {
+      unawaited(Sentry.captureMessage('Primary address not found'));
+      throw Exception('Primary address not found');
+    }
     final address = await _addressService.getPrimaryAddress();
     final message = messageToSign ??
         _addressService.getFeralfileAccountMessage(
-          address: address,
+          address: address!,
           timestamp: DateTime.now().millisecondsSinceEpoch.toString(),
         );
 
-    final primaryAddressInfo = await _addressService.getPrimaryAddressInfo();
     final signature =
         await _addressService.getPrimaryAddressSignature(message: message);
     final publicKey = await _addressService.getPrimaryAddressPublicKey();

@@ -5,15 +5,12 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/services.dart';
 
 class PrimaryAddressChannel {
-  late final MethodChannel _channel;
+  final MethodChannel _channel;
 
-  PrimaryAddressChannel() {
-    if (Platform.isIOS) {
-      _channel = const MethodChannel('migration_util');
-    } else {
-      _channel = const MethodChannel('backup');
-    }
-  }
+  PrimaryAddressChannel()
+      : _channel = Platform.isIOS
+            ? const MethodChannel('migration_util')
+            : const MethodChannel('backup');
 
   Future<void> setPrimaryAddress(AddressInfo info) async {
     try {
