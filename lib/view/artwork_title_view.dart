@@ -1,5 +1,4 @@
 import 'package:autonomy_flutter/model/ff_artwork.dart';
-import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/series_ext.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
@@ -33,15 +32,6 @@ class ArtworkTitleView extends StatelessWidget {
           ),
           maxLines: 2,
         ),
-        if (artwork.attributesString != null) ...[
-          const SizedBox(height: 3),
-          Text(
-            artwork.attributesString!,
-            style: theme.textTheme.ppMori400FFQuickSilver12.copyWith(
-              color: AppColor.feralFileMediumGrey,
-            ),
-          ),
-        ]
       ],
     );
   }

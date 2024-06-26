@@ -1,5 +1,6 @@
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
@@ -174,6 +175,24 @@ extension ArtworkExt on Artwork {
         .map((e) => '${e.traitType}: ${e.value}')
         .join('. ');
   }
+
+  FFContract? getContract(Exhibition? exhibition) {
+    if (swap != null) {
+      if (swap!.token == null) {
+        return null;
+      }
+
+      return FFContract(
+        swap!.contractName,
+        swap!.blockchainType,
+        swap!.contractAddress,
+      );
+    }
+
+    return exhibition?.contracts?.firstWhereOrNull(
+      (e) => e.blockchainType == exhibition.mintBlockchain,
+    );
+  }
 }
 
 String getFFUrl(String uri) {
@@ -189,4 +208,22 @@ String getFFUrl(String uri) {
 
   //case 3 => cdn
   return '${Environment.feralFileAssetURL}/$uri';
+}
+
+extension FFContractExt on FFContract {
+  String? getBlockchainUrl() {
+    final network = Environment.appTestnetConfig ? 'TESTNET' : 'MAINNET';
+    switch ('${network}_$blockchainType') {
+      case 'MAINNET_ethereum':
+        return 'https://etherscan.io/address/$address';
+
+      case 'TESTNET_ethereum':
+        return 'https://goerli.etherscan.io/address/$address';
+
+      case 'MAINNET_tezos':
+      case 'TESTNET_tezos':
+        return 'https://tzkt.io/$address';
+    }
+    return null;
+  }
 }
