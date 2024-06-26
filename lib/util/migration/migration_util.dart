@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -43,20 +44,22 @@ class MigrationUtil {
 
   Future<void> migrateIfNeeded() async {
     if (Platform.isIOS) {
-      await _migrationiOS();
+      await _migrationIOS();
     } else {
       await _migrationAndroid();
     }
 
     if ((await _cloudDB.personaDao.getDefaultPersonas()).isNotEmpty) {
-      _iapService.restore();
+      unawaited(_iapService.restore());
     }
     await _migrateViewOnlyAddresses();
-    log.info("[migration] finished");
+    log.info('[migration] finished');
   }
 
   Future<void> _migrateViewOnlyAddresses() async {
-    if (_configurationService.getDidMigrateAddress()) return;
+    if (_configurationService.getDidMigrateAddress()) {
+      return;
+    }
 
     final manualConnections = await _cloudDB.connectionDao
         .getConnectionsByType(ConnectionType.manuallyAddress.rawValue);
@@ -85,7 +88,7 @@ class MigrationUtil {
           .addAddresses(checksumConnections.map((e) => e.key).toList());
     }
 
-    _configurationService.setDidMigrateAddress(true);
+    await _configurationService.setDidMigrateAddress(true);
   }
 
   String _tryChecksum(String address) {
@@ -97,7 +100,9 @@ class MigrationUtil {
   }
 
   Future<void> migrationFromKeychain() async {
-    if (!Platform.isIOS) return;
+    if (!Platform.isIOS) {
+      return;
+    }
     final List personaUUIDs =
         await _channel.invokeMethod('getWalletUUIDsFromKeychain', {});
 
@@ -110,7 +115,7 @@ class MigrationUtil {
     }
 
     log.info(
-        "[_migrationFromKeychain] personaUUIDs from Keychain: $personaUUIDs");
+        '[_migrationFromKeychain] personaUUIDs from Keychain: $personaUUIDs');
     for (var personaUUID in personaUUIDs) {
       //Cleanup duplicated persona
       final oldPersona = await _cloudDB.personaDao.findById(personaUUID);
@@ -155,7 +160,7 @@ class MigrationUtil {
 
   static Future<String?> getBackupDeviceID() async {
     if (Platform.isIOS) {
-      final String? deviceId = await _channel.invokeMethod("getDeviceID", {});
+      final String? deviceId = await _channel.invokeMethod('getDeviceID', {});
 
       return deviceId ?? await getDeviceID();
     } else {
@@ -163,13 +168,15 @@ class MigrationUtil {
     }
   }
 
-  Future _migrationiOS() async {
-    log.info('[_migrationiOS] start');
+  Future _migrationIOS() async {
+    log.info('[_migrationIOS] start');
     final String jsonString =
         await _channel.invokeMethod('getiOSMigrationData', {});
-    if (jsonString.isEmpty) return;
+    if (jsonString.isEmpty) {
+      return;
+    }
 
-    log.info('[_migrationiOS] get jsonString $jsonString');
+    log.info('[_migrationIOS] get jsonString $jsonString');
 
     final jsonData = json.decode(jsonString);
     final migrationData = MigrationData.fromJson(jsonData);
@@ -181,7 +188,9 @@ class MigrationUtil {
         final wallet = Persona.newPersona(uuid: uuid).wallet();
         final address = await wallet.getETHEip55Address();
 
-        if (address.isEmpty) continue;
+        if (address.isEmpty) {
+          continue;
+        }
         final name = await wallet.getName();
 
         final persona =
@@ -205,9 +214,10 @@ class MigrationUtil {
         await _cloudDB.addressDao.deleteAddressesByPersona(persona.uuid);
       }
     }
-    final List<FFAccount> ffAccounts = [];
-    ffAccounts.addAll(migrationData.ffTokenConnections.map((e) => e.ffAccount));
-    ffAccounts.addAll(migrationData.ffWeb3Connections.map((e) => e.ffAccount));
+    final List<FFAccount> ffAccounts = [
+      ...migrationData.ffTokenConnections.map((e) => e.ffAccount),
+      ...migrationData.ffWeb3Connections.map((e) => e.ffAccount)
+    ];
     final List<Connection> connections = [];
     for (var account in ffAccounts) {
       final ethConnection =
@@ -223,7 +233,7 @@ class MigrationUtil {
       connections.add(Connection(
           key: address,
           name: con.name,
-          data: "",
+          data: '',
           connectionType: ConnectionType.manuallyAddress.rawValue,
           accountNumber: address,
           createdAt: DateTime.now()));
@@ -231,22 +241,27 @@ class MigrationUtil {
 
     await _cloudDB.connectionDao.insertConnections(connections);
 
-    await _channel.invokeMethod("cleariOSMigrationData", {});
+    await _channel.invokeMethod('cleariOSMigrationData', {});
     log.info('[_migrationIOS] Done');
   }
 
   Future _migrationAndroid() async {
     final previousBuildNumber = _configurationService.getPreviousBuildNumber();
     final packageInfo = await PackageInfo.fromPlatform();
-    _configurationService.setPreviousBuildNumber(packageInfo.buildNumber);
-    if (previousBuildNumber == null) return;
+    await _configurationService.setPreviousBuildNumber(packageInfo.buildNumber);
+    if (previousBuildNumber == null) {
+      return;
+    }
     final previousBuildNumberInt = int.tryParse(previousBuildNumber);
-    if (previousBuildNumberInt == null) return;
+    if (previousBuildNumberInt == null) {
+      return;
+    }
 
     if (previousBuildNumberInt < requiredAndroidMigrationVersion) {
       final packageInfo = await PackageInfo.fromPlatform();
-      _configurationService.setPreviousBuildNumber(packageInfo.buildNumber);
-      _accountService.androidBackupKeys();
+      await _configurationService
+          .setPreviousBuildNumber(packageInfo.buildNumber);
+      await _accountService.androidBackupKeys();
     }
   }
 }

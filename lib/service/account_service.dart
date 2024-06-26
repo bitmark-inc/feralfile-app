@@ -396,6 +396,7 @@ class AccountServiceImpl extends AccountService {
       final accounts = await _backupChannel.restoreKeys();
 
       final personas = await _cloudDB.personaDao.getPersonas();
+
       if (personas.length == accounts.length &&
           personas.every((element) =>
               accounts.map((e) => e.uuid).contains(element.uuid))) {
@@ -527,9 +528,9 @@ class AccountServiceImpl extends AccountService {
         if (connection.accountNumber.isEmpty) {
           continue;
         }
-        final crytoType =
+        final cryptoType =
             CryptoType.fromAddress(connection.accountNumber).source;
-        if (crytoType.toLowerCase() == blockchain.toLowerCase()) {
+        if (cryptoType.toLowerCase() == blockchain.toLowerCase()) {
           addresses.add(connection.accountNumber);
         }
       }
