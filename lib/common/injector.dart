@@ -37,6 +37,7 @@ import 'package:autonomy_flutter/screen/playlists/edit_playlist/edit_playlist_bl
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/predefined_collection/predefined_collection_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
@@ -78,6 +79,7 @@ import 'package:autonomy_flutter/util/au_file_service.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:autonomy_flutter/util/dio_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/primary_address_channel.dart';
 import 'package:dio/dio.dart';
 import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -197,6 +199,12 @@ Future<void> setup() async {
         injector(),
         injector(),
       ));
+
+  injector.registerLazySingleton<PrimaryAddressChannel>(
+      () => PrimaryAddressChannel());
+
+  injector
+      .registerLazySingleton<AddressService>(() => AddressService(injector()));
 
   injector.registerLazySingleton(() => ChatApi(chatDio(dioOptions),
       baseUrl: Environment.postcardChatServerUrl.replaceFirst('ws', 'http')));

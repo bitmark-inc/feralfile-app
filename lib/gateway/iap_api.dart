@@ -23,6 +23,12 @@ abstract class IAPApi {
   @POST(authenticationPath)
   Future<JWT> auth(@Body() Map<String, dynamic> body);
 
+  @POST('/apis/v2/addresses/auth')
+  Future<JWT> authAddress(@Body() Map<String, dynamic> body);
+
+  @POST('/apis/v2/addresses/primary')
+  Future<void> registerPrimaryAddress(@Body() Map<String, dynamic> body);
+
   @MultiPart()
   @POST('/apis/v1/premium/profile-data')
   Future<dynamic> uploadProfile(
