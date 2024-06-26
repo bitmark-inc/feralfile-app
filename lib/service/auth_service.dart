@@ -8,20 +8,22 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
-import 'package:autonomy_flutter/model/jwt.dart';
+import 'package:autonomy_flutter/model/jwt.dart'; // import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_state.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 
 class AuthService {
   final IAPApi _authApi;
-  final AccountService _accountService;
+  final AddressService _addressService;
   final ConfigurationService _configurationService;
   JWT? _jwt;
 
   AuthService(
     this._authApi,
-    this._accountService,
+    this._addressService,
     this._configurationService,
   );
 
@@ -37,15 +39,22 @@ class AuthService {
       return _jwt!;
     }
 
-    final account = await _accountService.getDefaultAccount();
+    final address = await _addressService.getPrimaryAddress();
+    final message = messageToSign ??
+        _addressService.getFeralfileAccountMessage(
+          address: address,
+          timestamp: DateTime.now().millisecondsSinceEpoch.toString(),
+        );
 
-    final message =
-        messageToSign ?? DateTime.now().millisecondsSinceEpoch.toString();
-    final accountDID = await account.getAccountDID();
-    final signature = await account.getAccountDIDSignature(message);
+    final primaryAddressInfo = await _addressService.getPrimaryAddressInfo();
+    final signature =
+        await _addressService.getPrimaryAddressSignature(message: message);
+    final publicKey = await _addressService.getPrimaryAddressPublicKey();
 
     Map<String, dynamic> payload = {
-      'requester': accountDID,
+      'requester': address,
+      'type': primaryAddressInfo.chain,
+      'publicKey': publicKey,
       'timestamp': message,
       'signature': signature,
     };
@@ -72,7 +81,7 @@ class AuthService {
       });
     }
 
-    var newJwt = await _authApi.auth(payload);
+    var newJwt = await _authApi.authAddress(payload);
 
     _jwt = newJwt;
 
@@ -85,5 +94,44 @@ class AuthService {
     }
 
     return newJwt;
+  }
+
+  Future<void> registerPrimaryAddress(
+      {required AddressInfo primaryAddressInfo,
+      bool withDidKey = false}) async {
+    final address = await _addressService.getAddress(info: primaryAddressInfo);
+    final publicKey = await _addressService.getAddressPublicKey(
+        addressInfo: primaryAddressInfo);
+    final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+    final defaultAccount = await injector<AccountService>().getDefaultAccount();
+    final messageForAddress = _addressService.getFeralfileAccountMessage(
+      address: address,
+      timestamp: timestamp,
+    );
+    final signatureForAddress = await _addressService.getAddressSignature(
+      addressInfo: primaryAddressInfo,
+      message: messageForAddress,
+    );
+
+    Map<String, dynamic> payload = {
+      'requester': address,
+      'type': primaryAddressInfo.chain,
+      'publicKey': publicKey,
+      'signature': signatureForAddress,
+      'timestamp': timestamp,
+    };
+    if (withDidKey) {
+      final didKey = await defaultAccount.getAccountDID();
+      final messageForDidKey = _addressService.getFeralfileAccountMessage(
+        address: didKey,
+        timestamp: timestamp,
+      );
+      final signatureForDidKey =
+          await defaultAccount.getAccountDIDSignature(messageForDidKey);
+      payload['did'] = didKey;
+      payload['didKeySignature'] = signatureForDidKey;
+    }
+
+    await _authApi.registerPrimaryAddress(payload);
   }
 }

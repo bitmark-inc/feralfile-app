@@ -214,7 +214,6 @@ class AccountServiceImpl extends AccountService {
           return WalletIndex(
               WalletStorage(walletAddress.uuid), walletAddress.index);
         }
-        break;
       case Wc2Chain.autonomy:
         var personas = await _cloudDB.personaDao.getPersonas();
         for (Persona p in personas) {
@@ -289,7 +288,6 @@ class AccountServiceImpl extends AccountService {
               bcPeers.add(bcPeer);
             }
           }
-          break;
 
         // Note: Should app delete feralFileWeb3 too ??
       }
@@ -514,13 +512,11 @@ class AccountServiceImpl extends AccountService {
       switch (blockchain.toLowerCase()) {
         case 'tezos':
           addresses.addAll(await persona.getTezosAddresses());
-          break;
         case 'ethereum':
           final address = await personaWallet.getETHEip55Address();
           if (address.isNotEmpty) {
             addresses.addAll(await persona.getEthAddresses());
           }
-          break;
       }
     }
 
