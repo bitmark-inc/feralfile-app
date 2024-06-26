@@ -156,8 +156,10 @@ Widget tokenGalleryThumbnailWidget(
   bool useHero = true,
   Widget? galleryThumbnailPlaceholder,
 }) {
+  ///hardcode for JG
+  final isJohnGerrard = token.isJohnGerrardArtwork;
   final thumbnailUrl = token.getGalleryThumbnailUrl(
-      usingThumbnailID: usingThumbnailID, variant: variant);
+      usingThumbnailID: usingThumbnailID && !isJohnGerrard, variant: variant);
 
   if (thumbnailUrl == null || thumbnailUrl.isEmpty) {
     return GalleryNoThumbnailWidget(
