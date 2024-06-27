@@ -79,7 +79,7 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
         builder: (context, state) => Scaffold(
             appBar: _getAppBar(context, state.series),
             backgroundColor: AppColor.primaryBlack,
-            body: _body(context, state.series)),
+            body: _body(context, state.series, state.thumbnailRatio)),
         listener: (context, state) {},
       );
 
@@ -94,11 +94,11 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
                 crossAxisAlignment: CrossAxisAlignment.center),
       );
 
-  Widget _body(BuildContext context, FFSeries? series) {
+  Widget _body(BuildContext context, FFSeries? series, double? thumbnailRatio) {
     if (series == null) {
       return _loadingIndicator();
     }
-    return _artworkSliverGrid(context, series);
+    return _artworkSliverGrid(context, series, thumbnailRatio ?? 1);
   }
 
   Widget _loadingIndicator() => Center(
@@ -108,62 +108,64 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
         ),
       );
 
-  Widget _artworkSliverGrid(BuildContext context, FFSeries series) => Padding(
-        padding:
-            const EdgeInsets.only(left: _padding, right: _padding, bottom: 20),
-        child: CustomScrollView(
-          slivers: [
-            PagedSliverGrid<int, Artwork>(
-              pagingController: _pagingController,
-              showNewPageErrorIndicatorAsGridChild: false,
-              showNewPageProgressIndicatorAsGridChild: false,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisSpacing: _axisSpacing,
-                mainAxisSpacing: _axisSpacing,
-                crossAxisCount: 3,
-              ),
-              builderDelegate: PagedChildBuilderDelegate<Artwork>(
-                itemBuilder: (context, artwork, index) =>
-                    FFArtworkThumbnailView(
-                  artwork: artwork,
-                  cacheSize: (MediaQuery.sizeOf(context).width -
-                          _padding * 2 -
-                          _axisSpacing * 2) ~/
-                      3,
-                  onTap: () async {
-                    final displayKey = series.displayKey;
-                    final lastSelectedCanvasDevice = _canvasDeviceBloc.state
-                        .lastSelectedActiveDeviceForKey(displayKey);
+  Widget _artworkSliverGrid(
+      BuildContext context, FFSeries series, double ratio) {
+    final cacheWidth = (MediaQuery.sizeOf(context).width - _padding * 2) ~/ 3;
+    final cacheHeight = (cacheWidth / ratio).toInt();
+    return Padding(
+      padding:
+          const EdgeInsets.only(left: _padding, right: _padding, bottom: 20),
+      child: CustomScrollView(
+        slivers: [
+          PagedSliverGrid<int, Artwork>(
+            pagingController: _pagingController,
+            showNewPageErrorIndicatorAsGridChild: false,
+            showNewPageProgressIndicatorAsGridChild: false,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisSpacing: _axisSpacing,
+              mainAxisSpacing: _axisSpacing,
+              crossAxisCount: 3,
+              childAspectRatio: ratio,
+            ),
+            builderDelegate: PagedChildBuilderDelegate<Artwork>(
+              itemBuilder: (context, artwork, index) => FFArtworkThumbnailView(
+                artwork: artwork,
+                cacheWidth: cacheWidth,
+                cacheHeight: cacheHeight,
+                onTap: () async {
+                  final displayKey = series.displayKey;
+                  final lastSelectedCanvasDevice = _canvasDeviceBloc.state
+                      .lastSelectedActiveDeviceForKey(displayKey);
 
-                    if (lastSelectedCanvasDevice != null) {
-                      final castRequest = CastExhibitionRequest(
-                          exhibitionId: series.exhibitionID,
-                          catalog: ExhibitionCatalog.artwork,
-                          catalogId: artwork.id);
-                      _canvasDeviceBloc.add(
-                        CanvasDeviceCastExhibitionEvent(
-                          lastSelectedCanvasDevice,
-                          castRequest,
-                        ),
-                      );
-                    }
-                    await Navigator.of(context).pushNamed(
-                      AppRouter.ffArtworkPreviewPage,
-                      arguments: FeralFileArtworkPreviewPagePayload(
-                        artwork: artwork.copyWith(series: series),
+                  if (lastSelectedCanvasDevice != null) {
+                    final castRequest = CastExhibitionRequest(
+                        exhibitionId: series.exhibitionID,
+                        catalog: ExhibitionCatalog.artwork,
+                        catalogId: artwork.id);
+                    _canvasDeviceBloc.add(
+                      CanvasDeviceCastExhibitionEvent(
+                        lastSelectedCanvasDevice,
+                        castRequest,
                       ),
                     );
-                  },
-                ),
-                newPageProgressIndicatorBuilder: (context) =>
-                    _loadingIndicator(),
-                firstPageErrorIndicatorBuilder: (context) => const SizedBox(),
-                newPageErrorIndicatorBuilder: (context) => const SizedBox(),
+                  }
+                  await Navigator.of(context).pushNamed(
+                    AppRouter.ffArtworkPreviewPage,
+                    arguments: FeralFileArtworkPreviewPagePayload(
+                      artwork: artwork.copyWith(series: series),
+                    ),
+                  );
+                },
               ),
-            )
-          ],
-        ),
-      );
+              newPageProgressIndicatorBuilder: (context) => _loadingIndicator(),
+              firstPageErrorIndicatorBuilder: (context) => const SizedBox(),
+              newPageErrorIndicatorBuilder: (context) => const SizedBox(),
+            ),
+          )
+        ],
+      ),
+    );
+  }
 }
 
 class FeralFileSeriesPagePayload {
