@@ -27,4 +27,9 @@ class JohnGerrardHelper {
             ConfigGroup.johnGerrard, ConfigKey.assetIds, []);
     return listAssetIds ?? [];
   }
+
+  static String getIndexID(String tokenId) {
+    final contractAddress = JohnGerrardHelper.contractAddress;
+    return 'eth-$contractAddress-$tokenId';
+  }
 }

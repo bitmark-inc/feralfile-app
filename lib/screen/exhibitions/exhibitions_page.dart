@@ -26,6 +26,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:sentry/sentry.dart';
 
 class ExhibitionsPage extends StatefulWidget {
   const ExhibitionsPage({super.key});
@@ -43,6 +44,7 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
   static const _padding = 14.0;
   final _canvasDeviceBloc = injector<CanvasDeviceBloc>();
   static const _exhibitionInfoDivideWidth = 20.0;
+  String? _autoOpenExhibitionId;
 
   // initState
   @override
@@ -83,6 +85,35 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
   void refreshExhibitions() {
     _exhibitionBloc.add(GetAllExhibitionsEvent());
     _subscriptionBloc.add(GetSubscriptionEvent());
+  }
+
+  void setAutoOpenExhibition(String exhibitionId) {
+    setState(() {
+      _autoOpenExhibitionId = exhibitionId;
+    });
+    if (_exhibitionBloc.state.allExhibitions.isNotEmpty) {
+      _openExhibition(context, exhibitionId);
+    }
+  }
+
+  void _openExhibition(BuildContext context, String exhibitionId) {
+    final listExhibitions = _exhibitionBloc.state.allExhibitions;
+    final index =
+        listExhibitions.indexWhere((element) => element.id == exhibitionId);
+    if (index < 0) {
+      unawaited(Sentry.captureMessage('Exhibition not found: $exhibitionId'));
+    } else {
+      unawaited(
+        _navigationService.navigateTo(
+          AppRouter.exhibitionDetailPage,
+          arguments: ExhibitionDetailPayload(
+            exhibitions: listExhibitions,
+            index: index,
+          ),
+        ),
+      );
+    }
+    _autoOpenExhibitionId = null;
   }
 
   @override
@@ -265,7 +296,15 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
   }
 
   Widget _listExhibitions(BuildContext context) =>
-      BlocBuilder<ExhibitionBloc, ExhibitionsState>(
+      BlocConsumer<ExhibitionBloc, ExhibitionsState>(
+        listener: (context, exhibitionsState) {
+          if (exhibitionsState.allExhibitions.isNotEmpty &&
+              _autoOpenExhibitionId != null) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _openExhibition(context, _autoOpenExhibitionId!);
+            });
+          }
+        },
         builder: (context, exhibitionsState) =>
             BlocBuilder<SubscriptionBloc, SubscriptionState>(
           builder: (context, subscriptionState) {
@@ -286,11 +325,7 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
               final pastExhibitions = exhibitionsState.pastExhibitions;
               final isSubscribed = subscriptionState.isSubscribed;
 
-              final allExhibition = [
-                if (featureExhibition != null) featureExhibition,
-                if (upcomingExhibition != null) upcomingExhibition,
-                ...?pastExhibitions,
-              ];
+              final allExhibition = exhibitionsState.allExhibitions;
               final viewableExhibitions = isSubscribed
                   ? allExhibition
                   : featureExhibition != null
