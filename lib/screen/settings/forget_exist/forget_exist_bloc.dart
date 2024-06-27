@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/settings/forget_exist/forget_exist_state.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -36,17 +37,19 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
   final AppDatabase _appDatabase;
   final NftCollectionDatabase _nftCollectionDatabase;
   final ConfigurationService _configurationService;
+  final AddressService _addressService;
 
   ForgetExistBloc(
-      this._authService,
-      this._accountService,
-      this._autonomyService,
-      this._iapApi,
-      this._cloudDatabase,
-      this._appDatabase,
-      this._nftCollectionDatabase,
-      this._configurationService)
-      : super(ForgetExistState(false, null)) {
+    this._authService,
+    this._accountService,
+    this._autonomyService,
+    this._iapApi,
+    this._cloudDatabase,
+    this._appDatabase,
+    this._nftCollectionDatabase,
+    this._configurationService,
+    this._addressService,
+  ) : super(ForgetExistState(false, null)) {
     on<UpdateCheckEvent>((event, emit) async {
       emit(ForgetExistState(event.isChecked, state.isProcessing));
     });
@@ -55,7 +58,7 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
       emit(ForgetExistState(state.isChecked, true));
 
       unawaited(deregisterPushNotification());
-      await _autonomyService.clearLinkedAddresses();
+      // await _autonomyService.clearLinkedAddresses();
       PackageInfo packageInfo = await PackageInfo.fromPlatform();
       String? deviceId = await MigrationUtil.getBackupDeviceID();
       final requester = '${deviceId}_${packageInfo.packageName}';
@@ -67,6 +70,7 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
       for (var persona in personas) {
         await _accountService.deletePersona(persona);
       }
+      await _addressService.clearPrimaryAddress();
 
       await _cloudDatabase.removeAll();
       await _appDatabase.removeAll();

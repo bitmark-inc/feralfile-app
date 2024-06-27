@@ -5,17 +5,24 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:convert';
+
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/database/entity/wallet_address.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/util/primary_address_channel.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:eth_sig_util/util/utils.dart';
 import 'package:libauk_dart/libauk_dart.dart';
+import 'package:nft_collection/data/api/indexer_api.dart';
 
 class AddressService {
   final PrimaryAddressChannel _primaryAddressChannel;
+  final CloudDatabase _cloudDB;
+  final IndexerApi _indexerApi;
 
-  AddressService(this._primaryAddressChannel);
+  AddressService(this._primaryAddressChannel, this._cloudDB, this._indexerApi);
 
   Future<AddressInfo?> getPrimaryAddressInfo() async {
     final addressInfo = await _primaryAddressChannel.getPrimaryAddress();
@@ -27,10 +34,16 @@ class AddressService {
     return true;
   }
 
-  Future<bool> registerPrimaryAddress({required AddressInfo info}) async {
-    await injector<AuthService>()
-        .registerPrimaryAddress(primaryAddressInfo: info);
+  Future<bool> registerPrimaryAddress(
+      {required AddressInfo info, bool withDidKey = false}) async {
+    await injector<AuthService>().registerPrimaryAddress(
+        primaryAddressInfo: info, withDidKey: withDidKey);
     return setPrimaryAddressInfo(info: info);
+  }
+
+  Future<bool> clearPrimaryAddress() async {
+    await _primaryAddressChannel.clearPrimaryAddress();
+    return true;
   }
 
   Future<String> getAddress({required AddressInfo info}) async {
@@ -38,7 +51,9 @@ class AddressService {
     final chain = info.chain;
     switch (chain) {
       case 'ethereum':
-        return walletStorage.getETHAddress(index: info.index);
+        final address = await walletStorage.getETHAddress(index: info.index);
+        final checksumAddress = address.getETHEip55Address();
+        return checksumAddress;
       case 'tezos':
         return walletStorage.getTezosAddress(index: info.index);
       default:
@@ -61,10 +76,12 @@ class AddressService {
     String signature;
     switch (chain) {
       case 'ethereum':
-        signature = await walletStorage.ethSignMessage(hexToBytes(message));
+        signature = await walletStorage.ethSignPersonalMessage(
+            utf8.encode(message),
+            index: addressInfo.index);
       case 'tezos':
-        final signatureUInt8List =
-            await walletStorage.tezosSignMessage(hexToBytes(message));
+        final signatureUInt8List = await walletStorage
+            .tezosSignMessage(utf8.encode(message), index: addressInfo.index);
         signature = bytesToHex(signatureUInt8List);
       default:
         throw UnsupportedError('Unsupported chain: $chain');
@@ -107,4 +124,35 @@ class AddressService {
   String getFeralfileAccountMessage(
           {required String address, required String timestamp}) =>
       'feralfile-account: {"requester":"$address","timestamp":"$timestamp"}';
+
+  Future<List<WalletAddress>> getAllAddress() async {
+    return _cloudDB.addressDao.getAllAddresses();
+  }
+
+  Future<AddressInfo> pickAddressAsPrimary() async {
+    final allAddress = await getAllAddress();
+    if (allAddress.isEmpty) {
+      throw UnsupportedError('No address found');
+    }
+    WalletAddress? selectedAddress;
+    int maxNumberNft = -1;
+    for (final address in allAddress) {
+      final numberNft = await getNumberNft(address.address);
+      if (numberNft > maxNumberNft) {
+        maxNumberNft = numberNft;
+        selectedAddress = address;
+      }
+    }
+    final addressInfo = AddressInfo(
+      uuid: selectedAddress!.uuid,
+      chain: selectedAddress.cryptoType.toLowerCase(),
+      index: selectedAddress.index,
+    );
+    return addressInfo;
+  }
+
+  Future<int> getNumberNft(String address) async {
+    final numberNft = _indexerApi.numberNft(address);
+    return numberNft;
+  }
 }

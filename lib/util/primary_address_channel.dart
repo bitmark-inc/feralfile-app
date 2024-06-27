@@ -51,7 +51,10 @@ class AddressInfo {
   final String chain;
   final int index;
 
-  AddressInfo(this.uuid, this.chain, this.index);
+  AddressInfo(
+      {required String this.uuid,
+      required String this.chain,
+      required int this.index});
 
   Map<String, dynamic> toJson() => {
         'uuid': uuid,
@@ -60,9 +63,9 @@ class AddressInfo {
       };
 
   factory AddressInfo.fromJson(Map<String, dynamic> json) => AddressInfo(
-        json['uuid'],
-        json['chain'],
-        json['index'],
+        uuid: json['uuid'],
+        chain: json['chain'],
+        index: json['index'],
       );
 
   bool get isEthereum => chain == 'ethereum';

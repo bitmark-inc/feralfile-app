@@ -6,7 +6,7 @@
 //
 
 import 'dart:async';
-import 'dart:io';
+import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
@@ -15,7 +15,6 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/primary_address_channel.dart';
-import 'package:sentry/sentry.dart';
 
 class AuthService {
   final IAPApi _authApi;
@@ -33,17 +32,10 @@ class AuthService {
     _jwt = null;
   }
 
-  Future<JWT> getAuthToken(
-      {String? messageToSign,
-      String? receiptData,
-      bool forceRefresh = false}) async {
-    if (!forceRefresh && _jwt != null && _jwt!.isValid()) {
-      return _jwt!;
-    }
+  Future<JWT?> _getPrimaryAddressAuthToken({String? messageToSign}) async {
     final primaryAddressInfo = await _addressService.getPrimaryAddressInfo();
     if (primaryAddressInfo == null) {
-      unawaited(Sentry.captureMessage('Primary address not found'));
-      throw Exception('Primary address not found');
+      return null;
     }
     final address = await _addressService.getPrimaryAddress();
     final message = messageToSign ??
@@ -63,36 +55,48 @@ class AuthService {
       'timestamp': message,
       'signature': signature,
     };
-
-    // the receipt data can be set by passing the parameter,
-    // or query through the configuration service
-    late String? savedReceiptData;
-    if (receiptData != null) {
-      savedReceiptData = receiptData;
-    } else {
-      savedReceiptData = _configurationService.getIAPReceipt();
-    }
-
-    // add the receipt data if available
-    if (savedReceiptData != null) {
-      final String platform;
-      if (Platform.isIOS) {
-        platform = 'apple';
-      } else {
-        platform = 'google';
-      }
-      payload.addAll({
-        'receipt': {'platform': platform, 'receipt_data': savedReceiptData}
-      });
-    }
-
     var newJwt = await _authApi.authAddress(payload);
+    return newJwt;
+  }
+
+  Future<JWT> _getDidKeyAuthToken({String? messageToSign}) async {
+    final defaultAccount = await injector<AccountService>().getDefaultAccount();
+    final didKey = await defaultAccount.getAccountDID();
+    final message = messageToSign ??
+        _addressService.getFeralfileAccountMessage(
+          address: didKey,
+          timestamp: DateTime.now().millisecondsSinceEpoch.toString(),
+        );
+    final signature = await defaultAccount.getAccountDIDSignature(message);
+
+    Map<String, dynamic> payload = {
+      'requester': didKey,
+      'timestamp': message,
+      'signature': signature,
+    };
+    var newJwt = await _authApi.auth(payload);
+    return newJwt;
+  }
+
+  Future<JWT> getAuthToken(
+      {String? messageToSign,
+      String? receiptData,
+      bool forceRefresh = false}) async {
+    if (!forceRefresh && _jwt != null && _jwt!.isValid()) {
+      return _jwt!;
+    }
+
+    final newJwt =
+        await _getPrimaryAddressAuthToken() ?? await _getDidKeyAuthToken();
 
     _jwt = newJwt;
 
     if (newJwt.isValid(withSubscription: true)) {
-      unawaited(_configurationService.setIAPReceipt(savedReceiptData));
-      unawaited(_configurationService.setIAPJWT(newJwt));
+      unawaited(_configurationService
+          .setIAPReceipt(receiptData ?? _configurationService.getIAPReceipt()));
+      if (await _addressService.getPrimaryAddress() != null) {
+        unawaited(_configurationService.setIAPJWT(newJwt));
+      }
     } else {
       unawaited(_configurationService.setIAPReceipt(null));
       unawaited(_configurationService.setIAPJWT(null));
@@ -134,8 +138,9 @@ class AuthService {
       final signatureForDidKey =
           await defaultAccount.getAccountDIDSignature(messageForDidKey);
       payload['did'] = didKey;
-      payload['didKeySignature'] = signatureForDidKey;
+      payload['didSignature'] = signatureForDidKey;
     }
+    final json = jsonEncode(payload);
 
     await _authApi.registerPrimaryAddress(payload);
   }

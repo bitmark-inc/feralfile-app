@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -27,6 +28,7 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
   final ConfigurationService _configurationService;
   final BackupService _backupService;
   final AccountService _accountService;
+  final AddressService _addressService;
   final CloudDatabase _cloudDB;
   final IAPService _iapService;
   final AuditService _auditService;
@@ -42,6 +44,7 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
       this._configurationService,
       this._backupService,
       this._accountService,
+      this._addressService,
       this._cloudDB,
       this._iapService,
       this._auditService,
@@ -62,7 +65,31 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
       await _accountService.androidRestoreKeys();
       final hasAccount = await _hasAccounts();
       await _configurationService.setDoneOnboarding(hasAccount);
+
+      // migrate to membership profile
+      final primaryAddressInfo = await _addressService.getPrimaryAddressInfo();
+      if (primaryAddressInfo == null) {
+        if (hasAccount) {
+          // pick one address and migrate to primary address
+        } else {
+          // take user to onboarding
+        }
+      } else {
+        // move to home page
+      }
+
       if (_configurationService.isDoneOnboarding()) {
+        if (primaryAddressInfo == null) {
+          try {
+            final addressInfo = await _addressService.pickAddressAsPrimary();
+            await _addressService.registerPrimaryAddress(
+                info: addressInfo, withDidKey: true);
+          } catch (e, stacktrace) {
+            log.info('Error while picking primary address', e);
+            // rethrow;
+          }
+        }
+
         emit(RouterState(onboardingStep: OnboardingStep.dashboard));
         return;
       }
@@ -132,9 +159,17 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
           unawaited(injector<MetricClientService>()
               .mixPanelClient
               .initIfDefaultAccount());
+          await migrationUtil.migrateIfNeeded();
+          try {
+            final addressInfo = await _addressService.pickAddressAsPrimary();
+            await _addressService.registerPrimaryAddress(
+                info: addressInfo, withDidKey: true);
+          } catch (e, stacktrace) {
+            log.info('Error while picking primary address', e);
+            // rethrow;
+          }
           emit(RouterState(onboardingStep: OnboardingStep.dashboard));
         }
-        await migrationUtil.migrateIfNeeded();
       } catch (e, stacktrace) {
         await Sentry.captureException(e, stackTrace: stacktrace);
         rethrow;

@@ -198,13 +198,14 @@ Future<void> setup() async {
         injector(),
         injector(),
         injector(),
+        injector(),
       ));
 
   injector.registerLazySingleton<PrimaryAddressChannel>(
       () => PrimaryAddressChannel());
 
-  injector
-      .registerLazySingleton<AddressService>(() => AddressService(injector()));
+  injector.registerLazySingleton<AddressService>(
+      () => AddressService(injector(), cloudDB, injector()));
 
   injector.registerLazySingleton(() => ChatApi(chatDio(dioOptions),
       baseUrl: Environment.postcardChatServerUrl.replaceFirst('ws', 'http')));

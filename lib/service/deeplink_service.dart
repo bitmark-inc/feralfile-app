@@ -342,7 +342,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
   Future<bool> _handleBranchDeeplink(String link) async {
     log.info('[DeeplinkService] _handleBranchDeeplink');
     //star
-    memoryValues.branchDeeplinkData.value = null;
+    rmemoryValues.branchDeeplinkData.value = null;
     final callingBranchDeepLinkPrefix = Constants.branchDeepLinks
         .firstWhereOrNull((prefix) => link.startsWith(prefix));
     if (callingBranchDeepLinkPrefix != null) {
