@@ -11,6 +11,7 @@ import 'dart:convert';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
+import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/network_issue_manager.dart';
@@ -244,7 +245,7 @@ class HmacAuthInterceptor extends Interceptor {
 class ConnectingExceptionInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
-    if (err.isNetworkIssue) {
+    if (err.isNetworkIssue && memoryValues.isForeground) {
       log.warning('ConnectingExceptionInterceptor timeout');
       unawaited(injector<NetworkIssueManager>().showNetworkIssueWarning());
     }
