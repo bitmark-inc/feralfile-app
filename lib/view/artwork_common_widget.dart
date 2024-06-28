@@ -1048,86 +1048,100 @@ Widget postcardDetailsMetadataSection(
   );
 }
 
-Widget artworkAttributesText(BuildContext context, Artwork artwork) {
-  final theme = Theme.of(context);
-  return Text(
-    artwork.attributesString ?? '',
-    style: theme.textTheme.ppMori400FFQuickSilver12.copyWith(
-      color: AppColor.feralFileMediumGrey,
-    ),
-  );
+class ArtworkAttributesText extends StatelessWidget {
+  final Artwork artwork;
+
+  const ArtworkAttributesText({required this.artwork, super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Text(
+      artwork.attributesString ?? '',
+      style: theme.textTheme.ppMori400FFQuickSilver12.copyWith(
+        color: AppColor.feralFileMediumGrey,
+      ),
+    );
+  }
 }
 
-Widget ffArtworkDetailsMetadataSection(BuildContext context, Artwork artwork) {
-  const divider = artworkDataDivider;
-  final contract = artwork.getContract(artwork.series!.exhibition);
-  return SectionExpandedWidget(
-    header: 'metadata'.tr(),
-    padding: const EdgeInsets.only(bottom: 23),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        MetaDataItem(
-          title: 'title'.tr(),
-          value: artwork.series!.displayTitle,
-        ),
-        if (artwork.series!.artist?.alias != null) ...[
+class FFArtworkDetailsMetadataSection extends StatelessWidget {
+  final Artwork artwork;
+
+  const FFArtworkDetailsMetadataSection({required this.artwork, super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    const divider = artworkDataDivider;
+    final contract = artwork.getContract(artwork.series!.exhibition);
+    return SectionExpandedWidget(
+      header: 'metadata'.tr(),
+      padding: const EdgeInsets.only(bottom: 23),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          MetaDataItem(
+            title: 'title'.tr(),
+            value: artwork.series!.displayTitle,
+          ),
+          if (artwork.series!.artist?.alias != null) ...[
+            divider,
+            MetaDataItem(
+              title: 'artist'.tr(),
+              value: artwork.series!.artist!.alias,
+              tapLink:
+                  FeralFileHelper.getArtistUrl(artwork.series!.artist!.alias),
+              forceSafariVC: true,
+            ),
+          ],
           divider,
           MetaDataItem(
-            title: 'artist'.tr(),
-            value: artwork.series!.artist!.alias,
-            tapLink:
-                FeralFileHelper.getArtistUrl(artwork.series!.artist!.alias),
+            title: 'edition'.tr(),
+            value: artwork.name,
+          ),
+          divider,
+          MetaDataItem(
+            title: 'token'.tr(),
+            value: polishSource('feralfile'),
+            tapLink: feralFileArtworkUrl(artwork.id),
             forceSafariVC: true,
           ),
-        ],
-        divider,
-        MetaDataItem(
-          title: 'edition'.tr(),
-          value: artwork.name,
-        ),
-        divider,
-        MetaDataItem(
-          title: 'token'.tr(),
-          value: polishSource('feralfile'),
-          tapLink: feralFileArtworkUrl(artwork.id),
-          forceSafariVC: true,
-        ),
-        if (artwork.series!.exhibition != null) ...[
+          if (artwork.series!.exhibition != null) ...[
+            divider,
+            MetaDataItem(
+              title: 'exhibition'.tr(),
+              value: artwork.series!.exhibition!.title,
+              tapLink: feralFileExhibitionUrl(artwork.series!.exhibition!.slug),
+              forceSafariVC: true,
+            ),
+          ],
           divider,
           MetaDataItem(
-            title: 'exhibition'.tr(),
-            value: artwork.series!.exhibition!.title,
-            tapLink: feralFileExhibitionUrl(artwork.series!.exhibition!.slug),
-            forceSafariVC: true,
+            title: 'medium'.tr(),
+            value: artwork.series!.medium.capitalize(),
+          ),
+          if (contract != null) ...[
+            divider,
+            MetaDataItem(
+              title: 'contract'.tr(),
+              value: contract.blockchainType.capitalize(),
+              tapLink: contract.getBlockchainUrl(),
+              forceSafariVC: true,
+            )
+          ],
+          if (artwork.mintedAt != null) ...[
+            divider,
+            MetaDataItem(
+                title: 'date_minted'.tr(),
+                value: localTimeString(artwork.mintedAt!)),
+          ],
+          const SizedBox(
+            height: 32,
           ),
         ],
-        divider,
-        MetaDataItem(
-          title: 'medium'.tr(),
-          value: artwork.series!.medium.capitalize(),
-        ),
-        if (contract != null) ...[
-          divider,
-          MetaDataItem(
-            title: 'contract'.tr(),
-            value: contract.blockchainType.capitalize(),
-            tapLink: contract.getBlockchainUrl(),
-            forceSafariVC: true,
-          )
-        ],
-        if (artwork.mintedAt != null) ...[
-          divider,
-          MetaDataItem(
-              title: 'date_minted'.tr(),
-              value: localTimeString(artwork.mintedAt!)),
-        ],
-        const SizedBox(
-          height: 32,
-        ),
-      ],
-    ),
-  );
+      ),
+    );
+  }
 }
 
 Widget artworkDetailsMetadataSection(

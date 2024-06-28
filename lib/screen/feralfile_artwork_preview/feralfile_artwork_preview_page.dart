@@ -232,9 +232,8 @@ class _FeralFileArtworkPreviewPageState
                   ),
                   if (isCrystallineWork) ...[
                     const SizedBox(height: 20),
-                    artworkAttributesText(
-                      context,
-                      artwork,
+                    ArtworkAttributesText(
+                      artwork: artwork,
                     ),
                   ]
                 ],
@@ -289,7 +288,7 @@ class _FeralFileArtworkPreviewPageState
                     ),
                   ),
                   const SizedBox(height: 40),
-                  ffArtworkDetailsMetadataSection(context, artwork),
+                  FFArtworkDetailsMetadataSection(artwork: artwork),
                 ],
               ),
             ),
