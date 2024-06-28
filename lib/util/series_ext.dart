@@ -15,4 +15,9 @@ extension FFSeriesExt on FFSeries {
       metadata?['latestRevealedArtworkIndex'];
 
   String get displayKey => exhibition?.displayKey ?? exhibitionID;
+
+  String? get mediumDescription =>
+      metadata != null && metadata!['mediumDescription'] != null
+          ? (metadata!['mediumDescription'] as List<dynamic>).join('\n')
+          : null;
 }
