@@ -5,6 +5,7 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i4;
 
+import 'package:autonomy_flutter/model/ff_exhibition.dart' as _i8;
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart'
     as _i7;
 import 'package:autonomy_flutter/service/navigation_service.dart' as _i3;
@@ -380,6 +381,32 @@ class MockNavigationService extends _i2.Mock implements _i3.NavigationService {
         Invocation.method(
           #openFeralFileCuratorPage,
           [alias],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
+  _i4.Future<void> openFeralFileExhibitionNotePage(String? exhibitionSlug) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #openFeralFileExhibitionNotePage,
+          [exhibitionSlug],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
+  _i4.Future<void> openFeralFilePostPage(
+    _i8.Post? post,
+    String? exhibitionID,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #openFeralFilePostPage,
+          [
+            post,
+            exhibitionID,
+          ],
         ),
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),

@@ -141,7 +141,8 @@ abstract class FeralFileService {
 
   Future<String?> getPartnerFullName(String exhibitionId);
 
-  Future<Exhibition> getExhibition(String id);
+  Future<Exhibition> getExhibition(String id,
+      {bool includeFirstArtwork = false});
 
   Future<List<Exhibition>> getAllExhibitions({
     String sortBy = 'openAt',
@@ -209,13 +210,34 @@ class FeralFileServiceImpl extends FeralFileService {
   }
 
   @override
-  Future<Exhibition> getExhibition(String id) async {
+  Future<Exhibition> getExhibition(String id,
+      {bool includeFirstArtwork = false}) async {
     if (id == SOURCE_EXHIBITION_ID) {
       return getSourceExhibition();
     }
 
-    final resp = await _feralFileApi.getExhibition(id);
-    return resp.result!;
+    final resp = await _feralFileApi.getExhibition(id,
+        includeFirstArtwork: includeFirstArtwork);
+    final exhibition = resp.result!;
+
+    if (includeFirstArtwork &&
+        exhibition.series != null &&
+        exhibition.series!.any((series) => series.artwork == null)) {
+      final List<FFSeries> newSeries = [];
+      for (final series in exhibition.series ?? []) {
+        if (series.artwork == null) {
+          final fakeArtwork =
+              await _getFakeSeriesArtworks(exhibition, series, 0, 1);
+          newSeries.add(series.copyWith(artwork: fakeArtwork.first));
+        } else {
+          newSeries.add(series);
+        }
+      }
+
+      return exhibition.copyWith(series: newSeries);
+    }
+
+    return exhibition;
   }
 
   @override
@@ -520,23 +542,7 @@ class FeralFileServiceImpl extends FeralFileService {
     final response = await _feralFileApi.getListSeries(
         exhibitionID: exhibitionId,
         sortBy: 'displayIndex',
-        sortOrder: 'ASC',
-        includeFirstArtwork: includeFirstArtwork);
-    if (includeFirstArtwork &&
-        response.result.any((element) => element.artwork == null)) {
-      final List<FFSeries> newSeries = [];
-      final exhibition = await getExhibition(exhibitionId);
-      for (final series in response.result) {
-        if (series.artwork == null) {
-          final fakeArtwork =
-              await _getFakeSeriesArtworks(exhibition, series, 0, 1);
-          newSeries.add(series.copyWith(artwork: fakeArtwork.first));
-        } else {
-          newSeries.add(series);
-        }
-      }
-      return newSeries;
-    }
+        sortOrder: 'ASC');
     return response.result;
   }
 

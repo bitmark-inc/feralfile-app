@@ -11,10 +11,9 @@ class ExhibitionDetailBloc
   ExhibitionDetailBloc(this._feralFileService)
       : super(ExhibitionDetailState()) {
     on<GetExhibitionDetailEvent>((event, emit) async {
-      final exhibition =
-          await _feralFileService.getExhibition(event.exhibitionId);
-      final listSeries = await _feralFileService
-          .getListSeries(event.exhibitionId, includeFirstArtwork: true);
+      final exhibition = await _feralFileService
+          .getExhibition(event.exhibitionId, includeFirstArtwork: true);
+      final listSeries = exhibition.series;
 
       emit(state.copyWith(exhibition: exhibition.copyWith(series: listSeries)));
     });

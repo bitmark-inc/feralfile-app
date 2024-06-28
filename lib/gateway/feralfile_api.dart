@@ -20,7 +20,8 @@ abstract class FeralFileApi {
 
   @GET('/api/exhibitions/{exhibitionId}')
   Future<ExhibitionResponse> getExhibition(
-      @Path('exhibitionId') String exhibitionId);
+      @Path('exhibitionId') String exhibitionId,
+      {@Query('includeFirstArtwork') bool includeFirstArtwork = false});
 
   @GET('/api/series/{seriesId}')
   Future<FFSeriesResponse> getSeries({
@@ -37,7 +38,6 @@ abstract class FeralFileApi {
     @Query('sortBy') String? sortBy,
     @Query('sortOrder') String? sortOrder,
     @Query('includeArtist') bool includeArtist = true,
-    @Query('includeFirstArtwork') bool includeFirstArtwork = false,
     @Query('includeUniqueFilePath') bool includeUniqueFilePath = true,
   });
 

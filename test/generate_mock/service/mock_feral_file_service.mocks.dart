@@ -163,16 +163,22 @@ class MockFeralFileService extends _i1.Mock implements _i6.FeralFileService {
         returnValue: _i7.Future<String?>.value(),
       ) as _i7.Future<String?>);
   @override
-  _i7.Future<_i4.Exhibition> getExhibition(String? id) => (super.noSuchMethod(
+  _i7.Future<_i4.Exhibition> getExhibition(
+    String? id, {
+    bool? includeFirstArtwork = false,
+  }) =>
+      (super.noSuchMethod(
         Invocation.method(
           #getExhibition,
           [id],
+          {#includeFirstArtwork: includeFirstArtwork},
         ),
         returnValue: _i7.Future<_i4.Exhibition>.value(_FakeExhibition_2(
           this,
           Invocation.method(
             #getExhibition,
             [id],
+            {#includeFirstArtwork: includeFirstArtwork},
           ),
         )),
       ) as _i7.Future<_i4.Exhibition>);
