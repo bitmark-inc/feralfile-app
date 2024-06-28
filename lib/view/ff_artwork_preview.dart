@@ -1,7 +1,7 @@
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_page.dart';
-import 'package:autonomy_flutter/util/john_gerrard_hepler.dart';
+import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
 import 'package:autonomy_flutter/view/feralfile_artwork_preview_widget.dart';
 import 'package:autonomy_flutter/view/series_title_view.dart';
 import 'package:flutter/material.dart';

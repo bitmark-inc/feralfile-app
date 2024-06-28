@@ -9,6 +9,7 @@ class ExhibitionBloc extends AuBloc<ExhibitionsEvent, ExhibitionsState> {
   final FeralFileService _feralFileService;
 
   static const limit = 25;
+  Exhibition? _sourceExhibition;
 
   ExhibitionBloc(this._feralFileService) : super(ExhibitionsState()) {
     on<GetAllExhibitionsEvent>((event, emit) async {
@@ -34,9 +35,9 @@ class ExhibitionBloc extends AuBloc<ExhibitionsEvent, ExhibitionsState> {
           .toList();
       pastExhibitions =
           _addSourceExhibitionIfNeeded(pastExhibitions, sourceExhibition);
+      _sourceExhibition = sourceExhibition;
       emit(state.copyWith(
         currentPage: 1,
-        sourceExhibition: sourceExhibition,
         upcomingExhibition: upcomingExhibition,
         featuredExhibition: featuredExhibition,
         pastExhibitions: pastExhibitions,
@@ -58,10 +59,10 @@ class ExhibitionBloc extends AuBloc<ExhibitionsEvent, ExhibitionsState> {
 
         exhibitions.removeWhere(
             (element) => state.allExhibitionIds.contains(element.id));
-        if (state.sourceExhibition != null &&
+        if (_sourceExhibition != null &&
             (state.pastExhibitions ?? []).isNotEmpty) {
-          exhibitions = _addSourceExhibitionIfNeeded(
-              exhibitions, state.sourceExhibition!);
+          exhibitions =
+              _addSourceExhibitionIfNeeded(exhibitions, _sourceExhibition!);
         }
         emit(state.copyWith(
           pastExhibitions: [...?state.pastExhibitions, ...exhibitions],
