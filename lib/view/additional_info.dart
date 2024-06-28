@@ -13,7 +13,7 @@ class ExhibitionAdditionalInfo extends StatelessWidget {
     this.isFull = false,
   });
 
-  final AdditionalInfo info;
+  final CustomExhibitionNote info;
   final bool isFull;
 
   @override

@@ -1163,7 +1163,7 @@ class AppRouter {
       case exhibitionAdditionalInfo:
         return MaterialPageRoute(
           builder: (context) => ExhibitionAdditionalInfoPage(
-            info: settings.arguments! as AdditionalInfo,
+            info: settings.arguments! as CustomExhibitionNote,
           ),
         );
 

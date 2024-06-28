@@ -10,7 +10,7 @@ import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_sta
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
-import 'package:autonomy_flutter/util/john_gerrard_hepler.dart';
+import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/additional_info.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';

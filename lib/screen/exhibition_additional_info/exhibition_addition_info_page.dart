@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 class ExhibitionAdditionalInfoPage extends StatelessWidget {
   const ExhibitionAdditionalInfoPage({required this.info, super.key});
 
-  final AdditionalInfo info;
+  final CustomExhibitionNote info;
 
   @override
   Widget build(BuildContext context) => Scaffold(

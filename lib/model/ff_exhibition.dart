@@ -278,14 +278,14 @@ class Post {
       };
 }
 
-class AdditionalInfo {
+class CustomExhibitionNote {
   final String title;
   final String content;
   final bool? canReadMore;
 
-  AdditionalInfo({required this.title, required this.content, this.canReadMore});
+  CustomExhibitionNote({required this.title, required this.content, this.canReadMore});
 
-  factory AdditionalInfo.fromJson(Map<String, dynamic> json) => AdditionalInfo(
+  factory CustomExhibitionNote.fromJson(Map<String, dynamic> json) => CustomExhibitionNote(
         title: json['title'],
         content: json['content'],
         canReadMore: json['canReadMore'] ?? false,

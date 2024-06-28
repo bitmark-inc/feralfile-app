@@ -34,12 +34,12 @@ class JohnGerrardHelper {
     return 'eth-$contractAddress-$tokenId';
   }
 
-  static List<AdditionalInfo> get additionalInfo {
+  static List<CustomExhibitionNote> get additionalInfo {
     final listAdditionalInfo = injector<RemoteConfigService>()
         .getConfig<List<dynamic>?>(
             ConfigGroup.johnGerrard, ConfigKey.additionalInfo, []);
     return listAdditionalInfo
-            ?.map((e) => AdditionalInfo.fromJson(e))
+            ?.map((e) => CustomExhibitionNote.fromJson(e))
             .toList() ??
         [];
   }
