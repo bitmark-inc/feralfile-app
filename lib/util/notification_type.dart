@@ -22,7 +22,7 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
-import 'package:autonomy_flutter/util/john_gerrard_hepler.dart';
+import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/extensions/extensions.dart';
@@ -126,8 +126,6 @@ class NotificationHandler {
       return;
     }
 
-    final remoteConfig = injector<RemoteConfigService>();
-
     log.info("Tap to notification: ${notification.body ?? "empty"} "
         '\nAdditional data: ${notification.additionalData!}');
     final notificationType = NotificationType.fromString(
@@ -168,7 +166,7 @@ class NotificationHandler {
             route.settings.name == AppRouter.homePageNoTransition);
         pageController?.jumpToPage(HomeNavigatorTab.collection.index);
       case NotificationType.newMessage:
-        if (!remoteConfig.getBool(ConfigGroup.viewDetail, ConfigKey.chat)) {
+        if (!_remoteConfig.getBool(ConfigGroup.viewDetail, ConfigKey.chat)) {
           return;
         }
         final data = notification.additionalData;
@@ -257,8 +255,11 @@ class NotificationHandler {
         final owner = tokens.first.owner;
         final artworkDetailPayload =
             ArtworkDetailPayload([ArtworkIdentity(indexId, owner)], 0);
-        unawaited(Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
-            arguments: artworkDetailPayload));
+        if (context.mounted) {
+          unawaited(Navigator.of(context).pushNamed(
+              AppRouter.artworkDetailsPage,
+              arguments: artworkDetailPayload));
+        }
       default:
         log.warning('unhandled notification type: $notificationType');
         break;
