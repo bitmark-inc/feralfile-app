@@ -278,6 +278,22 @@ class Post {
       };
 }
 
+class CustomExhibitionNote {
+  final String title;
+  final String content;
+  final bool? canReadMore;
+
+  CustomExhibitionNote(
+      {required this.title, required this.content, this.canReadMore});
+
+  factory CustomExhibitionNote.fromJson(Map<String, dynamic> json) =>
+      CustomExhibitionNote(
+        title: json['title'],
+        content: json['content'],
+        canReadMore: json['canReadMore'] ?? false,
+      );
+}
+
 enum MediaType {
   image,
   video,

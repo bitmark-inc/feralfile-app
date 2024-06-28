@@ -403,6 +403,12 @@ extension RouteExt on Route {
           MixpanelProp.recipientAddress: payload.transaction.to,
         };
         break;
+      case AppRouter.exhibitionCustomNote:
+        final payload = settings.arguments! as Exhibition;
+        data = {
+          MixpanelProp.exhibitionId: payload.id,
+        };
+        break;
       default:
         break;
     }
@@ -493,6 +499,7 @@ final screenNameMap = {
   AppRouter.previewPrimerPage: 'Preview Primer',
   AppRouter.projectsList: 'Projects',
   AppRouter.artistsListPage: 'Artists list',
+  AppRouter.exhibitionCustomNote: 'Exhibition Custom Note',
 };
 
 String getPageName(String routeName) {
