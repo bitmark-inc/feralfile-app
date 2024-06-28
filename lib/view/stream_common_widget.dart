@@ -4,6 +4,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/util/range_input_formatter.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
@@ -33,9 +34,18 @@ final speedValues = {
 class StreamDrawerItem extends StatelessWidget {
   final OptionItem item;
   final Color backgroundColor;
+  final Function()? onRotateClicked;
+  final bool isControlling;
 
-  const StreamDrawerItem(
-      {required this.item, required this.backgroundColor, super.key});
+  static const double rotateIconSize = 22;
+
+  const StreamDrawerItem({
+    required this.item,
+    required this.backgroundColor,
+    required this.isControlling,
+    super.key,
+    this.onRotateClicked,
+  });
 
   @override
   Widget build(BuildContext context) => Container(
@@ -46,45 +56,68 @@ class StreamDrawerItem extends StatelessWidget {
         width: MediaQuery.of(context).size.width,
         child: Material(
           type: MaterialType.transparency,
-          child: InkWell(
-            splashFactory: InkSparkle.splashFactory,
-            borderRadius: BorderRadius.circular(50),
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Center(
-                child: Text(
-                  item.title ?? '',
-                  style: Theme.of(context).textTheme.ppMori400Black14,
+          child: Stack(
+            children: [
+              InkWell(
+                splashFactory: InkSparkle.splashFactory,
+                borderRadius: BorderRadius.circular(50),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    vertical: 12,
+                    horizontal: ResponsiveLayout.padding + rotateIconSize + 10,
+                  ),
+                  child: Center(
+                    child: Text(
+                      item.title ?? '',
+                      style: Theme.of(context).textTheme.ppMori400Black14,
+                    ),
+                  ),
                 ),
+                onTap: () => item.onTap?.call(),
               ),
-            ),
-            onTap: () => item.onTap?.call(),
+              if (isControlling)
+                Positioned(
+                  top: 0,
+                  bottom: 0,
+                  right: ResponsiveLayout.padding,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      GestureDetector(
+                        onTap: onRotateClicked,
+                        child: SvgPicture.asset(
+                          'assets/images/icon_rotate.svg',
+                          width: rotateIconSize,
+                          height: rotateIconSize,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+            ],
           ),
         ),
       );
 }
 
 class PlaylistControl extends StatefulWidget {
-  const PlaylistControl({super.key});
+  final String displayKey;
+
+  const PlaylistControl({required this.displayKey, super.key});
 
   @override
   State<PlaylistControl> createState() => _PlaylistControlState();
 }
 
 class _PlaylistControlState extends State<PlaylistControl> {
-  late double _currentSliderValue;
   Timer? _timer;
   late CanvasDeviceBloc _canvasDeviceBloc;
+  CanvasDevice? _controllingDevice;
 
   @override
   void initState() {
     super.initState();
     _canvasDeviceBloc = injector.get<CanvasDeviceBloc>();
-    final castingDuration = _canvasDeviceBloc.state.castingSpeed;
-    final index = castingDuration != null
-        ? speedValues.values.toList().indexOf(castingDuration)
-        : 0;
-    _currentSliderValue = index.toDouble();
   }
 
   @override
@@ -95,32 +128,25 @@ class _PlaylistControlState extends State<PlaylistControl> {
 
   @override
   Widget build(BuildContext context) =>
-      BlocConsumer<CanvasDeviceBloc, CanvasDeviceState>(
+      BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
         bloc: _canvasDeviceBloc,
-        listener: (context, state) {
-          final castingSpeed = state.controllingDeviceStatus?.values.firstOrNull
-              ?.artworks.firstOrNull?.duration;
-          if (castingSpeed != null) {
-            final castingDuration = Duration(milliseconds: castingSpeed);
-            final index = speedValues.values.toList().indexOf(castingDuration);
-            setState(() {
-              _currentSliderValue = index.toDouble();
-            });
-          }
+        builder: (context, state) {
+          _controllingDevice =
+              state.lastSelectedActiveDeviceForKey(widget.displayKey);
+          return Container(
+              padding: const EdgeInsets.all(15),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                color: AppColor.auGreyBackground,
+              ),
+              child: Column(
+                children: [
+                  _buildPlayControls(context, state),
+                  const SizedBox(height: 15),
+                  _buildSpeedControl(context, state),
+                ],
+              ));
         },
-        builder: (context, state) => Container(
-            padding: const EdgeInsets.all(15),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              color: AppColor.auGreyBackground,
-            ),
-            child: Column(
-              children: [
-                _buildPlayControls(context, state),
-                const SizedBox(height: 15),
-                _buildSpeedControl(context, state),
-              ],
-            )),
       );
 
   Widget _buildPlayButton({required String icon, required Function() onTap}) =>
@@ -149,7 +175,7 @@ class _PlaylistControlState extends State<PlaylistControl> {
       );
 
   Widget _buildPlayControls(BuildContext context, CanvasDeviceState state) {
-    final isCasting = state.isCasting;
+    final isCasting = _controllingDevice != null;
     return Row(
       children: [
         _buildPlayButton(
@@ -191,47 +217,45 @@ class _PlaylistControlState extends State<PlaylistControl> {
               color: AppColor.primaryBlack,
             ),
             child: ArtworkDurationControl(
-              duration: state.castingSpeed,
+              duration: state.castingSpeed(widget.displayKey),
+              displayKey: widget.displayKey,
             ),
           )
         ],
       );
 
   void onPrevious(BuildContext context) {
-    final controllingDevice = _canvasDeviceBloc.state.controllingDevice;
-    if (controllingDevice == null) {
+    if (_controllingDevice == null) {
       return;
     }
-    _canvasDeviceBloc.add(CanvasDevicePreviousArtworkEvent(controllingDevice));
+    _canvasDeviceBloc
+        .add(CanvasDevicePreviousArtworkEvent(_controllingDevice!));
   }
 
   void onNext(BuildContext context) {
-    final controllingDevice = _canvasDeviceBloc.state.controllingDevice;
-    if (controllingDevice == null) {
+    if (_controllingDevice == null) {
       return;
     }
-    _canvasDeviceBloc.add(CanvasDeviceNextArtworkEvent(controllingDevice));
+    _canvasDeviceBloc.add(CanvasDeviceNextArtworkEvent(_controllingDevice!));
   }
 
   void onPause(BuildContext context) {
-    final controllingDevice = _canvasDeviceBloc.state.controllingDevice;
-    if (controllingDevice == null) {
+    if (_controllingDevice == null) {
       return;
     }
-    _canvasDeviceBloc.add(CanvasDevicePauseCastingEvent(controllingDevice));
+    _canvasDeviceBloc.add(CanvasDevicePauseCastingEvent(_controllingDevice!));
   }
 
   void onResume(BuildContext context) {
-    final controllingDevice = _canvasDeviceBloc.state.controllingDevice;
-    if (controllingDevice == null) {
+    if (_controllingDevice == null) {
       return;
     }
-    _canvasDeviceBloc.add(CanvasDeviceResumeCastingEvent(controllingDevice));
+    _canvasDeviceBloc.add(CanvasDeviceResumeCastingEvent(_controllingDevice!));
   }
 
   void onPauseOrResume(BuildContext context) {
     // final _canvasDeviceBloc = context.read<CanvasDeviceBloc>();
-    final isCasting = _canvasDeviceBloc.state.isCasting;
+    final isCasting = _controllingDevice != null;
     if (isCasting) {
       onPause(context);
     } else {
@@ -242,8 +266,10 @@ class _PlaylistControlState extends State<PlaylistControl> {
 
 class ArtworkDurationControl extends StatefulWidget {
   final Duration? duration;
+  final String displayKey;
 
-  const ArtworkDurationControl({super.key, this.duration});
+  const ArtworkDurationControl(
+      {required this.displayKey, super.key, this.duration});
 
   @override
   State<ArtworkDurationControl> createState() => _ArtworkDurationControlState();
@@ -329,12 +355,13 @@ class _ArtworkDurationControlState extends State<ArtworkDurationControl> {
   }
 
   void changeSpeed(Duration duration) {
-    final controllingDevice = _canvasDeviceBloc.state.controllingDevice;
-    if (controllingDevice == null) {
+    final lastSelectedCanvasDevice = _canvasDeviceBloc.state
+        .lastSelectedActiveDeviceForKey(widget.displayKey);
+    if (lastSelectedCanvasDevice == null) {
       return;
     }
     final canvasStatus =
-        _canvasDeviceBloc.state.controllingDeviceStatus?.values.firstOrNull;
+        _canvasDeviceBloc.state.statusOf(lastSelectedCanvasDevice);
     if (canvasStatus == null) {
       return;
     }
@@ -344,7 +371,7 @@ class _ArtworkDurationControlState extends State<ArtworkDurationControl> {
             e.copy(duration: Duration(milliseconds: duration.inMilliseconds)))
         .toList();
     _canvasDeviceBloc.add(CanvasDeviceUpdateDurationEvent(
-        controllingDevice, playArtworkWithNewDuration));
+        lastSelectedCanvasDevice, playArtworkWithNewDuration));
   }
 
   @override

@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/feralfile_api.dart';
 import 'package:autonomy_flutter/gateway/source_exhibition_api.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/ff_list_response.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
@@ -159,6 +160,8 @@ abstract class FeralFileService {
   Future<FeralFileListResponse<Artwork>> getSeriesArtworks(
       String seriesId, String exhibitionID,
       {bool withSeries = false, int offset = offset, int limit = limit});
+
+  Future<Artwork?> getFirstViewableArtwork(String seriesId);
 
   Future<String> getFeralfileActionMessage(
       {required String address, required FeralfileAction action});
@@ -312,6 +315,7 @@ class FeralFileServiceImpl extends FeralFileService {
         null,
         series,
         null,
+        null,
       );
       artworks.add(fakeArtwork);
     }
@@ -449,6 +453,17 @@ class FeralFileServiceImpl extends FeralFileService {
   }
 
   @override
+  Future<Artwork?> getFirstViewableArtwork(String seriesId) async {
+    final response = await _feralFileApi.getListArtworks(
+      seriesId: seriesId,
+      includeActiveSwap: false,
+      sortOrder: 'DESC',
+      isViewable: true,
+    );
+    return response.result.firstOrNull;
+  }
+
+  @override
   Future<String> getFeralfileActionMessage(
       {required String address, required FeralfileAction action}) async {
     final response = await _feralFileApi.getActionMessage({
@@ -513,11 +528,30 @@ class FeralFileServiceImpl extends FeralFileService {
   @override
   Future<List<FFSeries>> getListSeries(String exhibitionId,
       {bool includeFirstArtwork = false}) async {
+    if (exhibitionId == SOURCE_EXHIBITION_ID) {
+      final exhibition = await getSourceExhibition();
+      return exhibition.series ?? [];
+    }
     final response = await _feralFileApi.getListSeries(
         exhibitionID: exhibitionId,
         sortBy: 'displayIndex',
         sortOrder: 'ASC',
         includeFirstArtwork: includeFirstArtwork);
+    if (includeFirstArtwork &&
+        response.result.any((element) => element.artwork == null)) {
+      final List<FFSeries> newSeries = [];
+      final exhibition = await getExhibition(exhibitionId);
+      for (final series in response.result) {
+        if (series.artwork == null) {
+          final fakeArtwork =
+              await _getFakeSeriesArtworks(exhibition, series, 0, 1);
+          newSeries.add(series.copyWith(artwork: fakeArtwork.first));
+        } else {
+          newSeries.add(series);
+        }
+      }
+      return newSeries;
+    }
     return response.result;
   }
 
@@ -626,28 +660,28 @@ class FeralFileServiceImpl extends FeralFileService {
       artworkIndex: index,
     );
     return Artwork(
-      artworkId,
-      series.id,
-      index,
-      beforeMintingArtworkInfos[index].artworkTitle,
-      '',
-      null,
-      null,
-      null,
-      '',
-      false,
-      'previews/${series.id}/${series.previewFile?.version}/generated_images/crystal_${index + MAGIC_NUMBER}_img.jpg',
-      'previews/${series.id}/${series.previewFile?.version}/nft.html?hourIdx=${index + MAGIC_NUMBER}',
-      {
-        'viewableAt': beforeMintingArtworkInfos[index].viewableAt,
-      },
-      DateTime.now(),
-      DateTime.now(),
-      DateTime.now(),
-      null,
-      series,
-      null,
-    );
+        artworkId,
+        series.id,
+        index,
+        beforeMintingArtworkInfos[index].artworkTitle,
+        '',
+        null,
+        null,
+        null,
+        '',
+        false,
+        'previews/${series.id}/${series.previewFile?.version}/generated_images/crystal_${index + MAGIC_NUMBER}_img.jpg',
+        'previews/${series.id}/${series.previewFile?.version}/nft.html?hourIdx=${index + MAGIC_NUMBER}',
+        {
+          'viewableAt': beforeMintingArtworkInfos[index].viewableAt,
+        },
+        DateTime.now(),
+        DateTime.now(),
+        DateTime.now(),
+        null,
+        series,
+        null,
+        null);
   }
 }
 

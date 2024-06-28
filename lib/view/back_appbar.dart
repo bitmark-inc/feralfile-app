@@ -356,7 +356,7 @@ AppBar getCustomDoneAppBar(
         ),
       ),
     ],
-    backgroundColor: theme.colorScheme.surface,
+    backgroundColor: AppColor.white,
     automaticallyImplyLeading: false,
     centerTitle: true,
     title: title,

@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/model/ff_series.dart';
+import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
 
 extension FFSeriesExt on FFSeries {
@@ -12,4 +13,11 @@ extension FFSeriesExt on FFSeries {
 
   int? get latestRevealedArtworkIndex =>
       metadata?['latestRevealedArtworkIndex'];
+
+  String get displayKey => exhibition?.displayKey ?? exhibitionID;
+
+  String? get mediumDescription =>
+      metadata != null && metadata!['mediumDescription'] != null
+          ? (metadata!['mediumDescription'] as List<dynamic>).join('\n')
+          : null;
 }

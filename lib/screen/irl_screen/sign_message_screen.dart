@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -244,11 +245,11 @@ class _IRLSignMessageScreenState extends State<IRLSignMessageScreen> {
         ? Row(
             children: [
               if (icons != null && icons.isNotEmpty) ...[
-                Image.network(
-                  icons.first,
+                CachedNetworkImage(
+                  imageUrl: icons.first,
                   width: 64,
                   height: 64,
-                  errorBuilder: (context, url, error) => const SizedBox(
+                  errorWidget: (context, url, error) => const SizedBox(
                     width: 64,
                     height: 64,
                   ),

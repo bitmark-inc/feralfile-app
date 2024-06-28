@@ -45,13 +45,8 @@ const DEEP_LINKS = [
   'autonomy://',
   'https://autonomy.io',
   'https://au.bitmark.com',
-  'https://autonomy-app.app.link',
-  'https://autonomy-app-alternate.app.link',
-  'https://link.autonomy.io',
+  ...Constants.branchDeepLinks,
   'feralfile://',
-  'https://feralfile-app.app.link',
-  'https://feralfile-app-alternate.app.link',
-  'https://app.feralfile.com',
 ];
 const FF_ARTIST_COLLECTOR =
     'https://feralfile.com/docs/artist-collector-rights';
@@ -505,6 +500,9 @@ class Constants {
     'https://autonomy-app.app.link',
     'https://autonomy-app-alternate.app.link',
     'https://link.autonomy.io',
+    'https://feralfile-app.app.link',
+    'https://feralfile-app-alternate.app.link',
+    'https://app.feralfile.com',
   ];
 }
 

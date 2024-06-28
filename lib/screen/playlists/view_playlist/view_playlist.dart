@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/iterable_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/playlist_ext.dart';
 import 'package:autonomy_flutter/util/token_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
@@ -231,23 +232,26 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                 width: 24,
               )),
         ],
-        const SizedBox(width: 15),
-        FFCastButton(
-          onDeviceSelected: (device) async {
-            final listTokenIds = playList.tokenIDs;
-            if (listTokenIds == null) {
-              log.info('Playlist tokenIds is null');
-              return;
-            }
-            final duration = speedValues.values.first.inMilliseconds;
-            final listPlayArtwork = listTokenIds
-                .map((e) => PlayArtworkV2(
-                    token: CastAssetToken(id: e), duration: duration))
-                .toList();
-            _canvasDeviceBloc.add(
-                CanvasDeviceChangeControlDeviceEvent(device, listPlayArtwork));
-          },
-        ),
+        if (_getDisplayKey(playList) != null) ...[
+          const SizedBox(width: 15),
+          FFCastButton(
+            displayKey: _getDisplayKey(playList)!,
+            onDeviceSelected: (device) async {
+              final listTokenIds = playList.tokenIDs;
+              if (listTokenIds == null) {
+                log.info('Playlist tokenIds is null');
+                return;
+              }
+              final duration = speedValues.values.first.inMilliseconds;
+              final listPlayArtwork = listTokenIds
+                  .map((e) => PlayArtworkV2(
+                      token: CastAssetToken(id: e), duration: duration))
+                  .toList();
+              _canvasDeviceBloc.add(CanvasDeviceChangeControlDeviceEvent(
+                  device, listPlayArtwork));
+            },
+          ),
+        ],
         const SizedBox(width: 15),
       ];
 
@@ -262,7 +266,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
           return const SizedBox();
         }
 
-        final playList = state.playListModel!;
+        final PlayListModel playList = state.playListModel!;
         return Scaffold(
           backgroundColor: AppColor.primaryBlack,
           appBar: getPlaylistAppBar(
@@ -277,12 +281,16 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                 BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
                   bloc: _canvasDeviceBloc,
                   builder: (context, canvasDeviceState) {
-                    final isPlaylistCasting =
-                        _canvasDeviceBloc.state.controllingDevice != null;
+                    final displayKey = _getDisplayKey(playList);
+                    final isPlaylistCasting = canvasDeviceState
+                            .lastSelectedActiveDeviceForKey(displayKey ?? '') !=
+                        null;
                     if (isPlaylistCasting) {
-                      return const Padding(
-                        padding: EdgeInsets.all(15),
-                        child: PlaylistControl(),
+                      return Padding(
+                        padding: const EdgeInsets.all(15),
+                        child: PlaylistControl(
+                          displayKey: displayKey!,
+                        ),
                       );
                     } else {
                       return const SizedBox();
@@ -315,10 +323,19 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
     );
   }
 
+  String? _getDisplayKey(PlayListModel playList) => playList.displayKey;
+
   Future<bool> _moveToArtwork(CompactedAssetToken compactedAssetToken) {
-    final controllingDevice = _canvasDeviceBloc.state.controllingDevice;
-    if (controllingDevice != null) {
-      return _canvasClientServiceV2.moveToArtwork(controllingDevice,
+    final playlist = widget.payload.playListModel;
+    final displayKey = playlist?.displayKey;
+    if (displayKey == null) {
+      return Future.value(false);
+    }
+
+    final lastSelectedCanvasDevice =
+        _canvasDeviceBloc.state.lastSelectedActiveDeviceForKey(displayKey);
+    if (lastSelectedCanvasDevice != null) {
+      return _canvasClientServiceV2.moveToArtwork(lastSelectedCanvasDevice,
           artworkId: compactedAssetToken.id);
     }
     return Future.value(false);

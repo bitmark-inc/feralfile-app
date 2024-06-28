@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/util/number_formater.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/skeleton.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/extensions/theme_extension/moma_sans.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -182,8 +183,8 @@ class _PostcardLeaderboardViewState extends State<PostcardLeaderboardView> {
                 SizedBox(
                   height: 65,
                   width: 85,
-                  child: Image.network(
-                    leaderBoardItem.previewUrl,
+                  child: CachedNetworkImage(
+                    imageUrl: leaderBoardItem.previewUrl,
                     fit: BoxFit.fitWidth,
                   ),
                 ),

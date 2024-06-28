@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_blo
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_state.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/cast_button.dart';
@@ -37,13 +38,12 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
     with AfterLayoutMixin {
   late final ExhibitionDetailBloc _exBloc;
 
-  // late final CanvasDeviceBloc _canvasDeviceBloc;
   final _metricClientService = injector<MetricClientService>();
   final _canvasDeviceBloc = injector<CanvasDeviceBloc>();
 
   late final PageController _controller;
   int _currentIndex = 0;
-  late int _carouselIndex;
+  int _carouselIndex = 0;
 
   @override
   void initState() {
@@ -52,7 +52,6 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
     _exBloc.add(GetExhibitionDetailEvent(
         widget.payload.exhibitions[widget.payload.index].id));
     _controller = PageController();
-    _carouselIndex = 0;
   }
 
   @override
@@ -134,13 +133,15 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
   }
 
   void _stream(Exhibition exhibition) {
-    final controllingDevice = _canvasDeviceBloc.state.controllingDevice;
     log.info('onPageChanged: $_currentIndex');
-    if (controllingDevice != null) {
+    final displayKey = exhibition.displayKey;
+    final lastSelectedDevice =
+        _canvasDeviceBloc.state.lastSelectedActiveDeviceForKey(displayKey);
+    if (lastSelectedDevice != null) {
       final request = _getCastExhibitionRequest(exhibition);
       log.info('onPageChanged: request: $request');
       _canvasDeviceBloc.add(
-        CanvasDeviceCastExhibitionEvent(controllingDevice, request),
+        CanvasDeviceCastExhibitionEvent(lastSelectedDevice, request),
       );
     }
   }
@@ -190,16 +191,10 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
               viewportFraction: 0.76,
               enableInfiniteScroll: false,
               enlargeCenterPage: true,
+              initialPage: _carouselIndex,
               onPageChanged: (index, reason) {
                 _carouselIndex = index;
-                final controllingDevice =
-                    _canvasDeviceBloc.state.controllingDevice;
-                final request = _getCastExhibitionRequest(exhibition);
-                if (controllingDevice != null) {
-                  _canvasDeviceBloc.add(
-                    CanvasDeviceCastExhibitionEvent(controllingDevice, request),
-                  );
-                }
+                _stream(exhibition);
               },
             ),
           ),
@@ -214,6 +209,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
             ? Padding(
                 padding: const EdgeInsets.only(right: 14, bottom: 10, top: 10),
                 child: FFCastButton(
+                  displayKey: exhibition.id,
                   onDeviceSelected: (device) async {
                     final request = _getCastExhibitionRequest(exhibition);
                     _canvasDeviceBloc.add(
@@ -225,22 +221,22 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
             : null,
       );
 
-  Pair<ExhibitionKatalog, String?> _getCurrentCatalogInfo(
+  Pair<ExhibitionCatalog, String?> _getCurrentCatalogInfo(
       Exhibition exhibition) {
-    ExhibitionKatalog? catalog;
+    ExhibitionCatalog? catalog;
     String? catalogId;
     switch (_currentIndex) {
       case 0:
-        catalog = ExhibitionKatalog.HOME;
+        catalog = ExhibitionCatalog.home;
       case 1:
         if (_carouselIndex == 0) {
-          catalog = ExhibitionKatalog.CURATOR_NOTE;
+          catalog = ExhibitionCatalog.curatorNote;
         } else {
-          catalog = ExhibitionKatalog.RESOURCE;
+          catalog = ExhibitionCatalog.resource;
           catalogId = exhibition.posts![_carouselIndex - 1].id;
         }
       default:
-        catalog = ExhibitionKatalog.ARTWORK;
+        catalog = ExhibitionCatalog.artwork;
         final seriesIndex = _currentIndex - 2;
         final currentArtwork = exhibition.series?[seriesIndex].artwork?.id;
         catalogId = currentArtwork;
@@ -250,56 +246,16 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
 
   CastExhibitionRequest _getCastExhibitionRequest(Exhibition exhibition) {
     final exhibitionId = exhibition.id;
-    final katalogInfo = _getCurrentCatalogInfo(exhibition);
-    final katalog = katalogInfo.first;
-    final katalogId = katalogInfo.second;
+    final catalogInfo = _getCurrentCatalogInfo(exhibition);
+    final catalog = catalogInfo.first;
+    final catalogId = catalogInfo.second;
     CastExhibitionRequest request = CastExhibitionRequest(
       exhibitionId: exhibitionId,
-      katalog: katalog,
-      katalogId: katalogId,
+      catalog: catalog,
+      catalogId: catalogId,
     );
     return request;
   }
-
-  // Future<void> _onCastTap(
-  //     BuildContext context, ExhibitionDetail exhibitionDetail) async {
-  //   if (exhibitionDetail.artworks == null ||
-  //       exhibitionDetail.artworks!.isEmpty) {
-  //     return;
-  //   }
-  //   final tokenIds = exhibitionDetail.artworks
-  //       ?.map((e) => exhibitionDetail.getArtworkTokenId(e)!)
-  //       .toList();
-  //   final sceneId = exhibitionDetail.exhibition.id;
-  //   final playlistModel = PlayListModel(
-  //     name: exhibitionDetail.exhibition.title,
-  //     id: sceneId,
-  //     thumbnailURL: exhibitionDetail.exhibition.coverUrl,
-  //     tokenIDs: tokenIds,
-  //     playControlModel: PlayControlModel(timer: 30),
-  //   );
-  //   await UIHelper.showFlexibleDialog(
-  //     context,
-  //     BlocProvider.value(
-  //       value: _canvasDeviceBloc,
-  //       child: CanvasDeviceView(
-  //         sceneId: sceneId,
-  //         isCollection: true,
-  //         playlist: playlistModel,
-  //         onClose: () {
-  //           Navigator.of(context).pop();
-  //         },
-  //       ),
-  //     ),
-  //     isDismissible: true,
-  //   );
-  //   await _fetchDevice(sceneId);
-  // }
-
-  // Future<void> _fetchDevice(String exhibitionId) async {
-  //   _canvasDeviceBloc
-  //       .add(CanvasDeviceGetDevicesEvent(exhibitionId, syncAll: false));
-  // }
 
   @override
   FutureOr<void> afterFirstLayout(BuildContext context) {

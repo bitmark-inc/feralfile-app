@@ -1,64 +1,53 @@
-import 'package:autonomy_flutter/util/cache_manager.dart';
+import 'package:autonomy_flutter/view/image_background.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 
-extension ImageExt on Image {
-  static Image customNetwork(
+extension ImageExt on CachedNetworkImage {
+  static Widget customNetwork(
     String src, {
-    Key? key,
-    double scale = 1.0,
-    ImageFrameBuilder? frameBuilder,
-    ImageLoadingBuilder? loadingBuilder,
-    ImageErrorWidgetBuilder? errorBuilder,
-    String? semanticLabel,
-    bool excludeFromSemantics = false,
-    double? width,
-    double? height,
-    Color? color,
-    Animation<double>? opacity,
-    BlendMode? colorBlendMode,
+    Duration fadeInDuration = const Duration(milliseconds: 300),
     BoxFit? fit,
-    AlignmentGeometry alignment = Alignment.center,
-    ImageRepeat repeat = ImageRepeat.noRepeat,
-    Rect? centerSlice,
-    bool matchTextDirection = false,
-    bool gaplessPlayback = false,
-    FilterQuality filterQuality = FilterQuality.low,
-    bool isAntiAlias = false,
-    Map<String, String>? headers,
-    int? cacheWidth,
-    int? cacheHeight,
+    int? memCacheHeight,
+    int? memCacheWidth,
+    int? maxWidthDiskCache,
+    int? maxHeightDiskCache,
+    BaseCacheManager? cacheManager,
+    PlaceholderWidgetBuilder? placeholder,
+    LoadingErrorWidgetBuilder? errorWidget,
     bool shouldRefreshCache = false,
   }) {
     if (shouldRefreshCache) {
-      final imageProvider = ResizeImage.resizeIfNeeded(cacheWidth, cacheHeight,
-          NetworkImage(src, scale: scale, headers: headers));
-      ImageCacheManager.cleanCacheByKey(imageProvider);
+      return Image.network(
+        src,
+        fit: fit,
+        errorBuilder: (context, error, stackTrace) =>
+            errorWidget!(context, src, error),
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) {
+            return ImageBackground(child: child);
+          }
+          if (placeholder != null) {
+            return placeholder(context, src);
+          }
+          return const ImageBackground(child: SizedBox());
+        },
+        cacheHeight: memCacheHeight,
+        cacheWidth: memCacheWidth,
+      );
     }
-    return Image.network(
-      src,
-      key: key,
-      scale: scale,
-      frameBuilder: frameBuilder,
-      loadingBuilder: loadingBuilder,
-      errorBuilder: errorBuilder,
-      semanticLabel: semanticLabel,
-      excludeFromSemantics: excludeFromSemantics,
-      width: width,
-      height: height,
-      color: color,
-      opacity: opacity,
-      colorBlendMode: colorBlendMode,
-      fit: fit,
-      alignment: alignment,
-      repeat: repeat,
-      centerSlice: centerSlice,
-      matchTextDirection: matchTextDirection,
-      gaplessPlayback: gaplessPlayback,
-      filterQuality: filterQuality,
-      isAntiAlias: isAntiAlias,
-      headers: headers,
-      cacheWidth: cacheWidth,
-      cacheHeight: cacheHeight,
+
+    return CachedNetworkImage(
+      imageUrl: src,
+      fadeInDuration: Duration.zero,
+      fit: BoxFit.cover,
+      memCacheHeight: memCacheHeight,
+      memCacheWidth: memCacheWidth,
+      maxWidthDiskCache: maxWidthDiskCache,
+      maxHeightDiskCache: maxHeightDiskCache,
+      cacheManager: cacheManager,
+      placeholder: placeholder,
+      errorWidget: errorWidget,
     );
   }
 }

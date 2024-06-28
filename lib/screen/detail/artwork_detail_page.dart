@@ -34,6 +34,7 @@ import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/file_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/playlist_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -316,10 +317,12 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                             backgroundColor: Colors.transparent,
                             actions: [
                               FFCastButton(
+                                displayKey: _getDisplayKey(asset),
                                 onDeviceSelected: (device) {
                                   if (widget.payload.playlist == null) {
                                     final artwork = PlayArtworkV2(
                                       token: CastAssetToken(id: asset.id),
+                                      duration: 0,
                                     );
                                     _canvasDeviceBloc.add(
                                         CanvasDeviceCastListArtworkEvent(
@@ -425,6 +428,14 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
         return const SizedBox();
       }
     });
+  }
+
+  String _getDisplayKey(AssetToken asset) {
+    final playlistDisplayKey = widget.payload.playlist?.displayKey;
+    if (playlistDisplayKey != null) {
+      return playlistDisplayKey;
+    }
+    return asset.id.hashCode.toString();
   }
 
   Widget _artworkInfoIcon() => Semantics(
@@ -596,7 +607,9 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     final showKeyboard = (asset.medium == 'software' ||
             asset.medium == 'other' ||
             (asset.medium?.isEmpty ?? true) ||
-            canvasDeviceState.isCasting) &&
+            canvasDeviceState
+                    .lastSelectedActiveDeviceForKey(_getDisplayKey(asset)) !=
+                null) &&
         !asset.isPostcard;
     if (!context.mounted) {
       return;
@@ -619,12 +632,14 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
             icon: SvgPicture.asset('assets/images/keyboard_icon.svg'),
             onTap: () {
               Navigator.of(context).pop();
-              if (canvasDeviceState.isCasting) {
+              final castingDevice = canvasDeviceState
+                  .lastSelectedActiveDeviceForKey(_getDisplayKey(asset));
+              if (castingDevice != null) {
                 unawaited(Navigator.of(context).pushNamed(
                   AppRouter.keyboardControlPage,
                   arguments: KeyboardControlPagePayload(
                     asset,
-                    [canvasDeviceState.controllingDevice!],
+                    [castingDevice],
                   ),
                 ));
               } else {
