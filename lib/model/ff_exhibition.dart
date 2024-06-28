@@ -283,9 +283,11 @@ class CustomExhibitionNote {
   final String content;
   final bool? canReadMore;
 
-  CustomExhibitionNote({required this.title, required this.content, this.canReadMore});
+  CustomExhibitionNote(
+      {required this.title, required this.content, this.canReadMore});
 
-  factory CustomExhibitionNote.fromJson(Map<String, dynamic> json) => CustomExhibitionNote(
+  factory CustomExhibitionNote.fromJson(Map<String, dynamic> json) =>
+      CustomExhibitionNote(
         title: json['title'],
         content: json['content'],
         canReadMore: json['canReadMore'] ?? false,
