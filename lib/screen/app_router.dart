@@ -48,7 +48,7 @@ import 'package:autonomy_flutter/screen/detail/preview/keyboard_control_page.dar
 import 'package:autonomy_flutter/screen/detail/preview/touchpad_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview_primer.dart';
 import 'package:autonomy_flutter/screen/detail/royalty/royalty_bloc.dart';
-import 'package:autonomy_flutter/screen/exhibition_additional_info/exhibition_addition_info_page.dart';
+import 'package:autonomy_flutter/screen/exhibition_custom_note/exhibition_custom_note_page.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
 import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artwork_preview_page.dart';
@@ -229,7 +229,7 @@ class AppRouter {
   static const projectsList = 'projects_list';
   static const addEthereumChainPage = 'add_ethereum_chain_page';
   static const artistsListPage = 'artists_list_page';
-  static const exhibitionAdditionalInfo = 'exhibition_additional_info';
+  static const exhibitionCustomNote = 'exhibition_custom_note';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector(), injector());
@@ -1160,9 +1160,9 @@ class AppRouter {
           ),
         );
 
-      case exhibitionAdditionalInfo:
+      case exhibitionCustomNote:
         return MaterialPageRoute(
-          builder: (context) => ExhibitionAdditionalInfoPage(
+          builder: (context) => ExhibitionCustomNotePage(
             info: settings.arguments! as CustomExhibitionNote,
           ),
         );

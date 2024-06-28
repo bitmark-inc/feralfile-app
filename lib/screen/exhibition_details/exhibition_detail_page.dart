@@ -12,7 +12,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/view/additional_info.dart';
+import 'package:autonomy_flutter/view/custom_note.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/cast_button.dart';
 import 'package:autonomy_flutter/view/exhibition_detail_last_page.dart';
@@ -181,8 +181,8 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
                 exhibition: exhibition,
               ),
               if (exhibition.isJohnGerrardShow)
-                ...JohnGerrardHelper.additionalInfo.map(
-                  (info) => ExhibitionAdditionalInfo(
+                ...JohnGerrardHelper.customNote.map(
+                  (info) => ExhibitionCustomNote(
                     info: info,
                   ),
                 ),

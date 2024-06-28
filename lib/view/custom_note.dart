@@ -6,8 +6,8 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 
-class ExhibitionAdditionalInfo extends StatelessWidget {
-  const ExhibitionAdditionalInfo({
+class ExhibitionCustomNote extends StatelessWidget {
+  const ExhibitionCustomNote({
     required this.info,
     super.key,
     this.isFull = false,
@@ -54,7 +54,7 @@ class ExhibitionAdditionalInfo extends StatelessWidget {
                 onTap: () async {
                   await Navigator.pushNamed(
                     context,
-                    AppRouter.exhibitionAdditionalInfo,
+                    AppRouter.exhibitionCustomNote,
                     arguments: info,
                   );
                 },
