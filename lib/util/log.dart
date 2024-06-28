@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:core';
 import 'dart:io';
 
@@ -42,14 +43,15 @@ APIErrorCode? getAPIErrorCode(int code) {
 
 Future<File> getLogFile() async {
   final directory = (await getTemporaryDirectory()).path;
-  const fileName = "app.log";
+  const fileName = 'app.log';
 
-  return _createLogFile("$directory/$fileName");
+  return _createLogFile('$directory/$fileName');
 }
 
 Future<File> _createLogFile(canonicalLogFileName) async =>
     File(canonicalLogFileName).create(recursive: true);
 
+// ignore: avoid_annotating_with_dynamic
 int? decodeErrorResponse(dynamic e) {
   if (e is DioException && e.type == DioExceptionType.badResponse) {
     return e.response?.data['error']['code'] as int;
@@ -61,7 +63,7 @@ class FileLogger {
   static final _lock =
       synchronization.Lock(); // uses the “synchronized” package
   static late File _logFile;
-  static const shrinkSize = 1024 * 1024; // 1MB
+  static const shrinkSize = 1024 * 256; // 1MB characters
 
   static Future initializeLogging() async {
     await shrinkLogFileIfNeeded();
@@ -70,9 +72,10 @@ class FileLogger {
   static Future<File> shrinkLogFileIfNeeded() async {
     _logFile = await getLogFile();
 
-    final current = await _logFile.readAsBytes();
+    final current = await _logFile.readAsString();
     if (current.length > shrinkSize) {
-      _logFile.writeAsBytes(current.sublist(current.length - shrinkSize),
+      await _logFile.writeAsString(
+          current.substring(current.length - shrinkSize),
           flush: true);
     }
 
@@ -80,22 +83,22 @@ class FileLogger {
 
     /// per its documentation, `writeAsString` “Opens the file, writes
     /// the string in the given encoding, and closes the file”
-    _logFile.writeAsString(text, mode: FileMode.append, flush: true);
+    await _logFile.writeAsString(text, mode: FileMode.append, flush: true);
 
     return _logFile;
   }
 
-  static setLogFile(File file) {
+  static void setLogFile(File file) {
     _logFile = file;
   }
 
-  static get logFile => _logFile;
+  static File get logFile => _logFile;
 
   static Future log(LogRecord record) async {
-    final text = '${record.toString()}\n';
+    final text = '$record\n';
     debugPrint(text);
     return _lock.synchronized(() async {
-      await _logFile.writeAsString("${record.time}: $text",
+      await _logFile.writeAsString('${record.time}: $text',
           mode: FileMode.append, flush: true);
     });
   }
@@ -113,9 +116,9 @@ class SentryBreadcrumbLogger {
       type = 'error';
       level = SentryLevel.warning;
     }
-    Sentry.addBreadcrumb(Breadcrumb(
+    unawaited(Sentry.addBreadcrumb(Breadcrumb(
         message: '[${record.level}] ${record.message}',
         level: level,
-        type: type));
+        type: type)));
   }
 }
