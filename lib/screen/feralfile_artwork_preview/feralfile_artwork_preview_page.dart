@@ -231,7 +231,7 @@ class _FeralFileArtworkPreviewPageState
                     artwork: artwork,
                   ),
                   if (isCrystallineWork) ...[
-                    SizedBox(height: _isInfoExpand ? 20 : 3),
+                    const SizedBox(height: 20),
                     artworkAttributesText(
                       context,
                       artwork,
