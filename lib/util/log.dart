@@ -63,7 +63,7 @@ class FileLogger {
   static final _lock =
       synchronization.Lock(); // uses the “synchronized” package
   static late File _logFile;
-  static const shrinkSize = 1024 * 256; // 1MB characters
+  static const shrinkSize = 1024 * 896; // 1MB characters
 
   static Future initializeLogging() async {
     await shrinkLogFileIfNeeded();
