@@ -48,7 +48,7 @@ import 'package:synchronized/synchronized.dart';
 import 'package:uuid/uuid.dart';
 
 abstract class AccountService {
-  Future<WalletStorage> getDefaultAccount();
+  Future<WalletStorage?> getDefaultAccount();
 
   Future<Persona> getOrCreateDefaultPersona();
 
@@ -197,8 +197,8 @@ class AccountServiceImpl extends AccountService {
   }
 
   @override
-  Future<WalletStorage> getDefaultAccount() async =>
-      _defaultAccountLock.synchronized(() async => await _getDefaultAccount());
+  Future<WalletStorage?> getDefaultAccount() async =>
+      _defaultAccountLock.synchronized(() => _getDefaultAccount());
 
   @override
   Future<WalletStorage?> getCurrentDefaultAccount() async {
@@ -253,10 +253,10 @@ class AccountServiceImpl extends AccountService {
     );
   }
 
-  Future<WalletStorage> _getDefaultAccount() async {
-    final Persona defaultPersona = await getOrCreateDefaultPersona();
+  Future<WalletStorage?> _getDefaultAccount() async {
+    final Persona? defaultPersona = await getDefaultPersona();
 
-    return LibAukDart.getWallet(defaultPersona.uuid);
+    return LibAukDart.getWallet(defaultPersona!.uuid);
   }
 
   Future<Persona?> getDefaultPersona() async {
@@ -710,6 +710,9 @@ class AccountServiceImpl extends AccountService {
     if (personas.isNotEmpty || connections.isNotEmpty) {
       unawaited(_configurationService.setOldUser());
       final defaultAccount = await getDefaultAccount();
+      if (defaultAccount == null) {
+        throw Exception('Default account not found');
+      }
       final backupVersion =
           await _backupService.fetchBackupVersion(defaultAccount);
       if (backupVersion.isNotEmpty) {

@@ -68,15 +68,6 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
 
       // migrate to membership profile
       final primaryAddressInfo = await _addressService.getPrimaryAddressInfo();
-      if (primaryAddressInfo == null) {
-        if (hasAccount) {
-          // pick one address and migrate to primary address
-        } else {
-          // take user to onboarding
-        }
-      } else {
-        // move to home page
-      }
 
       if (_configurationService.isDoneOnboarding()) {
         if (primaryAddressInfo == null) {
@@ -85,7 +76,7 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
             await _addressService.registerPrimaryAddress(
                 info: addressInfo, withDidKey: true);
           } catch (e, stacktrace) {
-            log.info('Error while picking primary address', e);
+            log.info('Error while picking primary address', e, stacktrace);
             // rethrow;
           }
         }
@@ -99,8 +90,9 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
 
       if (hasAccount) {
         unawaited(_configurationService.setOldUser());
-        final backupVersion = await _backupService
-            .fetchBackupVersion(await _accountService.getDefaultAccount());
+        final defaultAccount = await _accountService.getDefaultAccount();
+        final backupVersion =
+            await _backupService.fetchBackupVersion(defaultAccount!);
 
         if (backupVersion.isNotEmpty) {
           log.info('[DefineViewRoutingEvent] have backup version');
@@ -129,8 +121,13 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
           return;
         }
         log.info('[RestoreCloudDatabase] restoreCloudDatabase');
+        final defaultAccount = await _accountService.getDefaultAccount();
+        if (defaultAccount == null) {
+          log.info('[RestoreCloudDatabase] defaultAccount is null');
+          return;
+        }
         await _backupService.restoreCloudDatabase(
-            await _accountService.getDefaultAccount(), event.version);
+            defaultAccount, event.version);
 
         await _settingsDataService.restoreSettingsData();
 
@@ -165,7 +162,7 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
             await _addressService.registerPrimaryAddress(
                 info: addressInfo, withDidKey: true);
           } catch (e, stacktrace) {
-            log.info('Error while picking primary address', e);
+            log.info('Error while picking primary address', e, stacktrace);
             // rethrow;
           }
           emit(RouterState(onboardingStep: OnboardingStep.dashboard));

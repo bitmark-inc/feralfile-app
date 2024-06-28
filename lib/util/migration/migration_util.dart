@@ -128,7 +128,6 @@ class MigrationUtil {
       if (existingPersona == null) {
         final wallet = Persona.newPersona(uuid: uuid).wallet();
         final name = await wallet.getName();
-
         final backupVersion = await _backupService.fetchBackupVersion(wallet);
         final defaultAccount = backupVersion.isNotEmpty ? 1 : null;
 

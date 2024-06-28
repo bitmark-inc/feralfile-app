@@ -152,7 +152,8 @@ class AddressService {
   }
 
   Future<int> getNumberNft(String address) async {
-    final numberNft = _indexerApi.numberNft(address);
+    final response = await _indexerApi.numberNft(address);
+    final numberNft = response['total'];
     return numberNft;
   }
 }
