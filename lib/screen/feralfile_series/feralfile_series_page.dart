@@ -1,5 +1,5 @@
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_list_response.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';

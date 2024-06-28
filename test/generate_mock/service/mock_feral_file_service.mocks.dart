@@ -277,6 +277,15 @@ class MockFeralFileService extends _i1.Mock implements _i6.FeralFileService {
         )),
       ) as _i7.Future<_i5.FeralFileListResponse<_i3.Artwork>>);
   @override
+  _i7.Future<_i3.Artwork?> getFirstViewableArtwork(String? seriesId) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getFirstViewableArtwork,
+          [seriesId],
+        ),
+        returnValue: _i7.Future<_i3.Artwork?>.value(),
+      ) as _i7.Future<_i3.Artwork?>);
+  @override
   _i7.Future<String> getFeralfileActionMessage({
     required String? address,
     required _i6.FeralfileAction? action,
