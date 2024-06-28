@@ -18,7 +18,6 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 Dio feralFileDio(BaseOptions options) {
   final dio = baseDio(options);
   dio.interceptors.add(FeralfileAuthInterceptor());
-  dio.interceptors.add(ConnectingExceptionInterceptor());
   return dio;
 }
 
@@ -32,7 +31,6 @@ Dio postcardDio(BaseOptions options) {
   final dio = baseDio(options);
   dio.interceptors.add(HmacAuthInterceptor(Environment.auClaimSecretKey));
   dio.interceptors.add(AutonomyAuthInterceptor());
-  dio.interceptors.add(ConnectingExceptionInterceptor());
   return dio;
 }
 
@@ -47,7 +45,6 @@ Dio tvCastDio(BaseOptions options) {
 Dio chatDio(BaseOptions options) {
   final dio = baseDio(options);
   dio.interceptors.add(HmacAuthInterceptor(Environment.chatServerHmacKey));
-  dio.interceptors.add(ConnectingExceptionInterceptor());
   return dio;
 }
 
