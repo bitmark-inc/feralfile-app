@@ -15,20 +15,17 @@ class GetOpeningExhibitionsEvent extends ExhibitionsEvent {}
 class ExhibitionsState {
   ExhibitionsState({
     this.currentPage = 0,
-    this.sourceExhibition,
     this.upcomingExhibition,
     this.featuredExhibition,
     this.pastExhibitions,
   });
 
   final int currentPage;
-  final Exhibition? sourceExhibition;
   final Exhibition? upcomingExhibition;
   final Exhibition? featuredExhibition;
   final List<Exhibition>? pastExhibitions;
 
   ExhibitionsState copyWith({
-    Exhibition? sourceExhibition,
     final Exhibition? upcomingExhibition,
     final Exhibition? featuredExhibition,
     final List<Exhibition>? pastExhibitions,
@@ -37,7 +34,6 @@ class ExhibitionsState {
   }) =>
       ExhibitionsState(
         currentPage: currentPage ?? this.currentPage,
-        sourceExhibition: sourceExhibition ?? this.sourceExhibition,
         upcomingExhibition: upcomingExhibition ?? this.upcomingExhibition,
         featuredExhibition: featuredExhibition ?? this.featuredExhibition,
         pastExhibitions: pastExhibitions ?? this.pastExhibitions,
@@ -47,5 +43,11 @@ class ExhibitionsState {
         if (featuredExhibition != null) featuredExhibition!.id,
         if (upcomingExhibition != null) upcomingExhibition!.id,
         ...pastExhibitions?.map((e) => e.id) ?? [],
+      ];
+
+  List<Exhibition> get allExhibitions => [
+        if (featuredExhibition != null) featuredExhibition!,
+        if (upcomingExhibition != null) upcomingExhibition!,
+        ...pastExhibitions ?? [],
       ];
 }

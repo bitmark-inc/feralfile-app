@@ -19,9 +19,14 @@ class _FeralFileApi implements FeralFileApi {
   String? baseUrl;
 
   @override
-  Future<ExhibitionResponse> getExhibition(String exhibitionId) async {
+  Future<ExhibitionResponse> getExhibition(
+    String exhibitionId, {
+    bool includeFirstArtwork = false,
+  }) async {
     const _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'includeFirstArtwork': includeFirstArtwork
+    };
     final _headers = <String, dynamic>{};
     final Map<String, dynamic>? _data = null;
     final _result = await _dio
@@ -89,7 +94,6 @@ class _FeralFileApi implements FeralFileApi {
     String? sortBy,
     String? sortOrder,
     bool includeArtist = true,
-    bool includeFirstArtwork = false,
     bool includeUniqueFilePath = true,
   }) async {
     const _extra = <String, dynamic>{};
@@ -98,7 +102,6 @@ class _FeralFileApi implements FeralFileApi {
       r'sortBy': sortBy,
       r'sortOrder': sortOrder,
       r'includeArtist': includeArtist,
-      r'includeFirstArtwork': includeFirstArtwork,
       r'includeUniqueFilePath': includeUniqueFilePath,
     };
     queryParameters.removeWhere((k, v) => v == null);
@@ -284,11 +287,12 @@ class _FeralFileApi implements FeralFileApi {
   Future<FeralFileListResponse<Artwork>> getListArtworks({
     String? exhibitionId,
     String? seriesId,
-    int? offset,
-    int? limit,
+    int? offset = 0,
+    int? limit = 1,
     bool includeActiveSwap = true,
     String sortBy = 'index',
     String sortOrder = 'ASC',
+    bool? isViewable,
   }) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
@@ -299,6 +303,7 @@ class _FeralFileApi implements FeralFileApi {
       r'includeActiveSwap': includeActiveSwap,
       r'sortBy': sortBy,
       r'sortOrder': sortOrder,
+      r'isViewable': isViewable,
     };
     queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
