@@ -48,7 +48,7 @@ class ExhibitionAdditionalInfo extends StatelessWidget {
                 ),
               ),
             ),
-            if (info.readMore == true && !isFull) ...[
+            if (info.canReadMore == true && !isFull) ...[
               const SizedBox(height: 20),
               GestureDetector(
                 onTap: () async {

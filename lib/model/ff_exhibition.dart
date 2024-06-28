@@ -281,14 +281,14 @@ class Post {
 class AdditionalInfo {
   final String title;
   final String content;
-  final bool? readMore;
+  final bool? canReadMore;
 
-  AdditionalInfo({required this.title, required this.content, this.readMore});
+  AdditionalInfo({required this.title, required this.content, this.canReadMore});
 
   factory AdditionalInfo.fromJson(Map<String, dynamic> json) => AdditionalInfo(
         title: json['title'],
         content: json['content'],
-        readMore: json['readMore'] ?? false,
+        canReadMore: json['canReadMore'] ?? false,
       );
 }
 
