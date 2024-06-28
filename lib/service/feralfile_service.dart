@@ -555,9 +555,7 @@ class FeralFileServiceImpl extends FeralFileService {
       return exhibition.series ?? [];
     }
     final response = await _feralFileApi.getListSeries(
-        exhibitionID: exhibitionId,
-        sortBy: 'displayIndex',
-        sortOrder: 'ASC');
+        exhibitionID: exhibitionId, sortBy: 'displayIndex', sortOrder: 'ASC');
     return response.result;
   }
 
