@@ -320,8 +320,8 @@ class ScannerInstruction {
         onTap: () {
           final context =
               injector<NavigationService>().navigatorKey.currentContext!;
-          UIHelper.showDialog(context, 'display'.tr(),
-              const DisplayInstructionView(),
+          UIHelper.showDialog(
+              context, 'display'.tr(), const DisplayInstructionView(),
               isDismissible: true, withCloseIcon: true);
         },
         child: SvgPicture.asset('assets/images/info_white.svg')),
