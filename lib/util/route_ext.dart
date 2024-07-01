@@ -492,6 +492,7 @@ final screenNameMap = {
   AppRouter.wcSignMessagePage: 'WC Sign Message',
   AppRouter.wcSendTransactionPage: 'WC Send Transaction',
   AppRouter.momaPostcardPage: 'MoMA Postcards',
+  AppRouter.featuredWorksPage: 'Featured Works',
   AppRouter.tbSendTransactionPage: 'TB Send Transaction',
   AppRouter.feralFileSeriesPage: 'Series Detail',
   AppRouter.ffArtworkPreviewPage: 'Feral File Artwork Preview',

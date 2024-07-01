@@ -257,6 +257,34 @@ class _FeralFileApi implements FeralFileApi {
   }
 
   @override
+  Future<FFListArtworksResponse> getFeaturedArtworks(
+      {bool includeArtist = true}) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{r'includeArtist': includeArtist};
+    final _headers = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
+    final _result = await _dio.fetch<Map<String, dynamic>>(
+        _setStreamType<FFListArtworksResponse>(Options(
+      method: 'GET',
+      headers: _headers,
+      extra: _extra,
+    )
+            .compose(
+              _dio.options,
+              '/api/artworks/featured',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(
+                baseUrl: _combineBaseUrls(
+              _dio.options.baseUrl,
+              baseUrl,
+            ))));
+    final value = FFListArtworksResponse.fromJson(_result.data!);
+    return value;
+  }
+
+  @override
   Future<ExhibitionResponse> getUpcomingExhibition() async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};

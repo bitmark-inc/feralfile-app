@@ -158,6 +158,8 @@ abstract class FeralFileService {
 
   Future<Exhibition> getFeaturedExhibition();
 
+  Future<List<Artwork>> getFeaturedArtworks();
+
   Future<FeralFileListResponse<Artwork>> getSeriesArtworks(
       String seriesId, String exhibitionID,
       {bool withSeries = false, int offset = offset, int limit = limit});
@@ -288,6 +290,12 @@ class FeralFileServiceImpl extends FeralFileService {
   Future<Exhibition> getFeaturedExhibition() async {
     final exhibitionResponse = await _feralFileApi.getFeaturedExhibition();
     return exhibitionResponse.result!;
+  }
+
+  @override
+  Future<List<Artwork>> getFeaturedArtworks() async {
+    final response = await _feralFileApi.getFeaturedArtworks();
+    return response.result;
   }
 
   Future<List<Artwork>> _getFakeSeriesArtworks(

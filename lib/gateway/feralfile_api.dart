@@ -65,6 +65,11 @@ abstract class FeralFileApi {
   @GET('/api/exhibitions/featured')
   Future<ExhibitionResponse> getFeaturedExhibition();
 
+  @GET('/api/artworks/featured')
+  Future<FFListArtworksResponse> getFeaturedArtworks({
+    @Query('includeArtist') bool includeArtist = true,
+  });
+
   @GET('/api/exhibitions/upcoming')
   Future<ExhibitionResponse> getUpcomingExhibition();
 
@@ -117,6 +122,22 @@ class FFListSeriesResponse {
       FFListSeriesResponse(
         result:
             (json['result'] as List).map((e) => FFSeries.fromJson(e)).toList(),
+      );
+
+  Map<String, dynamic> toJson() => {
+        'result': result,
+      };
+}
+
+class FFListArtworksResponse {
+  List<Artwork> result;
+
+  FFListArtworksResponse({required this.result});
+
+  factory FFListArtworksResponse.fromJson(Map<String, dynamic> json) =>
+      FFListArtworksResponse(
+        result:
+            (json['result'] as List).map((e) => Artwork.fromJson(e)).toList(),
       );
 
   Map<String, dynamic> toJson() => {
