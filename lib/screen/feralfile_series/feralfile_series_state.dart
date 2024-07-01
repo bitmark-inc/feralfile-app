@@ -11,15 +11,19 @@ class FeralFileSeriesGetSeriesEvent extends FeralFileSeriesEvent {
 
 class FeralFileSeriesState {
   final FFSeries? series;
+  final double thumbnailRatio;
 
   FeralFileSeriesState({
     this.series,
+    this.thumbnailRatio = 1.0,
   });
 
   FeralFileSeriesState copyWith({
     FFSeries? series,
+    double? thumbnailRatio,
   }) =>
       FeralFileSeriesState(
         series: series ?? this.series,
+        thumbnailRatio: thumbnailRatio ?? this.thumbnailRatio,
       );
 }
