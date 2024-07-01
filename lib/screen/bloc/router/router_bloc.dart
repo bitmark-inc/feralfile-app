@@ -107,6 +107,12 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
           unawaited(injector<MetricClientService>()
               .mixPanelClient
               .initIfDefaultAccount());
+          if (primaryAddressInfo == null) {
+            final primaryAddressInfo =
+                await _addressService.pickAddressAsPrimary();
+            await _addressService.registerPrimaryAddress(
+                info: primaryAddressInfo);
+          }
           emit(RouterState(onboardingStep: OnboardingStep.dashboard));
           return;
         }

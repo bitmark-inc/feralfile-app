@@ -32,7 +32,7 @@ class AuthService {
     _jwt = null;
   }
 
-  Future<JWT?> _getPrimaryAddressAuthToken() async {
+  Future<JWT?> _getPrimaryAddressAuthToken({String? receiptData}) async {
     final primaryAddressInfo = await _addressService.getPrimaryAddressInfo();
     if (primaryAddressInfo == null) {
       return null;
@@ -57,6 +57,16 @@ class AuthService {
       'signature': signature,
     };
     var newJwt = await _authApi.authAddress(payload);
+    _jwt = newJwt;
+
+    if (newJwt.isValid(withSubscription: true)) {
+      unawaited(_configurationService
+          .setIAPReceipt(receiptData ?? _configurationService.getIAPReceipt()));
+      unawaited(_configurationService.setIAPJWT(newJwt));
+    } else {
+      unawaited(_configurationService.setIAPReceipt(null));
+      unawaited(_configurationService.setIAPJWT(null));
+    }
     return newJwt;
   }
 
@@ -73,23 +83,9 @@ class AuthService {
     if (!forceRefresh && _jwt != null && _jwt!.isValid()) {
       return _jwt!;
     }
-
-    final newJwt =
-        await _getPrimaryAddressAuthToken() ?? await _getDidKeyAuthToken();
-
-    _jwt = newJwt;
-
-    if (newJwt.isValid(withSubscription: true)) {
-      unawaited(_configurationService
-          .setIAPReceipt(receiptData ?? _configurationService.getIAPReceipt()));
-      if (await _addressService.getPrimaryAddress() != null) {
-        unawaited(_configurationService.setIAPJWT(newJwt));
-      }
-    } else {
-      unawaited(_configurationService.setIAPReceipt(null));
-      unawaited(_configurationService.setIAPJWT(null));
-    }
-
+    final primaryAddressAuthToken =
+        await _getPrimaryAddressAuthToken(receiptData: receiptData);
+    final newJwt = primaryAddressAuthToken ?? await _getDidKeyAuthToken();
     return newJwt;
   }
 

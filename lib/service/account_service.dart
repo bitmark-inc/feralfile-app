@@ -156,7 +156,7 @@ class AccountServiceImpl extends AccountService {
           info: primary_address_channel.AddressInfo(
         uuid: persona.uuid,
         chain: 'ethereum',
-        index: 1,
+        index: 0,
       ));
     }
     return persona;
@@ -255,8 +255,11 @@ class AccountServiceImpl extends AccountService {
 
   Future<WalletStorage?> _getDefaultAccount() async {
     final Persona? defaultPersona = await getDefaultPersona();
+    if (defaultPersona == null) {
+      return null;
+    }
 
-    return LibAukDart.getWallet(defaultPersona!.uuid);
+    return LibAukDart.getWallet(defaultPersona.uuid);
   }
 
   Future<Persona?> getDefaultPersona() async {

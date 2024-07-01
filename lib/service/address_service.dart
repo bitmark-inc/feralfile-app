@@ -51,7 +51,8 @@ class AddressService {
     final chain = info.chain;
     switch (chain) {
       case 'ethereum':
-        final address = await walletStorage.getETHAddress(index: info.index);
+        final address =
+            await walletStorage.getETHEip55Address(index: info.index);
         final checksumAddress = address.getETHEip55Address();
         return checksumAddress;
       case 'tezos':
@@ -126,7 +127,11 @@ class AddressService {
       'feralfile-account: {"requester":"$address","timestamp":"$timestamp"}';
 
   Future<List<WalletAddress>> getAllAddress() async {
-    return _cloudDB.addressDao.getAllAddresses();
+    final addresses = await _cloudDB.addressDao.getAllAddresses();
+    final persona = await _cloudDB.personaDao.getPersonas();
+    addresses
+        .removeWhere((address) => !persona.any((p) => p.uuid == address.uuid));
+    return addresses;
   }
 
   Future<AddressInfo> pickAddressAsPrimary() async {
