@@ -28,7 +28,9 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/route_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/display_instruction_view.dart';
 import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -37,6 +39,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 
@@ -180,26 +183,17 @@ class ScanQRPageState extends State<ScanQRPage>
         ),
       );
 
-  Widget _content(BuildContext context) {
-    final size1 = MediaQuery.of(context).size.height / 2;
-    final qrSize = size1 < 240.0 ? size1 : 240.0;
-
-    double cutPaddingTop = qrSize + 500 - MediaQuery.of(context).size.height;
-    if (cutPaddingTop < 0) {
-      cutPaddingTop = 0;
-    }
-    return Column(
-      children: [
-        Expanded(
-          child: TabBarView(
-            controller: _tabController,
-            physics: const NeverScrollableScrollPhysics(),
-            children: _pages.sublist(0, _tabController.length),
+  Widget _content(BuildContext context) => Column(
+        children: [
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              physics: const NeverScrollableScrollPhysics(),
+              children: _pages.sublist(0, _tabController.length),
+            ),
           ),
-        ),
-      ],
-    );
-  }
+        ],
+      );
 
   Widget _header(BuildContext context) {
     final theme = Theme.of(context);
@@ -274,7 +268,64 @@ enum ScannerItem {
   ETH_ADDRESS,
   XTZ_ADDRESS,
   GLOBAL,
-  CANVAS,
+  CANVAS;
+
+  List<ScannerInstruction> get instructions {
+    switch (this) {
+      case WALLET_CONNECT:
+      case BEACON_CONNECT:
+        return [ScannerInstruction.web3Connect];
+      case ETH_ADDRESS:
+      case XTZ_ADDRESS:
+        return [];
+      case GLOBAL:
+        return [
+          ScannerInstruction.web3Connect,
+          ScannerInstruction.signTransaction,
+          ScannerInstruction.displayFF,
+        ];
+      case CANVAS:
+        return [
+          ScannerInstruction.displayFF,
+        ];
+    }
+  }
+}
+
+class ScannerInstruction {
+  final String name;
+  final String detail;
+  final Widget? icon;
+
+  const ScannerInstruction({
+    required this.name,
+    required this.detail,
+    this.icon,
+  });
+
+  static ScannerInstruction web3Connect = ScannerInstruction(
+    name: 'apps'.tr(),
+    detail: 'such_as_openSea'.tr(),
+  );
+
+  static ScannerInstruction signTransaction = ScannerInstruction(
+    name: 'sign_transaction'.tr(),
+    detail: 'after_connecting'.tr(),
+  );
+
+  static ScannerInstruction displayFF = ScannerInstruction(
+    name: 'display_with_ff'.tr(),
+    detail: 'on_tv_or_desktop'.tr(),
+    icon: GestureDetector(
+        onTap: () {
+          final context =
+              injector<NavigationService>().navigatorKey.currentContext!;
+          UIHelper.showDialog(context, 'display'.tr(),
+              const DisplayInstructionView(),
+              isDismissible: true, withCloseIcon: true);
+        },
+        child: SvgPicture.asset('assets/images/info_white.svg')),
+  );
 }
 
 class QRScanView extends StatefulWidget {
@@ -298,6 +349,9 @@ class QRScanViewState extends State<QRScanView>
   String? currentCode;
   final metricClient = injector<MetricClientService>();
   Timer? _timer;
+
+  static const _qrSize = 260.0;
+  static const double _topPadding = 144;
 
   late bool _shouldPop;
 
@@ -378,13 +432,6 @@ class QRScanViewState extends State<QRScanView>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    final size1 = MediaQuery.of(context).size.height / 2;
-    final qrSize = size1 < 240.0 ? size1 : 240.0;
-
-    var cutPaddingTop = qrSize + 500 - MediaQuery.of(context).size.height;
-    if (cutPaddingTop < 0) {
-      cutPaddingTop = 0;
-    }
     final theme = Theme.of(context);
     return Stack(
       children: [
@@ -393,22 +440,9 @@ class QRScanViewState extends State<QRScanView>
         else ...[
           _qrView(context),
           Padding(
-            padding: EdgeInsets.fromLTRB(
-              0,
-              MediaQuery.of(context).size.height / 2 +
-                  qrSize / 2 -
-                  cutPaddingTop,
-              0,
-              15,
-            ),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _instructionView(context),
-                ],
-              ),
-            ),
+            padding:
+                const EdgeInsets.fromLTRB(0, _qrSize + _topPadding + 30, 0, 15),
+            child: _instructionView(context),
           )
         ],
         if (_isLoading) ...[
@@ -425,28 +459,26 @@ class QRScanViewState extends State<QRScanView>
 
   Widget _qrView(BuildContext context) {
     final theme = Theme.of(context);
-    final size1 = MediaQuery.of(context).size.height / 2;
-    final qrSize = size1 < 240.0 ? size1 : 240.0;
-
-    var cutPaddingTop = qrSize + 500 - MediaQuery.of(context).size.height;
-    if (cutPaddingTop < 0) {
-      cutPaddingTop = 0;
+    double cutOutBottomOffset =
+        MediaQuery.of(context).size.height / 2 - (_qrSize / 2 + _topPadding);
+    if (cutOutBottomOffset < 0) {
+      cutOutBottomOffset = 0;
     }
-    final cutOutBottomOffset = 80 + cutPaddingTop;
     return Stack(
       children: [
         QRView(
           key: qrKey,
           overlay: QrScannerOverlayShape(
+            borderLength: _qrSize / 2,
             borderColor:
                 isScanDataError ? AppColor.red : theme.colorScheme.secondary,
             overlayColor: _cameraPermission == true
                 ? const Color.fromRGBO(0, 0, 0, 0.6)
                 : const Color.fromRGBO(0, 0, 0, 1),
-            cutOutSize: qrSize,
-            borderWidth: 8,
-            borderRadius: 40,
+            cutOutSize: _qrSize,
+            borderWidth: 1,
             cutOutBottomOffset: cutOutBottomOffset,
+            borderRadius: 40,
           ),
           onQRViewCreated: _onQRViewCreated,
           onPermissionSet: (ctrl, p) {
@@ -457,12 +489,11 @@ class QRScanViewState extends State<QRScanView>
         ),
         if (isScanDataError)
           Positioned(
-            left: (MediaQuery.of(context).size.width - qrSize) / 2,
-            top: (MediaQuery.of(context).size.height - qrSize) / 2 -
-                cutOutBottomOffset,
+            left: (MediaQuery.of(context).size.width - _qrSize) / 2,
+            top: _topPadding,
             child: SizedBox(
-              height: qrSize,
-              width: qrSize,
+              height: _qrSize,
+              width: _qrSize,
               child: Center(
                 child: Text(
                   'invalid_qr_code'.tr(),
@@ -476,61 +507,46 @@ class QRScanViewState extends State<QRScanView>
     );
   }
 
-  Widget _noPermissionView(BuildContext context) {
-    final size1 = MediaQuery.of(context).size.height / 2;
-    final qrSize = size1 < 240.0 ? size1 : 240.0;
-
-    var cutPaddingTop = qrSize + 500 - MediaQuery.of(context).size.height;
-    if (cutPaddingTop < 0) {
-      cutPaddingTop = 0;
-    }
-    final cutOutBottomOffset = 80 + cutPaddingTop;
-    return Stack(
-      children: [
-        _qrView(context),
-        Padding(
-          padding: EdgeInsets.fromLTRB(
-            0,
-            MediaQuery.of(context).size.height / 2 +
-                qrSize / 2 -
-                cutOutBottomOffset +
-                32,
-            0,
-            120,
-          ),
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _instructionViewNoPermission(context),
-                Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: PrimaryButton(
-                    text: 'open_setting'.tr(
-                      namedArgs: {
-                        'device': Platform.isAndroid ? 'Device' : 'iOS',
+  Widget _noPermissionView(BuildContext context) => Stack(
+        children: [
+          _qrView(context),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              0,
+              _qrSize + _topPadding + 20,
+              0,
+              120,
+            ),
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _instructionViewNoPermission(context),
+                  Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: PrimaryButton(
+                      text: 'open_setting'.tr(
+                        namedArgs: {
+                          'device': Platform.isAndroid ? 'Device' : 'iOS',
+                        },
+                      ),
+                      onTap: () async {
+                        await openAppSettings();
                       },
                     ),
-                    onTap: () async {
-                      await openAppSettings();
-                    },
-                  ),
-                )
-              ],
+                  )
+                ],
+              ),
             ),
           ),
-        ),
-      ],
-    );
-  }
+        ],
+      );
 
   Widget _instructionViewNoPermission(BuildContext context) {
     final theme = Theme.of(context);
-    final size1 = MediaQuery.of(context).size.height / 2;
-    final qrSize = size1 < 240.0 ? size1 : 240.0;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      width: qrSize,
+      width: _qrSize,
       child: Text(
         'please_ensure'.tr(),
         style: theme.textTheme.ppMori400White14,
@@ -540,111 +556,102 @@ class QRScanViewState extends State<QRScanView>
   }
 
   Widget _instructionView(BuildContext context) {
-    final theme = Theme.of(context);
-
-    switch (widget.scannerItem) {
-      case ScannerItem.WALLET_CONNECT:
-      case ScannerItem.BEACON_CONNECT:
-      case ScannerItem.GLOBAL:
-        return Padding(
-          padding: const EdgeInsets.all(15),
-          child: Container(
-            width: MediaQuery.of(context).size.width,
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primary,
-              borderRadius: BorderRadius.circular(5),
-            ),
-            padding: const EdgeInsets.all(15),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'scan_qr_to'.tr(),
-                  style: theme.textTheme.ppMori700White14,
-                ),
-                const Divider(
-                  color: AppColor.auGreyBackground,
-                  height: 30,
-                ),
-                RichText(
-                  text: TextSpan(
-                    text: 'apps'.tr(),
-                    children: [
-                      TextSpan(
-                        text: ' ',
-                        style: theme.textTheme.ppMori400Grey14,
-                      ),
-                      TextSpan(
-                        text: 'such_as_openSea'.tr(),
-                        style: theme.textTheme.ppMori400Grey14,
-                      ),
-                    ],
-                    style: theme.textTheme.ppMori400White14,
-                  ),
-                ),
-                const SizedBox(height: 15),
-                RichText(
-                  text: TextSpan(
-                    text: 'sign_transaction'.tr(),
-                    children: [
-                      TextSpan(
-                        text: ' ',
-                        style: theme.textTheme.ppMori400Grey14,
-                      ),
-                      TextSpan(
-                        text: 'after_connecting'.tr(),
-                        style: theme.textTheme.ppMori400Grey14,
-                      ),
-                    ],
-                    style: theme.textTheme.ppMori400White14,
-                  ),
-                ),
-                const SizedBox(height: 15),
-                RichText(
-                  text: TextSpan(
-                    text: 'display_with_ff'.tr(),
-                    children: [
-                      TextSpan(
-                        text: ' ',
-                        style: theme.textTheme.ppMori400Grey14,
-                      ),
-                      TextSpan(
-                        text: 'on_tv_or_desktop'.tr(),
-                        style: theme.textTheme.ppMori400Grey14,
-                      ),
-                    ],
-                    style: theme.textTheme.ppMori400White14,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      case ScannerItem.CANVAS:
-        return RichText(
-          text: TextSpan(
-            text: 'display_with_ff'.tr(),
-            children: [
-              TextSpan(
-                text: ' ',
-                style: theme.textTheme.ppMori400Grey14,
-              ),
-              TextSpan(
-                text: 'on_tv_or_desktop'.tr(),
-                style: theme.textTheme.ppMori400Grey14,
-              ),
-            ],
-            style: theme.textTheme.ppMori400White14,
-          ),
-        );
-      case ScannerItem.ETH_ADDRESS:
-      case ScannerItem.XTZ_ADDRESS:
-        return Column(
-          children: [
-            Text('scan_qr'.tr(), style: theme.primaryTextTheme.labelLarge),
-          ],
-        );
+    if (widget.scannerItem.instructions.isEmpty) {
+      return const SizedBox();
     }
+    return Padding(
+        padding: const EdgeInsets.all(44),
+        child: Column(
+          children: [
+            _instructionHeader(context),
+            _instructionBody(context, widget.scannerItem.instructions)
+          ],
+        ));
+  }
+
+  Widget _instructionHeader(BuildContext context) {
+    final theme = Theme.of(context);
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        color: AppColor.auGreyBackground,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(15),
+          topRight: Radius.circular(15),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 25),
+        child: Row(
+          children: [
+            SvgPicture.asset(
+              'assets/images/icon_scan.svg',
+            ),
+            const SizedBox(width: 20),
+            RichText(
+              text: TextSpan(
+                text: 'scan_qr_code'.tr(),
+                children: [
+                  TextSpan(
+                    text: ' ',
+                    style: theme.textTheme.ppMori400Grey14,
+                  ),
+                  TextSpan(
+                    text: 'in_order_to'.tr(),
+                    style: theme.textTheme.ppMori400Grey14,
+                  ),
+                ],
+                style: theme.textTheme.ppMori400White14,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _instructionBody(
+      BuildContext context, List<ScannerInstruction> instructions) {
+    final theme = Theme.of(context);
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        color: AppColor.primaryBlack,
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(15),
+          bottomRight: Radius.circular(15),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 25),
+        child: Column(
+          children: instructions
+              .map(
+                (instruction) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            instruction.name,
+                            style: theme.textTheme.ppMori700White14,
+                          ),
+                          Text(
+                            instruction.detail,
+                            style: theme.textTheme.ppMori400Grey14,
+                          )
+                        ],
+                      ),
+                      instruction.icon ?? const SizedBox(),
+                    ],
+                  ),
+                ),
+              )
+              .toList(),
+        ),
+      ),
+    );
   }
 
   void _onQRViewCreated(QRViewController controller) {
