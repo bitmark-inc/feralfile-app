@@ -59,7 +59,9 @@ Widget accountWithConnectionItem(
 }
 
 Widget accountItem(BuildContext context, Account account,
-    {Function()? onPersonaTap, Function()? onConnectionTap}) {
+    {bool isPrimary = false,
+    Function()? onPersonaTap,
+    Function()? onConnectionTap}) {
   if ((account.persona == null || account.walletAddress == null) &&
       account.connections?.first == null) {
     return const SizedBox();
@@ -113,6 +115,14 @@ Widget accountItem(BuildContext context, Account account,
                         style: theme.textTheme.ppMori400Grey14),
                   ),
                 )
+              ],
+              if (isPrimary) ...[
+                const SizedBox(width: 10),
+                SvgPicture.asset(
+                  'assets/images/file_attached.svg',
+                  colorFilter: ColorFilter.mode(
+                      theme.colorScheme.surface, BlendMode.srcIn),
+                ),
               ],
               const SizedBox(width: 20),
               SvgPicture.asset('assets/images/iconForward.svg'),
