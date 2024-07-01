@@ -43,6 +43,9 @@ enum NotificationType {
   newMessage,
   jgCrystallineWorkHasArrived,
   jgCrystallineWorkGenerated,
+  exhibitionViewingOpening,
+  exhibitionSalesOpening,
+  exhibitionSaleClosing,
   unknown;
 
   // toString method
@@ -71,6 +74,12 @@ enum NotificationType {
         return 'jg_artwork_solar_day_arrived';
       case NotificationType.jgCrystallineWorkGenerated:
         return 'jg_artwork_generated';
+      case NotificationType.exhibitionViewingOpening:
+        return 'exhibition_viewing_opening';
+      case NotificationType.exhibitionSalesOpening:
+        return 'exhibition_sales_opening';
+      case NotificationType.exhibitionSaleClosing:
+        return 'exhibition_sale_closing';
       case NotificationType.unknown:
         return 'unknown';
     }
@@ -101,6 +110,12 @@ enum NotificationType {
         return NotificationType.jgCrystallineWorkHasArrived;
       case 'jg_artwork_generated':
         return NotificationType.jgCrystallineWorkGenerated;
+      case 'exhibition_viewing_opening':
+        return NotificationType.exhibitionViewingOpening;
+      case 'exhibition_sales_opening':
+        return NotificationType.exhibitionSalesOpening;
+      case 'exhibition_sale_closing':
+        return NotificationType.exhibitionSaleClosing;
       default:
         return NotificationType.unknown;
     }
@@ -233,13 +248,9 @@ class NotificationHandler {
             arguments: postcardDetailPayload));
 
       case NotificationType.jgCrystallineWorkHasArrived:
-        _navigationService.popUntilHome();
-        Future.delayed(const Duration(seconds: 1), () async {
-          final jgExhibitionId = JohnGerrardHelper.exhibitionID;
-          await (homePageKey.currentState ??
-                  homePageNoTransactionKey.currentState)
-              ?.openExhibition(jgExhibitionId ?? '');
-        });
+        final jgExhibitionId = JohnGerrardHelper.exhibitionID;
+        await _navigationService
+            .gotoExhibitionDetailsPage(jgExhibitionId ?? '');
 
       case NotificationType.jgCrystallineWorkGenerated:
         _navigationService.popUntilHome();
@@ -249,17 +260,17 @@ class NotificationHandler {
         }
         final tokenId = data['token_id'];
         final indexId = JohnGerrardHelper.getIndexID(tokenId);
-        final tokens = await injector<NftCollectionDatabase>()
-            .assetTokenDao
-            .findAllAssetTokensByTokenIDs([indexId]);
-        final owner = tokens.first.owner;
-        final artworkDetailPayload =
-            ArtworkDetailPayload([ArtworkIdentity(indexId, owner)], 0);
-        if (context.mounted) {
-          unawaited(Navigator.of(context).pushNamed(
-              AppRouter.artworkDetailsPage,
-              arguments: artworkDetailPayload));
+        await _navigationService.gotoArtworkDetailsPage(indexId);
+
+      case NotificationType.exhibitionViewingOpening:
+      case NotificationType.exhibitionSalesOpening:
+      case NotificationType.exhibitionSaleClosing:
+        final data = notification.additionalData;
+        if (data == null) {
+          return;
         }
+        final exhibitionId = data['exhibition_id'];
+        await _navigationService.gotoExhibitionDetailsPage(exhibitionId);
       default:
         log.warning('unhandled notification type: $notificationType');
         break;

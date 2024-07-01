@@ -7,8 +7,10 @@
 
 import 'dart:async';
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
@@ -24,6 +26,7 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:nft_collection/database/nft_collection_database.dart';
 import 'package:nft_collection/models/asset_token.dart'; // ignore_for_file: implementation_imports
 import 'package:overlay_support/src/overlay_state_finder.dart';
 
@@ -243,6 +246,28 @@ class NavigationService {
       );
     } else {
       await Future.value(0);
+    }
+  }
+
+  Future<void> gotoExhibitionDetailsPage(String exhibitionID) async {
+    popUntilHome();
+    await Future.delayed(const Duration(seconds: 1), () async {
+      await (homePageKey.currentState ?? homePageNoTransactionKey.currentState)
+          ?.openExhibition(exhibitionID ?? '');
+    });
+  }
+
+  Future<void> gotoArtworkDetailsPage(String indexID) async {
+    popUntilHome();
+    final tokens = await injector<NftCollectionDatabase>()
+        .assetTokenDao
+        .findAllAssetTokensByTokenIDs([indexID]);
+    final owner = tokens.first.owner;
+    final artworkDetailPayload =
+        ArtworkDetailPayload([ArtworkIdentity(indexID, owner)], 0);
+    if (context.mounted) {
+      unawaited(Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
+          arguments: artworkDetailPayload));
     }
   }
 
