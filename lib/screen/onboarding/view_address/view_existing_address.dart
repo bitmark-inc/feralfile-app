@@ -6,7 +6,7 @@ import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_ad
 import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_address_state.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/address_service.dart';
+import 'package:autonomy_flutter/service/domain_address_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';

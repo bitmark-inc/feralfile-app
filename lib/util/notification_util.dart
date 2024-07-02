@@ -32,9 +32,8 @@ Future<bool> registerPushNotifications({bool askPermission = false}) async {
     final identityHash = (await injector<IAPApi>()
             .generateIdentityHash({"environment": environment}))
         .hash;
-    final defaultDID =
-        await (await injector<AccountService>().getDefaultAccount())
-            .getAccountDID();
+    final defaultAccount = await injector<AccountService>().getDefaultAccount();
+    final defaultDID = await defaultAccount!.getAccountDID();
     await OneSignal.shared.setExternalUserId(defaultDID, identityHash);
     injector<ConfigurationService>().setNotificationEnabled(true);
     return true;

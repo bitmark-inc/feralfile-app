@@ -13,15 +13,14 @@ import 'package:flutter/services.dart';
 class AndroidBackupChannel {
   static const MethodChannel _channel = MethodChannel('backup');
 
-  Future<bool?> isEndToEndEncryptionAvailable() async {
-    return await _channel.invokeMethod('isEndToEndEncryptionAvailable', {});
-  }
+  Future<bool?> isEndToEndEncryptionAvailable() async =>
+      await _channel.invokeMethod('isEndToEndEncryptionAvailable', {});
 
   Future backupKeys(List<String> uuids) async {
     try {
-      await _channel.invokeMethod('backupKeys', {"uuids": uuids});
+      await _channel.invokeMethod('backupKeys', {'uuids': uuids});
     } catch (e) {
-      log.warning("Android cloud backup error", e);
+      log.warning('Android cloud backup error', e);
     }
   }
 
@@ -34,7 +33,7 @@ class AndroidBackupChannel {
       final backupData = json.decode(data);
       return BackupData.fromJson(backupData).accounts;
     } catch (e) {
-      log.warning("Android cloud backup error", e);
+      log.warning('Android cloud backup error', e);
       return [];
     }
   }
@@ -49,11 +48,11 @@ class BackupData {
 
   factory BackupData.fromJson(Map<String, dynamic> json) => BackupData(
         accounts: List<BackupAccount>.from(
-            json["accounts"].map((x) => BackupAccount.fromJson(x))),
+            json['accounts'].map((x) => BackupAccount.fromJson(x))),
       );
 
   Map<String, dynamic> toJson() => {
-        "accounts": accounts,
+        'accounts': accounts,
       };
 }
 
@@ -67,12 +66,12 @@ class BackupAccount {
   String name;
 
   factory BackupAccount.fromJson(Map<String, dynamic> json) => BackupAccount(
-        uuid: json["uuid"],
-        name: json["name"],
+        uuid: json['uuid'],
+        name: json['name'],
       );
 
   Map<String, dynamic> toJson() => {
-        "uuid": uuid,
-        "name": name,
+        'uuid': uuid,
+        'name': name,
       };
 }

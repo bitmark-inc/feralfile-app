@@ -234,7 +234,7 @@ class AppRouter {
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector(), injector());
     final tezosBloc = TezosBloc(injector(), injector());
-    final usdcBloc = USDCBloc(injector());
+    final usdcBloc = USDCBloc(injector(), injector());
     final accountsBloc = AccountsBloc(injector(), injector());
     final personaBloc = PersonaBloc(
       injector<CloudDatabase>(),
@@ -315,9 +315,10 @@ class AppRouter {
                 injector(),
                 injector(),
                 injector(),
-                injector<CloudDatabase>(),
                 injector(),
-                injector<AuditService>(),
+                injector(),
+                injector(),
+                injector(),
                 injector(),
               ),
             ),

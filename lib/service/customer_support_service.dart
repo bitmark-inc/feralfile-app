@@ -376,9 +376,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     // Muted Message
     var mutedMessage = '';
     final deviceID = await getDeviceID();
-    if (deviceID != null) {
-      mutedMessage += '**DeviceID**: $deviceID\n';
-    }
+    mutedMessage += '**DeviceID**: $deviceID\n';
 
     final version = (await PackageInfo.fromPlatform()).version;
     mutedMessage += '**Version**: $version\n';

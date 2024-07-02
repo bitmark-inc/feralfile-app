@@ -639,6 +639,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   Future<void> _cloudBackup() async {
     final accountService = injector<AccountService>();
     final backup = injector<BackupService>();
-    await backup.backupCloudDatabase(await accountService.getDefaultAccount());
+    final defaultAccount = await accountService.getDefaultAccount();
+    await backup.backupCloudDatabase(defaultAccount!);
   }
 }
