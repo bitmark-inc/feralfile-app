@@ -101,12 +101,14 @@ class _ProjectsPageState extends State<ProjectsPage>
   }
 
   Widget _buildProjectDelegate(BuildContext context, ProjectInfo project) {
-    final cachedImageSize =
-        (MediaQuery.sizeOf(context).width - ResponsiveLayout.padding * 2) ~/ 1;
+    final cachedImageSize = (MediaQuery.sizeOf(context).width -
+            ResponsiveLayout.padding * 2 -
+            ResponsiveLayout.padding * 3.5) ~/
+        1;
     switch (project.delegate.runtimeType) {
       case const (CompactedAssetToken):
         final asset = project.delegate as CompactedAssetToken;
-        return project.delegate.pending == true && !asset.hasMetadata
+        return asset.pending == true && !asset.hasMetadata
             ? PendingTokenWidget(
                 thumbnail: asset.galleryThumbnailURL,
                 tokenId: asset.tokenId,
@@ -116,6 +118,7 @@ class _ProjectsPageState extends State<ProjectsPage>
                 context,
                 asset,
                 cachedImageSize,
+                useHero: false,
                 usingThumbnailID: false,
               );
       case const (Artwork):

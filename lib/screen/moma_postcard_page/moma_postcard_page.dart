@@ -76,12 +76,11 @@ class _MoMAPostcardPageState extends State<MoMAPostcardPage> {
       top: false,
       bottom: false,
       child: Scaffold(
-        appBar: getBackAppBar(
+        backgroundColor: AppColor.primaryBlack,
+        appBar: getFFAppBar(
           context,
-          title: 'moma_postcard'.tr(),
-          onBack: () {
-            Navigator.of(context).pop();
-          },
+          onBack: () => Navigator.pop(context),
+          title: Text('moma_postcard'.tr()),
         ),
         body: Column(
           children: [
