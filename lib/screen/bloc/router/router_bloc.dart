@@ -64,7 +64,9 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
       await migrationUtil.migrationFromKeychain();
       await _accountService.androidRestoreKeys();
       final hasAccount = await _hasAccounts();
-      await _configurationService.setDoneOnboarding(hasAccount);
+      if (!hasAccount) {
+        await _configurationService.setDoneOnboarding(true);
+      }
 
       // migrate to membership profile
       final primaryAddressInfo = await _addressService.getPrimaryAddressInfo();
