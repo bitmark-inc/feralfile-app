@@ -1,58 +1,104 @@
 import 'package:autonomy_flutter/au_bloc.dart';
+import 'package:autonomy_flutter/common/environment.dart';
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
-import 'package:autonomy_flutter/model/tap_navigate.dart';
+import 'package:autonomy_flutter/model/project.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artwork_preview_page.dart';
 import 'package:autonomy_flutter/screen/projects/projects_state.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
+import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:nft_collection/database/nft_collection_database.dart';
+import 'package:nft_collection/models/asset_token.dart';
+import 'package:nft_collection/widgets/nft_collection_bloc_event.dart';
 
 class ProjectsBloc extends AuBloc<ProjectsEvent, ProjectsState> {
   final EthereumService _ethereumService;
   final ConfigurationService _configurationService;
   final AccountService _accountService;
   final RemoteConfigService _remoteConfigService;
+  final FeralFileService _feralfileService;
 
   ProjectsBloc(this._ethereumService, this._configurationService,
-      this._accountService, this._remoteConfigService)
+      this._accountService, this._remoteConfigService, this._feralfileService)
       : super(ProjectsState()) {
     on<GetProjectsEvent>((event, emit) async {
-      final List<TapNavigate> newProjects = [];
+      final List<ProjectInfo> newProjects = [];
+      CompactedAssetToken? firstUserMoMAPostCard;
+      Artwork? firstFeaturedWork;
+      Artwork? yokoOnoRecordArtwork;
       try {
+        firstUserMoMAPostCard = await _getFirstUserMoMAPostCard();
+        firstFeaturedWork = await _getFirstFeaturedWork();
         final showYokoOno = await _doUserHaveYokoOnoRecord();
         if (showYokoOno) {
           final config = _remoteConfigService.getConfig<Map<String, dynamic>>(
               ConfigGroup.exhibition, ConfigKey.yokoOnoPublic, {});
-          final artwork = Artwork.createFake(config['public_version_thumbnail'],
-              config['public_version_preview'], 'software');
-          newProjects.add(TapNavigate(
-              title: 'yoko_ono_public_version'.tr(),
-              route: AppRouter.ffArtworkPreviewPage,
-              arguments: FeralFileArtworkPreviewPagePayload(
-                artwork: artwork,
-              )));
+          yokoOnoRecordArtwork = await _feralfileService.getArtwork(
+            config['public_token_id'],
+          );
         }
       } catch (_) {}
 
-      newProjects
-        ..add(
-          TapNavigate(
-            title: 'moma_postcard'.tr(),
-            route: AppRouter.momaPostcardPage,
-          ),
-        )
-        ..add(
-          TapNavigate(
-            title: 'featured_works'.tr(),
-            route: AppRouter.featuredWorksPage,
+      if (yokoOnoRecordArtwork != null) {
+        newProjects.add(
+          ProjectInfo(
+            title: 'yoko_ono_project_title'.tr(),
+            route: AppRouter.ffArtworkPreviewPage,
+            arguments: FeralFileArtworkPreviewPagePayload(
+              artwork: yokoOnoRecordArtwork,
+            ),
+            delegate: yokoOnoRecordArtwork,
           ),
         );
+      }
+
+      if (firstUserMoMAPostCard != null) {
+        newProjects.add(
+          ProjectInfo(
+            title: 'moma_postcard_title'.tr(),
+            route: AppRouter.momaPostcardPage,
+            delegate: firstUserMoMAPostCard,
+          ),
+        );
+      }
+
+      if (firstFeaturedWork != null) {
+        newProjects.add(
+          ProjectInfo(
+            title: 'featured_works'.tr(),
+            route: AppRouter.featuredWorksPage,
+            delegate: firstFeaturedWork,
+          ),
+        );
+      }
 
       emit(state.copyWith(loading: false, projects: newProjects));
     });
+  }
+
+  Future<CompactedAssetToken?> _getFirstUserMoMAPostCard() async {
+    final addresses = await _accountService.getAllAddresses();
+    final postCardTokens = await injector<NftCollectionDatabase>()
+        .assetTokenDao
+        .findAllAssetTokensByOwnersAndContractAddress(
+            addresses,
+            Environment.postcardContractAddress,
+            1,
+            DateTime.now().millisecondsSinceEpoch,
+            PageKey.init().id);
+    return postCardTokens.isNotEmpty
+        ? CompactedAssetToken.fromAssetToken(postCardTokens[0])
+        : null;
+  }
+
+  Future<Artwork?> _getFirstFeaturedWork() async {
+    final featuredWorks = await _feralfileService.getFeaturedArtworks();
+    return featuredWorks.isNotEmpty ? featuredWorks[0] : null;
   }
 
   Future<bool> _doUserHaveYokoOnoRecord() async {

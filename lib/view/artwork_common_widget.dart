@@ -1096,11 +1096,13 @@ class FFArtworkDetailsMetadataSection extends StatelessWidget {
               forceSafariVC: true,
             ),
           ],
-          divider,
-          MetaDataItem(
-            title: 'edition'.tr(),
-            value: artwork.name,
-          ),
+          if (!artwork.isYokoOnoPublicVersion) ...[
+            divider,
+            MetaDataItem(
+              title: 'edition'.tr(),
+              value: artwork.name,
+            ),
+          ],
           divider,
           MetaDataItem(
             title: 'token'.tr(),

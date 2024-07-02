@@ -261,6 +261,7 @@ class AppRouter {
       injector(),
       injector(),
       injector(),
+      injector(),
     );
 
     switch (settings.name) {
@@ -864,7 +865,8 @@ class AppRouter {
 
       case featuredWorksPage:
         return CupertinoPageRoute(
-            settings: settings, builder: (context) => const FeaturedWorksPage());
+            settings: settings,
+            builder: (context) => const FeaturedWorksPage());
 
       case exhibitionDetailPage:
         return CupertinoPageRoute(
