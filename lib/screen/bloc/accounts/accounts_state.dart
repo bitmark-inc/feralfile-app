@@ -134,24 +134,33 @@ class Account {
 class AccountsState {
   List<String> addresses;
   List<Account>? accounts;
+  AddressInfo? primaryAddressInfo;
   AccountBlocStateEvent? event;
 
-  AccountsState({this.addresses = const [], this.accounts, this.event});
+  AccountsState({
+    this.addresses = const [],
+    this.accounts,
+    this.event,
+    this.primaryAddressInfo,
+  });
 
   AccountsState copyWith(
           {List<String>? addresses,
           List<Account>? accounts,
+          AddressInfo? primaryAddressInfo,
           Network? network,
           AccountBlocStateEvent? event}) =>
       AccountsState(
         addresses: addresses ?? this.addresses,
         accounts: accounts ?? this.accounts,
+        primaryAddressInfo: primaryAddressInfo ?? this.primaryAddressInfo,
         event: event ?? this.event,
       );
 
   AccountsState setEvent(AccountBlocStateEvent? event) => AccountsState(
         addresses: addresses,
         accounts: accounts,
+        primaryAddressInfo: primaryAddressInfo,
         event: event,
       );
 }

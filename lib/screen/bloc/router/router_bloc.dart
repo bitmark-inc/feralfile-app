@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -27,6 +28,7 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
   final ConfigurationService _configurationService;
   final BackupService _backupService;
   final AccountService _accountService;
+  final AddressService _addressService;
   final CloudDatabase _cloudDB;
   final IAPService _iapService;
   final AuditService _auditService;
@@ -42,6 +44,7 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
       this._configurationService,
       this._backupService,
       this._accountService,
+      this._addressService,
       this._cloudDB,
       this._iapService,
       this._auditService,
@@ -62,7 +65,22 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
       await _accountService.androidRestoreKeys();
       final hasAccount = await _hasAccounts();
       await _configurationService.setDoneOnboarding(hasAccount);
+
+      // migrate to membership profile
+      final primaryAddressInfo = await _addressService.getPrimaryAddressInfo();
+
       if (_configurationService.isDoneOnboarding()) {
+        if (primaryAddressInfo == null) {
+          try {
+            final addressInfo = await _addressService.pickAddressAsPrimary();
+            await _addressService.registerPrimaryAddress(
+                info: addressInfo, withDidKey: true);
+          } catch (e, stacktrace) {
+            log.info('Error while picking primary address', e, stacktrace);
+            // rethrow;
+          }
+        }
+
         emit(RouterState(onboardingStep: OnboardingStep.dashboard));
         return;
       }
@@ -72,8 +90,9 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
 
       if (hasAccount) {
         unawaited(_configurationService.setOldUser());
-        final backupVersion = await _backupService
-            .fetchBackupVersion(await _accountService.getDefaultAccount());
+        final defaultAccount = await _accountService.getDefaultAccount();
+        final backupVersion =
+            await _backupService.fetchBackupVersion(defaultAccount!);
 
         if (backupVersion.isNotEmpty) {
           log.info('[DefineViewRoutingEvent] have backup version');
@@ -88,6 +107,12 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
           unawaited(injector<MetricClientService>()
               .mixPanelClient
               .initIfDefaultAccount());
+          if (primaryAddressInfo == null) {
+            final primaryAddressInfo =
+                await _addressService.pickAddressAsPrimary();
+            await _addressService.registerPrimaryAddress(
+                info: primaryAddressInfo);
+          }
           emit(RouterState(onboardingStep: OnboardingStep.dashboard));
           return;
         }
@@ -102,8 +127,13 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
           return;
         }
         log.info('[RestoreCloudDatabase] restoreCloudDatabase');
+        final defaultAccount = await _accountService.getDefaultAccount();
+        if (defaultAccount == null) {
+          log.info('[RestoreCloudDatabase] defaultAccount is null');
+          return;
+        }
         await _backupService.restoreCloudDatabase(
-            await _accountService.getDefaultAccount(), event.version);
+            defaultAccount, event.version);
 
         await _settingsDataService.restoreSettingsData();
 
@@ -132,9 +162,17 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
           unawaited(injector<MetricClientService>()
               .mixPanelClient
               .initIfDefaultAccount());
+          await migrationUtil.migrateIfNeeded();
+          try {
+            final addressInfo = await _addressService.pickAddressAsPrimary();
+            await _addressService.registerPrimaryAddress(
+                info: addressInfo, withDidKey: true);
+          } catch (e, stacktrace) {
+            log.info('Error while picking primary address', e, stacktrace);
+            // rethrow;
+          }
           emit(RouterState(onboardingStep: OnboardingStep.dashboard));
         }
-        await migrationUtil.migrateIfNeeded();
       } catch (e, stacktrace) {
         await Sentry.captureException(e, stackTrace: stacktrace);
         rethrow;

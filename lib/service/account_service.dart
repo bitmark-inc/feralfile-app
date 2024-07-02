@@ -17,6 +17,7 @@ import 'package:autonomy_flutter/model/p2p_peer.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_state.dart';
+import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
@@ -30,6 +31,8 @@ import 'package:autonomy_flutter/util/android_backup_channel.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration/migration_util.dart';
+import 'package:autonomy_flutter/util/primary_address_channel.dart'
+    as primary_address_channel;
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/wallet_utils.dart';
@@ -38,13 +41,14 @@ import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/models/models.dart';
-import 'package:nft_collection/services/address_service.dart';
+import 'package:nft_collection/services/address_service.dart'
+    as nftCollectionAddressService;
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:synchronized/synchronized.dart';
 import 'package:uuid/uuid.dart';
 
 abstract class AccountService {
-  Future<WalletStorage> getDefaultAccount();
+  Future<WalletStorage?> getDefaultAccount();
 
   Future<Persona> getOrCreateDefaultPersona();
 
@@ -62,6 +66,8 @@ abstract class AccountService {
   Future<bool?> isAndroidEndToEndEncryptionAvailable();
 
   Future androidRestoreKeys();
+
+  Future<Persona> getPersona({required String uuid});
 
   Future<Persona> createPersona({String name = '', bool isDefault = false});
 
@@ -117,8 +123,8 @@ class AccountServiceImpl extends AccountService {
   final AuditService _auditService;
   final AutonomyService _autonomyService;
   final BackupService _backupService;
+  final nftCollectionAddressService.AddressService _nftCollectionAddressService;
   final AddressService _addressService;
-
   final _defaultAccountLock = Lock();
 
   AccountServiceImpl(
@@ -128,6 +134,7 @@ class AccountServiceImpl extends AccountService {
     this._auditService,
     this._autonomyService,
     this._backupService,
+    this._nftCollectionAddressService,
     this._addressService,
   );
 
@@ -144,6 +151,14 @@ class AccountServiceImpl extends AccountService {
     await _auditService.auditPersonaAction('create', persona);
     unawaited(_autonomyService.postLinkedAddresses());
     log.info('[AccountService] Created persona ${persona.uuid}}');
+    if (isDefault) {
+      await _addressService.registerPrimaryAddress(
+          info: primary_address_channel.AddressInfo(
+        uuid: persona.uuid,
+        chain: 'ethereum',
+        index: 0,
+      ));
+    }
     return persona;
   }
 
@@ -172,8 +187,18 @@ class AccountServiceImpl extends AccountService {
   }
 
   @override
-  Future<WalletStorage> getDefaultAccount() async =>
-      _defaultAccountLock.synchronized(() async => await _getDefaultAccount());
+  Future<Persona> getPersona({required String uuid}) async {
+    final persona = await _cloudDB.personaDao.findById(uuid);
+    if (persona == null) {
+      unawaited(Sentry.captureMessage('Persona not found. UUID: $uuid'));
+      throw AccountException(message: 'Persona not found. UUID: $uuid');
+    }
+    return persona;
+  }
+
+  @override
+  Future<WalletStorage?> getDefaultAccount() async =>
+      _defaultAccountLock.synchronized(() => _getDefaultAccount());
 
   @override
   Future<WalletStorage?> getCurrentDefaultAccount() async {
@@ -228,14 +253,16 @@ class AccountServiceImpl extends AccountService {
     );
   }
 
-  Future<WalletStorage> _getDefaultAccount() async {
-    final Persona defaultPersona = await getOrCreateDefaultPersona();
+  Future<WalletStorage?> _getDefaultAccount() async {
+    final Persona? defaultPersona = await getDefaultPersona();
+    if (defaultPersona == null) {
+      return null;
+    }
 
     return LibAukDart.getWallet(defaultPersona.uuid);
   }
 
-  @override
-  Future<Persona> getOrCreateDefaultPersona() async {
+  Future<Persona?> getDefaultPersona() async {
     var personas = await _cloudDB.personaDao.getDefaultPersonas();
 
     if (personas.isEmpty) {
@@ -248,20 +275,27 @@ class AccountServiceImpl extends AccountService {
       personas = await _cloudDB.personaDao.getDefaultPersonas();
     }
 
-    final Persona defaultPersona;
+    Persona? defaultPersona;
     if (personas.isEmpty) {
       personas = await _cloudDB.personaDao.getPersonas();
       if (personas.isNotEmpty) {
         defaultPersona = personas.first..defaultAccount = 1;
         await _cloudDB.personaDao.updatePersona(defaultPersona);
-      } else {
-        log.info('[AccountService] create default account');
-        defaultPersona = await createPersona(isDefault: true);
       }
     } else {
       defaultPersona = personas.first;
     }
     return defaultPersona;
+  }
+
+  @override
+  Future<Persona> getOrCreateDefaultPersona() async {
+    final defaultPersona = await getDefaultPersona();
+    if (defaultPersona != null) {
+      return defaultPersona;
+    } else {
+      return createPersona(isDefault: true);
+    }
   }
 
   @override
@@ -311,7 +345,7 @@ class AccountServiceImpl extends AccountService {
     await Future.wait(addressIndexes.map((element) async {
       await setHideLinkedAccountInGallery(element.address, false);
     }));
-    await _addressService
+    await _nftCollectionAddressService
         .deleteAddresses(addressIndexes.map((e) => e.address).toList());
   }
 
@@ -341,7 +375,7 @@ class AccountServiceImpl extends AccountService {
     );
 
     await _cloudDB.connectionDao.insertConnection(connection);
-    await _addressService.addAddresses([checkSumAddress]);
+    await _nftCollectionAddressService.addAddresses([checkSumAddress]);
     unawaited(_autonomyService.postLinkedAddresses());
     return connection;
   }
@@ -368,7 +402,8 @@ class AccountServiceImpl extends AccountService {
   Future setHideLinkedAccountInGallery(String address, bool isEnabled) async {
     await _configurationService
         .setHideLinkedAccountInGallery([address], isEnabled);
-    await _addressService.setIsHiddenAddresses([address], isEnabled);
+    await _nftCollectionAddressService
+        .setIsHiddenAddresses([address], isEnabled);
     unawaited(injector<SettingsDataService>().backup());
   }
 
@@ -376,7 +411,8 @@ class AccountServiceImpl extends AccountService {
   Future setHideAddressInGallery(List<String> addresses, bool isEnabled) async {
     await Future.wait(addresses
         .map((e) => _cloudDB.addressDao.setAddressIsHidden(e, isEnabled)));
-    await _addressService.setIsHiddenAddresses(addresses, isEnabled);
+    await _nftCollectionAddressService.setIsHiddenAddresses(
+        addresses, isEnabled);
     unawaited(injector<SettingsDataService>().backup());
   }
 
@@ -433,7 +469,7 @@ class AccountServiceImpl extends AccountService {
           await _cloudDB.personaDao.deletePersona(persona);
           final addresses =
               await _cloudDB.addressDao.getAddressesByPersona(persona.uuid);
-          await _addressService
+          await _nftCollectionAddressService
               .deleteAddresses(addresses.map((e) => e.address).toList());
           await _cloudDB.addressDao.deleteAddressesByPersona(persona.uuid);
           shouldBackup = true;
@@ -594,7 +630,7 @@ class AccountServiceImpl extends AccountService {
                 e.getCryptoType().source))
         .toList();
     await _cloudDB.addressDao.insertAddresses(walletAddresses);
-    await _addressService
+    await _nftCollectionAddressService
         .addAddresses(addresses.map((e) => e.address).toList());
     return result;
   }
@@ -627,7 +663,7 @@ class AccountServiceImpl extends AccountService {
   Future<void> deleteAddressPersona(
       Persona persona, WalletAddress walletAddress) async {
     await _cloudDB.addressDao.deleteAddress(walletAddress);
-    await _addressService.deleteAddresses([walletAddress.address]);
+    await _nftCollectionAddressService.deleteAddresses([walletAddress.address]);
     switch (CryptoType.fromSource(walletAddress.cryptoType)) {
       case CryptoType.ETH:
         final connections = await _cloudDB.connectionDao
@@ -677,6 +713,9 @@ class AccountServiceImpl extends AccountService {
     if (personas.isNotEmpty || connections.isNotEmpty) {
       unawaited(_configurationService.setOldUser());
       final defaultAccount = await getDefaultAccount();
+      if (defaultAccount == null) {
+        throw Exception('Default account not found');
+      }
       final backupVersion =
           await _backupService.fetchBackupVersion(defaultAccount);
       if (backupVersion.isNotEmpty) {

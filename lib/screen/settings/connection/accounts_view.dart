@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/util/account_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/primary_address_channel.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/account_view.dart';
@@ -52,36 +53,45 @@ class _AccountsViewState extends State<AccountsView> {
 
   @override
   Widget build(BuildContext context) =>
-      BlocConsumer<AccountsBloc, AccountsState>(listener: (context, state) {
-        final accounts = state.accounts;
-        if (accounts == null) {
-          return;
-        }
-      }, builder: (context, state) {
-        final accounts = state.accounts;
-        if (accounts == null) {
-          return const Center(child: CupertinoActivityIndicator());
-        }
-        if (accounts.isEmpty) {
-          return const SizedBox();
-        }
+      BlocConsumer<AccountsBloc, AccountsState>(
+          listener: (context, state) {},
+          builder: (context, state) {
+            final accounts = state.accounts;
+            if (accounts == null) {
+              return const Center(child: CupertinoActivityIndicator());
+            }
+            if (accounts.isEmpty) {
+              return const SizedBox();
+            }
 
-        if (!widget.isInSettingsPage) {
-          return _noEditAccountsListWidget(accounts);
-        }
-        return ReorderableListView(
-          header: widget.isInSettingsPage ? const SizedBox(height: 40) : null,
-          onReorder: (int oldIndex, int newIndex) {
-            context.read<AccountsBloc>().add(ChangeAccountOrderEvent(
-                newOrder: newIndex, oldOrder: oldIndex));
-          },
-          children: accounts
-              .map((account) => _accountCard(context, account))
-              .toList(),
-        );
-      });
+            if (!widget.isInSettingsPage) {
+              return _noEditAccountsListWidget(accounts);
+            }
+            return ReorderableListView(
+              header:
+                  widget.isInSettingsPage ? const SizedBox(height: 40) : null,
+              onReorder: (int oldIndex, int newIndex) {
+                context.read<AccountsBloc>().add(ChangeAccountOrderEvent(
+                    newOrder: newIndex, oldOrder: oldIndex));
+              },
+              children: accounts
+                  .map((account) => _accountCard(context, account,
+                      isPrimary:
+                          _isPrimary(account, state.primaryAddressInfo!)))
+                  .toList(),
+            );
+          });
 
-  Widget _accountCard(BuildContext context, Account account) => Column(
+  bool _isPrimary(Account account, AddressInfo primaryAddressInfo) {
+    final walletAddress = account.walletAddress;
+    return walletAddress?.uuid == primaryAddressInfo.uuid &&
+        walletAddress?.index == primaryAddressInfo.index &&
+        walletAddress?.cryptoType.toLowerCase() == primaryAddressInfo.chain;
+  }
+
+  Widget _accountCard(BuildContext context, Account account,
+          {bool isPrimary = false}) =>
+      Column(
         key: ValueKey(account.key),
         children: [
           Padding(
@@ -91,15 +101,15 @@ class _AccountsViewState extends State<AccountsView> {
               endActionPane: ActionPane(
                 motion: const DrawerMotion(),
                 dragDismissible: false,
-                children: slidableActions(account),
+                children: slidableActions(account, isPrimary: isPrimary),
               ),
               child: Column(
                 children: [
                   if (_editingAccountKey == null ||
                       _editingAccountKey != account.key) ...[
-                    _viewAccountItem(account),
+                    _viewAccountItem(account, isPrimary: isPrimary),
                   ] else ...[
-                    _editAccountItem(account),
+                    _editAccountItem(account, isPrimary: isPrimary),
                   ],
                 ],
               ),
@@ -109,7 +119,8 @@ class _AccountsViewState extends State<AccountsView> {
         ],
       );
 
-  List<CustomSlidableAction> slidableActions(Account account) {
+  List<CustomSlidableAction> slidableActions(Account account,
+      {bool isPrimary = false}) {
     final theme = Theme.of(context);
     final isHidden = account.isHidden;
     var actions = [
@@ -150,13 +161,23 @@ class _AccountsViewState extends State<AccountsView> {
         backgroundColor: Colors.red,
         foregroundColor: theme.colorScheme.secondary,
         padding: EdgeInsets.zero,
+        onPressed: isPrimary
+            ? null
+            : (_) {
+                _showDeleteAccountConfirmation(context, account);
+              },
         child: Semantics(
             label: '${account.name}_delete',
-            child: SvgPicture.asset('assets/images/trash.svg')),
-        onPressed: (_) {
-          _showDeleteAccountConfirmation(context, account);
-        },
-      )
+            child: SvgPicture.asset(
+              'assets/images/trash.svg',
+              colorFilter: isPrimary
+                  ? const ColorFilter.mode(
+                      AppColor.disabledColor,
+                      BlendMode.srcIn,
+                    )
+                  : null,
+            )),
+      ),
     ];
     return actions;
   }
@@ -182,9 +203,11 @@ class _AccountsViewState extends State<AccountsView> {
     );
   }
 
-  Widget _viewAccountItem(Account account) => accountItem(
+  Widget _viewAccountItem(Account account, {bool isPrimary = false}) =>
+      accountItem(
         context,
         account,
+        isPrimary: isPrimary,
         onPersonaTap: () {
           if (account.persona != null && account.walletAddress != null) {
             unawaited(Navigator.of(context).pushNamed(
@@ -211,7 +234,7 @@ class _AccountsViewState extends State<AccountsView> {
         },
       );
 
-  Widget _editAccountItem(Account account) {
+  Widget _editAccountItem(Account account, {bool isPrimary = false}) {
     final theme = Theme.of(context);
 
     return Padding(

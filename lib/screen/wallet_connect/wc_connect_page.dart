@@ -170,24 +170,24 @@ class _WCConnectPageState extends State<WCConnectPage>
       switch (connectionRequest.runtimeType) {
         case const (Wc2Proposal):
           if (connectionRequest.isAutonomyConnect) {
-            final account =
+            final defaultAccount =
                 await injector<AccountService>().getDefaultAccount();
-            final accountDid = await account.getAccountDID();
+            final accountDid = await defaultAccount!.getAccountDID();
             final walletAddresses = await injector<CloudDatabase>()
                 .addressDao
-                .findByWalletID(account.uuid);
+                .findByWalletID(defaultAccount.uuid);
             final accountNumber =
                 walletAddresses.map((e) => e.address).join('||');
             aproveResponse = await injector<Wc2Service>().approveSession(
               connectionRequest as Wc2Proposal,
               accounts: [accountDid.substring('did:key:'.length)],
-              connectionKey: account.uuid,
+              connectionKey: defaultAccount.uuid,
               accountNumber: accountNumber,
               isAuConnect: true,
             );
             payloadType = CryptoType.ETH;
-            payloadAddress =
-                await account.getETHEip55Address(index: selectedPersona!.index);
+            payloadAddress = await defaultAccount.getETHEip55Address(
+                index: selectedPersona!.index);
           } else {
             final address = await injector<EthereumService>()
                 .getETHAddress(selectedPersona!.wallet, selectedPersona!.index);

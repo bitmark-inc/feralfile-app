@@ -258,12 +258,11 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     _selectedIndex = _initialTab.index;
     NftCollectionBloc.eventController.stream.listen((event) async {
       switch (event.runtimeType) {
-        case ReloadEvent:
-        case GetTokensByOwnerEvent:
-        case UpdateTokensEvent:
-        case GetTokensBeforeByOwnerEvent:
+        case const (ReloadEvent):
+        case const (GetTokensByOwnerEvent):
+        case const (UpdateTokensEvent):
+        case const (GetTokensBeforeByOwnerEvent):
           nftBloc.add(event);
-          break;
         default:
       }
     });
@@ -594,12 +593,10 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
           event.complete(null);
           return;
         }
-        break;
 
       case 'gallery_new_nft':
       case 'new_postcard_trip':
         unawaited(_clientTokenService.refreshTokens());
-        break;
       case 'artwork_created':
       case 'artwork_received':
         break;
@@ -616,7 +613,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
           final announcementID = '${data["id"]}';
           unawaited(_openAnnouncement(announcementID));
         });
-        break;
       case 'new_message':
         final groupId = data['group_id'];
 
@@ -629,7 +625,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
           showNotifications(context, event.notification,
               notificationOpenedHandler: _handleNotificationClicked);
         }
-        break;
       default:
         showNotifications(context, event.notification,
             notificationOpenedHandler: _handleNotificationClicked);
@@ -667,7 +662,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
             route.settings.name == AppRouter.homePage ||
             route.settings.name == AppRouter.homePageNoTransition);
         _pageController?.jumpToPage(HomeNavigatorTab.collection.index);
-        break;
 
       case 'customer_support_new_message':
       case 'customer_support_close_issue':
@@ -687,11 +681,9 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
               issueID: issueID,
               announcement: announcement),
         ));
-        break;
       case 'customer_support_new_announcement':
         final announcementID = '${notification.additionalData!["id"]}';
         unawaited(_openAnnouncement(announcementID));
-        break;
 
       case 'artwork_created':
       case 'artwork_received':
@@ -699,7 +691,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
             route.settings.name == AppRouter.homePage ||
             route.settings.name == AppRouter.homePageNoTransition);
         _pageController?.jumpToPage(HomeNavigatorTab.collection.index);
-        break;
       case 'new_message':
         if (!_remoteConfig.getBool(ConfigGroup.viewDetail, ConfigKey.chat)) {
           return;
@@ -738,7 +729,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
           }
         });
 
-        break;
       case 'new_postcard_trip':
       case 'postcard_share_expired':
         final data = notification.additionalData;
@@ -767,7 +757,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         unawaited(Navigator.of(context).pushNamed(
             AppRouter.claimedPostcardDetailsPage,
             arguments: postcardDetailPayload));
-        break;
 
       default:
         log.warning('unhandled notification type: $notificationType');
@@ -808,11 +797,9 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         unawaited(_handleForeground());
         memoryValues.isForeground = true;
         unawaited(injector<ChatService>().reconnect());
-        break;
       case FGBGType.background:
         _handleBackground();
         memoryValues.isForeground = false;
-        break;
     }
   }
 
@@ -853,6 +840,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   Future<void> _cloudBackup() async {
     final accountService = injector<AccountService>();
     final backup = injector<BackupService>();
-    await backup.backupCloudDatabase(await accountService.getDefaultAccount());
+    final defaultAccount = await accountService.getDefaultAccount();
+    await backup.backupCloudDatabase(defaultAccount!);
   }
 }

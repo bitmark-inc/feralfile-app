@@ -34,7 +34,7 @@ class MixPanelClientService {
   }
 
   Future initIfDefaultAccount() async {
-    final defaultAccount = await _accountService.getCurrentDefaultAccount();
+    final defaultAccount = await _accountService.getDefaultAccount();
 
     if (defaultAccount == null) {
       return;

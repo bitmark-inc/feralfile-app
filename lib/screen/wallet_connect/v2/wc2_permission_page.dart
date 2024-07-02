@@ -103,7 +103,7 @@ class _Wc2RequestPageState extends State<Wc2RequestPage>
   }) async {
     final accountService = injector<AccountService>();
 
-    final signature = await (await accountService.getDefaultAccount())
+    final signature = await (await accountService.getDefaultAccount())!
         .getAccountDIDSignature(params.message);
     final permissionResults = params.permissions.map((permission) async {
       final chainFutures = permission.request.chains.map((chain) async {
