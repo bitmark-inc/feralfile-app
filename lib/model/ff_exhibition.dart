@@ -1,5 +1,6 @@
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/model/ff_user.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -275,6 +276,22 @@ class Post {
         'exhibitionID': exhibitionID,
         'exhibition': exhibition?.toJson(),
       };
+}
+
+class CustomExhibitionNote {
+  final String title;
+  final String content;
+  final bool? canReadMore;
+
+  CustomExhibitionNote(
+      {required this.title, required this.content, this.canReadMore});
+
+  factory CustomExhibitionNote.fromJson(Map<String, dynamic> json) =>
+      CustomExhibitionNote(
+        title: json['title'],
+        content: json['content'],
+        canReadMore: json['canReadMore'] ?? false,
+      );
 }
 
 enum MediaType {

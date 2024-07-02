@@ -1,18 +1,20 @@
-import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
-import 'package:autonomy_flutter/util/exhibition_ext.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 
-class ExhibitionNoteView extends StatelessWidget {
-  const ExhibitionNoteView({required this.exhibition, this.width, super.key});
+class ExhibitionCustomNote extends StatelessWidget {
+  const ExhibitionCustomNote({
+    required this.info,
+    super.key,
+    this.isFull = false,
+  });
 
-  final Exhibition exhibition;
-  final double? width;
+  final CustomExhibitionNote info;
+  final bool isFull;
 
   @override
   Widget build(BuildContext context) {
@@ -29,31 +31,32 @@ class ExhibitionNoteView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              exhibition.isJohnGerrardShow
-                  ? 'artist_note'.tr()
-                  : 'curators_note'.tr(),
+              info.title,
               style: theme.textTheme.ppMori400White12,
-            ),
-            const SizedBox(height: 30),
-            Text(
-              exhibition.noteTitle,
-              style: theme.textTheme.ppMori700White14,
             ),
             const SizedBox(height: 20),
             ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 400),
-              child: HtmlWidget(
-                customStylesBuilder: auHtmlStyle,
-                exhibition.noteBrief,
-                textStyle: theme.textTheme.ppMori400White14,
+              constraints:
+                  BoxConstraints(maxHeight: isFull ? double.infinity : 400),
+              child: ClipRect(
+                child: HtmlWidget(
+                  isFull
+                      ? info.content
+                      : '<div style="max-lines: 16; text-overflow: ellipsis">${info.content.split('<br />').first}</div>',
+                  textStyle: theme.textTheme.ppMori400White14,
+                  customStylesBuilder: auHtmlStyle,
+                ),
               ),
             ),
-            if (exhibition.noteBrief != exhibition.note) ...[
+            if (info.canReadMore == true && !isFull) ...[
               const SizedBox(height: 20),
               GestureDetector(
                 onTap: () async {
-                  await injector<NavigationService>()
-                      .openFeralFileExhibitionNotePage(exhibition.slug);
+                  await Navigator.pushNamed(
+                    context,
+                    AppRouter.exhibitionCustomNote,
+                    arguments: info,
+                  );
                 },
                 child: Text(
                   'read_more'.tr(),

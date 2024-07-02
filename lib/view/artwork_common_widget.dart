@@ -5,6 +5,7 @@ import 'dart:math';
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/screen/detail/royalty/royalty_bloc.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -19,8 +20,11 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/dio_util.dart';
 import 'package:autonomy_flutter/util/exception_ext.dart';
+import 'package:autonomy_flutter/util/exhibition_ext.dart';
+import 'package:autonomy_flutter/util/feral_file_helper.dart';
 import 'package:autonomy_flutter/util/image_ext.dart';
 import 'package:autonomy_flutter/util/moma_style_color.dart';
+import 'package:autonomy_flutter/util/series_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -156,8 +160,10 @@ Widget tokenGalleryThumbnailWidget(
   bool useHero = true,
   Widget? galleryThumbnailPlaceholder,
 }) {
+  ///hardcode for JG
+  final isJohnGerrard = token.isJohnGerrardArtwork;
   final thumbnailUrl = token.getGalleryThumbnailUrl(
-      usingThumbnailID: usingThumbnailID, variant: variant);
+      usingThumbnailID: usingThumbnailID && !isJohnGerrard, variant: variant);
 
   if (thumbnailUrl == null || thumbnailUrl.isEmpty) {
     return GalleryNoThumbnailWidget(
@@ -1042,6 +1048,102 @@ Widget postcardDetailsMetadataSection(
       ],
     ),
   );
+}
+
+class ArtworkAttributesText extends StatelessWidget {
+  final Artwork artwork;
+
+  const ArtworkAttributesText({required this.artwork, super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Text(
+      artwork.attributesString ?? '',
+      style: theme.textTheme.ppMori400FFQuickSilver12.copyWith(
+        color: AppColor.feralFileMediumGrey,
+      ),
+    );
+  }
+}
+
+class FFArtworkDetailsMetadataSection extends StatelessWidget {
+  final Artwork artwork;
+
+  const FFArtworkDetailsMetadataSection({required this.artwork, super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    const divider = artworkDataDivider;
+    final contract = artwork.getContract(artwork.series!.exhibition);
+    return SectionExpandedWidget(
+      header: 'metadata'.tr(),
+      padding: const EdgeInsets.only(bottom: 23),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          MetaDataItem(
+            title: 'title'.tr(),
+            value: artwork.series!.displayTitle,
+          ),
+          if (artwork.series!.artist?.alias != null) ...[
+            divider,
+            MetaDataItem(
+              title: 'artist'.tr(),
+              value: artwork.series!.artist!.alias,
+              tapLink:
+                  FeralFileHelper.getArtistUrl(artwork.series!.artist!.alias),
+              forceSafariVC: true,
+            ),
+          ],
+          divider,
+          MetaDataItem(
+            title: 'edition'.tr(),
+            value: artwork.name,
+          ),
+          divider,
+          MetaDataItem(
+            title: 'token'.tr(),
+            value: polishSource('feralfile'),
+            tapLink: feralFileArtworkUrl(artwork.id),
+            forceSafariVC: true,
+          ),
+          if (artwork.series!.exhibition != null) ...[
+            divider,
+            MetaDataItem(
+              title: 'exhibition'.tr(),
+              value: artwork.series!.exhibition!.title,
+              tapLink: feralFileExhibitionUrl(artwork.series!.exhibition!.slug),
+              forceSafariVC: true,
+            ),
+          ],
+          divider,
+          MetaDataItem(
+            title: 'medium'.tr(),
+            value: artwork.series!.medium.capitalize(),
+          ),
+          if (contract != null) ...[
+            divider,
+            MetaDataItem(
+              title: 'contract'.tr(),
+              value: contract.blockchainType.capitalize(),
+              tapLink: contract.getBlockchainUrl(),
+              forceSafariVC: true,
+            )
+          ],
+          if (artwork.mintedAt != null) ...[
+            divider,
+            MetaDataItem(
+                title: 'date_minted'.tr(),
+                value: localTimeString(artwork.mintedAt!)),
+          ],
+          const SizedBox(
+            height: 32,
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 Widget artworkDetailsMetadataSection(

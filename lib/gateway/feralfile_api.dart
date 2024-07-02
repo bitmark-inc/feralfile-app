@@ -6,6 +6,7 @@
 //
 
 import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/ff_list_response.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
@@ -20,7 +21,8 @@ abstract class FeralFileApi {
 
   @GET('/api/exhibitions/{exhibitionId}')
   Future<ExhibitionResponse> getExhibition(
-      @Path('exhibitionId') String exhibitionId);
+      @Path('exhibitionId') String exhibitionId,
+      {@Query('includeFirstArtwork') bool includeFirstArtwork = false});
 
   @GET('/api/series/{seriesId}')
   Future<FFSeriesResponse> getSeries({
@@ -37,7 +39,6 @@ abstract class FeralFileApi {
     @Query('sortBy') String? sortBy,
     @Query('sortOrder') String? sortOrder,
     @Query('includeArtist') bool includeArtist = true,
-    @Query('includeFirstArtwork') bool includeFirstArtwork = false,
     @Query('includeUniqueFilePath') bool includeUniqueFilePath = true,
   });
 
@@ -71,11 +72,12 @@ abstract class FeralFileApi {
   Future<FeralFileListResponse<Artwork>> getListArtworks({
     @Query('exhibitionID') String? exhibitionId,
     @Query('seriesID') String? seriesId,
-    @Query('offset') int? offset,
-    @Query('limit') int? limit,
+    @Query('offset') int? offset = 0,
+    @Query('limit') int? limit = 1,
     @Query('includeActiveSwap') bool includeActiveSwap = true,
     @Query('sortBy') String sortBy = 'index',
     @Query('sortOrder') String sortOrder = 'ASC',
+    @Query('isViewable') bool? isViewable,
   });
 
   @POST('/api/web3/messages/action')

@@ -18,7 +18,7 @@ extension ImageExt on CachedNetworkImage {
     bool shouldRefreshCache = false,
   }) {
     if (shouldRefreshCache) {
-      Image.network(
+      return Image.network(
         src,
         fit: fit,
         errorBuilder: (context, error, stackTrace) =>
