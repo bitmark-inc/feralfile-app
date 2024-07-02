@@ -195,6 +195,13 @@ extension ArtworkExt on Artwork {
       (e) => e.blockchainType == exhibition.mintBlockchain,
     );
   }
+
+  bool get isYokoOnoPublicVersion {
+    final config = injector<RemoteConfigService>()
+        .getConfig<Map<String, dynamic>>(
+            ConfigGroup.exhibition, ConfigKey.yokoOnoPublic, {});
+    return id == config['public_token_id'];
+  }
 }
 
 String getFFUrl(String uri) {
