@@ -57,6 +57,7 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
     on<ConfirmForgetExistEvent>((event, emit) async {
       emit(ForgetExistState(state.isChecked, true));
 
+      await _addressService.clearPrimaryAddress();
       unawaited(deregisterPushNotification());
       await _autonomyService.clearLinkedAddresses();
       PackageInfo packageInfo = await PackageInfo.fromPlatform();
@@ -70,7 +71,6 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
       for (var persona in personas) {
         await _accountService.deletePersona(persona);
       }
-      await _addressService.clearPrimaryAddress();
 
       await _cloudDatabase.removeAll();
       await _appDatabase.removeAll();
