@@ -508,7 +508,7 @@ extension CompactedAssetTokenExtension on CompactedAssetToken {
 
   bool get shouldRefreshThumbnailCache =>
       isJohnGerrardArtwork &&
-      edition > JohnGerrardHelper.johnGerrardLatestRevealIndex + 2;
+      edition > JohnGerrardHelper.johnGerrardLatestRevealIndex - 2;
 
   String get getMimeType {
     switch (mimeType) {
