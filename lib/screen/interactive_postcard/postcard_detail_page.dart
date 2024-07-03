@@ -800,7 +800,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             onTap: () async {
               final indexId = assetToken.id;
               final jwtToken =
-                  (await injector<AuthService>().getAuthToken()).jwtToken;
+                  (await injector<AuthService>().getAuthToken())!.jwtToken;
               final userIndex = assetToken.stampIndex;
               log.info('?indexId=$indexId&userIndex=$userIndex');
               if (!context.mounted) {

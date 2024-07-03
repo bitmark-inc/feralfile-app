@@ -26,7 +26,7 @@ class MixPanelClientService {
   Future<void> initService() async {
     mixpanel = await Mixpanel.init(Environment.mixpanelKey,
         trackAutomaticEvents: true);
-    await initIfDefaultAccount();
+    // await initIfDefaultAccount();
     mixpanel
       ..setLoggingEnabled(false)
       ..setUseIpAddressForGeolocation(true);
@@ -35,10 +35,6 @@ class MixPanelClientService {
 
   Future initIfDefaultAccount() async {
     final defaultAccount = await _accountService.getDefaultAccount();
-
-    if (defaultAccount == null) {
-      return;
-    }
     final defaultDID = await defaultAccount.getAccountDID();
     final hashedUserID = sha256.convert(utf8.encode(defaultDID)).toString();
     final distinctId = await mixpanel.getDistinctId();

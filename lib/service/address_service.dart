@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/database/entity/wallet_address.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/util/primary_address_channel.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
+import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:eth_sig_util/util/utils.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/data/api/indexer_api.dart';
@@ -27,6 +28,27 @@ class AddressService {
   Future<AddressInfo?> getPrimaryAddressInfo() async {
     final addressInfo = await _primaryAddressChannel.getPrimaryAddress();
     return addressInfo;
+  }
+
+  Future<void> deriveAddressesFromAllPersona() async {
+    final personas = await _cloudDB.personaDao.getPersonas();
+    for (final persona in personas) {
+      await Future.wait([
+        persona.insertAddressAtIndex(walletType: WalletType.Ethereum, index: 0),
+        persona.insertAddressAtIndex(walletType: WalletType.Tezos, index: 0),
+      ]);
+    }
+  }
+
+  Future<void> derivePrimaryAddress() async {
+    final primaryAddressInfo = await getPrimaryAddressInfo();
+    if (primaryAddressInfo == null) {
+      return;
+    }
+    final persona = await _cloudDB.personaDao.findById(primaryAddressInfo.uuid);
+    await persona?.insertAddressAtIndex(
+        walletType: primaryAddressInfo.walletType,
+        index: primaryAddressInfo.index);
   }
 
   Future<bool> setPrimaryAddressInfo({required AddressInfo info}) async {

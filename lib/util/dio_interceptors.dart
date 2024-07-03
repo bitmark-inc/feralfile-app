@@ -154,7 +154,10 @@ class AutonomyAuthInterceptor extends Interceptor {
     ];
     if (!shouldIgnoreAuthorizationPath.contains(options.path)) {
       final jwt = await injector<AuthService>().getAuthToken();
-      options.headers['Authorization'] = 'Bearer ${jwt.jwtToken}';
+      if (jwt == null) {
+        unawaited(Sentry.captureMessage('JWT is null'));
+      }
+      options.headers['Authorization'] = 'Bearer ${jwt!.jwtToken}';
     }
 
     return handler.next(options);

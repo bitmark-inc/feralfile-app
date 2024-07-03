@@ -48,11 +48,9 @@ import 'package:synchronized/synchronized.dart';
 import 'package:uuid/uuid.dart';
 
 abstract class AccountService {
-  Future<WalletStorage?> getDefaultAccount();
+  Future<WalletStorage> getDefaultAccount();
 
   Future<Persona> getOrCreateDefaultPersona();
-
-  Future<WalletStorage?> getCurrentDefaultAccount();
 
   Future<WalletIndex> getAccountByAddress({
     required String chain,
@@ -197,34 +195,8 @@ class AccountServiceImpl extends AccountService {
   }
 
   @override
-  Future<WalletStorage?> getDefaultAccount() async =>
+  Future<WalletStorage> getDefaultAccount() async =>
       _defaultAccountLock.synchronized(() => _getDefaultAccount());
-
-  @override
-  Future<WalletStorage?> getCurrentDefaultAccount() async {
-    var personas = await _cloudDB.personaDao.getDefaultPersonas();
-
-    if (personas.isEmpty) {
-      await MigrationUtil(_configurationService, _cloudDB, this, injector(),
-              _auditService, _backupService)
-          .migrationFromKeychain();
-      await androidRestoreKeys();
-
-      await Future.delayed(const Duration(seconds: 1));
-      personas = await _cloudDB.personaDao.getDefaultPersonas();
-    }
-
-    if (personas.isEmpty) {
-      personas = await _cloudDB.personaDao.getPersonas();
-    }
-
-    if (personas.isEmpty) {
-      return null;
-    }
-    final defaultWallet = personas.first.wallet();
-
-    return await defaultWallet.isWalletCreated() ? defaultWallet : null;
-  }
 
   @override
   Future<WalletIndex> getAccountByAddress({
@@ -253,16 +225,12 @@ class AccountServiceImpl extends AccountService {
     );
   }
 
-  Future<WalletStorage?> _getDefaultAccount() async {
-    final Persona? defaultPersona = await getDefaultPersona();
-    if (defaultPersona == null) {
-      return null;
-    }
-
+  Future<WalletStorage> _getDefaultAccount() async {
+    final Persona defaultPersona = await getDefaultPersona();
     return LibAukDart.getWallet(defaultPersona.uuid);
   }
 
-  Future<Persona?> getDefaultPersona() async {
+  Future<Persona> getDefaultPersona() async {
     var personas = await _cloudDB.personaDao.getDefaultPersonas();
 
     if (personas.isEmpty) {
@@ -275,12 +243,16 @@ class AccountServiceImpl extends AccountService {
       personas = await _cloudDB.personaDao.getDefaultPersonas();
     }
 
-    Persona? defaultPersona;
+    Persona defaultPersona;
     if (personas.isEmpty) {
       personas = await _cloudDB.personaDao.getPersonas();
       if (personas.isNotEmpty) {
         defaultPersona = personas.first..defaultAccount = 1;
         await _cloudDB.personaDao.updatePersona(defaultPersona);
+      } else {
+        unawaited(Sentry.captureMessage(
+            '[getDefaultPersona] No default persona found'));
+        throw AccountException(message: 'No default persona found');
       }
     } else {
       defaultPersona = personas.first;
@@ -290,11 +262,16 @@ class AccountServiceImpl extends AccountService {
 
   @override
   Future<Persona> getOrCreateDefaultPersona() async {
-    final defaultPersona = await getDefaultPersona();
-    if (defaultPersona != null) {
+    try {
+      final defaultPersona = await getDefaultPersona();
       return defaultPersona;
-    } else {
-      return createPersona(isDefault: true);
+    } catch (exception) {
+      if (exception is AccountException) {
+        final persona = await createPersona(isDefault: true);
+        return persona;
+      } else {
+        rethrow;
+      }
     }
   }
 
@@ -440,14 +417,15 @@ class AccountServiceImpl extends AccountService {
         return;
       }
 
+      final primaryAddress = await _addressService.getPrimaryAddressInfo();
       //Import persona to database if needed
       for (var account in accounts) {
         final existingAccount =
             await _cloudDB.personaDao.findById(account.uuid);
         if (existingAccount == null) {
-          final backupVersion = await _backupService
-              .fetchBackupVersion(LibAukDart.getWallet(account.uuid));
-          final defaultAccount = backupVersion.isNotEmpty ? 1 : null;
+          final backupVersion = await _backupService.getBackupVersion();
+          final defaultAccount =
+              primaryAddress?.uuid == account.uuid ? 1 : null;
 
           final persona = Persona.newPersona(
             uuid: account.uuid,
@@ -712,15 +690,9 @@ class AccountServiceImpl extends AccountService {
     final connections = await _cloudDB.connectionDao.getConnections();
     if (personas.isNotEmpty || connections.isNotEmpty) {
       unawaited(_configurationService.setOldUser());
-      final defaultAccount = await getDefaultAccount();
-      if (defaultAccount == null) {
-        throw Exception('Default account not found');
-      }
-      final backupVersion =
-          await _backupService.fetchBackupVersion(defaultAccount);
+      final backupVersion = await _backupService.getBackupVersion();
       if (backupVersion.isNotEmpty) {
-        unawaited(
-            _backupService.restoreCloudDatabase(defaultAccount, backupVersion));
+        unawaited(_backupService.restoreCloudDatabase());
         for (var persona in personas) {
           if (persona.name != '') {
             await persona.wallet().updateName(persona.name);

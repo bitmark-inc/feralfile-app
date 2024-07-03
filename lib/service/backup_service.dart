@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/model/backup_versions.dart';
+import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/util/helpers.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -36,8 +37,11 @@ class BackupService {
 
   BackupService(this._iapApi);
 
-  Future backupCloudDatabase(WalletStorage account) async {
+  Future backupCloudDatabase() async {
     log.info('[BackupService] start database backup');
+    final primaryAddressInfo =
+        await injector<AddressService>().getPrimaryAddressInfo();
+    final account = LibAukDart.getWallet(primaryAddressInfo!.uuid);
     try {
       final path = await sqfliteDatabaseFactory.getDatabasePath(_dbFileName);
       String tempDir = (await getTemporaryDirectory()).path;
@@ -51,8 +55,9 @@ class BackupService {
       String version = packageInfo.version;
       String? deviceId = await getBackupId();
 
-      await _iapApi.uploadProfile(
+      final response = await _iapApi.uploadProfile(
           deviceId, _dbEncryptedFileName, version, file);
+      log.info('[BackupService] response: ${response.statusCode}');
       await file.delete();
     } catch (err) {
       debugPrint('[BackupService] error database backup, $err');
@@ -61,13 +66,12 @@ class BackupService {
     log.info('[BackupService] done database backup');
   }
 
-  Future<String> fetchBackupVersion(WalletStorage account) async {
+  Future<String> getBackupVersion() async {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
     String version = packageInfo.version;
 
     String? deviceId = await getBackupId();
-    final authToken =
-        await injector<AuthService>().getAuthTokenByAccount(account);
+    final authToken = await injector<AuthService>().getAuthToken();
 
     final endpoint = Environment.autonomyAuthURL;
 
@@ -80,7 +84,7 @@ class BackupService {
                 '$endpoint/apis/v1/premium/profile-data/versions?filename=$filename'),
             headers: {
               'requester': deviceId,
-              'Authorization': 'Bearer $authToken'
+              'Authorization': 'Bearer ${authToken?.jwtToken}'
             });
         if (response.statusCode == 200) {
           break;
@@ -114,27 +118,30 @@ class BackupService {
     log.info('[BackupService][start] deleteAllProfiles');
     String? deviceId = await getBackupId();
     final endpoint = Environment.autonomyAuthURL;
-    final authToken =
-        await injector<AuthService>().getAuthTokenByAccount(account);
+    final authToken = await injector<AuthService>().getAuthToken();
 
     await http.delete(Uri.parse('$endpoint/apis/v1/premium/profile-data'),
-        headers: {'requester': deviceId, 'Authorization': 'Bearer $authToken'});
+        headers: {
+          'requester': deviceId,
+          'Authorization': 'Bearer ${authToken?.jwtToken}'
+        });
   }
 
-  Future restoreCloudDatabase(WalletStorage account, String version,
-      {String dbName = 'cloud_database.db'}) async {
+  Future restoreCloudDatabase({String dbName = 'cloud_database.db'}) async {
     log.info('[BackupService] start database restore');
+    final version = await getBackupVersion();
     String? deviceId = await getBackupId();
-    final authToken =
-        await injector<AuthService>().getAuthTokenByAccount(account);
-
+    final authToken = await injector<AuthService>().getAuthToken();
+    final primaryAddressInfo =
+        await injector<AddressService>().getPrimaryAddressInfo();
+    final account = LibAukDart.getWallet(primaryAddressInfo!.uuid);
     final endpoint = Environment.autonomyAuthURL;
     final resp = await http.get(
       Uri.parse(
           '$endpoint/apis/v1/premium/profile-data?filename=$_dbEncryptedFileName&appVersion=$version'),
       headers: {
         'requester': deviceId,
-        'Authorization': 'Bearer $authToken',
+        'Authorization': 'Bearer ${authToken?.jwtToken}',
       },
     );
     if (resp.statusCode == 200) {
