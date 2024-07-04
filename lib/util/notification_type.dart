@@ -75,9 +75,9 @@ enum NotificationType {
       case NotificationType.jgCrystallineWorkGenerated:
         return 'jg_artwork_generated';
       case NotificationType.exhibitionViewingOpening:
-        return 'exhibition_viewing_opening';
+        return 'exhibition_view_opening';
       case NotificationType.exhibitionSalesOpening:
-        return 'exhibition_sales_opening';
+        return 'exhibition_sale_opening';
       case NotificationType.exhibitionSaleClosing:
         return 'exhibition_sale_closing';
       case NotificationType.unknown:
@@ -110,9 +110,9 @@ enum NotificationType {
         return NotificationType.jgCrystallineWorkHasArrived;
       case 'jg_artwork_generated':
         return NotificationType.jgCrystallineWorkGenerated;
-      case 'exhibition_viewing_opening':
+      case 'exhibition_view_opening':
         return NotificationType.exhibitionViewingOpening;
-      case 'exhibition_sales_opening':
+      case 'exhibition_sale_opening':
         return NotificationType.exhibitionSalesOpening;
       case 'exhibition_sale_closing':
         return NotificationType.exhibitionSaleClosing;
