@@ -73,13 +73,15 @@ class AuthService {
   Future<JWT?> getAuthToken(
       {String? messageToSign,
       String? receiptData,
-      bool forceRefresh = false}) async {
+      bool forceRefresh = false,
+      bool shouldGetDidKeyInstead = false}) async {
     if (!forceRefresh && _jwt != null && _jwt!.isValid()) {
       return _jwt!;
     }
     final primaryAddressAuthToken =
         await _getPrimaryAddressAuthToken(receiptData: receiptData);
-    final newJwt = primaryAddressAuthToken ?? await getDidKeyAuthToken();
+    final newJwt = primaryAddressAuthToken ??
+        (shouldGetDidKeyInstead ? await getDidKeyAuthToken() : null);
     return newJwt;
   }
 

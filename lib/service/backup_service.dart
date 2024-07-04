@@ -73,6 +73,10 @@ class BackupService {
     String? deviceId = await getBackupId();
     final authToken = await injector<AuthService>().getAuthToken();
 
+    if (authToken == null) {
+      return '';
+    }
+
     final endpoint = Environment.autonomyAuthURL;
 
     http.Response? response;
@@ -84,7 +88,7 @@ class BackupService {
                 '$endpoint/apis/v1/premium/profile-data/versions?filename=$filename'),
             headers: {
               'requester': deviceId,
-              'Authorization': 'Bearer ${authToken?.jwtToken}'
+              'Authorization': 'Bearer ${authToken.jwtToken}'
             });
         if (response.statusCode == 200) {
           break;

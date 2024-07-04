@@ -153,7 +153,8 @@ class AutonomyAuthInterceptor extends Interceptor {
       IAPApi.addressAuthenticationPath,
     ];
     if (!shouldIgnoreAuthorizationPath.contains(options.path)) {
-      final jwt = await injector<AuthService>().getAuthToken();
+      final jwt = await injector<AuthService>()
+          .getAuthToken(shouldGetDidKeyInstead: true);
       if (jwt == null) {
         unawaited(Sentry.captureMessage('JWT is null'));
       }
