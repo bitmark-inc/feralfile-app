@@ -354,6 +354,24 @@ class AccountServiceImpl extends AccountService {
     await _cloudDB.connectionDao.insertConnection(connection);
     await _nftCollectionAddressService.addAddresses([checkSumAddress]);
     unawaited(_autonomyService.postLinkedAddresses());
+    final allAddresses = await _addressService.getAllAddress();
+    if (allAddresses.isEmpty) {
+      // for case when import view-only address,
+      // the default account is not exist,
+      // we should create new account,
+      // derive ethereum and tezos address at index 0
+      await getOrCreateDefaultPersona();
+
+      // now default account is exist,
+      // we should derive ethereum and tezos address at index 0
+      await _addressService.deriveAddressesFromAllPersona();
+
+      // pick primary address
+      final addressInfo = await _addressService.pickAddressAsPrimary();
+
+      // register primary address
+      await _addressService.registerPrimaryAddress(info: addressInfo);
+    }
     return connection;
   }
 
@@ -610,6 +628,18 @@ class AccountServiceImpl extends AccountService {
     await _cloudDB.addressDao.insertAddresses(walletAddresses);
     await _nftCollectionAddressService
         .addAddresses(addresses.map((e) => e.address).toList());
+    // check if primary address is not set
+    final primaryAddressInfo = await _addressService.getPrimaryAddressInfo();
+    if (primaryAddressInfo == null) {
+      try {
+        final addressInfo = await _addressService.pickAddressAsPrimary();
+        await _addressService.registerPrimaryAddress(
+            info: addressInfo, withDidKey: true);
+      } catch (e, stacktrace) {
+        log.info('Error while picking primary address', e, stacktrace);
+        // rethrow;
+      }
+    }
     return result;
   }
 
