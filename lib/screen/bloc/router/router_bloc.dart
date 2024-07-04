@@ -115,7 +115,6 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
           return;
         } else {
           // case old user without backup
-          await _configurationService.setDoneOnboarding(true);
           unawaited(injector<MetricClientService>()
               .mixPanelClient
               .initIfDefaultAccount());
@@ -133,6 +132,7 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
           }
 
           emit(RouterState(onboardingStep: OnboardingStep.dashboard));
+          await _configurationService.setDoneOnboarding(true);
           return;
         }
       } else {
@@ -170,7 +170,6 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
         if (_configurationService.isDoneOnboarding()) {
           return;
         }
-        await _configurationService.setDoneOnboarding(true);
         unawaited(injector<MetricClientService>()
             .mixPanelClient
             .initIfDefaultAccount());
@@ -188,6 +187,7 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
           // rethrow;
         }
         emit(RouterState(onboardingStep: OnboardingStep.dashboard));
+        await _configurationService.setDoneOnboarding(true);
       } catch (e, stacktrace) {
         await Sentry.captureException(e, stackTrace: stacktrace);
         rethrow;
