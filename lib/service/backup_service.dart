@@ -57,7 +57,7 @@ class BackupService {
 
       final response = await _iapApi.uploadProfile(
           deviceId, _dbEncryptedFileName, version, file);
-      log.info('[BackupService] response: ${response.statusCode}');
+      log.info('[BackupService] response: $response');
       await file.delete();
     } catch (err) {
       debugPrint('[BackupService] error database backup, $err');
