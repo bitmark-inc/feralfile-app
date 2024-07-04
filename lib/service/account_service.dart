@@ -42,7 +42,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/models/models.dart';
 import 'package:nft_collection/services/address_service.dart'
-    as nftCollectionAddressService;
+    as nft_collection_address_service;
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:synchronized/synchronized.dart';
 import 'package:uuid/uuid.dart';
@@ -123,7 +123,8 @@ class AccountServiceImpl extends AccountService {
   final AuditService _auditService;
   final AutonomyService _autonomyService;
   final BackupService _backupService;
-  final nftCollectionAddressService.AddressService _nftCollectionAddressService;
+  final nft_collection_address_service.AddressService
+      _nftCollectionAddressService;
   final AddressService _addressService;
   final _defaultAccountLock = Lock();
 
