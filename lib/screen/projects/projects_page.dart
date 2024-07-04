@@ -10,6 +10,7 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/ff_artwork_thumbnail_view.dart';
 import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_flutter/view/title_text.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
@@ -32,20 +33,22 @@ class _ProjectsPageState extends State<ProjectsPage>
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: getDarkEmptyAppBar(Colors.transparent),
+        appBar: getFFAppBar(
+          context,
+          title: TitleText(
+            title: 'rnd'.tr(),
+          ),
+          centerTitle: false,
+          onBack: () => Navigator.pop(context),
+        ),
         extendBody: true,
-        extendBodyBehindAppBar: true,
+        // extendBodyBehindAppBar: true,
         backgroundColor: AppColor.primaryBlack,
         body: CustomScrollView(
           slivers: [
-            SliverToBoxAdapter(
+            const SliverToBoxAdapter(
               child: SizedBox(
-                height: MediaQuery.of(context).padding.top,
-              ),
-            ),
-            SliverToBoxAdapter(
-              child: HeaderView(
-                title: 'rnd'.tr(),
+                height: 42,
               ),
             ),
             SliverToBoxAdapter(

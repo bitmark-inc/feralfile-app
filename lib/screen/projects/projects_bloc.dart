@@ -29,11 +29,9 @@ class ProjectsBloc extends AuBloc<ProjectsEvent, ProjectsState> {
     on<GetProjectsEvent>((event, emit) async {
       final List<ProjectInfo> newProjects = [];
       CompactedAssetToken? firstUserMoMAPostCard;
-      Artwork? firstFeaturedWork;
       Artwork? yokoOnoRecordArtwork;
       try {
         firstUserMoMAPostCard = await _getFirstUserMoMAPostCard();
-        firstFeaturedWork = await _getFirstFeaturedWork();
         final showYokoOno = await _doUserHaveYokoOnoRecord();
         if (showYokoOno) {
           final config = _remoteConfigService.getConfig<Map<String, dynamic>>(
@@ -67,16 +65,6 @@ class ProjectsBloc extends AuBloc<ProjectsEvent, ProjectsState> {
         );
       }
 
-      if (firstFeaturedWork != null) {
-        newProjects.add(
-          ProjectInfo(
-            title: 'featured_works'.tr(),
-            route: AppRouter.featuredWorksPage,
-            delegate: firstFeaturedWork,
-          ),
-        );
-      }
-
       emit(state.copyWith(loading: false, projects: newProjects));
     });
   }
@@ -94,11 +82,6 @@ class ProjectsBloc extends AuBloc<ProjectsEvent, ProjectsState> {
     return postCardTokens.isNotEmpty
         ? CompactedAssetToken.fromAssetToken(postCardTokens[0])
         : null;
-  }
-
-  Future<Artwork?> _getFirstFeaturedWork() async {
-    final featuredWorks = await _feralfileService.getFeaturedArtworks();
-    return featuredWorks.isNotEmpty ? featuredWorks[0] : null;
   }
 
   Future<bool> _doUserHaveYokoOnoRecord() async {
