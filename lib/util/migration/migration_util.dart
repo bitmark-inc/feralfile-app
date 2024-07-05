@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -25,7 +26,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration/migration_data.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:flutter/services.dart';
-import 'package:nft_collection/services/address_service.dart';
+import 'package:nft_collection/services/address_service.dart' as ads;
 import 'package:package_info_plus/package_info_plus.dart';
 
 class MigrationUtil {
@@ -36,6 +37,8 @@ class MigrationUtil {
   final IAPService _iapService;
   final AuditService _auditService;
   final BackupService _backupService;
+  final ads.AddressService _collectionAddressService =
+      injector<ads.AddressService>();
   final AddressService _addressService = injector<AddressService>();
   final int requiredAndroidMigrationVersion = 95;
 
@@ -68,7 +71,7 @@ class MigrationUtil {
         .toList();
 
     if (needChecksumConnections.isNotEmpty) {
-      final addressService = injector<AddressService>();
+      final addressService = injector<ads.AddressService>();
       final checksumConnections = needChecksumConnections.map((e) {
         final checksumAddress = _tryChecksum(e.key);
         return e.copyWith(key: checksumAddress, accountNumber: checksumAddress);
@@ -114,6 +117,7 @@ class MigrationUtil {
       return;
     }
 
+    final primaryAddressInfo = await _addressService.getPrimaryAddressInfo();
     log.info(
         '[_migrationFromKeychain] personaUUIDs from Keychain: $personaUUIDs');
     for (var personaUUID in personaUUIDs) {
@@ -128,8 +132,7 @@ class MigrationUtil {
       if (existingPersona == null) {
         final wallet = Persona.newPersona(uuid: uuid).wallet();
         final name = await wallet.getName();
-        final backupVersion = await _backupService.fetchBackupVersion(wallet);
-        final defaultAccount = backupVersion.isNotEmpty ? 1 : null;
+        final defaultAccount = primaryAddressInfo?.uuid == uuid ? 1 : 0;
 
         final persona = Persona.newPersona(
             uuid: uuid,
@@ -149,7 +152,7 @@ class MigrationUtil {
       if (!(await persona.wallet().isWalletCreated())) {
         final addresses =
             await _cloudDB.addressDao.getAddressesByPersona(persona.uuid);
-        await _addressService
+        await _collectionAddressService
             .deleteAddresses(addresses.map((e) => e.address).toList());
         await _cloudDB.addressDao.deleteAddressesByPersona(persona.uuid);
         await _cloudDB.personaDao.deletePersona(persona);
@@ -208,7 +211,7 @@ class MigrationUtil {
         await _cloudDB.personaDao.deletePersona(persona);
         final addresses =
             await _cloudDB.addressDao.getAddressesByPersona(persona.uuid);
-        await _addressService
+        await _collectionAddressService
             .deleteAddresses(addresses.map((e) => e.address).toList());
         await _cloudDB.addressDao.deleteAddressesByPersona(persona.uuid);
       }

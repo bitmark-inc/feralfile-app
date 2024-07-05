@@ -44,6 +44,9 @@ class JWT {
     return SubscriptionStatus(
         plan: plan, isTrial: isTrial, expireDate: expDate);
   }
+
+  @override
+  String toString() => this.jwtToken;
 }
 
 class SubscriptionStatus {
@@ -58,9 +61,8 @@ class SubscriptionStatus {
       plan == "autonomy-premium" && expireDate.isAfter(DateTime.now());
 
   @override
-  String toString() {
-    return 'SubscriptionStatus{plan: $plan, isTrial: $isTrial, expireDate: $expireDate}';
-  }
+  String toString() =>
+      'SubscriptionStatus{plan: $plan, isTrial: $isTrial, expireDate: $expireDate}';
 }
 
 class OnesignalIdentityHash {

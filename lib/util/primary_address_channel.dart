@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:flutter/services.dart';
 
 class PrimaryAddressChannel {
@@ -72,4 +73,14 @@ class AddressInfo {
 
   @override
   String toString() => jsonEncode(toJson());
+
+  WalletType get walletType {
+    if (chain == 'ethereum') {
+      return WalletType.Ethereum;
+    } else if (chain == 'tezos') {
+      return WalletType.Tezos;
+    } else {
+      throw UnsupportedError('Unsupported chain: $chain');
+    }
+  }
 }

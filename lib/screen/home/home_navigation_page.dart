@@ -21,7 +21,6 @@ import 'package:autonomy_flutter/screen/exhibitions/exhibitions_state.dart';
 import 'package:autonomy_flutter/screen/home/collection_home_page.dart';
 import 'package:autonomy_flutter/screen/home/organize_home_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/chat_service.dart';
@@ -637,9 +636,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   }
 
   Future<void> _cloudBackup() async {
-    final accountService = injector<AccountService>();
-    final backup = injector<BackupService>();
-    final defaultAccount = await accountService.getDefaultAccount();
-    await backup.backupCloudDatabase(defaultAccount!);
+    final backupService = injector<BackupService>();
+    await backupService.backupCloudDatabase();
   }
 }
