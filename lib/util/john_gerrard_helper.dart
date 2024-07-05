@@ -52,15 +52,19 @@ class JohnGerrardHelper {
   }
 
   static Future<void> updateJohnGerrardLatestRevealIndex() async {
-    final exhibitionId = JohnGerrardHelper.exhibitionID!;
-    final exhibition =
-        await injector<FeralFileService>().getExhibition(exhibitionId);
-    final series = exhibition.series!.first;
-    final latestRevealedArtworkIndex = series.latestRevealedArtworkIndex;
+    try {
+      final exhibitionId = JohnGerrardHelper.exhibitionID!;
+      final exhibition =
+      await injector<FeralFileService>().getExhibition(exhibitionId);
+      final series = exhibition.series!.first;
+      final latestRevealedArtworkIndex = series.latestRevealedArtworkIndex;
 
-    if (latestRevealedArtworkIndex != null) {
-      log.info('update latestRevealedIndex: $latestRevealedArtworkIndex');
-      _johnGerrardLatestRevealIndex = latestRevealedArtworkIndex;
+      if (latestRevealedArtworkIndex != null) {
+        log.info('update latestRevealedIndex: $latestRevealedArtworkIndex');
+        _johnGerrardLatestRevealIndex = latestRevealedArtworkIndex;
+      }
+    } catch (e) {
+      log.info('updateJohnGerrardLatestRevealIndex error: $e');
     }
   }
 }
