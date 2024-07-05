@@ -9,7 +9,6 @@ import 'dart:async';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
@@ -580,18 +579,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     );
   }
 
-  Future<void> _checkForKeySync(BuildContext context) async {
-    final cloudDatabase = injector<CloudDatabase>();
-    final defaultAccounts = await cloudDatabase.personaDao.getDefaultPersonas();
-
-    if (defaultAccounts.length >= 2) {
-      if (!context.mounted) {
-        return;
-      }
-      unawaited(Navigator.of(context).pushNamed(AppRouter.keySyncPage));
-    }
-  }
-
   PageController _getPageController(int initialIndex) =>
       PageController(initialPage: initialIndex);
 
@@ -629,10 +616,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     if (initialAction != null) {
       await nc.NotificationService.onActionReceivedMethod(initialAction);
     }
-    if (!context.mounted) {
-      return;
-    }
-    unawaited(_checkForKeySync(context));
   }
 
   Future<void> _cloudBackup() async {
