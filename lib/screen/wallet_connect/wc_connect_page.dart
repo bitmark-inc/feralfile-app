@@ -160,7 +160,7 @@ class _WCConnectPageState extends State<WCConnectPage>
       return;
     }
 
-    dynamic aproveResponse;
+    dynamic approveResponse;
 
     unawaited(
         UIHelper.showLoadingScreen(context, text: 'connecting_wallet'.tr()));
@@ -172,13 +172,13 @@ class _WCConnectPageState extends State<WCConnectPage>
           if (connectionRequest.isAutonomyConnect) {
             final defaultAccount =
                 await injector<AccountService>().getDefaultAccount();
-            final accountDid = await defaultAccount!.getAccountDID();
+            final accountDid = await defaultAccount.getAccountDID();
             final walletAddresses = await injector<CloudDatabase>()
                 .addressDao
                 .findByWalletID(defaultAccount.uuid);
             final accountNumber =
                 walletAddresses.map((e) => e.address).join('||');
-            aproveResponse = await injector<Wc2Service>().approveSession(
+            approveResponse = await injector<Wc2Service>().approveSession(
               connectionRequest as Wc2Proposal,
               accounts: [accountDid.substring('did:key:'.length)],
               connectionKey: defaultAccount.uuid,
@@ -191,7 +191,7 @@ class _WCConnectPageState extends State<WCConnectPage>
           } else {
             final address = await injector<EthereumService>()
                 .getETHAddress(selectedPersona!.wallet, selectedPersona!.index);
-            aproveResponse = await injector<Wc2Service>().approveSession(
+            approveResponse = await injector<Wc2Service>().approveSession(
               connectionRequest as Wc2Proposal,
               accounts: [address],
               connectionKey: address,
@@ -206,7 +206,7 @@ class _WCConnectPageState extends State<WCConnectPage>
           final index = selectedPersona!.index;
           final publicKey = await wallet.getTezosPublicKey(index: index);
           final address = wallet.getTezosAddressFromPubKey(publicKey);
-          aproveResponse =
+          approveResponse =
               await injector<TezosBeaconService>().permissionResponse(
             wallet.uuid,
             index,
@@ -255,8 +255,8 @@ class _WCConnectPageState extends State<WCConnectPage>
       AppRouter.personaConnectionsPage,
       arguments: payload,
     ));
-    if (aproveResponse is ApproveResponse) {
-      injector<Wc2Service>().addApprovedTopic([aproveResponse.topic]);
+    if (approveResponse is ApproveResponse) {
+      injector<Wc2Service>().addApprovedTopic([approveResponse.topic]);
     }
   }
 

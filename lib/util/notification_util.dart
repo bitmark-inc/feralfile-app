@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
@@ -16,7 +17,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 
 Future<bool> registerPushNotifications({bool askPermission = false}) async {
-  log.info("register notification");
+  log.info('register notification');
   if (askPermission) {
     final permission = Platform.isAndroid
         ? true
@@ -30,20 +31,20 @@ Future<bool> registerPushNotifications({bool askPermission = false}) async {
   try {
     final environment = await getAppVariant();
     final identityHash = (await injector<IAPApi>()
-            .generateIdentityHash({"environment": environment}))
+            .generateIdentityHash({'environment': environment}))
         .hash;
     final defaultAccount = await injector<AccountService>().getDefaultAccount();
-    final defaultDID = await defaultAccount!.getAccountDID();
+    final defaultDID = await defaultAccount.getAccountDID();
     await OneSignal.shared.setExternalUserId(defaultDID, identityHash);
-    injector<ConfigurationService>().setNotificationEnabled(true);
+    unawaited(injector<ConfigurationService>().setNotificationEnabled(true));
     return true;
   } catch (error) {
-    log.warning("error when registering notifications: $error");
+    log.warning('error when registering notifications: $error');
     return false;
   }
 }
 
 Future<void> deregisterPushNotification() async {
-  log.info("unregister notification");
+  log.info('unregister notification');
   await OneSignal.shared.removeExternalUserId();
 }
