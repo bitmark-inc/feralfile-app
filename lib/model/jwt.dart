@@ -29,7 +29,7 @@ class JWT {
     final value = expDate.compareTo(DateTime.now());
     if (withSubscription) {
       final plan = claim['plan'] as String;
-      return value > 0 && plan == "autonomy-premium";
+      return value > 0 && plan == 'autonomy-premium';
     }
 
     return value > 0;
@@ -46,7 +46,7 @@ class JWT {
   }
 
   @override
-  String toString() => this.jwtToken;
+  String toString() => jwtToken;
 }
 
 class SubscriptionStatus {
@@ -58,11 +58,11 @@ class SubscriptionStatus {
       {required this.plan, required this.isTrial, required this.expireDate});
 
   bool get isPremium =>
-      plan == "autonomy-premium" && expireDate.isAfter(DateTime.now());
+      plan == 'autonomy-premium' && expireDate.isAfter(DateTime.now());
 
   @override
-  String toString() =>
-      'SubscriptionStatus{plan: $plan, isTrial: $isTrial, expireDate: $expireDate}';
+  String toString() => 'SubscriptionStatus{plan: $plan, '
+      'isTrial: $isTrial, expireDate: $expireDate}';
 }
 
 class OnesignalIdentityHash {
