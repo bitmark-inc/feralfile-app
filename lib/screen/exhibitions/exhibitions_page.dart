@@ -150,6 +150,8 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
     final estimatedHeight = (screenWidth - _padding * 2) / 16 * 9;
     final estimatedWidth = screenWidth - _padding * 2;
     final index = viewableExhibitions.indexOf(exhibition);
+    final titleStyle = theme.textTheme.ppMori400White16;
+    final subTitleStyle = theme.textTheme.ppMori400Grey12;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -232,7 +234,7 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                           (exhibition.canViewDetails ? 0 : 13 + 5),
                       child: AutoSizeText(
                         exhibition.title,
-                        style: theme.textTheme.ppMori400White16,
+                        style: titleStyle,
                         maxLines: 2,
                       ),
                     ),
@@ -243,33 +245,58 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (exhibition.curator != null)
+                      if (exhibition.isSoloExhibition &&
+                          exhibition.artists != null) ...[
                         RichText(
-                            text: TextSpan(
-                                style: theme.textTheme.ppMori400Grey14.copyWith(
-                                    decorationColor: AppColor.disabledColor),
-                                children: [
-                              TextSpan(text: 'curated_by'.tr()),
+                          text: TextSpan(
+                            style: subTitleStyle.copyWith(
+                                decorationColor: AppColor.disabledColor),
+                            children: [
+                              TextSpan(text: 'works_by'.tr()),
                               TextSpan(
                                   recognizer: TapGestureRecognizer()
                                     ..onTap = () async {
                                       await _navigationService
-                                          .openFeralFileCuratorPage(
-                                              exhibition.curator!.alias);
+                                          .openFeralFileArtistPage(
+                                        exhibition.artists![0].alias,
+                                      );
                                     },
-                                  text: exhibition.curator!.alias,
+                                  text: exhibition.artists![0].alias,
                                   style: const TextStyle(
                                     decoration: TextDecoration.underline,
                                   )),
-                            ])),
+                            ],
+                          ),
+                        ),
+                      ],
+                      if (exhibition.curator != null)
+                        RichText(
+                          text: TextSpan(
+                            style: subTitleStyle.copyWith(
+                                decorationColor: AppColor.disabledColor),
+                            children: [
+                              TextSpan(text: 'curated_by'.tr()),
+                              TextSpan(
+                                recognizer: TapGestureRecognizer()
+                                  ..onTap = () async {
+                                    await _navigationService
+                                        .openFeralFileCuratorPage(
+                                            exhibition.curator!.alias);
+                                  },
+                                text: exhibition.curator!.alias,
+                                style: const TextStyle(
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       Text(
-                          exhibition.isGroupExhibition
-                              ? 'group_exhibition'.tr()
-                              : 'solo_exhibition'.tr(),
-                          style: theme.textTheme.ppMori400Grey14),
-                      if (exhibition.getSeriesArtworkModelText != null)
-                        Text(exhibition.getSeriesArtworkModelText!,
-                            style: theme.textTheme.ppMori400Grey14),
+                        exhibition.isGroupExhibition
+                            ? 'group_exhibition'.tr()
+                            : 'solo_exhibition'.tr(),
+                        style: subTitleStyle,
+                      ),
                     ],
                   ),
                 )

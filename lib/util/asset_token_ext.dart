@@ -506,7 +506,9 @@ extension CompactedAssetTokenExtension on CompactedAssetToken {
     return isFeralfile && contractAddress == johnGerrardContractAddress;
   }
 
-  bool get shouldRefreshThumbnailCache => isJohnGerrardArtwork;
+  bool get shouldRefreshThumbnailCache =>
+      isJohnGerrardArtwork &&
+      edition > JohnGerrardHelper.johnGerrardLatestRevealIndex - 2;
 
   String get getMimeType {
     switch (mimeType) {
