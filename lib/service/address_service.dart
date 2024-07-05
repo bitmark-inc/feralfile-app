@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/wallet_address.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/primary_address_channel.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/wallet_utils.dart';
@@ -60,6 +61,7 @@ class AddressService {
       {required AddressInfo info, bool withDidKey = false}) async {
     await injector<AuthService>().registerPrimaryAddress(
         primaryAddressInfo: info, withDidKey: withDidKey);
+    log.info('Primary address registered: uuid=${info.uuid}');
     return setPrimaryAddressInfo(info: info);
   }
 

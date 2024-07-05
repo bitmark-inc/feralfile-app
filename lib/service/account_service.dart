@@ -441,7 +441,6 @@ class AccountServiceImpl extends AccountService {
         final existingAccount =
             await _cloudDB.personaDao.findById(account.uuid);
         if (existingAccount == null) {
-          final backupVersion = await _backupService.getBackupVersion();
           final defaultAccount =
               primaryAddress?.uuid == account.uuid ? 1 : null;
 
@@ -706,22 +705,27 @@ class AccountServiceImpl extends AccountService {
 
   @override
   Future<void> restoreIfNeeded({bool isCreateNew = true}) async {
-    if (_configurationService.isDoneOnboarding()) {
-      return;
-    }
-
     final iapService = injector<IAPService>();
     final auditService = injector<AuditService>();
     final migrationUtil = MigrationUtil(_configurationService, _cloudDB, this,
         iapService, auditService, _backupService);
-    await androidBackupKeys();
+    await androidRestoreKeys();
     await migrationUtil.migrationFromKeychain();
     final personas = await _cloudDB.personaDao.getPersonas();
-    final connections = await _cloudDB.connectionDao.getConnections();
-    if (personas.isNotEmpty || connections.isNotEmpty) {
+
+    final hasPersona = personas.isNotEmpty;
+    if (!hasPersona) {
+      await _configurationService.setDoneOnboarding(hasPersona);
+    }
+    if (_configurationService.isDoneOnboarding()) {
+      return;
+    }
+    // for user who did not onboarded before
+    if (hasPersona) {
       unawaited(_configurationService.setOldUser());
       final backupVersion = await _backupService.getBackupVersion();
       if (backupVersion.isNotEmpty) {
+        // if user has backup, restore from cloud
         unawaited(_backupService.restoreCloudDatabase());
         for (var persona in personas) {
           if (persona.name != '') {
@@ -729,16 +733,40 @@ class AccountServiceImpl extends AccountService {
           }
         }
         await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
-        unawaited(_configurationService.setDoneOnboarding(true));
         unawaited(injector<MetricClientService>()
             .mixPanelClient
             .initIfDefaultAccount());
         unawaited(injector<NavigationService>()
             .navigateTo(AppRouter.homePageNoTransition));
+        unawaited(_configurationService.setDoneOnboarding(true));
+      }
+
+      // make sure has addresses
+      // case 1: user has no backup,
+      // case 2: user has backup but no addresses
+      final addresses = await _addressService.getAllAddress();
+      if (addresses.isEmpty) {
+        // if user has no backup, derive addresses from keychain
+        await _addressService.deriveAddressesFromAllPersona();
+
+        // if primary exist in keychain,
+        // derive primary address for case primary address
+        // is not exist in cloud database
+        await _addressService.derivePrimaryAddress();
+      }
+
+      // now has addresses, check if primary address is exist
+      final primaryAddressInfo = await _addressService.getPrimaryAddressInfo();
+
+      // if primary address is not exist, pick one and register as primary
+      if (primaryAddressInfo == null) {
+        final primaryAddressInfo = await _addressService.pickAddressAsPrimary();
+        await _addressService.registerPrimaryAddress(
+            info: primaryAddressInfo, withDidKey: true);
       }
     } else if (isCreateNew) {
-      unawaited(_configurationService.setDoneOnboarding(true));
-      final persona = await createPersona();
+      // for new user, create default persona
+      final persona = await createPersona(isDefault: true);
       await persona.insertNextAddress(WalletType.Tezos);
       await persona.insertNextAddress(WalletType.Ethereum);
       unawaited(injector<MetricClientService>()
@@ -746,6 +774,7 @@ class AccountServiceImpl extends AccountService {
           .initIfDefaultAccount());
       unawaited(injector<NavigationService>()
           .navigateTo(AppRouter.homePageNoTransition));
+      unawaited(_configurationService.setDoneOnboarding(true));
     }
   }
 
