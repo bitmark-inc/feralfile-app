@@ -130,7 +130,8 @@ class _ProjectsPageState extends State<ProjectsPage>
             aspectRatio: 1,
             child: FFArtworkThumbnailView(
               artwork: project.delegate as Artwork,
-              cacheSize: cachedImageSize,
+              cacheWidth: cachedImageSize,
+              cacheHeight: cachedImageSize,
             ),
           ),
         );

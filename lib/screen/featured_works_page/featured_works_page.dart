@@ -73,7 +73,11 @@ class _FeaturedWorksPageState extends State<FeaturedWorksPage> {
                         itemCount: snapshot.data!.length,
                         itemBuilder: (context, index) => FFArtworkThumbnailView(
                           artwork: snapshot.data![index],
-                          cacheSize: (MediaQuery.sizeOf(context).width -
+                          cacheWidth: (MediaQuery.sizeOf(context).width -
+                                  _padding * 2 -
+                                  _axisSpacing * 2) ~/
+                              3,
+                          cacheHeight: (MediaQuery.sizeOf(context).width -
                                   _padding * 2 -
                                   _axisSpacing * 2) ~/
                               3,
