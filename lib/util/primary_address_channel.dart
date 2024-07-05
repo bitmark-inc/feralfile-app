@@ -52,10 +52,7 @@ class AddressInfo {
   final String chain;
   final int index;
 
-  AddressInfo(
-      {required String this.uuid,
-      required String this.chain,
-      required int this.index});
+  AddressInfo({required this.uuid, required this.chain, required this.index});
 
   Map<String, dynamic> toJson() => {
         'uuid': uuid,
