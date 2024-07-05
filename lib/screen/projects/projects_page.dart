@@ -8,7 +8,6 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/ff_artwork_thumbnail_view.dart';
-import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/title_text.dart';
 import 'package:easy_localization/easy_localization.dart';
