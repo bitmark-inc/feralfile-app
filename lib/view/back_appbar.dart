@@ -410,6 +410,7 @@ AppBar getFFAppBar(
   required Function()? onBack,
   Widget? title,
   Widget? action,
+  bool? centerTitle = true,
 }) {
   const secondaryColor = AppColor.primaryBlack;
   return AppBar(
@@ -417,7 +418,7 @@ AppBar getFFAppBar(
           statusBarColor: secondaryColor,
           statusBarIconBrightness: Brightness.light,
           statusBarBrightness: Brightness.dark),
-      centerTitle: true,
+      centerTitle: centerTitle,
       toolbarHeight: 66,
       leadingWidth: 44,
       scrolledUnderElevation: 0,

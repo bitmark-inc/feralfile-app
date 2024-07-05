@@ -7,11 +7,11 @@
 
 import 'dart:async';
 
+import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
-import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -35,7 +35,7 @@ class MoMAPostcardPage extends StatefulWidget {
 
 class _MoMAPostcardPageState extends State<MoMAPostcardPage> {
   int _cachedImageSize = 0;
-  final nftBloc = injector<ClientTokenService>().nftBloc;
+  final nftBloc = injector.get<NftCollectionBloc>(param1: false);
 
   @override
   void initState() {
@@ -44,16 +44,18 @@ class _MoMAPostcardPageState extends State<MoMAPostcardPage> {
 
   List<CompactedAssetToken> _updateTokens(List<CompactedAssetToken> tokens) {
     List<CompactedAssetToken> filteredTokens = tokens.filterAssetToken();
-    final filteredPostcards =
-        filteredTokens.where((element) => element.isPostcard).toList();
-
     final nextKey = nftBloc.state.nextKey;
     if (nextKey != null &&
         !nextKey.isLoaded &&
-        filteredPostcards.length < COLLECTION_INITIAL_MIN_SIZE) {
-      nftBloc.add(GetTokensByOwnerEvent(pageKey: nextKey));
+        filteredTokens.length < COLLECTION_INITIAL_MIN_SIZE) {
+      nftBloc.add(
+        GetTokensByOwnerEvent(
+          pageKey: nextKey,
+          contractAddress: Environment.postcardContractAddress,
+        ),
+      );
     }
-    return filteredPostcards;
+    return filteredTokens;
   }
 
   @override
@@ -74,12 +76,11 @@ class _MoMAPostcardPageState extends State<MoMAPostcardPage> {
       top: false,
       bottom: false,
       child: Scaffold(
-        appBar: getBackAppBar(
+        backgroundColor: AppColor.primaryBlack,
+        appBar: getFFAppBar(
           context,
-          title: 'moma_postcard'.tr(),
-          onBack: () {
-            Navigator.of(context).pop();
-          },
+          onBack: () => Navigator.pop(context),
+          title: Text('moma_postcard'.tr()),
         ),
         body: Column(
           children: [

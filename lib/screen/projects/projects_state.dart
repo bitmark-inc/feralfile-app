@@ -1,4 +1,4 @@
-import 'package:autonomy_flutter/model/tap_navigate.dart';
+import 'package:autonomy_flutter/model/project.dart';
 
 abstract class ProjectsEvent {}
 
@@ -6,8 +6,7 @@ class GetProjectsEvent extends ProjectsEvent {}
 
 class ProjectsState {
   final bool loading;
-
-  final List<TapNavigate> projects;
+  final List<ProjectInfo> projects;
 
   ProjectsState({
     this.loading = true,
@@ -16,7 +15,7 @@ class ProjectsState {
 
   ProjectsState copyWith({
     bool? loading,
-    List<TapNavigate>? projects,
+    List<ProjectInfo>? projects,
   }) =>
       ProjectsState(
         loading: loading ?? this.loading,
