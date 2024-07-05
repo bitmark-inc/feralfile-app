@@ -55,7 +55,7 @@ class JohnGerrardHelper {
     try {
       final exhibitionId = JohnGerrardHelper.exhibitionID!;
       final exhibition =
-      await injector<FeralFileService>().getExhibition(exhibitionId);
+          await injector<FeralFileService>().getExhibition(exhibitionId);
       final series = exhibition.series!.first;
       final latestRevealedArtworkIndex = series.latestRevealedArtworkIndex;
 
