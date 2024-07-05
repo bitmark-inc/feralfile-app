@@ -113,6 +113,7 @@ class UIHelper {
     FeedbackType? feedback = FeedbackType.selection,
     EdgeInsets? padding,
     EdgeInsets? paddingTitle,
+    bool withCloseIcon = false,
   }) async {
     log.info('[UIHelper] showDialog: $title');
     currentDialogTitle = title;
@@ -161,8 +162,25 @@ class UIHelper {
                 children: [
                   Padding(
                     padding: paddingTitle ?? const EdgeInsets.all(0),
-                    child: Text(title,
-                        style: theme.primaryTextTheme.ppMori700White24),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(title,
+                            style: theme.primaryTextTheme.ppMori700White24),
+                        if (withCloseIcon)
+                          Padding(
+                            padding: const EdgeInsets.only(left: 10),
+                            child: GestureDetector(
+                              onTap: () => hideInfoDialog(context),
+                              child: SvgPicture.asset(
+                                'assets/images/circle_close.svg',
+                                width: 22,
+                                height: 22,
+                              ),
+                            ),
+                          )
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 40),
                   content,
