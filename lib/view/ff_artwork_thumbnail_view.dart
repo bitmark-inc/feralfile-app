@@ -1,7 +1,6 @@
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
-import 'package:autonomy_flutter/view/image_background.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -28,7 +27,7 @@ class FFArtworkThumbnailView extends StatelessWidget {
           fit: BoxFit.cover,
           loadingBuilder: (context, child, loadingProgress) {
             if (loadingProgress == null) {
-              return ImageBackground(child: child);
+              return child;
             }
             return const GalleryThumbnailPlaceholder();
           },
