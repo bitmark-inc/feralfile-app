@@ -237,7 +237,7 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler {
             }
             .addOnFailureListener {
                 //Block store not available
-                result.error("getPrimaryAddress error", it.message, it)
+                result.error("getPrimaryAddress Block store error", it.message, it)
             }
     }
 
