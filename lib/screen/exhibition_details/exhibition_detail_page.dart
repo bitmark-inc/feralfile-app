@@ -53,8 +53,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
   void initState() {
     super.initState();
     final exhibitionBloc = injector<ExhibitionBloc>();
-    isUpcomingExhibition = false;
-    exhibitionBloc.state.upcomingExhibition != null &&
+    isUpcomingExhibition = exhibitionBloc.state.upcomingExhibition != null &&
         exhibitionBloc.state.upcomingExhibition!.id ==
             widget.payload.exhibitions[widget.payload.index].id;
     _exBloc = context.read<ExhibitionDetailBloc>();
