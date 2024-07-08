@@ -41,6 +41,8 @@ extension ExhibitionExt on Exhibition {
   //TODO: implement this
   bool get isOnGoing => true;
 
+  bool get isMinted => status == ExhibitionStatus.issued.index;
+
   String? get getSeriesArtworkModelText {
     if (this.series == null || id == SOURCE_EXHIBITION_ID) {
       return null;
@@ -238,4 +240,12 @@ extension FFContractExt on FFContract {
     }
     return null;
   }
+}
+
+enum ExhibitionStatus {
+  created,
+  editorReview,
+  operatorReview,
+  issuing,
+  issued,
 }

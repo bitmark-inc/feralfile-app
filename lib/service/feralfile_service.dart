@@ -207,8 +207,15 @@ class FeralFileServiceImpl extends FeralFileService {
 
     if (includeFirstArtwork && series.artwork == null) {
       final exhibition = await getExhibition(series.exhibitionID);
-      final artworks = await _getFakeSeriesArtworks(exhibition, series, 0, 1);
-      return series.copyWith(artwork: artworks.first);
+      List<Artwork> artworks = [];
+      if (!exhibition.isMinted) {
+        final fakeartworks =
+            await _getFakeSeriesArtworks(exhibition, series, 0, 1);
+        artworks = fakeartworks;
+      }
+      if (artworks.isNotEmpty) {
+        return series.copyWith(artwork: artworks.first);
+      }
     }
 
     return series;
@@ -229,11 +236,14 @@ class FeralFileServiceImpl extends FeralFileService {
         exhibition.series != null &&
         exhibition.series!.any((series) => series.artwork == null)) {
       final List<FFSeries> newSeries = [];
-      for (final series in exhibition.series ?? []) {
-        if (series.artwork == null) {
+      for (final FFSeries series in exhibition.series ?? []) {
+        if (!exhibition.isMinted) {
+          final seriesDetail = await getSeries(series.id);
           final fakeArtwork =
-              await _getFakeSeriesArtworks(exhibition, series, 0, 1);
-          newSeries.add(series.copyWith(artwork: fakeArtwork.first));
+              await _getFakeSeriesArtworks(exhibition, seriesDetail, 0, 1);
+          if (fakeArtwork.isNotEmpty) {
+            newSeries.add(series.copyWith(artwork: fakeArtwork.first));
+          }
         } else {
           newSeries.add(series);
         }
@@ -300,6 +310,9 @@ class FeralFileServiceImpl extends FeralFileService {
 
   Future<List<Artwork>> _getFakeSeriesArtworks(
       Exhibition exhibition, FFSeries series, int offset, int limit) async {
+    if (!series.shouldFakeArtwork) {
+      return [];
+    }
     if (exhibition.isJohnGerrardShow) {
       return await _getJohnGerrardFakeArtworks(
         series: series,
@@ -359,7 +372,8 @@ class FeralFileServiceImpl extends FeralFileService {
     final BigInt si = BigInt.parse(seriesOnchainID);
     final BigInt msi = si * BigInt.from(1000000) + BigInt.from(artworkIndex);
     final String part1 = exhibitionID.replaceAll('-', '');
-    final String part2 = msi.toRadixString(16);
+    // padding with 0 to 32 bytes
+    final String part2 = msi.toRadixString(16).padLeft(32, '0');
     final String p = part1 + part2;
     final BigInt tokenIDBigInt = BigInt.parse('0x$p');
     final String tokenID = tokenIDBigInt.toString();
@@ -382,33 +396,15 @@ class FeralFileServiceImpl extends FeralFileService {
   Future<String?> _getPreviewURI(
       FFSeries series, int artworkIndex, Exhibition exhibition) async {
     String? previewURI;
-    if (series.settings?.artworkModel == ArtworkModel.multiUnique &&
-        series.previewFile == null) {
-      previewURI = '${series.uniquePreviewPath}/$artworkIndex';
-    }
-    if (previewURI == null) {
-      if (!GenerativeMediumTypes.values
-              .any((element) => element.value == series.medium) &&
-          series.uniquePreviewPath != null) {
-        previewURI = '${series.uniquePreviewPath}/$artworkIndex';
-        if (exhibition.isCrawlShow) {
-          previewURI += '/';
-        }
-      }
-    }
-
-    if (previewURI != null) {
-      return previewURI;
+    if (!series.isMultiUnique) {
+      previewURI = getFFUrl(series.previewFile?.uri ?? '');
     } else {
-      previewURI ??= getFFUrl(series.previewFile?.uri ?? '');
-      final artworkNumber = artworkIndex + 1;
-      previewURI = '$previewURI?edition_number=$artworkIndex'
-          '&artwork_number=$artworkNumber'
-          '&blockchain=${exhibition.mintBlockchain}';
-      //TODO: check if (contract) {...}
-
-      if (GenerativeMediumTypes.values
-          .any((element) => element.value == series.medium)) {
+      if (series.isGenerative) {
+        previewURI ??= getFFUrl(series.previewFile?.uri ?? '');
+        final artworkNumber = artworkIndex + 1;
+        previewURI = '$previewURI?'
+            '&artwork_number=$artworkNumber'
+            '&blockchain=${exhibition.mintBlockchain}';
         try {
           final tokenParameters = await previewArtCustomTokenID(
             seriesOnchainID: series.onchainID ?? '',
@@ -419,6 +415,11 @@ class FeralFileServiceImpl extends FeralFileService {
         } catch (error, stackTrace) {
           log.info(
               '[FeralFileService] Get preview URI failed: $error, $stackTrace');
+        }
+      } else {
+        previewURI = '${series.uniquePreviewPath}/$artworkIndex';
+        if (exhibition.isCrawlShow) {
+          previewURI += '/';
         }
       }
     }
@@ -458,13 +459,14 @@ class FeralFileServiceImpl extends FeralFileService {
               artworks.sublist(offset, min(artworks.length, offset + limit)),
           paging: Paging(offset: 0, limit: limit, total: artworks.length));
     }
+    final exhibition = await getExhibition(exhibitionID);
 
-    FeralFileListResponse<Artwork> artworksResponse = await _feralFileApi
-        .getListArtworks(seriesId: seriesId, offset: offset, limit: limit);
-    if (artworksResponse.result.isEmpty) {
+    if (!exhibition.isMinted) {
       return await _fakeSeriesArtworks(seriesId, exhibitionID,
           offset: offset, limit: limit);
     }
+    FeralFileListResponse<Artwork> artworksResponse = await _feralFileApi
+        .getListArtworks(seriesId: seriesId, offset: offset, limit: limit);
 
     if (withSeries) {
       final series = await getSeries(seriesId);
