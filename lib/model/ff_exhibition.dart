@@ -207,7 +207,13 @@ class ExhibitionDetail {
       );
 }
 
-class Post {
+class Resource {
+  final String id;
+
+  Resource({required this.id});
+}
+
+class Post extends Resource {
   final String id;
   final String type;
   final String slug;
@@ -238,7 +244,7 @@ class Post {
     this.displayIndex,
     this.exhibitionID,
     this.exhibition,
-  });
+  }) : super(id: id);
 
   factory Post.fromJson(Map<String, dynamic> json) => Post(
         id: json['id'],
@@ -278,16 +284,22 @@ class Post {
       };
 }
 
-class CustomExhibitionNote {
+class CustomExhibitionNote extends Resource {
+  final String id;
   final String title;
   final String content;
   final bool? canReadMore;
 
   CustomExhibitionNote(
-      {required this.title, required this.content, this.canReadMore});
+      {required this.id,
+      required this.title,
+      required this.content,
+      this.canReadMore})
+      : super(id: id);
 
   factory CustomExhibitionNote.fromJson(Map<String, dynamic> json) =>
       CustomExhibitionNote(
+        id: json['id'],
         title: json['title'],
         content: json['content'],
         canReadMore: json['canReadMore'] ?? false,

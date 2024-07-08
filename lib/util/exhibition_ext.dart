@@ -107,6 +107,23 @@ extension ExhibitionExt on Exhibition {
             lastSep,
           );
   }
+
+  List<CustomExhibitionNote> get customExhibitionNote {
+    final customNote = <CustomExhibitionNote>[];
+    if (isJohnGerrardShow) {
+      customNote.addAll(JohnGerrardHelper.customNote);
+    }
+    return customNote;
+  }
+
+  // get all resource, include posts and custom notes
+  List<Resource> get allResources {
+    final resources = <Resource>[...customExhibitionNote];
+    if (posts != null) {
+      resources.addAll(posts!);
+    }
+    return resources;
+  }
 }
 
 extension ListExhibitionDetailExt on List<ExhibitionDetail> {
