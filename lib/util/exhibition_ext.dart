@@ -43,6 +43,18 @@ extension ExhibitionExt on Exhibition {
 
   bool get isMinted => status == ExhibitionStatus.issued.index;
 
+  List<FFSeries> get sortedSeries {
+    final series = this.series ?? [];
+    // sort by displayIndex, if displayIndex is equal, sort by createdAt
+    series.sort((a, b) {
+      if (a.displayIndex == b.displayIndex) {
+        return b.createdAt!.compareTo(a.createdAt!);
+      }
+      return (a.displayIndex ?? 0) - (b.displayIndex ?? 0);
+    });
+    return series;
+  }
+
   String? get getSeriesArtworkModelText {
     if (this.series == null || id == SOURCE_EXHIBITION_ID) {
       return null;

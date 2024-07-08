@@ -227,7 +227,6 @@ class FeralFileServiceImpl extends FeralFileService {
     if (id == SOURCE_EXHIBITION_ID) {
       return getSourceExhibition();
     }
-
     final resp = await _feralFileApi.getExhibition(id,
         includeFirstArtwork: includeFirstArtwork);
     final exhibition = resp.result!;

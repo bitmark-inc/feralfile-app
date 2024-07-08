@@ -16,6 +16,14 @@ extension FFSeriesExt on FFSeries {
 
   bool get isMultiUnique => settings?.artworkModel == ArtworkModel.multiUnique;
 
+  bool get isSingle =>
+      settings?.artworkModel == ArtworkModel.single &&
+      settings?.artistReservation == 0 &&
+      settings?.publisherProof == 0 &&
+      settings?.promotionalReservation == 0 &&
+      (settings?.tradeSeries == null || !settings!.tradeSeries!) &&
+      (settings?.transferToCurator == null || !settings!.transferToCurator!);
+
   bool get shouldFakeArtwork {
     final dontFakeArtworkSeriesIds =
         injector<RemoteConfigService>().getConfig<List<dynamic>>(
