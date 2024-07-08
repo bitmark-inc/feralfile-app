@@ -202,6 +202,28 @@ extension ArtworkExt on Artwork {
             ConfigGroup.exhibition, ConfigKey.yokoOnoPublic, {});
     return id == config['public_token_id'];
   }
+
+  String? get indexerTokenId {
+    if (series?.exhibition?.contracts == null) {
+      return null;
+    }
+    var chain = series!.exhibition!.mintBlockchain;
+    if (chain == 'bitmark') {
+      chain = series!.metadata?['targetMigrationBlockchain'];
+    }
+
+    final contract = series!.exhibition!.contracts?.firstWhereOrNull(
+      (e) => e.blockchainType == chain,
+    );
+
+    if (contract == null) {
+      return null;
+    }
+
+    final chainPrefix = chain == 'tezos' ? 'tez' : 'eth';
+    final contractAddress = contract.address;
+    return '$chainPrefix-$contractAddress-$id';
+  }
 }
 
 String getFFUrl(String uri) {
