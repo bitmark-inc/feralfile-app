@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/screen/exhibitions/exhibitions_bloc.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/crawl_helper.dart';
 import 'package:autonomy_flutter/util/http_helper.dart';
 import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -22,6 +23,8 @@ extension ExhibitionExt on Exhibition {
   bool get isSoloExhibition => type == 'solo';
 
   bool get isJohnGerrardShow => id == JohnGerrardHelper.exhibitionID;
+
+  bool get isCrawlShow => id == CrawlHelper.exhibitionID;
 
   DateTime get exhibitionViewAt =>
       exhibitionStartAt.subtract(Duration(seconds: previewDuration ?? 0));

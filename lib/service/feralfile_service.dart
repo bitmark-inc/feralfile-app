@@ -391,6 +391,9 @@ class FeralFileServiceImpl extends FeralFileService {
               .any((element) => element.value == series.medium) &&
           series.uniquePreviewPath != null) {
         previewURI = '${series.uniquePreviewPath}/$artworkIndex';
+        if (exhibition.isCrawlShow) {
+          previewURI += '/';
+        }
       }
     }
 
