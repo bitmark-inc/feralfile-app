@@ -40,7 +40,7 @@ class FeralFileArtworkPreview extends StatelessWidget {
                   ),
                 );
               } else {
-                Navigator.of(context).pushNamed(
+                await Navigator.of(context).pushNamed(
                   AppRouter.feralFileSeriesPage,
                   arguments: FeralFileSeriesPagePayload(
                     seriesId: artwork.series!.id,

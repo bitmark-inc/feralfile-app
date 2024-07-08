@@ -371,7 +371,7 @@ class FeralFileServiceImpl extends FeralFileService {
     final BigInt si = BigInt.parse(seriesOnchainID);
     final BigInt msi = si * BigInt.from(1000000) + BigInt.from(artworkIndex);
     final String part1 = exhibitionID.replaceAll('-', '');
-    // padding with 0 to 32 bytes
+    // padding with 0 to 32 characters
     final String part2 = msi.toRadixString(16).padLeft(32, '0');
     final String p = part1 + part2;
     final BigInt tokenIDBigInt = BigInt.parse('0x$p');

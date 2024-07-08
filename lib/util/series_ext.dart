@@ -12,7 +12,8 @@ extension FFSeriesExt on FFSeries {
     return (year != null && !isJohnGerrardSeries) ? '$title ($year)' : title;
   }
 
-  bool get isGenerative => GenerativeMediumTypes.values.contains(medium);
+  bool get isGenerative =>
+      GenerativeMediumTypes.values.any((element) => element.value == medium);
 
   bool get isMultiUnique => settings?.artworkModel == ArtworkModel.multiUnique;
 
