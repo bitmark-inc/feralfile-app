@@ -710,8 +710,6 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
           title: 'unhide_from_collection_view'.tr(),
           icon: SvgPicture.asset(
             'assets/images/unhide.svg',
-            colorFilter:
-                const ColorFilter.mode(AppColor.primaryBlack, BlendMode.srcIn),
           ),
           onTap: () {
             unawaited(injector<AccountService>()
@@ -727,7 +725,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
           title: 'hide_from_collection_view'.tr(),
           icon: const Icon(
             AuIcon.hidden_artwork,
-            color: AppColor.primaryBlack,
+            color: AppColor.white,
           ),
           onTap: () {
             unawaited(injector<AccountService>()
@@ -742,7 +740,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
         title: 'scan'.tr(),
         icon: const Icon(
           AuIcon.scan,
-          color: AppColor.primaryBlack,
+          color: AppColor.white,
         ),
         onTap: _connectionIconTap,
       ),
@@ -750,8 +748,6 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
         title: 'rename'.tr(),
         icon: SvgPicture.asset(
           'assets/images/rename_icon.svg',
-          colorFilter:
-              const ColorFilter.mode(AppColor.primaryBlack, BlendMode.srcIn),
         ),
         onTap: _onRenameTap,
       ),

@@ -5,7 +5,6 @@ import 'dart:ui';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
-import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
@@ -21,7 +20,7 @@ import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
-import 'package:autonomy_flutter/util/feralfile_extension.dart';
+import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/postcard_extension.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -52,6 +51,20 @@ extension AssetTokenExtension on AssetToken {
     }
   };
 
+  String? get displayTitle {
+    if (title == null) {
+      return null;
+    }
+
+    final isJohnGerrardSeries = asset?.assetID != null &&
+        JohnGerrardHelper.assetIDs
+            .any((id) => asset?.assetID!.startsWith(id) ?? false);
+
+    return mintedAt != null && !isJohnGerrardSeries
+        ? '$title (${mintedAt!.year})'
+        : title;
+  }
+
   bool get hasMetadata => galleryThumbnailURL != null;
 
   String get secondaryMarketURL {
@@ -69,6 +82,20 @@ extension AssetTokenExtension on AssetToken {
       default:
         return '';
     }
+  }
+
+  String get secondaryMarketName {
+    final url = secondaryMarketURL;
+    if (url.contains(OPENSEA_ASSET_PREFIX)) {
+      return 'OpenSea';
+    } else if (url.contains(FXHASH_IDENTIFIER)) {
+      return 'FXHash';
+    } else if (url.contains(TEIA_ART_ASSET_PREFIX)) {
+      return 'Teia Art';
+    } else if (url.contains(objktAssetPrefix)) {
+      return 'Objkt';
+    }
+    return '';
   }
 
   bool get isAirdrop {
@@ -293,6 +320,11 @@ extension AssetTokenExtension on AssetToken {
 
   bool get isPostcard => contractAddress == Environment.postcardContractAddress;
 
+  String? get contractAddress {
+    final splitted = id.split('-');
+    return splitted.length > 1 ? splitted[1] : null;
+  }
+
   String? get feralfileArtworkId {
     if (!isFeralfile) {
       return null;
@@ -370,9 +402,6 @@ extension AssetTokenExtension on AssetToken {
     return lst.map((e) => Artist.fromJson(e)).toList().sublist(1);
   }
 
-  bool get isAirdropToken =>
-      Environment.autonomyAirDropContractAddress == contractAddress;
-
   bool get isMoMAMemento => [
         ...momaMementoContractAddresses,
         Environment.autonomyAirDropContractAddress
@@ -448,11 +477,38 @@ extension CompactedAssetTokenExtension on CompactedAssetToken {
 
   ArtworkIdentity get identity => ArtworkIdentity(id, owner);
 
-  bool get isPostcard {
-    final splitted = id.split('-');
-    return splitted.length > 1 &&
-        splitted[1] == Environment.postcardContractAddress;
+  String? get displayTitle {
+    if (title == null) {
+      return null;
+    }
+
+    final isJohnGerrardSeries = assetID != null &&
+        JohnGerrardHelper.assetIDs
+            .any((id) => assetID?.startsWith(id) ?? false);
+
+    return mintedAt != null && !isJohnGerrardSeries
+        ? '$title (${mintedAt!.year})'
+        : title;
   }
+
+  bool get isPostcard => contractAddress == Environment.postcardContractAddress;
+
+  String? get contractAddress {
+    final splitted = id.split('-');
+    return splitted.length > 1 ? splitted[1] : null;
+  }
+
+  bool get isFeralfile => source == 'feralfile';
+
+  bool get isJohnGerrardArtwork {
+    final contractAddress = this.contractAddress;
+    final johnGerrardContractAddress = JohnGerrardHelper.contractAddress;
+    return isFeralfile && contractAddress == johnGerrardContractAddress;
+  }
+
+  bool get shouldRefreshThumbnailCache =>
+      isJohnGerrardArtwork &&
+      edition > JohnGerrardHelper.johnGerrardLatestRevealIndex - 2;
 
   String get getMimeType {
     switch (mimeType) {
@@ -556,64 +612,6 @@ String _refineToCloudflareURL(String url, String thumbnailID, String variant) {
   return thumbnailID.isEmpty
       ? replaceIPFS(url)
       : '$cloudFlareImageUrlPrefix$thumbnailID/$variant';
-}
-
-AssetToken createPendingAssetToken({
-  required FFSeries series,
-  required String owner,
-  required String tokenId,
-}) {
-  final indexerId = series.airdropInfo?.getTokenIndexerId(tokenId);
-  final artist = series.artist;
-  final exhibition = series.exhibition;
-  final contract = series.contract;
-  return AssetToken(
-    asset: Asset(
-      indexerId,
-      '',
-      DateTime.now(),
-      artist?.id,
-      artist?.fullName,
-      null,
-      null,
-      series.title,
-      series.description,
-      null,
-      null,
-      null,
-      series.maxEdition,
-      'airdrop',
-      null,
-      series.thumbnailURI,
-      series.thumbnailURI,
-      series.thumbnailURI,
-      null,
-      null,
-      'airdrop',
-      null,
-      null,
-      null,
-    ),
-    blockchain: exhibition?.mintBlockchain.toLowerCase() ?? 'tezos',
-    fungible: false,
-    contractType: '',
-    tokenId: tokenId,
-    contractAddress: contract?.address,
-    edition: 0,
-    editionName: '',
-    id: indexerId ?? '',
-    mintedAt: series.createdAt ?? DateTime.now(),
-    balance: 1,
-    owner: owner,
-    owners: {
-      owner: 1,
-    },
-    lastActivityTime: DateTime.now(),
-    lastRefreshedTime: DateTime(1),
-    pending: true,
-    originTokenInfo: [],
-    provenance: [],
-  );
 }
 
 extension AssetExt on Asset {

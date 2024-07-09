@@ -1,30 +1,37 @@
-import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class FFArtworkThumbnailView extends StatelessWidget {
-  const FFArtworkThumbnailView({required this.artwork, super.key, this.onTap});
+  const FFArtworkThumbnailView(
+      {required this.artwork,
+      this.cacheWidth = 0,
+      this.cacheHeight = 0,
+      super.key,
+      this.onTap});
 
   final Artwork artwork;
   final Function? onTap;
+  final int cacheWidth;
+  final int cacheHeight;
 
   @override
   Widget build(BuildContext context) => GestureDetector(
         onTap: () => onTap?.call(),
-        child: CachedNetworkImage(
-          imageUrl: artwork.thumbnailURL,
-          imageBuilder: (context, imageProvider) => Container(
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: imageProvider,
-                fit: BoxFit.cover,
-              ),
-            ),
-          ),
-          placeholder: (context, url) => const GalleryThumbnailPlaceholder(),
-          errorWidget: (context, url, error) =>
+        child: Image.network(
+          artwork.thumbnailURL,
+          cacheWidth: cacheWidth,
+          cacheHeight: cacheHeight,
+          fit: BoxFit.cover,
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) {
+              return child;
+            }
+            return const GalleryThumbnailPlaceholder();
+          },
+          errorBuilder: (context, url, error) =>
               const GalleryThumbnailErrorWidget(),
         ),
       );

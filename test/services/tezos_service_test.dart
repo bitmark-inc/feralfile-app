@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:autonomy_flutter/service/network_issue_manager.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:libauk_dart/libauk_dart.dart';
@@ -8,8 +9,7 @@ import 'package:tezart/tezart.dart';
 import 'package:uuid/uuid.dart';
 
 void main() {
-  final client = TezartClient('https://ghostnet.tezos.marigold.dev');
-  final tezosService = TezosServiceImpl(client);
+  final tezosService = TezosServiceImpl(NetworkIssueManager());
   final walletStorage = MockWalletStorage(const Uuid().v4());
 
   const publicKey = 'edpkvB8a5H6uwbzKysXRzZ96EqT5pVouZFvz6Qye67sgcZFkSZS92x';

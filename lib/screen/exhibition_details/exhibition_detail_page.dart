@@ -3,26 +3,27 @@ import 'dart:async';
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
-import 'package:autonomy_flutter/model/play_control_model.dart';
-import 'package:autonomy_flutter/model/play_list_model.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_state.dart';
+import 'package:autonomy_flutter/screen/exhibitions/exhibitions_bloc.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
-import 'package:autonomy_flutter/view/canvas_device_view.dart';
 import 'package:autonomy_flutter/view/cast_button.dart';
-import 'package:autonomy_flutter/view/event_view.dart';
+import 'package:autonomy_flutter/view/custom_note.dart';
 import 'package:autonomy_flutter/view/exhibition_detail_last_page.dart';
 import 'package:autonomy_flutter/view/exhibition_detail_preview.dart';
 import 'package:autonomy_flutter/view/ff_artwork_preview.dart';
 import 'package:autonomy_flutter/view/note_view.dart';
-import 'package:easy_localization/easy_localization.dart';
+import 'package:autonomy_flutter/view/post_view.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
+import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -39,95 +40,119 @@ class ExhibitionDetailPage extends StatefulWidget {
 class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
     with AfterLayoutMixin {
   late final ExhibitionDetailBloc _exBloc;
-  late final CanvasDeviceBloc _canvasDeviceBloc;
+  late bool isUpcomingExhibition;
+
   final _metricClientService = injector<MetricClientService>();
+  final _canvasDeviceBloc = injector<CanvasDeviceBloc>();
 
   late final PageController _controller;
   int _currentIndex = 0;
+  int _carouselIndex = 0;
 
   @override
   void initState() {
     super.initState();
+    final exhibitionBloc = injector<ExhibitionBloc>();
+    isUpcomingExhibition = exhibitionBloc.state.upcomingExhibition != null &&
+        exhibitionBloc.state.upcomingExhibition!.id ==
+            widget.payload.exhibitions[widget.payload.index].id;
     _exBloc = context.read<ExhibitionDetailBloc>();
-    _canvasDeviceBloc = context.read<CanvasDeviceBloc>();
     _exBloc.add(GetExhibitionDetailEvent(
         widget.payload.exhibitions[widget.payload.index].id));
-
     _controller = PageController();
   }
 
   @override
   Widget build(BuildContext context) =>
       BlocConsumer<ExhibitionDetailBloc, ExhibitionDetailState>(
-        builder: (context, state) => Scaffold(
-          appBar: _getAppBar(context, state.exhibitionDetail),
-          backgroundColor: AppColor.primaryBlack,
-          body: _body(context, state),
-        ),
-        listener: (context, state) {},
-      );
+          builder: (context, state) => Scaffold(
+                appBar: _getAppBar(context, state.exhibition),
+                backgroundColor: AppColor.primaryBlack,
+                body: _body(context, state),
+              ),
+          listener: (context, state) {},
+          listenWhen: (previous, current) {
+            if (previous.exhibition == null && current.exhibition != null) {
+              _stream(current.exhibition!);
+            }
+            return true;
+          });
 
   Widget _body(BuildContext context, ExhibitionDetailState state) {
-    final exhibitionDetail = state.exhibitionDetail;
-    if (exhibitionDetail == null) {
+    final exhibition = state.exhibition;
+    if (exhibition == null) {
       return const Center(
         child: CircularProgressIndicator(),
       );
     }
 
-    final viewingArtworks = exhibitionDetail.representArtworks;
-    final itemCount = viewingArtworks.length + 3;
-    return Stack(
+    final itemCount =
+        isUpcomingExhibition ? 3 : ((exhibition.series?.length ?? 0) + 3);
+    return Column(
       children: [
-        PageView.builder(
-          controller: _controller,
-          onPageChanged: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
-          },
-          scrollDirection: Axis.vertical,
-          itemCount: itemCount,
-          itemBuilder: (context, index) {
-            if (index == itemCount - 1) {
-              return ExhibitionDetailLastPage(
-                startOver: () => setState(() {
-                  _currentIndex = 0;
-                  _controller.jumpToPage(0);
-                }),
-                nextPayload: widget.payload.next(),
-              );
-            }
-
-            switch (index) {
-              case 0:
-                return _getPreviewPage(exhibitionDetail.exhibition);
-              case 1:
-                return _notePage(exhibitionDetail.exhibition);
-              default:
-                final seriesIndex = index - 2;
-                final series = exhibitionDetail.exhibition.series!.firstWhere(
-                    (element) =>
-                        element.id == viewingArtworks[seriesIndex].seriesID);
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 40),
-                  child: FeralFileArtworkPreview(
-                    payload: FeralFileArtworkPreviewPayload(
-                      artwork: viewingArtworks[seriesIndex],
-                      series: series,
-                    ),
-                  ),
+        Expanded(
+          child: PageView.builder(
+            controller: _controller,
+            onPageChanged: (index) {
+              setState(() {
+                _currentIndex = index;
+              });
+              _stream(exhibition);
+            },
+            scrollDirection: Axis.vertical,
+            itemCount: itemCount,
+            itemBuilder: (context, index) {
+              if (index == itemCount - 1) {
+                return ExhibitionDetailLastPage(
+                  startOver: () => setState(() {
+                    _currentIndex = 0;
+                    _controller.jumpToPage(0);
+                  }),
+                  nextPayload: widget.payload.next(),
                 );
-            }
-          },
-        ),
-        if (_currentIndex == 0 || _currentIndex == 1)
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: _nextButton(),
+              }
+
+              switch (index) {
+                case 0:
+                  return _getPreviewPage(exhibition);
+                case 1:
+                  return _notePage(exhibition);
+                default:
+                  final seriesIndex = index - 2;
+                  final series = exhibition.sortedSeries[seriesIndex];
+                  final artwork = series.artwork;
+                  if (artwork == null) {
+                    return const SizedBox();
+                  }
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 40),
+                    child: FeralFileArtworkPreview(
+                      payload: FeralFileArtworkPreviewPayload(
+                        artwork: artwork.copyWith(series: series),
+                      ),
+                    ),
+                  );
+              }
+            },
           ),
+        ),
+        if (_currentIndex == 0 || _currentIndex == 1) _nextButton()
       ],
     );
+  }
+
+  void _stream(Exhibition exhibition) {
+    log.info('onPageChanged: $_currentIndex');
+    final displayKey = exhibition.displayKey;
+    final lastSelectedDevice =
+        _canvasDeviceBloc.state.lastSelectedActiveDeviceForKey(displayKey);
+    if (lastSelectedDevice != null) {
+      final request = _getCastExhibitionRequest(exhibition);
+      log.info('onPageChanged: request: $request');
+      _canvasDeviceBloc.add(
+        CanvasDeviceCastExhibitionEvent(lastSelectedDevice, request),
+      );
+    }
   }
 
   Widget _getPreviewPage(Exhibition exhibition) => Column(
@@ -144,6 +169,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
         child: RotatedBox(
           quarterTurns: 3,
           child: IconButton(
+            padding: const EdgeInsets.all(0),
             onPressed: () async => _controller.nextPage(
                 duration: const Duration(milliseconds: 300),
                 curve: Curves.easeIn),
@@ -154,99 +180,96 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
         ),
       );
 
-  Widget _notePage(Exhibition exhibition) {
-    const horizontalPadding = 14.0;
-    const peekWidth = 50.0;
-    final width =
-        MediaQuery.sizeOf(context).width - horizontalPadding * 2 - peekWidth;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(right: 14),
-              child: ExhibitionNoteView(
+  Widget _notePage(Exhibition exhibition) => LayoutBuilder(
+        builder: (context, constraints) => Center(
+          child: CarouselSlider(
+            items: [
+              ExhibitionNoteView(
                 exhibition: exhibition,
-                width: width,
-                onReadMore: () async {
-                  await Navigator.pushNamed(
-                    context,
-                    AppRouter.exhibitionNotePage,
-                    arguments: exhibition,
-                  );
-                },
               ),
+              if (exhibition.isJohnGerrardShow)
+                ...JohnGerrardHelper.customNote.map(
+                  (info) => ExhibitionCustomNote(
+                    info: info,
+                  ),
+                ),
+              ...exhibition.posts?.where((post) => post.coverURI != null).map(
+                        (e) => ExhibitionPostView(
+                          post: e,
+                          exhibitionID: exhibition.id,
+                        ),
+                      ) ??
+                  []
+            ],
+            options: CarouselOptions(
+              aspectRatio: constraints.maxWidth / constraints.maxHeight,
+              viewportFraction: 0.76,
+              enableInfiniteScroll: false,
+              enlargeCenterPage: true,
+              initialPage: _carouselIndex,
+              onPageChanged: (index, reason) {
+                _carouselIndex = index;
+                _stream(exhibition);
+              },
             ),
-            ...exhibition.resources?.map((e) => ExhibitionEventView(
-                      exhibitionEvent: e,
-                      width: width,
-                    )) ??
-                []
-          ],
+          ),
         ),
-      ),
-    );
-  }
+      );
 
-  AppBar _getAppBar(
-          BuildContext buildContext, ExhibitionDetail? exhibitionDetail) =>
+  AppBar _getAppBar(BuildContext buildContext, Exhibition? exhibition) =>
       getFFAppBar(
         buildContext,
         onBack: () => Navigator.pop(buildContext),
-        action: exhibitionDetail == null ||
-                exhibitionDetail.exhibition.status != 4
-            ? null
-            : Padding(
+        action: exhibition != null
+            ? Padding(
                 padding: const EdgeInsets.only(right: 14, bottom: 10, top: 10),
                 child: FFCastButton(
-                  text: _currentIndex == 0 ? 'stream_to_device'.tr() : null,
-                  onCastTap: () async {
-                    await _onCastTap(buildContext, exhibitionDetail);
+                  displayKey: exhibition.id,
+                  onDeviceSelected: (device) async {
+                    final request = _getCastExhibitionRequest(exhibition);
+                    _canvasDeviceBloc.add(
+                      CanvasDeviceCastExhibitionEvent(device, request),
+                    );
                   },
                 ),
-              ),
+              )
+            : null,
       );
 
-  Future<void> _onCastTap(
-      BuildContext context, ExhibitionDetail exhibitionDetail) async {
-    if (exhibitionDetail.artworks == null ||
-        exhibitionDetail.artworks!.isEmpty) {
-      return;
+  Pair<ExhibitionCatalog, String?> _getCurrentCatalogInfo(
+      Exhibition exhibition) {
+    ExhibitionCatalog? catalog;
+    String? catalogId;
+    switch (_currentIndex) {
+      case 0:
+        catalog = ExhibitionCatalog.home;
+      case 1:
+        if (_carouselIndex == 0) {
+          catalog = ExhibitionCatalog.curatorNote;
+        } else {
+          catalog = ExhibitionCatalog.resource;
+          catalogId = exhibition.posts![_carouselIndex - 1].id;
+        }
+      default:
+        catalog = ExhibitionCatalog.artwork;
+        final seriesIndex = _currentIndex - 2;
+        final currentArtwork = exhibition.series?[seriesIndex].artwork?.id;
+        catalogId = currentArtwork;
     }
-    final tokenIds = exhibitionDetail.artworks
-        ?.map((e) => exhibitionDetail.getArtworkTokenId(e)!)
-        .toList();
-    final sceneId = exhibitionDetail.exhibition.id;
-    final playlistModel = PlayListModel(
-      name: exhibitionDetail.exhibition.title,
-      id: sceneId,
-      thumbnailURL: exhibitionDetail.exhibition.coverUrl,
-      tokenIDs: tokenIds,
-      playControlModel: PlayControlModel(timer: 30),
-    );
-    await UIHelper.showFlexibleDialog(
-      context,
-      BlocProvider.value(
-        value: _canvasDeviceBloc,
-        child: CanvasDeviceView(
-          sceneId: sceneId,
-          isCollection: true,
-          playlist: playlistModel,
-          onClose: () {
-            Navigator.of(context).pop();
-          },
-        ),
-      ),
-      isDismissible: true,
-    );
-    await _fetchDevice(sceneId);
+    return Pair(catalog, catalogId);
   }
 
-  Future<void> _fetchDevice(String exhibitionId) async {
-    _canvasDeviceBloc
-        .add(CanvasDeviceGetDevicesEvent(exhibitionId, syncAll: false));
+  CastExhibitionRequest _getCastExhibitionRequest(Exhibition exhibition) {
+    final exhibitionId = exhibition.id;
+    final catalogInfo = _getCurrentCatalogInfo(exhibition);
+    final catalog = catalogInfo.first;
+    final catalogId = catalogInfo.second;
+    CastExhibitionRequest request = CastExhibitionRequest(
+      exhibitionId: exhibitionId,
+      catalog: catalog,
+      catalogId: catalogId,
+    );
+    return request;
   }
 
   @override

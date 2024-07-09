@@ -1,14 +1,18 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/view/header.dart';
+import 'package:autonomy_flutter/view/john_gerrard_live_performance.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:flutter_svg/svg.dart';
 
 class ExhibitionPreview extends StatelessWidget {
   ExhibitionPreview({required this.exhibition, super.key});
@@ -34,10 +38,7 @@ class ExhibitionPreview extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
-            child: CachedNetworkImage(
-              imageUrl: exhibition.coverUrl,
-              fit: BoxFit.fitWidth,
-            ),
+            child: _buildExhibitionMedia(context, exhibition),
           ),
           HeaderView(
             title: exhibition.title,
@@ -47,8 +48,10 @@ class ExhibitionPreview extends StatelessWidget {
             Text('curator'.tr(), style: subTextStyle),
             const SizedBox(height: 3),
             GestureDetector(
-              child: Text(exhibition.curator!.alias,
-                  style: artistTextStyle.copyWith()),
+              child: Text(
+                exhibition.curator!.alias,
+                style: artistTextStyle.copyWith(),
+              ),
               onTap: () async {
                 await _navigationService
                     .openFeralFileCuratorPage(exhibition.curator!.alias);
@@ -56,7 +59,11 @@ class ExhibitionPreview extends StatelessWidget {
             ),
           ],
           const SizedBox(height: 10),
-          Text('group_exhibition'.tr(), style: subTextStyle),
+          Text(
+              exhibition.isGroupExhibition
+                  ? 'group_exhibition'.tr()
+                  : 'solo_exhibition'.tr(),
+              style: subTextStyle),
           const SizedBox(height: 3),
           RichText(
             text: TextSpan(
@@ -83,6 +90,51 @@ class ExhibitionPreview extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildExhibitionMedia(BuildContext context, Exhibition exhibition) {
+    if (exhibition.id == SOURCE_EXHIBITION_ID) {
+      return _buildSourceExhibitionCover(context);
+    } else if (exhibition.isJohnGerrardShow) {
+      return _buildJohnGerrardExhibitionLivePerformance(context);
+    } else {
+      return CachedNetworkImage(
+        imageUrl: exhibition.coverUrl,
+        cacheManager: injector<CacheManager>(),
+        fit: BoxFit.fitWidth,
+      );
+    }
+  }
+
+  Widget _buildSourceExhibitionCover(BuildContext context) {
+    const padding = 14.0;
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final estimatedHeight = (screenWidth - padding * 2) / 16 * 9;
+    return SvgPicture.network(
+      exhibition.coverUrl,
+      height: estimatedHeight,
+      fit: BoxFit.fitWidth,
+      placeholderBuilder: (context) => SizedBox(
+        height: estimatedHeight,
+        child: const Center(
+          child: CircularProgressIndicator(
+            color: Colors.white,
+            backgroundColor: AppColor.auQuickSilver,
+            strokeWidth: 2,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildJohnGerrardExhibitionLivePerformance(BuildContext context) {
+    const padding = 14.0;
+    return SizedBox(
+      height: MediaQuery.sizeOf(context).width - padding * 2,
+      child: JohnGerrardLivePerformanceWidget(
+        exhibition: exhibition,
       ),
     );
   }

@@ -69,7 +69,6 @@ class _SendReviewPageState extends State<SendReviewPage> {
             'hash': txHash,
           };
           Navigator.of(context).pop(payload);
-          break;
         case CryptoType.XTZ:
           final opHash = await injector<TezosService>().sendTransaction(
               widget.payload.wallet,
@@ -86,7 +85,6 @@ class _SendReviewPageState extends State<SendReviewPage> {
             'hash': opHash,
           };
           Navigator.of(context).pop(payload);
-          break;
         case CryptoType.USDC:
           final address = await widget.payload.wallet
               .getETHEip55Address(index: widget.payload.index);
@@ -115,11 +113,10 @@ class _SendReviewPageState extends State<SendReviewPage> {
             'hash': txHash,
           };
           Navigator.of(context).pop(payload);
-          break;
         default:
           break;
       }
-    } catch (e) {
+    } on Exception catch (_) {
       if (!mounted) {
         return;
       }
@@ -129,7 +126,6 @@ class _SendReviewPageState extends State<SendReviewPage> {
         'try_later'.tr(),
       ));
     }
-
     setState(() {
       _isSending = false;
     });

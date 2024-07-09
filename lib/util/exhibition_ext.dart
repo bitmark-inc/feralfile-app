@@ -1,11 +1,17 @@
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
+import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
+import 'package:autonomy_flutter/screen/exhibitions/exhibitions_bloc.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/crawl_helper.dart';
+import 'package:autonomy_flutter/util/http_helper.dart';
+import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:collection/collection.dart';
 
@@ -14,13 +20,45 @@ extension ExhibitionExt on Exhibition {
 
   bool get isGroupExhibition => type == 'group';
 
-  //TODO: implement this
-  bool get isFreeToStream => true;
+  bool get isSoloExhibition => type == 'solo';
+
+  bool get isJohnGerrardShow => id == JohnGerrardHelper.exhibitionID;
+
+  bool get isCrawlShow => id == CrawlHelper.exhibitionID;
+
+  DateTime get exhibitionViewAt =>
+      exhibitionStartAt.subtract(Duration(seconds: previewDuration ?? 0));
+
+  bool get canViewDetails {
+    final exhibitionBloc = injector<ExhibitionBloc>();
+    final subscriptionBloc = injector<SubscriptionBloc>();
+    return subscriptionBloc.state.isSubscribed ||
+        id == exhibitionBloc.state.featuredExhibition?.id;
+  }
+
+  String get displayKey => id;
 
   //TODO: implement this
   bool get isOnGoing => true;
 
+  bool get isMinted => status == ExhibitionStatus.issued.index;
+
+  List<FFSeries> get sortedSeries {
+    final series = this.series ?? [];
+    // sort by displayIndex, if displayIndex is equal, sort by createdAt
+    series.sort((a, b) {
+      if (a.displayIndex == b.displayIndex) {
+        return b.createdAt!.compareTo(a.createdAt!);
+      }
+      return (a.displayIndex ?? 0) - (b.displayIndex ?? 0);
+    });
+    return series;
+  }
+
   String? get getSeriesArtworkModelText {
+    if (this.series == null || id == SOURCE_EXHIBITION_ID) {
+      return null;
+    }
     const sep = ', ';
     final specifiedSeriesArtworkModelTitle =
         injector<RemoteConfigService>().getConfig<Map<String, dynamic>>(
@@ -29,9 +67,6 @@ extension ExhibitionExt on Exhibition {
       specifiedSeriesTitle,
     );
     final specifiedSeriesIds = specifiedSeriesArtworkModelTitle.keys;
-    if (this.series == null) {
-      return null;
-    }
     final currentSpecifiedSeries = this
         .series!
         .where((element) => specifiedSeriesIds.contains(element.id))
@@ -96,15 +131,6 @@ extension ListExhibitionDetailExt on List<ExhibitionDetail> {
 }
 
 extension ExhibitionDetailExt on ExhibitionDetail {
-  List<String> get seriesIds =>
-      artworks?.map((e) => e.seriesID).toSet().toList() ?? [];
-
-  Artwork? representArtwork(String seriesId) =>
-      artworks!.firstWhereOrNull((e) => e.seriesID == seriesId);
-
-  List<Artwork> get representArtworks =>
-      seriesIds.map((e) => representArtwork(e)).whereNotNull().toList();
-
   String? getArtworkTokenId(Artwork artwork) {
     if (artwork.swap != null) {
       if (artwork.swap!.token == null) {
@@ -147,11 +173,91 @@ extension ArtworkExt on Artwork {
   }
 
   String get metricTokenId => '${seriesID}_$id';
+
+  Future<String> renderingType() async {
+    final medium = series?.medium ?? 'unknown';
+    final mediumType = FeralfileMediumTypes.fromString(medium);
+    if (mediumType == FeralfileMediumTypes.image) {
+      final contentType = await HttpHelper.contentType(previewURL);
+      return contentType;
+    } else {
+      return mediumType.toRenderingType;
+    }
+  }
+
+  String? get attributesString {
+    if (artworkAttributes == null) {
+      return null;
+    }
+
+    return artworkAttributes!
+        .map((e) => '${e.traitType}: ${e.value}')
+        .join('. ');
+  }
+
+  FFContract? getContract(Exhibition? exhibition) {
+    if (swap != null) {
+      if (swap!.token == null) {
+        return null;
+      }
+
+      return FFContract(
+        swap!.contractName,
+        swap!.blockchainType,
+        swap!.contractAddress,
+      );
+    }
+
+    return exhibition?.contracts?.firstWhereOrNull(
+      (e) => e.blockchainType == exhibition.mintBlockchain,
+    );
+  }
+
+  bool get isYokoOnoPublicVersion {
+    final config = injector<RemoteConfigService>()
+        .getConfig<Map<String, dynamic>>(
+            ConfigGroup.exhibition, ConfigKey.yokoOnoPublic, {});
+    return id == config['public_token_id'];
+  }
 }
 
 String getFFUrl(String uri) {
+  // case 1: cloudflare
+  if (uri.startsWith(cloudFlarePrefix)) {
+    return '$uri/thumbnailLarge';
+  }
+
+  // case 2 => full cdn
   if (uri.startsWith('http')) {
     return uri;
   }
+
+  //case 3 => cdn
   return '${Environment.feralFileAssetURL}/$uri';
+}
+
+extension FFContractExt on FFContract {
+  String? getBlockchainUrl() {
+    final network = Environment.appTestnetConfig ? 'TESTNET' : 'MAINNET';
+    switch ('${network}_$blockchainType') {
+      case 'MAINNET_ethereum':
+        return 'https://etherscan.io/address/$address';
+
+      case 'TESTNET_ethereum':
+        return 'https://goerli.etherscan.io/address/$address';
+
+      case 'MAINNET_tezos':
+      case 'TESTNET_tezos':
+        return 'https://tzkt.io/$address';
+    }
+    return null;
+  }
+}
+
+enum ExhibitionStatus {
+  created,
+  editorReview,
+  operatorReview,
+  issuing,
+  issued,
 }

@@ -63,7 +63,7 @@ class FileLogger {
   static final _lock =
       synchronization.Lock(); // uses the “synchronized” package
   static late File _logFile;
-  static const shrinkSize = 1024 * 1024; // 1MB
+  static const shrinkSize = 1024 * 896; // 1MB characters
 
   static Future initializeLogging() async {
     await shrinkLogFileIfNeeded();
@@ -72,9 +72,10 @@ class FileLogger {
   static Future<File> shrinkLogFileIfNeeded() async {
     _logFile = await getLogFile();
 
-    final current = await _logFile.readAsBytes();
+    final current = await _logFile.readAsString();
     if (current.length > shrinkSize) {
-      await _logFile.writeAsBytes(current.sublist(current.length - shrinkSize),
+      await _logFile.writeAsString(
+          current.substring(current.length - shrinkSize),
           flush: true);
     }
 
@@ -94,11 +95,9 @@ class FileLogger {
   static File get logFile => _logFile;
 
   static Future log(LogRecord record) async {
-    var text = '$record\n';
-
-    text = _filterLog(text);
-
+    String text = '$record\n';
     debugPrint(text);
+    text = _filterLog(text);
     return _lock.synchronized(() async {
       await _logFile.writeAsString('${record.time}: $text',
           mode: FileMode.append, flush: true);

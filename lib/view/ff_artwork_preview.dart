@@ -1,11 +1,13 @@
-import 'package:autonomy_flutter/model/ff_account.dart';
-import 'package:autonomy_flutter/model/ff_series.dart';
+import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artwork_preview_page.dart';
 import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_page.dart';
+import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
+import 'package:autonomy_flutter/util/series_ext.dart';
 import 'package:autonomy_flutter/view/feralfile_artwork_preview_widget.dart';
 import 'package:autonomy_flutter/view/series_title_view.dart';
-import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 
 class FeralFileArtworkPreview extends StatelessWidget {
   const FeralFileArtworkPreview({required this.payload, super.key});
@@ -14,28 +16,39 @@ class FeralFileArtworkPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final isCrystallineWork =
+        payload.artwork.series?.exhibitionID == JohnGerrardHelper.exhibitionID;
     return Column(
       children: [
         Expanded(
-          child: FeralfileArtworkPreviewWidget(
-            payload: FeralFileArtworkPreviewWidgetPayload(
-              artwork: payload.artwork,
-              isMute: true,
-            ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            child: _buildArtworkPreview(isCrystallineWork),
           ),
         ),
         const SizedBox(height: 20),
         Padding(
           padding: const EdgeInsets.only(left: 14, right: 14, bottom: 20),
           child: GestureDetector(
-            onTap: () async => Navigator.of(context).pushNamed(
-              AppRouter.feralFileSeriesPage,
-              arguments: FeralFileSeriesPagePayload(
-                seriesId: payload.series.id,
-                exhibitionId: payload.series.exhibitionID,
-              ),
-            ),
+            onTap: () async {
+              final artwork = payload.artwork;
+              if (artwork.series?.isSingle ?? false) {
+                await Navigator.of(context).pushNamed(
+                  AppRouter.ffArtworkPreviewPage,
+                  arguments: FeralFileArtworkPreviewPagePayload(
+                    artwork: artwork,
+                  ),
+                );
+              } else {
+                await Navigator.of(context).pushNamed(
+                  AppRouter.feralFileSeriesPage,
+                  arguments: FeralFileSeriesPagePayload(
+                    seriesId: artwork.series!.id,
+                    exhibitionId: artwork.series!.exhibitionID,
+                  ),
+                );
+              }
+            },
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -43,14 +56,16 @@ class FeralFileArtworkPreview extends StatelessWidget {
                 Flexible(
                   flex: 5,
                   child: SeriesTitleView(
-                      series: payload.series, artist: payload.series.artist),
+                    series: payload.artwork.series!,
+                    artist: payload.artwork.series!.artist,
+                  ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 3),
-                  child: Text(
-                    '${payload.artwork.index + 1}/${payload.series.settings?.maxArtwork ?? '--'}',
-                    style:
-                        theme.textTheme.ppMori400White12.copyWith(fontSize: 10),
+                  padding: const EdgeInsets.only(left: 60),
+                  child: SvgPicture.asset(
+                    'assets/images/icon_series.svg',
+                    width: 22,
+                    height: 22,
                   ),
                 )
               ],
@@ -60,14 +75,30 @@ class FeralFileArtworkPreview extends StatelessWidget {
       ],
     );
   }
+
+  Widget _buildArtworkPreview(bool isCrystallineWork) {
+    final artworkPreviewWidget = FeralfileArtworkPreviewWidget(
+      payload: FeralFileArtworkPreviewWidgetPayload(
+        artwork: payload.artwork,
+        isMute: true,
+      ),
+    );
+    if (isCrystallineWork) {
+      return Center(
+        child: AspectRatio(
+          aspectRatio: 1,
+          child: artworkPreviewWidget,
+        ),
+      );
+    }
+    return artworkPreviewWidget;
+  }
 }
 
 class FeralFileArtworkPreviewPayload {
-  final FFSeries series;
   final Artwork artwork;
 
   const FeralFileArtworkPreviewPayload({
-    required this.series,
     required this.artwork,
   });
 }

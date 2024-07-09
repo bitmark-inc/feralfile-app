@@ -1,23 +1,32 @@
 import 'dart:async';
 
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
 import 'package:autonomy_flutter/screen/exhibitions/exhibitions_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibitions/exhibitions_state.dart';
+import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/header.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:sentry/sentry.dart';
 
 class ExhibitionsPage extends StatefulWidget {
   const ExhibitionsPage({super.key});
@@ -28,16 +37,23 @@ class ExhibitionsPage extends StatefulWidget {
 
 class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
   late ExhibitionBloc _exhibitionBloc;
+  late SubscriptionBloc _subscriptionBloc;
   late ScrollController _controller;
   final _navigationService = injector<NavigationService>();
+  final _iapService = injector<IAPService>();
+  static const _padding = 14.0;
+  static const _exhibitionInfoDivideWidth = 20.0;
+  String? _autoOpenExhibitionId;
 
   // initState
   @override
   void initState() {
     super.initState();
     _controller = ScrollController();
-    _exhibitionBloc = context.read<ExhibitionBloc>();
+    _exhibitionBloc = injector<ExhibitionBloc>();
+    _subscriptionBloc = injector<SubscriptionBloc>();
     _exhibitionBloc.add(GetAllExhibitionsEvent());
+    _subscriptionBloc.add(GetSubscriptionEvent());
   }
 
   void scrollToTop() {
@@ -67,6 +83,36 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
 
   void refreshExhibitions() {
     _exhibitionBloc.add(GetAllExhibitionsEvent());
+    _subscriptionBloc.add(GetSubscriptionEvent());
+  }
+
+  void setAutoOpenExhibition(String exhibitionId) {
+    setState(() {
+      _autoOpenExhibitionId = exhibitionId;
+    });
+    if (_exhibitionBloc.state.allExhibitions.isNotEmpty) {
+      _openExhibition(context, exhibitionId);
+    }
+  }
+
+  void _openExhibition(BuildContext context, String exhibitionId) {
+    final listExhibitions = _exhibitionBloc.state.allExhibitions;
+    final index =
+        listExhibitions.indexWhere((element) => element.id == exhibitionId);
+    if (index < 0) {
+      unawaited(Sentry.captureMessage('Exhibition not found: $exhibitionId'));
+    } else {
+      unawaited(
+        _navigationService.navigateTo(
+          AppRouter.exhibitionDetailPage,
+          arguments: ExhibitionDetailPayload(
+            exhibitions: listExhibitions,
+            index: index,
+          ),
+        ),
+      );
+    }
+    _autoOpenExhibitionId = null;
   }
 
   @override
@@ -88,139 +134,319 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                 title: 'exhibitions'.tr(),
               ),
             ),
-            SliverToBoxAdapter(child: _listExhibitions(context))
+            _listExhibitions(context),
           ],
         ),
       );
 
-  Widget _exhibitionItem(
-      BuildContext context, ExhibitionDetail exhibitionDetail, int index) {
+  Widget _exhibitionItem({
+    required BuildContext context,
+    required List<Exhibition> viewableExhibitions,
+    required Exhibition exhibition,
+    required bool isFeaturedExhibition,
+  }) {
     final theme = Theme.of(context);
     final screenWidth = MediaQuery.sizeOf(context).width;
-    const double padding = 14;
-    final estimatedHeight = (screenWidth - padding * 2) / 16 * 9;
-    final exhibition = exhibitionDetail.exhibition;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: padding),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('current_exhibition'.tr(),
-              style: theme.textTheme.ppMori400White14),
-          if (exhibition.isFreeToStream)
-            Text('free_to_stream'.tr(), style: theme.textTheme.ppMori400Grey14),
-          const SizedBox(height: 18),
-          Column(
-            children: [
-              GestureDetector(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: CachedNetworkImage(
-                    imageUrl: exhibition.coverUrl,
-                    placeholder: (context, url) => SizedBox(
-                      height: estimatedHeight,
-                      child: const Center(
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          backgroundColor: AppColor.auQuickSilver,
-                          strokeWidth: 2,
+    final estimatedHeight = (screenWidth - _padding * 2) / 16 * 9;
+    final estimatedWidth = screenWidth - _padding * 2;
+    final index = viewableExhibitions.indexOf(exhibition);
+    final titleStyle = theme.textTheme.ppMori400White16;
+    final subTitleStyle = theme.textTheme.ppMori400Grey12;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Column(
+          children: [
+            GestureDetector(
+              onTap: () async {
+                if (exhibition.canViewDetails && !isFeaturedExhibition) {
+                  _subscriptionBloc.add(GetSubscriptionEvent());
+                  final isSubscribed = await _iapService.isSubscribed();
+                  if (!isSubscribed) {
+                    return;
+                  }
+                }
+
+                if (!context.mounted) {
+                  return;
+                }
+                if (exhibition.canViewDetails && index >= 0) {
+                  await Navigator.of(context).pushNamed(
+                    AppRouter.exhibitionDetailPage,
+                    arguments: ExhibitionDetailPayload(
+                      exhibitions: viewableExhibitions,
+                      index: index,
+                    ),
+                  );
+                }
+              },
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: exhibition.id == SOURCE_EXHIBITION_ID
+                    ? SvgPicture.network(
+                        exhibition.coverUrl,
+                        height: estimatedHeight,
+                        placeholderBuilder: (context) => SizedBox(
+                          height: estimatedHeight,
+                          child: const Center(
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              backgroundColor: AppColor.auQuickSilver,
+                              strokeWidth: 2,
+                            ),
+                          ),
                         ),
+                      )
+                    : CachedNetworkImage(
+                        imageUrl: exhibition.coverUrl,
+                        height: estimatedHeight,
+                        maxWidthDiskCache: estimatedWidth.toInt(),
+                        memCacheWidth: estimatedWidth.toInt(),
+                        memCacheHeight: estimatedHeight.toInt(),
+                        maxHeightDiskCache: estimatedHeight.toInt(),
+                        cacheManager: injector<CacheManager>(),
+                        placeholder: (context, url) => SizedBox(
+                          height: estimatedHeight,
+                          child: const Center(
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              backgroundColor: AppColor.auQuickSilver,
+                              strokeWidth: 2,
+                            ),
+                          ),
+                        ),
+                        fit: BoxFit.fitWidth,
+                      ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    if (!exhibition.canViewDetails) ...[
+                      _lockIcon(),
+                      const SizedBox(width: 5),
+                    ],
+                    SizedBox(
+                      width: (estimatedWidth - _exhibitionInfoDivideWidth) / 2 -
+                          (exhibition.canViewDetails ? 0 : 13 + 5),
+                      child: AutoSizeText(
+                        exhibition.title,
+                        style: titleStyle,
+                        maxLines: 2,
                       ),
                     ),
-                    fit: BoxFit.fitWidth,
-                  ),
+                  ],
                 ),
-                onTap: () async {
-                  await Navigator.of(context)
-                      .pushNamed(AppRouter.exhibitionDetailPage,
-                          arguments: ExhibitionDetailPayload(
-                            exhibitions: _exhibitionBloc.state.exhibitions!
-                                .map((e) => e.exhibition)
-                                .toList(),
-                            index: index,
-                          ));
-                },
-              ),
-              const SizedBox(height: 20),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Text(exhibition.title,
-                        style: theme.textTheme.ppMori400White16),
-                  ),
-                  const SizedBox(width: 20),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (exhibition.curator != null)
-                          RichText(
-                              text: TextSpan(
-                                  style: theme.textTheme.ppMori400Grey14
-                                      .copyWith(
-                                          decorationColor:
-                                              AppColor.disabledColor),
-                                  children: [
-                                TextSpan(text: 'curated_by'.tr()),
-                                TextSpan(
-                                    recognizer: TapGestureRecognizer()
-                                      ..onTap = () async {
-                                        await _navigationService
-                                            .openFeralFileCuratorPage(
-                                                exhibition.curator!.alias);
-                                      },
-                                    text: exhibition.curator!.alias,
-                                    style: const TextStyle(
-                                      decoration: TextDecoration.underline,
-                                    )),
-                              ])),
-                        Text(
-                            exhibition.isGroupExhibition
-                                ? 'group_exhibition'.tr()
-                                : 'solo_exhibition'.tr(),
-                            style: theme.textTheme.ppMori400Grey14),
-                        if (exhibition.getSeriesArtworkModelText != null)
-                          Text(exhibition.getSeriesArtworkModelText!,
-                              style: theme.textTheme.ppMori400Grey14),
+                const SizedBox(width: _exhibitionInfoDivideWidth),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (exhibition.isSoloExhibition &&
+                          exhibition.artists != null) ...[
+                        RichText(
+                          text: TextSpan(
+                            style: subTitleStyle.copyWith(
+                                decorationColor: AppColor.disabledColor),
+                            children: [
+                              TextSpan(text: 'works_by'.tr()),
+                              TextSpan(
+                                  recognizer: TapGestureRecognizer()
+                                    ..onTap = () async {
+                                      await _navigationService
+                                          .openFeralFileArtistPage(
+                                        exhibition.artists![0].alias,
+                                      );
+                                    },
+                                  text: exhibition.artists![0].alias,
+                                  style: const TextStyle(
+                                    decoration: TextDecoration.underline,
+                                  )),
+                            ],
+                          ),
+                        ),
                       ],
-                    ),
-                  )
-                ],
-              )
-            ],
-          ),
-        ],
-      ),
+                      if (exhibition.curator != null)
+                        RichText(
+                          text: TextSpan(
+                            style: subTitleStyle.copyWith(
+                                decorationColor: AppColor.disabledColor),
+                            children: [
+                              TextSpan(text: 'curated_by'.tr()),
+                              TextSpan(
+                                recognizer: TapGestureRecognizer()
+                                  ..onTap = () async {
+                                    await _navigationService
+                                        .openFeralFileCuratorPage(
+                                            exhibition.curator!.alias);
+                                  },
+                                text: exhibition.curator!.alias,
+                                style: const TextStyle(
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      Text(
+                        exhibition.isGroupExhibition
+                            ? 'group_exhibition'.tr()
+                            : 'solo_exhibition'.tr(),
+                        style: subTitleStyle,
+                      ),
+                    ],
+                  ),
+                )
+              ],
+            )
+          ],
+        ),
+      ],
     );
   }
 
   Widget _listExhibitions(BuildContext context) =>
       BlocConsumer<ExhibitionBloc, ExhibitionsState>(
-        builder: (context, state) {
-          final exhibitions = state.exhibitions;
-          if (exhibitions == null) {
-            return const Center(
-              child: CircularProgressIndicator(
-                color: Colors.white,
-                backgroundColor: AppColor.auQuickSilver,
-                strokeWidth: 2,
-              ),
-            );
-          } else {
-            return Column(
-              children: [
-                ...exhibitions
-                    .map((e) => [
-                          _exhibitionItem(context, e, exhibitions.indexOf(e)),
-                          const SizedBox(height: 40)
-                        ])
-                    .flattened,
-                const SizedBox(height: 100),
-              ],
-            );
+        listener: (context, exhibitionsState) {
+          if (exhibitionsState.allExhibitions.isNotEmpty &&
+              _autoOpenExhibitionId != null) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _openExhibition(context, _autoOpenExhibitionId!);
+            });
           }
         },
-        listener: (context, state) {},
+        builder: (context, exhibitionsState) =>
+            BlocBuilder<SubscriptionBloc, SubscriptionState>(
+          builder: (context, subscriptionState) {
+            final theme = Theme.of(context);
+            if (exhibitionsState.currentPage == 0) {
+              return const SliverToBoxAdapter(
+                child: Center(
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    backgroundColor: AppColor.auQuickSilver,
+                    strokeWidth: 2,
+                  ),
+                ),
+              );
+            } else {
+              final featureExhibition = exhibitionsState.featuredExhibition;
+              final upcomingExhibition = exhibitionsState.upcomingExhibition;
+              final pastExhibitions = exhibitionsState.pastExhibitions;
+              final isSubscribed = subscriptionState.isSubscribed;
+
+              final allExhibition = exhibitionsState.allExhibitions;
+              final viewableExhibitions = isSubscribed
+                  ? allExhibition
+                  : featureExhibition != null
+                      ? [featureExhibition]
+                      : <Exhibition>[];
+
+              final divider = addDivider(
+                  height: 40, color: AppColor.auQuickSilver, thickness: 0.5);
+              return SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: _padding),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final exhibition = allExhibition[index];
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (featureExhibition != null && index == 0) ...[
+                            Text('current_exhibition'.tr(),
+                                style: theme.textTheme.ppMori400White14),
+                            Text('for_essential_members'.tr(),
+                                style: theme.textTheme.ppMori400Grey14),
+                            const SizedBox(height: 18),
+                          ],
+                          if (upcomingExhibition != null && index == 1) ...[
+                            _exhibitionGroupHeader(
+                              context,
+                              isSubscribed,
+                              'upcoming_exhibition'.tr(),
+                            ),
+                          ],
+                          if (exhibition.id == pastExhibitions?.first.id)
+                            _exhibitionGroupHeader(
+                              context,
+                              isSubscribed,
+                              'past_exhibition'.tr(),
+                            ),
+                          _exhibitionItem(
+                            context: context,
+                            viewableExhibitions: viewableExhibitions,
+                            exhibition: exhibition,
+                            isFeaturedExhibition:
+                                exhibition.id == featureExhibition?.id,
+                          ),
+                          divider,
+                          if (index == allExhibition.length - 1)
+                            const SizedBox(height: 40),
+                        ],
+                      );
+                    },
+                    childCount: allExhibition.length,
+                  ),
+                ),
+              );
+            }
+          },
+        ),
+      );
+
+  Widget _exhibitionGroupHeader(
+      BuildContext context, bool isSubscribed, String title) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 18),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: theme.textTheme.ppMori400White14,
+              ),
+              Row(
+                children: [
+                  if (!isSubscribed) ...[
+                    _lockIcon(),
+                    const SizedBox(width: 5),
+                  ],
+                  Text('premium_membership'.tr(),
+                      style: theme.textTheme.ppMori400Grey14),
+                ],
+              ),
+            ],
+          ),
+          if (!isSubscribed)
+            PrimaryButton(
+              color: AppColor.feralFileLightBlue,
+              padding: EdgeInsets.zero,
+              elevatedPadding: const EdgeInsets.symmetric(horizontal: 15),
+              borderRadius: 20,
+              text: 'get_premium'.tr(),
+              onTap: () async {
+                await Navigator.of(context)
+                    .pushNamed(AppRouter.subscriptionPage);
+              },
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _lockIcon() => SizedBox(
+        width: 13,
+        height: 13,
+        child: SvgPicture.asset(
+          'assets/images/exhibition_lock_icon.svg',
+        ),
       );
 }

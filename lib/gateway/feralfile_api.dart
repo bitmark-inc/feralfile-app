@@ -6,8 +6,9 @@
 //
 
 import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
-import 'package:autonomy_flutter/model/ff_exhibition_artworks_response.dart';
+import 'package:autonomy_flutter/model/ff_list_response.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
@@ -20,7 +21,8 @@ abstract class FeralFileApi {
 
   @GET('/api/exhibitions/{exhibitionId}')
   Future<ExhibitionResponse> getExhibition(
-      @Path('exhibitionId') String exhibitionId);
+      @Path('exhibitionId') String exhibitionId,
+      {@Query('includeFirstArtwork') bool includeFirstArtwork = false});
 
   @GET('/api/series/{seriesId}')
   Future<FFSeriesResponse> getSeries({
@@ -39,12 +41,6 @@ abstract class FeralFileApi {
     @Query('includeArtist') bool includeArtist = true,
     @Query('includeUniqueFilePath') bool includeUniqueFilePath = true,
   });
-
-  @POST('/api/series/{seriesId}/claim')
-  Future<TokenClaimResponse> claimSeries(
-    @Path('seriesId') String seriesId,
-    @Body() Map<String, dynamic> body,
-  );
 
   @GET('/api/exhibitions/{exhibitionID}/revenue-setting/resale')
   Future<ResaleResponse> getResaleInfo(
@@ -69,13 +65,24 @@ abstract class FeralFileApi {
   @GET('/api/exhibitions/featured')
   Future<ExhibitionResponse> getFeaturedExhibition();
 
+  @GET('/api/artworks/featured')
+  Future<FFListArtworksResponse> getFeaturedArtworks({
+    @Query('includeArtist') bool includeArtist = true,
+  });
+
+  @GET('/api/exhibitions/upcoming')
+  Future<ExhibitionResponse> getUpcomingExhibition();
+
   @GET('/api/artworks')
-  Future<ArtworksResponse> getListArtworks({
+  Future<FeralFileListResponse<Artwork>> getListArtworks({
     @Query('exhibitionID') String? exhibitionId,
     @Query('seriesID') String? seriesId,
+    @Query('offset') int? offset = 0,
+    @Query('limit') int? limit = 1,
     @Query('includeActiveSwap') bool includeActiveSwap = true,
     @Query('sortBy') String sortBy = 'index',
     @Query('sortOrder') String sortOrder = 'ASC',
+    @Query('isViewable') bool? isViewable,
   });
 
   @POST('/api/web3/messages/action')
@@ -115,6 +122,22 @@ class FFListSeriesResponse {
       FFListSeriesResponse(
         result:
             (json['result'] as List).map((e) => FFSeries.fromJson(e)).toList(),
+      );
+
+  Map<String, dynamic> toJson() => {
+        'result': result,
+      };
+}
+
+class FFListArtworksResponse {
+  List<Artwork> result;
+
+  FFListArtworksResponse({required this.result});
+
+  factory FFListArtworksResponse.fromJson(Map<String, dynamic> json) =>
+      FFListArtworksResponse(
+        result:
+            (json['result'] as List).map((e) => Artwork.fromJson(e)).toList(),
       );
 
   Map<String, dynamic> toJson() => {

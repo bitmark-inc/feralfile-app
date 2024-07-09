@@ -18,13 +18,12 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 version: 0.36.0+121
 
 environment:
-  sdk: ">=2.17.0 <4.0.0"
+  sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
   after_layout: ^1.2.0
   bs58check: ^1.0.2
   bubble: ^1.2.1
-  cached_network_image: ^3.2.1
   carousel_slider: ^4.2.1
   collection: ^1.15.0
   confetti: ^0.7.0
@@ -39,7 +38,6 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_bloc: ^8.0.0
-  flutter_cache_manager: ^3.3.0
   flutter_chat_types: ^3.3.1
   flutter_chat_ui: ^1.6.4
   flutter_dotenv: ^5.0.2
@@ -62,7 +60,7 @@ dependencies:
   http: ^1.1.0
   image_picker: ^1.0.1
   in_app_purchase: ^3.1.13
-  infinite_scroll_pagination: ^3.2.0
+  infinite_scroll_pagination: ^4.0.0
   intl: ^0.18.0
   jiffy: ^6.2.1
   flutter_keyboard_visibility: ^6.0.0
@@ -78,7 +76,7 @@ dependencies:
   nft_rendering:
     git:
       url: https://github.com/autonomy-system/nft-rendering.git
-      ref: 0d4cce1bd966cf95edfdf36d5f54505b8534b995
+      ref: 039391471be2144e8539c2b71847c3e81b3983e0
   onesignal_flutter: ^3.3.0
   open_settings: ^2.0.2
   overlay_support: ^2.0.0
@@ -112,8 +110,7 @@ dependencies:
   feralfile_app_theme:
     git:
       url: https://github.com/bitmark-inc/feralfile-app-client-shared-theme
-      ref: 8cb04ea43f0b78fd27c6fd96d9e273b541d10903
-  marqueer: ^1.2.0
+      ref: 8d791a051a9b38791e82ac1582176d1b4e8e74fa
   markdown: ^7.1.1
   easy_localization: ^3.0.1
   rxdart: ^0.27.1
@@ -121,11 +118,11 @@ dependencies:
   nft_collection:
     git:
       url: https://github.com/autonomy-system/nft-collection
-      ref: 47525c5b29164c8421493a4d3d337bc9f8d5fd89
+      ref: a52716f756e11367bef636455b5488937761405e
   feralfile_app_tv_proto:
     git:
       url: https://github.com/autonomy-system/feralfile-app-tv-proto-communication
-      ref: e050458005e8eea9ef8988bdd1c3a1469a9572ff
+      ref: 18fcb34f2a6966312b2ca0aae858621ab89295f4
   flutter_branch_sdk: ^7.0.2
   flutter_rating_bar: ^4.0.1
   multi_value_listenable_builder: ^0.0.2
@@ -162,6 +159,12 @@ dependencies:
   image_gallery_saver: ^2.0.3
   hand_signature: ^3.0.1
   flutter_pdfview: ^1.3.2
+  retry: ^3.1.2
+
+  network_info_plus: ^5.0.3
+  backdrop: ^0.9.1
+  cached_network_image: ^3.3.1
+  flutter_cache_manager: ^3.3.1
   cryptography: ^2.7.0
   cryptography_flutter: ^2.3.2
 dependency_overrides:

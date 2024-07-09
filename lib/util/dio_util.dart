@@ -18,6 +18,13 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 Dio feralFileDio(BaseOptions options) {
   final dio = baseDio(options);
   dio.interceptors.add(FeralfileAuthInterceptor());
+  dio.interceptors.add(ConnectingExceptionInterceptor());
+  return dio;
+}
+
+Dio customerSupportDio(BaseOptions options) {
+  final dio = baseDio(options);
+  dio.interceptors.add(AutonomyAuthInterceptor());
   return dio;
 }
 
@@ -25,20 +32,22 @@ Dio postcardDio(BaseOptions options) {
   final dio = baseDio(options);
   dio.interceptors.add(HmacAuthInterceptor(Environment.auClaimSecretKey));
   dio.interceptors.add(AutonomyAuthInterceptor());
+  dio.interceptors.add(ConnectingExceptionInterceptor());
   return dio;
 }
 
-Dio airdropDio(BaseOptions options) {
-  final dio = baseDio(options);
-  dio.interceptors.add(AutonomyAuthInterceptor());
-  dio.interceptors.add(HmacAuthInterceptor(Environment.auClaimSecretKey));
-  dio.interceptors.add(AirdropInterceptor());
+Dio tvCastDio(BaseOptions options) {
+  final dio = Dio(options);
+  dio.interceptors.add(TVKeyInterceptor(Environment.tvKey));
+  dio.interceptors.add(LoggingInterceptor());
+  dio.interceptors.add(ConnectingExceptionInterceptor());
   return dio;
 }
 
 Dio chatDio(BaseOptions options) {
   final dio = baseDio(options);
   dio.interceptors.add(HmacAuthInterceptor(Environment.chatServerHmacKey));
+  dio.interceptors.add(ConnectingExceptionInterceptor());
   return dio;
 }
 
@@ -73,6 +82,7 @@ Dio baseDio(BaseOptions options) {
   ));
 
   dio.interceptors.add(LoggingInterceptor());
+  dio.interceptors.add(ConnectingExceptionInterceptor());
   (dio.transformer as SyncTransformer).jsonDecodeCallback = parseJson;
   dio
     ..options = dioOptions

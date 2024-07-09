@@ -16,5 +16,6 @@ extension PredefinedCollectionModelExt on PredefinedCollectionModel {
         lastActivityTime: DateTime.now(),
         lastRefreshedTime: DateTime.now(),
         galleryThumbnailURL: thumbnailURL,
+        edition: 0,
       );
 }

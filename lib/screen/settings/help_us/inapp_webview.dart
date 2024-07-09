@@ -29,17 +29,21 @@ class InAppWebViewPage extends StatefulWidget {
 }
 
 class _InAppWebViewPageState extends State<InAppWebViewPage> {
-  late InAppWebViewController webViewController;
+  InAppWebViewController? webViewController;
   late String title;
   late bool isLoading;
   final _configurationService = injector<ConfigurationService>();
   bool _isTrusted = false;
+  late bool _canGoBack;
+  late bool _canGoForward;
 
   @override
   void initState() {
     super.initState();
     title = Uri.parse(widget.payload.url).host;
     isLoading = false;
+    _canGoBack = false;
+    _canGoForward = false;
     unawaited(_checkCertificate(widget.payload.url));
   }
 
@@ -134,6 +138,12 @@ class _InAppWebViewPageState extends State<InAppWebViewPage> {
                           setState(() {
                             isLoading = false;
                           });
+                        },
+                        onUpdateVisitedHistory: (controller, uri, _) {
+                          setState(() {
+                            title = uri!.host;
+                          });
+                          unawaited(refreshAppBarStatus());
                         },
                         shouldOverrideUrlLoading:
                             (controller, navigationAction) async {
@@ -243,41 +253,62 @@ class _InAppWebViewPageState extends State<InAppWebViewPage> {
     );
   }
 
+  Future<void> refreshAppBarStatus() async {
+    final canGoBack = await webViewController?.canGoBack() ?? false;
+    final canGoForward = await webViewController?.canGoForward() ?? false;
+    setState(() {
+      _canGoBack = canGoBack;
+      _canGoForward = canGoForward;
+    });
+  }
+
   Widget _bottomBar(BuildContext context) => Container(
         color: AppColor.white,
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 50),
         child: Row(
           children: [
             IconButton(
-              icon: const Icon(AuIcon.chevron),
+              icon: Icon(AuIcon.chevron,
+                  color: _canGoBack
+                      ? AppColor.primaryBlack
+                      : AppColor.disabledColor),
               onPressed: () async {
-                if (await webViewController.canGoBack()) {
-                  await webViewController.goBack();
+                if (await webViewController?.canGoBack() ?? false) {
+                  await webViewController?.goBack();
+                  await refreshAppBarStatus();
                 }
               },
             ),
             const Spacer(),
             IconButton(
-              icon: const RotatedBox(
-                  quarterTurns: 2, child: Icon(AuIcon.chevron)),
+              icon: RotatedBox(
+                  quarterTurns: 2,
+                  child: Icon(
+                    AuIcon.chevron,
+                    color: _canGoForward
+                        ? AppColor.primaryBlack
+                        : AppColor.disabledColor,
+                  )),
               onPressed: () async {
-                if (await webViewController.canGoForward()) {
-                  await webViewController.goForward();
+                if (await webViewController?.canGoForward() ?? false) {
+                  await webViewController?.goForward();
+                  await refreshAppBarStatus();
                 }
               },
             ),
             const Spacer(),
             IconButton(
               icon: SvgPicture.asset('assets/images/Reload.svg'),
-              onPressed: () {
-                unawaited(webViewController.reload());
+              onPressed: () async {
+                await webViewController?.reload();
+                await refreshAppBarStatus();
               },
             ),
             const Spacer(),
             IconButton(
               icon: SvgPicture.asset('assets/images/Share.svg'),
               onPressed: () async {
-                final currentUrl = await webViewController.getUrl();
+                final currentUrl = await webViewController?.getUrl();
                 if (currentUrl != null) {
                   unawaited(launchUrl(
                     currentUrl,

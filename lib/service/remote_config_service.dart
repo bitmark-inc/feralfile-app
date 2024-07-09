@@ -57,7 +57,15 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
             'previews/d15cc1f3-c2f1-4b9c-837d-7c131583bf40/1710123470/index.html',
         'public_version_thumbnail':
             'thumbnails/d15cc1f3-c2f1-4b9c-837d-7c131583bf40/1710123327'
-      }
+      },
+      'john_gerrard': {
+        'contract_address': '0x9D57f2e1A8c864009ed0C980E2d31aa5EB42f820',
+        'exhibition_id': '50fb6756-80a9-46e4-b70c-380c32dfcc77',
+      },
+      'crawl': {
+        'exhibition_id': '3c4b0a8b-6d3e-4c32-aaae-c701bb9deca9',
+      },
+      'dont_fake_artwork_series_ids': ['0a954c31-d336-4e37-af0f-ec336c064879'],
     },
     'in_app_webview': {
       'uri_scheme_white_list': ['https'],
@@ -65,6 +73,11 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
     },
     'dApp_urls': {
       'deny_dApp_list': [],
+      'tezos_nodes': [
+        'https://mainnet.api.tez.ie',
+        'https://rpc.tzbeta.net',
+        'https://mainnet.tezos.marigold.dev'
+      ]
     }
   };
 
@@ -122,6 +135,7 @@ enum ConfigGroup {
   inAppWebView,
   dAppUrls,
   exhibition,
+  johnGerrard,
 }
 
 // ConfigGroup getString extension
@@ -146,6 +160,8 @@ extension ConfigGroupExtension on ConfigGroup {
         return 'dApp_urls';
       case ConfigGroup.exhibition:
         return 'exhibition';
+      case ConfigGroup.johnGerrard:
+        return 'john_gerrard';
     }
   }
 }
@@ -172,7 +188,14 @@ enum ConfigKey {
   scrollablePreviewUrl,
   specifiedSeriesArtworkModelTitle,
   yokoOnoPublic,
+  johnGerrard,
+  crawl,
+  dontFakeArtworkSeriesIds,
   yokoOnoPrivateTokenIds,
+  tezosNodes,
+  seriesIds,
+  assetIds,
+  customNote,
   uriSchemeWhiteList,
   denyDAppList,
   allowedFingerprints,
@@ -224,8 +247,22 @@ extension ConfigKeyExtension on ConfigKey {
         return 'specified_series_artwork_model_title';
       case ConfigKey.yokoOnoPublic:
         return 'yoko_ono_public';
+      case ConfigKey.johnGerrard:
+        return 'john_gerrard';
+      case ConfigKey.crawl:
+        return 'crawl';
+      case ConfigKey.dontFakeArtworkSeriesIds:
+        return 'dont_fake_artwork_series_ids';
       case ConfigKey.yokoOnoPrivateTokenIds:
         return 'yoko_ono_private_token_ids';
+      case ConfigKey.tezosNodes:
+        return 'tezos_nodes';
+      case ConfigKey.seriesIds:
+        return 'series_ids';
+      case ConfigKey.assetIds:
+        return 'asset_ids';
+      case ConfigKey.customNote:
+        return 'custom_notes';
       case ConfigKey.uriSchemeWhiteList:
         return 'uri_scheme_white_list';
       case ConfigKey.denyDAppList:

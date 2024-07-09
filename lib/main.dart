@@ -21,15 +21,18 @@ import 'package:autonomy_flutter/model/eth_pending_tx_amount.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
+import 'package:autonomy_flutter/service/device_info_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/notification_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/au_file_service.dart';
+import 'package:autonomy_flutter/util/canvas_device_adapter.dart';
 import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
+import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/route_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -130,7 +133,8 @@ Future<void> runFeralFileApp() async {
 void _registerHiveAdapter() {
   Hive
     ..registerAdapter(EthereumPendingTxAmountAdapter())
-    ..registerAdapter(EthereumPendingTxListAdapter());
+    ..registerAdapter(EthereumPendingTxListAdapter())
+    ..registerAdapter(CanvasDeviceAdapter());
 }
 
 Future<void> _setupApp() async {
@@ -138,6 +142,8 @@ Future<void> _setupApp() async {
 
   await DeviceInfo.instance.init();
   await LibAukDart.migrate();
+
+  await injector<DeviceInfoService>().init();
 
   final metricClient = injector.get<MetricClientService>();
   await metricClient.initService();
@@ -153,6 +159,7 @@ Future<void> _setupApp() async {
   await disableLandscapeMode();
   final isPremium = await injector.get<IAPService>().isSubscribed();
   await injector<ConfigurationService>().setPremium(isPremium);
+  await JohnGerrardHelper.updateJohnGerrardLatestRevealIndex();
 
   runApp(
     EasyLocalization(
@@ -167,9 +174,7 @@ Future<void> _setupApp() async {
 
   Sentry.configureScope((scope) async {
     final deviceID = await getDeviceID();
-    if (deviceID != null) {
-      scope.setUser(SentryUser(id: deviceID));
-    }
+    scope.setUser(SentryUser(id: deviceID));
   });
 
   //safe delay to wait for onboarding finished

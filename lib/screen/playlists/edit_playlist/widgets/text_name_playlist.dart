@@ -49,10 +49,11 @@ class _TextNamePlaylistState extends State<TextNamePlaylist> {
       focusNode: widget.focusNode,
       hintText: tr('untitled'),
       controller: _playlistNameC,
-      cursorColor: theme.colorScheme.primary,
-      style: theme.textTheme.ppMori400Black14,
-      hintStyle: theme.textTheme.ppMori400Grey14,
-      textAlign: TextAlign.center,
+      cursorColor: AppColor.white,
+      style: theme.textTheme.ppMori700Black36.copyWith(color: AppColor.white),
+      hintStyle: theme.textTheme.ppMori700Black36
+          .copyWith(color: AppColor.disabledColor),
+      textAlign: TextAlign.left,
       border: InputBorder.none,
       onChanged: (value) {
         widget.onEditPlaylistName?.call(value);
