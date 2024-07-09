@@ -61,7 +61,11 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
       'john_gerrard': {
         'contract_address': '0x9D57f2e1A8c864009ed0C980E2d31aa5EB42f820',
         'exhibition_id': '50fb6756-80a9-46e4-b70c-380c32dfcc77',
-      }
+      },
+      'crawl': {
+        'exhibition_id': '3c4b0a8b-6d3e-4c32-aaae-c701bb9deca9',
+      },
+      'dont_fake_artwork_series_ids': ['0a954c31-d336-4e37-af0f-ec336c064879'],
     },
     'dApp_urls': {
       'tezos_nodes': [
@@ -177,6 +181,8 @@ enum ConfigKey {
   specifiedSeriesArtworkModelTitle,
   yokoOnoPublic,
   johnGerrard,
+  crawl,
+  dontFakeArtworkSeriesIds,
   yokoOnoPrivateTokenIds,
   tezosNodes,
   seriesIds,
@@ -232,6 +238,10 @@ extension ConfigKeyExtension on ConfigKey {
         return 'yoko_ono_public';
       case ConfigKey.johnGerrard:
         return 'john_gerrard';
+      case ConfigKey.crawl:
+        return 'crawl';
+      case ConfigKey.dontFakeArtworkSeriesIds:
+        return 'dont_fake_artwork_series_ids';
       case ConfigKey.yokoOnoPrivateTokenIds:
         return 'yoko_ono_private_token_ids';
       case ConfigKey.tezosNodes:
