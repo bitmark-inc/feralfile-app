@@ -254,7 +254,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
       default:
         catalog = ExhibitionCatalog.artwork;
         final seriesIndex = _currentIndex - 2;
-        final currentArtwork = exhibition.series?[seriesIndex].artwork?.id;
+        final currentArtwork = exhibition.sortedSeries[seriesIndex].artwork?.id;
         catalogId = currentArtwork;
     }
     return Pair(catalog, catalogId);
