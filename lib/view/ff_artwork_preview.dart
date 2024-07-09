@@ -32,7 +32,7 @@ class FeralFileArtworkPreview extends StatelessWidget {
           child: GestureDetector(
             onTap: () async {
               final artwork = payload.artwork;
-              if ((artwork.series?.isSingle ?? false) && false) {
+              if (artwork.series?.isSingle ?? false) {
                 await Navigator.of(context).pushNamed(
                   AppRouter.ffArtworkPreviewPage,
                   arguments: FeralFileArtworkPreviewPagePayload(
