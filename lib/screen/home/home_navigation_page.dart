@@ -193,11 +193,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         options: [
           OptionItem(
             title: 'featured_works'.tr(),
-            icon: SvgPicture.asset(
-              'assets/images/icon_set.svg',
-              colorFilter:
-                  const ColorFilter.mode(AppColor.white, BlendMode.srcIn),
-            ),
+            icon: const Icon(AuIcon.discover),
             onTap: () async {
               final artworks =
                   await injector<FeralFileService>().getFeaturedArtworks();
