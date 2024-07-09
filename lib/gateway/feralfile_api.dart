@@ -69,7 +69,7 @@ abstract class FeralFileApi {
   Future<FFListArtworksResponse> getFeaturedArtworks({
     @Query('includeArtist') bool includeArtist = true,
     @Query('includeExhibition') bool includeExhibition = true,
-    @Query('includeExhibitionContract') bool includeSeries = true,
+    @Query('includeExhibitionContract') bool includeExhibitionContract = true,
   });
 
   @GET('/api/exhibitions/upcoming')

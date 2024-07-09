@@ -260,13 +260,13 @@ class _FeralFileApi implements FeralFileApi {
   Future<FFListArtworksResponse> getFeaturedArtworks({
     bool includeArtist = true,
     bool includeExhibition = true,
-    bool includeSeries = true,
+    bool includeExhibitionContract = true,
   }) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
       r'includeArtist': includeArtist,
       r'includeExhibition': includeExhibition,
-      r'includeExhibitionContract': includeSeries,
+      r'includeExhibitionContract': includeExhibitionContract,
     };
     final _headers = <String, dynamic>{};
     final Map<String, dynamic>? _data = null;
