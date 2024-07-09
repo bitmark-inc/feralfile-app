@@ -87,7 +87,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
     }
 
     final itemCount =
-        isUpcomingExhibition ? 3 : ((exhibition.series?.length ?? 0) + 3);
+        false ? 3 : ((exhibition.series?.length ?? 0) + 3);
     return Column(
       children: [
         Expanded(
