@@ -1,7 +1,9 @@
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artwork_preview_page.dart';
 import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_page.dart';
 import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
+import 'package:autonomy_flutter/util/series_ext.dart';
 import 'package:autonomy_flutter/view/feralfile_artwork_preview_widget.dart';
 import 'package:autonomy_flutter/view/series_title_view.dart';
 import 'package:flutter/material.dart';
@@ -28,13 +30,25 @@ class FeralFileArtworkPreview extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.only(left: 14, right: 14, bottom: 20),
           child: GestureDetector(
-            onTap: () async => Navigator.of(context).pushNamed(
-              AppRouter.feralFileSeriesPage,
-              arguments: FeralFileSeriesPagePayload(
-                seriesId: payload.artwork.series!.id,
-                exhibitionId: payload.artwork.series!.exhibitionID,
-              ),
-            ),
+            onTap: () async {
+              final artwork = payload.artwork;
+              if (artwork.series?.isSingle ?? false) {
+                await Navigator.of(context).pushNamed(
+                  AppRouter.ffArtworkPreviewPage,
+                  arguments: FeralFileArtworkPreviewPagePayload(
+                    artwork: artwork,
+                  ),
+                );
+              } else {
+                await Navigator.of(context).pushNamed(
+                  AppRouter.feralFileSeriesPage,
+                  arguments: FeralFileSeriesPagePayload(
+                    seriesId: artwork.series!.id,
+                    exhibitionId: artwork.series!.exhibitionID,
+                  ),
+                );
+              }
+            },
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
