@@ -17,7 +17,7 @@ import 'package:flutter/services.dart';
 import 'package:sentry/sentry.dart';
 
 class ImportSeedsPage extends StatefulWidget {
-  const ImportSeedsPage({Key? key}) : super(key: key);
+  const ImportSeedsPage({super.key});
 
   @override
   State<ImportSeedsPage> createState() => _ImportSeedsPageState();
@@ -29,62 +29,62 @@ class _ImportSeedsPageState extends State<ImportSeedsPage> {
   bool _isSubmissionEnabled = false;
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: getBackAppBar(
-        context,
-        title: "import_address".tr(),
-        onBack: () {
-          Navigator.of(context).pop();
-        },
-      ),
-      body: Padding(
-        padding: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    addTitleSpace(),
-                    SizedBox(
-                      height: 160,
-                      child: AuTextField(
-                        labelSemantics: "enter_seed",
-                        title: "",
-                        placeholder: "enter_recovery_phrase".tr(),
-                        //"Enter recovery phrase with each word separated by a space",
-                        maxLines: null,
-                        hintMaxLines: 3,
-                        controller: _phraseTextController,
-                        isError: isError,
-                        onChanged: (value) {
-                          final numberOfWords = value.trim().split(' ').length;
-                          setState(() {
-                            _isSubmissionEnabled =
-                                [12, 15, 18, 21, 24].contains(numberOfWords);
-                            isError = false;
-                          });
-                        },
+  Widget build(BuildContext context) => Scaffold(
+        appBar: getBackAppBar(
+          context,
+          title: 'import_address'.tr(),
+          onBack: () {
+            Navigator.of(context).pop();
+          },
+        ),
+        body: Padding(
+          padding: ResponsiveLayout.pageEdgeInsetsWithSubmitButton,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      addTitleSpace(),
+                      SizedBox(
+                        height: 160,
+                        child: AuTextField(
+                          labelSemantics: 'enter_seed',
+                          title: '',
+                          placeholder: 'enter_recovery_phrase'.tr(),
+                          //"Enter recovery phrase with each word
+                          // separated by a space",
+                          maxLines: null,
+                          hintMaxLines: 3,
+                          controller: _phraseTextController,
+                          isError: isError,
+                          onChanged: (value) {
+                            final numberOfWords =
+                                value.trim().split(' ').length;
+                            setState(() {
+                              _isSubmissionEnabled =
+                                  [12, 15, 18, 21, 24].contains(numberOfWords);
+                              isError = false;
+                            });
+                          },
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 20),
-            PrimaryAsyncButton(
-              text: "continue".tr(),
-              enabled: _isSubmissionEnabled && !isError,
-              onTap: () => _import(),
-            ),
-          ],
+              const SizedBox(height: 20),
+              PrimaryAsyncButton(
+                text: 'continue'.tr(),
+                enabled: _isSubmissionEnabled && !isError,
+                onTap: () async => _import(),
+              ),
+            ],
+          ),
         ),
-      ),
-    );
-  }
+      );
 
   Future<void> _import() async {
     try {
@@ -95,16 +95,20 @@ class _ImportSeedsPageState extends State<ImportSeedsPage> {
 
       final persona =
           await accountService.importPersona(_phraseTextController.text.trim());
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       unawaited(Navigator.of(context).pushNamed(AppRouter.selectAddressesPage,
           arguments: SelectAddressesPayload(persona: persona)));
 
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
     } catch (exception) {
-      log.info("Import wallet fails ${exception.toString()}");
+      log.info('Import wallet fails $exception');
       if (!(exception is PlatformException &&
-          exception.code == "importKey error")) {
-        Sentry.captureException(exception);
+          exception.code == 'importKey error')) {
+        unawaited(Sentry.captureException(exception));
       }
       UIHelper.hideInfoDialog(context);
       setState(() {

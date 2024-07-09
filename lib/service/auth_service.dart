@@ -70,26 +70,22 @@ class AuthService {
     return newJwt;
   }
 
-  Future<JWT> _getDidKeyAuthToken() async {
-    final defaultAccount = await injector<AccountService>().getDefaultAccount();
-    final jwt = await getAuthTokenByAccount(defaultAccount!);
-    return jwt;
-  }
-
-  Future<JWT> getAuthToken(
+  Future<JWT?> getAuthToken(
       {String? messageToSign,
       String? receiptData,
-      bool forceRefresh = false}) async {
+      bool forceRefresh = false,
+      bool shouldGetDidKeyInstead = false}) async {
     if (!forceRefresh && _jwt != null && _jwt!.isValid()) {
       return _jwt!;
     }
     final primaryAddressAuthToken =
         await _getPrimaryAddressAuthToken(receiptData: receiptData);
-    final newJwt = primaryAddressAuthToken ?? await _getDidKeyAuthToken();
+    final newJwt = primaryAddressAuthToken ??
+        (shouldGetDidKeyInstead ? await getDidKeyAuthToken() : null);
     return newJwt;
   }
 
-  Future<JWT> getAuthTokenByAccount(WalletStorage account) async {
+  Future<JWT> _getAuthTokenByAccount(WalletStorage account) async {
     final didKey = await account.getAccountDID();
     final message = DateTime.now().millisecondsSinceEpoch.toString();
     _addressService.getFeralfileAccountMessage(
@@ -107,8 +103,13 @@ class AuthService {
       var newJwt = await _authApi.auth(payload);
       return newJwt;
     } catch (e) {
-      throw e;
+      rethrow;
     }
+  }
+
+  Future<JWT> getDidKeyAuthToken() async {
+    final defaultAccount = await injector<AccountService>().getDefaultAccount();
+    return _getAuthTokenByAccount(defaultAccount);
   }
 
   Future<void> registerPrimaryAddress(
@@ -136,7 +137,7 @@ class AuthService {
       'timestamp': timestamp,
     };
     if (withDidKey) {
-      final didKey = await defaultAccount!.getAccountDID();
+      final didKey = await defaultAccount.getAccountDID();
       final messageForDidKey = _addressService.getFeralfileAccountMessage(
         address: didKey,
         timestamp: timestamp,

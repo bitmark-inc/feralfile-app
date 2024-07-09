@@ -215,7 +215,7 @@ class _SupportThreadPageState extends State<SupportThreadPage>
       return _userId!;
     }
     final jwt = await injector<AuthService>().getAuthToken();
-    final data = parseJwt(jwt.jwtToken);
+    final data = parseJwt(jwt!.jwtToken);
     _userId = data['sub'] ?? '';
     return _userId!;
   }

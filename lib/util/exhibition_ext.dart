@@ -19,6 +19,8 @@ extension ExhibitionExt on Exhibition {
 
   bool get isGroupExhibition => type == 'group';
 
+  bool get isSoloExhibition => type == 'solo';
+
   bool get isJohnGerrardShow => id == JohnGerrardHelper.exhibitionID;
 
   DateTime get exhibitionViewAt =>
@@ -192,6 +194,13 @@ extension ArtworkExt on Artwork {
     return exhibition?.contracts?.firstWhereOrNull(
       (e) => e.blockchainType == exhibition.mintBlockchain,
     );
+  }
+
+  bool get isYokoOnoPublicVersion {
+    final config = injector<RemoteConfigService>()
+        .getConfig<Map<String, dynamic>>(
+            ConfigGroup.exhibition, ConfigKey.yokoOnoPublic, {});
+    return id == config['public_token_id'];
   }
 }
 

@@ -345,7 +345,7 @@ extension RouteExt on Route {
       case AppRouter.nameAddressPersonaPage:
         final payload = settings.arguments! as NameAddressPersonaPayload;
         data = {
-          MixpanelProp.address: payload.addressInfo.address,
+          MixpanelProp.address: payload.listAddressInfo.first.address,
         };
         break;
       case AppRouter.addressAliasPage:
@@ -492,6 +492,7 @@ final screenNameMap = {
   AppRouter.wcSignMessagePage: 'WC Sign Message',
   AppRouter.wcSendTransactionPage: 'WC Send Transaction',
   AppRouter.momaPostcardPage: 'MoMA Postcards',
+  AppRouter.featuredWorksPage: 'Featured Works',
   AppRouter.tbSendTransactionPage: 'TB Send Transaction',
   AppRouter.feralFileSeriesPage: 'Series Detail',
   AppRouter.ffArtworkPreviewPage: 'Feral File Artwork Preview',

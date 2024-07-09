@@ -9,7 +9,6 @@ import 'dart:async';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
@@ -21,7 +20,6 @@ import 'package:autonomy_flutter/screen/exhibitions/exhibitions_state.dart';
 import 'package:autonomy_flutter/screen/home/collection_home_page.dart';
 import 'package:autonomy_flutter/screen/home/organize_home_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/chat_service.dart';
@@ -186,6 +184,18 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
       await UIHelper.showCenterMenu(
         context,
         options: [
+          OptionItem(
+            title: 'featured_works'.tr(),
+            icon: SvgPicture.asset(
+              'assets/images/icon_set.svg',
+              colorFilter:
+                  const ColorFilter.mode(AppColor.white, BlendMode.srcIn),
+            ),
+            onTap: () {
+              Navigator.of(context)
+                  .popAndPushNamed(AppRouter.featuredWorksPage);
+            },
+          ),
           OptionItem(
             title: 'rnd'.tr(),
             icon: SvgPicture.asset(
@@ -581,18 +591,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     );
   }
 
-  Future<void> _checkForKeySync(BuildContext context) async {
-    final cloudDatabase = injector<CloudDatabase>();
-    final defaultAccounts = await cloudDatabase.personaDao.getDefaultPersonas();
-
-    if (defaultAccounts.length >= 2) {
-      if (!context.mounted) {
-        return;
-      }
-      unawaited(Navigator.of(context).pushNamed(AppRouter.keySyncPage));
-    }
-  }
-
   PageController _getPageController(int initialIndex) =>
       PageController(initialPage: initialIndex);
 
@@ -630,16 +628,10 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     if (initialAction != null) {
       await nc.NotificationService.onActionReceivedMethod(initialAction);
     }
-    if (!context.mounted) {
-      return;
-    }
-    unawaited(_checkForKeySync(context));
   }
 
   Future<void> _cloudBackup() async {
-    final accountService = injector<AccountService>();
-    final backup = injector<BackupService>();
-    final defaultAccount = await accountService.getDefaultAccount();
-    await backup.backupCloudDatabase(defaultAccount!);
+    final backupService = injector<BackupService>();
+    await backupService.backupCloudDatabase();
   }
 }
