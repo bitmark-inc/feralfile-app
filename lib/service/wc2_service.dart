@@ -315,12 +315,28 @@ class Wc2Service {
 
   Future connect(String uri, {Function? onTimeout}) async {
     if (uri.isAutonomyConnectUri) {
-      pendingUri = uri;
-      _timer?.cancel();
-      _timer = Timer(CONNECT_FAILED_DURATION, () {
+      await _connectWithRetry(uri, onTimeout: onTimeout, shouldRetry: true);
+    }
+  }
+
+  // function connect with retry on timeout 10 seconds
+  Future _connectWithRetry(String uri,
+      {required bool shouldRetry, Function? onTimeout}) async {
+    pendingUri = uri;
+    final timer = Timer(CONNECT_FAILED_DURATION, () async {
+      if (!shouldRetry) {
         onTimeout?.call();
-      });
-      await _wcClient.pair(uri: Uri.parse(uri));
+      }
+    });
+    final pairingInfo = await _wcClient.pair(uri: Uri.parse(uri));
+    if (timer.isActive) {
+      timer.cancel();
+      log.info('[Wc2Service] pairingInfo: $pairingInfo');
+    } else {
+      if (shouldRetry) {
+        log.info('[Wc2Service] Retry connect to $uri');
+        await _connectWithRetry(uri, onTimeout: onTimeout, shouldRetry: false);
+      }
     }
   }
 
