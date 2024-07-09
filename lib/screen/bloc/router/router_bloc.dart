@@ -105,16 +105,16 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
           add(RestoreCloudDatabaseRoutingEvent(backupVersion));
           return;
         } else {
-          await _configurationService.setDoneOnboarding(true);
-          unawaited(injector<MetricClientService>()
-              .mixPanelClient
-              .initIfDefaultAccount());
           if (primaryAddressInfo == null) {
             final primaryAddressInfo =
                 await _addressService.pickAddressAsPrimary();
             await _addressService.registerPrimaryAddress(
                 info: primaryAddressInfo);
           }
+          await _configurationService.setDoneOnboarding(true);
+          unawaited(injector<MetricClientService>()
+              .mixPanelClient
+              .initIfDefaultAccount());
           emit(RouterState(onboardingStep: OnboardingStep.dashboard));
           return;
         }
@@ -160,10 +160,7 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
           if (_configurationService.isDoneOnboarding()) {
             return;
           }
-          await _configurationService.setDoneOnboarding(true);
-          unawaited(injector<MetricClientService>()
-              .mixPanelClient
-              .initIfDefaultAccount());
+
           await migrationUtil.migrateIfNeeded();
           try {
             final addressInfo = await _addressService.pickAddressAsPrimary();
@@ -173,6 +170,10 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
             log.info('Error while picking primary address', e, stacktrace);
             // rethrow;
           }
+          await _configurationService.setDoneOnboarding(true);
+          unawaited(injector<MetricClientService>()
+              .mixPanelClient
+              .initIfDefaultAccount());
           emit(RouterState(onboardingStep: OnboardingStep.dashboard));
         }
       } catch (e, stacktrace) {

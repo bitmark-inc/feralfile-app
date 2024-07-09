@@ -735,10 +735,10 @@ class AccountServiceImpl extends AccountService {
             .navigateTo(AppRouter.homePageNoTransition));
       }
     } else if (isCreateNew) {
-      unawaited(_configurationService.setDoneOnboarding(true));
       final persona = await createPersona();
       await persona.insertNextAddress(WalletType.Tezos);
       await persona.insertNextAddress(WalletType.Ethereum);
+      unawaited(_configurationService.setDoneOnboarding(true));
       unawaited(injector<MetricClientService>()
           .mixPanelClient
           .initIfDefaultAccount());

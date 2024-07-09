@@ -70,7 +70,7 @@ class AuthService {
     return newJwt;
   }
 
-  Future<JWT> _getDidKeyAuthToken({String? messageToSign}) async {
+  Future<JWT> _getDidKeyAuthToken() async {
     final defaultAccount = await injector<AccountService>().getDefaultAccount();
     final jwt = await getAuthTokenByAccount(defaultAccount!);
     return jwt;

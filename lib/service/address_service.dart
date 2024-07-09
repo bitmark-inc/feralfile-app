@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/wallet_address.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/primary_address_channel.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:eth_sig_util/util/utils.dart';
@@ -38,7 +39,11 @@ class AddressService {
       {required AddressInfo info, bool withDidKey = false}) async {
     await injector<AuthService>().registerPrimaryAddress(
         primaryAddressInfo: info, withDidKey: withDidKey);
-    return setPrimaryAddressInfo(info: info);
+    final res = setPrimaryAddressInfo(info: info);
+    if (withDidKey) {
+      await injector<MetricClientService>().migrateFromDidKeyToPrimaryAddress();
+    }
+    return res;
   }
 
   Future<bool> clearPrimaryAddress() async {
