@@ -398,27 +398,31 @@ class FeralFileServiceImpl extends FeralFileService {
     if (!series.isMultiUnique) {
       previewURI = getFFUrl(series.previewFile?.uri ?? '');
     } else {
-      if (series.isGenerative) {
-        previewURI ??= getFFUrl(series.previewFile?.uri ?? '');
-        final artworkNumber = artworkIndex + 1;
-        previewURI = '$previewURI?'
-            '&artwork_number=$artworkNumber'
-            '&blockchain=${exhibition.mintBlockchain}';
-        try {
-          final tokenParameters = await previewArtCustomTokenID(
-            seriesOnchainID: series.onchainID ?? '',
-            exhibitionID: series.exhibitionID,
-            artworkIndex: artworkIndex,
-          );
-          previewURI += tokenParameters;
-        } catch (error, stackTrace) {
-          log.info(
-              '[FeralFileService] Get preview URI failed: $error, $stackTrace');
-        }
-      } else {
+      if (exhibition.isCrawlShow) {
+        // if crawl show, use the unique preview path with "/"
         previewURI = '${series.uniquePreviewPath}/$artworkIndex';
-        if (exhibition.isCrawlShow) {
-          previewURI += '/';
+        previewURI += '/';
+      } else {
+        // normal case
+        if (series.isGenerative) {
+          previewURI ??= getFFUrl(series.previewFile?.uri ?? '');
+          final artworkNumber = artworkIndex + 1;
+          previewURI = '$previewURI?'
+              '&artwork_number=$artworkNumber'
+              '&blockchain=${exhibition.mintBlockchain}';
+          try {
+            final tokenParameters = await previewArtCustomTokenID(
+              seriesOnchainID: series.onchainID ?? '',
+              exhibitionID: series.exhibitionID,
+              artworkIndex: artworkIndex,
+            );
+            previewURI += tokenParameters;
+          } catch (error, stackTrace) {
+            log.info(
+                '[FeralFileService] Get preview URI failed: $error, $stackTrace');
+          }
+        } else {
+          previewURI = '${series.uniquePreviewPath}/$artworkIndex';
         }
       }
     }
