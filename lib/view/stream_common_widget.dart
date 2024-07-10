@@ -59,7 +59,8 @@ class StreamDrawerItem extends StatelessWidget {
           child: Stack(
             children: [
               Padding(
-                padding: const EdgeInsets.only(right: rotateIconSize + 25 + 10),
+                padding: EdgeInsets.only(
+                    right: isControlling ? rotateIconSize + 25 + 10 : 0),
                 child: InkWell(
                   splashFactory: InkSparkle.splashFactory,
                   child: Container(
