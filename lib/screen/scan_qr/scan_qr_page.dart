@@ -472,10 +472,10 @@ class QRScanViewState extends State<QRScanView>
           overlay: QrScannerOverlayShape(
             borderLength: _qrSize / 2,
             borderColor:
-                isScanDataError ? AppColor.red : theme.colorScheme.secondary,
+                isScanDataError ? Colors.red : theme.colorScheme.secondary,
             overlayColor: const Color.fromRGBO(196, 196, 196, 0.6),
             cutOutSize: _qrSize,
-            borderWidth: 1,
+            borderWidth: 2,
             cutOutBottomOffset: cutOutBottomOffset,
             borderRadius: 40,
           ),
@@ -497,7 +497,7 @@ class QRScanViewState extends State<QRScanView>
                 child: Text(
                   'invalid_qr_code'.tr(),
                   style: theme.textTheme.ppMori700Black14
-                      .copyWith(color: AppColor.red),
+                      .copyWith(color: Colors.red),
                 ),
               ),
             ),
