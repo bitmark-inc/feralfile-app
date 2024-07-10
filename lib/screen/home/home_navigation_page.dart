@@ -202,8 +202,17 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
               }
               final tokenIds = artworks.map((e) => e.indexerTokenId).toList()
                 ..removeWhere((element) => element == null);
+
               log.info('Featured artworks: '
                   '${tokenIds.length}/${artworks.length} token');
+
+              if (tokenIds.isEmpty) {
+                await UIHelper.showInfoDialog(
+                    context,
+                    'featured_works_empty'.tr(),
+                    'Sorry for the inconvenience. Please try again later.');
+                return;
+              }
               unawaited(Navigator.popAndPushNamed(
                 context,
                 AppRouter.viewPlayListPage,
