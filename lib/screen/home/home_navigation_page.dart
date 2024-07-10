@@ -210,7 +210,8 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
                 await UIHelper.showInfoDialog(
                     context,
                     'featured_works_empty'.tr(),
-                    'Sorry for the inconvenience. Please try again later.');
+                    'Sorry for the inconvenience. Please try again later.',
+                    isDismissible: true);
                 return;
               }
               unawaited(Navigator.popAndPushNamed(
