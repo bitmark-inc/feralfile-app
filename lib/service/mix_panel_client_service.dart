@@ -39,9 +39,6 @@ class MixPanelClientService {
 
   Future<String?> getDidKeyHashedUserID() async {
     final defaultAccount = await _accountService.getDefaultAccount();
-    if (defaultAccount == null) {
-      return null;
-    }
     final defaultDID = await defaultAccount.getAccountDID();
     return sha256.convert(utf8.encode(defaultDID)).toString();
   }
