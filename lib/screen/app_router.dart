@@ -381,6 +381,7 @@ class AppRouter {
                       create: (_) => personaBloc,
                     ),
                     BlocProvider(create: (_) => canvasDeviceBloc),
+
                     /// The page itself doesn't need to use the bloc.
                     /// This will create bloc instance to receive and handle
                     /// event disconnect from dApp
@@ -764,8 +765,7 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => RecoveryPhrasePage(
-                  payload:
-                      settings.arguments! as RecoveryPhrasePayload,
+                  payload: settings.arguments! as RecoveryPhrasePayload,
                 ));
 
       case cloudPage:
