@@ -381,6 +381,9 @@ class AppRouter {
                       create: (_) => personaBloc,
                     ),
                     BlocProvider(create: (_) => canvasDeviceBloc),
+                    /// The page itself doesn't need to use the bloc.
+                    /// This will create bloc instance to receive and handle
+                    /// event disconnect from dApp
                     BlocProvider(lazy: false, create: (_) => connectionsBloc),
                   ],
                   child: HomeNavigationPage(
