@@ -179,7 +179,7 @@ class _WCConnectPageState extends State<WCConnectPage>
                 .findByWalletID(account.uuid);
             final accountNumber =
                 walletAddresses.map((e) => e.address).join('||');
-            aproveResponse = await injector<Wc2Service>().approveSession(
+            approveResponse = await injector<Wc2Service>().approveSession(
               connectionRequest as Wc2Proposal,
               accounts: [accountDid.substring('did:key:'.length)],
               connectionKey: account.uuid,
@@ -192,7 +192,7 @@ class _WCConnectPageState extends State<WCConnectPage>
           } else {
             final address = await injector<EthereumService>()
                 .getETHAddress(selectedPersona!.wallet, selectedPersona!.index);
-            aproveResponse = await injector<Wc2Service>().approveSession(
+            approveResponse = await injector<Wc2Service>().approveSession(
               connectionRequest as Wc2Proposal,
               accounts: [address],
               connectionKey: address,
@@ -207,7 +207,7 @@ class _WCConnectPageState extends State<WCConnectPage>
           final index = selectedPersona!.index;
           final publicKey = await wallet.getTezosPublicKey(index: index);
           final address = wallet.getTezosAddressFromPubKey(publicKey);
-          aproveResponse =
+          approveResponse =
               await injector<TezosBeaconService>().permissionResponse(
             wallet.uuid,
             index,
@@ -454,17 +454,14 @@ class _WCConnectPageState extends State<WCConnectPage>
         warningTitle = 'invalid_dapp_detected_title'.tr();
         warningContent = 'invalid_dapp_detected_content'.tr();
         warningColor = scamBtnColor;
-        break;
       case Validation.SCAM:
         warningTitle = 'scam_dapp_detected_title'.tr();
         warningContent = 'scam_dapp_detected_content'.tr();
         warningColor = scamBtnColor;
-        break;
       case Validation.UNKNOWN:
         warningTitle = 'unverified_dapp_detected_title'.tr();
         warningContent = 'unverified_dapp_detected_content'.tr();
         warningColor = warningBtnColor;
-        break;
       default:
     }
     return Padding(

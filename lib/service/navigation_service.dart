@@ -254,7 +254,7 @@ class NavigationService {
     popUntilHome();
     await Future.delayed(const Duration(seconds: 1), () async {
       await (homePageKey.currentState ?? homePageNoTransactionKey.currentState)
-          ?.openExhibition(exhibitionID ?? '');
+          ?.openExhibition(exhibitionID);
     });
   }
 
@@ -374,10 +374,7 @@ class NavigationService {
       return;
     }
     final url = FeralFileHelper.getExhibitionNoteUrl(exhibitionSlug);
-    await Navigator.of(navigatorKey.currentContext!).pushNamed(
-      AppRouter.inappWebviewPage,
-      arguments: InAppWebViewPayload(url),
-    );
+    await _browser.openUrl(url);
   }
 
   Future<void> openFeralFilePostPage(Post post, String exhibitionID) async {
@@ -385,9 +382,6 @@ class NavigationService {
       return;
     }
     final url = FeralFileHelper.getPostUrl(post, exhibitionID);
-    await Navigator.of(navigatorKey.currentContext!).pushNamed(
-      AppRouter.inappWebviewPage,
-      arguments: InAppWebViewPayload(url),
-    );
+    await _browser.openUrl(url);
   }
 }

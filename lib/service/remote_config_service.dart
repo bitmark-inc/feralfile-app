@@ -136,7 +136,6 @@ enum ConfigGroup {
   dAppUrls,
   exhibition,
   johnGerrard,
-  dAppUrls,
 }
 
 // ConfigGroup getString extension
@@ -163,8 +162,6 @@ extension ConfigGroupExtension on ConfigGroup {
         return 'exhibition';
       case ConfigGroup.johnGerrard:
         return 'john_gerrard';
-      case ConfigGroup.dAppUrls:
-        return 'dApp_urls';
     }
   }
 }

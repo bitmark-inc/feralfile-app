@@ -43,8 +43,6 @@ class Environment {
       ? connectWebsocketTestnetURL
       : connectWebsocketMainnetURL;
 
-  static String get tvKey => dotenv.env['TV_API_KEY'] ?? '';
-
   static String get tvCastApiUrl => dotenv.env['TV_CAST_API_URL'] ?? '';
 
   static String get tokenWebviewPrefix =>
@@ -188,6 +186,8 @@ class Environment {
   static String get sentryDSN => cachedSecretEnv['SENTRY_DSN'] ?? '';
 
   static String get onesignalAppID => cachedSecretEnv['ONESIGNAL_APP_ID'] ?? '';
+
+  static String get tvKey => cachedSecretEnv['TV_API_KEY'] ?? '';
 }
 
 class Secret {

@@ -7,7 +7,6 @@
 
 // ignore_for_file: avoid_annotating_with_dynamic
 
-import 'dart:async';
 import 'dart:core';
 import 'dart:io';
 
@@ -53,7 +52,6 @@ Future<File> getLogFile() async {
 Future<File> _createLogFile(canonicalLogFileName) async =>
     File(canonicalLogFileName).create(recursive: true);
 
-// ignore: avoid_annotating_with_dynamic
 int? decodeErrorResponse(dynamic e) {
   if (e is DioException && e.type == DioExceptionType.badResponse) {
     return e.response?.data['error']['code'] as int;
@@ -178,10 +176,12 @@ class SentryBreadcrumbLogger {
       type = 'error';
       level = SentryLevel.warning;
     }
-    await Sentry.addBreadcrumb(Breadcrumb(
-        message: '[${record.level}] ${record.message}',
-        level: level,
-        type: type)));
+    await Sentry.addBreadcrumb(
+      Breadcrumb(
+          message: '[${record.level}] ${record.message}',
+          level: level,
+          type: type),
+    );
   }
 
   static Future<void> clear() async {
