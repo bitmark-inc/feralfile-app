@@ -164,4 +164,3 @@ class Wc2Namespace {
         'events': List<dynamic>.from(events.map((x) => x)),
       };
 }
-
