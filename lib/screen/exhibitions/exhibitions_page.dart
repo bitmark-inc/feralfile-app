@@ -357,15 +357,17 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           if (featureExhibition != null && index == 0) ...[
-                            Text('current_exhibition'.tr(),
-                                style: theme.textTheme.ppMori400White14),
-                            Text('for_essential_members'.tr(),
-                                style: theme.textTheme.ppMori400Grey14),
-                            const SizedBox(height: 18),
+                            _exhibitionGroupHeader(
+                              context,
+                              false,
+                              isSubscribed,
+                              'current_exhibition'.tr(),
+                            ),
                           ],
                           if (upcomingExhibition != null && index == 1) ...[
                             _exhibitionGroupHeader(
                               context,
+                              true,
                               isSubscribed,
                               'upcoming_exhibition'.tr(),
                             ),
@@ -373,6 +375,7 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                           if (exhibition.id == pastExhibitions?.first.id)
                             _exhibitionGroupHeader(
                               context,
+                              true,
                               isSubscribed,
                               'past_exhibition'.tr(),
                             ),
@@ -398,8 +401,8 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
         ),
       );
 
-  Widget _exhibitionGroupHeader(
-      BuildContext context, bool isSubscribed, String title) {
+  Widget _exhibitionGroupHeader(BuildContext context, bool isPremiumExhibition,
+      bool isSubscribed, String title) {
     final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 18),
@@ -411,21 +414,25 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
             children: [
               Text(
                 title,
-                style: theme.textTheme.ppMori400White14,
+                style: theme.textTheme.ppMori700White14,
               ),
-              Row(
-                children: [
-                  if (!isSubscribed) ...[
-                    _lockIcon(),
-                    const SizedBox(width: 5),
+              if (!isSubscribed)
+                Row(
+                  children: [
+                    if (isPremiumExhibition) ...[
+                      _lockIcon(),
+                      const SizedBox(width: 5),
+                    ],
+                    Text(
+                        isPremiumExhibition
+                            ? 'premium_membership'.tr()
+                            : 'for_essential_members'.tr(),
+                        style: theme.textTheme.ppMori400Grey14),
                   ],
-                  Text('premium_membership'.tr(),
-                      style: theme.textTheme.ppMori400Grey14),
-                ],
-              ),
+                ),
             ],
           ),
-          if (!isSubscribed)
+          if (!isSubscribed && isPremiumExhibition)
             PrimaryButton(
               color: AppColor.feralFileLightBlue,
               padding: EdgeInsets.zero,
