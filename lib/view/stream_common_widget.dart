@@ -63,7 +63,8 @@ class StreamDrawerItem extends StatelessWidget {
                     right: isControlling ? (rotateIconSize + 25 + 10) : 0),
                 child: InkWell(
                   splashFactory: InkSparkle.splashFactory,
-                  highlightColor: AppColor.primaryBlack,
+                  highlightColor: Colors.transparent,
+                  splashColor: Colors.transparent,
                   child: Container(
                     decoration: BoxDecoration(
                       color: backgroundColor,
