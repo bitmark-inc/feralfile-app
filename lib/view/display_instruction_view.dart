@@ -1,10 +1,13 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class DisplayInstructionView extends StatelessWidget {
-  const DisplayInstructionView({super.key});
+  final Function? onScanQRTap;
+
+  const DisplayInstructionView({super.key, this.onScanQRTap});
 
   @override
   Widget build(BuildContext context) {
@@ -35,10 +38,30 @@ class DisplayInstructionView extends StatelessWidget {
                     ),
                     Expanded(
                       flex: index == 2 ? 0 : 1,
-                      child: Text(
-                        instruction,
-                        style: st,
-                      ),
+                      child: index != 3 || onScanQRTap == null
+                          ? Text(
+                              instruction,
+                              style: st,
+                            )
+                          : RichText(
+                              text: TextSpan(
+                                style: st,
+                                children: <TextSpan>[
+                                  TextSpan(
+                                    text: 'scan_the_qrcode'.tr(),
+                                    recognizer: TapGestureRecognizer()
+                                      ..onTap = () {
+                                        onScanQRTap?.call();
+                                      },
+                                    style: st.copyWith(
+                                        decoration: TextDecoration.underline),
+                                  ),
+                                  TextSpan(
+                                    text: 'display_instruction_4_2'.tr(),
+                                  ),
+                                ],
+                              ),
+                            ),
                     ),
                     const SizedBox(width: 5),
                     if (index == 2)

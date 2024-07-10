@@ -50,7 +50,7 @@ class StreamDrawerItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
         decoration: BoxDecoration(
-          color: backgroundColor,
+          color: AppColor.primaryBlack,
           borderRadius: BorderRadius.circular(50),
         ),
         width: MediaQuery.of(context).size.width,
@@ -58,40 +58,52 @@ class StreamDrawerItem extends StatelessWidget {
           type: MaterialType.transparency,
           child: Stack(
             children: [
-              InkWell(
-                splashFactory: InkSparkle.splashFactory,
-                borderRadius: BorderRadius.circular(50),
-                child: Padding(
-                  padding: EdgeInsets.symmetric(
-                    vertical: 12,
-                    horizontal: ResponsiveLayout.padding + rotateIconSize + 10,
-                  ),
-                  child: Center(
-                    child: Text(
-                      item.title ?? '',
-                      style: Theme.of(context).textTheme.ppMori400Black14,
+              Padding(
+                padding: const EdgeInsets.only(right: rotateIconSize + 25 + 10),
+                child: InkWell(
+                  splashFactory: InkSparkle.splashFactory,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: backgroundColor,
+                      borderRadius: BorderRadius.circular(50),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 12,
+                    ),
+                    child: Center(
+                      child: Text(
+                        item.title ?? '',
+                        style: Theme.of(context).textTheme.ppMori400Black14,
+                      ),
                     ),
                   ),
+                  onTap: () => item.onTap?.call(),
                 ),
-                onTap: () => item.onTap?.call(),
               ),
               if (isControlling)
                 Positioned(
                   top: 0,
                   bottom: 0,
                   right: ResponsiveLayout.padding,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      GestureDetector(
-                        onTap: onRotateClicked,
-                        child: SvgPicture.asset(
-                          'assets/images/icon_rotate.svg',
-                          width: rotateIconSize,
-                          height: rotateIconSize,
+                  child: Container(
+                    color: AppColor.primaryBlack,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        GestureDetector(
+                          onTap: onRotateClicked,
+                          child: SvgPicture.asset(
+                            'assets/images/icon_rotate.svg',
+                            width: rotateIconSize,
+                            height: rotateIconSize,
+                            colorFilter: const ColorFilter.mode(
+                              AppColor.white,
+                              BlendMode.srcIn,
+                            ),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 )
             ],
