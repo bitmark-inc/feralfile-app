@@ -119,7 +119,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
                   return _notePage(exhibition);
                 default:
                   final seriesIndex = index - 2;
-                  final series = exhibition.series![seriesIndex];
+                  final series = exhibition.sortedSeries[seriesIndex];
                   final artwork = series.artwork;
                   if (artwork == null) {
                     return const SizedBox();
@@ -253,7 +253,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
       default:
         catalog = ExhibitionCatalog.artwork;
         final seriesIndex = _currentIndex - 2;
-        final currentArtwork = exhibition.series?[seriesIndex].artwork?.id;
+        final currentArtwork = exhibition.sortedSeries[seriesIndex].artwork?.id;
         catalogId = currentArtwork;
     }
     return Pair(catalog, catalogId);
