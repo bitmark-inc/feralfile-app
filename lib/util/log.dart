@@ -7,6 +7,7 @@
 
 // ignore_for_file: avoid_annotating_with_dynamic
 
+import 'dart:async';
 import 'dart:core';
 import 'dart:io';
 
@@ -52,6 +53,7 @@ Future<File> getLogFile() async {
 Future<File> _createLogFile(canonicalLogFileName) async =>
     File(canonicalLogFileName).create(recursive: true);
 
+// ignore: avoid_annotating_with_dynamic
 int? decodeErrorResponse(dynamic e) {
   if (e is DioException && e.type == DioExceptionType.badResponse) {
     return e.response?.data['error']['code'] as int;
@@ -63,7 +65,7 @@ class FileLogger {
   static final _lock =
       synchronization.Lock(); // uses the “synchronized” package
   static late File _logFile;
-  static const shrinkSize = 1024 * 1024; // 1MB
+  static const shrinkSize = 1024 * 896; // 1MB characters
 
   static Future initializeLogging() async {
     await shrinkLogFileIfNeeded();
@@ -72,9 +74,10 @@ class FileLogger {
   static Future<File> shrinkLogFileIfNeeded() async {
     _logFile = await getLogFile();
 
-    final current = await _logFile.readAsBytes();
+    final current = await _logFile.readAsString();
     if (current.length > shrinkSize) {
-      await _logFile.writeAsBytes(current.sublist(current.length - shrinkSize),
+      await _logFile.writeAsString(
+          current.substring(current.length - shrinkSize),
           flush: true);
     }
 
@@ -178,7 +181,7 @@ class SentryBreadcrumbLogger {
     await Sentry.addBreadcrumb(Breadcrumb(
         message: '[${record.level}] ${record.message}',
         level: level,
-        type: type));
+        type: type)));
   }
 
   static Future<void> clear() async {

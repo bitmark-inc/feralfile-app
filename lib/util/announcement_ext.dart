@@ -12,10 +12,6 @@ extension AnnouncementLocalExt on AnnouncementLocal {
     }
   }
 
-  bool get isMemento6 {
-    return announcementType == AnnouncementType.Memento6;
-  }
-
   String get notificationTitle {
     switch (announcementType) {
       case AnnouncementType.Memento6:
@@ -57,36 +53,19 @@ class ShowAnouncementNotificationInfo {
 
   ShowAnouncementNotificationInfo.withMap({required this.showAnnouncementMap});
 
-  bool shouldShowAnnouncementNotification(AnnouncementLocal announcementLocal) {
-    final announcementContextId = announcementLocal.announcementContextId;
-    const maxShowCount = MAX_ANNOUNCEMENT_SHOW_COUNT;
-    if (showAnnouncementMap[announcementContextId] == null) {
-      return true;
-    }
-    final isExpired = DateTime.now()
-        .subtract(MAX_ANNOUNCEMENT_SHOW_EXPIRED_DURATION)
-        .isAfter(
-            DateTime.fromMillisecondsSinceEpoch(announcementLocal.announceAt));
-    if (showAnnouncementMap[announcementContextId]! < maxShowCount &&
-        !isExpired) {
-      return true;
-    }
-    return false;
-  }
-
   ShowAnouncementNotificationInfo merge(ShowAnouncementNotificationInfo other) {
     showAnnouncementMap.addAll(other.showAnnouncementMap);
     return this;
   }
 
   // toJson
-  Map<String, dynamic> toJson() {
-    return showAnnouncementMap;
-  }
+  Map<String, dynamic> toJson() => showAnnouncementMap;
 
   // fromJson
   factory ShowAnouncementNotificationInfo.fromJson(Map<String, dynamic> json) {
-    if (json.isEmpty) return ShowAnouncementNotificationInfo();
+    if (json.isEmpty) {
+      return ShowAnouncementNotificationInfo();
+    }
     return ShowAnouncementNotificationInfo.withMap(
         showAnnouncementMap: json.map((key, value) =>
             MapEntry(key, int.tryParse(value.toString()) ?? 0)));

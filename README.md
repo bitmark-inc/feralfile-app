@@ -88,7 +88,7 @@ samples, guidance on mobile development, and a full API reference.
 - [App Store](https://apps.apple.com/us/app/feral-file/id1544022728)
 - [Google Play](https://play.google.com/store/apps/details?id=com.bitmark.autonomy_client&pli=)
 
-[Release Notes](https://github.com/bitmark-inc/autonomy-apps/tree/main/release_notes/production)
+[Release Notes](https://github.com/bitmark-inc/feral-file-docs/blob/master/app/release_notes/production/changelog.md)
 
 ## Contributing
 

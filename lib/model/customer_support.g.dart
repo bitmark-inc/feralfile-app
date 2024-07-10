@@ -17,6 +17,9 @@ Issue _$IssueFromJson(Map<String, dynamic> json) => Issue(
       lastMessage: json['last_message'] == null
           ? null
           : Message.fromJson(json['last_message'] as Map<String, dynamic>),
+      firstMessage: json['first_message'] == null
+          ? null
+          : Message.fromJson(json['first_message'] as Map<String, dynamic>),
       rating: json['rating'] as int,
       announcementID: json['announcement_context_id'] as String?,
     );
@@ -31,6 +34,7 @@ Map<String, dynamic> _$IssueToJson(Issue instance) => <String, dynamic>{
       'unread': instance.unread,
       'rating': instance.rating,
       'last_message': instance.lastMessage,
+      'first_message': instance.firstMessage,
       'announcement_context_id': instance.announcementID,
     };
 

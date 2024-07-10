@@ -40,6 +40,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:walletconnect_flutter_v2/apis/core/verify/models/verify_context.dart';
 import 'package:walletconnect_flutter_v2/apis/sign_api/models/sign_client_models.dart';
 
@@ -166,57 +167,73 @@ class _WCConnectPageState extends State<WCConnectPage>
         UIHelper.showLoadingScreen(context, text: 'connecting_wallet'.tr()));
     late String payloadAddress;
     late CryptoType payloadType;
-    switch (connectionRequest.runtimeType) {
-      case Wc2Proposal:
-        if (connectionRequest.isAutonomyConnect) {
-          final account = await injector<AccountService>().getDefaultAccount();
-          final accountDid = await account.getAccountDID();
-          final walletAddresses = await injector<CloudDatabase>()
-              .addressDao
-              .findByWalletID(account.uuid);
-          final accountNumber =
-              walletAddresses.map((e) => e.address).join('||');
-          approveResponse = await injector<Wc2Service>().approveSession(
-            connectionRequest as Wc2Proposal,
-            accounts: [accountDid.substring('did:key:'.length)],
-            connectionKey: account.uuid,
-            accountNumber: accountNumber,
-            isAuConnect: true,
-          );
-          payloadType = CryptoType.ETH;
-          payloadAddress =
-              await account.getETHEip55Address(index: selectedPersona!.index);
-        } else {
-          final address = await injector<EthereumService>()
-              .getETHAddress(selectedPersona!.wallet, selectedPersona!.index);
-          approveResponse = await injector<Wc2Service>().approveSession(
-            connectionRequest as Wc2Proposal,
-            accounts: [address],
-            connectionKey: address,
-            accountNumber: address,
-          );
-          payloadType = CryptoType.ETH;
-          payloadAddress = address;
-        }
+    try {
+      switch (connectionRequest.runtimeType) {
+        case const (Wc2Proposal):
+          if (connectionRequest.isAutonomyConnect) {
+            final account =
+                await injector<AccountService>().getDefaultAccount();
+            final accountDid = await account.getAccountDID();
+            final walletAddresses = await injector<CloudDatabase>()
+                .addressDao
+                .findByWalletID(account.uuid);
+            final accountNumber =
+                walletAddresses.map((e) => e.address).join('||');
+            aproveResponse = await injector<Wc2Service>().approveSession(
+              connectionRequest as Wc2Proposal,
+              accounts: [accountDid.substring('did:key:'.length)],
+              connectionKey: account.uuid,
+              accountNumber: accountNumber,
+              isAuConnect: true,
+            );
+            payloadType = CryptoType.ETH;
+            payloadAddress =
+                await account.getETHEip55Address(index: selectedPersona!.index);
+          } else {
+            final address = await injector<EthereumService>()
+                .getETHAddress(selectedPersona!.wallet, selectedPersona!.index);
+            aproveResponse = await injector<Wc2Service>().approveSession(
+              connectionRequest as Wc2Proposal,
+              accounts: [address],
+              connectionKey: address,
+              accountNumber: address,
+            );
+            payloadType = CryptoType.ETH;
+            payloadAddress = address;
+          }
 
-        break;
-      case BeaconRequest:
-        final wallet = selectedPersona!.wallet;
-        final index = selectedPersona!.index;
-        final publicKey = await wallet.getTezosPublicKey(index: index);
-        final address = wallet.getTezosAddressFromPubKey(publicKey);
-        approveResponse =
-            await injector<TezosBeaconService>().permissionResponse(
-          wallet.uuid,
-          index,
-          (connectionRequest as BeaconRequest).id,
-          publicKey,
-          address,
-        );
-        payloadAddress = address;
-        payloadType = CryptoType.XTZ;
-        break;
-      default:
+        case const (BeaconRequest):
+          final wallet = selectedPersona!.wallet;
+          final index = selectedPersona!.index;
+          final publicKey = await wallet.getTezosPublicKey(index: index);
+          final address = wallet.getTezosAddressFromPubKey(publicKey);
+          aproveResponse =
+              await injector<TezosBeaconService>().permissionResponse(
+            wallet.uuid,
+            index,
+            (connectionRequest as BeaconRequest).id,
+            publicKey,
+            address,
+          );
+          payloadAddress = address;
+          payloadType = CryptoType.XTZ;
+        default:
+      }
+    } catch (e, s) {
+      log.info('[WCConnectPage] Approve error $e $s');
+      unawaited(Sentry.captureException(e, stackTrace: s));
+      if (!mounted) {
+        return;
+      }
+      // Pop Loading screen
+      Navigator.of(context).pop();
+      // Pop connect screen
+      Navigator.of(context).pop();
+      final message = 'connect_to_failed'.tr(namedArgs: {
+        'name': connectionRequest.name ?? 'Secondary Wallet',
+      });
+      await UIHelper.showConnectFailed(context, message: message);
+      return;
     }
 
     if (!mounted) {

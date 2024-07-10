@@ -162,7 +162,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
         };
         Navigator.of(context).pop(payload);
       }
-    } catch (e) {
+    } on Exception catch (_) {
       if (!mounted) {
         return;
       }
@@ -228,7 +228,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                                 _item(
                                   context: context,
                                   title: 'title'.tr(),
-                                  content: assetToken.title ?? '',
+                                  content: assetToken.displayTitle ?? '',
                                 ),
                                 divider,
                                 _item(

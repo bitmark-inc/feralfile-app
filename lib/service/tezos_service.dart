@@ -11,7 +11,9 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:autonomy_flutter/common/environment.dart';
-import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/service/network_issue_manager.dart';
+import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:libauk_dart/libauk_dart.dart';
@@ -24,7 +26,7 @@ const baseOperationCustomFeeMedium = 150;
 const baseOperationCustomFeeHigh = 200;
 
 abstract class TezosService {
-  Future<int> getBalance(String address);
+  Future<int> getBalance(String address, {bool doRetry = false});
 
   Future<int> estimateOperationFee(String publicKey, List<Operation> operations,
       {int? baseOperationCustomFee});
@@ -48,24 +50,47 @@ abstract class TezosService {
 }
 
 class TezosServiceImpl extends TezosService {
-  final TezartClient _tezartClient;
+  TezartClient get _tezartClient => _getClient();
+  final NetworkIssueManager _networkIssueManager;
 
-  TezosServiceImpl(this._tezartClient);
+  TezosServiceImpl(this._networkIssueManager);
+
+  String _nodeUrl = '';
+
+  TezartClient _getClient() {
+    if (Environment.appTestnetConfig) {
+      return TezartClient(Environment.tezosNodeClientTestnetURL);
+    }
+    if (_nodeUrl.isEmpty) {
+      _changeNode();
+    }
+    return TezartClient(_nodeUrl);
+  }
+
+  void _changeNode() {
+    final publicTezosNodes = injector<RemoteConfigService>()
+        .getConfig(ConfigGroup.dAppUrls, ConfigKey.tezosNodes, [])
+      ..remove(_nodeUrl);
+    if (publicTezosNodes.isEmpty) {
+      return;
+    }
+    _nodeUrl = publicTezosNodes[Random().nextInt(publicTezosNodes.length)];
+  }
 
   @override
-  Future<int> getBalance(String address) {
-    log.info("TezosService.getBalance: $address");
-    return _retryOnNodeError<int>((client) async {
-      return client.getBalance(address: address);
-    });
+  Future<int> getBalance(String address, {bool doRetry = false}) {
+    log.info('TezosService.getBalance: $address');
+    return _retryOnError<int>(
+        (client) async => client.getBalance(address: address),
+        doRetry: doRetry);
   }
 
   @override
   Future<int> estimateOperationFee(String publicKey, List<Operation> operations,
       {int? baseOperationCustomFee}) async {
-    log.info("TezosService.estimateOperationFee");
+    log.info('TezosService.estimateOperationFee');
 
-    return _retryOnNodeError<int>((client) async {
+    return _retryOnError<int>((client) async {
       var operationList = OperationsList(
           publicKey: publicKey, rpcInterface: client.rpcInterface);
 
@@ -79,8 +104,8 @@ class TezosServiceImpl extends TezosService {
         operationList.prependOperation(RevealOperation());
       }
 
-      log.info(
-          "TezosService.estimateOperationFee: ${operationList.operations.map((e) => e.toJson()).toList()}");
+      log.info('TezosService.estimateOperationFee: '
+          '${operationList.operations.map((e) => e.toJson()).toList()}');
 
       await operationList.estimate(
           baseOperationCustomFee: baseOperationCustomFee);
@@ -95,8 +120,8 @@ class TezosServiceImpl extends TezosService {
   Future<String?> sendOperationTransaction(
       WalletStorage wallet, int index, List<Operation> operations,
       {int? baseOperationCustomFee}) async {
-    log.info("TezosService.sendOperationTransaction");
-    return _retryOnNodeError<String?>((client) async {
+    log.info('TezosService.sendOperationTransaction');
+    return _retryOnError<String?>((client) async {
       var operationList = OperationsList(
           publicKey: await wallet.getTezosPublicKey(index: index),
           rpcInterface: client.rpcInterface);
@@ -115,8 +140,8 @@ class TezosServiceImpl extends TezosService {
           (forgedHex) => wallet.tezosSignTransaction(forgedHex, index: index),
           baseOperationCustomFee: baseOperationCustomFee);
 
-      log.info(
-          "TezosService.sendOperationTransaction: ${operationList.result.id}");
+      log.info('TezosService.sendOperationTransaction:'
+          ' ${operationList.result.id}');
       return operationList.result.id;
     });
   }
@@ -124,9 +149,8 @@ class TezosServiceImpl extends TezosService {
   @override
   Future<int> estimateFee(String publicKey, String to, int amount,
       {int? baseOperationCustomFee}) async {
-    log.info("TezosService.estimateFee: $to, $amount");
-
-    return _retryOnNodeError<int>((client) async {
+    log.info('TezosService.estimateFee: $to, $amount');
+    return _retryOnError<int>((client) async {
       final operation = await client.transferOperation(
         publicKey: publicKey,
         destination: to,
@@ -144,8 +168,8 @@ class TezosServiceImpl extends TezosService {
   Future<String?> sendTransaction(
       WalletStorage wallet, int index, String to, int amount,
       {int? baseOperationCustomFee}) async {
-    log.info("TezosService.sendTransaction: $to, $amount");
-    return _retryOnNodeError<String?>((client) async {
+    log.info('TezosService.sendTransaction: $to, $amount');
+    return _retryOnError<String?>((client) async {
       final operation = await client.transferOperation(
         publicKey: await wallet.getTezosPublicKey(index: index),
         destination: to,
@@ -171,22 +195,22 @@ class TezosServiceImpl extends TezosService {
       String to, String tokenId, int quantity) async {
     final params = [
       {
-        "prim": "Pair",
-        "args": [
-          {"string": from},
+        'prim': 'Pair',
+        'args': [
+          {'string': from},
           [
             {
-              "args": [
-                {"string": to},
+              'args': [
+                {'string': to},
                 {
-                  "prim": "Pair",
-                  "args": [
-                    {"int": tokenId},
-                    {"int": "$quantity"}
+                  'prim': 'Pair',
+                  'args': [
+                    {'int': tokenId},
+                    {'int': '$quantity'}
                   ]
                 }
               ],
-              "prim": "Pair"
+              'prim': 'Pair'
             }
           ]
         ]
@@ -196,9 +220,14 @@ class TezosServiceImpl extends TezosService {
     return TransactionOperation(
         amount: 0,
         destination: contract,
-        entrypoint: "transfer",
+        entrypoint: 'transfer',
         params: params);
   }
+
+  Future<T> _retryOnError<T>(Future<T> Function(TezartClient) func,
+          {bool doRetry = true}) =>
+      _networkIssueManager.retryOnConnectIssueTx(() => _retryOnNodeError(func),
+          maxRetries: doRetry ? 3 : 0);
 
   Future<T> _retryOnNodeError<T>(Future<T> Function(TezartClient) func) async {
     try {
@@ -207,11 +236,8 @@ class TezosServiceImpl extends TezosService {
       if (Environment.appTestnetConfig) {
         rethrow;
       }
-
-      final retryTezosNodeClientURL =
-          publicTezosNodes[Random().nextInt(publicTezosNodes.length)];
-      final clientToRetry = TezartClient(retryTezosNodeClientURL);
-      return await func(clientToRetry);
+      _changeNode();
+      return await func(_tezartClient);
     }
   }
 }

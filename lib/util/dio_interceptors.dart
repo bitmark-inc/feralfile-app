@@ -13,6 +13,8 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
+import 'package:autonomy_flutter/service/network_issue_manager.dart';
+import 'package:autonomy_flutter/util/exception_ext.dart';
 import 'package:autonomy_flutter/util/isolated_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:crypto/crypto.dart';
@@ -251,5 +253,28 @@ class AirdropInterceptor extends Interceptor {
     } finally {
       handler.next(exp);
     }
+  }
+}
+
+class ConnectingExceptionInterceptor extends Interceptor {
+  @override
+  void onError(DioException err, ErrorInterceptorHandler handler) {
+    if (err.isNetworkIssue) {
+      log.warning('ConnectingExceptionInterceptor timeout');
+      unawaited(injector<NetworkIssueManager>().showNetworkIssueWarning());
+    }
+    handler.next(err);
+  }
+}
+
+class TVKeyInterceptor extends Interceptor {
+  final String tvKey;
+
+  TVKeyInterceptor(this.tvKey);
+
+  @override
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+    options.headers['API-KEY'] = tvKey;
+    handler.next(options);
   }
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
@@ -6,10 +8,13 @@ import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.da
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/collection_ext.dart';
+import 'package:autonomy_flutter/view/artwork_common_widget.dart';
+import 'package:autonomy_flutter/view/title_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 
 class ListPlaylistsScreen extends StatefulWidget {
   final ValueNotifier<List<PlayListModel>?> playlists;
@@ -31,6 +36,7 @@ class ListPlaylistsScreen extends StatefulWidget {
 class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
     with RouteAware, WidgetsBindingObserver {
   final isDemo = injector.get<ConfigurationService>().isDemoArtworksMode();
+  static const int _playlistNumberBreakpoint = 6;
 
   @override
   void initState() {
@@ -58,52 +64,77 @@ class _ListPlaylistsScreenState extends State<ListPlaylistsScreen>
           if (value == null) {
             return const SizedBox.shrink();
           }
-          List<PlayListModel> playlists = value.filter(widget.filter);
+          List<PlayListModel> playlists =
+              value.filter(widget.filter).reversed.toList();
           if (playlists.isEmpty && widget.filter.isNotEmpty) {
             return const SizedBox();
           }
-          const height = 165.0;
-          return SizedBox(
-            height: height,
-            width: 400,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15),
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: playlists.length + 1,
-                itemBuilder: (context, index) {
-                  if (index == playlists.length) {
-                    if (widget.filter.isNotEmpty) {
-                      return const SizedBox();
-                    }
-                    return AddPlayListItem(
-                      onTap: () {
-                        widget.onAdd();
-                      },
-                    );
-                  }
-                  final item = playlists[index];
-                  return PlaylistItem(
-                    playlist: item,
-                    onSelected: () async => Navigator.pushNamed(
-                      context,
-                      AppRouter.viewPlayListPage,
-                      arguments: ViewPlaylistScreenPayload(playListModel: item),
-                    ),
-                  );
-                },
-                separatorBuilder: (context, index) => const SizedBox(width: 10),
-              ),
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (widget.filter.isNotEmpty)
+                  TitleText(title: 'playlists'.tr()),
+                const SizedBox(height: 30),
+                _playlistHorizontalGridView(context, playlists)
+              ],
             ),
           );
         },
       );
+
+  Widget _playlistHorizontalGridView(
+      BuildContext context, List<PlayListModel> playlists) {
+    final rowNumber = playlists.length > _playlistNumberBreakpoint ? 2 : 1;
+    final height = PlaylistItem.height * rowNumber + 15 * (rowNumber - 1);
+    final length = playlists.length + 1;
+    return SizedBox(
+      height: height,
+      child: GridView.builder(
+        scrollDirection: Axis.horizontal,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: rowNumber,
+          crossAxisSpacing: 15,
+          mainAxisSpacing: 15,
+          childAspectRatio: PlaylistItem.height / PlaylistItem.width,
+        ),
+        itemBuilder: (context, index) {
+          if (index == 0) {
+            return AddPlayListItem(
+              onTap: () {
+                widget.onAdd();
+              },
+            );
+          }
+          final item = playlists[index - 1];
+          return PlaylistItem(
+              key: ValueKey(item.id),
+              playlist: item,
+              onSelected: () {
+                onPlaylistTap(item);
+              });
+        },
+        itemCount: length,
+      ),
+    );
+  }
+
+  void onPlaylistTap(PlayListModel playlist) {
+    unawaited(Navigator.pushNamed(
+      context,
+      AppRouter.viewPlayListPage,
+      arguments: ViewPlaylistScreenPayload(playListModel: playlist),
+    ));
+  }
 }
 
 class PlaylistItem extends StatefulWidget {
   final Function()? onSelected;
   final PlayListModel playlist;
   final bool onHold;
+  static const double width = 140;
+  static const double height = 165;
 
   const PlaylistItem({
     required this.playlist,
@@ -123,15 +154,13 @@ class _PlaylistItemState extends State<PlaylistItem> {
     final numberFormatter = NumberFormat('#,###');
     final thumbnailURL = widget.playlist.thumbnailURL;
     final name = widget.playlist.getName();
-    const width = 140.0;
-    const height = 165.0;
     return GestureDetector(
       onTap: widget.onSelected,
       child: Padding(
         padding: EdgeInsets.zero,
         child: Container(
-          width: width,
-          height: height,
+          width: PlaylistItem.width,
+          height: PlaylistItem.height,
           decoration: BoxDecoration(
             color: AppColor.white,
             border: Border.all(
@@ -177,12 +206,14 @@ class _PlaylistItemState extends State<PlaylistItem> {
                       : CachedNetworkImage(
                           imageUrl: thumbnailURL,
                           fit: BoxFit.cover,
+                          cacheManager: injector<CacheManager>(),
+                          placeholder: (context, url) =>
+                              const GalleryThumbnailPlaceholder(),
                           errorWidget: (context, url, error) => Container(
                             width: double.infinity,
                             height: double.infinity,
                             color: theme.disableColor,
                           ),
-                          fadeInDuration: Duration.zero,
                         ),
                 ),
               ),

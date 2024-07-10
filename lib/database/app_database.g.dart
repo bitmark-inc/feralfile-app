@@ -67,17 +67,13 @@ class _$AppDatabase extends AppDatabase {
 
   AnnouncementLocalDao? _announcementDaoInstance;
 
-  CanvasDeviceDao? _canvasDeviceDaoInstance;
-
-  SceneDao? _sceneDaoInstance;
-
   Future<sqflite.Database> open(
     String path,
     List<Migration> migrations, [
     Callback? callback,
   ]) async {
     final databaseOptions = sqflite.OpenDatabaseOptions(
-      version: 17,
+      version: 19,
       onConfigure: (database) async {
         await database.execute('PRAGMA foreign_keys = ON');
         await callback?.onConfigure?.call(database);
@@ -98,10 +94,6 @@ class _$AppDatabase extends AppDatabase {
             'CREATE TABLE IF NOT EXISTS `DraftCustomerSupport` (`uuid` TEXT NOT NULL, `issueID` TEXT NOT NULL, `type` TEXT NOT NULL, `data` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `reportIssueType` TEXT NOT NULL, `mutedMessages` TEXT NOT NULL, PRIMARY KEY (`uuid`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `AnnouncementLocal` (`announcementContextId` TEXT NOT NULL, `title` TEXT NOT NULL, `body` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `announceAt` INTEGER NOT NULL, `type` TEXT NOT NULL, `unread` INTEGER NOT NULL, PRIMARY KEY (`announcementContextId`))');
-        await database.execute(
-            'CREATE TABLE IF NOT EXISTS `CanvasDevice` (`id` TEXT NOT NULL, `ip` TEXT NOT NULL, `port` INTEGER NOT NULL, `name` TEXT NOT NULL, `isConnecting` INTEGER NOT NULL, `playingSceneId` TEXT, PRIMARY KEY (`id`))');
-        await database.execute(
-            'CREATE TABLE IF NOT EXISTS `Scene` (`id` TEXT NOT NULL, `deviceId` TEXT NOT NULL, `isPlaying` INTEGER NOT NULL, `metadata` TEXT NOT NULL, PRIMARY KEY (`id`))');
 
         await callback?.onCreate?.call(database, version);
       },
@@ -124,17 +116,6 @@ class _$AppDatabase extends AppDatabase {
   AnnouncementLocalDao get announcementDao {
     return _announcementDaoInstance ??=
         _$AnnouncementLocalDao(database, changeListener);
-  }
-
-  @override
-  CanvasDeviceDao get canvasDeviceDao {
-    return _canvasDeviceDaoInstance ??=
-        _$CanvasDeviceDao(database, changeListener);
-  }
-
-  @override
-  SceneDao get sceneDao {
-    return _sceneDaoInstance ??= _$SceneDao(database, changeListener);
   }
 }
 
@@ -435,198 +416,6 @@ class _$AnnouncementLocalDao extends AnnouncementLocalDao {
   Future<void> insertAnnouncement(AnnouncementLocal announcementLocal) async {
     await _announcementLocalInsertionAdapter.insert(
         announcementLocal, OnConflictStrategy.ignore);
-  }
-}
-
-class _$CanvasDeviceDao extends CanvasDeviceDao {
-  _$CanvasDeviceDao(
-    this.database,
-    this.changeListener,
-  )   : _queryAdapter = QueryAdapter(database),
-        _canvasDeviceInsertionAdapter = InsertionAdapter(
-            database,
-            'CanvasDevice',
-            (CanvasDevice item) => <String, Object?>{
-                  'id': item.id,
-                  'ip': item.ip,
-                  'port': item.port,
-                  'name': item.name,
-                  'isConnecting': item.isConnecting ? 1 : 0,
-                  'playingSceneId': item.playingSceneId
-                }),
-        _canvasDeviceUpdateAdapter = UpdateAdapter(
-            database,
-            'CanvasDevice',
-            ['id'],
-            (CanvasDevice item) => <String, Object?>{
-                  'id': item.id,
-                  'ip': item.ip,
-                  'port': item.port,
-                  'name': item.name,
-                  'isConnecting': item.isConnecting ? 1 : 0,
-                  'playingSceneId': item.playingSceneId
-                }),
-        _canvasDeviceDeletionAdapter = DeletionAdapter(
-            database,
-            'CanvasDevice',
-            ['id'],
-            (CanvasDevice item) => <String, Object?>{
-                  'id': item.id,
-                  'ip': item.ip,
-                  'port': item.port,
-                  'name': item.name,
-                  'isConnecting': item.isConnecting ? 1 : 0,
-                  'playingSceneId': item.playingSceneId
-                });
-
-  final sqflite.DatabaseExecutor database;
-
-  final StreamController<String> changeListener;
-
-  final QueryAdapter _queryAdapter;
-
-  final InsertionAdapter<CanvasDevice> _canvasDeviceInsertionAdapter;
-
-  final UpdateAdapter<CanvasDevice> _canvasDeviceUpdateAdapter;
-
-  final DeletionAdapter<CanvasDevice> _canvasDeviceDeletionAdapter;
-
-  @override
-  Future<List<CanvasDevice>> getCanvasDevices() async {
-    return _queryAdapter.queryList('SELECT * FROM CanvasDevice',
-        mapper: (Map<String, Object?> row) => CanvasDevice(
-            id: row['id'] as String,
-            ip: row['ip'] as String,
-            port: row['port'] as int,
-            name: row['name'] as String,
-            isConnecting: (row['isConnecting'] as int) != 0,
-            playingSceneId: row['playingSceneId'] as String?));
-  }
-
-  @override
-  Future<void> removeAll() async {
-    await _queryAdapter.queryNoReturn('DELETE FROM CanvasDevice');
-  }
-
-  @override
-  Future<void> insertCanvasDevice(CanvasDevice canvasDevice) async {
-    await _canvasDeviceInsertionAdapter.insert(
-        canvasDevice, OnConflictStrategy.replace);
-  }
-
-  @override
-  Future<void> insertCanvasDevices(List<CanvasDevice> canvasDevices) async {
-    await _canvasDeviceInsertionAdapter.insertList(
-        canvasDevices, OnConflictStrategy.replace);
-  }
-
-  @override
-  Future<void> updateCanvasDevice(CanvasDevice canvasDevice) async {
-    await _canvasDeviceUpdateAdapter.update(
-        canvasDevice, OnConflictStrategy.abort);
-  }
-
-  @override
-  Future<void> deleteCanvasDevice(CanvasDevice canvasDevice) async {
-    await _canvasDeviceDeletionAdapter.delete(canvasDevice);
-  }
-}
-
-class _$SceneDao extends SceneDao {
-  _$SceneDao(
-    this.database,
-    this.changeListener,
-  )   : _queryAdapter = QueryAdapter(database),
-        _sceneInsertionAdapter = InsertionAdapter(
-            database,
-            'Scene',
-            (Scene item) => <String, Object?>{
-                  'id': item.id,
-                  'deviceId': item.deviceId,
-                  'isPlaying': item.isPlaying ? 1 : 0,
-                  'metadata': item.metadata
-                }),
-        _sceneUpdateAdapter = UpdateAdapter(
-            database,
-            'Scene',
-            ['id'],
-            (Scene item) => <String, Object?>{
-                  'id': item.id,
-                  'deviceId': item.deviceId,
-                  'isPlaying': item.isPlaying ? 1 : 0,
-                  'metadata': item.metadata
-                });
-
-  final sqflite.DatabaseExecutor database;
-
-  final StreamController<String> changeListener;
-
-  final QueryAdapter _queryAdapter;
-
-  final InsertionAdapter<Scene> _sceneInsertionAdapter;
-
-  final UpdateAdapter<Scene> _sceneUpdateAdapter;
-
-  @override
-  Future<List<Scene>> getScenes() async {
-    return _queryAdapter.queryList('SELECT * FROM Scene',
-        mapper: (Map<String, Object?> row) => Scene(
-            id: row['id'] as String,
-            deviceId: row['deviceId'] as String,
-            metadata: row['metadata'] as String,
-            isPlaying: (row['isPlaying'] as int) != 0));
-  }
-
-  @override
-  Future<List<Scene>> getScenesByDeviceId(String deviceId) async {
-    return _queryAdapter.queryList('SELECT * FROM Scene WHERE deviceId = ?1',
-        mapper: (Map<String, Object?> row) => Scene(
-            id: row['id'] as String,
-            deviceId: row['deviceId'] as String,
-            metadata: row['metadata'] as String,
-            isPlaying: (row['isPlaying'] as int) != 0),
-        arguments: [deviceId]);
-  }
-
-  @override
-  Future<Scene?> getSceneById(String id) async {
-    return _queryAdapter.query('SELECT * FROM Scene WHERE id = ?1',
-        mapper: (Map<String, Object?> row) => Scene(
-            id: row['id'] as String,
-            deviceId: row['deviceId'] as String,
-            metadata: row['metadata'] as String,
-            isPlaying: (row['isPlaying'] as int) != 0),
-        arguments: [id]);
-  }
-
-  @override
-  Future<void> updateSceneMetadata(
-    String id,
-    String metadata,
-  ) async {
-    await _queryAdapter.queryNoReturn(
-        'UPDATE Scene SET metadata = ?2 WHERE id = ?1',
-        arguments: [id, metadata]);
-  }
-
-  @override
-  Future<void> removeAll() async {
-    await _queryAdapter.queryNoReturn('DELETE FROM Scene');
-  }
-
-  @override
-  Future<void> insertScene(Scene scene) async {
-    await _sceneInsertionAdapter.insert(scene, OnConflictStrategy.replace);
-  }
-
-  @override
-  Future<void> insertScenes(List<Scene> scenes) async {
-    await _sceneInsertionAdapter.insertList(scenes, OnConflictStrategy.replace);
-  }
-
-  @override
-  Future<void> updateScene(Scene scene) async {
-    await _sceneUpdateAdapter.update(scene, OnConflictStrategy.abort);
   }
 }
 

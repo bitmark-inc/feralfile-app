@@ -140,7 +140,10 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
 
       var issueTitle = draftData.title ?? draftData.text;
       if (issueTitle == null || issueTitle.isEmpty) {
-        issueTitle = draftData.attachments?.first.fileName ?? 'Unnamed';
+        issueTitle =
+            draftData.attachments != null && draftData.attachments!.isNotEmpty
+                ? draftData.attachments!.first.fileName
+                : 'Unnamed';
       }
 
       final draftIssue = Issue(
@@ -152,6 +155,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
         total: 1,
         unread: 0,
         lastMessage: null,
+        firstMessage: null,
         draft: draft,
         rating: draft.rating,
         announcementID: draftData.announcementId,

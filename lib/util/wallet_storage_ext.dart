@@ -27,34 +27,27 @@ extension StringExtension on WalletStorage {
     if (address.isNotEmpty) {
       return EthereumAddress.fromHex(address).hexEip55;
     } else {
-      return "";
+      return '';
     }
   }
 }
 
 extension StringHelper on String {
-  String getETHEip55Address() {
-    return EthereumAddress.fromHex(this).hexEip55;
-  }
+  String getETHEip55Address() => EthereumAddress.fromHex(this).hexEip55;
 
-  String publicKeyToTezosAddress() {
-    return crypto.addressFromPublicKey(this);
-  }
+  String publicKeyToTezosAddress() => crypto.addressFromPublicKey(this);
 }
 
 extension WalletStorageExtension on WalletStorage {
-  int getOwnedQuantity(AssetToken token) {
-    return token.getCurrentBalance ?? 0;
-  }
+  int getOwnedQuantity(AssetToken token) => token.getCurrentBalance ?? 0;
 
   Future<String> getTezosAddress({int index = 0}) async {
     final publicKey = await getTezosPublicKey(index: index);
     return crypto.addressFromPublicKey(publicKey);
   }
 
-  getTezosAddressFromPubKey(String publicKey) {
-    return crypto.addressFromPublicKey(publicKey);
-  }
+  String getTezosAddressFromPubKey(String publicKey) =>
+      crypto.addressFromPublicKey(publicKey);
 }
 
 class WalletIndex {
@@ -79,7 +72,7 @@ extension WalletIndexExtension on WalletIndex {
       case Wc2Chain.autonomy:
         return await wallet.getAccountDIDSignature(message);
     }
-    throw Exception("Unsupported chain $chain");
+    throw Exception('Unsupported chain $chain');
   }
 
   Future<Wc2Chain?> signPermissionRequest({
@@ -87,14 +80,14 @@ extension WalletIndexExtension on WalletIndex {
     required String message,
   }) async {
     switch (chain.caip2Namespace) {
-      case "eip155":
+      case 'eip155':
         final ethAddress = await wallet.getETHEip55Address(index: index);
         return Wc2Chain(
           chain: chain,
           address: ethAddress,
           signature: await signMessage(chain: chain, message: message),
         );
-      case "tezos":
+      case 'tezos':
         final tezosAddress = await wallet.getTezosAddress(index: index);
         return Wc2Chain(
           chain: chain,

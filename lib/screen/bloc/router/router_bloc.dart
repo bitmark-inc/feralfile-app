@@ -32,7 +32,7 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
   final AuditService _auditService;
   final SettingsDataService _settingsDataService;
 
-  Future<bool> hasAccounts() async {
+  Future<bool> _hasAccounts() async {
     final personas = await _cloudDB.personaDao.getPersonas();
     final connections = await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
     return personas.isNotEmpty || connections.isNotEmpty;
@@ -60,6 +60,10 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
       // Check and restore full accounts from cloud if existing
       await migrationUtil.migrationFromKeychain();
       await _accountService.androidRestoreKeys();
+      final hasAccount = await _hasAccounts();
+      if (!hasAccount) {
+        await _configurationService.setDoneOnboarding(hasAccount);
+      }
 
       if (_configurationService.isDoneOnboarding()) {
         emit(RouterState(onboardingStep: OnboardingStep.dashboard));
@@ -69,7 +73,7 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
       //Soft delay 1s waiting for database synchronizing
       await Future.delayed(const Duration(seconds: 1));
 
-      if (await hasAccounts()) {
+      if (hasAccount) {
         unawaited(_configurationService.setOldUser());
         final backupVersion = await _backupService
             .fetchBackupVersion(await _accountService.getDefaultAccount());

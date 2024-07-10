@@ -43,6 +43,10 @@ class Environment {
       ? connectWebsocketTestnetURL
       : connectWebsocketMainnetURL;
 
+  static String get tvKey => dotenv.env['TV_API_KEY'] ?? '';
+
+  static String get tvCastApiUrl => dotenv.env['TV_CAST_API_URL'] ?? '';
+
   static String get tokenWebviewPrefix =>
       dotenv.env['TOKEN_WEBVIEW_PREFIX'] ?? '';
 
@@ -150,9 +154,6 @@ class Environment {
   static String get tzktMainnetURL => dotenv.env['TZKT_MAINNET_URL'] ?? '';
 
   static String get tzktTestnetURL => dotenv.env['TZKT_TESTNET_URL'] ?? '';
-
-  static String get autonomyAirdropURL =>
-      dotenv.env['AUTONOMY_AIRDROP_URL'] ?? '';
 
   static String get autonomyAirDropContractAddress =>
       dotenv.env['AUTONOMY_AIRDROP_CONTRACT_ADDRESS'] ?? '';

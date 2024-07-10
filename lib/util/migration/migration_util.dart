@@ -35,6 +35,7 @@ class MigrationUtil {
   final IAPService _iapService;
   final AuditService _auditService;
   final BackupService _backupService;
+  final AddressService _addressService = injector<AddressService>();
   final int requiredAndroidMigrationVersion = 95;
 
   MigrationUtil(this._configurationService, this._cloudDB, this._accountService,
@@ -142,6 +143,11 @@ class MigrationUtil {
     final currentPersonas = await _cloudDB.personaDao.getPersonas();
     for (var persona in currentPersonas) {
       if (!(await persona.wallet().isWalletCreated())) {
+        final addresses =
+            await _cloudDB.addressDao.getAddressesByPersona(persona.uuid);
+        await _addressService
+            .deleteAddresses(addresses.map((e) => e.address).toList());
+        await _cloudDB.addressDao.deleteAddressesByPersona(persona.uuid);
         await _cloudDB.personaDao.deletePersona(persona);
       }
     }
@@ -192,6 +198,11 @@ class MigrationUtil {
     for (final persona in currentPersonas) {
       if (!(await persona.wallet().isWalletCreated())) {
         await _cloudDB.personaDao.deletePersona(persona);
+        final addresses =
+            await _cloudDB.addressDao.getAddressesByPersona(persona.uuid);
+        await _addressService
+            .deleteAddresses(addresses.map((e) => e.address).toList());
+        await _cloudDB.addressDao.deleteAddressesByPersona(persona.uuid);
       }
     }
     final List<FFAccount> ffAccounts = [];

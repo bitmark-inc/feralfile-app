@@ -45,13 +45,8 @@ const DEEP_LINKS = [
   'autonomy://',
   'https://autonomy.io',
   'https://au.bitmark.com',
-  'https://autonomy-app.app.link',
-  'https://autonomy-app-alternate.app.link',
-  'https://link.autonomy.io',
+  ...Constants.branchDeepLinks,
   'feralfile://',
-  'https://feralfile-app.app.link',
-  'https://feralfile-app-alternate.app.link',
-  'https://app.feralfile.com',
 ];
 const FF_ARTIST_COLLECTOR =
     'https://feralfile.com/docs/artist-collector-rights';
@@ -69,6 +64,8 @@ const MOMA_MEMENTO_EXHIBITION_IDS = [
   '00370334-6151-4c04-b6be-dc09e325d57d',
   '3ee3e8a4-90dd-4843-8ec3-858e6bea1965'
 ];
+
+const cloudFlarePrefix = 'https://imagedelivery.net/';
 
 const POSTCARD_IPFS_PREFIX_TEST = 'https://ipfs.test.bitmark.com/ipfs';
 const POSTCARD_IPFS_PREFIX_PROD = 'https://ipfs.bitmark.com/ipfs';
@@ -147,15 +144,6 @@ const artworkSectionDivider = Divider(
   thickness: 1,
 );
 
-const MOMA_MEMENTO_6_CLAIM_ID = 'memento6';
-
-const MEMENTO_6_SERIES_ID_MAINNET = '2b75da9b-c605-4842-bf59-8e2e1fe04be6';
-const MEMENTO_6_SERIES_ID_TESTNET = '420f4f8e-f45f-4627-b36c-e9fa5bf6af43';
-
-String get memento6SeriesId => Environment.appTestnetConfig
-    ? MEMENTO_6_SERIES_ID_TESTNET
-    : MEMENTO_6_SERIES_ID_MAINNET;
-
 const REMOVE_CUSTOMER_SUPPORT =
     '/bitmark-inc/autonomy-apps/main/customer_support/annoucement_os.md';
 const int cellPerRowPhone = 3;
@@ -181,9 +169,6 @@ final internetUserGeoLocation =
 const int MAX_STAMP_IN_POSTCARD = 15;
 
 const int STAMP_SIZE = 2160;
-
-const int MAX_ANNOUNCEMENT_SHOW_COUNT = 3;
-const Duration MAX_ANNOUNCEMENT_SHOW_EXPIRED_DURATION = Duration(days: 30);
 
 const String POSTCARD_LOCATION_HIVE_BOX = 'postcard_location_hive_box';
 
@@ -213,12 +198,6 @@ String get usdcContractAddress => Environment.appTestnetConfig
     ? USDC_CONTRACT_ADDRESS_GOERLI
     : USDC_CONTRACT_ADDRESS;
 
-const publicTezosNodes = [
-  'https://mainnet.api.tez.ie',
-  'https://rpc.tzbeta.net',
-  'https://mainnet.tezos.marigold.dev',
-];
-
 const TV_APP_STORE_URL =
     'https://play.google.com/store/apps/details?id=com.bitmark.autonomy_tv';
 
@@ -242,11 +221,22 @@ const int LEADERBOARD_PAGE_SIZE = 50;
 
 const int maxCollectionListSize = 3;
 
+const maxRetryCount = 3;
+
 const double collectionListArtworkAspectRatio = 375 / 210.94;
 const String collectionListArtworkThumbnailVariant = 'thumbnailList';
 
 const String POSTCARD_ONSITE_REQUEST_ID = 'moma-postcard-onsite';
 const String POSTCARD_ONLINE_REQUEST_ID = 'moma-postcard-online';
+
+const String SOURCE_EXHIBITION_ID = 'source';
+const List<String> YOUTUBE_DOMAINS = ['youtube.com', 'youtu.be'];
+const List<String> YOUTUBE_VARIANTS = [
+  'maxresdefault', // Higher quality - May or may not exist
+  'mqdefault', // Lower quality - Guaranteed to exist
+];
+
+const MAGIC_NUMBER = 168;
 
 Future<bool> isAppCenterBuild() async {
   final PackageInfo info = await PackageInfo.fromPlatform();
@@ -510,6 +500,9 @@ class Constants {
     'https://autonomy-app.app.link',
     'https://autonomy-app-alternate.app.link',
     'https://link.autonomy.io',
+    'https://feralfile-app.app.link',
+    'https://feralfile-app-alternate.app.link',
+    'https://app.feralfile.com',
   ];
 }
 
@@ -542,7 +535,6 @@ class MixpanelProp {
   static const recipientAddress = 'recipientAddress';
   static const seriesId = 'seriesId';
   static const method = 'method';
-  static const activationId = 'activationId';
   static const isOnboarding = 'isOnboarding';
   static const id = 'id';
 }

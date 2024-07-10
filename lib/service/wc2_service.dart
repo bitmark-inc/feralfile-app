@@ -13,7 +13,6 @@ import 'dart:convert';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
-import 'package:autonomy_flutter/model/add_ethereum_chain.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/model/wc_ethereum_transaction.dart';
@@ -130,7 +129,6 @@ class Wc2Service {
       'eth_sign': _handleEthSign,
       'eth_signTypedData': _handleEthSignType,
       'eth_signTypedData_v4': _handleEthSignType,
-      'wallet_addEthereumChain': _handleAddEthereumChain,
     };
     log.info('[Wc2Service] Registering handlers for chainId: $chainId');
     ethRequestHandlerMap.forEach((method, handler) {
@@ -185,21 +183,6 @@ class Wc2Service {
       throw _userRejectError;
     }
     return result;
-  }
-
-  Future<dynamic> _handleAddEthereumChain(String topic, params) async {
-    log.info('[Wc2Service] received wallet_addEthereumChain request $params');
-    late final AddEthereumChainParameter addEthereumChainParam;
-    try {
-      addEthereumChainParam = AddEthereumChainParameter.fromJson(params.first);
-      if (!addEthereumChainParam.isValid) {
-        throw JsonRpcError.invalidParams('Invalid addEthereumChain params');
-      }
-
-      return true;
-    } catch (e) {
-      throw JsonRpcError.invalidParams(e.toString());
-    }
   }
 
   Future _handleAuPermissions(String topic, params) async {
@@ -355,12 +338,28 @@ class Wc2Service {
 
   Future connect(String uri, {Function? onTimeout}) async {
     if (uri.isAutonomyConnectUri) {
-      pendingUri = uri;
-      _timer?.cancel();
-      _timer = Timer(CONNECT_FAILED_DURATION, () {
+      await _connectWithRetry(uri, onTimeout: onTimeout, shouldRetry: true);
+    }
+  }
+
+  // function connect with retry on timeout 10 seconds
+  Future _connectWithRetry(String uri,
+      {required bool shouldRetry, Function? onTimeout}) async {
+    pendingUri = uri;
+    final timer = Timer(CONNECT_FAILED_DURATION, () async {
+      if (!shouldRetry) {
         onTimeout?.call();
-      });
-      await _wcClient.pair(uri: Uri.parse(uri));
+      }
+    });
+    final pairingInfo = await _wcClient.pair(uri: Uri.parse(uri));
+    if (timer.isActive) {
+      timer.cancel();
+      log.info('[Wc2Service] pairingInfo: $pairingInfo');
+    } else {
+      if (shouldRetry) {
+        log.info('[Wc2Service] Retry connect to $uri');
+        await _connectWithRetry(uri, onTimeout: onTimeout, shouldRetry: false);
+      }
     }
   }
 

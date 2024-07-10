@@ -46,4 +46,12 @@ abstract class WalletAddressDao {
 
   @Query('DELETE FROM WalletAddress')
   Future<void> removeAll();
+
+  // deleteAddresses by persona
+  @Query('DELETE FROM WalletAddress WHERE uuid = :uuid')
+  Future<void> deleteAddressesByPersona(String uuid);
+
+  // get addresses by persona
+  @Query('SELECT * FROM WalletAddress WHERE uuid = :uuid')
+  Future<List<WalletAddress>> getAddressesByPersona(String uuid);
 }

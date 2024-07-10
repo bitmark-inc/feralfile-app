@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/service/canvas_client_service.dart';
+import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -21,7 +21,7 @@ class TouchPad extends StatefulWidget {
 }
 
 class _TouchPadState extends State<TouchPad> with AfterLayoutMixin {
-  final _canvasClient = injector<CanvasClientService>();
+  final _canvasClient = injector<CanvasClientServiceV2>();
   final _touchPadKey = GlobalKey();
   Size? _touchpadSize;
 

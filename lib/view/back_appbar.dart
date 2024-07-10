@@ -41,17 +41,7 @@ AppBar getBackAppBar(
     leadingWidth: 44,
     scrolledUnderElevation: 0,
     leading: onBack != null
-        ? Semantics(
-            label: 'BACK',
-            child: IconButton(
-              onPressed: onBack,
-              constraints: const BoxConstraints(maxWidth: 36),
-              icon: SvgPicture.asset(
-                'assets/images/icon_back.svg',
-                colorFilter: ColorFilter.mode(primaryColor, BlendMode.srcIn),
-              ),
-            ),
-          )
+        ? backButton(context, onBack: onBack, color: primaryColor)
         : const SizedBox(width: 36),
     automaticallyImplyLeading: false,
     title: Row(
@@ -123,17 +113,7 @@ AppBar getTitleEditAppBar(BuildContext context,
     leadingWidth: 44,
     scrolledUnderElevation: 0,
     leading: hasBack
-        ? Semantics(
-            label: 'BACK',
-            child: IconButton(
-              onPressed: () {},
-              constraints: const BoxConstraints(maxWidth: 36),
-              icon: SvgPicture.asset(
-                'assets/images/icon_back.svg',
-                colorFilter: ColorFilter.mode(primaryColor, BlendMode.srcIn),
-              ),
-            ),
-          )
+        ? backButton(context, onBack: () {}, color: primaryColor)
         : const SizedBox(),
     automaticallyImplyLeading: false,
     title: Row(
@@ -316,7 +296,7 @@ AppBar getDoneAppBar(
         ),
       ),
     ],
-    backgroundColor: theme.colorScheme.background,
+    backgroundColor: theme.colorScheme.surface,
     automaticallyImplyLeading: false,
     centerTitle: true,
     title: Text(
@@ -376,7 +356,7 @@ AppBar getCustomDoneAppBar(
         ),
       ),
     ],
-    backgroundColor: theme.colorScheme.background,
+    backgroundColor: AppColor.white,
     automaticallyImplyLeading: false,
     centerTitle: true,
     title: title,
@@ -384,11 +364,53 @@ AppBar getCustomDoneAppBar(
   );
 }
 
+AppBar getPlaylistAppBar(
+  BuildContext context, {
+  required Widget title,
+  required List<Widget> actions,
+}) =>
+    AppBar(
+      systemOverlayStyle: systemUiOverlayDarkStyle,
+      elevation: 0,
+      shadowColor: Colors.transparent,
+      leading: Row(
+        children: [
+          const SizedBox(width: 15),
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: AppColor.auGreyBackground,
+              borderRadius: BorderRadius.circular(50),
+            ),
+            padding: const EdgeInsets.all(10),
+            child: backButton(
+              context,
+              onBack: () => Navigator.pop(context),
+              color: AppColor.white,
+            ),
+          ),
+        ],
+      ),
+      leadingWidth: 70,
+      titleSpacing: 0,
+      backgroundColor: AppColor.primaryBlack,
+      automaticallyImplyLeading: false,
+      centerTitle: true,
+      title: title,
+      actions: actions,
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(0.25),
+        child: addOnlyDivider(color: AppColor.auQuickSilver, border: 0.25),
+      ),
+    );
+
 AppBar getFFAppBar(
   BuildContext context, {
   required Function()? onBack,
   Widget? title,
   Widget? action,
+  bool? centerTitle = true,
 }) {
   const secondaryColor = AppColor.primaryBlack;
   return AppBar(
@@ -396,7 +418,7 @@ AppBar getFFAppBar(
           statusBarColor: secondaryColor,
           statusBarIconBrightness: Brightness.light,
           statusBarBrightness: Brightness.dark),
-      centerTitle: true,
+      centerTitle: centerTitle,
       toolbarHeight: 66,
       leadingWidth: 44,
       scrolledUnderElevation: 0,
@@ -409,7 +431,7 @@ AppBar getFFAppBar(
                 icon: SvgPicture.asset(
                   'assets/images/ff_back_dark.svg',
                 ),
-                padding: const EdgeInsets.all(0),
+                padding: const EdgeInsets.only(left: 15),
               ))
           : const SizedBox(width: 36),
       automaticallyImplyLeading: false,
@@ -425,6 +447,23 @@ AppBar getFFAppBar(
       shadowColor: Colors.transparent,
       elevation: 0);
 }
+
+Widget backButton(BuildContext context,
+        {required Function() onBack, Color? color}) =>
+    Semantics(
+      label: 'BACK',
+      child: IconButton(
+        onPressed: onBack,
+        constraints: const BoxConstraints(),
+        padding: const EdgeInsets.all(0),
+        iconSize: 11,
+        icon: SvgPicture.asset(
+          'assets/images/icon_back.svg',
+          colorFilter:
+              color != null ? ColorFilter.mode(color, BlendMode.srcIn) : null,
+        ),
+      ),
+    );
 
 // class MomaPallet to save colors
 // Path: lib/util/style.dart
