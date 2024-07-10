@@ -15,9 +15,9 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/primary_address_channel.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/wallet_utils.dart';
-import 'package:eth_sig_util/util/utils.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/data/api/indexer_api.dart';
+import 'package:tezart/src/crypto/crypto.dart' as crypto;
 
 class AddressService {
   final PrimaryAddressChannel _primaryAddressChannel;
@@ -107,7 +107,8 @@ class AddressService {
       case 'tezos':
         final signatureUInt8List = await walletStorage
             .tezosSignMessage(utf8.encode(message), index: addressInfo.index);
-        signature = bytesToHex(signatureUInt8List);
+        signature = crypto.encodeWithPrefix(
+            prefix: crypto.Prefixes.edsig, bytes: signatureUInt8List);
       default:
         throw UnsupportedError('Unsupported chain: $chain');
     }
