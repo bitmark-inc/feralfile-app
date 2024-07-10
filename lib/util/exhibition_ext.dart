@@ -48,7 +48,11 @@ extension ExhibitionExt on Exhibition {
     // sort by displayIndex, if displayIndex is equal, sort by createdAt
     series.sort((a, b) {
       if (a.displayIndex == b.displayIndex) {
-        return b.createdAt!.compareTo(a.createdAt!);
+        if (a.createdAt != null && b.createdAt != null) {
+          return b.createdAt!.compareTo(a.createdAt!);
+        } else {
+          return 0;
+        }
       }
       return (a.displayIndex ?? 0) - (b.displayIndex ?? 0);
     });
