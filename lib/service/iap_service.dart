@@ -260,6 +260,7 @@ class IAPServiceImpl implements IAPService {
 
   @override
   Future<bool> isSubscribed() async {
+    return false;
     final jwt = _configurationService.getIAPJWT();
     return (jwt != null && jwt.isValid(withSubscription: true)) ||
         await isAppCenterBuild();
