@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/util/range_input_formatter.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
@@ -191,6 +192,11 @@ class _PlaylistControlState extends State<PlaylistControl> {
 
   Widget _buildPlayControls(BuildContext context, CanvasDeviceState state) {
     final isCasting = _controllingDevice != null;
+    final isPlaying = state.devices
+            .firstWhereOrNull(
+                (e) => e.device.deviceId == _controllingDevice?.deviceId)
+            ?.isPlaying ??
+        false;
     return Row(
       children: [
         _buildPlayButton(
@@ -200,7 +206,7 @@ class _PlaylistControlState extends State<PlaylistControl> {
                 }),
         const SizedBox(width: 15),
         _buildPlayButton(
-            icon: isCasting
+            icon: isPlaying
                 ? 'assets/images/stream_pause_icon.svg'
                 : 'assets/images/stream_play_icon.svg',
             onTap: () => {
@@ -271,7 +277,12 @@ class _PlaylistControlState extends State<PlaylistControl> {
   void onPauseOrResume(BuildContext context) {
     // final _canvasDeviceBloc = context.read<CanvasDeviceBloc>();
     final isCasting = _controllingDevice != null;
-    if (isCasting) {
+    final isPlaying = _canvasDeviceBloc.state.devices
+            .firstWhereOrNull(
+                (e) => e.device.deviceId == _controllingDevice?.deviceId)
+            ?.isPlaying ??
+        false;
+    if (isPlaying) {
       onPause(context);
     } else {
       onResume(context);

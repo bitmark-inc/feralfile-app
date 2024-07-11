@@ -209,9 +209,9 @@ class FeralFileServiceImpl extends FeralFileService {
       final exhibition = await getExhibition(series.exhibitionID);
       List<Artwork> artworks = [];
       if (!exhibition.isMinted) {
-        final fakeartworks =
+        final fakeArtworks =
             await _getFakeSeriesArtworks(exhibition, series, 0, 1);
-        artworks = fakeartworks;
+        artworks = fakeArtworks;
       }
       if (artworks.isNotEmpty) {
         return series.copyWith(artwork: artworks.first);
@@ -328,7 +328,8 @@ class FeralFileServiceImpl extends FeralFileService {
   Future<List<Artwork>> _createFakeSeriesArtworks(
       FFSeries series, Exhibition exhibition, int offset, int limit) async {
     final List<Artwork> artworks = [];
-    final maxArtworks = limit;
+    final maxArtworks =
+        min(offset + limit, series.settings?.maxArtwork ?? offset + limit);
     for (var i = offset; i < maxArtworks; i++) {
       final previewURI = await _getPreviewURI(series, i, exhibition);
       final artworkId = getFeralfileTokenId(
@@ -435,9 +436,8 @@ class FeralFileServiceImpl extends FeralFileService {
           : series.thumbnailURI ?? '';
 
   Future<FeralFileListResponse<Artwork>> _fakeSeriesArtworks(
-      String seriesId, String exhibitionId,
+      String seriesId, Exhibition exhibition,
       {required int offset, required int limit}) async {
-    final exhibition = await getExhibition(exhibitionId);
     final series = await getSeries(seriesId);
     final List<Artwork> seriesArtworks =
         await _getFakeSeriesArtworks(exhibition, series, offset, limit);
@@ -465,7 +465,7 @@ class FeralFileServiceImpl extends FeralFileService {
     final exhibition = await getExhibition(exhibitionID);
 
     if (!exhibition.isMinted) {
-      return await _fakeSeriesArtworks(seriesId, exhibitionID,
+      return await _fakeSeriesArtworks(seriesId, exhibition,
           offset: offset, limit: limit);
     }
     FeralFileListResponse<Artwork> artworksResponse = await _feralFileApi

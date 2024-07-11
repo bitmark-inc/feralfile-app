@@ -97,7 +97,9 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
               setState(() {
                 _currentIndex = index;
               });
-              _stream(exhibition);
+              if (index < itemCount - 1) {
+                _stream(exhibition);
+              }
             },
             scrollDirection: Axis.vertical,
             itemCount: itemCount,
