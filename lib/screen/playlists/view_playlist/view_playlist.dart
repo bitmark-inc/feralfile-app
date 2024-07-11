@@ -34,8 +34,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/nft_collection.dart';
+import 'package:nft_collection/services/tokens_service.dart';
 
-enum CollectionType { manual, medium, artist }
+enum CollectionType { manual, medium, artist, featured }
 
 class ViewPlaylistScreenPayload {
   final PlayListModel? playListModel;
@@ -69,19 +70,35 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
   late bool editable;
   final _canvasClientServiceV2 = injector<CanvasClientServiceV2>();
 
+  final List<CompactedAssetToken> _featureTokens = [];
+
   @override
   void initState() {
     editable = widget.payload.collectionType == CollectionType.manual &&
         !(widget.payload.playListModel?.isDefault ?? true);
     super.initState();
 
-    nftBloc.add(RefreshNftCollectionByIDs(
-      ids: isDemo ? [] : widget.payload.playListModel?.tokenIDs,
-      debugTokenIds: isDemo ? widget.payload.playListModel?.tokenIDs : [],
-    ));
+    if (widget.payload.collectionType == CollectionType.featured) {
+      unawaited(_fetchFeaturedTokens());
+    } else {
+      nftBloc.add(RefreshNftCollectionByIDs(
+        ids: isDemo ? [] : widget.payload.playListModel?.tokenIDs,
+        debugTokenIds: isDemo ? widget.payload.playListModel?.tokenIDs : [],
+      ));
+    }
 
     _canvasDeviceBloc = injector.get<CanvasDeviceBloc>();
     bloc.add(GetPlayList(playListModel: widget.payload.playListModel));
+  }
+
+  Future<void> _fetchFeaturedTokens() async {
+    final tokens = await injector<TokensService>()
+        .fetchManualTokens(widget.payload.playListModel?.tokenIDs ?? []);
+    setState(() {
+      _featureTokens
+          .addAll(tokens.map((e) => CompactedAssetToken.fromAssetToken(e)));
+      log.info('feature tokens: ${_featureTokens.length}');
+    });
   }
 
   Future<void> deletePlayList() async {
@@ -301,7 +318,10 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
                   child: NftCollectionGrid(
                     state: nftState.state,
                     tokens: _setupPlayList(
-                      tokens: nftState.tokens.items,
+                      tokens: widget.payload.collectionType ==
+                              CollectionType.featured
+                          ? _featureTokens
+                          : nftState.tokens.items,
                       selectedTokens: playList.tokenIDs,
                     ),
                     customGalleryViewBuilder: (context, tokens) =>

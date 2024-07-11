@@ -51,7 +51,6 @@ import 'package:autonomy_flutter/screen/detail/royalty/royalty_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_custom_note/exhibition_custom_note_page.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
-import 'package:autonomy_flutter/screen/featured_works_page/featured_works_page.dart';
 import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artwork_preview_page.dart';
 import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_bloc.dart';
 import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_page.dart';
@@ -231,7 +230,6 @@ class AppRouter {
   static const addEthereumChainPage = 'add_ethereum_chain_page';
   static const artistsListPage = 'artists_list_page';
   static const exhibitionCustomNote = 'exhibition_custom_note';
-  static const featuredWorksPage = 'featured_works_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector(), injector());
@@ -862,11 +860,6 @@ class AppRouter {
       case momaPostcardPage:
         return CupertinoPageRoute(
             settings: settings, builder: (context) => const MoMAPostcardPage());
-
-      case featuredWorksPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => const FeaturedWorksPage());
 
       case exhibitionDetailPage:
         return CupertinoPageRoute(
