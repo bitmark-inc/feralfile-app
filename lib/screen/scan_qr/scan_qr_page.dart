@@ -241,6 +241,7 @@ class ScanQRPageState extends State<ScanQRPage>
   @override
   void didPopNext() {
     super.didPopNext();
+    unawaited(resumeCamera());
     if (Platform.isIOS) {
       unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.leanBack));
     }
