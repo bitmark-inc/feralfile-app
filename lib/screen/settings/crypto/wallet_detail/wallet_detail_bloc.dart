@@ -29,26 +29,28 @@ class WalletDetailBloc extends AuBloc<WalletDetailEvent, WalletDetailState> {
       : super(WalletDetailState()) {
     on<WalletDetailBalanceEvent>((event, emit) async {
       final exchangeRate = await _currencyService.getExchangeRates();
-      final newState = WalletDetailState();
+      String balanceS = '';
+      String balanceInUSD = '';
 
       switch (event.type) {
         case CryptoType.ETH:
           final balance = await _ethereumService.getBalance(event.address);
-          newState.balance = '${ethFormatter.format(balance.getInWei)} ETH';
+          balanceS = '${ethFormatter.format(balance.getInWei)} ETH';
           final usdBalance = exchangeRate.ethToUsd(balance.getInWei);
-          final balanceInUSD = '$usdBalance USD';
-          newState.balanceInUSD = balanceInUSD;
+          balanceInUSD = '$usdBalance USD';
         case CryptoType.XTZ:
           final balance = await _tezosService.getBalance(event.address);
-          newState.balance = '${xtzFormatter.format(balance)} XTZ';
+          balanceS = '${xtzFormatter.format(balance)} XTZ';
           final usdBalance = exchangeRate.xtzToUsd(balance);
-          final balanceInUSD = '$usdBalance USD';
-          newState.balanceInUSD = balanceInUSD;
+          balanceInUSD = '$usdBalance USD';
 
         default:
       }
 
-      emit(newState);
+      emit(state.copyWith(
+        balance: balanceS,
+        balanceInUSD: balanceInUSD,
+      ));
     });
 
     on<WalletDetailPrimaryAddressEvent>((event, emit) async {

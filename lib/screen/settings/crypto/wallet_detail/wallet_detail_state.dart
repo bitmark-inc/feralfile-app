@@ -24,8 +24,8 @@ class WalletDetailPrimaryAddressEvent extends WalletDetailEvent {
 }
 
 class WalletDetailState {
-  String balance = '';
-  String balanceInUSD = '';
+  final String balance;
+  final String balanceInUSD;
   final bool isPrimary;
 
   WalletDetailState({
