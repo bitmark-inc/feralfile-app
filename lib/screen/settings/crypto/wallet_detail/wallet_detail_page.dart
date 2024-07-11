@@ -63,6 +63,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
   bool isHideGalleryEnabled = false;
   late String address;
   late WalletAddress walletAddress;
+  late bool isPrimary = false;
   bool _isRename = false;
   final TextEditingController _renameController = TextEditingController();
   final FocusNode _renameFocusNode = FocusNode();
@@ -75,6 +76,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
     isHideGalleryEnabled = walletAddress.isHidden;
     _renameController.text = walletAddress.name ?? widget.payload.type.source;
     address = walletAddress.address;
+    isPrimary = widget.payload.isPrimary;
 
     _callBlocWallet();
     controller = ScrollController();
@@ -255,7 +257,12 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                                           )
                                         else
                                           SizedBox(
-                                              height: hideConnection ? 84 : 52),
+                                              height: hideConnection ? 54 : 22),
+                                        if (this.isPrimary)
+                                          Padding(
+                                              padding: padding,
+                                              child: _primaryAddress()),
+                                        const SizedBox(height: 24),
                                         Padding(
                                           padding: padding,
                                           child: _addressSection(context),
@@ -347,6 +354,25 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
     });
   }
 
+  Widget _primaryAddress() {
+    final theme = Theme.of(context);
+    final primaryAddressStyle =
+        theme.textTheme.ppMori400Black14.copyWith(color: AppColor.auGrey);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+          color: AppColor.primaryBlack,
+          border: Border.all(color: AppColor.primaryBlack),
+          borderRadius: BorderRadius.circular(20)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
+        child: Text(
+          'primary_address'.tr(),
+          style: primaryAddressStyle,
+        ),
+      ),
+    );
+  }
+
   Widget _usdcBalance(String balance) {
     final theme = Theme.of(context);
     final balanceStyle = theme.textTheme.ppMori400White14
@@ -381,6 +407,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
             type: CryptoType.USDC,
             persona: widget.payload.persona,
             walletAddress: walletAddress,
+            isPrimary: isPrimary,
           );
           unawaited(Navigator.of(context)
               .pushNamed(AppRouter.walletDetailsPage, arguments: payload));
@@ -765,10 +792,12 @@ class WalletDetailsPayload {
   final CryptoType type;
   final Persona persona;
   final WalletAddress walletAddress;
+  final bool isPrimary;
 
   WalletDetailsPayload({
     required this.type,
     required this.persona,
     required this.walletAddress,
+    required this.isPrimary,
   });
 }

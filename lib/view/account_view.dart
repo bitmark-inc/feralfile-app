@@ -117,12 +117,7 @@ Widget accountItem(BuildContext context, Account account,
                 )
               ],
               if (isPrimary) ...[
-                const SizedBox(width: 10),
-                SvgPicture.asset(
-                  'assets/images/file_attached.svg',
-                  colorFilter: ColorFilter.mode(
-                      theme.colorScheme.surface, BlendMode.srcIn),
-                ),
+                primaryLabel(context),
               ],
               const SizedBox(width: 20),
               SvgPicture.asset('assets/images/iconForward.svg'),
@@ -258,4 +253,29 @@ Widget viewOnlyLabel(BuildContext context) {
       child: Text('view_only'.tr(), style: theme.textTheme.ppMori400Grey14),
     ),
   );
+}
+
+Widget primaryLabel(BuildContext context) {
+  final theme = Theme.of(context);
+  final primaryStyle = theme.textTheme.ppMori400White14.copyWith(
+    color: AppColor.auGrey,
+  );
+  return DecoratedBox(
+      decoration: BoxDecoration(
+          color: AppColor.primaryBlack,
+          border: Border.all(color: AppColor.primaryBlack),
+          borderRadius: BorderRadius.circular(20)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
+        child: Row(
+          children: [
+            SvgPicture.asset('assets/images/pinned.svg'),
+            const SizedBox(width: 10),
+            Text(
+              'primary'.tr(),
+              style: primaryStyle,
+            )
+          ],
+        ),
+      ));
 }

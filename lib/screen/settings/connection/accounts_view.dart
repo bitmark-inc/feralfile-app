@@ -67,17 +67,20 @@ class _AccountsViewState extends State<AccountsView> {
             if (!widget.isInSettingsPage) {
               return _noEditAccountsListWidget(accounts);
             }
+            final primaryAccount = accounts.firstWhere(
+                (element) => _isPrimary(element, state.primaryAddressInfo!),
+                orElse: () => accounts.first);
+            final normalAccounts = accounts
+                .where((element) => element.key != primaryAccount.key)
+                .toList();
             return ReorderableListView(
-              header:
-                  widget.isInSettingsPage ? const SizedBox(height: 40) : null,
+              header: _accountCard(context, primaryAccount, isPrimary: true),
               onReorder: (int oldIndex, int newIndex) {
                 context.read<AccountsBloc>().add(ChangeAccountOrderEvent(
                     newOrder: newIndex, oldOrder: oldIndex));
               },
-              children: accounts
-                  .map((account) => _accountCard(context, account,
-                      isPrimary:
-                          _isPrimary(account, state.primaryAddressInfo!)))
+              children: normalAccounts
+                  .map((account) => _accountCard(context, account))
                   .toList(),
             );
           });
@@ -158,26 +161,20 @@ class _AccountsViewState extends State<AccountsView> {
         },
       ),
       CustomSlidableAction(
-        backgroundColor: Colors.red,
+        backgroundColor: isPrimary ? Colors.red.withOpacity(0.3) : Colors.red,
         foregroundColor: theme.colorScheme.secondary,
         padding: EdgeInsets.zero,
         onPressed: isPrimary
             ? null
-            : (_) {
-                _showDeleteAccountConfirmation(context, account);
-              },
-        child: Semantics(
+            : (_) => _showDeleteAccountConfirmation(context, account),
+        child: Opacity(
+          opacity: isPrimary ? 0.3 : 1,
+          child: Semantics(
             label: '${account.name}_delete',
-            child: SvgPicture.asset(
-              'assets/images/trash.svg',
-              colorFilter: isPrimary
-                  ? const ColorFilter.mode(
-                      AppColor.disabledColor,
-                      BlendMode.srcIn,
-                    )
-                  : null,
-            )),
-      ),
+            child: SvgPicture.asset('assets/images/trash.svg'),
+          ),
+        ),
+      )
     ];
     return actions;
   }
@@ -216,7 +213,8 @@ class _AccountsViewState extends State<AccountsView> {
                     type: CryptoType.fromSource(
                         account.walletAddress!.cryptoType),
                     walletAddress: account.walletAddress!,
-                    persona: account.persona!)));
+                    persona: account.persona!,
+                    isPrimary: isPrimary)));
           }
         },
         onConnectionTap: () {
