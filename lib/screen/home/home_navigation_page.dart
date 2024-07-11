@@ -142,6 +142,10 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     });
   }
 
+  Future<void> openCollection() async {
+    await _onItemTapped(HomeNavigatorTab.collection.index);
+  }
+
   Future<void> _onItemTapped(int index) async {
     if (index < _pages.length) {
       if (_selectedIndex == index) {

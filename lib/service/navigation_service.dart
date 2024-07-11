@@ -267,6 +267,14 @@ class NavigationService {
     });
   }
 
+  Future<void> popToCollection() async {
+    popUntilHome();
+    await Future.delayed(const Duration(seconds: 1), () async {
+      await (homePageKey.currentState ?? homePageNoTransactionKey.currentState)
+          ?.openCollection();
+    });
+  }
+
   Future<void> gotoArtworkDetailsPage(String indexID) async {
     popUntilHome();
     final tokens = await injector<NftCollectionDatabase>()
