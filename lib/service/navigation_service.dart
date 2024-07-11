@@ -253,7 +253,15 @@ class NavigationService {
     popUntilHome();
     await Future.delayed(const Duration(seconds: 1), () async {
       await (homePageKey.currentState ?? homePageNoTransactionKey.currentState)
-          ?.openExhibition(exhibitionID ?? '');
+          ?.openExhibition(exhibitionID);
+    });
+  }
+
+  Future<void> popToCollection() async {
+    popUntilHome();
+    await Future.delayed(const Duration(seconds: 1), () async {
+      await (homePageKey.currentState ?? homePageNoTransactionKey.currentState)
+          ?.openCollection();
     });
   }
 

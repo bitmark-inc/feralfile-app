@@ -234,7 +234,7 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
 
         if (shouldClose) {
           log.info('[IRLWebScreen] instantPurchase finish and close ');
-          injector<NavigationService>().popUntilHome();
+          unawaited(injector<NavigationService>().popToCollection());
         }
         return;
       default:
