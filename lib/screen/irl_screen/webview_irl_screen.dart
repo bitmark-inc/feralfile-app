@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -27,6 +28,10 @@ import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:nft_collection/graphql/model/get_list_tokens.dart';
+import 'package:nft_collection/nft_collection.dart';
+import 'package:nft_collection/services/indexer_service.dart';
+import 'package:nft_collection/services/tokens_service.dart';
 import 'package:tezart/tezart.dart';
 import 'package:uuid/uuid.dart';
 import 'package:walletconnect_flutter_v2/apis/core/pairing/utils/pairing_models.dart';
@@ -186,6 +191,51 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
         }
         Navigator.of(context).pop(response);
 
+        return;
+      case 'instant_purchase':
+        final data = argument['data'] as Map<String, dynamic>;
+        final shouldClose = data['close'] as bool;
+        log.info('[IRLWebScreen] handle instantPurchase close= $shouldClose:');
+        try {
+          final tokenIdsDynamic = data['token_ids'] as List<dynamic>? ?? [];
+          final tokenIds = tokenIdsDynamic.map((e) => e.toString()).toList();
+          final address = data['address'];
+          final isNonCryptoPayment = data['is_non_crypto_payment'] as bool;
+          if (tokenIds.isNotEmpty && address != null && isNonCryptoPayment) {
+            final indexerService = injector<IndexerService>();
+            final tokens =
+                await indexerService.getNftTokens(QueryListTokensRequest(
+              ids: tokenIds,
+            ));
+            final pendingTokens = tokens
+                .map((e) => e.copyWith(
+                      pending: true,
+                      owner: address,
+                      owners: {address: 1},
+                      isDebugged: false,
+                      lastActivityTime: DateTime.now(),
+                      lastRefreshedTime: DateTime(1),
+                      balance: 1,
+                    ))
+                .toList();
+            log.info('[IRLWebScreen] instant_purchase : ${pendingTokens.length}'
+                ' pending tokens');
+            await injector<TokensService>().setCustomTokens(pendingTokens);
+            await injector<TokensService>().reindexAddresses([address]);
+            if (pendingTokens.isNotEmpty) {
+              NftCollectionBloc.eventController
+                  .add(UpdateTokensEvent(tokens: pendingTokens));
+            }
+          }
+        } catch (e) {
+          log.info('[IRLWebScreen] instant_purchase error while set'
+              ' pending token : $e');
+        }
+
+        if (shouldClose) {
+          log.info('[IRLWebScreen] instantPurchase finish and close ');
+          injector<NavigationService>().popUntilHome();
+        }
         return;
       default:
         return;
@@ -413,8 +463,10 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar:
-            getDarkEmptyAppBar(widget.payload.statusBarColor ?? Colors.black),
+        appBar: widget.payload.isDarkStatusBar
+            ? getDarkEmptyAppBar(widget.payload.statusBarColor ?? Colors.black)
+            : getLightEmptyAppBar(
+                widget.payload.statusBarColor ?? Colors.white),
         body: SafeArea(
           bottom: false,
           child: Column(
@@ -485,7 +537,11 @@ class IRLWebScreenPayload {
   final bool isPlainUI;
   final Map<String, dynamic>? localStorageItems;
   final Color? statusBarColor;
+  final bool isDarkStatusBar;
 
   IRLWebScreenPayload(this.url,
-      {this.isPlainUI = false, this.localStorageItems, this.statusBarColor});
+      {this.isPlainUI = false,
+      this.localStorageItems,
+      this.statusBarColor,
+      this.isDarkStatusBar = true});
 }
