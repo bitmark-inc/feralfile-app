@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -42,7 +43,9 @@ class _InAppWebViewPageState extends State<InAppWebViewPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final version = _configurationService.getVersionInfo();
+    var version = _configurationService.getVersionInfo();
+    final isIOS = Platform.isIOS;
+    final platform = isIOS ? 'ios' : 'android';
     return Scaffold(
       appBar: getDarkEmptyAppBar(Colors.black),
       backgroundColor: widget.payload.backgroundColor ?? theme.primaryColor,
@@ -59,8 +62,8 @@ class _InAppWebViewPageState extends State<InAppWebViewPage> {
                     initialUrlRequest:
                         URLRequest(url: WebUri(widget.payload.url)),
                     initialSettings: InAppWebViewSettings(
-                      userAgent:
-                          'user_agent'.tr(namedArgs: {'version': version}),
+                      userAgent: 'user_agent'
+                          .tr(namedArgs: {'version': '$version ($platform)'}),
                     ),
                     onPermissionRequest: (InAppWebViewController controller,
                         permissionRequest) async {

@@ -19,6 +19,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -36,6 +37,7 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/stream_device_view.dart';
 import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:feralfile_app_tv_proto/models/canvas_device.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -286,9 +288,10 @@ class DeeplinkServiceImpl extends DeeplinkService {
     final url =
         '${Environment.payToMintBaseUrl}/moma-postcard?address=$address';
     final response = (await _navigationService.goToIRLWebview(
-            IRLWebScreenPayload(url,
-                isPlainUI: true, statusBarColor: POSTCARD_BACKGROUND_COLOR)))
-        as Map<String, dynamic>;
+        IRLWebScreenPayload(url,
+            isPlainUI: true,
+            statusBarColor: POSTCARD_BACKGROUND_COLOR,
+            isDarkStatusBar: false))) as Map<String, dynamic>;
 
     if (response['result'] == true) {
       final previewURL = response['previewURL'];
@@ -443,6 +446,38 @@ class DeeplinkServiceImpl extends DeeplinkService {
                 ),
                 isDismissible: true,
                 autoDismissAfter: 3);
+          }
+        }
+
+      case 'InstantPurchase':
+        final url = data['callback_url'];
+        if (url != null) {
+          late String? primaryAddress;
+          try {
+            primaryAddress =
+                await injector<AddressService>().getPrimaryAddress();
+          } catch (e) {
+            log.info('[DeeplinkService] get primary address error $e');
+            primaryAddress = null;
+          }
+          _navigationService.popUntilHome();
+          if (primaryAddress == null) {
+            final context = _navigationService.context;
+            if (context.mounted) {
+              await UIHelper.showInfoDialog(
+                  context,
+                  'Error',
+                  'Sorry, we can not find you primary address, '
+                      'please try again later or contact us for support',
+                  isDismissible: true);
+            }
+          } else {
+            final link = '$url&ba=$primaryAddress';
+            log.info('InstantPurchase: $link');
+            await _navigationService.goToIRLWebview(IRLWebScreenPayload(link,
+                isPlainUI: true,
+                statusBarColor: AppColor.white,
+                isDarkStatusBar: false));
           }
         }
 
