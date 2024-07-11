@@ -60,7 +60,8 @@ class ExhibitionBloc extends AuBloc<ExhibitionsEvent, ExhibitionsState> {
         exhibitions.removeWhere(
             (element) => state.allExhibitionIds.contains(element.id));
         if (_sourceExhibition != null &&
-            (state.pastExhibitions ?? []).isNotEmpty) {
+            (state.pastExhibitions ?? []).isNotEmpty &&
+            !state.allExhibitionIds.contains(_sourceExhibition!.id)) {
           exhibitions =
               _addSourceExhibitionIfNeeded(exhibitions, _sourceExhibition!);
         }
