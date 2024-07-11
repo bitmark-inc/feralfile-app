@@ -19,6 +19,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/primary_address_channel.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/wallet_address_ext.dart';
 import 'package:autonomy_flutter/view/account_view.dart';
 import 'package:autonomy_flutter/view/crypto_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -68,7 +69,10 @@ class _AccountsViewState extends State<AccountsView> {
               return _noEditAccountsListWidget(accounts);
             }
             final primaryAccount = accounts.firstWhere(
-                (element) => _isPrimary(element, state.primaryAddressInfo!),
+                (element) =>
+                    element.walletAddress
+                        ?.isMatchAddressInfo(state.primaryAddressInfo!) ??
+                    false,
                 orElse: () => accounts.first);
             final normalAccounts = accounts
                 .where((element) => element.key != primaryAccount.key)
@@ -213,8 +217,7 @@ class _AccountsViewState extends State<AccountsView> {
                     type: CryptoType.fromSource(
                         account.walletAddress!.cryptoType),
                     walletAddress: account.walletAddress!,
-                    persona: account.persona!,
-                    isPrimary: isPrimary)));
+                    persona: account.persona!)));
           }
         },
         onConnectionTap: () {

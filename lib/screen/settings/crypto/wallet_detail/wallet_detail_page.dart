@@ -63,7 +63,6 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
   bool isHideGalleryEnabled = false;
   late String address;
   late WalletAddress walletAddress;
-  late bool isPrimary = false;
   bool _isRename = false;
   final TextEditingController _renameController = TextEditingController();
   final FocusNode _renameFocusNode = FocusNode();
@@ -76,8 +75,10 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
     isHideGalleryEnabled = walletAddress.isHidden;
     _renameController.text = walletAddress.name ?? widget.payload.type.source;
     address = walletAddress.address;
-    isPrimary = widget.payload.isPrimary;
 
+    context
+        .read<WalletDetailBloc>()
+        .add(WalletDetailPrimaryAddressEvent(walletAddress));
     _callBlocWallet();
     controller = ScrollController();
     controller.addListener(_listener);
@@ -111,15 +112,12 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
             .read<WalletDetailBloc>()
             .add(WalletDetailBalanceEvent(cryptoType, address));
         context.read<USDCBloc>().add(GetUSDCBalanceWithAddressEvent(address));
-        break;
       case CryptoType.XTZ:
         context
             .read<WalletDetailBloc>()
             .add(WalletDetailBalanceEvent(cryptoType, address));
-        break;
       case CryptoType.USDC:
         context.read<USDCBloc>().add(GetUSDCBalanceWithAddressEvent(address));
-        break;
       default:
         // do nothing
         break;
@@ -258,11 +256,12 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                                         else
                                           SizedBox(
                                               height: hideConnection ? 54 : 22),
-                                        if (this.isPrimary)
+                                        if (state.isPrimary) ...[
                                           Padding(
                                               padding: padding,
                                               child: _primaryAddress()),
-                                        const SizedBox(height: 24),
+                                          const SizedBox(height: 24)
+                                        ],
                                         Padding(
                                           padding: padding,
                                           child: _addressSection(context),
@@ -407,7 +406,6 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
             type: CryptoType.USDC,
             persona: widget.payload.persona,
             walletAddress: walletAddress,
-            isPrimary: isPrimary,
           );
           unawaited(Navigator.of(context)
               .pushNamed(AppRouter.walletDetailsPage, arguments: payload));
@@ -792,12 +790,10 @@ class WalletDetailsPayload {
   final CryptoType type;
   final Persona persona;
   final WalletAddress walletAddress;
-  final bool isPrimary;
 
   WalletDetailsPayload({
     required this.type,
     required this.persona,
     required this.walletAddress,
-    required this.isPrimary,
   });
 }
