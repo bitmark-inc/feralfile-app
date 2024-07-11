@@ -452,13 +452,15 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
       case 'InstantPurchase':
         final url = data['callback_url'];
-        if (url != null) {
+        final chain = data['chain'];
+        if (url != null && chain != null) {
           late String? primaryAddress;
           try {
             final addressWallets =
                 await injector<CloudDatabase>().addressDao.getAllAddresses();
             addressWallets.removeWhere((element) =>
-                element.cryptoType.toLowerCase() != 'ethereum' &&
+                element.cryptoType.toLowerCase() !=
+                    chain.toString().toLowerCase() &&
                 element.isHidden);
             if (addressWallets.isEmpty) {
               primaryAddress = null;
