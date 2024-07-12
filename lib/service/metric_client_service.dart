@@ -26,6 +26,10 @@ class MetricClientService {
     isFinishInit = true;
   }
 
+  Future<void> migrateFromDidKeyToPrimaryAddress() async {
+    await mixPanelClient.migrateFromDidKeyToPrimaryAddress();
+  }
+
   void addEvent(
     String name, {
     String? message,
