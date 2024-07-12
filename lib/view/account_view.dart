@@ -117,6 +117,7 @@ Widget accountItem(BuildContext context, Account account,
                 )
               ],
               if (isPrimary) ...[
+                const SizedBox(width: 20),
                 primaryLabel(context),
               ],
               const SizedBox(width: 20),

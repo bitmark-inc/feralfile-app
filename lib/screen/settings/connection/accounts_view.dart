@@ -16,7 +16,6 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/util/account_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/primary_address_channel.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/wallet_address_ext.dart';
@@ -88,13 +87,6 @@ class _AccountsViewState extends State<AccountsView> {
                   .toList(),
             );
           });
-
-  bool _isPrimary(Account account, AddressInfo primaryAddressInfo) {
-    final walletAddress = account.walletAddress;
-    return walletAddress?.uuid == primaryAddressInfo.uuid &&
-        walletAddress?.index == primaryAddressInfo.index &&
-        walletAddress?.cryptoType.toLowerCase() == primaryAddressInfo.chain;
-  }
 
   Widget _accountCard(BuildContext context, Account account,
           {bool isPrimary = false}) =>
