@@ -10,6 +10,7 @@ import 'dart:async';
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dart';
@@ -19,6 +20,7 @@ import 'package:autonomy_flutter/screen/exhibitions/exhibitions_page.dart';
 import 'package:autonomy_flutter/screen/exhibitions/exhibitions_state.dart';
 import 'package:autonomy_flutter/screen/home/collection_home_page.dart';
 import 'package:autonomy_flutter/screen/home/organize_home_page.dart';
+import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
@@ -26,6 +28,7 @@ import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
+import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/notification_service.dart' as nc;
 import 'package:autonomy_flutter/service/playlist_service.dart';
@@ -35,7 +38,9 @@ import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/dio_util.dart';
+import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/notification_type.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -186,14 +191,37 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         options: [
           OptionItem(
             title: 'featured_works'.tr(),
-            icon: SvgPicture.asset(
-              'assets/images/icon_set.svg',
-              colorFilter:
-                  const ColorFilter.mode(AppColor.white, BlendMode.srcIn),
-            ),
-            onTap: () {
-              Navigator.of(context)
-                  .popAndPushNamed(AppRouter.featuredWorksPage);
+            icon: const Icon(AuIcon.discover),
+            onTap: () async {
+              final artworks =
+                  await injector<FeralFileService>().getFeaturedArtworks();
+              if (!mounted) {
+                return;
+              }
+              final tokenIds = artworks.map((e) => e.indexerTokenId).toList()
+                ..removeWhere((element) => element == null);
+
+              log.info('Featured artworks: '
+                  '${tokenIds.length}/${artworks.length} token');
+
+              if (tokenIds.isEmpty) {
+                await UIHelper.showInfoDialog(
+                    context,
+                    'featured_works_empty'.tr(),
+                    'Sorry for the inconvenience. Please try again later.',
+                    isDismissible: true);
+                return;
+              }
+              unawaited(Navigator.popAndPushNamed(
+                context,
+                AppRouter.viewPlayListPage,
+                arguments: ViewPlaylistScreenPayload(
+                  playListModel: PlayListModel(
+                      name: 'featured'.tr(),
+                      tokenIDs: tokenIds.map((e) => e!).toList()),
+                  collectionType: CollectionType.featured,
+                ),
+              ));
             },
           ),
           OptionItem(

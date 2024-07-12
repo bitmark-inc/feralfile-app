@@ -858,13 +858,13 @@ class _SectionExpandedWidgetState extends State<SectionExpandedWidget> {
                         if (_isExpanded)
                           widget.iconOnExpanded ??
                               RotatedBox(
-                                quarterTurns: -1,
+                                quarterTurns: 1,
                                 child: defaultIcon,
                               )
                         else
                           widget.iconOnUnExpanded ??
                               RotatedBox(
-                                quarterTurns: 1,
+                                quarterTurns: 2,
                                 child: defaultIcon,
                               )
                       ],

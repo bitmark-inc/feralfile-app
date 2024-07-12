@@ -220,6 +220,7 @@ class DeviceState {
   DeviceState copyWith({
     CanvasDevice? device,
     Duration? duration,
+    // for playlist: true: playing, false: pause
     bool? isPlaying,
   }) =>
       DeviceState(

@@ -502,6 +502,8 @@ class Constants {
     'https://link.autonomy.io',
     'https://feralfile-app.app.link',
     'https://feralfile-app-alternate.app.link',
+    'https://feralfile-app.test-app.link',
+    'https://feralfile-app-alternate.test-app.link',
     'https://app.feralfile.com',
   ];
 }

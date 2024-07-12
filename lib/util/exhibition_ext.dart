@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/screen/exhibitions/exhibitions_bloc.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/crawl_helper.dart';
 import 'package:autonomy_flutter/util/http_helper.dart';
 import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -22,6 +23,8 @@ extension ExhibitionExt on Exhibition {
   bool get isSoloExhibition => type == 'solo';
 
   bool get isJohnGerrardShow => id == JohnGerrardHelper.exhibitionID;
+
+  bool get isCrawlShow => id == CrawlHelper.exhibitionID;
 
   DateTime get exhibitionViewAt =>
       exhibitionStartAt.subtract(Duration(seconds: previewDuration ?? 0));
@@ -37,6 +40,24 @@ extension ExhibitionExt on Exhibition {
 
   //TODO: implement this
   bool get isOnGoing => true;
+
+  bool get isMinted => status == ExhibitionStatus.issued.index;
+
+  List<FFSeries> get sortedSeries {
+    final series = this.series ?? [];
+    // sort by displayIndex, if displayIndex is equal, sort by createdAt
+    series.sort((a, b) {
+      if (a.displayIndex == b.displayIndex) {
+        if (a.createdAt != null && b.createdAt != null) {
+          return b.createdAt!.compareTo(a.createdAt!);
+        } else {
+          return 0;
+        }
+      }
+      return (a.displayIndex ?? 0) - (b.displayIndex ?? 0);
+    });
+    return series;
+  }
 
   String? get getSeriesArtworkModelText {
     if (this.series == null || id == SOURCE_EXHIBITION_ID) {
@@ -106,6 +127,23 @@ extension ExhibitionExt on Exhibition {
             index + sep.length,
             lastSep,
           );
+  }
+
+  List<CustomExhibitionNote> get customExhibitionNote {
+    final customNote = <CustomExhibitionNote>[];
+    if (isJohnGerrardShow) {
+      customNote.addAll(JohnGerrardHelper.customNote);
+    }
+    return customNote;
+  }
+
+  // get all resource, include posts and custom notes
+  List<Resource> get allResources {
+    final resources = <Resource>[...customExhibitionNote];
+    if (posts != null) {
+      resources.addAll(posts!);
+    }
+    return resources;
   }
 }
 
@@ -202,6 +240,28 @@ extension ArtworkExt on Artwork {
             ConfigGroup.exhibition, ConfigKey.yokoOnoPublic, {});
     return id == config['public_token_id'];
   }
+
+  String? get indexerTokenId {
+    if (series?.exhibition?.contracts == null) {
+      return null;
+    }
+    var chain = series!.exhibition!.mintBlockchain;
+    if (chain == 'bitmark') {
+      chain = series!.metadata?['targetMigrationBlockchain'];
+    }
+
+    final contract = series!.exhibition!.contracts?.firstWhereOrNull(
+      (e) => e.blockchainType == chain,
+    );
+
+    if (contract == null) {
+      return null;
+    }
+
+    final chainPrefix = chain == 'tezos' ? 'tez' : 'eth';
+    final contractAddress = contract.address;
+    return '$chainPrefix-$contractAddress-$id';
+  }
 }
 
 String getFFUrl(String uri) {
@@ -235,4 +295,12 @@ extension FFContractExt on FFContract {
     }
     return null;
   }
+}
+
+enum ExhibitionStatus {
+  created,
+  editorReview,
+  operatorReview,
+  issuing,
+  issued,
 }

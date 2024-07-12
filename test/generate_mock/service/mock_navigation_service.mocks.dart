@@ -269,6 +269,26 @@ class MockNavigationService extends _i2.Mock implements _i3.NavigationService {
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
   @override
+  _i4.Future<void> gotoExhibitionDetailsPage(String? exhibitionID) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #gotoExhibitionDetailsPage,
+          [exhibitionID],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
+  _i4.Future<void> gotoArtworkDetailsPage(String? indexID) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #gotoArtworkDetailsPage,
+          [indexID],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
   _i4.Future<dynamic> goToIRLWebview(_i7.IRLWebScreenPayload? payload) =>
       (super.noSuchMethod(
         Invocation.method(
