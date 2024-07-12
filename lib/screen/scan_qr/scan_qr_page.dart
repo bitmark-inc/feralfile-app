@@ -33,6 +33,7 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/display_instruction_view.dart';
 import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
+import 'package:autonomy_flutter/view/splitted_banner.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/cupertino.dart';
@@ -240,6 +241,10 @@ class ScanQRPageState extends State<ScanQRPage>
   @override
   void didPopNext() {
     super.didPopNext();
+    // for global camera, it's already handled in HomeNavigationPage.didPopNext
+    if (!_isGlobal) {
+      unawaited(resumeCamera());
+    }
     if (Platform.isIOS) {
       unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.leanBack));
     }
@@ -471,12 +476,10 @@ class QRScanViewState extends State<QRScanView>
           overlay: QrScannerOverlayShape(
             borderLength: _qrSize / 2,
             borderColor:
-                isScanDataError ? AppColor.red : theme.colorScheme.secondary,
-            overlayColor: _cameraPermission == true
-                ? const Color.fromRGBO(0, 0, 0, 0.6)
-                : const Color.fromRGBO(0, 0, 0, 1),
+                isScanDataError ? Colors.red : theme.colorScheme.secondary,
+            overlayColor: const Color.fromRGBO(196, 196, 196, 0.6),
             cutOutSize: _qrSize,
-            borderWidth: 1,
+            borderWidth: 2,
             cutOutBottomOffset: cutOutBottomOffset,
             borderRadius: 40,
           ),
@@ -498,7 +501,7 @@ class QRScanViewState extends State<QRScanView>
                 child: Text(
                   'invalid_qr_code'.tr(),
                   style: theme.textTheme.ppMori700Black14
-                      .copyWith(color: AppColor.red),
+                      .copyWith(color: Colors.red),
                 ),
               ),
             ),
@@ -512,31 +515,28 @@ class QRScanViewState extends State<QRScanView>
           _qrView(context),
           Padding(
             padding: const EdgeInsets.fromLTRB(
-              0,
-              _qrSize + _topPadding + 20,
-              0,
+              44,
+              _qrSize + _topPadding + 30,
+              44,
               120,
             ),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _instructionViewNoPermission(context),
-                  Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: PrimaryButton(
-                      text: 'open_setting'.tr(
-                        namedArgs: {
-                          'device': Platform.isAndroid ? 'Device' : 'iOS',
-                        },
-                      ),
-                      onTap: () async {
-                        await openAppSettings();
+            child: Column(
+              children: [
+                _instructionViewNoPermission(context),
+                Padding(
+                  padding: const EdgeInsets.only(top: 10),
+                  child: PrimaryButton(
+                    text: 'open_setting'.tr(
+                      namedArgs: {
+                        'device': Platform.isAndroid ? 'Device' : 'iOS',
                       },
                     ),
-                  )
-                ],
-              ),
+                    onTap: () async {
+                      await openAppSettings();
+                    },
+                  ),
+                )
+              ],
             ),
           ),
         ],
@@ -544,15 +544,25 @@ class QRScanViewState extends State<QRScanView>
 
   Widget _instructionViewNoPermission(BuildContext context) {
     final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      width: _qrSize,
-      child: Text(
-        'please_ensure'.tr(),
-        style: theme.textTheme.ppMori400White14,
-        textAlign: TextAlign.center,
-      ),
-    );
+    return SplittedBanner(
+        headerWidget: Row(
+          children: [
+            SvgPicture.asset('assets/images/iconController.svg',
+                colorFilter: const ColorFilter.mode(
+                  AppColor.white,
+                  BlendMode.srcIn,
+                )),
+            const SizedBox(width: 20),
+            Text(
+              'allow_camera_permission'.tr(),
+              style: theme.textTheme.ppMori400White14,
+            )
+          ],
+        ),
+        bodyWidget: Text(
+          'allow_camera_permission_desc'.tr(),
+          style: theme.textTheme.ppMori400White14,
+        ));
   }
 
   Widget _instructionView(BuildContext context) {
@@ -560,97 +570,71 @@ class QRScanViewState extends State<QRScanView>
       return const SizedBox();
     }
     return Padding(
-        padding: const EdgeInsets.all(44),
-        child: Column(
-          children: [
-            _instructionHeader(context),
-            _instructionBody(context, widget.scannerItem.instructions)
-          ],
-        ));
+        padding: const EdgeInsets.symmetric(horizontal: 44),
+        child: SplittedBanner(
+            headerWidget: _instructionHeader(context),
+            bodyWidget:
+                _instructionBody(context, widget.scannerItem.instructions)));
   }
 
   Widget _instructionHeader(BuildContext context) {
     final theme = Theme.of(context);
-    return DecoratedBox(
-      decoration: const BoxDecoration(
-        color: AppColor.auGreyBackground,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(15),
-          topRight: Radius.circular(15),
+    return Row(
+      children: [
+        SvgPicture.asset(
+          'assets/images/icon_scan.svg',
         ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 25),
-        child: Row(
-          children: [
-            SvgPicture.asset(
-              'assets/images/icon_scan.svg',
-            ),
-            const SizedBox(width: 20),
-            RichText(
-              text: TextSpan(
-                text: 'scan_qr_code'.tr(),
-                children: [
-                  TextSpan(
-                    text: ' ',
-                    style: theme.textTheme.ppMori400Grey14,
-                  ),
-                  TextSpan(
-                    text: 'in_order_to'.tr(),
-                    style: theme.textTheme.ppMori400Grey14,
-                  ),
-                ],
-                style: theme.textTheme.ppMori400White14,
+        const SizedBox(width: 20),
+        RichText(
+          text: TextSpan(
+            text: 'scan_qr_code'.tr(),
+            children: [
+              TextSpan(
+                text: ' ',
+                style: theme.textTheme.ppMori400Grey14,
               ),
-            ),
-          ],
+              TextSpan(
+                text: 'in_order_to'.tr(),
+                style: theme.textTheme.ppMori400Grey14,
+              ),
+            ],
+            style: theme.textTheme.ppMori400White14,
+          ),
         ),
-      ),
+      ],
     );
   }
 
   Widget _instructionBody(
       BuildContext context, List<ScannerInstruction> instructions) {
     final theme = Theme.of(context);
-    return DecoratedBox(
-      decoration: const BoxDecoration(
-        color: AppColor.primaryBlack,
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(15),
-          bottomRight: Radius.circular(15),
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 25),
-        child: Column(
-          children: instructions
-              .map(
-                (instruction) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Column(
+      children: instructions
+          .map(
+            (instruction) => Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            instruction.name,
-                            style: theme.textTheme.ppMori700White14,
-                          ),
-                          Text(
-                            instruction.detail,
-                            style: theme.textTheme.ppMori400Grey14,
-                          )
-                        ],
+                      Text(
+                        instruction.name,
+                        style: theme.textTheme.ppMori700White14,
                       ),
-                      instruction.icon ?? const SizedBox(),
+                      Text(
+                        instruction.detail,
+                        style: theme.textTheme.ppMori400Grey14,
+                      )
                     ],
                   ),
-                ),
-              )
-              .toList(),
-        ),
-      ),
+                  instruction.icon ?? const SizedBox(),
+                ],
+              ),
+            ),
+          )
+          .toList(),
     );
   }
 
