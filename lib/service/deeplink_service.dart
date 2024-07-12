@@ -453,7 +453,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
       case 'InstantPurchase':
         final url = data['callback_url'];
         final chain = data['chain'];
-        if (url != null && chain != null) {
+        final instantToken = data['instant_purchase_token'];
+        if (url != null && chain != null && instantToken != null) {
           late String? primaryAddress;
           try {
             final addressWallets =
@@ -492,7 +493,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
                   isDismissible: true);
             }
           } else {
-            final link = '$url&ba=$primaryAddress';
+            final link = '$url&ba=$primaryAddress&it=$instantToken';
             log.info('InstantPurchase: $link');
             await _navigationService.goToIRLWebview(IRLWebScreenPayload(link,
                 isPlainUI: true,
