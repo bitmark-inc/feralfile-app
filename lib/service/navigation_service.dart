@@ -229,6 +229,28 @@ class NavigationService {
     }
   }
 
+  Future<void> showQRExpired() async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await UIHelper.showInfoDialog(
+          context, 'Qr code is expired', 'Qr code is expired, please try again',
+          onClose: () => UIHelper.hideInfoDialog(context), isDismissible: true);
+    }
+  }
+
+  Future<void> addressNotFoundError() async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await UIHelper.showInfoDialog(
+          context,
+          'Error',
+          'Sorry, we can not find your address, '
+              'please try again later or contact us for support',
+          onClose: () => UIHelper.hideInfoDialog(context),
+          isDismissible: true);
+    }
+  }
+
   Future<void> showDeclinedGeolocalization() async {
     if (navigatorKey.currentContext != null &&
         navigatorKey.currentState?.mounted == true) {
