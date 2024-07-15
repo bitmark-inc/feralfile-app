@@ -146,6 +146,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
 
   Future<void> openCollection() async {
     await _onItemTapped(HomeNavigatorTab.collection.index);
+    _collectionHomePageKey.currentState?.scrollToTop();
   }
 
   Future<void> _onItemTapped(int index) async {
