@@ -10,10 +10,10 @@ part of 'persona_bloc.dart';
 abstract class PersonaEvent {}
 
 class CreatePersonaAddressesEvent extends PersonaEvent {
-  final String name;
+  final String? name;
   final WalletType walletType;
 
-  CreatePersonaAddressesEvent(this.name, this.walletType);
+  CreatePersonaAddressesEvent(this.walletType, {this.name});
 }
 
 class GetListPersonaEvent extends PersonaEvent {
@@ -43,12 +43,6 @@ class DeletePersonaEvent extends PersonaEvent {
   DeletePersonaEvent(this.persona);
 }
 
-class NamePersonaEvent extends PersonaEvent {
-  final String name;
-
-  NamePersonaEvent(this.name);
-}
-
 class PersonaState {
   ActionState createAccountState = ActionState.notRequested;
   ActionState namePersonaState = ActionState.notRequested;
@@ -71,13 +65,11 @@ class PersonaState {
     ActionState? deletePersonaState,
     Persona? persona,
     List<Persona>? personas,
-  }) {
-    return PersonaState(
+  }) => PersonaState(
       createAccountState: createAccountState ?? this.createAccountState,
       namePersonaState: namePersonaState ?? this.namePersonaState,
       deletePersonaState: deletePersonaState ?? this.deletePersonaState,
       persona: persona ?? this.persona,
       personas: personas ?? this.personas,
     );
-  }
 }
