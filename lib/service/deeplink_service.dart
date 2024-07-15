@@ -457,6 +457,15 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
       case 'InstantPurchase':
         final url = data['callback_url'];
+        final expiredAt = data['expired_at'];
+        if (expiredAt != null) {
+          final expiredAtDate =
+              DateTime.fromMillisecondsSinceEpoch(int.tryParse(expiredAt) ?? 0);
+          if (expiredAtDate.isBefore(DateTime.now())) {
+            unawaited(_navigationService.showQRExpired());
+            break;
+          }
+        }
         final chain = data['chain'];
         final instantToken = data['instant_purchase_token'];
         if (url != null && chain != null && instantToken != null) {
@@ -488,15 +497,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
           }
           _navigationService.popUntilHome();
           if (primaryAddress == null) {
-            final context = _navigationService.context;
-            if (context.mounted) {
-              await UIHelper.showInfoDialog(
-                  context,
-                  'Error',
-                  'Sorry, we can not find you primary address, '
-                      'please try again later or contact us for support',
-                  isDismissible: true);
-            }
+            await _navigationService.addressNotFoundError();
           } else {
             final link = '$url&ba=$primaryAddress&it=$instantToken';
             log.info('InstantPurchase: $link');
