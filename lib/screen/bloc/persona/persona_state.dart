@@ -65,11 +65,12 @@ class PersonaState {
     ActionState? deletePersonaState,
     Persona? persona,
     List<Persona>? personas,
-  }) => PersonaState(
-      createAccountState: createAccountState ?? this.createAccountState,
-      namePersonaState: namePersonaState ?? this.namePersonaState,
-      deletePersonaState: deletePersonaState ?? this.deletePersonaState,
-      persona: persona ?? this.persona,
-      personas: personas ?? this.personas,
-    );
+  }) =>
+      PersonaState(
+        createAccountState: createAccountState ?? this.createAccountState,
+        namePersonaState: namePersonaState ?? this.namePersonaState,
+        deletePersonaState: deletePersonaState ?? this.deletePersonaState,
+        persona: persona ?? this.persona,
+        personas: personas ?? this.personas,
+      );
 }
