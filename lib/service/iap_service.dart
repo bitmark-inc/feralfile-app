@@ -348,20 +348,23 @@ class IAPServiceImpl implements IAPService {
             unawaited(_configurationService.setPremium(true));
           }
           final status = subscriptionStatus!;
-          if (status.isTrial) {
-            purchases.value[purchaseDetails.productID] = IAPProductStatus.trial;
-            trialExpireDates.value[purchaseDetails.productID] =
-                status.expireDate;
-          } else {
-            purchases.value[purchaseDetails.productID] =
-                IAPProductStatus.completed;
-            if (purchaseDetails.status == PurchaseStatus.purchased) {
-              unawaited(injector<ConfigurationService>()
-                  .setSubscriptionTime(DateTime.now()));
+          if (status.productDetails?.customID == purchaseDetails.productID) {
+            if (status.isTrial) {
+              purchases.value[purchaseDetails.productID] =
+                  IAPProductStatus.trial;
+              trialExpireDates.value[purchaseDetails.productID] =
+                  status.expireDate;
+            } else {
+              purchases.value[purchaseDetails.productID] =
+                  IAPProductStatus.completed;
+              if (purchaseDetails.status == PurchaseStatus.purchased) {
+                unawaited(injector<ConfigurationService>()
+                    .setSubscriptionTime(DateTime.now()));
+              }
+              _purchases.add(purchaseDetails);
             }
-            _purchases.add(purchaseDetails);
+            purchases.notifyListeners();
           }
-          purchases.notifyListeners();
         } else {
           log.info('[IAPService] the receipt is invalid');
           unawaited(_configurationService.setPremium(false));

@@ -83,9 +83,8 @@ class _SubscriptionPageState extends State<SubscriptionPage>
             onIndexChanged: (index) {},
             index: initialIndex,
             loop: false,
-            itemBuilder: (context, index) {
-              return _subcribeView(context, subscriptionDetails[index]);
-            },
+            itemBuilder: (context, index) =>
+                _subcribeView(context, subscriptionDetails[index]),
             pagination: const SwiperPagination(
               builder: DotSwiperPaginationBuilder(
                   color: AppColor.auLightGrey,
@@ -99,33 +98,32 @@ class _SubscriptionPageState extends State<SubscriptionPage>
   }
 
   Widget _subcribeView(
-      BuildContext context, SubscriptionDetails subscriptionDetails) {
-    return Column(
-      children: [
-        Expanded(
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                addTitleSpace(),
-                const SizedBox(
-                  height: 98,
-                ),
-                Padding(
-                  padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-                  child: _statusSection(context, subscriptionDetails),
-                ),
-              ],
+          BuildContext context, SubscriptionDetails subscriptionDetails) =>
+      Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  addTitleSpace(),
+                  const SizedBox(
+                    height: 98,
+                  ),
+                  Padding(
+                    padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                    child: _statusSection(context, subscriptionDetails),
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-        Padding(
-          padding: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
-          child: _actionSection(context, subscriptionDetails),
-        ),
-      ],
-    );
-  }
+          Padding(
+            padding: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
+            child: _actionSection(context, subscriptionDetails),
+          ),
+        ],
+      );
 
   Widget _statusSection(
     BuildContext context,
