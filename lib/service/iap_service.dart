@@ -18,18 +18,63 @@ import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/product_details_ext.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:in_app_purchase_android/billing_client_wrappers.dart';
+import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
 import 'package:in_app_purchase_storekit/store_kit_wrappers.dart';
+import 'package:sentry/sentry.dart';
 
 const List<String> _kAppleProductIds = <String>[
-  'Au_IntroSub',
+  ..._kAppleInactiveProductIds,
+  ..._kAppleActiveProductIds,
 ];
 
 const List<String> _kGoogleProductIds = <String>[
+  ..._kGoogleInactiveProductIds,
+  ..._kGoogleActiveProductIds,
+];
+
+const List<String> _kGoogleActiveProductIds = <String>[
+  _kGoogleEssentialProductId,
+  _kGooglePremiumProductId,
+];
+
+const List<String> _kAppleActiveProductIds = <String>[
+  _kAppleEssentialProductId,
+  _kApplePremiumProductId,
+];
+
+const List<String> _kGoogleInactiveProductIds = <String>[
   'com.bitmark.autonomy_client.subscribe',
 ];
+
+const List<String> _kAppleInactiveProductIds = <String>[
+  'Au_IntroSub',
+];
+
+const _kGoogleEssentialProductId = 'com.bitmark.feralfile.membership';
+const _kGooglePremiumProductId = 'com.bitmark.feralfile.membership';
+
+const _kAppleEssentialProductId = 'com.bitmark.feralfile.essential';
+const _kApplePremiumProductId = 'com.bitmark.feralfile.premium';
+
+String essentialCustomId() => Platform.isIOS
+    ? _kAppleEssentialProductId
+    : '${_kGoogleEssentialProductId}_0';
+
+String premiumCustomId() =>
+    Platform.isIOS ? _kApplePremiumProductId : '${_kGooglePremiumProductId}_1';
+
+List<String> inactiveCustomIds() {
+  final ids = Platform.isIOS
+      ? _kAppleInactiveProductIds
+      : _kGoogleInactiveProductIds.map((e) => '${e}_0').toList();
+  return ids;
+}
 
 enum IAPProductStatus {
   loading,
@@ -39,6 +84,12 @@ enum IAPProductStatus {
   error,
   trial,
   completed,
+}
+
+enum UserSubscriptionStatus {
+  free,
+  essential,
+  premium,
 }
 
 abstract class IAPService {
@@ -55,6 +106,8 @@ abstract class IAPService {
   Future<bool> renewJWT();
 
   Future<bool> isSubscribed();
+
+  Future<void> upgradeSubscription(ProductDetails product);
 }
 
 class IAPServiceImpl implements IAPService {
@@ -70,6 +123,7 @@ class IAPServiceImpl implements IAPService {
   ValueNotifier<Map<String, IAPProductStatus>> purchases = ValueNotifier({});
   @override
   ValueNotifier<Map<String, DateTime>> trialExpireDates = ValueNotifier({});
+  final List<PurchaseDetails> _purchases = <PurchaseDetails>[];
 
   IAPServiceImpl(this._configurationService, this._authService) {
     unawaited(setup());
@@ -102,29 +156,58 @@ class IAPServiceImpl implements IAPService {
       log.severe(error);
     });
 
-    final List<String> productIds;
+    await _cleanupPendingTransactions();
 
+    final productDetails = await fetchAllProducts();
+
+    products.value = {for (var e in productDetails) e.customID: e};
+  }
+
+  Future<void> setPaymentQueueDelegate() async {
     if (Platform.isIOS) {
-      productIds = _kAppleProductIds;
-
       var iosPlatformAddition = _inAppPurchase
           .getPlatformAddition<InAppPurchaseStoreKitPlatformAddition>();
       await iosPlatformAddition.setDelegate(PaymentQueueDelegate());
-    } else {
-      productIds = _kGoogleProductIds;
     }
+  }
 
-    await _cleanupPendingTransactions();
+  List<String> _getProductIds() {
+    if (Platform.isIOS) {
+      return _kAppleProductIds;
+    } else {
+      return _kGoogleProductIds;
+    }
+  }
 
+  List<String> _getActiveProductIds() {
+    if (Platform.isIOS) {
+      return _kAppleActiveProductIds;
+    } else {
+      return _kGoogleActiveProductIds;
+    }
+  }
+
+  Future<List<ProductDetails>> _fetchProducts(List<String> productIds) async {
     ProductDetailsResponse productDetailResponse =
         await _inAppPurchase.queryProductDetails(productIds.toSet());
     if (productDetailResponse.error != null) {
-      return;
+      unawaited(Sentry.captureException(productDetailResponse.error));
+      return [];
     }
 
-    products.value = {
-      for (var e in productDetailResponse.productDetails) e.id: e
-    };
+    return productDetailResponse.productDetails;
+  }
+
+  Future<List<ProductDetails>> fetchAllProducts() async {
+    await setPaymentQueueDelegate();
+    final productIds = _getProductIds();
+    return _fetchProducts(productIds);
+  }
+
+  Future<List<ProductDetails>> fetchActiveProducts() async {
+    await setPaymentQueueDelegate();
+    final productIds = _getActiveProductIds();
+    return _fetchProducts(productIds);
   }
 
   @override
@@ -146,6 +229,10 @@ class IAPServiceImpl implements IAPService {
 
   @override
   Future<void> purchase(ProductDetails product) async {
+    await _purchase(product);
+  }
+
+  Future<void> _purchase(ProductDetails product) async {
     if (!(await _inAppPurchase.isAvailable())) {
       return;
     }
@@ -159,6 +246,46 @@ class IAPServiceImpl implements IAPService {
 
     log.info('[IAPService] buy non comsumable: ${product.id}');
     await _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
+  }
+
+  GooglePlayPurchaseDetails? _getOldPurchaseDetails(ProductDetails product) {
+    if (product.customID == premiumCustomId()) {
+      return _purchases.firstWhereOrNull(
+              (element) => element.productID == _kGoogleEssentialProductId)
+          as GooglePlayPurchaseDetails?;
+    }
+    return null;
+  }
+
+  //
+  Future<void> _androidUpgradeSubscription(ProductDetails product) async {
+    final oldPurchase = _getOldPurchaseDetails(product);
+    final purchaseParam = GooglePlayPurchaseParam(
+      productDetails: product,
+      changeSubscriptionParam: oldPurchase != null
+          ? ChangeSubscriptionParam(
+              oldPurchaseDetails: oldPurchase,
+              prorationMode: ProrationMode.immediateWithTimeProration,
+            )
+          : null,
+    );
+
+    log.info('[IAPService] purchase: ${product.id}');
+
+    await _cleanupPendingTransactions();
+
+    log.info('[IAPService] buy non comsumable: ${product.id}');
+    await _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
+  }
+
+  // upgrade subscription
+  @override
+  Future<void> upgradeSubscription(ProductDetails product) async {
+    if (Platform.isAndroid) {
+      return _androidUpgradeSubscription(product);
+    } else if (Platform.isIOS) {
+      return _purchase(product);
+    }
   }
 
   @override
@@ -182,6 +309,74 @@ class IAPServiceImpl implements IAPService {
     }
   }
 
+  Future<void> _onPurchaseUpdated(PurchaseDetails purchaseDetails) async {
+    log.info('[IAPService] purchase: ${purchaseDetails.productID},'
+        ' status: ${purchaseDetails.status.name}');
+
+    if (purchaseDetails.pendingCompletePurchase) {
+      await _inAppPurchase.completePurchase(purchaseDetails);
+    }
+
+    if (purchaseDetails.status == PurchaseStatus.pending) {
+      purchases.value[purchaseDetails.productID] = IAPProductStatus.pending;
+    } else if (purchaseDetails.status == PurchaseStatus.canceled) {
+      purchases.value[purchaseDetails.productID] =
+          IAPProductStatus.notPurchased;
+    } else {
+      if (purchaseDetails.status == PurchaseStatus.error) {
+        purchases.value[purchaseDetails.productID] = IAPProductStatus.error;
+        log.warning(
+            "[IAPService] error: ${purchaseDetails.error?.message ?? ""}");
+      } else if (purchaseDetails.status == PurchaseStatus.purchased ||
+          purchaseDetails.status == PurchaseStatus.restored) {
+        final receiptData =
+            purchaseDetails.verificationData.serverVerificationData;
+        if (_receiptData == receiptData) {
+          // Prevent duplicated events.
+          return;
+        }
+        _receiptData = receiptData;
+        final jwt = await _verifyPurchase(receiptData);
+        final subscriptionStatus = jwt?.getSubscriptionStatus();
+        log
+          ..info('[IAPService] subscription: $subscriptionStatus')
+          ..info('[IAPService] verifying the receipt');
+        if (subscriptionStatus?.isPremium == true ||
+            subscriptionStatus?.isEssential == true) {
+          unawaited(_configurationService.setIAPJWT(jwt));
+          if (!_configurationService.isPremium()) {
+            unawaited(_configurationService.setPremium(true));
+          }
+          final status = subscriptionStatus!;
+          if (status.isTrial) {
+            purchases.value[purchaseDetails.productID] = IAPProductStatus.trial;
+            trialExpireDates.value[purchaseDetails.productID] =
+                status.expireDate;
+          } else {
+            purchases.value[purchaseDetails.productID] =
+                IAPProductStatus.completed;
+            if (purchaseDetails.status == PurchaseStatus.purchased) {
+              unawaited(injector<ConfigurationService>()
+                  .setSubscriptionTime(DateTime.now()));
+            }
+            _purchases.add(purchaseDetails);
+          }
+          purchases.notifyListeners();
+        } else {
+          log.info('[IAPService] the receipt is invalid');
+          unawaited(_configurationService.setPremium(false));
+          purchases.value[purchaseDetails.productID] = IAPProductStatus.expired;
+          _purchases.remove(purchaseDetails);
+          unawaited(_configurationService.setIAPReceipt(null));
+          unawaited(_cleanupPendingTransactions());
+          purchases.notifyListeners();
+          return;
+        }
+      }
+    }
+    purchases.notifyListeners();
+  }
+
   void _listenToPurchaseUpdated(List<PurchaseDetails> purchaseDetailsList) {
     if (purchaseDetailsList.isEmpty) {
       // Remove purchase status
@@ -191,70 +386,7 @@ class IAPServiceImpl implements IAPService {
     }
 
     purchaseDetailsList.forEach((PurchaseDetails purchaseDetails) async {
-      log.info('[IAPService] purchase: ${purchaseDetails.productID},'
-          ' status: ${purchaseDetails.status.name}');
-
-      if (purchaseDetails.pendingCompletePurchase) {
-        await _inAppPurchase.completePurchase(purchaseDetails);
-      }
-
-      if (purchaseDetails.status == PurchaseStatus.pending) {
-        purchases.value[purchaseDetails.productID] = IAPProductStatus.pending;
-      } else if (purchaseDetails.status == PurchaseStatus.canceled) {
-        purchases.value[purchaseDetails.productID] =
-            IAPProductStatus.notPurchased;
-      } else {
-        if (purchaseDetails.status == PurchaseStatus.error) {
-          purchases.value[purchaseDetails.productID] = IAPProductStatus.error;
-          log.warning(
-              "[IAPService] error: ${purchaseDetails.error?.message ?? ""}");
-        } else if (purchaseDetails.status == PurchaseStatus.purchased ||
-            purchaseDetails.status == PurchaseStatus.restored) {
-          final receiptData =
-              purchaseDetails.verificationData.serverVerificationData;
-          if (_receiptData == receiptData) {
-            // Prevent duplicated events.
-            return;
-          }
-          _receiptData = receiptData;
-          final jwt = await _verifyPurchase(receiptData);
-          final subscriptionStatus = jwt?.getSubscriptionStatus();
-          log
-            ..info('[IAPService] subscription: $subscriptionStatus')
-            ..info('[IAPService] verifying the receipt');
-          if (subscriptionStatus?.isPremium == true) {
-            unawaited(_configurationService.setIAPJWT(jwt));
-            if (!_configurationService.isPremium()) {
-              unawaited(_configurationService.setPremium(true));
-            }
-            final status = subscriptionStatus!;
-            if (status.isTrial) {
-              purchases.value[purchaseDetails.productID] =
-                  IAPProductStatus.trial;
-              trialExpireDates.value[purchaseDetails.productID] =
-                  status.expireDate;
-            } else {
-              purchases.value[purchaseDetails.productID] =
-                  IAPProductStatus.completed;
-              if (purchaseDetails.status == PurchaseStatus.purchased) {
-                unawaited(injector<ConfigurationService>()
-                    .setSubscriptionTime(DateTime.now()));
-              }
-            }
-            purchases.notifyListeners();
-          } else {
-            log.info('[IAPService] the receipt is invalid');
-            unawaited(_configurationService.setPremium(false));
-            purchases.value[purchaseDetails.productID] =
-                IAPProductStatus.expired;
-            unawaited(_configurationService.setIAPReceipt(null));
-            unawaited(_cleanupPendingTransactions());
-            purchases.notifyListeners();
-            return;
-          }
-        }
-      }
-      purchases.notifyListeners();
+      await _onPurchaseUpdated(purchaseDetails);
     });
   }
 
