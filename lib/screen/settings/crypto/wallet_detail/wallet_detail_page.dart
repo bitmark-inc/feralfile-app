@@ -76,6 +76,9 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
     _renameController.text = walletAddress.name ?? widget.payload.type.source;
     address = walletAddress.address;
 
+    context
+        .read<WalletDetailBloc>()
+        .add(WalletDetailPrimaryAddressEvent(walletAddress));
     _callBlocWallet();
     controller = ScrollController();
     controller.addListener(_listener);
@@ -109,15 +112,12 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
             .read<WalletDetailBloc>()
             .add(WalletDetailBalanceEvent(cryptoType, address));
         context.read<USDCBloc>().add(GetUSDCBalanceWithAddressEvent(address));
-        break;
       case CryptoType.XTZ:
         context
             .read<WalletDetailBloc>()
             .add(WalletDetailBalanceEvent(cryptoType, address));
-        break;
       case CryptoType.USDC:
         context.read<USDCBloc>().add(GetUSDCBalanceWithAddressEvent(address));
-        break;
       default:
         // do nothing
         break;
@@ -255,7 +255,13 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                                           )
                                         else
                                           SizedBox(
-                                              height: hideConnection ? 84 : 52),
+                                              height: hideConnection ? 54 : 22),
+                                        if (state.isPrimary) ...[
+                                          Padding(
+                                              padding: padding,
+                                              child: _primaryAddress()),
+                                          const SizedBox(height: 24)
+                                        ],
                                         Padding(
                                           padding: padding,
                                           child: _addressSection(context),
@@ -345,6 +351,25 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
       _isRename = true;
       _renameFocusNode.requestFocus();
     });
+  }
+
+  Widget _primaryAddress() {
+    final theme = Theme.of(context);
+    final primaryAddressStyle =
+        theme.textTheme.ppMori400Black14.copyWith(color: AppColor.auGrey);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+          color: AppColor.primaryBlack,
+          border: Border.all(color: AppColor.primaryBlack),
+          borderRadius: BorderRadius.circular(20)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
+        child: Text(
+          'primary_address'.tr(),
+          style: primaryAddressStyle,
+        ),
+      ),
+    );
   }
 
   Widget _usdcBalance(String balance) {

@@ -16,9 +16,9 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/util/account_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/primary_address_channel.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/wallet_address_ext.dart';
 import 'package:autonomy_flutter/view/account_view.dart';
 import 'package:autonomy_flutter/view/crypto_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -67,27 +67,26 @@ class _AccountsViewState extends State<AccountsView> {
             if (!widget.isInSettingsPage) {
               return _noEditAccountsListWidget(accounts);
             }
+            final primaryAccount = accounts.firstWhere(
+                (element) =>
+                    element.walletAddress
+                        ?.isMatchAddressInfo(state.primaryAddressInfo!) ??
+                    false,
+                orElse: () => accounts.first);
+            final normalAccounts = accounts
+                .where((element) => element.key != primaryAccount.key)
+                .toList();
             return ReorderableListView(
-              header:
-                  widget.isInSettingsPage ? const SizedBox(height: 40) : null,
+              header: _accountCard(context, primaryAccount, isPrimary: true),
               onReorder: (int oldIndex, int newIndex) {
                 context.read<AccountsBloc>().add(ChangeAccountOrderEvent(
                     newOrder: newIndex, oldOrder: oldIndex));
               },
-              children: accounts
-                  .map((account) => _accountCard(context, account,
-                      isPrimary:
-                          _isPrimary(account, state.primaryAddressInfo!)))
+              children: normalAccounts
+                  .map((account) => _accountCard(context, account))
                   .toList(),
             );
           });
-
-  bool _isPrimary(Account account, AddressInfo primaryAddressInfo) {
-    final walletAddress = account.walletAddress;
-    return walletAddress?.uuid == primaryAddressInfo.uuid &&
-        walletAddress?.index == primaryAddressInfo.index &&
-        walletAddress?.cryptoType.toLowerCase() == primaryAddressInfo.chain;
-  }
 
   Widget _accountCard(BuildContext context, Account account,
           {bool isPrimary = false}) =>
@@ -158,26 +157,20 @@ class _AccountsViewState extends State<AccountsView> {
         },
       ),
       CustomSlidableAction(
-        backgroundColor: Colors.red,
+        backgroundColor: isPrimary ? Colors.red.withOpacity(0.3) : Colors.red,
         foregroundColor: theme.colorScheme.secondary,
         padding: EdgeInsets.zero,
         onPressed: isPrimary
             ? null
-            : (_) {
-                _showDeleteAccountConfirmation(context, account);
-              },
-        child: Semantics(
+            : (_) => _showDeleteAccountConfirmation(context, account),
+        child: Opacity(
+          opacity: isPrimary ? 0.3 : 1,
+          child: Semantics(
             label: '${account.name}_delete',
-            child: SvgPicture.asset(
-              'assets/images/trash.svg',
-              colorFilter: isPrimary
-                  ? const ColorFilter.mode(
-                      AppColor.disabledColor,
-                      BlendMode.srcIn,
-                    )
-                  : null,
-            )),
-      ),
+            child: SvgPicture.asset('assets/images/trash.svg'),
+          ),
+        ),
+      )
     ];
     return actions;
   }
