@@ -475,7 +475,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
                 await injector<CloudDatabase>().addressDao.getAllAddresses();
             addressWallets.removeWhere((element) =>
                 element.cryptoType.toLowerCase() !=
-                    chain.toString().toLowerCase() &&
+                    chain.toString().toLowerCase() ||
                 element.isHidden);
             if (addressWallets.isEmpty) {
               primaryAddress = null;
