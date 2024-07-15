@@ -466,11 +466,12 @@ class DeeplinkServiceImpl extends DeeplinkService {
         if (url != null && chain != null && instantToken != null) {
           late String? primaryAddress;
           try {
-            final addressWallets =
-                await injector<CloudDatabase>().addressDao.getAllAddresses();
+            final addressWallets = await injector<CloudDatabase>()
+                .addressDao
+                .getAllAddresses();
             addressWallets.removeWhere((element) =>
                 element.cryptoType.toLowerCase() !=
-                    chain.toString().toLowerCase() &&
+                    chain.toString().toLowerCase() ||
                 element.isHidden);
             if (addressWallets.isEmpty) {
               primaryAddress = null;
