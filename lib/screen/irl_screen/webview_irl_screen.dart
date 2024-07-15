@@ -139,6 +139,58 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
     }
   }
 
+  Future<JSResult?> _countAddress(List<dynamic> args) async {
+    try {
+      log.info('[IRLWebScreen] countAddress: $args');
+      if (args.firstOrNull == null || args.firstOrNull is! Map) {
+        return _logAndReturnJSResult(
+          '_countAddress',
+          JSResult.error('Payload is invalid'),
+        );
+      }
+      final arguments = args.firstOrNull as Map;
+
+      final chain = arguments['chain'];
+      if (chain == null) {
+        return _logAndReturnJSResult(
+          '_countAddress',
+          JSResult.error('Blockchain is invalid'),
+        );
+      }
+
+      final cryptoType = _getCryptoType(chain);
+      if (cryptoType == null) {
+        return _logAndReturnJSResult(
+          '_countAddress',
+          JSResult.error('Blockchain is unsupported'),
+        );
+      }
+      final addresses = await injector<CloudDatabase>()
+          .addressDao
+          .getAddressesByType(cryptoType.source);
+      if (addresses.isEmpty) {
+        final persona =
+            await injector<AccountService>().getOrCreateDefaultPersona();
+        await persona.insertNextAddress(cryptoType == CryptoType.XTZ
+            ? WalletType.Tezos
+            : WalletType.Ethereum);
+        return _logAndReturnJSResult(
+          '_countAddress',
+          JSResult.result(1),
+        );
+      }
+      return _logAndReturnJSResult(
+        '_countAddress',
+        JSResult.result(addresses.length),
+      );
+    } catch (e) {
+      return _logAndReturnJSResult(
+        '_countAddress',
+        JSResult.error(e.toString()),
+      );
+    }
+  }
+
   Future<void> _receiveData(List<dynamic> args) async {
     final argument = args.firstOrNull;
     log.info('[IRLWebScreen] passData: $argument');
@@ -430,6 +482,11 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
     _controller?.addJavaScriptHandler(
       handlerName: 'getAddress',
       callback: _getAddress,
+    );
+
+    _controller?.addJavaScriptHandler(
+      handlerName: 'countAddress',
+      callback: _countAddress,
     );
 
     _controller?.addJavaScriptHandler(
