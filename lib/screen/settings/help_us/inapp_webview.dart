@@ -64,6 +64,7 @@ class _InAppWebViewPageState extends State<InAppWebViewPage> {
                     initialSettings: InAppWebViewSettings(
                       userAgent: 'user_agent'
                           .tr(namedArgs: {'version': '$version ($platform)'}),
+                      isInspectable: true,
                     ),
                     onPermissionRequest: (InAppWebViewController controller,
                         permissionRequest) async {
