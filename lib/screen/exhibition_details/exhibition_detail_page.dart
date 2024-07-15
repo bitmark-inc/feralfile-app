@@ -11,7 +11,6 @@ import 'package:autonomy_flutter/screen/exhibitions/exhibitions_bloc.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
-import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/cast_button.dart';
@@ -182,6 +181,26 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
         ),
       );
 
+  List<Widget> _resource(Exhibition exhibition) {
+    final resources = <Widget>[];
+    for (final resource in exhibition.allResources) {
+      if (resource is CustomExhibitionNote) {
+        resources.add(ExhibitionCustomNote(
+          info: resource,
+        ));
+      }
+      if (resource is Post) {
+        if (resource.coverURI != null) {
+          resources.add(ExhibitionPostView(
+            post: resource,
+            exhibitionID: exhibition.id,
+          ));
+        }
+      }
+    }
+    return resources;
+  }
+
   Widget _notePage(Exhibition exhibition) => LayoutBuilder(
         builder: (context, constraints) => Center(
           child: CarouselSlider(
@@ -189,19 +208,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
               ExhibitionNoteView(
                 exhibition: exhibition,
               ),
-              if (exhibition.isJohnGerrardShow)
-                ...JohnGerrardHelper.customNote.map(
-                  (info) => ExhibitionCustomNote(
-                    info: info,
-                  ),
-                ),
-              ...exhibition.posts?.where((post) => post.coverURI != null).map(
-                        (e) => ExhibitionPostView(
-                          post: e,
-                          exhibitionID: exhibition.id,
-                        ),
-                      ) ??
-                  []
+              ..._resource(exhibition),
             ],
             options: CarouselOptions(
               aspectRatio: constraints.maxWidth / constraints.maxHeight,
@@ -250,7 +257,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
           catalog = ExhibitionCatalog.curatorNote;
         } else {
           catalog = ExhibitionCatalog.resource;
-          catalogId = exhibition.posts![_carouselIndex - 1].id;
+          catalogId = exhibition.allResources[_carouselIndex - 1].id;
         }
       default:
         catalog = ExhibitionCatalog.artwork;
