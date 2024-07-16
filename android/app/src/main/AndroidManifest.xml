@@ -163,7 +163,7 @@
                     android:host="autonomy-app.app.link"
                     android:scheme="https" />
                 <data
-                    android:host="autonomy-app.test-app.link"
+                    android:host="feralfile-app.test-app.link"
                     android:scheme="https" />
                 <data
                     android:host="autonomy-app-alternate.app.link"

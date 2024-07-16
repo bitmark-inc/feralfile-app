@@ -497,8 +497,8 @@ class Constants {
   static const paddingTabletLandScape = EdgeInsets.symmetric(horizontal: 32);
   static const branchDeepLinks = [
     'https://autonomy-app.app.link',
-    'https://autonomy-app.test-app.link'
-        'https://autonomy-app-alternate.app.link',
+    'https://feralfile-app.test-app.link',
+    'https://autonomy-app-alternate.app.link',
     'https://link.autonomy.io',
   ];
 }
