@@ -266,8 +266,9 @@ extension ArtworkExt on Artwork {
 
 String getFFUrl(String uri) {
   // case 1: cloudflare
-  if (uri.startsWith(cloudFlarePrefix)) {
-    return '$uri/thumbnailLarge';
+  const variant = 'thumbnailLarge';
+  if (uri.startsWith(cloudFlarePrefix) && !uri.endsWith(variant)) {
+    return '$uri/$variant';
   }
 
   // case 2 => full cdn
