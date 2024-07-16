@@ -96,6 +96,7 @@ class AddressView extends StatelessWidget {
     final isSelected = address.address == selectedAddress;
     final color = isSelected ? AppColor.white : AppColor.disabledColor;
     final name = address.name ?? '';
+    final style = theme.textTheme.ppMori400White14.copyWith(color: color);
     final balance =
         // ignore: discarded_futures
         getAddressBalance(address.address, cryptoType, getNFT: false);
@@ -109,48 +110,40 @@ class AddressView extends StatelessWidget {
                 ? const Color.fromRGBO(30, 30, 30, 1)
                 : Colors.transparent,
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                LogoCrypto(
+                  cryptoType: cryptoType,
+                  size: 24,
+                ),
+                const SizedBox(
+                  width: 10,
+                ),
                 Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        LogoCrypto(
-                          cryptoType: cryptoType,
-                          size: 24,
-                        ),
-                        const SizedBox(
-                          width: 10,
-                        ),
-                        Text(
-                          name.isNotEmpty
-                              ? name
-                              : cryptoType == CryptoType.ETH
-                                  ? 'Ethereum'
-                                  : 'Tezos',
-                          style: theme.textTheme.ppMori400White14
-                              .copyWith(color: color),
-                        ),
-                        const SizedBox(
-                          width: 20,
-                        ),
-                        Text(
-                          address.address.maskOnly(6),
-                          style: theme.textTheme.ppMori400White14
-                              .copyWith(color: color),
-                        ),
-                      ],
+                    Text(
+                      name.isNotEmpty
+                          ? name
+                          : cryptoType == CryptoType.ETH
+                              ? 'Ethereum'
+                              : 'Tezos',
+                      style: style,
                     ),
                     FutureBuilder<Pair<String, String>>(
                       future: balance,
                       builder: (context, snapshot) {
                         final balances = snapshot.data ?? Pair('--', '--');
-                        final style = theme.textTheme.ppMori400Grey14;
-                        return Text(balances.second, style: style);
+                        return Text(balances.first, style: style);
                       },
                     ),
                   ],
                 ),
                 const Spacer(),
+                Text(address.address.maskOnly(6), style: style),
+                const SizedBox(
+                  width: 20,
+                ),
                 AuCheckBox(
                   isChecked: address.address == selectedAddress,
                   color: color,

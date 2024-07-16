@@ -119,7 +119,7 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
         }
         address = await UIHelper.showDialog(
           context,
-          'select_address_to_connect'.tr(),
+          'select_address_irl'.tr(),
           SelectAddressView(
             addresses: addresses,
           ),
