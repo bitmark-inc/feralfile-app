@@ -233,7 +233,7 @@ class NavigationService {
     if (navigatorKey.currentContext != null &&
         navigatorKey.currentState?.mounted == true) {
       await UIHelper.showInfoDialog(
-          context, 'Qr code is expired', 'Qr code is expired, please try again',
+          context, 'qr_code_expired'.tr(), 'qr_code_expired_desc'.tr(),
           onClose: () => UIHelper.hideInfoDialog(context), isDismissible: true);
     }
   }
@@ -242,12 +242,8 @@ class NavigationService {
     if (navigatorKey.currentContext != null &&
         navigatorKey.currentState?.mounted == true) {
       await UIHelper.showInfoDialog(
-          context,
-          'Error',
-          'Sorry, we can not find your address, '
-              'please try again later or contact us for support',
-          onClose: () => UIHelper.hideInfoDialog(context),
-          isDismissible: true);
+          context, 'error'.tr(), 'can_not_find_address'.tr(),
+          onClose: () => UIHelper.hideInfoDialog(context), isDismissible: true);
     }
   }
 

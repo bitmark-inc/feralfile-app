@@ -152,11 +152,17 @@ Widget accountItem(BuildContext context, Account account,
 }
 
 Future<Pair<String, String>> getAddressBalance(
-    String address, CryptoType cryptoType) async {
-  final tokenDao = injector<TokenDao>();
-  final tokens = await tokenDao.findTokenIDsOwnersOwn([address]);
-  final nftBalance =
-      "${tokens.length} ${tokens.length == 1 ? 'nft'.tr() : 'nfts'.tr()}";
+    String address, CryptoType cryptoType,
+    {bool getNFT = true}) async {
+  late String nftBalance;
+  if (getNFT) {
+    final tokenDao = injector<TokenDao>();
+    final tokens = await tokenDao.findTokenIDsOwnersOwn([address]);
+    nftBalance =
+        "${tokens.length} ${tokens.length == 1 ? 'nft'.tr() : 'nfts'.tr()}";
+  } else {
+    nftBalance = '';
+  }
   switch (cryptoType) {
     case CryptoType.ETH:
       final etherAmount = await injector<EthereumService>().getBalance(address);

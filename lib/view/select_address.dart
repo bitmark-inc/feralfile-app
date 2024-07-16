@@ -1,7 +1,9 @@
 import 'package:autonomy_flutter/database/entity/wallet_address.dart';
+import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/view/account_view.dart';
 import 'package:autonomy_flutter/view/crypto_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/radio_check_box.dart';
@@ -64,7 +66,7 @@ class _SelectAddressViewState extends State<SelectAddressView> {
                     OutlineButton(
                         text: 'cancel'.tr(),
                         onTap: () {
-                          Navigator.pop(context, null);
+                          Navigator.pop(context);
                         })
                   ],
                 )),
@@ -94,6 +96,9 @@ class AddressView extends StatelessWidget {
     final isSelected = address.address == selectedAddress;
     final color = isSelected ? AppColor.white : AppColor.disabledColor;
     final name = address.name ?? '';
+    final balance =
+        // ignore: discarded_futures
+        getAddressBalance(address.address, cryptoType, getNFT: false);
     return GestureDetector(
       onTap: onTap,
       child: Column(
@@ -105,31 +110,47 @@ class AddressView extends StatelessWidget {
                 : Colors.transparent,
             child: Row(
               children: [
-                LogoCrypto(
-                  cryptoType: cryptoType,
-                  size: 24,
-                ),
-                const SizedBox(
-                  width: 10,
-                ),
-                Text(
-                  name.isNotEmpty
-                      ? name
-                      : cryptoType == CryptoType.ETH
-                          ? 'Ethereum'
-                          : 'Tezos',
-                  style:
-                      theme.textTheme.ppMori400White14.copyWith(color: color),
+                Column(
+                  children: [
+                    Row(
+                      children: [
+                        LogoCrypto(
+                          cryptoType: cryptoType,
+                          size: 24,
+                        ),
+                        const SizedBox(
+                          width: 10,
+                        ),
+                        Text(
+                          name.isNotEmpty
+                              ? name
+                              : cryptoType == CryptoType.ETH
+                                  ? 'Ethereum'
+                                  : 'Tezos',
+                          style: theme.textTheme.ppMori400White14
+                              .copyWith(color: color),
+                        ),
+                        const SizedBox(
+                          width: 20,
+                        ),
+                        Text(
+                          address.address.maskOnly(6),
+                          style: theme.textTheme.ppMori400White14
+                              .copyWith(color: color),
+                        ),
+                      ],
+                    ),
+                    FutureBuilder<Pair<String, String>>(
+                      future: balance,
+                      builder: (context, snapshot) {
+                        final balances = snapshot.data ?? Pair('--', '--');
+                        final style = theme.textTheme.ppMori400Grey14;
+                        return Text(balances.second, style: style);
+                      },
+                    ),
+                  ],
                 ),
                 const Spacer(),
-                Text(
-                  address.address.maskOnly(6),
-                  style:
-                      theme.textTheme.ppMori400White14.copyWith(color: color),
-                ),
-                const SizedBox(
-                  width: 20,
-                ),
                 AuCheckBox(
                   isChecked: address.address == selectedAddress,
                   color: color,

@@ -285,7 +285,7 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
             log.info('[IRLWebScreen] instant_purchase : ${pendingTokens.length}'
                 ' pending tokens');
             await injector<TokensService>().setCustomTokens(pendingTokens);
-            await injector<TokensService>().reindexAddresses([address]);
+            unawaited(injector<TokensService>().reindexAddresses([address]));
             if (pendingTokens.isNotEmpty) {
               NftCollectionBloc.eventController
                   .add(UpdateTokensEvent(tokens: pendingTokens));
