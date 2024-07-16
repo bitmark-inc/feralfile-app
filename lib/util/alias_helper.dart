@@ -1,7 +1,11 @@
 class AliasHelper {
-  static const List<String> _LOWERCASE_AC_ACCOUNT_ALIAS = [
+  static const List<String> _lowercaseAcAccountAlias = [
     'john gerrard',
   ];
+
+  static const _a2pSuffix = '<A2P>';
+  static const _custodySuffix = '_custody';
+  static const _tezosSuffix = '_tez';
 
   static String transform(String value, {bool isArtistOrCurator = false}) {
     value = value.trim();
@@ -9,7 +13,7 @@ class AliasHelper {
     if (value.isNotEmpty && isArtistOrCurator) {
       value = _removeArtistCuratorAliasSuffixes(value);
 
-      if (_LOWERCASE_AC_ACCOUNT_ALIAS.contains(value.toLowerCase())) {
+      if (_lowercaseAcAccountAlias.contains(value.toLowerCase())) {
         value = value.toLowerCase();
       }
     }
@@ -35,20 +39,8 @@ class AliasHelper {
   static String _formatTezosValue(String value) =>
       '${value.substring(0, 7)}...${value.substring(value.length - 4)}';
 
-  static String _removeArtistCuratorAliasSuffixes(String value) {
-    const a2pSuffix = AppSetting.a2pSuffix;
-    const custodySuffix = AppSetting.custodySuffix;
-    const tezosSuffix = AppSetting.tezosSuffix;
-
-    return value
-        .replaceAll(RegExp('$a2pSuffix\$'), '')
-        .replaceAll(RegExp('$custodySuffix\$'), '')
-        .replaceAll(RegExp('$tezosSuffix\$'), '');
-  }
-}
-
-class AppSetting {
-  static const a2pSuffix = '<A2P>';
-  static const custodySuffix = '_custody';
-  static const tezosSuffix = '_tez';
+  static String _removeArtistCuratorAliasSuffixes(String value) => value
+      .replaceAll(RegExp('$_a2pSuffix\$'), '')
+      .replaceAll(RegExp('$_custodySuffix\$'), '')
+      .replaceAll(RegExp('$_tezosSuffix\$'), '');
 }
