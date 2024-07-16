@@ -96,9 +96,15 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
           .addressDao
           .getAddressesByType(cryptoType.source);
       if (addresses.isEmpty) {
-        final persona =
-            await injector<AccountService>().getOrCreateDefaultPersona();
-        final addedAddress = await persona.insertNextAddress(
+        final personas =
+            await injector<CloudDatabase>().personaDao.getDefaultPersonas();
+        if (personas.isEmpty) {
+          return _logAndReturnJSResult(
+            '_countAddress',
+            JSResult.error('Account not found'),
+          );
+        }
+        final addedAddress = await personas.first.insertNextAddress(
             cryptoType == CryptoType.XTZ
                 ? WalletType.Tezos
                 : WalletType.Ethereum);
@@ -169,9 +175,15 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
           .addressDao
           .getAddressesByType(cryptoType.source);
       if (addresses.isEmpty) {
-        final persona =
-            await injector<AccountService>().getOrCreateDefaultPersona();
-        await persona.insertNextAddress(cryptoType == CryptoType.XTZ
+        final personas =
+            await injector<CloudDatabase>().personaDao.getDefaultPersonas();
+        if (personas.isEmpty) {
+          return _logAndReturnJSResult(
+            '_countAddress',
+            JSResult.error('Account not found'),
+          );
+        }
+        await personas.first.insertNextAddress(cryptoType == CryptoType.XTZ
             ? WalletType.Tezos
             : WalletType.Ethereum);
         return _logAndReturnJSResult(
