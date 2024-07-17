@@ -4,7 +4,6 @@ import 'dart:math';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/screen/detail/royalty/royalty_bloc.dart';
@@ -711,7 +710,7 @@ Widget artworkDetailsRightSection(BuildContext context, AssetToken assetToken) {
   final artworkID = assetToken.feralfileArtworkId;
   if (assetToken.shouldShowFeralfileRight) {
     return ArtworkRightsView(
-      contract: FFContract('', '', assetToken.contractAddress ?? ''),
+      contractAddress: assetToken.contractAddress,
       artworkID: artworkID,
     );
   }
@@ -1787,13 +1786,13 @@ class _PostcardRightsViewState extends State<PostcardRightsView> {
 
 class ArtworkRightsView extends StatefulWidget {
   final TextStyle? linkStyle;
-  final FFContract contract;
+  final String? contractAddress;
   final String? artworkID;
   final String? exhibitionID;
 
   const ArtworkRightsView(
-      {required this.contract,
-      super.key,
+      {super.key,
+      this.contractAddress,
       this.linkStyle,
       this.artworkID,
       this.exhibitionID});
@@ -1809,7 +1808,7 @@ class _ArtworkRightsViewState extends State<ArtworkRightsView> {
     context.read<RoyaltyBloc>().add(GetRoyaltyInfoEvent(
         exhibitionID: widget.exhibitionID,
         artworkID: widget.artworkID,
-        contractAddress: widget.contract.address));
+        contractAddress: widget.contractAddress ?? ''));
   }
 
   String getUrl(RoyaltyState state) {

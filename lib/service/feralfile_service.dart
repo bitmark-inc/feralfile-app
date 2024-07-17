@@ -597,7 +597,9 @@ class FeralFileServiceImpl extends FeralFileService {
       listSeries = await _sourceExhibitionAPI.getSourceExhibitionSeries();
     }
 
-    final series = listSeries.firstWhere((series) => series.id == seriesID);
+    final series = listSeries
+        .firstWhere((series) => series.id == seriesID)
+        .copyWith(exhibition: sourceExhibition);
     if (includeFirstArtwork) {
       final firstArtwork = series.artworks!.first;
       return series.copyWith(artwork: firstArtwork);
