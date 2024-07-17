@@ -238,6 +238,8 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                       '${'you_are_subscribed_at'.tr(
                         namedArgs: {
                           'price': subscriptionDetails.productDetails.price,
+                          'duration':
+                              subscriptionDetails.productDetails.period.name,
                         },
                       )}\n${'auto_renews_unless_cancelled'.tr()}',
                       style: theme.textTheme.ppMori400Black12,
