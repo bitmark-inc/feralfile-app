@@ -303,6 +303,8 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                     '${'renew_for'.tr(
                       namedArgs: {
                         'price': subscriptionDetails.productDetails.price,
+                        'duration':
+                            subscriptionDetails.productDetails.period.name,
                       },
                     )}\n${'auto_renews_unless_cancelled'.tr()}',
                     style: theme.textTheme.ppMori400Black12,
@@ -325,13 +327,20 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                         onPressSubscribe(context,
                             subscriptionDetails: subscriptionDetails);
                       },
-                      text: 'subscribe_for_a_30_day'.tr()),
+                      text: 'subscribe_for_a_30_day'.tr(namedArgs: {
+                        'duration':
+                            subscriptionDetails.productDetails.period.name,
+                      })),
                   const SizedBox(
                     height: 10,
                   ),
                   Text(
                     '${'then_price'.tr(
-                      args: [subscriptionDetails.productDetails.price],
+                      namedArgs: {
+                        'price': subscriptionDetails.productDetails.price,
+                        'duration':
+                            subscriptionDetails.productDetails.period.name,
+                      },
                     )}\n${'auto_renews_unless_cancelled'.tr()}',
                     style: theme.textTheme.ppMori400Black12,
                     textAlign: TextAlign.center,

@@ -56,7 +56,7 @@ const _kGooglePremiumProductId = 'com.bitmark.feralfile.membership';
 const _kApplePremiumProductId = 'com.bitmark.feralfile.premium';
 
 String premiumCustomId() =>
-    Platform.isIOS ? _kApplePremiumProductId : '${_kGooglePremiumProductId}_1';
+    Platform.isIOS ? _kApplePremiumProductId : '${_kGooglePremiumProductId}_0';
 
 List<String> inactiveCustomIds() {
   final ids = Platform.isIOS
