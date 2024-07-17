@@ -85,11 +85,13 @@ class _SubscriptionPageState extends State<SubscriptionPage>
             loop: false,
             itemBuilder: (context, index) =>
                 _subcribeView(context, subscriptionDetails[index]),
-            pagination: const SwiperPagination(
-              builder: DotSwiperPaginationBuilder(
-                  color: AppColor.auLightGrey,
-                  activeColor: MomaPallet.lightYellow),
-            ),
+            pagination: subscriptionDetails.length > 1
+                ? const SwiperPagination(
+                    builder: DotSwiperPaginationBuilder(
+                        color: AppColor.auLightGrey,
+                        activeColor: MomaPallet.lightYellow),
+                  )
+                : null,
             controller: SwiperController(),
           );
         }),
