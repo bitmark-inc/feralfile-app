@@ -19,11 +19,8 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/product_details_ext.dart';
-import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
-import 'package:in_app_purchase_android/billing_client_wrappers.dart';
-import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
 import 'package:in_app_purchase_storekit/store_kit_wrappers.dart';
 import 'package:sentry/sentry.dart';
@@ -39,12 +36,10 @@ const List<String> _kGoogleProductIds = <String>[
 ];
 
 const List<String> _kGoogleActiveProductIds = <String>[
-  _kGoogleEssentialProductId,
   _kGooglePremiumProductId,
 ];
 
 const List<String> _kAppleActiveProductIds = <String>[
-  _kAppleEssentialProductId,
   _kApplePremiumProductId,
 ];
 
@@ -56,15 +51,9 @@ const List<String> _kAppleInactiveProductIds = <String>[
   'Au_IntroSub',
 ];
 
-const _kGoogleEssentialProductId = 'com.bitmark.feralfile.membership';
 const _kGooglePremiumProductId = 'com.bitmark.feralfile.membership';
 
-const _kAppleEssentialProductId = 'com.bitmark.feralfile.essential';
 const _kApplePremiumProductId = 'com.bitmark.feralfile.premium';
-
-String essentialCustomId() => Platform.isIOS
-    ? _kAppleEssentialProductId
-    : '${_kGoogleEssentialProductId}_0';
 
 String premiumCustomId() =>
     Platform.isIOS ? _kApplePremiumProductId : '${_kGooglePremiumProductId}_1';
@@ -106,8 +95,6 @@ abstract class IAPService {
   Future<bool> renewJWT();
 
   Future<bool> isSubscribed();
-
-  Future<void> upgradeSubscription(ProductDetails product);
 }
 
 class IAPServiceImpl implements IAPService {
@@ -248,46 +235,6 @@ class IAPServiceImpl implements IAPService {
     await _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
   }
 
-  GooglePlayPurchaseDetails? _getOldPurchaseDetails(ProductDetails product) {
-    if (product.customID == premiumCustomId()) {
-      return _purchases.firstWhereOrNull(
-              (element) => element.productID == _kGoogleEssentialProductId)
-          as GooglePlayPurchaseDetails?;
-    }
-    return null;
-  }
-
-  //
-  Future<void> _androidUpgradeSubscription(ProductDetails product) async {
-    final oldPurchase = _getOldPurchaseDetails(product);
-    final purchaseParam = GooglePlayPurchaseParam(
-      productDetails: product,
-      changeSubscriptionParam: oldPurchase != null
-          ? ChangeSubscriptionParam(
-              oldPurchaseDetails: oldPurchase,
-              prorationMode: ProrationMode.immediateWithTimeProration,
-            )
-          : null,
-    );
-
-    log.info('[IAPService] purchase: ${product.id}');
-
-    await _cleanupPendingTransactions();
-
-    log.info('[IAPService] buy non comsumable: ${product.id}');
-    await _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
-  }
-
-  // upgrade subscription
-  @override
-  Future<void> upgradeSubscription(ProductDetails product) async {
-    if (Platform.isAndroid) {
-      return _androidUpgradeSubscription(product);
-    } else if (Platform.isIOS) {
-      return _purchase(product);
-    }
-  }
-
   @override
   Future<void> restore() async {
     log.info('[IAPService] restore purchases');
@@ -341,8 +288,7 @@ class IAPServiceImpl implements IAPService {
         log
           ..info('[IAPService] subscription: $subscriptionStatus')
           ..info('[IAPService] verifying the receipt');
-        if (subscriptionStatus?.isPremium == true ||
-            subscriptionStatus?.isEssential == true) {
+        if (subscriptionStatus?.isPremium == true) {
           unawaited(_configurationService.setIAPJWT(jwt));
           if (!_configurationService.isPremium()) {
             unawaited(_configurationService.setPremium(true));

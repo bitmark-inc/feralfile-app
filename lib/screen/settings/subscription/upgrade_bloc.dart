@@ -36,12 +36,6 @@ class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
           _iapService.purchases.value[customId] = subscriptionStatus.isTrial
               ? IAPProductStatus.trial
               : IAPProductStatus.completed;
-        } else if (subscriptionStatus.isEssential) {
-          // if subscription is trial, update purchase in IAP service
-          final customId = essentialCustomId();
-          _iapService.purchases.value[customId] = subscriptionStatus.isTrial
-              ? IAPProductStatus.trial
-              : IAPProductStatus.completed;
         } else {
           // if subscription is free, update purchase in IAP service
         }

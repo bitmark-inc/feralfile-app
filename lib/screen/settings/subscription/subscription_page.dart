@@ -235,8 +235,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                     Text(
                       '${'you_are_subscribed_at'.tr(
                         namedArgs: {
-                          'price': subscriptionDetails.productDetails?.price ??
-                              '4.99usd'.tr(),
+                          'price': subscriptionDetails.productDetails.price,
                         },
                       )}\n${'auto_renews_unless_cancelled'.tr()}',
                       style: theme.textTheme.ppMori400Black12,
@@ -267,8 +266,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                   Text(
                     '${'after_trial'.tr(
                       namedArgs: {
-                        'price': subscriptionDetails.productDetails?.price ??
-                            '4.99usd'.tr(),
+                        'price': subscriptionDetails.productDetails.price,
                         'date': trialExpireDate,
                       },
                     )}\n${'auto_renews_unless_cancelled'.tr()}',
@@ -304,8 +302,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                   Text(
                     '${'renew_for'.tr(
                       namedArgs: {
-                        'price': subscriptionDetails.productDetails?.price ??
-                            '4.99usd'.tr(),
+                        'price': subscriptionDetails.productDetails.price,
                       },
                     )}\n${'auto_renews_unless_cancelled'.tr()}',
                     style: theme.textTheme.ppMori400Black12,
@@ -334,10 +331,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                   ),
                   Text(
                     '${'then_price'.tr(
-                      args: [
-                        subscriptionDetails.productDetails?.price ??
-                            '4.99usd'.tr()
-                      ],
+                      args: [subscriptionDetails.productDetails.price],
                     )}\n${'auto_renews_unless_cancelled'.tr()}',
                     style: theme.textTheme.ppMori400Black12,
                     textAlign: TextAlign.center,
@@ -372,7 +366,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
 
   void onPressSubscribe(BuildContext context,
       {required SubscriptionDetails subscriptionDetails}) {
-    final ids = [subscriptionDetails.productDetails?.customID ?? ''];
+    final ids = [subscriptionDetails.productDetails.customID];
     context.read<UpgradesBloc>().add(UpgradePurchaseEvent(ids));
   }
 }

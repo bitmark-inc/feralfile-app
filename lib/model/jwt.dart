@@ -14,15 +14,12 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 
 enum MembershipType {
   free,
-  essential,
   premium;
 
   String get name {
     switch (this) {
       case MembershipType.free:
         return 'none';
-      case MembershipType.essential:
-        return 'essential';
       case MembershipType.premium:
         return 'premium';
     }
@@ -30,15 +27,13 @@ enum MembershipType {
 
   static MembershipType fromString(String name) {
     switch (name) {
-      case 'none':
-        return MembershipType.free;
-      case 'essential':
-        return MembershipType.essential;
       case 'premium':
       case 'foundation':
         return MembershipType.premium;
+      case 'none':
+      default:
+        return MembershipType.free;
     }
-    throw Exception('Invalid membership type: $name');
   }
 }
 
@@ -69,11 +64,6 @@ class JWT {
     final membership = claim['membership'] as String;
     return MembershipType.values
         .firstWhere((e) => e == MembershipType.fromString(membership));
-  }
-
-  bool isEssentialValid() {
-    final membership = _getMembershipType();
-    return _isValid() && membership == MembershipType.essential;
   }
 
   bool isPremiumValid() {
@@ -121,18 +111,9 @@ class SubscriptionStatus {
 
   bool get isPremium => membership == MembershipType.premium && !_isExpired();
 
-  bool get isEssential =>
-      membership == MembershipType.essential && !_isExpired();
-
   @override
-  String toString() =>
-      'SubscriptionStatus{plan: $membership, isTrial: $isTrial, expireDate: $expireDate}';
-
-  ProductDetails? get essentialProductDetails {
-    final allProducts = injector<IAPService>().products.value.values.toList();
-    return allProducts
-        .firstWhereOrNull((element) => element.customID == essentialCustomId());
-  }
+  String toString() => 'SubscriptionStatus{plan: $membership, '
+      'isTrial: $isTrial, expireDate: $expireDate}';
 
   ProductDetails? get premiumProductDetails {
     final allProducts = injector<IAPService>().products.value.values.toList();
@@ -144,8 +125,6 @@ class SubscriptionStatus {
     switch (membership) {
       case MembershipType.free:
         return null;
-      case MembershipType.essential:
-        return essentialProductDetails;
       case MembershipType.premium:
         return premiumProductDetails;
     }
