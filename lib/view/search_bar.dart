@@ -67,11 +67,11 @@ class _SearchBarState extends State<AuSearchBar> {
                   widget.onChanged?.call(value);
                   _timer?.cancel();
                   _timer = Timer(const Duration(milliseconds: 300), () {
-                    widget.onSearch?.call(value);
+                    _callOnSearch(value);
                   });
                 },
                 onSubmitted: (value) {
-                  widget.onSearch?.call(value);
+                  _callOnSearch(value);
                 },
               ),
             ),
@@ -79,6 +79,10 @@ class _SearchBarState extends State<AuSearchBar> {
         ],
       ),
     );
+  }
+
+  void _callOnSearch(String value) {
+    widget.onSearch?.call(value.trim());
   }
 }
 
