@@ -296,7 +296,8 @@ class _FeralFileArtworkPreviewPageState
                           ?.address,
                       artworkID: artwork.id,
                       exhibitionID: artwork.series!.exhibitionID,
-                    )
+                    ),
+                  const SizedBox(height: 20),
                 ],
               ),
             ),

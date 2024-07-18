@@ -1822,16 +1822,23 @@ class _ArtworkRightsViewState extends State<ArtworkRightsView> {
   @override
   Widget build(BuildContext context) =>
       BlocBuilder<RoyaltyBloc, RoyaltyState>(builder: (context, state) {
-        if (state.markdownData != null) {
-          return SectionExpandedWidget(
-            header: 'rights'.tr(),
-            padding: const EdgeInsets.only(bottom: 23),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+        final data = state.markdownData?.replaceAll('.**', '**');
+        return SectionExpandedWidget(
+          header: 'rights'.tr(),
+          padding: const EdgeInsets.only(bottom: 23),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (data == null)
+                Center(
+                  child: loadingIndicator(
+                      backgroundColor: AppColor.white,
+                      valueColor: AppColor.auGreyBackground),
+                )
+              else
                 Markdown(
                   key: const Key('rightsSection'),
-                  data: state.markdownData!.replaceAll('.**', '**'),
+                  data: data,
                   softLineBreak: true,
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
@@ -1845,13 +1852,10 @@ class _ArtworkRightsViewState extends State<ArtworkRightsView> {
                         mode: LaunchMode.externalApplication);
                   },
                 ),
-                const SizedBox(height: 23),
-              ],
-            ),
-          );
-        } else {
-          return const SizedBox();
-        }
+              const SizedBox(height: 23),
+            ],
+          ),
+        );
       });
 }
 
