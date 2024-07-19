@@ -32,7 +32,7 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
   late final FeralFileSeriesBloc _feralFileSeriesBloc;
   final _canvasDeviceBloc = injector.get<CanvasDeviceBloc>();
   static const _padding = 14.0;
-  static const _axisSpacing = 10.0;
+  static const _axisSpacing = 5.0;
   final PagingController<int, Artwork> _pagingController =
       PagingController(firstPageKey: 0);
   static const _pageSize = 300;
@@ -110,7 +110,9 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
 
   Widget _artworkSliverGrid(
       BuildContext context, FFSeries series, double ratio) {
-    final cacheWidth = (MediaQuery.sizeOf(context).width - _padding * 2) ~/ 3;
+    final cacheWidth =
+        (MediaQuery.sizeOf(context).width - _padding * 2 - _axisSpacing * 2) ~/
+            3;
     final cacheHeight = (cacheWidth / ratio).toInt();
     return Padding(
       padding:

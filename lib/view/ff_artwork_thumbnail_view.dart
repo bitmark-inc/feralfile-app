@@ -1,8 +1,11 @@
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 
 class FFArtworkThumbnailView extends StatelessWidget {
   const FFArtworkThumbnailView(
@@ -19,20 +22,17 @@ class FFArtworkThumbnailView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => GestureDetector(
-        onTap: () => onTap?.call(),
-        child: Image.network(
-          artwork.thumbnailURL,
-          cacheWidth: cacheWidth,
-          cacheHeight: cacheHeight,
-          fit: BoxFit.cover,
-          loadingBuilder: (context, child, loadingProgress) {
-            if (loadingProgress == null) {
-              return child;
-            }
-            return const GalleryThumbnailPlaceholder();
-          },
-          errorBuilder: (context, url, error) =>
-              const GalleryThumbnailErrorWidget(),
-        ),
-      );
+      onTap: () => onTap?.call(),
+      child: CachedNetworkImage(
+        cacheManager: injector<CacheManager>(),
+        imageUrl: artwork.thumbnailURL,
+        memCacheWidth: cacheWidth,
+        memCacheHeight: cacheHeight,
+        maxWidthDiskCache: cacheWidth,
+        maxHeightDiskCache: cacheHeight,
+        fit: BoxFit.cover,
+        placeholder: (context, url) => const GalleryThumbnailPlaceholder(),
+        errorWidget: (context, url, error) =>
+            const GalleryThumbnailErrorWidget(),
+      ));
 }
