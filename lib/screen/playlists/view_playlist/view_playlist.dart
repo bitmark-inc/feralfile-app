@@ -183,7 +183,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
             Navigator.pop(context);
             UIHelper.showMessageActionNew(
               context,
-              tr('delete_playlist'),
+              'delete_playlist'.tr(),
               '',
               descriptionWidget: Text(
                 'delete_playlist_desc'.tr(),
