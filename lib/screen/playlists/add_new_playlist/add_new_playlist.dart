@@ -171,7 +171,7 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen>
             context,
             title: TextFieldWidget(
               focusNode: _focusNode,
-              hintText: 'new_collection'.tr(),
+              hintText: 'new_playlist'.tr(),
               controller: _playlistNameC,
               cursorColor: theme.colorScheme.primary,
               style: theme.textTheme.ppMori400Black14,
