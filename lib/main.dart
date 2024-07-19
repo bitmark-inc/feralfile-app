@@ -77,6 +77,7 @@ void main() async {
         try {
           await runFeralFileApp();
         } catch (e, stackTrace) {
+          log.info('Error in main', e);
           await Sentry.captureException(e, stackTrace: stackTrace);
           rethrow;
         }
