@@ -444,6 +444,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
                 isDismissible: true,
                 autoDismissAfter: 3);
           }
+        } else {
+          await _navigationService.showCannotConnectTv();
         }
 
       default:
