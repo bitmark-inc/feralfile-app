@@ -239,7 +239,6 @@ class AppRouter {
     final personaBloc = PersonaBloc(
       injector<CloudDatabase>(),
       injector(),
-      injector<AuditService>(),
     );
     final identityBloc = IdentityBloc(injector<AppDatabase>(), injector());
     final canvasDeviceBloc = injector<CanvasDeviceBloc>();
@@ -321,6 +320,9 @@ class AppRouter {
                 injector<AuditService>(),
                 injector(),
               ),
+            ),
+            BlocProvider(
+              create: (_) => personaBloc,
             ),
           ], child: const OnboardingPage()),
         );

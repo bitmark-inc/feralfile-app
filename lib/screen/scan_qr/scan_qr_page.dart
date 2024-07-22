@@ -18,7 +18,6 @@ import 'package:autonomy_flutter/screen/bloc/ethereum/ethereum_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
 import 'package:autonomy_flutter/screen/global_receive/receive_page.dart';
-import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -113,7 +112,6 @@ class ScanQRPageState extends State<ScanQRPage>
             create: (_) => PersonaBloc(
               injector<CloudDatabase>(),
               injector(),
-              injector<AuditService>(),
             ),
           ),
           BlocProvider(create: (_) => EthereumBloc(injector(), injector())),
