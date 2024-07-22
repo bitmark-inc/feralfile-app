@@ -468,8 +468,19 @@ class FeralFileServiceImpl extends FeralFileService {
       return await _fakeSeriesArtworks(seriesId, exhibition,
           offset: offset, limit: limit);
     }
-    FeralFileListResponse<Artwork> artworksResponse = await _feralFileApi
-        .getListArtworks(seriesId: seriesId, offset: offset, limit: limit);
+
+    final FeralFileListResponse<Artwork> artworksResponse;
+    if (seriesId == TRAVESS_MERGE_SERIES_ID) {
+      artworksResponse = await _feralFileApi.getListArtworks(
+          seriesId: seriesId,
+          offset: offset,
+          limit: limit,
+          sortOrder: 'DESC',
+          filterBurned: true);
+    } else {
+      artworksResponse = await _feralFileApi.getListArtworks(
+          seriesId: seriesId, offset: offset, limit: limit);
+    }
 
     if (withSeries) {
       final series = await getSeries(seriesId);

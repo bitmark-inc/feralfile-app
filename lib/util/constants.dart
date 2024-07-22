@@ -238,6 +238,9 @@ const List<String> YOUTUBE_VARIANTS = [
 
 const MAGIC_NUMBER = 168;
 
+const TRAVESS_MERGE_SERIES_ID = '2923bc0a-7276-4f98-adf2-ffcf46d4e958';
+// TODO: update to PRD constant: '0a954c31-d336-4e37-af0f-ec336c064879';
+
 Future<bool> isAppCenterBuild() async {
   final PackageInfo info = await PackageInfo.fromPlatform();
   return info.packageName.contains('inhouse');
