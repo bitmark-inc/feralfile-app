@@ -229,6 +229,15 @@ class NavigationService {
     }
   }
 
+  Future<void> showCannotConnectTv() async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await UIHelper.showInfoDialog(context, 'can_not_connect_to_tv'.tr(),
+          'can_not_connect_to_tv_desc'.tr(),
+          onClose: () => UIHelper.hideInfoDialog(context), isDismissible: true);
+    }
+  }
+
   Future<void> showDeclinedGeolocalization() async {
     if (navigatorKey.currentContext != null &&
         navigatorKey.currentState?.mounted == true) {
