@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
+import 'package:autonomy_flutter/util/feralfile_artist_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/header.dart';
@@ -265,7 +266,7 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                                         exhibition.artists![0].alias,
                                       );
                                     },
-                                  text: exhibition.artists![0].alias,
+                                  text: exhibition.artists![0].displayAlias,
                                   style: const TextStyle(
                                     decoration: TextDecoration.underline,
                                   )),
@@ -287,7 +288,7 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                                         .openFeralFileCuratorPage(
                                             exhibition.curator!.alias);
                                   },
-                                text: exhibition.curator!.alias,
+                                text: exhibition.curator!.displayAlias,
                                 style: const TextStyle(
                                   decoration: TextDecoration.underline,
                                 ),

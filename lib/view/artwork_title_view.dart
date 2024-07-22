@@ -1,5 +1,6 @@
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
+import 'package:autonomy_flutter/util/feralfile_artist_ext.dart';
 import 'package:autonomy_flutter/util/series_ext.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
@@ -24,7 +25,7 @@ class ArtworkTitleView extends StatelessWidget {
       crossAxisAlignment: crossAxisAlignment ?? CrossAxisAlignment.start,
       children: [
         Text(
-          artwork.series!.artist?.alias ?? '',
+          artwork.series!.artist?.displayAlias ?? '',
           style: theme.textTheme.ppMori400White14,
         ),
         const SizedBox(height: 3),

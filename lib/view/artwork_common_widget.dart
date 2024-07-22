@@ -22,6 +22,7 @@ import 'package:autonomy_flutter/util/dio_util.dart';
 import 'package:autonomy_flutter/util/exception_ext.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/feral_file_helper.dart';
+import 'package:autonomy_flutter/util/feralfile_artist_ext.dart';
 import 'package:autonomy_flutter/util/image_ext.dart';
 import 'package:autonomy_flutter/util/moma_style_color.dart';
 import 'package:autonomy_flutter/util/series_ext.dart';
@@ -1090,7 +1091,7 @@ class FFArtworkDetailsMetadataSection extends StatelessWidget {
             divider,
             MetaDataItem(
               title: 'artist'.tr(),
-              value: artwork.series!.artist!.alias,
+              value: artwork.series!.artist!.displayAlias,
               tapLink:
                   FeralFileHelper.getArtistUrl(artwork.series!.artist!.alias),
               forceSafariVC: true,
