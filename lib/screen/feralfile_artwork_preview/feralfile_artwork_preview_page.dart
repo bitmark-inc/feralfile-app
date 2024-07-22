@@ -289,6 +289,15 @@ class _FeralFileArtworkPreviewPageState
                   ),
                   const SizedBox(height: 40),
                   FFArtworkDetailsMetadataSection(artwork: artwork),
+                  if (artwork.series?.exhibition != null)
+                    ArtworkRightsView(
+                      contractAddress: artwork
+                          .getContract(artwork.series!.exhibition)
+                          ?.address,
+                      artworkID: artwork.id,
+                      exhibitionID: artwork.series!.exhibitionID,
+                    ),
+                  const SizedBox(height: 20),
                 ],
               ),
             ),
