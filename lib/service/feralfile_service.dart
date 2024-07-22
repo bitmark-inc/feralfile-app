@@ -20,6 +20,7 @@ import 'package:autonomy_flutter/model/ff_list_response.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/crawl_helper.dart';
 import 'package:autonomy_flutter/util/download_helper.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -470,7 +471,7 @@ class FeralFileServiceImpl extends FeralFileService {
     }
 
     final FeralFileListResponse<Artwork> artworksResponse;
-    if (seriesId == TRAVESS_MERGE_SERIES_ID) {
+    if (seriesId == CrawlHelper.mergeSeriesID) {
       artworksResponse = await _feralFileApi.getListArtworks(
           seriesId: seriesId,
           offset: offset,

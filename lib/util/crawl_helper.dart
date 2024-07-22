@@ -7,4 +7,10 @@ class CrawlHelper {
         .getConfig(ConfigGroup.exhibition, ConfigKey.crawl, {});
     return config['exhibition_id'];
   }
+
+  static String? get mergeSeriesID {
+    final config = injector<RemoteConfigService>()
+        .getConfig(ConfigGroup.exhibition, ConfigKey.crawl, {});
+    return config['merge_series_id'];
+  }
 }
