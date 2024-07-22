@@ -4,7 +4,6 @@ import 'dart:math';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/screen/detail/royalty/royalty_bloc.dart';
@@ -22,6 +21,7 @@ import 'package:autonomy_flutter/util/dio_util.dart';
 import 'package:autonomy_flutter/util/exception_ext.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/feral_file_helper.dart';
+import 'package:autonomy_flutter/util/feralfile_artist_ext.dart';
 import 'package:autonomy_flutter/util/image_ext.dart';
 import 'package:autonomy_flutter/util/moma_style_color.dart';
 import 'package:autonomy_flutter/util/series_ext.dart';
@@ -711,7 +711,7 @@ Widget artworkDetailsRightSection(BuildContext context, AssetToken assetToken) {
   final artworkID = assetToken.feralfileArtworkId;
   if (assetToken.shouldShowFeralfileRight) {
     return ArtworkRightsView(
-      contract: FFContract('', '', assetToken.contractAddress ?? ''),
+      contractAddress: assetToken.contractAddress,
       artworkID: artworkID,
     );
   }
@@ -1090,7 +1090,7 @@ class FFArtworkDetailsMetadataSection extends StatelessWidget {
             divider,
             MetaDataItem(
               title: 'artist'.tr(),
-              value: artwork.series!.artist!.alias,
+              value: artwork.series!.artist!.displayAlias,
               tapLink:
                   FeralFileHelper.getArtistUrl(artwork.series!.artist!.alias),
               forceSafariVC: true,
@@ -1787,13 +1787,13 @@ class _PostcardRightsViewState extends State<PostcardRightsView> {
 
 class ArtworkRightsView extends StatefulWidget {
   final TextStyle? linkStyle;
-  final FFContract contract;
+  final String? contractAddress;
   final String? artworkID;
   final String? exhibitionID;
 
   const ArtworkRightsView(
-      {required this.contract,
-      super.key,
+      {super.key,
+      this.contractAddress,
       this.linkStyle,
       this.artworkID,
       this.exhibitionID});
@@ -1809,7 +1809,7 @@ class _ArtworkRightsViewState extends State<ArtworkRightsView> {
     context.read<RoyaltyBloc>().add(GetRoyaltyInfoEvent(
         exhibitionID: widget.exhibitionID,
         artworkID: widget.artworkID,
-        contractAddress: widget.contract.address));
+        contractAddress: widget.contractAddress ?? ''));
   }
 
   String getUrl(RoyaltyState state) {
@@ -1823,16 +1823,23 @@ class _ArtworkRightsViewState extends State<ArtworkRightsView> {
   @override
   Widget build(BuildContext context) =>
       BlocBuilder<RoyaltyBloc, RoyaltyState>(builder: (context, state) {
-        if (state.markdownData != null) {
-          return SectionExpandedWidget(
-            header: 'rights'.tr(),
-            padding: const EdgeInsets.only(bottom: 23),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+        final data = state.markdownData?.replaceAll('.**', '**');
+        return SectionExpandedWidget(
+          header: 'rights'.tr(),
+          padding: const EdgeInsets.only(bottom: 23),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (data == null)
+                Center(
+                  child: loadingIndicator(
+                      backgroundColor: AppColor.white,
+                      valueColor: AppColor.auGreyBackground),
+                )
+              else
                 Markdown(
                   key: const Key('rightsSection'),
-                  data: state.markdownData!.replaceAll('.**', '**'),
+                  data: data,
                   softLineBreak: true,
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
@@ -1846,13 +1853,10 @@ class _ArtworkRightsViewState extends State<ArtworkRightsView> {
                         mode: LaunchMode.externalApplication);
                   },
                 ),
-                const SizedBox(height: 23),
-              ],
-            ),
-          );
-        } else {
-          return const SizedBox();
-        }
+              const SizedBox(height: 23),
+            ],
+          ),
+        );
       });
 }
 

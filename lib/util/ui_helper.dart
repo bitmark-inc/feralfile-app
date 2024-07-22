@@ -165,8 +165,10 @@ class UIHelper {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(title,
-                            style: theme.primaryTextTheme.ppMori700White24),
+                        Expanded(
+                          child: Text(title,
+                              style: theme.primaryTextTheme.ppMori700White24),
+                        ),
                         if (withCloseIcon)
                           Padding(
                             padding: const EdgeInsets.only(left: 10),

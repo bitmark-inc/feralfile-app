@@ -27,7 +27,6 @@ class FFArtist {
   final String alias;
   final String? slug;
   final bool? verified;
-  final bool? isArtist;
   final String? fullName;
   final String? avatarURI;
   final String? accountNumber;
@@ -38,7 +37,6 @@ class FFArtist {
     this.alias,
     this.slug,
     this.verified,
-    this.isArtist,
     this.fullName,
     this.avatarURI,
     this.accountNumber,
@@ -50,7 +48,6 @@ class FFArtist {
         json['alias'] as String,
         json['slug'] as String?,
         json['verified'] as bool?,
-        json['isArtist'] as bool?,
         json['fullName'] as String?,
         json['avatarURI'] as String?,
         json['accountNumber'] as String?,
@@ -62,7 +59,6 @@ class FFArtist {
         'alias': alias,
         'slug': slug,
         'verified': verified,
-        'isArtist': isArtist,
         'fullName': fullName,
         'avatarURI': avatarURI,
         'accountNumber': accountNumber,
