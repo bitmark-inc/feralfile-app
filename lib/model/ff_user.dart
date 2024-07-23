@@ -1,9 +1,6 @@
 class FFUser {
   final String id;
-  final String? slug;
-  final String alias;
-  final String? avatarURI;
-  final String? fullName;
+  final AlumniAccount? alumniAccount;
   String? type;
   Map<String, dynamic>? metadata;
   final DateTime? createdAt;
@@ -11,10 +8,7 @@ class FFUser {
 
   FFUser({
     required this.id,
-    required this.alias,
-    this.slug,
-    this.avatarURI,
-    this.fullName,
+    this.alumniAccount,
     this.type,
     this.metadata,
     this.createdAt,
@@ -22,74 +16,83 @@ class FFUser {
   });
 }
 
+class AlumniAccount {
+  final String? alias;
+  final String? slug;
+  final String? avatarURI;
+  final String? fullName;
+
+  AlumniAccount({
+    this.alias,
+    this.slug,
+    this.avatarURI,
+    this.fullName,
+  });
+
+  factory AlumniAccount.fromJson(Map<String, dynamic> json) => AlumniAccount(
+        alias: json['alias'] as String?,
+        slug: json['slug'] as String?,
+        avatarURI: json['avatarURI'] as String?,
+        fullName: json['fullName'] as String?,
+      );
+  Map<String, dynamic> toJson() => {
+        'alias': alias,
+        'slug': slug,
+        'avatarURI': avatarURI,
+        'fullName': fullName,
+      };
+}
+
 class FFArtist {
   final String id;
-  final String alias;
-  final String? slug;
   final bool? verified;
-  final String? fullName;
-  final String? avatarURI;
   final String? accountNumber;
   final String? type;
+  final AlumniAccount? alumniAccount;
 
   FFArtist(
     this.id,
-    this.alias,
-    this.slug,
     this.verified,
-    this.fullName,
-    this.avatarURI,
     this.accountNumber,
     this.type,
+    this.alumniAccount,
   );
 
   factory FFArtist.fromJson(Map<String, dynamic> json) => FFArtist(
-        json['ID'] as String,
-        json['alias'] as String,
-        json['slug'] as String?,
-        json['verified'] as bool?,
-        json['fullName'] as String?,
-        json['avatarURI'] as String?,
-        json['accountNumber'] as String?,
-        json['type'] as String?,
-      );
+      json['ID'] as String,
+      json['verified'] as bool?,
+      json['accountNumber'] as String?,
+      json['type'] as String?,
+      json['alumniAccount'] != null
+          ? AlumniAccount.fromJson(
+              json['alumniAccount'] as Map<String, dynamic>)
+          : null);
 
   Map<String, dynamic> toJson() => {
         'ID': id,
-        'alias': alias,
-        'slug': slug,
         'verified': verified,
-        'fullName': fullName,
-        'avatarURI': avatarURI,
         'accountNumber': accountNumber,
         'type': type,
+        'alumniAccount': alumniAccount?.toJson(),
       };
 }
 
 class FFCurator extends FFUser {
   final String? email;
-  final String? avatarUri;
 
   FFCurator({
     required super.id,
-    required super.alias,
-    required String super.slug,
-    required this.avatarUri,
     this.email,
-    super.fullName,
     super.type,
     super.metadata,
     super.createdAt,
     super.updatedAt,
+    super.alumniAccount,
   });
 
   factory FFCurator.fromJson(Map<String, dynamic> json) => FFCurator(
         id: json['ID'],
-        alias: json['alias'],
-        slug: json['slug'],
         email: json['email'] as String?,
-        avatarUri: json['avatarURI'] as String?,
-        fullName: json['fullName'] as String?,
         type: json['type'] as String?,
         metadata: json['metadata'] as Map<String, dynamic>?,
         createdAt: json['createdAt'] != null
@@ -98,18 +101,19 @@ class FFCurator extends FFUser {
         updatedAt: json['updatedAt'] != null
             ? DateTime.tryParse(json['updatedAt'])
             : null,
+        alumniAccount: json['alumniAccount'] != null
+            ? AlumniAccount.fromJson(
+                json['alumniAccount'] as Map<String, dynamic>)
+            : null,
       );
 
   Map<String, dynamic> toJson() => {
         'ID': id,
-        'alias': alias,
-        'slug': slug,
         'email': email,
-        'avatarURI': avatarURI,
-        'fullName': fullName,
         'type': type,
         'metadata': metadata,
         'createdAt': createdAt?.toIso8601String(),
         'updatedAt': updatedAt?.toIso8601String(),
+        'alumniAccount': alumniAccount?.toJson(),
       };
 }

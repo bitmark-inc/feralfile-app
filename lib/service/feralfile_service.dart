@@ -249,7 +249,7 @@ class FeralFileServiceImpl extends FeralFileService {
   @override
   Future<String?> getPartnerFullName(String exhibitionId) async {
     final exhibition = await _feralFileApi.getExhibition(exhibitionId);
-    return exhibition.result!.partner?.fullName;
+    return exhibition.result!.partner?.alumniAccount?.fullName;
   }
 
   @override
