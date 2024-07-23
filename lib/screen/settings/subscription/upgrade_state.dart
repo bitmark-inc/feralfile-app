@@ -24,9 +24,10 @@ class SubscriptionDetails {
   final IAPProductStatus status;
   final ProductDetails productDetails;
   final DateTime? trialExpiredDate;
+  final PurchaseDetails? purchaseDetails;
 
   SubscriptionDetails(this.status, this.productDetails,
-      {this.trialExpiredDate});
+      {this.trialExpiredDate, this.purchaseDetails});
 }
 
 class UpgradeState {

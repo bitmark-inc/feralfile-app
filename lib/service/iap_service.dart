@@ -19,6 +19,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/product_details_ext.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
@@ -95,6 +96,8 @@ abstract class IAPService {
   Future<bool> renewJWT();
 
   Future<bool> isSubscribed();
+
+  PurchaseDetails? getPurchaseDetails(String productId);
 }
 
 class IAPServiceImpl implements IAPService {
@@ -294,7 +297,7 @@ class IAPServiceImpl implements IAPService {
             unawaited(_configurationService.setPremium(true));
           }
           final status = subscriptionStatus!;
-          if (status.productDetails?.customID == purchaseDetails.productID) {
+          if (status.productDetails?.id == purchaseDetails.productID) {
             if (status.isTrial) {
               purchases.value[purchaseDetails.productID] =
                   IAPProductStatus.trial;
@@ -362,6 +365,12 @@ class IAPServiceImpl implements IAPService {
         log.info('[IAPService] finish cleaning up');
       }
     }
+  }
+
+  @override
+  PurchaseDetails? getPurchaseDetails(String productId) {
+    return _purchases
+        .firstWhereOrNull((element) => element.productID == productId);
   }
 }
 

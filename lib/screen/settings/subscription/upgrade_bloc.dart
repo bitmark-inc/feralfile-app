@@ -102,6 +102,7 @@ class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
         subscriptionState,
         productDetails,
         trialExpiredDate: trialExpireDate,
+        purchaseDetails: _iapService.getPurchaseDetails(productDetails.id),
       ));
     }
     return subscriptionDetals;

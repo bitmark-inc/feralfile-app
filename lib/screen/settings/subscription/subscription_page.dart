@@ -234,17 +234,27 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                     const SizedBox(
                       height: 10,
                     ),
-                    Text(
-                      '${'you_are_subscribed_at'.tr(
-                        namedArgs: {
-                          'price': subscriptionDetails.productDetails.price,
+                    if (subscriptionDetails.purchaseDetails != null)
+                      Text(
+                        '${'you_are_subscribed_at'.tr(
+                          namedArgs: {
+                            'price': subscriptionDetails.productDetails.price,
+                            'duration':
+                                subscriptionDetails.productDetails.period.name,
+                          },
+                        )}\n${'auto_renews_unless_cancelled'.tr()}',
+                        style: theme.textTheme.ppMori400Black12,
+                        textAlign: TextAlign.center,
+                      )
+                    else
+                      Text(
+                        'you_receive_a_free'.tr(namedArgs: {
                           'duration':
                               subscriptionDetails.productDetails.period.name,
-                        },
-                      )}\n${'auto_renews_unless_cancelled'.tr()}',
-                      style: theme.textTheme.ppMori400Black12,
-                      textAlign: TextAlign.center,
-                    ),
+                        }),
+                        style: theme.textTheme.ppMori400Black12,
+                        textAlign: TextAlign.center,
+                      )
                   ],
                 ))
           ],
