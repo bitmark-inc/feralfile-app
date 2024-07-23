@@ -47,13 +47,13 @@ class _SubscriptionPageState extends State<SubscriptionPage>
       List<SubscriptionDetails> subscriptionDetails) {
     final activeSubscriptionDetails = <SubscriptionDetails>[];
     for (final subscriptionDetail in subscriptionDetails) {
-      final shouldIgnoreOnUI = inactiveCustomIds()
-              .contains(subscriptionDetail.productDetails.customID) &&
-          !(subscriptionDetail.status == IAPProductStatus.completed ||
-              subscriptionDetail.status == IAPProductStatus.trial &&
-                  subscriptionDetail.trialExpiredDate != null &&
-                  subscriptionDetail.trialExpiredDate!
-                      .isBefore(DateTime.now()));
+      final shouldIgnoreOnUI =
+          inactiveIds().contains(subscriptionDetail.productDetails.id) &&
+              !(subscriptionDetail.status == IAPProductStatus.completed ||
+                  subscriptionDetail.status == IAPProductStatus.trial &&
+                      subscriptionDetail.trialExpiredDate != null &&
+                      subscriptionDetail.trialExpiredDate!
+                          .isBefore(DateTime.now()));
       if (!shouldIgnoreOnUI) {
         activeSubscriptionDetails.add(subscriptionDetail);
       }
@@ -135,6 +135,10 @@ class _SubscriptionPageState extends State<SubscriptionPage>
     final titleStyle = theme.textTheme.ppMori400Black16;
     final contentStyle = theme.textTheme.ppMori400Black14;
     IAPProductStatus status = subscriptionDetails.status;
+    if (status == IAPProductStatus.completed &&
+        subscriptionDetails.purchaseDetails == null) {
+      status = IAPProductStatus.notPurchased;
+    }
     switch (status) {
       case IAPProductStatus.completed:
         return Column(
@@ -389,7 +393,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
 
   void onPressSubscribe(BuildContext context,
       {required SubscriptionDetails subscriptionDetails}) {
-    final ids = [subscriptionDetails.productDetails.customID];
+    final ids = [subscriptionDetails.productDetails.id];
     context.read<UpgradesBloc>().add(UpgradePurchaseEvent(ids));
   }
 }

@@ -6,21 +6,10 @@ import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
 import 'package:in_app_purchase_storekit/store_kit_wrappers.dart';
 
-extension GooglePlayProductDetailsExt on GooglePlayProductDetails {
-  String get customID => '${id}_$subscriptionIndex';
-}
-
 extension ProductDetailsExt on ProductDetails {
-  String get customID {
-    if (this is GooglePlayProductDetails) {
-      return (this as GooglePlayProductDetails).customID;
-    }
-    return id;
-  }
-
   SKSubscriptionPeriodUnit get period {
     if (Platform.isAndroid) {
-      if (this.customID == premiumCustomId()) {
+      if (id == premiumId()) {
         return SKSubscriptionPeriodUnit.year;
       } else {
         return SKSubscriptionPeriodUnit.month;

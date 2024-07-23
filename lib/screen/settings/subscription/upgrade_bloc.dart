@@ -12,7 +12,6 @@ import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/product_details_ext.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:sentry/sentry.dart';
 
@@ -32,8 +31,8 @@ class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
         final subscriptionStatus = jwt.getSubscriptionStatus();
         if (subscriptionStatus.isPremium) {
           // if subscription is premium, update purchase in IAP service
-          final customId = premiumCustomId();
-          _iapService.purchases.value[customId] = subscriptionStatus.isTrial
+          final id = premiumId();
+          _iapService.purchases.value[id] = subscriptionStatus.isTrial
               ? IAPProductStatus.trial
               : IAPProductStatus.completed;
         } else {
@@ -92,9 +91,8 @@ class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
     for (final productDetails in listProductDetails) {
       IAPProductStatus subscriptionState = IAPProductStatus.loading;
       DateTime? trialExpireDate;
-      subscriptionState =
-          _iapService.purchases.value[productDetails.customID] ??
-              IAPProductStatus.notPurchased;
+      subscriptionState = _iapService.purchases.value[productDetails.id] ??
+          IAPProductStatus.notPurchased;
       if (subscriptionState == IAPProductStatus.trial) {
         trialExpireDate = _iapService.trialExpireDates.value[productDetails.id];
       }
@@ -111,7 +109,7 @@ class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
   Future<IAPProductStatus> getSubscriptionStatus(
       ProductDetails productDetails) async {
     try {
-      final productId = productDetails.customID;
+      final productId = productDetails.id;
       final subscriptionProductDetails = _iapService.products.value[productId];
       if (subscriptionProductDetails != null) {
         await _iapService.purchase(subscriptionProductDetails);

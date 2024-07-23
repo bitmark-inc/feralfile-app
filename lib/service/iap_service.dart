@@ -18,7 +18,6 @@ import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/product_details_ext.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
@@ -56,13 +55,12 @@ const _kGooglePremiumProductId = 'com.bitmark.feralfile.membership';
 
 const _kApplePremiumProductId = 'com.bitmark.feralfile.premium';
 
-String premiumCustomId() =>
-    Platform.isIOS ? _kApplePremiumProductId : '${_kGooglePremiumProductId}_0';
+String premiumId() =>
+    Platform.isIOS ? _kApplePremiumProductId : _kGooglePremiumProductId;
 
-List<String> inactiveCustomIds() {
-  final ids = Platform.isIOS
-      ? _kAppleInactiveProductIds
-      : _kGoogleInactiveProductIds.map((e) => '${e}_0').toList();
+List<String> inactiveIds() {
+  final ids =
+      Platform.isIOS ? _kAppleInactiveProductIds : _kGoogleInactiveProductIds;
   return ids;
 }
 
@@ -150,7 +148,7 @@ class IAPServiceImpl implements IAPService {
 
     final productDetails = await fetchAllProducts();
 
-    products.value = {for (var e in productDetails) e.customID: e};
+    products.value = {for (var e in productDetails) e.id: e};
   }
 
   Future<void> setPaymentQueueDelegate() async {
@@ -368,10 +366,8 @@ class IAPServiceImpl implements IAPService {
   }
 
   @override
-  PurchaseDetails? getPurchaseDetails(String productId) {
-    return _purchases
-        .firstWhereOrNull((element) => element.productID == productId);
-  }
+  PurchaseDetails? getPurchaseDetails(String productId) =>
+      _purchases.firstWhereOrNull((element) => element.productID == productId);
 }
 
 class PaymentQueueDelegate implements SKPaymentQueueDelegateWrapper {

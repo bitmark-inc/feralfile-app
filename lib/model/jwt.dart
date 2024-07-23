@@ -8,7 +8,6 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/util/jwt.dart';
-import 'package:autonomy_flutter/util/product_details_ext.dart';
 import 'package:collection/collection.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 
@@ -117,8 +116,7 @@ class SubscriptionStatus {
 
   ProductDetails? get premiumProductDetails {
     final allProducts = injector<IAPService>().products.value.values.toList();
-    return allProducts
-        .firstWhereOrNull((element) => element.customID == premiumCustomId());
+    return allProducts.firstWhereOrNull((element) => element.id == premiumId());
   }
 
   ProductDetails? get productDetails {
@@ -131,8 +129,7 @@ class SubscriptionStatus {
   }
 
   bool status(ProductDetails productDetails) {
-    final status =
-        injector<IAPService>().purchases.value[productDetails.customID];
+    final status = injector<IAPService>().purchases.value[productDetails.id];
     return status == IAPProductStatus.completed;
   }
 }
