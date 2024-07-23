@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/series_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/cast_button.dart';
 import 'package:autonomy_flutter/view/custom_note.dart';
@@ -86,7 +87,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
     }
 
     final itemCount =
-        isUpcomingExhibition ? 3 : ((exhibition.series?.length ?? 0) + 3);
+        isUpcomingExhibition ? 3 : ((exhibition.displayableSeries.length) + 3);
     return Column(
       children: [
         Expanded(
@@ -120,7 +121,8 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
                   return _notePage(exhibition);
                 default:
                   final seriesIndex = index - 2;
-                  final series = exhibition.sortedSeries[seriesIndex];
+                  final series =
+                      exhibition.displayableSeries.sorted[seriesIndex];
                   final artwork = series.artwork;
                   if (artwork == null) {
                     return const SizedBox();
@@ -263,7 +265,8 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
       default:
         catalog = ExhibitionCatalog.artwork;
         final seriesIndex = _currentIndex - 2;
-        final currentArtwork = exhibition.sortedSeries[seriesIndex].artwork?.id;
+        final currentArtwork =
+            exhibition.displayableSeries.sorted[seriesIndex].artwork?.id;
         catalogId = currentArtwork;
     }
     return Pair(catalog, catalogId);

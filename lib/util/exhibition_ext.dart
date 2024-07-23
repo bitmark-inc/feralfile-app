@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/crawl_helper.dart';
 import 'package:autonomy_flutter/util/http_helper.dart';
 import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
+import 'package:autonomy_flutter/util/series_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:collection/collection.dart';
 
@@ -43,21 +44,7 @@ extension ExhibitionExt on Exhibition {
 
   bool get isMinted => status == ExhibitionStatus.issued.index;
 
-  List<FFSeries> get sortedSeries {
-    final series = this.series ?? [];
-    // sort by displayIndex, if displayIndex is equal, sort by createdAt
-    series.sort((a, b) {
-      if (a.displayIndex == b.displayIndex) {
-        if (a.createdAt != null && b.createdAt != null) {
-          return b.createdAt!.compareTo(a.createdAt!);
-        } else {
-          return 0;
-        }
-      }
-      return (a.displayIndex ?? 0) - (b.displayIndex ?? 0);
-    });
-    return series;
-  }
+  List<FFSeries> get displayableSeries => series?.displayable ?? [];
 
   String? get getSeriesArtworkModelText {
     if (this.series == null || id == SOURCE_EXHIBITION_ID) {
