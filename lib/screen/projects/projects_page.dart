@@ -59,11 +59,9 @@ class _ProjectsPageState extends State<ProjectsPage>
                       return Center(child: loadingIndicatorLight());
                     }
                     if (state.projects.isEmpty) {
-                      return Center(
-                        child: Text(
-                          'no_project_found'.tr(),
-                          style: Theme.of(context).textTheme.ppMori400White14,
-                        ),
+                      return Text(
+                        'no_project_found'.tr(),
+                        style: Theme.of(context).textTheme.ppMori400White14,
                       );
                     }
                     return _projectsList(context, state);
