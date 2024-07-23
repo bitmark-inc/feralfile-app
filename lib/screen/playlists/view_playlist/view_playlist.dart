@@ -240,14 +240,22 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
   List<Widget> _appBarAction(BuildContext context, PlayListModel playList) => [
         if (editable) ...[
           const SizedBox(width: 15),
-          GestureDetector(
-              onTap: () async => _onMoreTap(context, playList),
-              child: SvgPicture.asset(
-                'assets/images/more_circle.svg',
-                colorFilter:
-                    const ColorFilter.mode(AppColor.white, BlendMode.srcIn),
-                width: 24,
-              )),
+          Semantics(
+            label: 'artworkDotIcon',
+            child: Padding(
+              padding: const EdgeInsets.only(left: 5),
+              child: IconButton(
+                onPressed: () async => _onMoreTap(context, playList),
+                icon: Padding(
+                  padding: const EdgeInsets.all(5),
+                  child: SvgPicture.asset(
+                    'assets/images/more_circle.svg',
+                    width: 22,
+                  ),
+                ),
+              ),
+            ),
+          ),
         ],
         if (_getDisplayKey(playList) != null) ...[
           const SizedBox(width: 15),

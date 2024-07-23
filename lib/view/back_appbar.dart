@@ -373,25 +373,16 @@ AppBar getPlaylistAppBar(
       systemOverlayStyle: systemUiOverlayDarkStyle,
       elevation: 0,
       shadowColor: Colors.transparent,
-      leading: Row(
-        children: [
-          const SizedBox(width: 15),
-          Container(
-            width: 34,
-            height: 34,
-            decoration: BoxDecoration(
-              color: AppColor.auGreyBackground,
-              borderRadius: BorderRadius.circular(50),
+      leading: Semantics(
+          label: 'BACK',
+          child: IconButton(
+            constraints: const BoxConstraints(maxWidth: 56),
+            onPressed: () => Navigator.pop(context),
+            icon: SvgPicture.asset(
+              'assets/images/ff_back_dark.svg',
             ),
-            padding: const EdgeInsets.all(10),
-            child: backButton(
-              context,
-              onBack: () => Navigator.pop(context),
-              color: AppColor.white,
-            ),
-          ),
-        ],
-      ),
+            padding: const EdgeInsets.only(left: 15, right: 10),
+          )),
       leadingWidth: 70,
       titleSpacing: 0,
       backgroundColor: AppColor.primaryBlack,
@@ -450,19 +441,16 @@ AppBar getFFAppBar(
 Widget backButton(BuildContext context,
         {required Function() onBack, Color? color}) =>
     Semantics(
-      label: 'BACK',
-      child: IconButton(
-        onPressed: onBack,
-        constraints: const BoxConstraints(),
-        padding: const EdgeInsets.all(0),
-        iconSize: 11,
-        icon: SvgPicture.asset(
-          'assets/images/icon_back.svg',
-          colorFilter:
-              color != null ? ColorFilter.mode(color, BlendMode.srcIn) : null,
-        ),
-      ),
-    );
+        label: 'BACK',
+        child: IconButton(
+          constraints: const BoxConstraints(maxWidth: 56),
+          onPressed: onBack,
+          icon: SvgPicture.asset(
+            'assets/images/icon_back.svg',
+            colorFilter:
+                color != null ? ColorFilter.mode(color, BlendMode.srcIn) : null,
+          ),
+        ));
 
 // class MomaPallet to save colors
 // Path: lib/util/style.dart
