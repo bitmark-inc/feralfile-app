@@ -43,27 +43,33 @@ class _ProjectsPageState extends State<ProjectsPage>
         extendBody: true,
         // extendBodyBehindAppBar: true,
         backgroundColor: AppColor.primaryBlack,
-        body: CustomScrollView(
-          slivers: [
-            const SliverToBoxAdapter(
-              child: SizedBox(
-                height: 42,
+        body: Padding(
+          padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+          child: CustomScrollView(
+            slivers: [
+              const SliverToBoxAdapter(
+                child: SizedBox(
+                  height: 42,
+                ),
               ),
-            ),
-            SliverToBoxAdapter(
-              child: BlocBuilder<ProjectsBloc, ProjectsState>(
-                builder: (context, state) {
-                  if (state.loading) {
-                    return Center(child: loadingIndicator());
-                  }
-                  return Padding(
-                    padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-                    child: _projectsList(context, state),
-                  );
-                },
+              SliverToBoxAdapter(
+                child: BlocBuilder<ProjectsBloc, ProjectsState>(
+                  builder: (context, state) {
+                    if (state.loading) {
+                      return Center(child: loadingIndicatorLight());
+                    }
+                    if (state.projects.isEmpty) {
+                      return Text(
+                        'no_project_found'.tr(),
+                        style: Theme.of(context).textTheme.ppMori400White14,
+                      );
+                    }
+                    return _projectsList(context, state);
+                  },
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       );
 
