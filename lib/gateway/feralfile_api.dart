@@ -85,6 +85,7 @@ abstract class FeralFileApi {
     @Query('sortBy') String sortBy = 'index',
     @Query('sortOrder') String sortOrder = 'ASC',
     @Query('isViewable') bool? isViewable,
+    @Query('filterBurned') bool? filterBurned,
   });
 
   @POST('/api/web3/messages/action')
