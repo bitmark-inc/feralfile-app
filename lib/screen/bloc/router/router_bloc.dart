@@ -175,13 +175,18 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
 
         await migrationUtil.migrateIfNeeded();
         try {
+          final primaryAddressInfo =
+              await _addressService.getPrimaryAddressInfo();
           final addresses = await _addressService.getAllAddress();
           if (addresses.isEmpty) {
             await _addressService.deriveAddressesFromAllPersona();
           }
-          final addressInfo = await _addressService.pickAddressAsPrimary();
-          await _addressService.registerPrimaryAddress(
-              info: addressInfo, withDidKey: true);
+
+          if (primaryAddressInfo == null) {
+            final addressInfo = await _addressService.pickAddressAsPrimary();
+            await _addressService.registerPrimaryAddress(
+                info: addressInfo, withDidKey: true);
+          }
         } catch (e, stacktrace) {
           log.info('Error while picking primary address', e, stacktrace);
           // rethrow;
