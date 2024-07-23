@@ -295,22 +295,23 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                     : PreferredSize(
                         preferredSize: const Size.fromHeight(kToolbarHeight),
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 14),
+                          padding: const EdgeInsets.only(right: 14),
                           child: AppBar(
                             systemOverlayStyle: systemUiOverlayDarkStyle,
-                            leadingWidth: 44,
                             leading: Semantics(
                               label: 'BACK',
                               child: IconButton(
                                 onPressed: () => Navigator.pop(context),
                                 constraints: const BoxConstraints(
-                                  maxWidth: 34,
-                                  maxHeight: 34,
+                                  maxWidth: 44,
+                                  maxHeight: 44,
                                 ),
-                                icon: SvgPicture.asset(
-                                  'assets/images/ff_back_dark.svg',
+                                icon: Padding(
+                                  padding: const EdgeInsets.all(5),
+                                  child: SvgPicture.asset(
+                                    'assets/images/ff_back_dark.svg',
+                                  ),
                                 ),
-                                padding: const EdgeInsets.all(0),
                               ),
                             ),
                             centerTitle: false,
@@ -440,16 +441,19 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 
   Widget _artworkInfoIcon() => Semantics(
         label: 'artworkInfoIcon',
-        child: GestureDetector(
-          onTap: () {
+        child: IconButton(
+          onPressed: () {
             _isInfoExpand ? _infoShrink() : _infoExpand();
           },
-          child: SvgPicture.asset(
-            !_isInfoExpand
-                ? 'assets/images/info_white.svg'
-                : 'assets/images/info_white_active.svg',
-            width: 22,
-            height: 22,
+          icon: Padding(
+            padding: const EdgeInsets.all(5),
+            child: SvgPicture.asset(
+              !_isInfoExpand
+                  ? 'assets/images/info_white.svg'
+                  : 'assets/images/info_white_active.svg',
+              width: 22,
+              height: 22,
+            ),
           ),
         ),
       );
@@ -461,7 +465,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       subTitle = artistName;
     }
     return Padding(
-      padding: const EdgeInsets.fromLTRB(15, 15, 15, 20),
+      padding: const EdgeInsets.fromLTRB(15, 15, 5, 20),
       child: Row(
         children: [
           Expanded(
@@ -484,13 +488,16 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
             Semantics(
               label: 'artworkDotIcon',
               child: Padding(
-                padding: const EdgeInsets.only(left: 20),
-                child: GestureDetector(
-                  onTap: () async => _showArtworkOptionsDialog(
+                padding: const EdgeInsets.only(left: 5),
+                child: IconButton(
+                  onPressed: () async => _showArtworkOptionsDialog(
                       context, asset, isViewOnly, canvasState),
-                  child: SvgPicture.asset(
-                    'assets/images/more_circle.svg',
-                    width: 22,
+                  icon: Padding(
+                    padding: const EdgeInsets.all(5),
+                    child: SvgPicture.asset(
+                      'assets/images/more_circle.svg',
+                      width: 22,
+                    ),
                   ),
                 ),
               ),

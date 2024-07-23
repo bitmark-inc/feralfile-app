@@ -420,18 +420,17 @@ AppBar getFFAppBar(
           statusBarBrightness: Brightness.dark),
       centerTitle: centerTitle,
       toolbarHeight: 66,
-      leadingWidth: 44,
       scrolledUnderElevation: 0,
       leading: onBack != null
           ? Semantics(
               label: 'BACK',
               child: IconButton(
-                constraints: const BoxConstraints(maxWidth: 34),
+                constraints: const BoxConstraints(maxWidth: 56),
                 onPressed: onBack,
                 icon: SvgPicture.asset(
                   'assets/images/ff_back_dark.svg',
                 ),
-                padding: const EdgeInsets.only(left: 15),
+                padding: const EdgeInsets.only(left: 15, right: 10),
               ))
           : const SizedBox(width: 36),
       automaticallyImplyLeading: false,
