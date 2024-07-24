@@ -74,12 +74,6 @@ enum IAPProductStatus {
   completed,
 }
 
-enum UserSubscriptionStatus {
-  free,
-  essential,
-  premium,
-}
-
 abstract class IAPService {
   late ValueNotifier<Map<String, ProductDetails>> products;
   late ValueNotifier<Map<String, IAPProductStatus>> purchases;
@@ -167,14 +161,6 @@ class IAPServiceImpl implements IAPService {
     }
   }
 
-  List<String> _getActiveProductIds() {
-    if (Platform.isIOS) {
-      return _kAppleActiveProductIds;
-    } else {
-      return _kGoogleActiveProductIds;
-    }
-  }
-
   Future<List<ProductDetails>> _fetchProducts(List<String> productIds) async {
     ProductDetailsResponse productDetailResponse =
         await _inAppPurchase.queryProductDetails(productIds.toSet());
@@ -189,12 +175,6 @@ class IAPServiceImpl implements IAPService {
   Future<List<ProductDetails>> fetchAllProducts() async {
     await setPaymentQueueDelegate();
     final productIds = _getProductIds();
-    return _fetchProducts(productIds);
-  }
-
-  Future<List<ProductDetails>> fetchActiveProducts() async {
-    await setPaymentQueueDelegate();
-    final productIds = _getActiveProductIds();
     return _fetchProducts(productIds);
   }
 

@@ -34,30 +34,4 @@ extension ProductDetailsExt on ProductDetails {
       throw Exception('Unsupported platform');
     }
   }
-
-  String get currencyCode {
-    if (Platform.isAndroid) {
-      return (this as GooglePlayProductDetails).currencyCode;
-    } else if (Platform.isIOS) {
-      return (this as AppStoreProductDetails)
-          .skProduct
-          .priceLocale
-          .currencyCode;
-    } else {
-      throw Exception('Unsupported platform');
-    }
-  }
-
-  String get currencySymbol {
-    if (Platform.isAndroid) {
-      return (this as GooglePlayProductDetails).currencySymbol;
-    } else if (Platform.isIOS) {
-      return (this as AppStoreProductDetails)
-          .skProduct
-          .priceLocale
-          .currencySymbol;
-    } else {
-      throw Exception('Unsupported platform');
-    }
-  }
-} // TODO Implement this library.
+}
