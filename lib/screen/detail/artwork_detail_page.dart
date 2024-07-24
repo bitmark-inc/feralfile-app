@@ -842,6 +842,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       _infoShrink();
     }
     await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    await enableLandscapeMode();
     unawaited(WakelockPlus.enable());
     setState(() {
       _isFullScreen = true;
@@ -854,6 +855,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       overlays: SystemUiOverlay.values,
     );
     unawaited(WakelockPlus.disable());
+    await disableLandscapeMode();
     setState(() {
       _isFullScreen = false;
     });
