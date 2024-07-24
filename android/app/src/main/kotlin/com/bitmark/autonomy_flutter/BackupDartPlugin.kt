@@ -12,6 +12,7 @@ import android.util.Log
 import androidx.annotation.NonNull
 import com.bitmark.libauk.LibAuk
 import com.google.android.gms.auth.blockstore.*
+import com.google.android.gms.auth.blockstore.BlockstoreClient.DEFAULT_BYTES_DATA_KEY
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
@@ -123,9 +124,11 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler, ActivityAware {
         client.retrieveBytes(retrieveBytesRequestBuilder.build())
             .addOnSuccessListener { bytes ->
                 try {
+                    val dataMap = bytes.blockstoreDataMap;
+                    val defaultBytesData = dataMap[DEFAULT_BYTES_DATA_KEY];
                     val data = jsonKT.decodeFromString(
                         BackupData.serializer(),
-                        bytes.toString()
+                        defaultBytesData?.bytes?.toString(Charsets.UTF_8) ?: ""
                     )
 
                     Observable.fromIterable(data.accounts)
