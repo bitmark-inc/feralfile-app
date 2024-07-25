@@ -339,6 +339,7 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
             } else {
               final featureExhibition = exhibitionsState.featuredExhibition;
               final upcomingExhibition = exhibitionsState.upcomingExhibition;
+              final ongoingExhibitions = exhibitionsState.ongoingExhibitions;
               final pastExhibitions = exhibitionsState.pastExhibitions;
               final isSubscribed = subscriptionState.isSubscribed;
 
@@ -374,6 +375,15 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                               true,
                               isSubscribed,
                               'upcoming_exhibition'.tr(),
+                            ),
+                          ],
+                          if (exhibition.id ==
+                              ongoingExhibitions?.first.id) ...[
+                            _exhibitionGroupHeader(
+                              context,
+                              true,
+                              isSubscribed,
+                              'on_going_exhibition'.tr(),
                             ),
                           ],
                           if (exhibition.id == pastExhibitions?.first.id)
