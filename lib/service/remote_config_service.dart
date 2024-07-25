@@ -183,6 +183,7 @@ enum ConfigKey {
   johnGerrard,
   crawl,
   dontFakeArtworkSeriesIds,
+  ongoingExhibitionIDs,
   yokoOnoPrivateTokenIds,
   tezosNodes,
   seriesIds,
@@ -242,6 +243,8 @@ extension ConfigKeyExtension on ConfigKey {
         return 'crawl';
       case ConfigKey.dontFakeArtworkSeriesIds:
         return 'dont_fake_artwork_series_ids';
+      case ConfigKey.ongoingExhibitionIDs:
+        return 'on_going_exhibition_ids';
       case ConfigKey.yokoOnoPrivateTokenIds:
         return 'yoko_ono_private_token_ids';
       case ConfigKey.tezosNodes:
