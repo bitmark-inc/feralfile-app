@@ -212,23 +212,31 @@ class ScanQRPageState extends State<ScanQRPage>
                             duration: const Duration(milliseconds: 300));
                       });
                     },
-                    child: Text(
-                      'show_my_code'.tr(),
-                      style: theme.textTheme.ppMori400White14.copyWith(
-                        decoration: TextDecoration.underline,
-                        decorationColor: AppColor.white,
+                    child: Container(
+                      color: Colors.yellow,
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 10,
+                      ),
+                      child: Text(
+                        'show_my_code'.tr(),
+                        style: theme.textTheme.ppMori400White14.copyWith(
+                          decoration: TextDecoration.underline,
+                          decorationColor: AppColor.white,
+                        ),
                       ),
                     ),
                   )
-                : GestureDetector(
-                    onTap: () {
-                      if (!_isGlobal) {
-                        Navigator.pop(context);
-                      }
-                    },
-                    child: closeIcon(
-                      color: AppColor.white,
-                    ),
+                : Container(
+                    color: Colors.yellow,
+                    child: IconButton(
+                        onPressed: () {
+                          if (!_isGlobal) {
+                            Navigator.pop(context);
+                          }
+                        },
+                        icon: closeIcon(
+                          color: AppColor.white,
+                        )),
                   ),
           ),
         ),
@@ -319,15 +327,18 @@ class ScannerInstruction {
   static ScannerInstruction displayFF = ScannerInstruction(
     name: 'display_with_ff'.tr(),
     detail: 'on_tv_or_desktop'.tr(),
-    icon: GestureDetector(
-        onTap: () {
-          final context =
-              injector<NavigationService>().navigatorKey.currentContext!;
-          UIHelper.showDialog(
-              context, 'display'.tr(), const DisplayInstructionView(),
-              isDismissible: true, withCloseIcon: true);
-        },
-        child: SvgPicture.asset('assets/images/info_white.svg')),
+    icon: Container(
+      color: Colors.yellow,
+      child: IconButton(
+          onPressed: () {
+            final context =
+                injector<NavigationService>().navigatorKey.currentContext!;
+            UIHelper.showDialog(
+                context, 'display'.tr(), const DisplayInstructionView(),
+                isDismissible: true, withCloseIcon: true);
+          },
+          icon: SvgPicture.asset('assets/images/info_white.svg')),
+    ),
   );
 }
 

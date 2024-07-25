@@ -203,13 +203,17 @@ class _AddToCollectionScreenState extends State<AddToCollectionScreen>
                         )
                       : null;
                 },
-                child: Text(
-                  tr('done').capitalize(),
-                  style: theme.textTheme.ppMori400White14,
+                child: Container(
+                  color: Colors.yellow,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 18, horizontal: 15),
+                    child: Text(
+                      tr('done').capitalize(),
+                      style: theme.textTheme.ppMori400White14,
+                    ),
+                  ),
                 ),
-              ),
-              const SizedBox(
-                width: 15,
               ),
             ],
           ),

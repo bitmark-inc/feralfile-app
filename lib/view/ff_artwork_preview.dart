@@ -28,7 +28,7 @@ class FeralFileArtworkPreview extends StatelessWidget {
         ),
         const SizedBox(height: 20),
         Padding(
-          padding: const EdgeInsets.only(left: 14, right: 14, bottom: 20),
+          padding: const EdgeInsets.only(left: 14, right: 14, bottom: 10),
           child: GestureDetector(
             onTap: () async {
               final artwork = payload.artwork;
@@ -49,26 +49,30 @@ class FeralFileArtworkPreview extends StatelessWidget {
                 );
               }
             },
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Flexible(
-                  flex: 5,
-                  child: SeriesTitleView(
-                    series: payload.artwork.series!,
-                    artist: payload.artwork.series!.artist,
+            child: Container(
+              color: Colors.yellow,
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Flexible(
+                    flex: 5,
+                    child: SeriesTitleView(
+                      series: payload.artwork.series!,
+                      artist: payload.artwork.series!.artist,
+                    ),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 60),
-                  child: SvgPicture.asset(
-                    'assets/images/icon_series.svg',
-                    width: 22,
-                    height: 22,
-                  ),
-                )
-              ],
+                  Padding(
+                    padding: const EdgeInsets.only(left: 60),
+                    child: SvgPicture.asset(
+                      'assets/images/icon_series.svg',
+                      width: 22,
+                      height: 22,
+                    ),
+                  )
+                ],
+              ),
             ),
           ),
         ),

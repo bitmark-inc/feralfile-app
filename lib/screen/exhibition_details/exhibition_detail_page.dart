@@ -172,14 +172,17 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
         padding: const EdgeInsets.only(bottom: 20),
         child: RotatedBox(
           quarterTurns: 3,
-          child: IconButton(
-            onPressed: () async => _controller.nextPage(
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeIn),
-            icon: Padding(
-              padding: const EdgeInsets.all(5),
-              child: SvgPicture.asset(
-                'assets/images/ff_back_dark.svg',
+          child: Container(
+            color: Colors.yellow,
+            child: IconButton(
+              onPressed: () async => _controller.nextPage(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeIn),
+              icon: Padding(
+                padding: const EdgeInsets.all(5),
+                child: SvgPicture.asset(
+                  'assets/images/ff_back_dark.svg',
+                ),
               ),
             ),
           ),
@@ -235,17 +238,14 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
         buildContext,
         onBack: () => Navigator.pop(buildContext),
         action: exhibition != null
-            ? Padding(
-                padding: const EdgeInsets.only(right: 14, bottom: 10, top: 10),
-                child: FFCastButton(
-                  displayKey: exhibition.id,
-                  onDeviceSelected: (device) async {
-                    final request = _getCastExhibitionRequest(exhibition);
-                    _canvasDeviceBloc.add(
-                      CanvasDeviceCastExhibitionEvent(device, request),
-                    );
-                  },
-                ),
+            ? FFCastButton(
+                displayKey: exhibition.id,
+                onDeviceSelected: (device) async {
+                  final request = _getCastExhibitionRequest(exhibition);
+                  _canvasDeviceBloc.add(
+                    CanvasDeviceCastExhibitionEvent(device, request),
+                  );
+                },
               )
             : null,
       );

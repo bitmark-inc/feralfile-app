@@ -239,15 +239,16 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
 
   List<Widget> _appBarAction(BuildContext context, PlayListModel playList) => [
         if (editable) ...[
-          const SizedBox(width: 15),
+          const SizedBox(width: 5),
           Semantics(
             label: 'artworkDotIcon',
-            child: Padding(
-              padding: const EdgeInsets.only(left: 5),
+            child: Container(
+              color: Colors.yellow,
               child: IconButton(
                 onPressed: () async => _onMoreTap(context, playList),
                 icon: Padding(
-                  padding: const EdgeInsets.all(5),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 8, horizontal: 5),
                   child: SvgPicture.asset(
                     'assets/images/more_circle.svg',
                     width: 22,
@@ -258,7 +259,7 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
           ),
         ],
         if (_getDisplayKey(playList) != null) ...[
-          const SizedBox(width: 15),
+          const SizedBox(width: 5),
           FFCastButton(
             displayKey: _getDisplayKey(playList)!,
             onDeviceSelected: (device) async {
@@ -277,7 +278,6 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
             },
           ),
         ],
-        const SizedBox(width: 15),
       ];
 
   @override

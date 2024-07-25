@@ -59,17 +59,20 @@ AppBar getBackAppBar(
     actions: [
       ...actions ?? [],
       if (action != null)
-        IconButton(
-          tooltip: 'AppbarAction',
-          constraints: const BoxConstraints(maxWidth: 56),
-          onPressed: action,
-          icon: Padding(
-            padding: const EdgeInsets.all(10),
-            child: icon ??
-                Icon(
-                  Icons.more_horiz,
-                  color: primaryColor,
-                ),
+        Container(
+          color: Colors.yellow,
+          child: IconButton(
+            tooltip: 'AppbarAction',
+            constraints: const BoxConstraints(maxWidth: 56),
+            onPressed: action,
+            icon: Padding(
+              padding: const EdgeInsets.all(10),
+              child: icon ??
+                  Icon(
+                    Icons.more_horiz,
+                    color: primaryColor,
+                  ),
+            ),
           ),
         )
       else
@@ -191,10 +194,13 @@ AppBar getCloseAppBar(
     ),
     actions: [
       if (onClose != null)
-        IconButton(
-          tooltip: 'CLOSE',
-          onPressed: onClose,
-          icon: icon ?? closeIcon(color: primaryColor),
+        Container(
+          color: Colors.yellow,
+          child: IconButton(
+            tooltip: 'CLOSE',
+            onPressed: onClose,
+            icon: icon ?? closeIcon(color: primaryColor),
+          ),
         )
       else
         IconButton(onPressed: () {}, icon: disableIcon ?? const SizedBox()),
@@ -268,12 +274,15 @@ AppBar getDoneAppBar(
     leadingWidth: 80,
     leading: GestureDetector(
       onTap: onCancel,
-      child: Padding(
-        padding: const EdgeInsets.only(left: 14),
-        child: Center(
-          child: Text(
-            tr('cancel'),
-            style: theme.textTheme.ppMori400Black14,
+      child: Container(
+        color: Colors.yellow,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 15),
+          child: Center(
+            child: Text(
+              tr('cancel'),
+              style: theme.textTheme.ppMori400Black14,
+            ),
           ),
         ),
       ),
@@ -283,13 +292,19 @@ AppBar getDoneAppBar(
         padding: const EdgeInsets.only(right: 14),
         child: GestureDetector(
           onTap: onDone,
-          child: Center(
-            child: Text(
-              tr('done'),
-              style: (onDone != null)
-                  ? theme.textTheme.ppMori700Black14
-                  : theme.textTheme.ppMori700Black14
-                      .copyWith(color: AppColor.disabledColor),
+          child: Container(
+            color: Colors.yellow,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 15),
+              child: Center(
+                child: Text(
+                  tr('done'),
+                  style: (onDone != null)
+                      ? theme.textTheme.ppMori700Black14
+                      : theme.textTheme.ppMori700Black14
+                          .copyWith(color: AppColor.disabledColor),
+                ),
+              ),
             ),
           ),
         ),
@@ -328,28 +343,34 @@ AppBar getCustomDoneAppBar(
     surfaceTintColor: Colors.transparent,
     leading: GestureDetector(
       onTap: onCancel,
-      child: Padding(
-        padding: const EdgeInsets.only(left: 14),
-        child: Center(
-          child: Text(
-            tr('cancel'),
-            style: theme.textTheme.ppMori400Black14,
+      child: Container(
+        color: Colors.yellow,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 15),
+          child: Center(
+            child: Text(
+              tr('cancel'),
+              style: theme.textTheme.ppMori400Black14,
+            ),
           ),
         ),
       ),
     ),
     actions: [
-      Padding(
-        padding: const EdgeInsets.only(right: 14),
-        child: GestureDetector(
-          onTap: onDone,
-          child: Center(
-            child: Text(
-              tr('done'),
-              style: (onDone != null)
-                  ? theme.textTheme.ppMori700Black14
-                  : theme.textTheme.ppMori700Black14
-                      .copyWith(color: AppColor.disabledColor),
+      GestureDetector(
+        onTap: onDone,
+        child: Container(
+          color: Colors.yellow,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 15),
+            child: Center(
+              child: Text(
+                tr('done'),
+                style: (onDone != null)
+                    ? theme.textTheme.ppMori700Black14
+                    : theme.textTheme.ppMori700Black14
+                        .copyWith(color: AppColor.disabledColor),
+              ),
             ),
           ),
         ),
@@ -374,13 +395,16 @@ AppBar getPlaylistAppBar(
       shadowColor: Colors.transparent,
       leading: Semantics(
           label: 'BACK',
-          child: IconButton(
-            constraints: const BoxConstraints(maxWidth: 56),
-            onPressed: () => Navigator.pop(context),
-            icon: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              child: SvgPicture.asset(
-                'assets/images/ff_back_dark.svg',
+          child: Container(
+            color: Colors.yellow,
+            child: IconButton(
+              constraints: const BoxConstraints(maxWidth: 56),
+              onPressed: () => Navigator.pop(context),
+              icon: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: SvgPicture.asset(
+                  'assets/images/ff_back_dark.svg',
+                ),
               ),
             ),
           )),
@@ -416,14 +440,23 @@ AppBar getFFAppBar(
       leading: onBack != null
           ? Semantics(
               label: 'BACK',
-              child: IconButton(
-                constraints: const BoxConstraints(maxWidth: 56),
-                onPressed: onBack,
-                icon: SvgPicture.asset(
-                  'assets/images/ff_back_dark.svg',
+              child: Container(
+                color: Colors.yellow,
+                child: IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  constraints: const BoxConstraints(
+                    maxWidth: 44,
+                    maxHeight: 44,
+                  ),
+                  icon: Padding(
+                    padding: const EdgeInsets.all(5),
+                    child: SvgPicture.asset(
+                      'assets/images/ff_back_dark.svg',
+                    ),
+                  ),
                 ),
-                padding: const EdgeInsets.only(left: 15, right: 10),
-              ))
+              ),
+            )
           : const SizedBox(width: 56),
       automaticallyImplyLeading: false,
       title: title,
@@ -443,16 +476,19 @@ Widget backButton(BuildContext context,
         {required Function() onBack, Color? color}) =>
     Semantics(
         label: 'BACK',
-        child: IconButton(
-          constraints: const BoxConstraints(maxWidth: 36),
-          onPressed: onBack,
-          icon: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            child: SvgPicture.asset(
-              'assets/images/icon_back.svg',
-              colorFilter: color != null
-                  ? ColorFilter.mode(color, BlendMode.srcIn)
-                  : null,
+        child: Container(
+          color: Colors.yellow,
+          child: IconButton(
+            constraints: const BoxConstraints(maxWidth: 36),
+            onPressed: onBack,
+            icon: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: SvgPicture.asset(
+                'assets/images/icon_back.svg',
+                colorFilter: color != null
+                    ? ColorFilter.mode(color, BlendMode.srcIn)
+                    : null,
+              ),
             ),
           ),
         ));
