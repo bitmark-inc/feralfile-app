@@ -4,6 +4,8 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/play_control_model.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
@@ -262,23 +264,30 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
           ),
         ],
         if (_getDisplayKey(playList) != null) ...[
-          FFCastButton(
-            displayKey: _getDisplayKey(playList)!,
-            onDeviceSelected: (device) async {
-              final listTokenIds = playList.tokenIDs;
-              if (listTokenIds == null) {
-                log.info('Playlist tokenIds is null');
-                return;
-              }
-              final duration = speedValues.values.first.inMilliseconds;
-              final listPlayArtwork = listTokenIds
-                  .map((e) => PlayArtworkV2(
-                      token: CastAssetToken(id: e), duration: duration))
-                  .toList();
-              _canvasDeviceBloc.add(CanvasDeviceChangeControlDeviceEvent(
-                  device, listPlayArtwork));
-            },
-          ),
+          const SizedBox(width: 15),
+          BlocBuilder<SubscriptionBloc, SubscriptionState>(
+              builder: (context, subscriptionState) {
+            if (subscriptionState.isSubscribed) {
+              return FFCastButton(
+                displayKey: _getDisplayKey(playList)!,
+                onDeviceSelected: (device) async {
+                  final listTokenIds = playList.tokenIDs;
+                  if (listTokenIds == null) {
+                    log.info('Playlist tokenIds is null');
+                    return;
+                  }
+                  final duration = speedValues.values.first.inMilliseconds;
+                  final listPlayArtwork = listTokenIds
+                      .map((e) => PlayArtworkV2(
+                          token: CastAssetToken(id: e), duration: duration))
+                      .toList();
+                  _canvasDeviceBloc.add(CanvasDeviceChangeControlDeviceEvent(
+                      device, listPlayArtwork));
+                },
+              );
+            }
+            return const SizedBox();
+          }),
         ],
       ];
 
