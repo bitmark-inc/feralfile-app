@@ -156,7 +156,7 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                 if (!context.mounted) {
                   return;
                 }
-                if (exhibition.canViewDetails && index >= 0) {
+                if (index >= 0) {
                   await Navigator.of(context).pushNamed(
                     AppRouter.exhibitionDetailPage,
                     arguments: ExhibitionDetailPayload(
@@ -215,13 +215,8 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
               children: [
                 Row(
                   children: [
-                    if (!exhibition.canViewDetails) ...[
-                      _lockIcon(),
-                      const SizedBox(width: 5),
-                    ],
                     SizedBox(
-                      width: (estimatedWidth - _exhibitionInfoDivideWidth) / 2 -
-                          (exhibition.canViewDetails ? 0 : 13 + 5),
+                      width: (estimatedWidth - _exhibitionInfoDivideWidth) / 2,
                       child: AutoSizeText(
                         exhibition.title,
                         style: titleStyle,
@@ -326,14 +321,8 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
               final upcomingExhibition = exhibitionsState.upcomingExhibition;
               final ongoingExhibitions = exhibitionsState.ongoingExhibitions;
               final pastExhibitions = exhibitionsState.pastExhibitions;
-              final isSubscribed = subscriptionState.isSubscribed;
 
               final allExhibition = exhibitionsState.allExhibitions;
-              final viewableExhibitions = isSubscribed
-                  ? allExhibition
-                  : featureExhibition != null
-                      ? [featureExhibition]
-                      : <Exhibition>[];
 
               final divider = addDivider(
                   height: 40, color: AppColor.auQuickSilver, thickness: 0.5);
@@ -372,7 +361,7 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                             ),
                           _exhibitionItem(
                             context: context,
-                            viewableExhibitions: viewableExhibitions,
+                            viewableExhibitions: allExhibition,
                             exhibition: exhibition,
                             isFeaturedExhibition:
                                 exhibition.id == featureExhibition?.id,
