@@ -17,6 +17,8 @@ import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_sta
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/custom_route_observer.dart';
+import 'package:autonomy_flutter/util/download_helper.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -141,6 +143,9 @@ class _ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
                           overriddenHtml: state.overriddenHtml,
                           isMute: widget.isMute,
                           focusNode: widget.focusNode,
+                          onDownloadStartRequest: assetToken.isFeralfile
+                              ? _onDownloadStartRequest
+                              : null,
                         );
                       }
 
@@ -175,6 +180,17 @@ class _ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
           }
         },
       );
+
+  Future<void> _onDownloadStartRequest(InAppWebViewController controller,
+      DownloadStartRequest downloadStartRequest) async {
+    final path = downloadStartRequest.url.toString();
+    log.info('Download request: $path');
+    if (path.isEmpty || path.startsWith('blob:')) {
+      /// to do: notify user
+      return;
+    }
+    await DownloadHelper.downloadFile(path);
+  }
 
   Widget _artworkView(AssetToken assetToken) => GestureDetector(
       onTap: () async {
