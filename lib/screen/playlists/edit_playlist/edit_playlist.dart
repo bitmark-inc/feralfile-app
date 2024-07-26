@@ -315,6 +315,7 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                             const SizedBox(width: 12),
                             AddButton(
                               icon: Container(
+                                color: Colors.transparent,
                                 padding: const EdgeInsets.all(13),
                                 child: SvgPicture.asset(
                                   'assets/images/joinFile.svg',
@@ -330,6 +331,7 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                             ),
                             AddButton(
                               icon: Container(
+                                color: Colors.transparent,
                                 padding: const EdgeInsets.all(13),
                                 child: SvgPicture.asset(
                                   'assets/images/rename_icon.svg',
@@ -348,6 +350,7 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                               children: [
                                 AddButton(
                                   icon: Container(
+                                    color: Colors.transparent,
                                     padding: const EdgeInsets.all(13),
                                     child: SvgPicture.asset(
                                       'assets/images/trash_white.svg',
