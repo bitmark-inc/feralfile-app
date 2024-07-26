@@ -414,16 +414,17 @@ class GalleryThumbnailPlaceholder extends StatelessWidget {
 Widget placeholder(BuildContext context) => const LoadingWidget();
 
 INFTRenderingWidget buildRenderingWidget(
-  BuildContext context,
-  AssetToken assetToken, {
-  int? attempt,
-  String? overriddenHtml,
-  bool isMute = false,
-  Function({int? time, InAppWebViewController? webViewController})? onLoaded,
-  Function({int? time})? onDispose,
-  FocusNode? focusNode,
-  Widget? loadingWidget,
-}) {
+    BuildContext context, AssetToken assetToken,
+    {int? attempt,
+    String? overriddenHtml,
+    bool isMute = false,
+    Function({int? time, InAppWebViewController? webViewController})? onLoaded,
+    Function({int? time})? onDispose,
+    FocusNode? focusNode,
+    Widget? loadingWidget,
+    Function(InAppWebViewController controller,
+            DownloadStartRequest downloadStartRequest)?
+        onDownloadStartRequest}) {
   String mimeType = assetToken.getMimeType;
   final renderingWidget = typesOfNFTRenderingWidget(mimeType)
     ..setRenderWidgetBuilder(RenderingWidgetBuilder(
@@ -439,6 +440,7 @@ INFTRenderingWidget buildRenderingWidget(
       skipViewport: assetToken.scrollable ?? false,
       isMute: isMute,
       focusNode: focusNode,
+      onDownloadStartRequest: onDownloadStartRequest,
     ));
 
   return renderingWidget;

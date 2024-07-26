@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -31,6 +32,7 @@ class FileHelper {
       }
     }
     await file.writeAsBytes(data);
+    log.info('File saved to: ${file.path}');
     return file;
   }
 
