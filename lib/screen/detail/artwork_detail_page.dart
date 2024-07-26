@@ -17,6 +17,8 @@ import 'package:autonomy_flutter/model/sent_artwork.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
@@ -96,6 +98,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   late ArtworkDetailBloc _bloc;
   late CanvasDeviceBloc _canvasDeviceBloc;
   late AnimationController _animationController;
+  late SubscriptionBloc _subscriptionBloc;
   double? _appBarBottomDy;
   bool _isFullScreen = false;
   ShakeDetector? _detector;
@@ -103,6 +106,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   @override
   void initState() {
     super.initState();
+    _subscriptionBloc = injector<SubscriptionBloc>();
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
@@ -116,6 +120,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     _bloc.add(ArtworkDetailGetInfoEvent(
         widget.payload.identities[widget.payload.currentIndex],
         useIndexer: widget.payload.useIndexer));
+    _subscriptionBloc.add(GetSubscriptionEvent());
     context.read<AccountsBloc>().add(FetchAllAddressesEvent());
     context.read<AccountsBloc>().add(GetAccountsEvent());
     withSharing = widget.payload.twitterCaption != null;
@@ -282,6 +287,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
         final asset = state.assetToken!;
         final artistName =
             asset.artistName?.toIdentityOrMask(identityState.identityMap);
+        final isSubscribed = _subscriptionBloc.state.isSubscribed;
 
         return BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
           bloc: _canvasDeviceBloc,
@@ -321,39 +327,40 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                             centerTitle: false,
                             backgroundColor: Colors.transparent,
                             actions: [
-                              FFCastButton(
-                                displayKey: _getDisplayKey(asset),
-                                onDeviceSelected: (device) {
-                                  if (widget.payload.playlist == null) {
-                                    final artwork = PlayArtworkV2(
-                                      token: CastAssetToken(id: asset.id),
-                                      duration: 0,
-                                    );
-                                    _canvasDeviceBloc.add(
-                                        CanvasDeviceCastListArtworkEvent(
-                                            device, [artwork]));
-                                  } else {
-                                    final playlist = widget.payload.playlist!;
-                                    final listTokenIds = playlist.tokenIDs;
-                                    if (listTokenIds == null) {
-                                      log.info('Playlist tokenIds is null');
-                                      return;
-                                    }
+                              if (isSubscribed)
+                                FFCastButton(
+                                  displayKey: _getDisplayKey(asset),
+                                  onDeviceSelected: (device) {
+                                    if (widget.payload.playlist == null) {
+                                      final artwork = PlayArtworkV2(
+                                        token: CastAssetToken(id: asset.id),
+                                        duration: 0,
+                                      );
+                                      _canvasDeviceBloc.add(
+                                          CanvasDeviceCastListArtworkEvent(
+                                              device, [artwork]));
+                                    } else {
+                                      final playlist = widget.payload.playlist!;
+                                      final listTokenIds = playlist.tokenIDs;
+                                      if (listTokenIds == null) {
+                                        log.info('Playlist tokenIds is null');
+                                        return;
+                                      }
 
-                                    final duration =
-                                        speedValues.values.first.inMilliseconds;
-                                    final listPlayArtwork = listTokenIds
-                                        .rotateListByItem(asset.id)
-                                        .map((e) => PlayArtworkV2(
-                                            token: CastAssetToken(id: e),
-                                            duration: duration))
-                                        .toList();
-                                    _canvasDeviceBloc.add(
-                                        CanvasDeviceChangeControlDeviceEvent(
-                                            device, listPlayArtwork));
-                                  }
-                                },
-                              ),
+                                      final duration = speedValues
+                                          .values.first.inMilliseconds;
+                                      final listPlayArtwork = listTokenIds
+                                          .rotateListByItem(asset.id)
+                                          .map((e) => PlayArtworkV2(
+                                              token: CastAssetToken(id: e),
+                                              duration: duration))
+                                          .toList();
+                                      _canvasDeviceBloc.add(
+                                          CanvasDeviceChangeControlDeviceEvent(
+                                              device, listPlayArtwork));
+                                    }
+                                  },
+                                ),
                             ],
                           ),
                         ),

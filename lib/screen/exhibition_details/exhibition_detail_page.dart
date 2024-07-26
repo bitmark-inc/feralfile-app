@@ -4,6 +4,8 @@ import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/pair.dart';
+import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_state.dart';
@@ -40,6 +42,7 @@ class ExhibitionDetailPage extends StatefulWidget {
 class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
     with AfterLayoutMixin {
   late final ExhibitionDetailBloc _exBloc;
+  late SubscriptionBloc _subscriptionBloc;
   late bool isUpcomingExhibition;
 
   final _metricClientService = injector<MetricClientService>();
@@ -53,12 +56,14 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
   void initState() {
     super.initState();
     final exhibitionBloc = injector<ExhibitionBloc>();
+    _subscriptionBloc = injector<SubscriptionBloc>();
     isUpcomingExhibition = exhibitionBloc.state.upcomingExhibition != null &&
         exhibitionBloc.state.upcomingExhibition!.id ==
             widget.payload.exhibitions[widget.payload.index].id;
     _exBloc = context.read<ExhibitionDetailBloc>();
     _exBloc.add(GetExhibitionDetailEvent(
         widget.payload.exhibitions[widget.payload.index].id));
+    _subscriptionBloc.add(GetSubscriptionEvent());
     _controller = PageController();
   }
 
@@ -236,22 +241,24 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
         ),
       );
 
-  AppBar _getAppBar(BuildContext buildContext, Exhibition? exhibition) =>
-      getFFAppBar(
-        buildContext,
-        onBack: () => Navigator.pop(buildContext),
-        action: exhibition != null
-            ? FFCastButton(
-                displayKey: exhibition.id,
-                onDeviceSelected: (device) async {
-                  final request = _getCastExhibitionRequest(exhibition);
-                  _canvasDeviceBloc.add(
-                    CanvasDeviceCastExhibitionEvent(device, request),
-                  );
-                },
-              )
-            : null,
-      );
+  AppBar _getAppBar(BuildContext buildContext, Exhibition? exhibition) {
+    final isSubscribed = _subscriptionBloc.state.isSubscribed;
+    return getFFAppBar(
+      buildContext,
+      onBack: () => Navigator.pop(buildContext),
+      action: exhibition != null && isSubscribed
+          ? FFCastButton(
+              displayKey: exhibition.id,
+              onDeviceSelected: (device) async {
+                final request = _getCastExhibitionRequest(exhibition);
+                _canvasDeviceBloc.add(
+                  CanvasDeviceCastExhibitionEvent(device, request),
+                );
+              },
+            )
+          : null,
+    );
+  }
 
   Pair<ExhibitionCatalog, String?> _getCurrentCatalogInfo(
       Exhibition exhibition) {
