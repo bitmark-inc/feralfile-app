@@ -180,15 +180,12 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                   onTap: () {
                     onSave(playList);
                   },
-                  child: Container(
-                    color: Colors.yellow,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 18, horizontal: 15),
-                      child: Text(
-                        tr('done').capitalize(),
-                        style: theme.textTheme.ppMori400White14,
-                      ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 18, horizontal: 15),
+                    child: Text(
+                      tr('done').capitalize(),
+                      style: theme.textTheme.ppMori400White14,
                     ),
                   ),
                 ),
@@ -318,7 +315,6 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                             const SizedBox(width: 12),
                             AddButton(
                               icon: Container(
-                                color: Colors.yellow,
                                 padding: const EdgeInsets.all(13),
                                 child: SvgPicture.asset(
                                   'assets/images/joinFile.svg',
@@ -334,7 +330,6 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                             ),
                             AddButton(
                               icon: Container(
-                                color: Colors.yellow,
                                 padding: const EdgeInsets.all(13),
                                 child: SvgPicture.asset(
                                   'assets/images/rename_icon.svg',
@@ -353,7 +348,6 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                               children: [
                                 AddButton(
                                   icon: Container(
-                                    color: Colors.yellow,
                                     padding: const EdgeInsets.all(13),
                                     child: SvgPicture.asset(
                                       'assets/images/trash_white.svg',
@@ -364,7 +358,6 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                                     ),
                                   ),
                                   iconOnDisabled: Container(
-                                    color: Colors.yellow,
                                     padding: const EdgeInsets.all(13),
                                     child: SvgPicture.asset(
                                       'assets/images/trash_disable.svg',

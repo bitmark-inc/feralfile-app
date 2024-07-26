@@ -172,17 +172,14 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
         padding: const EdgeInsets.only(bottom: 20),
         child: RotatedBox(
           quarterTurns: 3,
-          child: Container(
-            color: Colors.yellow,
-            child: IconButton(
-              onPressed: () async => _controller.nextPage(
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeIn),
-              icon: Padding(
-                padding: const EdgeInsets.all(5),
-                child: SvgPicture.asset(
-                  'assets/images/ff_back_dark.svg',
-                ),
+          child: IconButton(
+            onPressed: () async => _controller.nextPage(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeIn),
+            icon: Padding(
+              padding: const EdgeInsets.all(5),
+              child: SvgPicture.asset(
+                'assets/images/ff_back_dark.svg',
               ),
             ),
           ),

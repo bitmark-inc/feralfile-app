@@ -300,19 +300,16 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                             systemOverlayStyle: systemUiOverlayDarkStyle,
                             leading: Semantics(
                               label: 'BACK',
-                              child: Container(
-                                color: Colors.yellow,
-                                child: IconButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  constraints: const BoxConstraints(
-                                    maxWidth: 44,
-                                    maxHeight: 44,
-                                  ),
-                                  icon: Padding(
-                                    padding: const EdgeInsets.all(5),
-                                    child: SvgPicture.asset(
-                                      'assets/images/ff_back_dark.svg',
-                                    ),
+                              child: IconButton(
+                                onPressed: () => Navigator.pop(context),
+                                constraints: const BoxConstraints(
+                                  maxWidth: 44,
+                                  maxHeight: 44,
+                                ),
+                                icon: Padding(
+                                  padding: const EdgeInsets.all(5),
+                                  child: SvgPicture.asset(
+                                    'assets/images/ff_back_dark.svg',
                                   ),
                                 ),
                               ),
@@ -444,21 +441,18 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 
   Widget _artworkInfoIcon() => Semantics(
         label: 'artworkInfoIcon',
-        child: Container(
-          color: Colors.yellow,
-          child: IconButton(
-            onPressed: () {
-              _isInfoExpand ? _infoShrink() : _infoExpand();
-            },
-            icon: Padding(
-              padding: const EdgeInsets.all(5),
-              child: SvgPicture.asset(
-                !_isInfoExpand
-                    ? 'assets/images/info_white.svg'
-                    : 'assets/images/info_white_active.svg',
-                width: 22,
-                height: 22,
-              ),
+        child: IconButton(
+          onPressed: () {
+            _isInfoExpand ? _infoShrink() : _infoExpand();
+          },
+          icon: Padding(
+            padding: const EdgeInsets.all(5),
+            child: SvgPicture.asset(
+              !_isInfoExpand
+                  ? 'assets/images/info_white.svg'
+                  : 'assets/images/info_white_active.svg',
+              width: 22,
+              height: 22,
             ),
           ),
         ),
@@ -495,17 +489,14 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               label: 'artworkDotIcon',
               child: Padding(
                 padding: const EdgeInsets.only(left: 5),
-                child: Container(
-                  color: Colors.yellow,
-                  child: IconButton(
-                    onPressed: () async => _showArtworkOptionsDialog(
-                        context, asset, isViewOnly, canvasState),
-                    icon: Padding(
-                      padding: const EdgeInsets.all(5),
-                      child: SvgPicture.asset(
-                        'assets/images/more_circle.svg',
-                        width: 22,
-                      ),
+                child: IconButton(
+                  onPressed: () async => _showArtworkOptionsDialog(
+                      context, asset, isViewOnly, canvasState),
+                  icon: Padding(
+                    padding: const EdgeInsets.all(5),
+                    child: SvgPicture.asset(
+                      'assets/images/more_circle.svg',
+                      width: 22,
                     ),
                   ),
                 ),

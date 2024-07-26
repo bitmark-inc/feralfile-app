@@ -213,7 +213,6 @@ class ScanQRPageState extends State<ScanQRPage>
                       });
                     },
                     child: Container(
-                      color: Colors.yellow,
                       padding: const EdgeInsets.symmetric(
                         vertical: 10,
                       ),
@@ -226,18 +225,15 @@ class ScanQRPageState extends State<ScanQRPage>
                       ),
                     ),
                   )
-                : Container(
-                    color: Colors.yellow,
-                    child: IconButton(
-                        onPressed: () {
-                          if (!_isGlobal) {
-                            Navigator.pop(context);
-                          }
-                        },
-                        icon: closeIcon(
-                          color: AppColor.white,
-                        )),
-                  ),
+                : IconButton(
+                    onPressed: () {
+                      if (!_isGlobal) {
+                        Navigator.pop(context);
+                      }
+                    },
+                    icon: closeIcon(
+                      color: AppColor.white,
+                    )),
           ),
         ),
       ],
@@ -327,18 +323,15 @@ class ScannerInstruction {
   static ScannerInstruction displayFF = ScannerInstruction(
     name: 'display_with_ff'.tr(),
     detail: 'on_tv_or_desktop'.tr(),
-    icon: Container(
-      color: Colors.yellow,
-      child: IconButton(
-          onPressed: () {
-            final context =
-                injector<NavigationService>().navigatorKey.currentContext!;
-            UIHelper.showDialog(
-                context, 'display'.tr(), const DisplayInstructionView(),
-                isDismissible: true, withCloseIcon: true);
-          },
-          icon: SvgPicture.asset('assets/images/info_white.svg')),
-    ),
+    icon: IconButton(
+        onPressed: () {
+          final context =
+              injector<NavigationService>().navigatorKey.currentContext!;
+          UIHelper.showDialog(
+              context, 'display'.tr(), const DisplayInstructionView(),
+              isDismissible: true, withCloseIcon: true);
+        },
+        icon: SvgPicture.asset('assets/images/info_white.svg')),
   );
 }
 

@@ -242,17 +242,13 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
           const SizedBox(width: 5),
           Semantics(
             label: 'artworkDotIcon',
-            child: Container(
-              color: Colors.yellow,
-              child: IconButton(
-                onPressed: () async => _onMoreTap(context, playList),
-                icon: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 8, horizontal: 5),
-                  child: SvgPicture.asset(
-                    'assets/images/more_circle.svg',
-                    width: 22,
-                  ),
+            child: IconButton(
+              onPressed: () async => _onMoreTap(context, playList),
+              icon: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 5),
+                child: SvgPicture.asset(
+                  'assets/images/more_circle.svg',
+                  width: 22,
                 ),
               ),
             ),

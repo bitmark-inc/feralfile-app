@@ -170,15 +170,12 @@ class UIHelper {
                               style: theme.primaryTextTheme.ppMori700White24),
                         ),
                         if (withCloseIcon)
-                          Container(
-                            color: Colors.yellow,
-                            child: IconButton(
-                              onPressed: () => hideInfoDialog(context),
-                              icon: SvgPicture.asset(
-                                'assets/images/circle_close.svg',
-                                width: 22,
-                                height: 22,
-                              ),
+                          IconButton(
+                            onPressed: () => hideInfoDialog(context),
+                            icon: SvgPicture.asset(
+                              'assets/images/circle_close.svg',
+                              width: 22,
+                              height: 22,
                             ),
                           )
                       ],
@@ -1247,15 +1244,12 @@ class UIHelper {
                 children: [
                   Align(
                     alignment: Alignment.centerRight,
-                    child: Container(
-                      color: Colors.yellow,
-                      child: IconButton(
-                        onPressed: () => Navigator.pop(context),
-                        icon: const Icon(
-                          AuIcon.close,
-                          size: 18,
-                          color: AppColor.white,
-                        ),
+                    child: IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(
+                        AuIcon.close,
+                        size: 18,
+                        color: AppColor.white,
                       ),
                     ),
                   ),

@@ -128,45 +128,40 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                                 placeholder: 'paste_or_scan_address'.tr(),
                                 isError: state.isAddressError,
                                 controller: _addressController,
-                                suffix: Container(
-                                  color: Colors.yellow,
-                                  child: IconButton(
-                                    icon: Icon(
-                                      state.isScanQR
-                                          ? AuIcon.scan
-                                          : AuIcon.close,
-                                      color: AppColor.secondaryDimGrey,
-                                    ),
-                                    onPressed: () async {
-                                      if (_addressController.text.isNotEmpty) {
-                                        _addressController.text = '';
+                                suffix: IconButton(
+                                  icon: Icon(
+                                    state.isScanQR ? AuIcon.scan : AuIcon.close,
+                                    color: AppColor.secondaryDimGrey,
+                                  ),
+                                  onPressed: () async {
+                                    if (_addressController.text.isNotEmpty) {
+                                      _addressController.text = '';
+                                      _initialChangeAddress = true;
+                                      context
+                                          .read<SendCryptoBloc>()
+                                          .add(AddressChangedEvent(''));
+                                    } else {
+                                      dynamic address =
+                                          await Navigator.of(context).pushNamed(
+                                              AppRouter.scanQRPage,
+                                              arguments: type == CryptoType.XTZ
+                                                  ? ScannerItem.XTZ_ADDRESS
+                                                  : ScannerItem.ETH_ADDRESS);
+                                      if (address != null &&
+                                          address is String) {
+                                        address = address.replacePrefix(
+                                            'ethereum:', '');
+                                        _addressController.text = address;
+                                        if (!mounted) {
+                                          return;
+                                        }
                                         _initialChangeAddress = true;
                                         context
                                             .read<SendCryptoBloc>()
-                                            .add(AddressChangedEvent(''));
-                                      } else {
-                                        dynamic address = await Navigator.of(
-                                                context)
-                                            .pushNamed(AppRouter.scanQRPage,
-                                                arguments: type ==
-                                                        CryptoType.XTZ
-                                                    ? ScannerItem.XTZ_ADDRESS
-                                                    : ScannerItem.ETH_ADDRESS);
-                                        if (address != null &&
-                                            address is String) {
-                                          address = address.replacePrefix(
-                                              'ethereum:', '');
-                                          _addressController.text = address;
-                                          if (!mounted) {
-                                            return;
-                                          }
-                                          _initialChangeAddress = true;
-                                          context.read<SendCryptoBloc>().add(
-                                              AddressChangedEvent(address));
-                                        }
+                                            .add(AddressChangedEvent(address));
                                       }
-                                    },
-                                  ),
+                                    }
+                                  },
                                 ),
                                 onChanged: (value) {
                                   _initialChangeAddress = true;
@@ -227,56 +222,53 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                                 keyboardType:
                                     const TextInputType.numberWithOptions(
                                         decimal: true),
-                                suffix: Container(
-                                  color: Colors.yellow,
-                                  child: IconButton(
-                                    icon: SvgPicture.asset(state.isCrypto
-                                        ? _cryptoIconAsset()
-                                        : 'assets/images/iconUsd.svg'),
-                                    onPressed: () {
-                                      if (type == CryptoType.USDC) {
-                                        return;
-                                      }
+                                suffix: IconButton(
+                                  icon: SvgPicture.asset(state.isCrypto
+                                      ? _cryptoIconAsset()
+                                      : 'assets/images/iconUsd.svg'),
+                                  onPressed: () {
+                                    if (type == CryptoType.USDC) {
+                                      return;
+                                    }
 
-                                      double amount = double.tryParse(
-                                              _amountController.text
-                                                  .replaceAll(',', '.')) ??
-                                          0;
-                                      if (amount != 0) {
-                                        if (state.isCrypto) {
-                                          if (type == CryptoType.ETH) {
-                                            _amountController.text = state
-                                                .exchangeRate
-                                                .ethToUsd(BigInt.from(
-                                                    amount * pow(10, 18)));
-                                          } else if (type == CryptoType.XTZ) {
-                                            _amountController.text = state
-                                                .exchangeRate
-                                                .xtzToUsd((amount * pow(10, 6))
-                                                    .toInt());
-                                          }
+                                    double amount = double.tryParse(
+                                            _amountController.text
+                                                .replaceAll(',', '.')) ??
+                                        0;
+                                    if (amount != 0) {
+                                      if (state.isCrypto) {
+                                        if (type == CryptoType.ETH) {
+                                          _amountController.text = state
+                                              .exchangeRate
+                                              .ethToUsd(BigInt.from(
+                                                  amount * pow(10, 18)));
+                                        } else if (type == CryptoType.XTZ) {
+                                          _amountController.text = state
+                                              .exchangeRate
+                                              .xtzToUsd((amount * pow(10, 6))
+                                                  .toInt());
+                                        }
+                                      } else {
+                                        if (type == CryptoType.ETH) {
+                                          _amountController
+                                              .text = (double.parse(
+                                                      state.exchangeRate.eth) *
+                                                  amount)
+                                              .toStringAsFixed(5);
                                         } else {
-                                          if (type == CryptoType.ETH) {
-                                            _amountController.text =
-                                                (double.parse(state
-                                                            .exchangeRate.eth) *
-                                                        amount)
-                                                    .toStringAsFixed(5);
-                                          } else {
-                                            _amountController.text =
-                                                (double.parse(state
-                                                            .exchangeRate.xtz) *
-                                                        amount)
-                                                    .toStringAsFixed(6);
-                                          }
+                                          _amountController
+                                              .text = (double.parse(
+                                                      state.exchangeRate.xtz) *
+                                                  amount)
+                                              .toStringAsFixed(6);
                                         }
                                       }
+                                    }
 
-                                      context.read<SendCryptoBloc>().add(
-                                          CurrencyTypeChangedEvent(
-                                              !state.isCrypto));
-                                    },
-                                  ),
+                                    context.read<SendCryptoBloc>().add(
+                                        CurrencyTypeChangedEvent(
+                                            !state.isCrypto));
+                                  },
                                 ),
                                 onChanged: (value) {
                                   _amountController

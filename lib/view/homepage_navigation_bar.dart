@@ -60,23 +60,20 @@ class _FFNavigationBarState extends State<FFNavigationBar> {
                         },
                         child: Semantics(
                           label: e.label,
-                          child: Container(
-                            color: Colors.yellow,
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 15, vertical: 10),
-                              child: IconTheme(
-                                data: IconThemeData(
-                                  color: isSelected
-                                      ? e.selectedColor ??
-                                          widget.selectedItemColor
-                                      : e.unselectedColor ??
-                                          widget.unselectedItemColor,
-                                ),
-                                child: isSelected
-                                    ? e.icon
-                                    : e.unselectedIcon ?? e.icon,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 15, vertical: 10),
+                            child: IconTheme(
+                              data: IconThemeData(
+                                color: isSelected
+                                    ? e.selectedColor ??
+                                        widget.selectedItemColor
+                                    : e.unselectedColor ??
+                                        widget.unselectedItemColor,
                               ),
+                              child: isSelected
+                                  ? e.icon
+                                  : e.unselectedIcon ?? e.icon,
                             ),
                           ),
                         ),
