@@ -42,7 +42,6 @@ class ExhibitionDetailPage extends StatefulWidget {
 class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
     with AfterLayoutMixin {
   late final ExhibitionDetailBloc _exBloc;
-  late SubscriptionBloc _subscriptionBloc;
   late bool isUpcomingExhibition;
 
   final _metricClientService = injector<MetricClientService>();
@@ -56,14 +55,12 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
   void initState() {
     super.initState();
     final exhibitionBloc = injector<ExhibitionBloc>();
-    _subscriptionBloc = injector<SubscriptionBloc>();
     isUpcomingExhibition = exhibitionBloc.state.upcomingExhibition != null &&
         exhibitionBloc.state.upcomingExhibition!.id ==
             widget.payload.exhibitions[widget.payload.index].id;
     _exBloc = context.read<ExhibitionDetailBloc>();
     _exBloc.add(GetExhibitionDetailEvent(
         widget.payload.exhibitions[widget.payload.index].id));
-    _subscriptionBloc.add(GetSubscriptionEvent());
     _controller = PageController();
   }
 
@@ -233,27 +230,32 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
         ),
       );
 
-  AppBar _getAppBar(BuildContext buildContext, Exhibition? exhibition) {
-    final isSubscribed = _subscriptionBloc.state.isSubscribed;
-    return getFFAppBar(
-      buildContext,
-      onBack: () => Navigator.pop(buildContext),
-      action: exhibition != null && isSubscribed
-          ? Padding(
-              padding: const EdgeInsets.only(right: 14, bottom: 10, top: 10),
-              child: FFCastButton(
-                displayKey: exhibition.id,
-                onDeviceSelected: (device) async {
-                  final request = _getCastExhibitionRequest(exhibition);
-                  _canvasDeviceBloc.add(
-                    CanvasDeviceCastExhibitionEvent(device, request),
+  AppBar _getAppBar(BuildContext buildContext, Exhibition? exhibition) =>
+      getFFAppBar(
+        buildContext,
+        onBack: () => Navigator.pop(buildContext),
+        action: exhibition != null
+            ? BlocBuilder<SubscriptionBloc, SubscriptionState>(
+                builder: (context, subscriptionState) {
+                if (subscriptionState.isSubscribed) {
+                  return Padding(
+                    padding:
+                        const EdgeInsets.only(right: 14, bottom: 10, top: 10),
+                    child: FFCastButton(
+                      displayKey: exhibition.id,
+                      onDeviceSelected: (device) async {
+                        final request = _getCastExhibitionRequest(exhibition);
+                        _canvasDeviceBloc.add(
+                          CanvasDeviceCastExhibitionEvent(device, request),
+                        );
+                      },
+                    ),
                   );
-                },
-              ),
-            )
-          : null,
-    );
-  }
+                }
+                return const SizedBox();
+              })
+            : null,
+      );
 
   Pair<ExhibitionCatalog, String?> _getCurrentCatalogInfo(
       Exhibition exhibition) {

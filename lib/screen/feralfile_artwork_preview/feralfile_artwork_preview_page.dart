@@ -22,6 +22,7 @@ import 'package:backdrop/backdrop.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:sentry/sentry.dart';
@@ -43,7 +44,6 @@ class _FeralFileArtworkPreviewPageState
         SingleTickerProviderStateMixin {
   final _metricClient = injector.get<MetricClientService>();
   final _canvasDeviceBloc = injector.get<CanvasDeviceBloc>();
-  late SubscriptionBloc _subscriptionBloc;
   late bool isCrystallineWork;
 
   double? _appBarBottomDy;
@@ -75,8 +75,6 @@ class _FeralFileArtworkPreviewPageState
     );
     _infoShrink();
     super.initState();
-    _subscriptionBloc = injector<SubscriptionBloc>();
-    _subscriptionBloc.add(GetSubscriptionEvent());
   }
 
   @override
@@ -93,69 +91,72 @@ class _FeralFileArtworkPreviewPageState
   }
 
   @override
-  Widget build(BuildContext context) {
-    final isSubscribed = _subscriptionBloc.state.isSubscribed;
-    return BackdropScaffold(
-      appBar: _isInfoExpand
-          ? const PreferredSize(
-              preferredSize: Size.fromHeight(toolbarHeight),
-              child: SizedBox(
-                height: toolbarHeight,
+  Widget build(BuildContext context) => BackdropScaffold(
+        appBar: _isInfoExpand
+            ? const PreferredSize(
+                preferredSize: Size.fromHeight(toolbarHeight),
+                child: SizedBox(
+                  height: toolbarHeight,
+                ),
+              )
+            : getFFAppBar(context,
+                onBack: () => Navigator.pop(context),
+                action: BlocBuilder<SubscriptionBloc, SubscriptionState>(
+                    builder: (context, subscriptionState) {
+                  if (subscriptionState.isSubscribed) {
+                    return Padding(
+                      padding:
+                          const EdgeInsets.only(right: 14, bottom: 10, top: 10),
+                      child: FFCastButton(
+                        displayKey:
+                            widget.payload.artwork.series?.exhibitionID ?? '',
+                        onDeviceSelected: _onDeviceSelected,
+                      ),
+                    );
+                  }
+                  return const SizedBox();
+                })),
+        backgroundColor: AppColor.primaryBlack,
+        frontLayerBackgroundColor: AppColor.primaryBlack,
+        backLayerBackgroundColor: AppColor.primaryBlack,
+        frontLayerScrim: Colors.transparent,
+        backLayerScrim: Colors.transparent,
+        reverseAnimationCurve: Curves.ease,
+        animationController: _animationController,
+        revealBackLayerAtStart: true,
+        subHeaderAlwaysActive: false,
+        frontLayerShape: const BeveledRectangleBorder(),
+        backLayer: Column(
+          children: [
+            Expanded(
+              child: _buildArtworkPreview(),
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 18),
+              child: ArtworkDetailsHeader(
+                title: 'I',
+                subTitle: 'I',
+                color: Colors.transparent,
               ),
-            )
-          : getFFAppBar(
-              context,
-              onBack: () => Navigator.pop(context),
-              action: isSubscribed
-                  ? FFCastButton(
-                      displayKey:
-                          widget.payload.artwork.series?.exhibitionID ?? '',
-                      onDeviceSelected: _onDeviceSelected,
-                    )
-                  : null,
             ),
-      backgroundColor: AppColor.primaryBlack,
-      frontLayerBackgroundColor: AppColor.primaryBlack,
-      backLayerBackgroundColor: AppColor.primaryBlack,
-      frontLayerScrim: Colors.transparent,
-      backLayerScrim: Colors.transparent,
-      reverseAnimationCurve: Curves.ease,
-      animationController: _animationController,
-      revealBackLayerAtStart: true,
-      subHeaderAlwaysActive: false,
-      frontLayerShape: const BeveledRectangleBorder(),
-      backLayer: Column(
-        children: [
-          Expanded(
-            child: _buildArtworkPreview(),
-          ),
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 18),
-            child: ArtworkDetailsHeader(
-              title: 'I',
-              subTitle: 'I',
-              color: Colors.transparent,
-            ),
-          ),
-        ],
-      ),
-      frontLayer: _infoContent(context, widget.payload.artwork),
-      subHeader: DecoratedBox(
-        decoration: const BoxDecoration(color: AppColor.primaryBlack),
-        child: GestureDetector(
-          onVerticalDragEnd: (details) {
-            final dy = details.primaryVelocity ?? 0;
-            if (dy <= 0) {
-              _infoExpand();
-            } else {
-              _infoShrink();
-            }
-          },
-          child: _infoHeader(context, widget.payload.artwork),
+          ],
         ),
-      ),
-    );
-  }
+        frontLayer: _infoContent(context, widget.payload.artwork),
+        subHeader: DecoratedBox(
+          decoration: const BoxDecoration(color: AppColor.primaryBlack),
+          child: GestureDetector(
+            onVerticalDragEnd: (details) {
+              final dy = details.primaryVelocity ?? 0;
+              if (dy <= 0) {
+                _infoExpand();
+              } else {
+                _infoShrink();
+              }
+            },
+            child: _infoHeader(context, widget.payload.artwork),
+          ),
+        ),
+      );
 
   Widget _buildArtworkPreview() {
     final artworkPreviewWidget = FeralfileArtworkPreviewWidget(

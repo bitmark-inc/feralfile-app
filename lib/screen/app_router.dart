@@ -25,6 +25,7 @@ import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/router/router_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/usdc/usdc_bloc.dart';
 import 'package:autonomy_flutter/screen/bug_bounty_page.dart';
@@ -261,6 +262,8 @@ class AppRouter {
       injector(),
     );
 
+    final subscriptionBloc = injector<SubscriptionBloc>();
+
     final royaltyBloc = RoyaltyBloc(injector());
 
     switch (settings.name) {
@@ -287,8 +290,15 @@ class AppRouter {
       case viewPlayListPage:
         return CupertinoPageRoute(
           settings: settings,
-          builder: (context) => BlocProvider(
-            create: (_) => canvasDeviceBloc,
+          builder: (context) => MultiBlocProvider(
+            providers: [
+              BlocProvider(
+                create: (_) => canvasDeviceBloc,
+              ),
+              BlocProvider(
+                create: (_) => subscriptionBloc,
+              ),
+            ],
             child: ViewPlaylistScreen(
               payload: settings.arguments! as ViewPlaylistScreenPayload,
             ),
@@ -730,6 +740,7 @@ class AppRouter {
                   BlocProvider(
                     create: (_) => canvasDeviceBloc,
                   ),
+                  BlocProvider(create: (_) => subscriptionBloc),
                 ],
                 child: ArtworkDetailPage(
                     payload: settings.arguments! as ArtworkDetailPayload)));
@@ -876,6 +887,7 @@ class AppRouter {
                     BlocProvider(
                       create: (_) => canvasDeviceBloc,
                     ),
+                    BlocProvider(create: (_) => subscriptionBloc),
                   ],
                   child: ExhibitionDetailPage(
                     payload: settings.arguments! as ExhibitionDetailPayload,
@@ -888,6 +900,9 @@ class AppRouter {
                   providers: [
                     BlocProvider(
                       create: (_) => royaltyBloc,
+                    ),
+                    BlocProvider(
+                      create: (_) => subscriptionBloc,
                     ),
                   ],
                   child: FeralFileArtworkPreviewPage(
