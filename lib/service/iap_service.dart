@@ -262,7 +262,7 @@ class IAPServiceImpl implements IAPService {
   Future<bool> isSubscribed() async {
     final jwt = _configurationService.getIAPJWT();
     return (jwt != null && jwt.isValid(withSubscription: true)) ||
-        await isAppCenterBuild();
+        (await isAppCenterBuild() && false);
   }
 
   Future _cleanupPendingTransactions() async {
