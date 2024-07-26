@@ -45,60 +45,57 @@ class _FFCastButtonState extends State<FFCastButton> {
         final castingDevice =
             state.lastSelectedActiveDeviceForKey(widget.displayKey);
         final isCasting = castingDevice != null;
-        return GestureDetector(
-          onTap: () async {
+        return IconButton(
+          onPressed: () async {
             await _showStreamAction(context, widget.displayKey);
           },
-          child: Semantics(
+          icon: Semantics(
             label: 'cast_icon',
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 16),
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(60),
-                  color: AppColor.feralFileLightBlue,
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 9)
-                      .copyWith(left: 16, right: isCasting ? 9 : 16),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (widget.text != null)
-                        Padding(
-                          padding: const EdgeInsets.only(right: 10),
-                          child: Text(
-                            widget.text!,
-                            style: theme.textTheme.ppMori400Black14.copyWith(
-                              color: theme.colorScheme.primary,
-                            ),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(60),
+                color: AppColor.feralFileLightBlue,
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 9)
+                    .copyWith(left: 16, right: isCasting ? 9 : 16),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (widget.text != null)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 10),
+                        child: Text(
+                          widget.text!,
+                          style: theme.textTheme.ppMori400Black14.copyWith(
+                            color: theme.colorScheme.primary,
                           ),
-                        ),
-                      SvgPicture.asset(
-                        'assets/images/cast_icon.svg',
-                        height: 20,
-                        colorFilter: ColorFilter.mode(
-                          theme.colorScheme.primary,
-                          BlendMode.srcIn,
                         ),
                       ),
-                      if (isCasting) ...[
-                        const SizedBox(
-                          width: 3,
-                          height: 20,
+                    SvgPicture.asset(
+                      'assets/images/cast_icon.svg',
+                      height: 20,
+                      colorFilter: ColorFilter.mode(
+                        theme.colorScheme.primary,
+                        BlendMode.srcIn,
+                      ),
+                    ),
+                    if (isCasting) ...[
+                      const SizedBox(
+                        width: 3,
+                        height: 20,
+                      ),
+                      Container(
+                        width: 4,
+                        height: 4,
+                        margin: const EdgeInsets.only(top: 1),
+                        decoration: const BoxDecoration(
+                          color: AppColor.primaryBlack,
+                          shape: BoxShape.circle,
                         ),
-                        Container(
-                          width: 4,
-                          height: 4,
-                          margin: const EdgeInsets.only(top: 1),
-                          decoration: const BoxDecoration(
-                            color: AppColor.primaryBlack,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                      ],
+                      ),
                     ],
-                  ),
+                  ],
                 ),
               ),
             ),

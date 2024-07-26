@@ -50,6 +50,7 @@ class FeralFileArtworkPreview extends StatelessWidget {
               }
             },
             child: Container(
+              color: Colors.transparent,
               padding: const EdgeInsets.only(bottom: 10),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
