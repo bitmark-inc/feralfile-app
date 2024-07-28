@@ -16,10 +16,10 @@ class FeralFileHelper {
   static String getPostUrl(Post post, String exhibitionID) =>
       '$_baseUrl/journal/${post.type}/${post.slug}/?exhibitionID=$exhibitionID';
 
-  static List<dynamic> get ongoingExhibitionIDs {
+  static List<String> get ongoingExhibitionIDs {
     final listOngoingExhibitionIDs = injector<RemoteConfigService>()
         .getConfig<List<dynamic>?>(
             ConfigGroup.exhibition, ConfigKey.ongoingExhibitionIDs, []);
-    return listOngoingExhibitionIDs ?? [];
+    return listOngoingExhibitionIDs?.map((id) => id.toString()).toList() ?? [];
   }
 }
