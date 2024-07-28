@@ -295,9 +295,7 @@ class AppRouter {
               BlocProvider(
                 create: (_) => canvasDeviceBloc,
               ),
-              BlocProvider(
-                create: (_) => subscriptionBloc,
-              ),
+              BlocProvider.value(value: subscriptionBloc),
             ],
             child: ViewPlaylistScreen(
               payload: settings.arguments! as ViewPlaylistScreenPayload,
@@ -740,7 +738,9 @@ class AppRouter {
                   BlocProvider(
                     create: (_) => canvasDeviceBloc,
                   ),
-                  BlocProvider(create: (_) => subscriptionBloc),
+                  BlocProvider.value(
+                    value: subscriptionBloc,
+                  ),
                 ],
                 child: ArtworkDetailPage(
                     payload: settings.arguments! as ArtworkDetailPayload)));
@@ -887,7 +887,9 @@ class AppRouter {
                     BlocProvider(
                       create: (_) => canvasDeviceBloc,
                     ),
-                    BlocProvider(create: (_) => subscriptionBloc),
+                    BlocProvider.value(
+                      value: subscriptionBloc,
+                    ),
                   ],
                   child: ExhibitionDetailPage(
                     payload: settings.arguments! as ExhibitionDetailPayload,
@@ -901,8 +903,8 @@ class AppRouter {
                     BlocProvider(
                       create: (_) => royaltyBloc,
                     ),
-                    BlocProvider(
-                      create: (_) => subscriptionBloc,
+                    BlocProvider.value(
+                      value: subscriptionBloc,
                     ),
                   ],
                   child: FeralFileArtworkPreviewPage(
