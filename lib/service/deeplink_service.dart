@@ -432,7 +432,11 @@ class DeeplinkServiceImpl extends DeeplinkService {
             AppRouter.scanQRPage) {
           /// in case scan when open scanQRPage,
           /// scan with navigation home page does not go to this flow
-          _navigationService.goBack(result: device);
+          _navigationService.goBack(result: result);
+          if (!isSuccessful) {
+            await _navigationService.showCannotConnectTv();
+          }
+          break;
         }
         if (isSuccessful) {
           await UIHelper.showFlexibleDialog(
