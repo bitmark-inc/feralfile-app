@@ -284,168 +284,166 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       }
       context.read<IdentityBloc>().add(GetIdentityEvent(identitiesList));
     }, builder: (context, state) {
-      if (state.assetToken != null) {
-        final identityState = context.watch<IdentityBloc>().state;
-        final asset = state.assetToken!;
-        final artistName =
-            asset.artistName?.toIdentityOrMask(identityState.identityMap);
+      if (state.assetToken == null) {
+        return const SizedBox();
+      }
+      final identityState = context.watch<IdentityBloc>().state;
+      final asset = state.assetToken!;
+      final artistName =
+          asset.artistName?.toIdentityOrMask(identityState.identityMap);
 
-        return BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
-          bloc: _canvasDeviceBloc,
-          builder: (context, canvasState) => Stack(
-            children: [
-              BackdropScaffold(
-                backgroundColor: AppColor.primaryBlack,
-                resizeToAvoidBottomInset: !hasKeyboard,
-                appBar: _isFullScreen
-                    ? null
-                    : PreferredSize(
-                        preferredSize: const Size.fromHeight(kToolbarHeight),
-                        child: Padding(
-                          padding: const EdgeInsets.only(right: 14),
-                          child: AppBar(
-                            systemOverlayStyle: systemUiOverlayDarkStyle,
-                            leading: Semantics(
-                              label: 'BACK',
-                              child: IconButton(
-                                onPressed: () => Navigator.pop(context),
-                                constraints: const BoxConstraints(
-                                  maxWidth: 44,
-                                  maxHeight: 44,
-                                  minWidth: 44,
-                                  minHeight: 44,
-                                ),
-                                icon: Padding(
-                                  padding: const EdgeInsets.all(0),
-                                  child: SvgPicture.asset(
-                                    'assets/images/ff_back_dark.svg',
-                                    width: 28,
-                                    height: 28,
-                                  ),
+      return BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
+        bloc: _canvasDeviceBloc,
+        builder: (context, canvasState) => Stack(
+          children: [
+            BackdropScaffold(
+              backgroundColor: AppColor.primaryBlack,
+              resizeToAvoidBottomInset: !hasKeyboard,
+              appBar: _isFullScreen
+                  ? null
+                  : PreferredSize(
+                      preferredSize: const Size.fromHeight(kToolbarHeight),
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 14),
+                        child: AppBar(
+                          systemOverlayStyle: systemUiOverlayDarkStyle,
+                          leading: Semantics(
+                            label: 'BACK',
+                            child: IconButton(
+                              onPressed: () => Navigator.pop(context),
+                              constraints: const BoxConstraints(
+                                maxWidth: 44,
+                                maxHeight: 44,
+                                minWidth: 44,
+                                minHeight: 44,
+                              ),
+                              icon: Padding(
+                                padding: const EdgeInsets.all(0),
+                                child: SvgPicture.asset(
+                                  'assets/images/ff_back_dark.svg',
+                                  width: 28,
+                                  height: 28,
                                 ),
                               ),
                             ),
-                            centerTitle: false,
-                            backgroundColor: Colors.transparent,
-                            actions: [
-                              BlocBuilder<SubscriptionBloc, SubscriptionState>(
-                                  builder: (context, subscriptionState) {
-                                if (subscriptionState.isSubscribed) {
-                                  return FFCastButton(
-                                    displayKey: _getDisplayKey(asset),
-                                    onDeviceSelected: (device) {
-                                      if (widget.payload.playlist == null) {
-                                        final artwork = PlayArtworkV2(
-                                          token: CastAssetToken(id: asset.id),
-                                          duration: 0,
-                                        );
-                                        _canvasDeviceBloc.add(
-                                            CanvasDeviceCastListArtworkEvent(
-                                                device, [artwork]));
-                                      } else {
-                                        final playlist =
-                                            widget.payload.playlist!;
-                                        final listTokenIds = playlist.tokenIDs;
-                                        if (listTokenIds == null) {
-                                          log.info('Playlist tokenIds is null');
-                                          return;
-                                        }
-
-                                        final duration = speedValues
-                                            .values.first.inMilliseconds;
-                                        final listPlayArtwork = listTokenIds
-                                            .rotateListByItem(asset.id)
-                                            .map((e) => PlayArtworkV2(
-                                                token: CastAssetToken(id: e),
-                                                duration: duration))
-                                            .toList();
-                                        _canvasDeviceBloc.add(
-                                            CanvasDeviceChangeControlDeviceEvent(
-                                                device, listPlayArtwork));
-                                      }
-                                    },
-                                  );
-                                }
-                                return const SizedBox();
-                              }),
-                            ],
                           ),
+                          centerTitle: false,
+                          backgroundColor: Colors.transparent,
+                          actions: [
+                            BlocBuilder<SubscriptionBloc, SubscriptionState>(
+                                builder: (context, subscriptionState) {
+                              if (subscriptionState.isSubscribed) {
+                                return FFCastButton(
+                                  displayKey: _getDisplayKey(asset),
+                                  onDeviceSelected: (device) {
+                                    if (widget.payload.playlist == null) {
+                                      final artwork = PlayArtworkV2(
+                                        token: CastAssetToken(id: asset.id),
+                                        duration: 0,
+                                      );
+                                      _canvasDeviceBloc.add(
+                                          CanvasDeviceCastListArtworkEvent(
+                                              device, [artwork]));
+                                    } else {
+                                      final playlist = widget.payload.playlist!;
+                                      final listTokenIds = playlist.tokenIDs;
+                                      if (listTokenIds == null) {
+                                        log.info('Playlist tokenIds is null');
+                                        return;
+                                      }
+
+                                      final duration = speedValues
+                                          .values.first.inMilliseconds;
+                                      final listPlayArtwork = listTokenIds
+                                          .rotateListByItem(asset.id)
+                                          .map((e) => PlayArtworkV2(
+                                              token: CastAssetToken(id: e),
+                                              duration: duration))
+                                          .toList();
+                                      _canvasDeviceBloc.add(
+                                          CanvasDeviceChangeControlDeviceEvent(
+                                              device, listPlayArtwork));
+                                    }
+                                  },
+                                );
+                              }
+                              return const SizedBox();
+                            }),
+                          ],
                         ),
-                      ),
-                backLayer: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: ArtworkPreviewWidget(
-                        useIndexer: widget.payload.useIndexer,
-                        identity: widget
-                            .payload.identities[widget.payload.currentIndex],
-                        onLoaded: _onLoaded,
                       ),
                     ),
-                    if (!_isFullScreen)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 18),
-                        child: ArtworkDetailsHeader(
-                          title: 'I',
-                          subTitle: 'I',
-                          color: Colors.transparent,
-                        ),
-                      ),
-                  ],
-                ),
-                reverseAnimationCurve: Curves.ease,
-                frontLayer: _isFullScreen
-                    ? const SizedBox()
-                    : _infoContent(context, identityState, state, artistName),
-                frontLayerBackgroundColor:
-                    _isFullScreen ? Colors.transparent : AppColor.primaryBlack,
-                backLayerBackgroundColor: AppColor.primaryBlack,
-                animationController: _animationController,
-                revealBackLayerAtStart: true,
-                frontLayerScrim: Colors.transparent,
-                backLayerScrim: Colors.transparent,
-                subHeaderAlwaysActive: false,
-                frontLayerShape: const BeveledRectangleBorder(),
-                subHeader: _isFullScreen
-                    ? null
-                    : DecoratedBox(
-                        decoration:
-                            const BoxDecoration(color: AppColor.primaryBlack),
-                        child: GestureDetector(
-                          onVerticalDragEnd: (details) {
-                            final dy = details.primaryVelocity ?? 0;
-                            if (dy <= 0) {
-                              _infoExpand();
-                            } else {
-                              _infoShrink();
-                            }
-                          },
-                          child: _infoHeader(context, asset, artistName,
-                              state.isViewOnly, canvasState),
-                        ),
-                      ),
-              ),
-              if (_isInfoExpand && !_isFullScreen)
-                Positioned(
-                  top: _appBarBottomDy ?? 80,
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.translucent,
-                    onTap: _infoShrink,
-                    child: Container(
-                      color: Colors.transparent,
-                      height: MediaQuery.of(context).size.height / 2 -
-                          (_appBarBottomDy ?? 80),
-                      width: MediaQuery.of(context).size.width,
+              backLayer: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: ArtworkPreviewWidget(
+                      useIndexer: widget.payload.useIndexer,
+                      identity: widget
+                          .payload.identities[widget.payload.currentIndex],
+                      onLoaded: _onLoaded,
                     ),
                   ),
+                  if (!_isFullScreen)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 18),
+                      child: ArtworkDetailsHeader(
+                        title: 'I',
+                        subTitle: 'I',
+                        color: Colors.transparent,
+                      ),
+                    ),
+                ],
+              ),
+              reverseAnimationCurve: Curves.ease,
+              frontLayer: _isFullScreen
+                  ? const SizedBox()
+                  : _infoContent(context, identityState, state, artistName),
+              frontLayerBackgroundColor:
+                  _isFullScreen ? Colors.transparent : AppColor.primaryBlack,
+              backLayerBackgroundColor: AppColor.primaryBlack,
+              animationController: _animationController,
+              revealBackLayerAtStart: true,
+              frontLayerScrim: Colors.transparent,
+              backLayerScrim: Colors.transparent,
+              subHeaderAlwaysActive: false,
+              frontLayerShape: const BeveledRectangleBorder(),
+              subHeader: _isFullScreen
+                  ? null
+                  : DecoratedBox(
+                      decoration:
+                          const BoxDecoration(color: AppColor.primaryBlack),
+                      child: GestureDetector(
+                        onVerticalDragEnd: (details) {
+                          final dy = details.primaryVelocity ?? 0;
+                          if (dy <= 0) {
+                            _infoExpand();
+                          } else {
+                            _infoShrink();
+                          }
+                        },
+                        child: _infoHeader(context, asset, artistName,
+                            state.isViewOnly, canvasState),
+                      ),
+                    ),
+            ),
+            if (_isInfoExpand && !_isFullScreen)
+              Positioned(
+                top: _appBarBottomDy ?? 80,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.translucent,
+                  onTap: _infoShrink,
+                  child: Container(
+                    color: Colors.transparent,
+                    height: MediaQuery.of(context).size.height / 2 -
+                        (_appBarBottomDy ?? 80),
+                    width: MediaQuery.of(context).size.width,
+                  ),
                 ),
-            ],
-          ),
-        );
-      } else {
-        return const SizedBox();
-      }
+              ),
+          ],
+        ),
+      );
     });
   }
 

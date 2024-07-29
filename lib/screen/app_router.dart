@@ -52,6 +52,7 @@ import 'package:autonomy_flutter/screen/detail/royalty/royalty_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_custom_note/exhibition_custom_note_page.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
+import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artwork_preview_bloc.dart';
 import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artwork_preview_page.dart';
 import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_bloc.dart';
 import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_page.dart';
@@ -888,6 +889,7 @@ class AppRouter {
                     BlocProvider.value(
                       value: subscriptionBloc,
                     ),
+                    BlocProvider(create: (_) => FFArtworkPreviewBloc())
                   ],
                   child: ExhibitionDetailPage(
                     payload: settings.arguments! as ExhibitionDetailPayload,
@@ -904,6 +906,7 @@ class AppRouter {
                     BlocProvider.value(
                       value: subscriptionBloc,
                     ),
+                    BlocProvider(create: (_) => FFArtworkPreviewBloc()),
                   ],
                   child: FeralFileArtworkPreviewPage(
                       payload: settings.arguments!
