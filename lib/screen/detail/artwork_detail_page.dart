@@ -377,7 +377,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                   children: [
                     Expanded(
                       child: ArtworkPreviewWidget(
-                        //focusNode: _focusNode,
                         useIndexer: widget.payload.useIndexer,
                         identity: widget
                             .payload.identities[widget.payload.currentIndex],

@@ -51,8 +51,14 @@ extension AssetTokenExtension on AssetToken {
     }
   };
 
+  bool get isJohnGerrardArtwork {
+    final contractAddress = this.contractAddress;
+    final johnGerrardContractAddress = JohnGerrardHelper.contractAddress;
+    return isFeralfile && contractAddress == johnGerrardContractAddress;
+  }
+
   List<String> get disableKeys {
-    if (contractAddress == JohnGerrardHelper.contractAddress) {
+    if (isJohnGerrardArtwork) {
       return JohnGerrardHelper.disableKeys;
     }
     return [];
