@@ -4,6 +4,8 @@ import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/pair.dart';
+import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_state.dart';
@@ -182,11 +184,8 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
               minWidth: 44,
               minHeight: 44,
             ),
-            icon: Padding(
-              padding: const EdgeInsets.all(5),
-              child: SvgPicture.asset(
-                'assets/images/ff_back_dark.svg',
-              ),
+            icon: SvgPicture.asset(
+              'assets/images/ff_back_dark.svg',
             ),
           ),
         ),
@@ -241,15 +240,21 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
         buildContext,
         onBack: () => Navigator.pop(buildContext),
         action: exhibition != null
-            ? FFCastButton(
-                displayKey: exhibition.id,
-                onDeviceSelected: (device) async {
-                  final request = _getCastExhibitionRequest(exhibition);
-                  _canvasDeviceBloc.add(
-                    CanvasDeviceCastExhibitionEvent(device, request),
+            ? BlocBuilder<SubscriptionBloc, SubscriptionState>(
+                builder: (context, subscriptionState) {
+                if (subscriptionState.isSubscribed) {
+                  return FFCastButton(
+                    displayKey: exhibition.id,
+                    onDeviceSelected: (device) async {
+                      final request = _getCastExhibitionRequest(exhibition);
+                      _canvasDeviceBloc.add(
+                        CanvasDeviceCastExhibitionEvent(device, request),
+                      );
+                    },
                   );
-                },
-              )
+                }
+                return const SizedBox();
+              })
             : null,
       );
 
