@@ -43,7 +43,7 @@ class RoyaltyBloc extends AuBloc<RoyaltyEvent, RoyaltyState> {
           if (MOMA_MEMENTO_EXHIBITION_IDS.contains(exhibitionID)) {
             final data = await dio.get<String>(COLLECTOR_RIGHTS_MEMENTO_DOCS);
             if (data.statusCode == 200) {
-              emit(RoyaltyState(markdownData: data.data));
+              emit(RoyaltyState(markdownData: data.data ?? ''));
             }
             return;
           }
@@ -52,7 +52,7 @@ class RoyaltyBloc extends AuBloc<RoyaltyEvent, RoyaltyState> {
             final data = await dio
                 .get<String>(COLLECTOR_RIGHTS_MOMA_009_UNSUPERVISED_DOCS);
             if (data.statusCode == 200) {
-              emit(RoyaltyState(markdownData: data.data));
+              emit(RoyaltyState(markdownData: data.data ?? ''));
             }
             return;
           }
@@ -66,12 +66,13 @@ class RoyaltyBloc extends AuBloc<RoyaltyEvent, RoyaltyState> {
           if (data.statusCode == 200) {
             emit(RoyaltyState(
                 markdownData: data.data
-                    ?.replaceAll('{{revenue_setting}}', revenueSetting)));
+                        ?.replaceAll('{{revenue_setting}}', revenueSetting) ??
+                    ''));
           }
         }
       } catch (e) {
         log.info('Royalty bloc $e');
-        emit(RoyaltyState());
+        emit(RoyaltyState(markdownData: ''));
       }
     });
   }

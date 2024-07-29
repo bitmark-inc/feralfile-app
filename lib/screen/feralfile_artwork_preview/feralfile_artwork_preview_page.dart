@@ -202,18 +202,26 @@ class _FeralFileArtworkPreviewPageState
 
   Widget _artworkInfoIcon() => Semantics(
         label: 'artworkInfoIcon',
-        child: GestureDetector(
-          onTap: () {
-            _isInfoExpand ? _infoShrink() : _infoExpand();
-          },
-          child: SvgPicture.asset(
-            !_isInfoExpand
-                ? 'assets/images/info_white.svg'
-                : 'assets/images/info_white_active.svg',
-            width: 22,
-            height: 22,
-          ),
-        ),
+        child: IconButton(
+            onPressed: () {
+              _isInfoExpand ? _infoShrink() : _infoExpand();
+            },
+            constraints: const BoxConstraints(
+              maxWidth: 44,
+              maxHeight: 44,
+              minWidth: 44,
+              minHeight: 44,
+            ),
+            icon: Padding(
+              padding: const EdgeInsets.all(5),
+              child: SvgPicture.asset(
+                !_isInfoExpand
+                    ? 'assets/images/info_white.svg'
+                    : 'assets/images/info_white_active.svg',
+                width: 22,
+                height: 22,
+              ),
+            )),
       );
 
   Widget _infoHeader(BuildContext context, Artwork artwork) => Padding(
@@ -289,6 +297,15 @@ class _FeralFileArtworkPreviewPageState
                   ),
                   const SizedBox(height: 40),
                   FFArtworkDetailsMetadataSection(artwork: artwork),
+                  if (artwork.series?.exhibition != null)
+                    ArtworkRightsView(
+                      contractAddress: artwork
+                          .getContract(artwork.series!.exhibition)
+                          ?.address,
+                      artworkID: artwork.id,
+                      exhibitionID: artwork.series!.exhibitionID,
+                    ),
+                  const SizedBox(height: 20),
                 ],
               ),
             ),

@@ -3,6 +3,7 @@ import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
+import 'package:autonomy_flutter/util/feralfile_artist_ext.dart';
 import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/john_gerrard_live_performance.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -49,7 +50,7 @@ class ExhibitionPreview extends StatelessWidget {
             const SizedBox(height: 3),
             GestureDetector(
               child: Text(
-                exhibition.curator!.alias,
+                exhibition.curator!.displayAlias,
                 style: artistTextStyle.copyWith(),
               ),
               onTap: () async {
@@ -78,7 +79,7 @@ class ExhibitionPreview extends StatelessWidget {
                               await _navigationService
                                   .openFeralFileArtistPage(e.alias);
                             },
-                          text: e.alias),
+                          text: e.displayAlias),
                       if (!isLast)
                         const TextSpan(
                           text: ', ',

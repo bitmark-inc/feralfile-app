@@ -32,7 +32,7 @@ on:
 
 jobs:
   fastlane-deploy:
-    runs-on: [self-hosted, macm2, build-ci-local-bmvn, ios]
+    runs-on: [self-hosted, macOS]
     steps:
       # Set up Flutter.
       - name: Clone Flutter repository with master channel

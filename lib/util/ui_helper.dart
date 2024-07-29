@@ -168,18 +168,17 @@ class UIHelper {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(title,
-                            style: theme.primaryTextTheme.ppMori700White24),
+                        Expanded(
+                          child: Text(title,
+                              style: theme.primaryTextTheme.ppMori700White24),
+                        ),
                         if (withCloseIcon)
-                          Padding(
-                            padding: const EdgeInsets.only(left: 10),
-                            child: GestureDetector(
-                              onTap: () => hideInfoDialog(context),
-                              child: SvgPicture.asset(
-                                'assets/images/circle_close.svg',
-                                width: 22,
-                                height: 22,
-                              ),
+                          IconButton(
+                            onPressed: () => hideInfoDialog(context),
+                            icon: SvgPicture.asset(
+                              'assets/images/circle_close.svg',
+                              width: 22,
+                              height: 22,
                             ),
                           )
                       ],
@@ -1289,6 +1288,12 @@ class UIHelper {
                     alignment: Alignment.centerRight,
                     child: IconButton(
                       onPressed: () => Navigator.pop(context),
+                      constraints: const BoxConstraints(
+                        maxWidth: 44,
+                        maxHeight: 44,
+                        minWidth: 44,
+                        minHeight: 44,
+                      ),
                       icon: const Icon(
                         AuIcon.close,
                         size: 18,

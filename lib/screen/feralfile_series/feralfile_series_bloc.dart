@@ -37,6 +37,11 @@ class FeralFileSeriesBloc
       ui.decodeImageFromList(Uint8List.fromList(bytes), (image) {
         completer.complete(image);
       });
+      Timer(const Duration(seconds: 3), () {
+        if (!completer.isCompleted) {
+          completer.completeError('timeout');
+        }
+      });
 
       final image = await completer.future;
       return image.width / image.height;

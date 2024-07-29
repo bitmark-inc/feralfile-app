@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
+import 'package:autonomy_flutter/util/feralfile_artist_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/header.dart';
@@ -186,8 +187,10 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                     ? SvgPicture.network(
                         exhibition.coverUrl,
                         height: estimatedHeight,
-                        placeholderBuilder: (context) => SizedBox(
+                        placeholderBuilder: (context) => Container(
                           height: estimatedHeight,
+                          width: estimatedWidth,
+                          color: Colors.transparent,
                           child: const Center(
                             child: CircularProgressIndicator(
                               color: Colors.white,
@@ -205,8 +208,10 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                         memCacheHeight: estimatedHeight.toInt(),
                         maxHeightDiskCache: estimatedHeight.toInt(),
                         cacheManager: injector<CacheManager>(),
-                        placeholder: (context, url) => SizedBox(
+                        placeholder: (context, url) => Container(
                           height: estimatedHeight,
+                          width: estimatedWidth,
+                          color: Colors.transparent,
                           child: const Center(
                             child: CircularProgressIndicator(
                               color: Colors.white,
@@ -261,7 +266,7 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                                         exhibition.artists![0].alias,
                                       );
                                     },
-                                  text: exhibition.artists![0].alias,
+                                  text: exhibition.artists![0].displayAlias,
                                   style: const TextStyle(
                                     decoration: TextDecoration.underline,
                                   )),
@@ -283,7 +288,7 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                                         .openFeralFileCuratorPage(
                                             exhibition.curator!.alias);
                                   },
-                                text: exhibition.curator!.alias,
+                                text: exhibition.curator!.displayAlias,
                                 style: const TextStyle(
                                   decoration: TextDecoration.underline,
                                 ),
@@ -321,7 +326,6 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
         builder: (context, exhibitionsState) =>
             BlocBuilder<SubscriptionBloc, SubscriptionState>(
           builder: (context, subscriptionState) {
-            final theme = Theme.of(context);
             if (exhibitionsState.currentPage == 0) {
               return const SliverToBoxAdapter(
                 child: Center(

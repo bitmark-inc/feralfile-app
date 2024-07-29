@@ -123,8 +123,8 @@
 		<string>app.feralfile.com</string>
 		<string>feralfile-app.app.link</string>
 		<string>feralfile-app-alternate.app.link</string>
-		<string>feralfile-app.test.app.link</string>
-		<string>feralfile-app-alternate.test.app.link</string>
+		<string>feralfile-app.test-app.link</string>
+		<string>feralfile-app-alternate.test-app.link</string>
 	</array>
 	<key>io.flutter.embedded_views_preview</key>
 	<true/>

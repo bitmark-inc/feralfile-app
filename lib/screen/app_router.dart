@@ -237,7 +237,6 @@ class AppRouter {
     final personaBloc = PersonaBloc(
       injector<CloudDatabase>(),
       injector(),
-      injector<AuditService>(),
     );
     final connectionsBloc = injector<ConnectionsBloc>();
     final identityBloc = IdentityBloc(injector<AppDatabase>(), injector());
@@ -260,6 +259,8 @@ class AppRouter {
       injector(),
       injector(),
     );
+
+    final royaltyBloc = RoyaltyBloc(injector());
 
     switch (settings.name) {
       case artistsListPage:
@@ -320,6 +321,9 @@ class AppRouter {
                 injector<AuditService>(),
                 injector(),
               ),
+            ),
+            BlocProvider(
+              create: (_) => personaBloc,
             ),
           ], child: const OnboardingPage()),
         );
@@ -706,7 +710,7 @@ class AppRouter {
                 providers: [
                   BlocProvider.value(value: accountsBloc),
                   BlocProvider(create: (_) => identityBloc),
-                  BlocProvider(create: (_) => RoyaltyBloc(injector())),
+                  BlocProvider(create: (_) => royaltyBloc),
                   BlocProvider(
                       create: (_) => ArtworkDetailBloc(
                             injector(),
@@ -734,7 +738,7 @@ class AppRouter {
                 providers: [
                   BlocProvider.value(value: accountsBloc),
                   BlocProvider(create: (_) => identityBloc),
-                  BlocProvider(create: (_) => RoyaltyBloc(injector())),
+                  BlocProvider(create: (_) => royaltyBloc),
                   BlocProvider(create: (_) => TravelInfoBloc()),
                   BlocProvider(create: (_) => postcardDetailBloc),
                 ],
@@ -873,9 +877,16 @@ class AppRouter {
       case ffArtworkPreviewPage:
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) => FeralFileArtworkPreviewPage(
-                payload:
-                    settings.arguments! as FeralFileArtworkPreviewPagePayload));
+            builder: (context) => MultiBlocProvider(
+                  providers: [
+                    BlocProvider(
+                      create: (_) => royaltyBloc,
+                    ),
+                  ],
+                  child: FeralFileArtworkPreviewPage(
+                      payload: settings.arguments!
+                          as FeralFileArtworkPreviewPagePayload),
+                ));
 
       case feralFileSeriesPage:
         return CupertinoPageRoute(
