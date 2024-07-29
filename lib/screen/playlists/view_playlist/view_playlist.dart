@@ -4,6 +4,8 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/play_control_model.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
@@ -239,37 +241,53 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
 
   List<Widget> _appBarAction(BuildContext context, PlayListModel playList) => [
         if (editable) ...[
-          const SizedBox(width: 15),
-          GestureDetector(
-              onTap: () async => _onMoreTap(context, playList),
-              child: SvgPicture.asset(
-                'assets/images/more_circle.svg',
-                colorFilter:
-                    const ColorFilter.mode(AppColor.white, BlendMode.srcIn),
-                width: 24,
-              )),
-        ],
-        if (_getDisplayKey(playList) != null) ...[
-          const SizedBox(width: 15),
-          FFCastButton(
-            displayKey: _getDisplayKey(playList)!,
-            onDeviceSelected: (device) async {
-              final listTokenIds = playList.tokenIDs;
-              if (listTokenIds == null) {
-                log.info('Playlist tokenIds is null');
-                return;
-              }
-              final duration = speedValues.values.first.inMilliseconds;
-              final listPlayArtwork = listTokenIds
-                  .map((e) => PlayArtworkV2(
-                      token: CastAssetToken(id: e), duration: duration))
-                  .toList();
-              _canvasDeviceBloc.add(CanvasDeviceChangeControlDeviceEvent(
-                  device, listPlayArtwork));
-            },
+          const SizedBox(width: 5),
+          Semantics(
+            label: 'artworkDotIcon',
+            child: IconButton(
+              onPressed: () async => _onMoreTap(context, playList),
+              constraints: const BoxConstraints(
+                maxWidth: 44,
+                maxHeight: 44,
+                minWidth: 44,
+                minHeight: 44,
+              ),
+              icon: Padding(
+                padding: const EdgeInsets.all(0),
+                child: SvgPicture.asset(
+                  'assets/images/more_circle.svg',
+                  width: 22,
+                  height: 22,
+                ),
+              ),
+            ),
           ),
         ],
-        const SizedBox(width: 15),
+        if (_getDisplayKey(playList) != null) ...[
+          BlocBuilder<SubscriptionBloc, SubscriptionState>(
+              builder: (context, subscriptionState) {
+            if (subscriptionState.isSubscribed) {
+              return FFCastButton(
+                displayKey: _getDisplayKey(playList)!,
+                onDeviceSelected: (device) async {
+                  final listTokenIds = playList.tokenIDs;
+                  if (listTokenIds == null) {
+                    log.info('Playlist tokenIds is null');
+                    return;
+                  }
+                  final duration = speedValues.values.first.inMilliseconds;
+                  final listPlayArtwork = listTokenIds
+                      .map((e) => PlayArtworkV2(
+                          token: CastAssetToken(id: e), duration: duration))
+                      .toList();
+                  _canvasDeviceBloc.add(CanvasDeviceChangeControlDeviceEvent(
+                      device, listPlayArtwork));
+                },
+              );
+            }
+            return const SizedBox();
+          }),
+        ],
       ];
 
   @override

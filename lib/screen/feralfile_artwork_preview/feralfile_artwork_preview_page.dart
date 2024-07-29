@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
+import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -20,6 +22,7 @@ import 'package:backdrop/backdrop.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:sentry/sentry.dart';
@@ -96,14 +99,19 @@ class _FeralFileArtworkPreviewPageState
                   height: toolbarHeight,
                 ),
               )
-            : getFFAppBar(
-                context,
+            : getFFAppBar(context,
                 onBack: () => Navigator.pop(context),
-                action: FFCastButton(
-                  displayKey: widget.payload.artwork.series?.exhibitionID ?? '',
-                  onDeviceSelected: _onDeviceSelected,
-                ),
-              ),
+                action: BlocBuilder<SubscriptionBloc, SubscriptionState>(
+                    builder: (context, subscriptionState) {
+                  if (subscriptionState.isSubscribed) {
+                    return FFCastButton(
+                      displayKey:
+                          widget.payload.artwork.series?.exhibitionID ?? '',
+                      onDeviceSelected: _onDeviceSelected,
+                    );
+                  }
+                  return const SizedBox();
+                })),
         backgroundColor: AppColor.primaryBlack,
         frontLayerBackgroundColor: AppColor.primaryBlack,
         backLayerBackgroundColor: AppColor.primaryBlack,
@@ -202,18 +210,23 @@ class _FeralFileArtworkPreviewPageState
 
   Widget _artworkInfoIcon() => Semantics(
         label: 'artworkInfoIcon',
-        child: GestureDetector(
-          onTap: () {
-            _isInfoExpand ? _infoShrink() : _infoExpand();
-          },
-          child: SvgPicture.asset(
-            !_isInfoExpand
-                ? 'assets/images/info_white.svg'
-                : 'assets/images/info_white_active.svg',
-            width: 22,
-            height: 22,
-          ),
-        ),
+        child: IconButton(
+            onPressed: () {
+              _isInfoExpand ? _infoShrink() : _infoExpand();
+            },
+            constraints: const BoxConstraints(
+              maxWidth: 44,
+              maxHeight: 44,
+              minWidth: 44,
+              minHeight: 44,
+            ),
+            icon: SvgPicture.asset(
+              !_isInfoExpand
+                  ? 'assets/images/info_white.svg'
+                  : 'assets/images/info_white_active.svg',
+              width: 22,
+              height: 22,
+            )),
       );
 
   Widget _infoHeader(BuildContext context, Artwork artwork) => Padding(
