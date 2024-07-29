@@ -102,7 +102,6 @@ class _FeralFileArtworkPreviewPageState
         await _exitFullScreen();
       },
     );
-    _detector?.startListening();
   }
 
   @override
@@ -151,6 +150,7 @@ class _FeralFileArtworkPreviewPageState
                               return const SizedBox();
                             })),
                 backgroundColor: AppColor.primaryBlack,
+                frontLayerElevation: _isFullScreen ? 0 : 1,
                 frontLayerBackgroundColor:
                     _isFullScreen ? Colors.transparent : AppColor.primaryBlack,
                 backLayerBackgroundColor: AppColor.primaryBlack,
