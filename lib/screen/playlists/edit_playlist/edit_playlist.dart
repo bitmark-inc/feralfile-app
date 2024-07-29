@@ -180,12 +180,15 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                   onTap: () {
                     onSave(playList);
                   },
-                  child: Text(
-                    tr('done').capitalize(),
-                    style: theme.textTheme.ppMori400White14,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 18, horizontal: 15),
+                    child: Text(
+                      tr('done').capitalize(),
+                      style: theme.textTheme.ppMori400White14,
+                    ),
                   ),
                 ),
-                const SizedBox(width: 15),
               ]),
           body: SafeArea(
             bottom: false,
@@ -301,8 +304,6 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                     child: Align(
                       alignment: Alignment.bottomCenter,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 25, vertical: 13),
                         decoration: BoxDecoration(
                           color: AppColor.auGreyBackground,
                           borderRadius: BorderRadius.circular(50),
@@ -311,78 +312,91 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
+                            const SizedBox(width: 12),
                             AddButton(
-                              icon: SvgPicture.asset(
-                                'assets/images/joinFile.svg',
-                                width: 24,
-                                height: 24,
-                                colorFilter: const ColorFilter.mode(
-                                    AppColor.white, BlendMode.srcIn),
+                              icon: Container(
+                                color: Colors.transparent,
+                                padding: const EdgeInsets.all(13),
+                                child: SvgPicture.asset(
+                                  'assets/images/joinFile.svg',
+                                  width: 24,
+                                  height: 24,
+                                  colorFilter: const ColorFilter.mode(
+                                      AppColor.white, BlendMode.srcIn),
+                                ),
                               ),
                               onTap: () async {
                                 await moveToAddNftToCollection(context);
                               },
                             ),
-                            const SizedBox(width: 25),
                             AddButton(
-                              icon: SvgPicture.asset(
-                                'assets/images/rename_icon.svg',
-                                width: 24,
-                                height: 24,
-                                colorFilter: const ColorFilter.mode(
-                                    AppColor.white, BlendMode.srcIn),
+                              icon: Container(
+                                color: Colors.transparent,
+                                padding: const EdgeInsets.all(13),
+                                child: SvgPicture.asset(
+                                  'assets/images/rename_icon.svg',
+                                  width: 24,
+                                  height: 24,
+                                  colorFilter: const ColorFilter.mode(
+                                      AppColor.white, BlendMode.srcIn),
+                                ),
                               ),
                               onTap: () async {
                                 _editPlaylistName();
                               },
                             ),
-                            const SizedBox(width: 25),
-                            Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                AddButton(
-                                  icon: SvgPicture.asset(
-                                    'assets/images/trash_white.svg',
-                                    width: 24,
-                                    height: 24,
-                                    colorFilter: const ColorFilter.mode(
-                                        AppColor.white, BlendMode.srcIn),
-                                  ),
-                                  iconOnDisabled: SvgPicture.asset(
-                                    'assets/images/trash_disable.svg',
-                                    width: 24,
-                                    height: 24,
-                                  ),
-                                  onTap: () async {
-                                    await _removeSelectedToken(
-                                      context,
-                                      selectedItem: selectedItem,
-                                      playlist: widget.playListModel!,
-                                    );
-                                  },
-                                  isEnable: selectedItem.isNotEmpty,
-                                ),
-                                if (selectedItem.isNotEmpty) ...[
+                            GestureDetector(
+                              onTap: selectedItem.isEmpty
+                                  ? null
+                                  : () async {
+                                      await _removeSelectedToken(
+                                        context,
+                                        selectedItem: selectedItem,
+                                        playlist: playList!,
+                                      );
+                                    },
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: [
                                   Container(
-                                    height: 14,
-                                    width:
-                                        14 + (selectedItem.length > 9 ? 3 : 0),
-                                    decoration: BoxDecoration(
-                                      color: Colors.red,
-                                      borderRadius: BorderRadius.circular(50),
-                                    ),
-                                    padding: EdgeInsets.fromLTRB(3, 2, 3, 4),
-                                    child: Center(
-                                      child: Text(
-                                        getTextNumber(selectedItem.length),
-                                        style: theme.textTheme.ppMori400White12
-                                            .copyWith(fontSize: 8),
+                                      color: Colors.transparent,
+                                      padding: const EdgeInsets.all(13),
+                                      child: selectedItem.isNotEmpty
+                                          ? SvgPicture.asset(
+                                              'assets/images/trash_white.svg',
+                                              width: 24,
+                                              height: 24,
+                                            )
+                                          : SvgPicture.asset(
+                                              'assets/images/trash_disable.svg',
+                                              width: 24,
+                                              height: 24,
+                                            )),
+                                  if (selectedItem.isNotEmpty) ...[
+                                    Container(
+                                      height: 14,
+                                      width: 14 +
+                                          (selectedItem.length > 9 ? 3 : 0),
+                                      decoration: BoxDecoration(
+                                        color: Colors.red,
+                                        borderRadius: BorderRadius.circular(50),
                                       ),
-                                    ),
-                                  )
+                                      padding:
+                                          const EdgeInsets.fromLTRB(3, 2, 3, 4),
+                                      child: Center(
+                                        child: Text(
+                                          getTextNumber(selectedItem.length),
+                                          style: theme
+                                              .textTheme.ppMori400White12
+                                              .copyWith(fontSize: 8),
+                                        ),
+                                      ),
+                                    )
+                                  ],
                                 ],
-                              ],
+                              ),
                             ),
+                            const SizedBox(width: 12),
                           ],
                         ),
                       ),

@@ -80,10 +80,10 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
                       ),
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 10),
-                    child: GestureDetector(
-                      onTap: () => Navigator.pop(context),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: Padding(
+                      padding: const EdgeInsets.all(5),
                       child: SvgPicture.asset(
                         'assets/images/circle_close.svg',
                         width: 22,

@@ -173,12 +173,20 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
         child: RotatedBox(
           quarterTurns: 3,
           child: IconButton(
-            padding: const EdgeInsets.all(0),
             onPressed: () async => _controller.nextPage(
                 duration: const Duration(milliseconds: 300),
                 curve: Curves.easeIn),
-            icon: SvgPicture.asset(
-              'assets/images/ff_back_dark.svg',
+            constraints: const BoxConstraints(
+              maxWidth: 44,
+              maxHeight: 44,
+              minWidth: 44,
+              minHeight: 44,
+            ),
+            icon: Padding(
+              padding: const EdgeInsets.all(5),
+              child: SvgPicture.asset(
+                'assets/images/ff_back_dark.svg',
+              ),
             ),
           ),
         ),
@@ -233,17 +241,14 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
         buildContext,
         onBack: () => Navigator.pop(buildContext),
         action: exhibition != null
-            ? Padding(
-                padding: const EdgeInsets.only(right: 14, bottom: 10, top: 10),
-                child: FFCastButton(
-                  displayKey: exhibition.id,
-                  onDeviceSelected: (device) async {
-                    final request = _getCastExhibitionRequest(exhibition);
-                    _canvasDeviceBloc.add(
-                      CanvasDeviceCastExhibitionEvent(device, request),
-                    );
-                  },
-                ),
+            ? FFCastButton(
+                displayKey: exhibition.id,
+                onDeviceSelected: (device) async {
+                  final request = _getCastExhibitionRequest(exhibition);
+                  _canvasDeviceBloc.add(
+                    CanvasDeviceCastExhibitionEvent(device, request),
+                  );
+                },
               )
             : null,
       );
