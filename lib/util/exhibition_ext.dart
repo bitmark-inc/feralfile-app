@@ -29,7 +29,7 @@ extension ExhibitionExt on Exhibition {
       exhibitionStartAt.subtract(Duration(seconds: previewDuration ?? 0));
 
   List<String> get disableKeys {
-    if (isJohnGerrardShow){
+    if (isJohnGerrardShow) {
       return JohnGerrardHelper.disableKeys;
     }
     return [];

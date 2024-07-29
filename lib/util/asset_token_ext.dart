@@ -52,7 +52,7 @@ extension AssetTokenExtension on AssetToken {
   };
 
   List<String> get disableKeys {
-    if (contractAddress == JohnGerrardHelper.contractAddress){
+    if (contractAddress == JohnGerrardHelper.contractAddress) {
       return JohnGerrardHelper.disableKeys;
     }
     return [];
