@@ -132,7 +132,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
         await _exitFullScreen();
       },
     );
-    _detector?.startListening();
   }
 
   @override
