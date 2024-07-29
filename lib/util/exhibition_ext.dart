@@ -37,6 +37,13 @@ extension ExhibitionExt on Exhibition {
 
   List<FFSeries> get displayableSeries => series?.displayable ?? [];
 
+  List<String> get disableKeys {
+    if (isJohnGerrardShow) {
+      JohnGerrardHelper.disableKeys;
+    }
+    return [];
+  }
+
   String? get getSeriesArtworkModelText {
     if (this.series == null || id == SOURCE_EXHIBITION_ID) {
       return null;
