@@ -1633,6 +1633,28 @@ class UIHelper {
     );
   }
 
+  static Future<void> openSnackBarExistFullScreen(BuildContext context) async {
+    final theme = Theme.of(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Container(
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 10),
+          decoration: BoxDecoration(
+            color: AppColor.feralFileHighlight.withOpacity(0.9),
+            borderRadius: BorderRadius.circular(64),
+          ),
+          child: Text(
+            'shake_exit'.tr(),
+            textAlign: TextAlign.center,
+            style: theme.textTheme.ppMori600Black12,
+          ),
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
+    );
+  }
+
   static Future<void> showPostcardStampSaved(BuildContext context) async =>
       await _showFileSaved(context, title: 'stamp'.tr());
 

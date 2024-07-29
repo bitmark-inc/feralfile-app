@@ -45,6 +45,7 @@ import 'package:autonomy_flutter/view/cast_button.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/stream_common_widget.dart';
+import 'package:autonomy_flutter/view/webview_controller_text_field.dart';
 import 'package:backdrop/backdrop.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -53,6 +54,7 @@ import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -90,6 +92,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   AssetToken? currentAsset;
   final _feralfileService = injector.get<FeralFileService>();
   final _focusNode = FocusNode();
+  final _textController = TextEditingController();
+  InAppWebViewController? _webViewController;
   bool _isInfoExpand = false;
   static const _infoShrinkPosition = 0.001;
   static const _infoExpandPosition = 0.29;
@@ -217,6 +221,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     _scrollController?.dispose();
     _animationController.dispose();
     _focusNode.dispose();
+    _textController.dispose();
     unawaited(disableLandscapeMode());
     unawaited(WakelockPlus.disable());
     _detector?.stopListening();
@@ -358,10 +363,11 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                   children: [
                     Expanded(
                       child: ArtworkPreviewWidget(
-                        focusNode: _focusNode,
+                        //focusNode: _focusNode,
                         useIndexer: widget.payload.useIndexer,
                         identity: widget
                             .payload.identities[widget.payload.currentIndex],
+                        onLoaded: _onLoaded,
                       ),
                     ),
                     if (!_isFullScreen)
@@ -454,6 +460,10 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
         ),
       );
 
+  dynamic _onLoaded({InAppWebViewController? webViewController, int? time}) {
+    _webViewController = webViewController;
+  }
+
   Widget _infoHeader(BuildContext context, AssetToken asset, String? artistName,
       bool isViewOnly, CanvasDeviceState canvasState) {
     var subTitle = '';
@@ -505,77 +515,91 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     final theme = Theme.of(context);
     final asset = state.assetToken!;
     final editionSubTitle = getEditionSubTitle(asset);
-    return SingleChildScrollView(
-      controller: _scrollController,
-      child: SizedBox(
-        width: double.infinity,
-        child: Column(
-          children: [
-            Visibility(
-              visible: checkWeb3ContractAddress.contains(asset.contractAddress),
-              child: Padding(
-                padding: const EdgeInsets.only(left: 16, right: 16, bottom: 20),
-                child: OutlineButton(
-                  color: Colors.transparent,
-                  text: 'web3_glossary'.tr(),
-                  onTap: () {
-                    unawaited(Navigator.pushNamed(
-                        context, AppRouter.previewPrimerPage,
-                        arguments: asset));
-                  },
-                ),
-              ),
-            ),
-            Visibility(
-              visible: editionSubTitle.isNotEmpty,
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Padding(
-                  padding: ResponsiveLayout.getPadding,
-                  child: Text(
-                    editionSubTitle,
-                    style: theme.textTheme.ppMori400Grey14,
-                  ),
-                ),
-              ),
-            ),
-            debugInfoWidget(context, currentAsset),
-            Padding(
-              padding: ResponsiveLayout.getPadding,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Semantics(
-                    label: 'Desc',
-                    child: HtmlWidget(
-                      customStylesBuilder: auHtmlStyle,
-                      asset.description ?? '',
-                      textStyle: theme.textTheme.ppMori400White14,
+    return Stack(
+      children: [
+        Visibility(
+            visible: _isOpenedWithWebview(asset),
+            child: WebviewControllerTextField(
+              webViewController: _webViewController,
+              focusNode: _focusNode,
+              textController: _textController,
+              disableKeys: asset.disableKeys,
+            )),
+        SingleChildScrollView(
+          controller: _scrollController,
+          child: SizedBox(
+            width: double.infinity,
+            child: Column(
+              children: [
+                Visibility(
+                  visible:
+                      checkWeb3ContractAddress.contains(asset.contractAddress),
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.only(left: 16, right: 16, bottom: 20),
+                    child: OutlineButton(
+                      color: Colors.transparent,
+                      text: 'web3_glossary'.tr(),
+                      onTap: () {
+                        unawaited(Navigator.pushNamed(
+                            context, AppRouter.previewPrimerPage,
+                            arguments: asset));
+                      },
                     ),
                   ),
-                  const SizedBox(height: 40),
-                  artworkDetailsMetadataSection(context, asset, artistName),
-                  if (asset.fungible) ...[
-                    tokenOwnership(context, asset,
-                        identityState.identityMap[asset.owner] ?? ''),
-                  ] else ...[
-                    if (state.provenances.isNotEmpty)
-                      _provenanceView(context, state.provenances)
-                    else
-                      const SizedBox()
-                  ],
-                  artworkDetailsRightSection(context, asset),
-                  const SizedBox(height: 80),
-                ],
-              ),
+                ),
+                Visibility(
+                  visible: editionSubTitle.isNotEmpty,
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Padding(
+                      padding: ResponsiveLayout.getPadding,
+                      child: Text(
+                        editionSubTitle,
+                        style: theme.textTheme.ppMori400Grey14,
+                      ),
+                    ),
+                  ),
+                ),
+                debugInfoWidget(context, currentAsset),
+                Padding(
+                  padding: ResponsiveLayout.getPadding,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Semantics(
+                        label: 'Desc',
+                        child: HtmlWidget(
+                          customStylesBuilder: auHtmlStyle,
+                          asset.description ?? '',
+                          textStyle: theme.textTheme.ppMori400White14,
+                        ),
+                      ),
+                      const SizedBox(height: 40),
+                      artworkDetailsMetadataSection(context, asset, artistName),
+                      if (asset.fungible) ...[
+                        tokenOwnership(context, asset,
+                            identityState.identityMap[asset.owner] ?? ''),
+                      ] else ...[
+                        if (state.provenances.isNotEmpty)
+                          _provenanceView(context, state.provenances)
+                        else
+                          const SizedBox()
+                      ],
+                      artworkDetailsRightSection(context, asset),
+                      const SizedBox(height: 80),
+                    ],
+                  ),
+                ),
+                SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.5 -
+                      (_appBarBottomDy ?? 80),
+                ),
+              ],
             ),
-            SizedBox(
-              height: MediaQuery.of(context).size.height * 0.5 -
-                  (_appBarBottomDy ?? 80),
-            ),
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
 
@@ -604,9 +628,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     final ownerWallet = owner?.first;
     final addressIndex = owner?.second;
     final irlUrl = asset.irlTapLink;
-    final showKeyboard = (asset.medium == 'software' ||
-            asset.medium == 'other' ||
-            (asset.medium?.isEmpty ?? true) ||
+    final showKeyboard = (_isOpenedWithWebview(asset) ||
             canvasDeviceState
                     .lastSelectedActiveDeviceForKey(_getDisplayKey(asset)) !=
                 null) &&
@@ -638,7 +660,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                 unawaited(Navigator.of(context).pushNamed(
                   AppRouter.keyboardControlPage,
                   arguments: KeyboardControlPagePayload(
-                    asset,
+                    getEditionSubTitle(asset),
+                    asset.description ?? '',
                     [castingDevice],
                   ),
                 ));
@@ -836,6 +859,11 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     ));
   }
 
+  bool _isOpenedWithWebview(AssetToken asset) =>
+      asset.medium == 'software' ||
+      asset.medium == 'other' ||
+      (asset.medium?.isEmpty ?? true);
+
   Future<void> _setFullScreen() async {
     unawaited(_openSnackBar(context));
     if (_isInfoExpand) {
@@ -860,25 +888,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
   }
 
   Future<void> _openSnackBar(BuildContext context) async {
-    final theme = Theme.of(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Container(
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 10),
-          decoration: BoxDecoration(
-            color: AppColor.feralFileHighlight.withOpacity(0.9),
-            borderRadius: BorderRadius.circular(64),
-          ),
-          child: Text(
-            'shake_exit'.tr(),
-            textAlign: TextAlign.center,
-            style: theme.textTheme.ppMori600Black12,
-          ),
-        ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-    );
+    await UIHelper.openSnackBarExistFullScreen(context);
   }
 }
 
