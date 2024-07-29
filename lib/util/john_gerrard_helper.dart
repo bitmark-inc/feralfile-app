@@ -67,4 +67,6 @@ class JohnGerrardHelper {
       log.info('updateJohnGerrardLatestRevealIndex error: $e');
     }
   }
+
+  static List<String> disableKeys = ['i', 'g', 'm'];
 }

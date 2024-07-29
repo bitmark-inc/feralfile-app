@@ -28,6 +28,13 @@ extension ExhibitionExt on Exhibition {
   DateTime get exhibitionViewAt =>
       exhibitionStartAt.subtract(Duration(seconds: previewDuration ?? 0));
 
+  List<String> get disableKeys {
+    if (isJohnGerrardShow) {
+      return JohnGerrardHelper.disableKeys;
+    }
+    return [];
+  }
+
   String get displayKey => id;
 
   //TODO: implement this
