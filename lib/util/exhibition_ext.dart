@@ -37,6 +37,13 @@ extension ExhibitionExt on Exhibition {
         id == exhibitionBloc.state.featuredExhibition?.id;
   }
 
+  List<String> get disableKeys {
+    if (isJohnGerrardShow){
+      return JohnGerrardHelper.disableKeys;
+    }
+    return [];
+  }
+
   String get displayKey => id;
 
   //TODO: implement this
@@ -185,7 +192,8 @@ extension ArtworkExt on Artwork {
   Future<String> renderingType() async {
     final medium = series?.medium ?? 'unknown';
     final mediumType = FeralfileMediumTypes.fromString(medium);
-    if (mediumType == FeralfileMediumTypes.image) {
+    if (mediumType == FeralfileMediumTypes.image ||
+        mediumType == FeralfileMediumTypes.software) {
       final contentType = await HttpHelper.contentType(previewURL);
       return contentType;
     } else {

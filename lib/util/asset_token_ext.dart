@@ -51,6 +51,13 @@ extension AssetTokenExtension on AssetToken {
     }
   };
 
+  List<String> get disableKeys {
+    if (contractAddress == JohnGerrardHelper.contractAddress){
+      return JohnGerrardHelper.disableKeys;
+    }
+    return [];
+  }
+
   String? get displayTitle {
     if (title == null) {
       return null;

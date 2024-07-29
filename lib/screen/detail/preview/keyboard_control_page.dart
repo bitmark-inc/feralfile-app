@@ -18,10 +18,11 @@ import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:nft_collection/models/asset_token.dart';
 
 class KeyboardControlPagePayload {
-  final AssetToken assetToken;
+  final String subtitle;
+  final String description;
   final List<CanvasDevice> devices;
 
-  KeyboardControlPagePayload(this.assetToken, this.devices);
+  KeyboardControlPagePayload(this.subtitle, this.description, this.devices);
 }
 
 class KeyboardControlPage extends StatefulWidget {
@@ -97,8 +98,8 @@ class _KeyboardControlPageState extends State<KeyboardControlPage>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final assetToken = widget.payload.assetToken;
-    final editionSubTitle = getEditionSubTitle(assetToken);
+    final editionSubTitle = widget.payload.subtitle;
+    final description = widget.payload.description;
     return Scaffold(
       backgroundColor: theme.colorScheme.primary.withOpacity(0.8),
       resizeToAvoidBottomInset: false,
@@ -138,7 +139,7 @@ class _KeyboardControlPageState extends State<KeyboardControlPage>
                         const SizedBox(height: 16),
                         HtmlWidget(
                           customStylesBuilder: auHtmlStyle,
-                          assetToken.description ?? '',
+                          description,
                           textStyle: theme.textTheme.ppMori400White14,
                         ),
                         TextField(
