@@ -183,8 +183,7 @@ extension ArtworkExt on Artwork {
   Future<String> renderingType() async {
     final medium = series?.medium ?? 'unknown';
     final mediumType = FeralfileMediumTypes.fromString(medium);
-    if (mediumType == FeralfileMediumTypes.image ||
-        mediumType == FeralfileMediumTypes.software) {
+    if (mediumType == FeralfileMediumTypes.image) {
       final contentType = await HttpHelper.contentType(previewURL);
       return contentType;
     } else {
