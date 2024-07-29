@@ -28,13 +28,6 @@ extension ExhibitionExt on Exhibition {
   DateTime get exhibitionViewAt =>
       exhibitionStartAt.subtract(Duration(seconds: previewDuration ?? 0));
 
-  bool get canViewDetails {
-    final exhibitionBloc = injector<ExhibitionBloc>();
-    final subscriptionBloc = injector<SubscriptionBloc>();
-    return subscriptionBloc.state.isSubscribed ||
-        id == exhibitionBloc.state.featuredExhibition?.id;
-  }
-
   List<String> get disableKeys {
     if (isJohnGerrardShow){
       return JohnGerrardHelper.disableKeys;
