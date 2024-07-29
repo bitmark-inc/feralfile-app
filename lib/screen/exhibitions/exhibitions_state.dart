@@ -17,17 +17,20 @@ class ExhibitionsState {
     this.currentPage = 0,
     this.upcomingExhibition,
     this.featuredExhibition,
+    this.ongoingExhibitions,
     this.pastExhibitions,
   });
 
   final int currentPage;
   final Exhibition? upcomingExhibition;
   final Exhibition? featuredExhibition;
+  final List<Exhibition>? ongoingExhibitions;
   final List<Exhibition>? pastExhibitions;
 
   ExhibitionsState copyWith({
     final Exhibition? upcomingExhibition,
     final Exhibition? featuredExhibition,
+    final List<Exhibition>? ongoingExhibitions,
     final List<Exhibition>? pastExhibitions,
     bool? isSubscribed,
     int? currentPage,
@@ -36,18 +39,21 @@ class ExhibitionsState {
         currentPage: currentPage ?? this.currentPage,
         upcomingExhibition: upcomingExhibition ?? this.upcomingExhibition,
         featuredExhibition: featuredExhibition ?? this.featuredExhibition,
+        ongoingExhibitions: ongoingExhibitions ?? this.ongoingExhibitions,
         pastExhibitions: pastExhibitions ?? this.pastExhibitions,
       );
 
   List<String> get allExhibitionIds => [
         if (featuredExhibition != null) featuredExhibition!.id,
         if (upcomingExhibition != null) upcomingExhibition!.id,
+        ...ongoingExhibitions?.map((e) => e.id) ?? [],
         ...pastExhibitions?.map((e) => e.id) ?? [],
       ];
 
   List<Exhibition> get allExhibitions => [
         if (featuredExhibition != null) featuredExhibition!,
         if (upcomingExhibition != null) upcomingExhibition!,
+        ...ongoingExhibitions ?? [],
         ...pastExhibitions ?? [],
       ];
 }

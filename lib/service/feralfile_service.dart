@@ -23,6 +23,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/crawl_helper.dart';
 import 'package:autonomy_flutter/util/download_helper.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
+import 'package:autonomy_flutter/util/feral_file_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/series_ext.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
@@ -158,6 +159,8 @@ abstract class FeralFileService {
   Future<Exhibition?> getUpcomingExhibition();
 
   Future<Exhibition> getFeaturedExhibition();
+
+  Future<List<Exhibition>> getOngoingExhibitions();
 
   Future<List<Artwork>> getFeaturedArtworks();
 
@@ -300,6 +303,23 @@ class FeralFileServiceImpl extends FeralFileService {
   Future<Exhibition> getFeaturedExhibition() async {
     final exhibitionResponse = await _feralFileApi.getFeaturedExhibition();
     return exhibitionResponse.result!;
+  }
+
+  @override
+  Future<List<Exhibition>> getOngoingExhibitions() async {
+    final ongoingExhibitionIDs = FeralFileHelper.ongoingExhibitionIDs;
+
+    final ongoingExhibitions = <Exhibition>[];
+    for (final exhibitionID in ongoingExhibitionIDs) {
+      try {
+        final exhibition = await getExhibition(exhibitionID);
+        ongoingExhibitions.add(exhibition);
+      } catch (e) {
+        log.info('[FeralFileService] Failed to get ongoing exhibition: $e');
+      }
+    }
+
+    return ongoingExhibitions;
   }
 
   @override

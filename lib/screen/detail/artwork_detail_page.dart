@@ -17,6 +17,8 @@ import 'package:autonomy_flutter/model/sent_artwork.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
@@ -326,39 +328,46 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                             centerTitle: false,
                             backgroundColor: Colors.transparent,
                             actions: [
-                              FFCastButton(
-                                displayKey: _getDisplayKey(asset),
-                                onDeviceSelected: (device) {
-                                  if (widget.payload.playlist == null) {
-                                    final artwork = PlayArtworkV2(
-                                      token: CastAssetToken(id: asset.id),
-                                      duration: 0,
-                                    );
-                                    _canvasDeviceBloc.add(
-                                        CanvasDeviceCastListArtworkEvent(
-                                            device, [artwork]));
-                                  } else {
-                                    final playlist = widget.payload.playlist!;
-                                    final listTokenIds = playlist.tokenIDs;
-                                    if (listTokenIds == null) {
-                                      log.info('Playlist tokenIds is null');
-                                      return;
-                                    }
+                              BlocBuilder<SubscriptionBloc, SubscriptionState>(
+                                  builder: (context, subscriptionState) {
+                                if (subscriptionState.isSubscribed) {
+                                  return FFCastButton(
+                                    displayKey: _getDisplayKey(asset),
+                                    onDeviceSelected: (device) {
+                                      if (widget.payload.playlist == null) {
+                                        final artwork = PlayArtworkV2(
+                                          token: CastAssetToken(id: asset.id),
+                                          duration: 0,
+                                        );
+                                        _canvasDeviceBloc.add(
+                                            CanvasDeviceCastListArtworkEvent(
+                                                device, [artwork]));
+                                      } else {
+                                        final playlist =
+                                            widget.payload.playlist!;
+                                        final listTokenIds = playlist.tokenIDs;
+                                        if (listTokenIds == null) {
+                                          log.info('Playlist tokenIds is null');
+                                          return;
+                                        }
 
-                                    final duration =
-                                        speedValues.values.first.inMilliseconds;
-                                    final listPlayArtwork = listTokenIds
-                                        .rotateListByItem(asset.id)
-                                        .map((e) => PlayArtworkV2(
-                                            token: CastAssetToken(id: e),
-                                            duration: duration))
-                                        .toList();
-                                    _canvasDeviceBloc.add(
-                                        CanvasDeviceChangeControlDeviceEvent(
-                                            device, listPlayArtwork));
-                                  }
-                                },
-                              ),
+                                        final duration = speedValues
+                                            .values.first.inMilliseconds;
+                                        final listPlayArtwork = listTokenIds
+                                            .rotateListByItem(asset.id)
+                                            .map((e) => PlayArtworkV2(
+                                                token: CastAssetToken(id: e),
+                                                duration: duration))
+                                            .toList();
+                                        _canvasDeviceBloc.add(
+                                            CanvasDeviceChangeControlDeviceEvent(
+                                                device, listPlayArtwork));
+                                      }
+                                    },
+                                  );
+                                }
+                                return const SizedBox();
+                              }),
                             ],
                           ),
                         ),
@@ -461,15 +470,12 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
             minWidth: 44,
             minHeight: 44,
           ),
-          icon: Padding(
-            padding: const EdgeInsets.all(5),
-            child: SvgPicture.asset(
-              !_isInfoExpand
-                  ? 'assets/images/info_white.svg'
-                  : 'assets/images/info_white_active.svg',
-              width: 22,
-              height: 22,
-            ),
+          icon: SvgPicture.asset(
+            !_isInfoExpand
+                ? 'assets/images/info_white.svg'
+                : 'assets/images/info_white_active.svg',
+            width: 22,
+            height: 22,
           ),
         ),
       );
@@ -518,13 +524,10 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                     minWidth: 44,
                     minHeight: 44,
                   ),
-                  icon: Padding(
-                    padding: const EdgeInsets.all(5),
-                    child: SvgPicture.asset(
-                      'assets/images/more_circle.svg',
-                      width: 22,
-                      height: 22,
-                    ),
+                  icon: SvgPicture.asset(
+                    'assets/images/more_circle.svg',
+                    width: 22,
+                    height: 22,
                   ),
                 ),
               ),
