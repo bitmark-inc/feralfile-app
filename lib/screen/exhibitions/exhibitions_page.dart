@@ -348,7 +348,7 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                             ),
                           ],
                           if (exhibition.id ==
-                              ongoingExhibitions?.first.id) ...[
+                              ongoingExhibitions?.firstOrNull?.id) ...[
                             _exhibitionGroupHeader(
                               context,
                               'on_going_exhibition'.tr(),

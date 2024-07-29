@@ -390,11 +390,10 @@ AppBar getPlaylistAppBar(
               minHeight: 44,
             ),
             onPressed: () => Navigator.pop(context),
-            icon: Padding(
-              padding: const EdgeInsets.all(5),
-              child: SvgPicture.asset(
-                'assets/images/ff_back_dark.svg',
-              ),
+            icon: SvgPicture.asset(
+              'assets/images/ff_back_dark.svg',
+              width: 28,
+              height: 28,
             ),
           )),
       leadingWidth: 70,
@@ -437,13 +436,10 @@ AppBar getFFAppBar(
                   minWidth: 44,
                   minHeight: 44,
                 ),
-                icon: Padding(
-                  padding: const EdgeInsets.all(0),
-                  child: SvgPicture.asset(
-                    'assets/images/ff_back_dark.svg',
-                    width: 24,
-                    height: 24,
-                  ),
+                icon: SvgPicture.asset(
+                  'assets/images/ff_back_dark.svg',
+                  width: 28,
+                  height: 28,
                 ),
               ),
             )

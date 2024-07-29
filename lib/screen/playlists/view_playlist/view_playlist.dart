@@ -264,7 +264,6 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
           ),
         ],
         if (_getDisplayKey(playList) != null) ...[
-          const SizedBox(width: 15),
           BlocBuilder<SubscriptionBloc, SubscriptionState>(
               builder: (context, subscriptionState) {
             if (subscriptionState.isSubscribed) {

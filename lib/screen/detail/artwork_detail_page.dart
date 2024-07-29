@@ -464,15 +464,12 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
             minWidth: 44,
             minHeight: 44,
           ),
-          icon: Padding(
-            padding: const EdgeInsets.all(5),
-            child: SvgPicture.asset(
-              !_isInfoExpand
-                  ? 'assets/images/info_white.svg'
-                  : 'assets/images/info_white_active.svg',
-              width: 22,
-              height: 22,
-            ),
+          icon: SvgPicture.asset(
+            !_isInfoExpand
+                ? 'assets/images/info_white.svg'
+                : 'assets/images/info_white_active.svg',
+            width: 22,
+            height: 22,
           ),
         ),
       );
@@ -517,13 +514,10 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                     minWidth: 44,
                     minHeight: 44,
                   ),
-                  icon: Padding(
-                    padding: const EdgeInsets.all(5),
-                    child: SvgPicture.asset(
-                      'assets/images/more_circle.svg',
-                      width: 22,
-                      height: 22,
-                    ),
+                  icon: SvgPicture.asset(
+                    'assets/images/more_circle.svg',
+                    width: 22,
+                    height: 22,
                   ),
                 ),
               ),

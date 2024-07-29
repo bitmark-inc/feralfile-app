@@ -184,11 +184,8 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
               minWidth: 44,
               minHeight: 44,
             ),
-            icon: Padding(
-              padding: const EdgeInsets.all(5),
-              child: SvgPicture.asset(
-                'assets/images/ff_back_dark.svg',
-              ),
+            icon: SvgPicture.asset(
+              'assets/images/ff_back_dark.svg',
             ),
           ),
         ),

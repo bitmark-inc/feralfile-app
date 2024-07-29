@@ -292,8 +292,7 @@ class AppRouter {
           settings: settings,
           builder: (context) => MultiBlocProvider(
             providers: [
-              BlocProvider.value(value: canvasDeviceBloc,
-              ),
+              BlocProvider.value(value: canvasDeviceBloc),
               BlocProvider.value(value: subscriptionBloc),
             ],
             child: ViewPlaylistScreen(

@@ -104,14 +104,10 @@ class _FeralFileArtworkPreviewPageState
                 action: BlocBuilder<SubscriptionBloc, SubscriptionState>(
                     builder: (context, subscriptionState) {
                   if (subscriptionState.isSubscribed) {
-                    return Padding(
-                      padding:
-                          const EdgeInsets.only(right: 14, bottom: 10, top: 10),
-                      child: FFCastButton(
-                        displayKey:
-                            widget.payload.artwork.series?.exhibitionID ?? '',
-                        onDeviceSelected: _onDeviceSelected,
-                      ),
+                    return FFCastButton(
+                      displayKey:
+                          widget.payload.artwork.series?.exhibitionID ?? '',
+                      onDeviceSelected: _onDeviceSelected,
                     );
                   }
                   return const SizedBox();
@@ -224,15 +220,12 @@ class _FeralFileArtworkPreviewPageState
               minWidth: 44,
               minHeight: 44,
             ),
-            icon: Padding(
-              padding: const EdgeInsets.all(5),
-              child: SvgPicture.asset(
-                !_isInfoExpand
-                    ? 'assets/images/info_white.svg'
-                    : 'assets/images/info_white_active.svg',
-                width: 22,
-                height: 22,
-              ),
+            icon: SvgPicture.asset(
+              !_isInfoExpand
+                  ? 'assets/images/info_white.svg'
+                  : 'assets/images/info_white_active.svg',
+              width: 22,
+              height: 22,
             )),
       );
 
