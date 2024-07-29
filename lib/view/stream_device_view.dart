@@ -197,7 +197,9 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
     final device = await Navigator.of(context)
         .pushNamed(AppRouter.scanQRPage, arguments: ScannerItem.CANVAS);
     log.info('device selected: $device');
-    _canvasDeviceBloc.add(CanvasDeviceGetDevicesEvent());
+    if (device != null) {
+      _canvasDeviceBloc.add(CanvasDeviceGetDevicesEvent());
+    }
   }
 
   Future<void> onDisconnect() async {
