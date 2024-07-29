@@ -176,6 +176,12 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
             onPressed: () async => _controller.nextPage(
                 duration: const Duration(milliseconds: 300),
                 curve: Curves.easeIn),
+            constraints: const BoxConstraints(
+              maxWidth: 44,
+              maxHeight: 44,
+              minWidth: 44,
+              minHeight: 44,
+            ),
             icon: Padding(
               padding: const EdgeInsets.all(5),
               child: SvgPicture.asset(

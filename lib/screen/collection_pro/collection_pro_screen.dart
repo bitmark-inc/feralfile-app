@@ -473,6 +473,12 @@ class CollectionProState extends State<CollectionPro>
                     isShowSearchBar = true;
                   });
                 },
+                constraints: const BoxConstraints(
+                  maxWidth: 44,
+                  maxHeight: 44,
+                  minWidth: 44,
+                  minHeight: 44,
+                ),
                 icon: Padding(
                   padding: const EdgeInsets.all(0),
                   child: SvgPicture.asset(
@@ -481,7 +487,6 @@ class CollectionProState extends State<CollectionPro>
                     height: 24,
                     colorFilter:
                         const ColorFilter.mode(AppColor.white, BlendMode.srcIn),
-                    //   ),
                   ),
                 ),
               ),

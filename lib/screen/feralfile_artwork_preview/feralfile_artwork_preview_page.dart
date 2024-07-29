@@ -206,6 +206,12 @@ class _FeralFileArtworkPreviewPageState
             onPressed: () {
               _isInfoExpand ? _infoShrink() : _infoExpand();
             },
+            constraints: const BoxConstraints(
+              maxWidth: 44,
+              maxHeight: 44,
+              minWidth: 44,
+              minHeight: 44,
+            ),
             icon: Padding(
               padding: const EdgeInsets.all(5),
               child: SvgPicture.asset(

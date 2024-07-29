@@ -331,6 +331,12 @@ class ScannerInstruction {
               context, 'display'.tr(), const DisplayInstructionView(),
               isDismissible: true, withCloseIcon: true);
         },
+        constraints: const BoxConstraints(
+          maxWidth: 44,
+          maxHeight: 44,
+          minWidth: 44,
+          minHeight: 44,
+        ),
         icon: SvgPicture.asset('assets/images/info_white.svg')),
   );
 }

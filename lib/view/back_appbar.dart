@@ -61,10 +61,15 @@ AppBar getBackAppBar(
       if (action != null)
         IconButton(
           tooltip: 'AppbarAction',
-          constraints: const BoxConstraints(maxWidth: 56),
+          constraints: const BoxConstraints(
+            maxWidth: 44,
+            maxHeight: 44,
+            minWidth: 44,
+            minHeight: 44,
+          ),
           onPressed: action,
           icon: Padding(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(5),
             child: icon ??
                 Icon(
                   Icons.more_horiz,
@@ -73,7 +78,7 @@ AppBar getBackAppBar(
           ),
         )
       else
-        const SizedBox(width: 56),
+        const SizedBox(width: 44),
     ],
     backgroundColor: backgroundColor ?? Colors.transparent,
     surfaceTintColor: surfaceTintColor ?? Colors.transparent,
@@ -378,10 +383,15 @@ AppBar getPlaylistAppBar(
       leading: Semantics(
           label: 'BACK',
           child: IconButton(
-            constraints: const BoxConstraints(maxWidth: 56),
+            constraints: const BoxConstraints(
+              maxWidth: 44,
+              maxHeight: 44,
+              minWidth: 44,
+              minHeight: 44,
+            ),
             onPressed: () => Navigator.pop(context),
             icon: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
+              padding: const EdgeInsets.all(5),
               child: SvgPicture.asset(
                 'assets/images/ff_back_dark.svg',
               ),
@@ -424,16 +434,20 @@ AppBar getFFAppBar(
                 constraints: const BoxConstraints(
                   maxWidth: 44,
                   maxHeight: 44,
+                  minWidth: 44,
+                  minHeight: 44,
                 ),
                 icon: Padding(
-                  padding: const EdgeInsets.all(5),
+                  padding: const EdgeInsets.all(0),
                   child: SvgPicture.asset(
                     'assets/images/ff_back_dark.svg',
+                    width: 24,
+                    height: 24,
                   ),
                 ),
               ),
             )
-          : const SizedBox(width: 56),
+          : const SizedBox(width: 44),
       automaticallyImplyLeading: false,
       title: title,
       actions: [
@@ -441,7 +455,7 @@ AppBar getFFAppBar(
           Padding(
               padding: const EdgeInsets.symmetric(vertical: 6), child: action)
         else
-          const SizedBox(width: 56),
+          const SizedBox(width: 44),
       ],
       backgroundColor: Colors.transparent,
       shadowColor: Colors.transparent,
@@ -453,12 +467,19 @@ Widget backButton(BuildContext context,
     Semantics(
         label: 'BACK',
         child: IconButton(
-          constraints: const BoxConstraints(maxWidth: 36),
+          constraints: const BoxConstraints(
+            maxWidth: 44,
+            maxHeight: 44,
+            minWidth: 44,
+            minHeight: 44,
+          ),
           onPressed: onBack,
           icon: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
+            padding: const EdgeInsets.all(10),
             child: SvgPicture.asset(
               'assets/images/icon_back.svg',
+              width: 24,
+              height: 24,
               colorFilter: color != null
                   ? ColorFilter.mode(color, BlendMode.srcIn)
                   : null,

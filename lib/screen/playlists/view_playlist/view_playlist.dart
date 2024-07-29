@@ -244,18 +244,24 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
             label: 'artworkDotIcon',
             child: IconButton(
               onPressed: () async => _onMoreTap(context, playList),
+              constraints: const BoxConstraints(
+                maxWidth: 44,
+                maxHeight: 44,
+                minWidth: 44,
+                minHeight: 44,
+              ),
               icon: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 5),
+                padding: const EdgeInsets.all(0),
                 child: SvgPicture.asset(
                   'assets/images/more_circle.svg',
                   width: 22,
+                  height: 22,
                 ),
               ),
             ),
           ),
         ],
         if (_getDisplayKey(playList) != null) ...[
-          const SizedBox(width: 5),
           FFCastButton(
             displayKey: _getDisplayKey(playList)!,
             onDeviceSelected: (device) async {

@@ -305,11 +305,15 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                                 constraints: const BoxConstraints(
                                   maxWidth: 44,
                                   maxHeight: 44,
+                                  minWidth: 44,
+                                  minHeight: 44,
                                 ),
                                 icon: Padding(
-                                  padding: const EdgeInsets.all(5),
+                                  padding: const EdgeInsets.all(0),
                                   child: SvgPicture.asset(
                                     'assets/images/ff_back_dark.svg',
+                                    width: 28,
+                                    height: 28,
                                   ),
                                 ),
                               ),
@@ -445,6 +449,12 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
           onPressed: () {
             _isInfoExpand ? _infoShrink() : _infoExpand();
           },
+          constraints: const BoxConstraints(
+            maxWidth: 44,
+            maxHeight: 44,
+            minWidth: 44,
+            minHeight: 44,
+          ),
           icon: Padding(
             padding: const EdgeInsets.all(5),
             child: SvgPicture.asset(
@@ -492,11 +502,18 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                 child: IconButton(
                   onPressed: () async => _showArtworkOptionsDialog(
                       context, asset, isViewOnly, canvasState),
+                  constraints: const BoxConstraints(
+                    maxWidth: 44,
+                    maxHeight: 44,
+                    minWidth: 44,
+                    minHeight: 44,
+                  ),
                   icon: Padding(
                     padding: const EdgeInsets.all(5),
                     child: SvgPicture.asset(
                       'assets/images/more_circle.svg',
                       width: 22,
+                      height: 22,
                     ),
                   ),
                 ),
