@@ -173,24 +173,15 @@ class _SelectAddressesPageState extends State<SelectAddressesPage> {
                       text: 'continue'.tr(),
                       enabled: _selectedAddresses.isNotEmpty,
                       onTap: () async {
-                        final didReplaceConnection =
-                            await injector<AccountService>().addAddressPersona(
-                                widget.payload.persona, _selectedAddresses);
-                        if (_selectedAddresses.length > 1 ||
-                            didReplaceConnection) {
-                          if (!mounted) {
-                            return;
-                          }
-                          unawaited(doneNaming(context));
-                        } else {
-                          if (!mounted) {
-                            return;
-                          }
-                          unawaited(Navigator.of(context).pushNamed(
-                              AppRouter.nameAddressPersonaPage,
-                              arguments: NameAddressPersonaPayload(
-                                  _selectedAddresses.first)));
+                        await injector<AccountService>().addAddressPersona(
+                            widget.payload.persona, _selectedAddresses);
+                        if (!context.mounted) {
+                          return;
                         }
+                        unawaited(Navigator.of(context).pushNamed(
+                            AppRouter.nameAddressPersonaPage,
+                            arguments:
+                                NameAddressPersonaPayload(_selectedAddresses)));
                       },
                     )
                   ],

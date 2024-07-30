@@ -13,6 +13,12 @@ import androidx.annotation.NonNull
 import com.bitmark.libauk.LibAuk
 import com.google.android.gms.auth.blockstore.*
 import com.google.android.gms.auth.blockstore.BlockstoreClient.DEFAULT_BYTES_DATA_KEY
+import com.google.android.gms.auth.blockstore.Blockstore
+import com.google.android.gms.auth.blockstore.BlockstoreClient
+import com.google.android.gms.auth.blockstore.DeleteBytesRequest
+import com.google.android.gms.auth.blockstore.RetrieveBytesRequest
+import com.google.android.gms.auth.blockstore.RetrieveBytesResponse
+import com.google.android.gms.auth.blockstore.StoreBytesData
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
@@ -36,6 +42,7 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler, ActivityAware {
     private lateinit var disposables: CompositeDisposable
     private lateinit var client: BlockstoreClient
     private lateinit var activity: Activity
+    private final val primaryAddressStoreKey = "primary_address"
 
     fun createChannels(@NonNull flutterEngine: FlutterEngine, @NonNull context: Context) {
         this.context = context
@@ -51,6 +58,9 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler, ActivityAware {
             "backupKeys" -> backupKeys(call, result)
             "restoreKeys" -> restoreKeys(call, result)
             "deleteKeys" -> deleteKeys(call, result)
+            "setPrimaryAddress" -> setPrimaryAddress(call, result)
+            "getPrimaryAddress" -> getPrimaryAddress(call, result)
+            "clearPrimaryAddress" -> clearPrimaryAddress(call, result)
             else -> {
                 result.notImplemented()
             }
@@ -176,9 +186,87 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler, ActivityAware {
                     result.success("")
                 }
             }
+            .addOnFailureListener { e ->
+                // Block store not available or error occurred during retrieval
+                Log.e("RestoreDartPlugin", e.message ?: "Blockstore retrieval error")
+                result.error("restorePrimaryAddress error", e.message, e)
+            }
+    }
+
+    private fun setPrimaryAddress(call: MethodCall, result: MethodChannel.Result) {
+        val data: String = call.argument("data") ?: return
+
+        val storeBytesBuilder = StoreBytesData.Builder()
+            .setKey(primaryAddressStoreKey)
+            .setBytes(data.toByteArray(Charsets.UTF_8))
+
+
+        Log.e("setPrimaryAddress", "Primary address setting");
+
+        client.isEndToEndEncryptionAvailable
+            .addOnSuccessListener { isE2EEAvailable ->
+                if (isE2EEAvailable) {
+                    storeBytesBuilder.setShouldBackupToCloud(true)
+                }
+                client.storeBytes(storeBytesBuilder.build())
+                    .addOnSuccessListener {
+
+                        Log.e("setPrimaryAddress", "Primary address set successfully");
+                        result.success("")
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e("setPrimaryAddress", e.message ?: "")
+                        result.error("setPrimaryAddress error", e.message, e)
+                    }
+            }
+            .addOnFailureListener {
+                // Block store not available
+                Log.e("setPrimaryAddress", it.message ?: "")
+                result.error("setPrimaryAddress error", it.message, it)
+            }
+    }
+
+    private fun getPrimaryAddress(call: MethodCall, result: MethodChannel.Result) {
+        val request = RetrieveBytesRequest.Builder()
+            .setKeys(listOf(primaryAddressStoreKey))  // Specify the key
+            .build()
+        client.retrieveBytes(request)
+            .addOnSuccessListener {
+                try { // Retrieve bytes using the key
+                    val dataMap = it.blockstoreDataMap[primaryAddressStoreKey]
+                    if (dataMap != null) {
+                        val bytes = dataMap.bytes
+                        val jsonString = bytes.toString(Charsets.UTF_8)
+                        Log.d("getPrimaryAddress", "Retrieved JSON: $jsonString")
+
+
+                        result.success(jsonString)
+                    } else {
+                        Log.e("getPrimaryAddress", "No data found for the key")
+                        result.success(null)
+                    }
+                } catch (e: Exception) {
+                    Log.e("getPrimaryAddress", e.message ?: "Error decoding data")
+                    //No primary address found
+                    result.success("")
+                }
+            }
             .addOnFailureListener {
                 //Block store not available
-                result.error("restoreKey error", it.message, it)
+                result.error("getPrimaryAddress Block store error", it.message, it)
+            }
+    }
+
+    private fun clearPrimaryAddress(call: MethodCall, result: MethodChannel.Result) {
+        val retrieveRequest = DeleteBytesRequest.Builder()
+            .setKeys(listOf(primaryAddressStoreKey))
+            .build()
+        client.deleteBytes(retrieveRequest)
+            .addOnSuccessListener {
+                result.success(it)
+            }
+            .addOnFailureListener {
+                result.error("deletePrimaryAddress error", it.message, it)
             }
     }
 

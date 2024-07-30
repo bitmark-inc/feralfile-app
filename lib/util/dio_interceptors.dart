@@ -145,9 +145,17 @@ class AutonomyAuthInterceptor extends Interceptor {
   @override
   Future<void> onRequest(
       RequestOptions options, RequestInterceptorHandler handler) async {
-    if (options.path != IAPApi.authenticationPath) {
-      final jwt = await injector<AuthService>().getAuthToken();
-      options.headers['Authorization'] = 'Bearer ${jwt.jwtToken}';
+    final shouldIgnoreAuthorizationPath = [
+      IAPApi.authenticationPath,
+      IAPApi.addressAuthenticationPath,
+    ];
+    if (!shouldIgnoreAuthorizationPath.contains(options.path)) {
+      final jwt = await injector<AuthService>()
+          .getAuthToken(shouldGetDidKeyInstead: true);
+      if (jwt == null) {
+        unawaited(Sentry.captureMessage('JWT is null'));
+      }
+      options.headers['Authorization'] = 'Bearer ${jwt!.jwtToken}';
     }
 
     return handler.next(options);

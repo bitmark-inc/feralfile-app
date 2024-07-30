@@ -59,7 +59,9 @@ Widget accountWithConnectionItem(
 }
 
 Widget accountItem(BuildContext context, Account account,
-    {Function()? onPersonaTap, Function()? onConnectionTap}) {
+    {bool isPrimary = false,
+    Function()? onPersonaTap,
+    Function()? onConnectionTap}) {
   if ((account.persona == null || account.walletAddress == null) &&
       account.connections?.first == null) {
     return const SizedBox();
@@ -113,6 +115,10 @@ Widget accountItem(BuildContext context, Account account,
                         style: theme.textTheme.ppMori400Grey14),
                   ),
                 )
+              ],
+              if (isPrimary) ...[
+                const SizedBox(width: 20),
+                primaryLabel(context),
               ],
               const SizedBox(width: 20),
               SvgPicture.asset('assets/images/iconForward.svg'),
@@ -248,4 +254,29 @@ Widget viewOnlyLabel(BuildContext context) {
       child: Text('view_only'.tr(), style: theme.textTheme.ppMori400Grey14),
     ),
   );
+}
+
+Widget primaryLabel(BuildContext context) {
+  final theme = Theme.of(context);
+  final primaryStyle = theme.textTheme.ppMori400White14.copyWith(
+    color: AppColor.auGrey,
+  );
+  return DecoratedBox(
+      decoration: BoxDecoration(
+          color: AppColor.primaryBlack,
+          border: Border.all(color: AppColor.primaryBlack),
+          borderRadius: BorderRadius.circular(20)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
+        child: Row(
+          children: [
+            SvgPicture.asset('assets/images/pinned.svg'),
+            const SizedBox(width: 10),
+            Text(
+              'primary'.tr(),
+              style: primaryStyle,
+            )
+          ],
+        ),
+      ));
 }

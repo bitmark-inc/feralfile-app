@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -27,6 +28,7 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
   final ConfigurationService _configurationService;
   final BackupService _backupService;
   final AccountService _accountService;
+  final AddressService _addressService;
   final CloudDatabase _cloudDB;
   final IAPService _iapService;
   final AuditService _auditService;
@@ -42,6 +44,7 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
       this._configurationService,
       this._backupService,
       this._accountService,
+      this._addressService,
       this._cloudDB,
       this._iapService,
       this._auditService,
@@ -65,7 +68,25 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
         await _configurationService.setDoneOnboarding(hasAccount);
       }
 
+      // migrate to membership profile
+      final primaryAddressInfo = await _addressService.getPrimaryAddressInfo();
+
       if (_configurationService.isDoneOnboarding()) {
+        if (primaryAddressInfo == null) {
+          try {
+            final addresses = await _addressService.getAllAddress();
+            if (addresses.isEmpty) {
+              await _addressService.deriveAddressesFromAllPersona();
+            }
+            final addressInfo = await _addressService.pickAddressAsPrimary();
+            await _addressService.registerPrimaryAddress(
+                info: addressInfo, withDidKey: true);
+          } catch (e, stacktrace) {
+            log.info('Error while picking primary address', e, stacktrace);
+            // rethrow;
+          }
+        }
+
         emit(RouterState(onboardingStep: OnboardingStep.dashboard));
         return;
       }
@@ -73,20 +94,42 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
       //Soft delay 1s waiting for database synchronizing
       await Future.delayed(const Duration(seconds: 1));
 
+      // case not onboarding
+      // 1. New user
+      // 2. Old user with restore backup
+
       if (hasAccount) {
+        // Old user
+        // Do backup restore
         unawaited(_configurationService.setOldUser());
-        final backupVersion = await _backupService
-            .fetchBackupVersion(await _accountService.getDefaultAccount());
+
+        // get backup version by primary address
+        // if primary address is not exist, return empty
+        final backupVersion = await _backupService.getBackupVersion();
 
         if (backupVersion.isNotEmpty) {
           log.info('[DefineViewRoutingEvent] have backup version');
           //restore backup database
-          emit(RouterState(
-              onboardingStep: OnboardingStep.restore,
-              backupVersion: backupVersion));
-          add(RestoreCloudDatabaseRoutingEvent(backupVersion));
+          emit(RouterState(onboardingStep: OnboardingStep.restore));
+          add(RestoreCloudDatabaseRoutingEvent());
           return;
         } else {
+          // case old user without backup
+          unawaited(injector<MetricClientService>()
+              .mixPanelClient
+              .initIfDefaultAccount());
+
+          // for each persona, derive addresses from keychain
+          // then derive primary address, if primary address exist
+          await _addressService.deriveAddressesFromAllPersona();
+
+          // if primary address is not exist, pick one and register as primary
+          if (primaryAddressInfo == null) {
+            final primaryAddressInfo =
+                await _addressService.pickAddressAsPrimary();
+            await _addressService.registerPrimaryAddress(
+                info: primaryAddressInfo);
+          }
           await _configurationService.setDoneOnboarding(true);
           unawaited(injector<MetricClientService>()
               .mixPanelClient
@@ -100,13 +143,15 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
     });
 
     on<RestoreCloudDatabaseRoutingEvent>((event, emit) async {
+      // restore backup database
+      // now the primary address is exist
+      // get cloud data by primary address using address JWT
       try {
         if (_configurationService.isDoneOnboarding()) {
           return;
         }
         log.info('[RestoreCloudDatabase] restoreCloudDatabase');
-        await _backupService.restoreCloudDatabase(
-            await _accountService.getDefaultAccount(), event.version);
+        await _backupService.restoreCloudDatabase();
 
         await _settingsDataService.restoreSettingsData();
 
@@ -123,21 +168,34 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
         final connections =
             await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
         log.info('[RestoreCloudDatabase] connections: ${connections.length}');
-        if (personas.isEmpty && connections.isEmpty) {
-          await _configurationService.setDoneOnboarding(false);
-          emit(RouterState(onboardingStep: OnboardingStep.startScreen));
-        } else {
-          await _configurationService.setOldUser();
-          if (_configurationService.isDoneOnboarding()) {
-            return;
-          }
-          await _configurationService.setDoneOnboarding(true);
-          unawaited(injector<MetricClientService>()
-              .mixPanelClient
-              .initIfDefaultAccount());
-          emit(RouterState(onboardingStep: OnboardingStep.dashboard));
+        await _configurationService.setOldUser();
+        if (_configurationService.isDoneOnboarding()) {
+          return;
         }
+
         await migrationUtil.migrateIfNeeded();
+        try {
+          final primaryAddressInfo =
+              await _addressService.getPrimaryAddressInfo();
+          final addresses = await _addressService.getAllAddress();
+          if (addresses.isEmpty) {
+            await _addressService.deriveAddressesFromAllPersona();
+          }
+
+          if (primaryAddressInfo == null) {
+            final addressInfo = await _addressService.pickAddressAsPrimary();
+            await _addressService.registerPrimaryAddress(
+                info: addressInfo, withDidKey: true);
+          }
+        } catch (e, stacktrace) {
+          log.info('Error while picking primary address', e, stacktrace);
+          // rethrow;
+        }
+        await _configurationService.setDoneOnboarding(true);
+        unawaited(injector<MetricClientService>()
+            .mixPanelClient
+            .initIfDefaultAccount());
+        emit(RouterState(onboardingStep: OnboardingStep.dashboard));
       } catch (e, stacktrace) {
         await Sentry.captureException(e, stackTrace: stacktrace);
         rethrow;
