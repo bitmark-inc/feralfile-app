@@ -6,13 +6,17 @@
 //
 
 // ignore_for_file: unawaited_futures, type_annotate_public_apis
+// ignore_for_file: avoid_annotating_with_dynamic
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:isolate';
 import 'dart:ui';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/encrypt_env/secrets.dart';
+import 'package:autonomy_flutter/encrypt_env/secrets.g.dart';
 import 'package:autonomy_flutter/model/eth_pending_tx_amount.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -42,6 +46,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:libauk_dart/libauk_dart.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -49,6 +54,8 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 
 void main() async {
   unawaited(runZonedGuarded(() async {
+    final json = await getSecretEnv();
+    cachedSecretEnv = jsonDecode(json);
     await dotenv.load();
     await SentryFlutter.init(
       (options) {
@@ -56,12 +63,21 @@ void main() async {
           ..dsn = Environment.sentryDSN
           ..enableAutoSessionTracking = true
           ..tracesSampleRate = 0.25
-          ..attachStacktrace = true;
+          ..attachStacktrace = true
+          ..beforeSend = (SentryEvent event, {dynamic hint}) {
+            // Avoid sending events with "level": "debug"
+            if (event.level == SentryLevel.debug) {
+              // Return null to drop the event
+              return null;
+            }
+            return event;
+          };
       },
       appRunner: () async {
         try {
           await runFeralFileApp();
         } catch (e, stackTrace) {
+          log.info('Error in main', e);
           await Sentry.captureException(e, stackTrace: stackTrace);
           rethrow;
         }
@@ -126,6 +142,7 @@ Future<void> _setupApp() async {
   await setup();
 
   await DeviceInfo.instance.init();
+  await LibAukDart.migrate();
 
   await injector<DeviceInfoService>().init();
 

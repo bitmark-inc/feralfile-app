@@ -12,13 +12,13 @@ import 'dart:typed_data';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
-import 'package:autonomy_flutter/service/local_auth_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -30,6 +30,7 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:libauk_dart/libauk_dart.dart';
+import 'package:walletconnect_flutter_v2/apis/core/pairing/utils/pairing_models.dart';
 import 'package:web3dart/crypto.dart';
 
 class TBSignMessagePage extends StatefulWidget {
@@ -43,10 +44,16 @@ class TBSignMessagePage extends StatefulWidget {
 
 class _TBSignMessagePageState extends State<TBSignMessagePage> {
   WalletIndex? _currentPersona;
+  late PairingMetadata? appMetadata;
 
   @override
   void initState() {
     super.initState();
+    appMetadata = PairingMetadata(
+        icons: [widget.request.icon ?? ''],
+        name: widget.request.name ?? '',
+        url: widget.request.url ?? '',
+        description: '');
     unawaited(fetchPersona());
   }
 
@@ -109,37 +116,43 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
   }
 
   Future<void> _sign(BuildContext context, Uint8List message) async {
-    final didAuthenticate = await LocalAuthenticationService.checkLocalAuth();
-    if (!didAuthenticate) {
-      return;
-    }
-    final signature = await injector<TezosService>()
-        .signMessage(_currentPersona!.wallet, _currentPersona!.index, message);
-    await _approveRequest(signature: signature);
-    log.info('[TBSignMessagePage] _sign: $signature');
-    if (!context.mounted) {
-      return;
-    }
+    try {
+      final signature = await injector<TezosService>().signMessage(
+          _currentPersona!.wallet, _currentPersona!.index, message);
+      await _approveRequest(signature: signature);
+      log.info('[TBSignMessagePage] _sign: $signature');
+      if (!context.mounted) {
+        return;
+      }
 
-    Navigator.of(context).pop(signature);
-    showInfoNotification(
-      const Key('signed'),
-      'signed'.tr(),
-      frontWidget: SvgPicture.asset(
-        'assets/images/checkbox_icon.svg',
-        width: 24,
-      ),
-    );
+      Navigator.of(context).pop(signature);
+      showInfoNotification(
+        const Key('signed'),
+        'signed'.tr(),
+        frontWidget: SvgPicture.asset(
+          'assets/images/checkbox_icon.svg',
+          width: 24,
+        ),
+      );
+    } catch (e) {
+      log.info('[TBSignMessagePage] _sign $e');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final message = hexToBytes(widget.request.payload!);
-    final Uint8List viewMessage = message.length > 6 &&
+    final Uint8List trimmedMessage = message.length > 6 &&
             message.sublist(0, 2).equals(Uint8List.fromList([5, 1]))
         ? message.sublist(6)
         : message;
-    final messageInUtf8 = utf8.decode(viewMessage, allowMalformed: true);
+
+    String viewingMessage;
+    try {
+      viewingMessage = utf8.decode(trimmedMessage, allowMalformed: false);
+    } catch (_) {
+      viewingMessage = '0x${widget.request.payload}';
+    }
 
     final theme = Theme.of(context);
 
@@ -148,6 +161,8 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
       child: Scaffold(
         appBar: getBackAppBar(
           context,
+          action: () => unawaited(
+              UIHelper.showAppReportBottomSheet(context, appMetadata)),
           onBack: () async {
             await _rejectRequest(reason: 'User rejected');
             if (!context.mounted) {
@@ -193,7 +208,7 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
                             borderRadius: BorderRadius.circular(5),
                           ),
                           child: Text(
-                            messageInUtf8,
+                            viewingMessage,
                             style: theme.textTheme.ppMori400Black14,
                           ),
                         ),

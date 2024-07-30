@@ -67,8 +67,8 @@ dependencies:
   libauk_dart:
     git:
       url: https://github.com/autonomy-system/libauk-dart.git
-      ref: 668ee3522ef6610d1323c0bb15cfd69b3602ea8c
-  local_auth: ^2.2.0
+      ref: 00d6b099d7a9d70f29c5715280256c6c9513a34e
+  local_auth: ^2.1.0
   logging: ^1.2.0
   measured_size: ^1.0.0
   mime: ^1.0.1
@@ -98,7 +98,7 @@ dependencies:
   tezart:
     git:
       url: https://github.com/autonomy-system/tezart.git
-      ref: 6780ff6374a254a2787a5bcfd850fc46f40351b6
+      ref: 7534512ff7c874251e5b1e1a426f5822a3837b51
   uni_links: ^0.5.1
   url_launcher: ^6.0.20
   uuid: ^3.0.5
@@ -160,11 +160,12 @@ dependencies:
   hand_signature: ^3.0.1
   flutter_pdfview: ^1.3.2
   retry: ^3.1.2
-
   network_info_plus: ^5.0.3
   backdrop: ^0.9.1
   cached_network_image: ^3.3.1
   flutter_cache_manager: ^3.3.1
+  cryptography: ^2.7.0
+  cryptography_flutter: ^2.3.2
 dependency_overrides:
   intl: 0.18.0
 

@@ -410,13 +410,21 @@ packages:
     source: hosted
     version: "3.0.3"
   cryptography:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: cryptography
-      sha256: "5a31bbabc6d7e15cf5d823d99ee20074bd502f2376cc49eec73bf34c9a4f7f89"
+      sha256: d146b76d33d94548cf035233fbc2f4338c1242fa119013bead807d033fc4ae05
       url: "https://pub.dev"
     source: hosted
-    version: "2.6.1"
+    version: "2.7.0"
+  cryptography_flutter:
+    dependency: "direct main"
+    description:
+      name: cryptography_flutter
+      sha256: a7fc3f0de42fb0947cbf213257aa3a69c89df561d104723ede8050658621f292
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.3.2"
   csslib:
     dependency: transitive
     description:
@@ -624,10 +632,10 @@ packages:
     dependency: transitive
     description:
       name: ffi
-      sha256: ed5337a5660c506388a9f012be0288fb38b49020ce2b45fe1f8b8323fe429f99
+      sha256: "493f37e7df1804778ff3a53bd691d8692ddf69702cf4c1c1096a2e41b4779e21"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.2"
+    version: "2.1.2"
   file:
     dependency: transitive
     description:
@@ -1400,10 +1408,10 @@ packages:
     dependency: "direct main"
     description:
       name: http
-      sha256: "759d1a329847dd0f39226c688d3e06a6b8679668e350e2891a6474f8b4bb8525"
+      sha256: d4872660c46d929f6b8a9ef4e7a7eff7e49bbf0c4ec3f385ee32df5119175139
       url: "https://pub.dev"
     source: hosted
-    version: "1.1.0"
+    version: "1.1.2"
   http2:
     dependency: transitive
     description:
@@ -1693,8 +1701,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "668ee3522ef6610d1323c0bb15cfd69b3602ea8c"
-      resolved-ref: "668ee3522ef6610d1323c0bb15cfd69b3602ea8c"
+      ref: "00d6b099d7a9d70f29c5715280256c6c9513a34e"
+      resolved-ref: "00d6b099d7a9d70f29c5715280256c6c9513a34e"
       url: "https://github.com/autonomy-system/libauk-dart.git"
     source: git
     version: "0.0.1"
@@ -2709,8 +2717,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "6780ff6374a254a2787a5bcfd850fc46f40351b6"
-      resolved-ref: "6780ff6374a254a2787a5bcfd850fc46f40351b6"
+      ref: "7534512ff7c874251e5b1e1a426f5822a3837b51"
+      resolved-ref: "7534512ff7c874251e5b1e1a426f5822a3837b51"
       url: "https://github.com/autonomy-system/tezart.git"
     source: git
     version: "2.0.4"
@@ -3002,6 +3010,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.0"
+  web:
+    dependency: transitive
+    description:
+      name: web
+      sha256: "4188706108906f002b3a293509234588823c8c979dc83304e229ff400c996b05"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.4.2"
   web3dart:
     dependency: "direct main"
     description:

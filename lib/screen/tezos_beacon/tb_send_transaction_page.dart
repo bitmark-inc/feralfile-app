@@ -12,7 +12,6 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/currency_exchange.dart';
 import 'package:autonomy_flutter/service/currency_service.dart';
-import 'package:autonomy_flutter/service/local_auth_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/pending_token_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
@@ -39,6 +38,7 @@ import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:tezart/tezart.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:walletconnect_flutter_v2/apis/core/pairing/utils/pairing_models.dart';
 
 class TBSendTransactionPage extends StatefulWidget {
   final BeaconRequest request;
@@ -62,6 +62,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
   late FeeOption _selectedPriority;
   final xtzFormatter = XtzAmountFormatter();
   final ethFormatter = EthAmountFormatter();
+  late PairingMetadata? appMetadata;
 
   @override
   void dispose() {
@@ -76,14 +77,6 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
     setState(() {
       _isSending = true;
     });
-
-    final didAuthenticate = await LocalAuthenticationService.checkLocalAuth();
-    if (!didAuthenticate) {
-      setState(() {
-        _isSending = false;
-      });
-      return;
-    }
 
     try {
       final wc2Topic = widget.request.wc2Topic;
@@ -148,6 +141,11 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
     unawaited(fetchPersona());
     feeOption = DEFAULT_FEE_OPTION;
     _selectedPriority = feeOption;
+    appMetadata = PairingMetadata(
+        icons: [widget.request.icon ?? ''],
+        name: widget.request.name ?? '',
+        url: widget.request.url ?? '',
+        description: '');
   }
 
   Future<void> _getExchangeRate() async {
@@ -291,6 +289,8 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
         appBar: getBackAppBar(
           context,
           title: 'confirmation'.tr(),
+          action: () => unawaited(
+              UIHelper.showAppReportBottomSheet(context, appMetadata)),
           onBack: () async {
             if (wc2Topic == null) {
               await injector<TezosBeaconService>()

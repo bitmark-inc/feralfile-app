@@ -63,6 +63,10 @@ if (branchKeyTest == null) {
 
 def branchTestMode = localProperties["branch.testMode"] ?: environment["BRANCH_IS_TEST"] ?: false
 
+def signature_hash = localProperties["signature.hash"] ?: environment["SIGNATURE_HASH"]
+
+def signature_hash_inhouse = localProperties["signature.hashInhouse"] ?: environment["SIGNATURE_HASH_INHOUSE"]
+
 android {
     compileSdkVersion 34
     flavorDimensions 'env'
@@ -77,7 +81,7 @@ android {
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId "com.bitmark.autonomy_client"
-        minSdkVersion 24
+        minSdkVersion 29
         targetSdkVersion 34
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
@@ -94,6 +98,8 @@ android {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig signingConfigs.debug
+            minifyEnabled true
+            shrinkResources true
 
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
 
@@ -109,6 +115,8 @@ android {
                     appIcon     : "@mipmap/ic_launcher_dev",
                     appIconRound: "@mipmap/ic_launcher_dev_round"
             ]
+            buildConfigField "boolean", "ENABLE_DEBUGGER_DETECTION", "false"
+            buildConfigField "String", "SIGNATURE_HASH", '\"' + signature_hash_inhouse + '\"'
         }
 
         prd {
@@ -118,6 +126,10 @@ android {
                     appIcon     : "@mipmap/ic_launcher",
                     appIconRound: "@mipmap/ic_launcher_round"
             ]
+            buildConfigField "boolean", "ENABLE_DEBUGGER_DETECTION", "true"
+            // SIGNATURE_HASH with value from local.properties
+
+            buildConfigField "String", "SIGNATURE_HASH", '\"' + signature_hash + '\"'
         }
     }
     packagingOptions {
@@ -146,10 +158,10 @@ dependencies {
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
-    implementation 'com.google.android.gms:play-services-auth-blockstore:16.1.0'
+    implementation 'com.google.android.gms:play-services-auth-blockstore:16.2.0'
     implementation 'io.reactivex.rxjava2:rxjava:2.2.10'
     implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
-    implementation('com.github.bitmark-inc:libauk-kotlin:0.5.1') {
+    implementation('com.github.bitmark-inc:libauk-kotlin:f38858213e') {
         exclude group: 'com.google.protobuf'
         exclude module: 'jetified-protobuf-java'
     }
@@ -166,6 +178,7 @@ dependencies {
     implementation(platform("com.walletconnect:android-bom:1.12.0"))
     implementation("com.walletconnect:android-core:1.17.0")
     implementation("com.walletconnect:sign:2.15.0")
+    implementation("com.scottyab:rootbeer-lib:0.1.0")
 
     implementation("com.github.airgap-it:beacon-android-sdk:$beacon_version") {
         exclude group: 'com.goterl'

@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import LibAuk
 
 class Keychain {
     
@@ -14,11 +15,12 @@ class Keychain {
         let syncAttr = isSync ? kCFBooleanTrue : kCFBooleanFalse
         let query = [
             kSecClass as String: kSecClassGenericPassword as String,
-            kSecAttrSynchronizable as String: syncAttr!,
+//             kSecAttrSynchronizable as String: syncAttr!,
             kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
             kSecAttrAccessGroup as String: Constant.keychainGroup,
-            kSecAttrAccount as String: "Autonomy",
+            kSecAttrAccount as String: forKey,
             kSecValueData as String: data
+            
         ] as [String: Any]
 
         SecItemDelete(query as CFDictionary)
@@ -36,11 +38,11 @@ class Keychain {
         let syncAttr = isSync ? kCFBooleanTrue : kCFBooleanFalse
         let query = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrSynchronizable as String: syncAttr!,
+//            kSecAttrSynchronizable as String: syncAttr!,
             kSecReturnData as String: kCFBooleanTrue!,
             kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
             kSecAttrAccessGroup as String: Constant.keychainGroup,
-            kSecAttrAccount as String: "Autonomy",
+            kSecAttrAccount as String: key,
             kSecMatchLimit as String: kSecMatchLimitOne
         ] as [String: Any]
 
@@ -60,10 +62,9 @@ class Keychain {
         let syncAttr = isSync ? kCFBooleanTrue : kCFBooleanFalse
         let query = [
             kSecClass as String: kSecClassGenericPassword as String,
-            kSecAttrSynchronizable as String: syncAttr!,
-            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
+//            kSecAttrSynchronizable as String: syncAttr!,
             kSecAttrAccessGroup as String: Constant.keychainGroup,
-            kSecAttrAccount as String: "Autonomy",
+            kSecAttrAccount as String: key,
         ] as [String: Any]
 
         // Delete any existing items
@@ -74,5 +75,40 @@ class Keychain {
             return true
         }
 
+    }
+    
+    func getAllKeychainItem(filter: ((Dictionary<String, Any>) -> Bool)?) -> [Dictionary<String, Any>]? {
+        let query = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecReturnData as String: kCFBooleanTrue!,
+            kSecAttrSynchronizable as String: kSecAttrSynchronizableAny,
+            kSecReturnAttributes as String : kCFBooleanTrue,
+            kSecMatchLimit as String: kSecMatchLimitAll,
+            kSecAttrAccessGroup as String: Constant.keychainGroup
+        ] as [String: Any]
+        
+    
+        var dataTypeRef: CFTypeRef?
+        let status = SecItemCopyMatching(query as CFDictionary, &dataTypeRef)
+        var fillerItems: Array<Dictionary<String, Any>> = []
+        if status == noErr {
+            guard let array = dataTypeRef as? Array<Dictionary<String, Any>> else {
+                return []
+            }
+            
+            if let filter = filter {
+                for item in array {
+                    if filter(item) {
+                        fillerItems.append(item)
+                    }
+                }
+            } else {
+                fillerItems = array
+            }
+        }
+        else {
+            print("Error \(status)")
+        }
+        return fillerItems
     }
 }

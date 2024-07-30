@@ -111,7 +111,6 @@ import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_det
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
 import 'package:autonomy_flutter/screen/settings/data_management/data_management_page.dart';
 import 'package:autonomy_flutter/screen/settings/help_us/help_us_page.dart';
-import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
 import 'package:autonomy_flutter/screen/settings/hidden_artworks/hidden_artworks_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/hidden_artworks/hidden_artworks_page.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_bloc.dart';
@@ -187,7 +186,6 @@ class AppRouter {
   static const subscriptionPage = 'subscription_page';
   static const dataManagementPage = 'data_management_page';
   static const helpUsPage = 'help_us_page';
-  static const inappWebviewPage = 'inapp_webview_page';
   static const postcardExplain = 'postcard_explain_screen';
   static const designStamp = 'design_stamp_screen';
   static const promptPage = 'prompt_page';
@@ -242,6 +240,7 @@ class AppRouter {
       injector<CloudDatabase>(),
       injector(),
     );
+    final connectionsBloc = injector<ConnectionsBloc>();
     final identityBloc = IdentityBloc(injector<AppDatabase>(), injector());
     final canvasDeviceBloc = injector<CanvasDeviceBloc>();
 
@@ -365,6 +364,7 @@ class AppRouter {
                     BlocProvider(
                       create: (_) => personaBloc,
                     ),
+                    BlocProvider(lazy: false, create: (_) => connectionsBloc),
                     BlocProvider(create: (_) => canvasDeviceBloc),
                   ],
                   child: HomeNavigationPage(
@@ -390,6 +390,11 @@ class AppRouter {
                       create: (_) => personaBloc,
                     ),
                     BlocProvider(create: (_) => canvasDeviceBloc),
+
+                    /// The page itself doesn't need to use the bloc.
+                    /// This will create bloc instance to receive and handle
+                    /// event disconnect from dApp
+                    BlocProvider(lazy: false, create: (_) => connectionsBloc),
                   ],
                   child: HomeNavigationPage(
                     key: homePageKey,
@@ -558,11 +563,8 @@ class AppRouter {
                       BlocProvider.value(value: tezosBloc),
                       BlocProvider.value(value: usdcBloc),
                       BlocProvider.value(
-                          value: ConnectionsBloc(
-                        injector<CloudDatabase>(),
-                        injector(),
-                        injector(),
-                      ))
+                        value: connectionsBloc,
+                      ),
                     ],
                     child: PersonaConnectionsPage(
                         payload:
@@ -571,12 +573,8 @@ class AppRouter {
       case connectionDetailsPage:
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) => BlocProvider(
-                create: (_) => ConnectionsBloc(
-                      injector<CloudDatabase>(),
-                      injector(),
-                      injector(),
-                    ),
+            builder: (context) => BlocProvider.value(
+                value: connectionsBloc,
                 child: ConnectionDetailsPage(
                   connectionItem: settings.arguments! as ConnectionItem,
                 )));
@@ -588,12 +586,7 @@ class AppRouter {
                   providers: [
                     BlocProvider.value(value: accountsBloc),
                     BlocProvider.value(value: usdcBloc),
-                    BlocProvider.value(
-                        value: ConnectionsBloc(
-                      injector<CloudDatabase>(),
-                      injector(),
-                      injector(),
-                    )),
+                    BlocProvider.value(value: connectionsBloc),
                     BlocProvider(
                         create: (_) => WalletDetailBloc(
                             injector(), injector(), injector())),
@@ -784,7 +777,7 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => RecoveryPhrasePage(
-                  words: settings.arguments! as List<String>,
+                  payload: settings.arguments! as RecoveryPhrasePayload,
                 ));
 
       case cloudPage:
@@ -1044,15 +1037,6 @@ class AppRouter {
       case helpUsPage:
         return CupertinoPageRoute(
             settings: settings, builder: (context) => const HelpUsPage());
-      case inappWebviewPage:
-        return PageTransition(
-            settings: settings,
-            type: PageTransitionType.rightToLeft,
-            curve: Curves.easeIn,
-            duration: const Duration(milliseconds: 300),
-            reverseDuration: const Duration(milliseconds: 300),
-            child: InAppWebViewPage(
-                payload: settings.arguments! as InAppWebViewPayload));
       case claimEmptyPostCard:
         final claimRequest = settings.arguments! as RequestPostcardResponse;
         return PageTransition(

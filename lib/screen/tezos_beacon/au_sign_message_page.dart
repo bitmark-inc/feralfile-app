@@ -11,12 +11,12 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/local_auth_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/wc2_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -99,10 +99,6 @@ class _AUSignMessagePageState extends State<AUSignMessagePage> {
       chain: chain,
       address: address,
     );
-    final didAuthenticate = await LocalAuthenticationService.checkLocalAuth();
-    if (!didAuthenticate) {
-      return;
-    }
     try {
       final signature = await account.signMessage(
         chain: chain,
@@ -127,6 +123,8 @@ class _AUSignMessagePageState extends State<AUSignMessagePage> {
     return Scaffold(
       appBar: getBackAppBar(
         context,
+        action: () => unawaited(UIHelper.showAppReportBottomSheet(
+            context, widget.request.proposer)),
         onBack: () {
           Navigator.of(context).pop(false);
         },

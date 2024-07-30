@@ -45,7 +45,7 @@ class LoggingInterceptor extends Interceptor {
   Future onResponse(
       Response response, ResponseInterceptorHandler handler) async {
     handler.next(response);
-    unawaited(writeAPILog(response));
+    await writeAPILog(response);
   }
 
   Future writeAPILog(Response response) async {
@@ -58,11 +58,11 @@ class LoggingInterceptor extends Interceptor {
     bool shortCurlLog = await IsolatedUtil().shouldShortCurlLog(apiPath);
     if (shortCurlLog) {
       final request = response.requestOptions;
-      apiLog.info(
+      apiLog.fine(
           'API Request: ${request.method} ${request.uri} ${request.data}');
     } else {
       final curl = cURLRepresentation(response.requestOptions);
-      apiLog.info('API Request: $curl');
+      apiLog.fine('API Request: $curl');
     }
 
     bool shortAPIResponseLog =
@@ -71,7 +71,7 @@ class LoggingInterceptor extends Interceptor {
       apiLog.info('API Response Status: ${response.statusCode}');
     } else {
       final message = response.toString();
-      apiLog.info('API Response: $message');
+      apiLog.fine('API Response: $message');
     }
   }
 
@@ -109,9 +109,6 @@ class SentryInterceptor extends InterceptorsWrapper {
       'method': response.requestOptions.method,
       'status_code': response.statusCode,
     };
-    if (response.requestOptions.headers.isNotEmpty) {
-      data['header'] = response.requestOptions.headers.toString();
-    }
     unawaited(Sentry.addBreadcrumb(
       Breadcrumb(
         type: 'http',
@@ -198,8 +195,8 @@ class FeralfileAuthInterceptor extends Interceptor {
       final errorBody = err.response?.data as Map<String, dynamic>;
       exp = err.copyWith(error: FeralfileError.fromJson(errorBody['error']));
     } catch (e) {
-      log.info("[FeralfileAuthInterceptor] Can't parse error. "
-          '${err.response?.data}');
+      log.info(
+          '[FeralfileAuthInterceptor] Can not parse . ${err.response?.data}');
     } finally {
       handler.next(exp);
     }
@@ -238,6 +235,24 @@ class HmacAuthInterceptor extends Interceptor {
       options.headers['X-Api-Timestamp'] = timestamp;
     }
     handler.next(options);
+  }
+}
+
+class AirdropInterceptor extends Interceptor {
+  @override
+  void onError(DioException err, ErrorInterceptorHandler handler) {
+    DioException exp = err;
+    try {
+      final errorBody = err.response?.data as Map<String, dynamic>;
+      final json = errorBody['message'] != null
+          ? jsonDecode(errorBody['message'])
+          : errorBody;
+      exp = err.copyWith(error: FeralfileError.fromJson(json['error']));
+    } catch (e) {
+      log.info("[AirdropInterceptor] Can't parse error. ${err.response?.data}");
+    } finally {
+      handler.next(exp);
+    }
   }
 }
 

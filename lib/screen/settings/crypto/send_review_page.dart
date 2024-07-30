@@ -10,7 +10,6 @@ import 'dart:async';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_page.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
-import 'package:autonomy_flutter/service/local_auth_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
@@ -51,14 +50,6 @@ class _SendReviewPageState extends State<SendReviewPage> {
     });
 
     try {
-      final didAuthenticate = await LocalAuthenticationService.checkLocalAuth();
-      if (!didAuthenticate) {
-        setState(() {
-          _isSending = false;
-        });
-        return;
-      }
-
       switch (widget.payload.type) {
         case CryptoType.ETH:
           final address = EthereumAddress.fromHex(widget.payload.address);

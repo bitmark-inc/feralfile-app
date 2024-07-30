@@ -45,6 +45,7 @@ import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
+import 'package:autonomy_flutter/util/feral_file_custom_tab.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/moma_style_color.dart';
 import 'package:autonomy_flutter/util/share_helper.dart';
@@ -116,6 +117,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   final _remoteConfig = injector<RemoteConfigService>();
   Prompt? _prompt;
   final _metricClientService = injector<MetricClientService>();
+  final _browser = FeralFileBrowser();
 
   @override
   void initState() {
@@ -892,12 +894,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                     .moMASans700Black16
                     .copyWith(fontSize: 18),
               ),
-              onTap: () {
-                unawaited(Navigator.pushNamed(
-                  context,
-                  AppRouter.inappWebviewPage,
-                  arguments: InAppWebViewPayload(POSTCARD_ABOUT_THE_PROJECT),
-                ));
+              onTap: () async {
+                await _browser.openUrl(POSTCARD_ABOUT_THE_PROJECT);
               },
             ),
           ),

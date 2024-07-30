@@ -5,15 +5,16 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
-import 'package:autonomy_flutter/service/local_auth_service.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -21,6 +22,7 @@ import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:eth_sig_util/eth_sig_util.dart';
+import 'package:eth_sig_util/model/typed_data.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -40,17 +42,26 @@ class WCSignMessagePage extends StatefulWidget {
 class _WCSignMessagePageState extends State<WCSignMessagePage> {
   @override
   Widget build(BuildContext context) {
-    String messageInUtf8;
+    String viewingMessage;
+    Map<String, dynamic>? viewingTypedMessage;
     Uint8List message;
     switch (widget.args.type) {
       case WCSignType.MESSAGE:
       case WCSignType.PERSONAL_MESSAGE:
         message = hexToBytes(widget.args.message);
-        messageInUtf8 = utf8.decode(message, allowMalformed: true);
+        try {
+          viewingMessage = utf8.decode(message, allowMalformed: false);
+        } catch (_) {
+          viewingMessage = '0x${widget.args.message}';
+        }
         break;
       case WCSignType.TYPED_MESSAGE:
         message = TypedDataUtil.typedDataV4(jsonData: widget.args.message);
-        messageInUtf8 = widget.args.message;
+        viewingMessage = widget.args.message;
+        final typedData =
+            jsonDecode(widget.args.message) as Map<String, dynamic>;
+        final typedMessage = TypedMessage.fromJson(typedData);
+        viewingTypedMessage = typedMessage.message;
         break;
     }
 
@@ -59,6 +70,8 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
     return Scaffold(
       appBar: getBackAppBar(
         context,
+        action: () => unawaited(
+            UIHelper.showAppReportBottomSheet(context, widget.args.peerMeta)),
         onBack: () {
           Navigator.of(context).pop(false);
         },
@@ -99,10 +112,13 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
                           color: AppColor.auLightGrey,
                           borderRadius: BorderRadius.circular(5),
                         ),
-                        child: Text(
-                          messageInUtf8,
-                          style: theme.textTheme.ppMori400Black14,
-                        ),
+                        child: viewingTypedMessage != null
+                            ? _buildTypedMessageViewing(
+                                viewingTypedMessage, theme)
+                            : Text(
+                                viewingMessage,
+                                style: theme.textTheme.ppMori400Black14,
+                              ),
                       ),
                     ),
                   ],
@@ -111,7 +127,7 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
             ),
             Padding(
               padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-              child: _signButton(context, message, messageInUtf8),
+              child: _signButton(context, message, viewingMessage),
             ),
           ],
         ),
@@ -163,11 +179,6 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
             child: PrimaryButton(
               text: 'sign'.tr(),
               onTap: () => withDebounce(() async {
-                final didAuthenticate =
-                    await LocalAuthenticationService.checkLocalAuth();
-                if (!didAuthenticate) {
-                  return;
-                }
                 final args = widget.args;
                 final WalletIndex wallet;
                 wallet =
@@ -203,6 +214,46 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
             ),
           )
         ],
+      );
+
+  Widget _buildTypedMessageViewing(
+          Map<String, dynamic> json, ThemeData theme) =>
+      Column(
+        children: json.entries
+            .map(
+              (entry) => entry.value is Map<String, dynamic>
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${entry.key}: ',
+                          style: theme.textTheme.ppMori700Black14,
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 20),
+                          child: _buildTypedMessageViewing(
+                              entry.value as Map<String, dynamic>, theme),
+                        )
+                      ],
+                    )
+                  : Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${entry.key}: ',
+                          style: theme.textTheme.ppMori700Black14,
+                        ),
+                        Flexible(
+                          child: Text(
+                            entry.value.toString(),
+                            overflow: TextOverflow.visible,
+                            style: theme.textTheme.ppMori400Black14,
+                          ),
+                        ),
+                      ],
+                    ),
+            )
+            .toList(),
       );
 }
 
