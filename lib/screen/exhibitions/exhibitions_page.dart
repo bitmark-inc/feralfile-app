@@ -146,150 +146,135 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
     final index = viewableExhibitions.indexOf(exhibition);
     final titleStyle = theme.textTheme.ppMori400White16;
     final subTitleStyle = theme.textTheme.ppMori400Grey12;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Column(
+    return GestureDetector(
+      onTap: () async => _onExhibitionTap(context, viewableExhibitions, index),
+      behavior: HitTestBehavior.deferToChild,
+      child: Container(
+        color: Colors.transparent,
+        child: Column(
           children: [
-            GestureDetector(
-              onTap: () async {
-                if (!context.mounted) {
-                  return;
-                }
-                if (index >= 0) {
-                  await Navigator.of(context).pushNamed(
-                    AppRouter.exhibitionDetailPage,
-                    arguments: ExhibitionDetailPayload(
-                      exhibitions: viewableExhibitions,
-                      index: index,
-                    ),
-                  );
-                }
-              },
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: exhibition.id == SOURCE_EXHIBITION_ID
-                    ? SvgPicture.network(
-                        exhibition.coverUrl,
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: exhibition.id == SOURCE_EXHIBITION_ID
+                  ? SvgPicture.network(
+                      exhibition.coverUrl,
+                      height: estimatedHeight,
+                      placeholderBuilder: (context) => Container(
                         height: estimatedHeight,
-                        placeholderBuilder: (context) => Container(
-                          height: estimatedHeight,
-                          width: estimatedWidth,
-                          color: Colors.transparent,
-                          child: const Center(
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              backgroundColor: AppColor.auQuickSilver,
-                              strokeWidth: 2,
-                            ),
+                        width: estimatedWidth,
+                        color: Colors.transparent,
+                        child: const Center(
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            backgroundColor: AppColor.auQuickSilver,
+                            strokeWidth: 2,
                           ),
                         ),
-                      )
-                    : CachedNetworkImage(
-                        imageUrl: exhibition.coverUrl,
-                        height: estimatedHeight,
-                        maxWidthDiskCache: estimatedWidth.toInt(),
-                        memCacheWidth: estimatedWidth.toInt(),
-                        memCacheHeight: estimatedHeight.toInt(),
-                        maxHeightDiskCache: estimatedHeight.toInt(),
-                        cacheManager: injector<CacheManager>(),
-                        placeholder: (context, url) => Container(
-                          height: estimatedHeight,
-                          width: estimatedWidth,
-                          color: Colors.transparent,
-                          child: const Center(
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              backgroundColor: AppColor.auQuickSilver,
-                              strokeWidth: 2,
-                            ),
-                          ),
-                        ),
-                        fit: BoxFit.fitWidth,
                       ),
-              ),
+                    )
+                  : CachedNetworkImage(
+                      imageUrl: exhibition.coverUrl,
+                      height: estimatedHeight,
+                      maxWidthDiskCache: estimatedWidth.toInt(),
+                      memCacheWidth: estimatedWidth.toInt(),
+                      memCacheHeight: estimatedHeight.toInt(),
+                      maxHeightDiskCache: estimatedHeight.toInt(),
+                      cacheManager: injector<CacheManager>(),
+                      placeholder: (context, url) => Container(
+                        height: estimatedHeight,
+                        width: estimatedWidth,
+                        color: Colors.transparent,
+                        child: const Center(
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            backgroundColor: AppColor.auQuickSilver,
+                            strokeWidth: 2,
+                          ),
+                        ),
+                      ),
+                      fit: BoxFit.fitWidth,
+                    ),
             ),
             const SizedBox(height: 20),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    SizedBox(
-                      width: (estimatedWidth - _exhibitionInfoDivideWidth) / 2,
-                      child: AutoSizeText(
-                        exhibition.title,
-                        style: titleStyle,
-                        maxLines: 2,
-                      ),
-                    ),
-                  ],
+                SizedBox(
+                  width: (estimatedWidth - _exhibitionInfoDivideWidth) / 2,
+                  child: AutoSizeText(
+                    exhibition.title,
+                    style: titleStyle,
+                    maxLines: 2,
+                  ),
                 ),
                 const SizedBox(width: _exhibitionInfoDivideWidth),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (exhibition.isSoloExhibition &&
-                          exhibition.artists != null) ...[
-                        RichText(
-                          text: TextSpan(
-                            style: subTitleStyle.copyWith(
-                                decorationColor: AppColor.disabledColor),
-                            children: [
-                              TextSpan(text: 'works_by'.tr()),
-                              TextSpan(
+                  child: GestureDetector(
+                    onTap: () {},
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (exhibition.isSoloExhibition &&
+                            exhibition.artists != null) ...[
+                          RichText(
+                            text: TextSpan(
+                              style: subTitleStyle.copyWith(
+                                  decorationColor: AppColor.disabledColor),
+                              children: [
+                                TextSpan(text: 'works_by'.tr()),
+                                TextSpan(
+                                    recognizer: TapGestureRecognizer()
+                                      ..onTap = () async {
+                                        await _navigationService
+                                            .openFeralFileArtistPage(
+                                          exhibition.artists![0].alias,
+                                        );
+                                      },
+                                    text: exhibition.artists![0].displayAlias,
+                                    style: const TextStyle(
+                                      decoration: TextDecoration.underline,
+                                    )),
+                              ],
+                            ),
+                          ),
+                        ],
+                        if (exhibition.curator != null)
+                          RichText(
+                            text: TextSpan(
+                              style: subTitleStyle.copyWith(
+                                  decorationColor: AppColor.disabledColor),
+                              children: [
+                                TextSpan(text: 'curated_by'.tr()),
+                                TextSpan(
                                   recognizer: TapGestureRecognizer()
                                     ..onTap = () async {
                                       await _navigationService
-                                          .openFeralFileArtistPage(
-                                        exhibition.artists![0].alias,
-                                      );
+                                          .openFeralFileCuratorPage(
+                                              exhibition.curator!.alias);
                                     },
-                                  text: exhibition.artists![0].displayAlias,
+                                  text: exhibition.curator!.displayAlias,
                                   style: const TextStyle(
                                     decoration: TextDecoration.underline,
-                                  )),
-                            ],
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
+                        Text(
+                          exhibition.isGroupExhibition
+                              ? 'group_exhibition'.tr()
+                              : 'solo_exhibition'.tr(),
+                          style: subTitleStyle,
                         ),
                       ],
-                      if (exhibition.curator != null)
-                        RichText(
-                          text: TextSpan(
-                            style: subTitleStyle.copyWith(
-                                decorationColor: AppColor.disabledColor),
-                            children: [
-                              TextSpan(text: 'curated_by'.tr()),
-                              TextSpan(
-                                recognizer: TapGestureRecognizer()
-                                  ..onTap = () async {
-                                    await _navigationService
-                                        .openFeralFileCuratorPage(
-                                            exhibition.curator!.alias);
-                                  },
-                                text: exhibition.curator!.displayAlias,
-                                style: const TextStyle(
-                                  decoration: TextDecoration.underline,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      Text(
-                        exhibition.isGroupExhibition
-                            ? 'group_exhibition'.tr()
-                            : 'solo_exhibition'.tr(),
-                        style: subTitleStyle,
-                      ),
-                    ],
+                    ),
                   ),
                 )
               ],
-            )
+            ),
           ],
         ),
-      ],
+      ),
     );
   }
 
@@ -402,11 +387,16 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
     );
   }
 
-  Widget _lockIcon() => SizedBox(
-        width: 13,
-        height: 13,
-        child: SvgPicture.asset(
-          'assets/images/exhibition_lock_icon.svg',
+  Future<void> _onExhibitionTap(BuildContext context,
+      List<Exhibition> viewableExhibitions, int index) async {
+    if (index >= 0) {
+      await Navigator.of(context).pushNamed(
+        AppRouter.exhibitionDetailPage,
+        arguments: ExhibitionDetailPayload(
+          exhibitions: viewableExhibitions,
+          index: index,
         ),
       );
+    }
+  }
 }
