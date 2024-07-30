@@ -165,18 +165,17 @@ class UIHelper {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(title,
-                            style: theme.primaryTextTheme.ppMori700White24),
+                        Expanded(
+                          child: Text(title,
+                              style: theme.primaryTextTheme.ppMori700White24),
+                        ),
                         if (withCloseIcon)
-                          Padding(
-                            padding: const EdgeInsets.only(left: 10),
-                            child: GestureDetector(
-                              onTap: () => hideInfoDialog(context),
-                              child: SvgPicture.asset(
-                                'assets/images/circle_close.svg',
-                                width: 22,
-                                height: 22,
-                              ),
+                          IconButton(
+                            onPressed: () => hideInfoDialog(context),
+                            icon: SvgPicture.asset(
+                              'assets/images/circle_close.svg',
+                              width: 22,
+                              height: 22,
                             ),
                           )
                       ],
@@ -1247,6 +1246,12 @@ class UIHelper {
                     alignment: Alignment.centerRight,
                     child: IconButton(
                       onPressed: () => Navigator.pop(context),
+                      constraints: const BoxConstraints(
+                        maxWidth: 44,
+                        maxHeight: 44,
+                        minWidth: 44,
+                        minHeight: 44,
+                      ),
                       icon: const Icon(
                         AuIcon.close,
                         size: 18,
@@ -1628,6 +1633,28 @@ class UIHelper {
         ],
       ),
       isDismissible: true,
+    );
+  }
+
+  static Future<void> openSnackBarExistFullScreen(BuildContext context) async {
+    final theme = Theme.of(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Container(
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 10),
+          decoration: BoxDecoration(
+            color: AppColor.feralFileHighlight.withOpacity(0.9),
+            borderRadius: BorderRadius.circular(64),
+          ),
+          child: Text(
+            'shake_exit'.tr(),
+            textAlign: TextAlign.center,
+            style: theme.textTheme.ppMori600Black12,
+          ),
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
     );
   }
 

@@ -47,3 +47,23 @@ extension FFSeriesExt on FFSeries {
           ? (metadata!['mediumDescription'] as List<dynamic>).join('\n')
           : null;
 }
+
+extension FFSeriesListExt on List<FFSeries> {
+  List<FFSeries> get displayable {
+    return where((e) => e.artwork != null).toList();
+  }
+
+  List<FFSeries> get sorted {
+    sort((a, b) {
+      if (a.displayIndex == b.displayIndex) {
+        if (a.createdAt != null && b.createdAt != null) {
+          return b.createdAt!.compareTo(a.createdAt!);
+        } else {
+          return 0;
+        }
+      }
+      return (a.displayIndex ?? 0) - (b.displayIndex ?? 0);
+    });
+    return this;
+  }
+}

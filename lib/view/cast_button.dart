@@ -45,11 +45,11 @@ class _FFCastButtonState extends State<FFCastButton> {
         final castingDevice =
             state.lastSelectedActiveDeviceForKey(widget.displayKey);
         final isCasting = castingDevice != null;
-        return GestureDetector(
-          onTap: () async {
+        return IconButton(
+          onPressed: () async {
             await _showStreamAction(context, widget.displayKey);
           },
-          child: Semantics(
+          icon: Semantics(
             label: 'cast_icon',
             child: DecoratedBox(
               decoration: BoxDecoration(

@@ -8,7 +8,7 @@ on:
 #        - update_autotest
 jobs:
   build:
-    runs-on: [self-hosted, Linux, ci-local-bmvn, X64]
+    runs-on: [self-hosted, macOS]
     steps:
       # Checkout code and get packages.
       - name: Checkout code

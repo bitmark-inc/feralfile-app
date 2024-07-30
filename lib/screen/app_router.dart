@@ -25,6 +25,7 @@ import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/router/router_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/usdc/usdc_bloc.dart';
 import 'package:autonomy_flutter/screen/bug_bounty_page.dart';
@@ -51,6 +52,7 @@ import 'package:autonomy_flutter/screen/detail/royalty/royalty_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_custom_note/exhibition_custom_note_page.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
+import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artwork_preview_bloc.dart';
 import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artwork_preview_page.dart';
 import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_bloc.dart';
 import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_page.dart';
@@ -239,7 +241,6 @@ class AppRouter {
     final personaBloc = PersonaBloc(
       injector<CloudDatabase>(),
       injector(),
-      injector<AuditService>(),
     );
     final identityBloc = IdentityBloc(injector<AppDatabase>(), injector());
     final canvasDeviceBloc = injector<CanvasDeviceBloc>();
@@ -261,6 +262,10 @@ class AppRouter {
       injector(),
       injector(),
     );
+
+    final subscriptionBloc = injector<SubscriptionBloc>();
+
+    final royaltyBloc = RoyaltyBloc(injector());
 
     switch (settings.name) {
       case artistsListPage:
@@ -286,8 +291,11 @@ class AppRouter {
       case viewPlayListPage:
         return CupertinoPageRoute(
           settings: settings,
-          builder: (context) => BlocProvider(
-            create: (_) => canvasDeviceBloc,
+          builder: (context) => MultiBlocProvider(
+            providers: [
+              BlocProvider.value(value: canvasDeviceBloc),
+              BlocProvider.value(value: subscriptionBloc),
+            ],
             child: ViewPlaylistScreen(
               payload: settings.arguments! as ViewPlaylistScreenPayload,
             ),
@@ -321,6 +329,9 @@ class AppRouter {
                 injector<AuditService>(),
                 injector(),
               ),
+            ),
+            BlocProvider(
+              create: (_) => personaBloc,
             ),
           ], child: const OnboardingPage()),
         );
@@ -713,7 +724,7 @@ class AppRouter {
                 providers: [
                   BlocProvider.value(value: accountsBloc),
                   BlocProvider(create: (_) => identityBloc),
-                  BlocProvider(create: (_) => RoyaltyBloc(injector())),
+                  BlocProvider(create: (_) => royaltyBloc),
                   BlocProvider(
                       create: (_) => ArtworkDetailBloc(
                             injector(),
@@ -725,6 +736,9 @@ class AppRouter {
                           )),
                   BlocProvider(
                     create: (_) => canvasDeviceBloc,
+                  ),
+                  BlocProvider.value(
+                    value: subscriptionBloc,
                   ),
                 ],
                 child: ArtworkDetailPage(
@@ -741,7 +755,7 @@ class AppRouter {
                 providers: [
                   BlocProvider.value(value: accountsBloc),
                   BlocProvider(create: (_) => identityBloc),
-                  BlocProvider(create: (_) => RoyaltyBloc(injector())),
+                  BlocProvider(create: (_) => royaltyBloc),
                   BlocProvider(create: (_) => TravelInfoBloc()),
                   BlocProvider(create: (_) => postcardDetailBloc),
                 ],
@@ -872,6 +886,10 @@ class AppRouter {
                     BlocProvider(
                       create: (_) => canvasDeviceBloc,
                     ),
+                    BlocProvider.value(
+                      value: subscriptionBloc,
+                    ),
+                    BlocProvider(create: (_) => FFArtworkPreviewBloc())
                   ],
                   child: ExhibitionDetailPage(
                     payload: settings.arguments! as ExhibitionDetailPayload,
@@ -880,9 +898,20 @@ class AppRouter {
       case ffArtworkPreviewPage:
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) => FeralFileArtworkPreviewPage(
-                payload:
-                    settings.arguments! as FeralFileArtworkPreviewPagePayload));
+            builder: (context) => MultiBlocProvider(
+                  providers: [
+                    BlocProvider(
+                      create: (_) => royaltyBloc,
+                    ),
+                    BlocProvider.value(
+                      value: subscriptionBloc,
+                    ),
+                    BlocProvider(create: (_) => FFArtworkPreviewBloc()),
+                  ],
+                  child: FeralFileArtworkPreviewPage(
+                      payload: settings.arguments!
+                          as FeralFileArtworkPreviewPagePayload),
+                ));
 
       case feralFileSeriesPage:
         return CupertinoPageRoute(

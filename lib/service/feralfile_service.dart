@@ -20,8 +20,10 @@ import 'package:autonomy_flutter/model/ff_list_response.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/crawl_helper.dart';
 import 'package:autonomy_flutter/util/download_helper.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
+import 'package:autonomy_flutter/util/feral_file_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/series_ext.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
@@ -157,6 +159,8 @@ abstract class FeralFileService {
   Future<Exhibition?> getUpcomingExhibition();
 
   Future<Exhibition> getFeaturedExhibition();
+
+  Future<List<Exhibition>> getOngoingExhibitions();
 
   Future<List<Artwork>> getFeaturedArtworks();
 
@@ -299,6 +303,23 @@ class FeralFileServiceImpl extends FeralFileService {
   Future<Exhibition> getFeaturedExhibition() async {
     final exhibitionResponse = await _feralFileApi.getFeaturedExhibition();
     return exhibitionResponse.result!;
+  }
+
+  @override
+  Future<List<Exhibition>> getOngoingExhibitions() async {
+    final ongoingExhibitionIDs = FeralFileHelper.ongoingExhibitionIDs;
+
+    final ongoingExhibitions = <Exhibition>[];
+    for (final exhibitionID in ongoingExhibitionIDs) {
+      try {
+        final exhibition = await getExhibition(exhibitionID);
+        ongoingExhibitions.add(exhibition);
+      } catch (e) {
+        log.info('[FeralFileService] Failed to get ongoing exhibition: $e');
+      }
+    }
+
+    return ongoingExhibitions;
   }
 
   @override
@@ -468,8 +489,19 @@ class FeralFileServiceImpl extends FeralFileService {
       return await _fakeSeriesArtworks(seriesId, exhibition,
           offset: offset, limit: limit);
     }
-    FeralFileListResponse<Artwork> artworksResponse = await _feralFileApi
-        .getListArtworks(seriesId: seriesId, offset: offset, limit: limit);
+
+    final FeralFileListResponse<Artwork> artworksResponse;
+    if (seriesId == CrawlHelper.mergeSeriesID) {
+      artworksResponse = await _feralFileApi.getListArtworks(
+          seriesId: seriesId,
+          offset: offset,
+          limit: limit,
+          sortOrder: 'DESC',
+          filterBurned: true);
+    } else {
+      artworksResponse = await _feralFileApi.getListArtworks(
+          seriesId: seriesId, offset: offset, limit: limit);
+    }
 
     if (withSeries) {
       final series = await getSeries(seriesId);
@@ -597,7 +629,9 @@ class FeralFileServiceImpl extends FeralFileService {
       listSeries = await _sourceExhibitionAPI.getSourceExhibitionSeries();
     }
 
-    final series = listSeries.firstWhere((series) => series.id == seriesID);
+    final series = listSeries
+        .firstWhere((series) => series.id == seriesID)
+        .copyWith(exhibition: sourceExhibition);
     if (includeFirstArtwork) {
       final firstArtwork = series.artworks!.first;
       return series.copyWith(artwork: firstArtwork);

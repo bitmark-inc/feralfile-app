@@ -2,20 +2,28 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
+import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artwork_preview_bloc.dart';
+import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artwork_preview_state.dart';
+import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
+import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:nft_rendering/nft_rendering.dart';
 
 class FeralFileArtworkPreviewWidgetPayload {
   final Artwork artwork;
+  final Function({InAppWebViewController? webViewController, int? time})?
+      onLoaded;
   final bool isMute;
   final bool isScrollable;
 
   FeralFileArtworkPreviewWidgetPayload({
     required this.artwork,
     required this.isMute,
+    this.onLoaded,
     this.isScrollable = false,
   });
 }
@@ -38,6 +46,9 @@ class _FeralfileArtworkPreviewWidgetState
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
+    context.read<FFArtworkPreviewBloc>().add(
+          FFArtworkPreviewConfigByArtwork(widget.payload.artwork),
+        );
     super.initState();
   }
 
@@ -61,7 +72,9 @@ class _FeralfileArtworkPreviewWidgetState
 
   @override
   void didPushNext() {
-    unawaited(_renderingWidget?.clearPrevious());
+    if (!CustomRouteObserver.onIgnoreBackLayerPopUp) {
+      unawaited(_renderingWidget?.clearPrevious());
+    }
     super.didPushNext();
   }
 
@@ -92,10 +105,10 @@ class _FeralfileArtworkPreviewWidgetState
             _renderingWidget?.dispose();
             _renderingWidget = null;
           }
-          return FutureBuilder<String>(
-            future: artwork.renderingType(),
-            builder: (context, snapshot) {
-              final medium = snapshot.data;
+          return BlocBuilder<FFArtworkPreviewBloc, FFArtworkPreviewState>(
+            bloc: context.read<FFArtworkPreviewBloc>(),
+            builder: (context, state) {
+              final medium = state.medium;
               if (medium == null) {
                 return const SizedBox();
               }
@@ -107,6 +120,7 @@ class _FeralfileArtworkPreviewWidgetState
                 previewURL: previewUrl,
                 thumbnailURL: thumbnailUrl,
                 isScrollable: widget.payload.isScrollable,
+                onLoaded: widget.payload.onLoaded,
               );
               switch (medium) {
                 case RenderingType.image:
@@ -126,7 +140,18 @@ class _FeralfileArtworkPreviewWidgetState
                   );
                 default:
                   return Center(
-                    child: _artworkView(context),
+                    child: artwork.series?.exhibitionID ==
+                            JohnGerrardHelper.exhibitionID
+                        ? Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 14),
+                            child: Center(
+                              child: AspectRatio(
+                                aspectRatio: 1,
+                                child: _artworkView(context),
+                              ),
+                            ),
+                          )
+                        : _artworkView(context),
                   );
               }
             },

@@ -10,14 +10,13 @@ import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dar
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
 import 'package:autonomy_flutter/screen/exhibitions/exhibitions_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibitions/exhibitions_state.dart';
-import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
+import 'package:autonomy_flutter/util/feralfile_artist_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/header.dart';
-import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -37,10 +36,8 @@ class ExhibitionsPage extends StatefulWidget {
 
 class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
   late ExhibitionBloc _exhibitionBloc;
-  late SubscriptionBloc _subscriptionBloc;
   late ScrollController _controller;
   final _navigationService = injector<NavigationService>();
-  final _iapService = injector<IAPService>();
   static const _padding = 14.0;
   static const _exhibitionInfoDivideWidth = 20.0;
   String? _autoOpenExhibitionId;
@@ -51,9 +48,7 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
     super.initState();
     _controller = ScrollController();
     _exhibitionBloc = injector<ExhibitionBloc>();
-    _subscriptionBloc = injector<SubscriptionBloc>();
     _exhibitionBloc.add(GetAllExhibitionsEvent());
-    _subscriptionBloc.add(GetSubscriptionEvent());
   }
 
   void scrollToTop() {
@@ -83,7 +78,6 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
 
   void refreshExhibitions() {
     _exhibitionBloc.add(GetAllExhibitionsEvent());
-    _subscriptionBloc.add(GetSubscriptionEvent());
   }
 
   void setAutoOpenExhibition(String exhibitionId) {
@@ -159,18 +153,10 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
           children: [
             GestureDetector(
               onTap: () async {
-                if (exhibition.canViewDetails && !isFeaturedExhibition) {
-                  _subscriptionBloc.add(GetSubscriptionEvent());
-                  final isSubscribed = await _iapService.isSubscribed();
-                  if (!isSubscribed) {
-                    return;
-                  }
-                }
-
                 if (!context.mounted) {
                   return;
                 }
-                if (exhibition.canViewDetails && index >= 0) {
+                if (index >= 0) {
                   await Navigator.of(context).pushNamed(
                     AppRouter.exhibitionDetailPage,
                     arguments: ExhibitionDetailPayload(
@@ -186,8 +172,10 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                     ? SvgPicture.network(
                         exhibition.coverUrl,
                         height: estimatedHeight,
-                        placeholderBuilder: (context) => SizedBox(
+                        placeholderBuilder: (context) => Container(
                           height: estimatedHeight,
+                          width: estimatedWidth,
+                          color: Colors.transparent,
                           child: const Center(
                             child: CircularProgressIndicator(
                               color: Colors.white,
@@ -205,8 +193,10 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                         memCacheHeight: estimatedHeight.toInt(),
                         maxHeightDiskCache: estimatedHeight.toInt(),
                         cacheManager: injector<CacheManager>(),
-                        placeholder: (context, url) => SizedBox(
+                        placeholder: (context, url) => Container(
                           height: estimatedHeight,
+                          width: estimatedWidth,
+                          color: Colors.transparent,
                           child: const Center(
                             child: CircularProgressIndicator(
                               color: Colors.white,
@@ -225,13 +215,8 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
               children: [
                 Row(
                   children: [
-                    if (!exhibition.canViewDetails) ...[
-                      _lockIcon(),
-                      const SizedBox(width: 5),
-                    ],
                     SizedBox(
-                      width: (estimatedWidth - _exhibitionInfoDivideWidth) / 2 -
-                          (exhibition.canViewDetails ? 0 : 13 + 5),
+                      width: (estimatedWidth - _exhibitionInfoDivideWidth) / 2,
                       child: AutoSizeText(
                         exhibition.title,
                         style: titleStyle,
@@ -261,7 +246,7 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                                         exhibition.artists![0].alias,
                                       );
                                     },
-                                  text: exhibition.artists![0].alias,
+                                  text: exhibition.artists![0].displayAlias,
                                   style: const TextStyle(
                                     decoration: TextDecoration.underline,
                                   )),
@@ -283,7 +268,7 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                                         .openFeralFileCuratorPage(
                                             exhibition.curator!.alias);
                                   },
-                                text: exhibition.curator!.alias,
+                                text: exhibition.curator!.displayAlias,
                                 style: const TextStyle(
                                   decoration: TextDecoration.underline,
                                 ),
@@ -321,7 +306,6 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
         builder: (context, exhibitionsState) =>
             BlocBuilder<SubscriptionBloc, SubscriptionState>(
           builder: (context, subscriptionState) {
-            final theme = Theme.of(context);
             if (exhibitionsState.currentPage == 0) {
               return const SliverToBoxAdapter(
                 child: Center(
@@ -335,15 +319,10 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
             } else {
               final featureExhibition = exhibitionsState.featuredExhibition;
               final upcomingExhibition = exhibitionsState.upcomingExhibition;
+              final ongoingExhibitions = exhibitionsState.ongoingExhibitions;
               final pastExhibitions = exhibitionsState.pastExhibitions;
-              final isSubscribed = subscriptionState.isSubscribed;
 
               final allExhibition = exhibitionsState.allExhibitions;
-              final viewableExhibitions = isSubscribed
-                  ? allExhibition
-                  : featureExhibition != null
-                      ? [featureExhibition]
-                      : <Exhibition>[];
 
               final divider = addDivider(
                   height: 40, color: AppColor.auQuickSilver, thickness: 0.5);
@@ -359,29 +338,30 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                           if (featureExhibition != null && index == 0) ...[
                             _exhibitionGroupHeader(
                               context,
-                              false,
-                              isSubscribed,
                               'current_exhibition'.tr(),
                             ),
                           ],
                           if (upcomingExhibition != null && index == 1) ...[
                             _exhibitionGroupHeader(
                               context,
-                              true,
-                              isSubscribed,
                               'upcoming_exhibition'.tr(),
+                            ),
+                          ],
+                          if (exhibition.id ==
+                              ongoingExhibitions?.firstOrNull?.id) ...[
+                            _exhibitionGroupHeader(
+                              context,
+                              'on_going_exhibition'.tr(),
                             ),
                           ],
                           if (exhibition.id == pastExhibitions?.first.id)
                             _exhibitionGroupHeader(
                               context,
-                              true,
-                              isSubscribed,
                               'past_exhibition'.tr(),
                             ),
                           _exhibitionItem(
                             context: context,
-                            viewableExhibitions: viewableExhibitions,
+                            viewableExhibitions: allExhibition,
                             exhibition: exhibition,
                             isFeaturedExhibition:
                                 exhibition.id == featureExhibition?.id,
@@ -401,8 +381,7 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
         ),
       );
 
-  Widget _exhibitionGroupHeader(BuildContext context, bool isPremiumExhibition,
-      bool isSubscribed, String title) {
+  Widget _exhibitionGroupHeader(BuildContext context, String title) {
     final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 18),
@@ -416,34 +395,8 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                 title,
                 style: theme.textTheme.ppMori700White14,
               ),
-              if (!isSubscribed)
-                Row(
-                  children: [
-                    if (isPremiumExhibition) ...[
-                      _lockIcon(),
-                      const SizedBox(width: 5),
-                    ],
-                    Text(
-                        isPremiumExhibition
-                            ? 'premium_membership'.tr()
-                            : 'for_essential_members'.tr(),
-                        style: theme.textTheme.ppMori400Grey14),
-                  ],
-                ),
             ],
           ),
-          if (!isSubscribed && isPremiumExhibition)
-            PrimaryButton(
-              color: AppColor.feralFileLightBlue,
-              padding: EdgeInsets.zero,
-              elevatedPadding: const EdgeInsets.symmetric(horizontal: 15),
-              borderRadius: 20,
-              text: 'get_premium'.tr(),
-              onTap: () async {
-                await Navigator.of(context)
-                    .pushNamed(AppRouter.subscriptionPage);
-              },
-            ),
         ],
       ),
     );

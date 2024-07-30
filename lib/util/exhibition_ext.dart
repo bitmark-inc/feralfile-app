@@ -4,14 +4,13 @@ import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
-import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
-import 'package:autonomy_flutter/screen/exhibitions/exhibitions_bloc.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/crawl_helper.dart';
 import 'package:autonomy_flutter/util/http_helper.dart';
 import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
+import 'package:autonomy_flutter/util/series_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:collection/collection.dart';
 
@@ -29,13 +28,6 @@ extension ExhibitionExt on Exhibition {
   DateTime get exhibitionViewAt =>
       exhibitionStartAt.subtract(Duration(seconds: previewDuration ?? 0));
 
-  bool get canViewDetails {
-    final exhibitionBloc = injector<ExhibitionBloc>();
-    final subscriptionBloc = injector<SubscriptionBloc>();
-    return subscriptionBloc.state.isSubscribed ||
-        id == exhibitionBloc.state.featuredExhibition?.id;
-  }
-
   String get displayKey => id;
 
   //TODO: implement this
@@ -43,20 +35,13 @@ extension ExhibitionExt on Exhibition {
 
   bool get isMinted => status == ExhibitionStatus.issued.index;
 
-  List<FFSeries> get sortedSeries {
-    final series = this.series ?? [];
-    // sort by displayIndex, if displayIndex is equal, sort by createdAt
-    series.sort((a, b) {
-      if (a.displayIndex == b.displayIndex) {
-        if (a.createdAt != null && b.createdAt != null) {
-          return b.createdAt!.compareTo(a.createdAt!);
-        } else {
-          return 0;
-        }
-      }
-      return (a.displayIndex ?? 0) - (b.displayIndex ?? 0);
-    });
-    return series;
+  List<FFSeries> get displayableSeries => series?.displayable ?? [];
+
+  List<String> get disableKeys {
+    if (isJohnGerrardShow) {
+      JohnGerrardHelper.disableKeys;
+    }
+    return [];
   }
 
   String? get getSeriesArtworkModelText {
@@ -266,8 +251,9 @@ extension ArtworkExt on Artwork {
 
 String getFFUrl(String uri) {
   // case 1: cloudflare
-  if (uri.startsWith(cloudFlarePrefix)) {
-    return '$uri/thumbnailLarge';
+  const variant = 'thumbnailLarge';
+  if (uri.startsWith(cloudFlarePrefix) && !uri.endsWith(variant)) {
+    return '$uri/$variant';
   }
 
   // case 2 => full cdn

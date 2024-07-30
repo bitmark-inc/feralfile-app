@@ -589,6 +589,11 @@ Widget loadingIndicator({
       ),
     );
 
+Widget loadingIndicatorLight() => loadingIndicator(
+      valueColor: AppColor.white,
+      backgroundColor: AppColor.auGreyBackground,
+    );
+
 Widget closeIcon({Color color = Colors.black}) => SvgPicture.asset(
       'assets/images/iconClose.svg',
       colorFilter: ColorFilter.mode(color, BlendMode.srcIn),

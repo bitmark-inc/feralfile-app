@@ -328,6 +328,7 @@ class _FeralFileApi implements FeralFileApi {
     String sortBy = 'index',
     String sortOrder = 'ASC',
     bool? isViewable,
+    bool? filterBurned,
   }) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
@@ -339,6 +340,7 @@ class _FeralFileApi implements FeralFileApi {
       r'sortBy': sortBy,
       r'sortOrder': sortOrder,
       r'isViewable': isViewable,
+      r'filterBurned': filterBurned
     };
     queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};

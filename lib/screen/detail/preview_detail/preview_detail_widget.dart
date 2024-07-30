@@ -137,7 +137,7 @@ class _ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
                           assetToken,
                           attempt: attempt > 0 ? attempt : null,
                           onLoaded: widget.onLoaded,
-                          onDispose: widget.onLoaded,
+                          onDispose: widget.onDispose,
                           overriddenHtml: state.overriddenHtml,
                           isMute: widget.isMute,
                           focusNode: widget.focusNode,

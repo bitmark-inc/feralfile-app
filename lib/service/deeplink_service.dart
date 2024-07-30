@@ -432,22 +432,27 @@ class DeeplinkServiceImpl extends DeeplinkService {
         if (!_navigationService.context.mounted) {
           return;
         }
-        if (isSuccessful) {
-          if (CustomRouteObserver.currentRoute?.settings.name ==
-              AppRouter.scanQRPage) {
-            /// in case scan when open scanQRPage,
-            /// scan with navigation home page does not go to this flow
-            _navigationService.goBack(result: device);
-          } else {
-            await UIHelper.showFlexibleDialog(
-                _navigationService.context,
-                BlocProvider.value(
-                  value: injector<CanvasDeviceBloc>(),
-                  child: const StreamDeviceView(),
-                ),
-                isDismissible: true,
-                autoDismissAfter: 3);
+        if (CustomRouteObserver.currentRoute?.settings.name ==
+            AppRouter.scanQRPage) {
+          /// in case scan when open scanQRPage,
+          /// scan with navigation home page does not go to this flow
+          _navigationService.goBack(result: result);
+          if (!isSuccessful) {
+            await _navigationService.showCannotConnectTv();
           }
+          break;
+        }
+        if (isSuccessful) {
+          await UIHelper.showFlexibleDialog(
+              _navigationService.context,
+              BlocProvider.value(
+                value: injector<CanvasDeviceBloc>(),
+                child: const StreamDeviceView(),
+              ),
+              isDismissible: true,
+              autoDismissAfter: 3);
+        } else {
+          await _navigationService.showCannotConnectTv();
         }
 
       case 'InstantPurchase':
