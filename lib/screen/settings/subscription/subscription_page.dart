@@ -13,10 +13,12 @@ import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart'
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
+import 'package:autonomy_flutter/util/product_details_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:card_swiper/card_swiper.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/cupertino.dart';
@@ -33,10 +35,30 @@ class SubscriptionPage extends StatefulWidget {
 
 class _SubscriptionPageState extends State<SubscriptionPage>
     with AfterLayoutMixin {
+  final int initialIndex = 0;
+
   @override
   void afterFirstLayout(BuildContext context) {
     unawaited(injector<ConfigurationService>().setAlreadyShowProTip(true));
     injector<ConfigurationService>().showProTip.value = false;
+  }
+
+  List<SubscriptionDetails> activeSubscriptionDetails(
+      List<SubscriptionDetails> subscriptionDetails) {
+    final activeSubscriptionDetails = <SubscriptionDetails>[];
+    for (final subscriptionDetail in subscriptionDetails) {
+      final shouldIgnoreOnUI =
+          inactiveIds().contains(subscriptionDetail.productDetails.id) &&
+              !(subscriptionDetail.status == IAPProductStatus.completed ||
+                  subscriptionDetail.status == IAPProductStatus.trial &&
+                      subscriptionDetail.trialExpiredDate != null &&
+                      subscriptionDetail.trialExpiredDate!
+                          .isBefore(DateTime.now()));
+      if (!shouldIgnoreOnUI) {
+        activeSubscriptionDetails.add(subscriptionDetail);
+      }
+    }
+    return activeSubscriptionDetails;
   }
 
   @override
@@ -52,46 +74,71 @@ class _SubscriptionPageState extends State<SubscriptionPage>
         },
       ),
       body: SafeArea(
-        child: BlocBuilder<UpgradesBloc, UpgradeState>(
-            builder: (context, state) => Column(
-                  children: [
-                    Expanded(
-                      child: SingleChildScrollView(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            addTitleSpace(),
-                            const SizedBox(
-                              height: 98,
-                            ),
-                            Padding(
-                              padding:
-                                  ResponsiveLayout.pageHorizontalEdgeInsets,
-                              child: _statusSection(context, state),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: ResponsiveLayout
-                          .pageHorizontalEdgeInsetsWithSubmitButton,
-                      child: _actionSection(context, state),
-                    ),
-                  ],
-                )),
+        child:
+            BlocBuilder<UpgradesBloc, UpgradeState>(builder: (context, state) {
+          final subscriptionDetails =
+              activeSubscriptionDetails(state.subscriptionDetails);
+          return Swiper(
+            itemCount: subscriptionDetails.length,
+            onIndexChanged: (index) {},
+            index: initialIndex,
+            loop: false,
+            itemBuilder: (context, index) =>
+                _subcribeView(context, subscriptionDetails[index]),
+            pagination: subscriptionDetails.length > 1
+                ? const SwiperPagination(
+                    builder: DotSwiperPaginationBuilder(
+                        color: AppColor.auLightGrey,
+                        activeColor: MomaPallet.lightYellow),
+                  )
+                : null,
+            controller: SwiperController(),
+          );
+        }),
       ),
     );
   }
 
+  Widget _subcribeView(
+          BuildContext context, SubscriptionDetails subscriptionDetails) =>
+      Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  addTitleSpace(),
+                  const SizedBox(
+                    height: 98,
+                  ),
+                  Padding(
+                    padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                    child: _statusSection(context, subscriptionDetails),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Padding(
+            padding: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
+            child: _actionSection(context, subscriptionDetails),
+          ),
+        ],
+      );
+
   Widget _statusSection(
     BuildContext context,
-    UpgradeState state,
+    SubscriptionDetails subscriptionDetails,
   ) {
     final theme = Theme.of(context);
     final titleStyle = theme.textTheme.ppMori400Black16;
     final contentStyle = theme.textTheme.ppMori400Black14;
-    IAPProductStatus status = state.status;
+    IAPProductStatus status = subscriptionDetails.status;
+    if (status == IAPProductStatus.completed &&
+        subscriptionDetails.purchaseDetails == null) {
+      status = IAPProductStatus.notPurchased;
+    }
     switch (status) {
       case IAPProductStatus.completed:
         return Column(
@@ -173,10 +220,10 @@ class _SubscriptionPageState extends State<SubscriptionPage>
 
   Widget _actionSection(
     BuildContext context,
-    UpgradeState state,
+    SubscriptionDetails subscriptionDetails,
   ) {
     final theme = Theme.of(context);
-    IAPProductStatus status = state.status;
+    IAPProductStatus status = subscriptionDetails.status;
     switch (status) {
       case IAPProductStatus.completed:
         return Column(
@@ -191,16 +238,27 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                     const SizedBox(
                       height: 10,
                     ),
-                    Text(
-                      '${'you_are_subscribed_at'.tr(
-                        namedArgs: {
-                          'price':
-                              state.productDetails?.price ?? '4.99usd'.tr(),
-                        },
-                      )}\n${'auto_renews_unless_cancelled'.tr()}',
-                      style: theme.textTheme.ppMori400Black12,
-                      textAlign: TextAlign.center,
-                    ),
+                    if (subscriptionDetails.purchaseDetails != null)
+                      Text(
+                        '${'you_are_subscribed_at'.tr(
+                          namedArgs: {
+                            'price': subscriptionDetails.productDetails.price,
+                            'duration':
+                                subscriptionDetails.productDetails.period.name,
+                          },
+                        )}\n${'auto_renews_unless_cancelled'.tr()}',
+                        style: theme.textTheme.ppMori400Black12,
+                        textAlign: TextAlign.center,
+                      )
+                    else
+                      Text(
+                        'you_receive_a_free'.tr(namedArgs: {
+                          'duration':
+                              subscriptionDetails.productDetails.period.name,
+                        }),
+                        style: theme.textTheme.ppMori400Black12,
+                        textAlign: TextAlign.center,
+                      )
                   ],
                 ))
           ],
@@ -208,7 +266,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
       case IAPProductStatus.trial:
         final df = DateFormat('yyyy-MMM-dd');
         final trialExpireDate =
-            df.format(state.trialExpiredDate ?? DateTime.now());
+            df.format(subscriptionDetails.trialExpiredDate ?? DateTime.now());
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -226,7 +284,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                   Text(
                     '${'after_trial'.tr(
                       namedArgs: {
-                        'price': state.productDetails?.price ?? '4.99usd'.tr(),
+                        'price': subscriptionDetails.productDetails.price,
                         'date': trialExpireDate,
                       },
                     )}\n${'auto_renews_unless_cancelled'.tr()}',
@@ -251,7 +309,8 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                 children: [
                   PrimaryButton(
                     onTap: () {
-                      onPressSubscribe(context);
+                      onPressSubscribe(context,
+                          subscriptionDetails: subscriptionDetails);
                     },
                     text: 'renew_feralfile_pro'.tr(),
                   ),
@@ -261,7 +320,9 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                   Text(
                     '${'renew_for'.tr(
                       namedArgs: {
-                        'price': state.productDetails?.price ?? '4.99usd'.tr(),
+                        'price': subscriptionDetails.productDetails.price,
+                        'duration':
+                            subscriptionDetails.productDetails.period.name,
                       },
                     )}\n${'auto_renews_unless_cancelled'.tr()}',
                     style: theme.textTheme.ppMori400Black12,
@@ -281,15 +342,23 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                 children: [
                   PrimaryButton(
                       onTap: () {
-                        onPressSubscribe(context);
+                        onPressSubscribe(context,
+                            subscriptionDetails: subscriptionDetails);
                       },
-                      text: 'subscribe_for_a_30_day'.tr()),
+                      text: 'subscribe_for_a_30_day'.tr(namedArgs: {
+                        'duration':
+                            subscriptionDetails.productDetails.period.name,
+                      })),
                   const SizedBox(
                     height: 10,
                   ),
                   Text(
                     '${'then_price'.tr(
-                      args: [state.productDetails?.price ?? '4.99usd'.tr()],
+                      namedArgs: {
+                        'price': subscriptionDetails.productDetails.price,
+                        'duration':
+                            subscriptionDetails.productDetails.period.name,
+                      },
                     )}\n${'auto_renews_unless_cancelled'.tr()}',
                     style: theme.textTheme.ppMori400Black12,
                     textAlign: TextAlign.center,
@@ -322,7 +391,9 @@ class _SubscriptionPageState extends State<SubscriptionPage>
         ],
       );
 
-  void onPressSubscribe(BuildContext context) {
-    context.read<UpgradesBloc>().add(UpgradePurchaseEvent());
+  void onPressSubscribe(BuildContext context,
+      {required SubscriptionDetails subscriptionDetails}) {
+    final ids = [subscriptionDetails.productDetails.id];
+    context.read<UpgradesBloc>().add(UpgradePurchaseEvent(ids));
   }
 }
