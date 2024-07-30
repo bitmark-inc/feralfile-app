@@ -468,7 +468,11 @@ class DeeplinkServiceImpl extends DeeplinkService {
         }
         final chain = data['chain'];
         final instantToken = data['instant_purchase_token'];
-        if (url != null && chain != null && instantToken != null) {
+        final purchaseToken = data['purchase_token'];
+        if (url != null &&
+            chain != null &&
+            instantToken != null &&
+            purchaseToken != null) {
           late String? primaryAddress;
           try {
             final addressWallets =
@@ -499,7 +503,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
           if (primaryAddress == null) {
             await _navigationService.addressNotFoundError();
           } else {
-            final link = '$url&ba=$primaryAddress&it=$instantToken';
+            final link =
+                '$url&ba=$primaryAddress&ipt=$instantToken&pt=$purchaseToken';
             log.info('InstantPurchase: $link');
             await _navigationService.goToIRLWebview(IRLWebScreenPayload(link,
                 isPlainUI: true,
