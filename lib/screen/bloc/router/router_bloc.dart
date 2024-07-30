@@ -130,9 +130,11 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
             await _addressService.registerPrimaryAddress(
                 info: primaryAddressInfo);
           }
-
-          emit(RouterState(onboardingStep: OnboardingStep.dashboard));
           await _configurationService.setDoneOnboarding(true);
+          unawaited(injector<MetricClientService>()
+              .mixPanelClient
+              .initIfDefaultAccount());
+          emit(RouterState(onboardingStep: OnboardingStep.dashboard));
           return;
         }
       } else {
@@ -170,24 +172,30 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
         if (_configurationService.isDoneOnboarding()) {
           return;
         }
-        unawaited(injector<MetricClientService>()
-            .mixPanelClient
-            .initIfDefaultAccount());
+
         await migrationUtil.migrateIfNeeded();
         try {
+          final primaryAddressInfo =
+              await _addressService.getPrimaryAddressInfo();
           final addresses = await _addressService.getAllAddress();
           if (addresses.isEmpty) {
             await _addressService.deriveAddressesFromAllPersona();
           }
-          final addressInfo = await _addressService.pickAddressAsPrimary();
-          await _addressService.registerPrimaryAddress(
-              info: addressInfo, withDidKey: true);
+
+          if (primaryAddressInfo == null) {
+            final addressInfo = await _addressService.pickAddressAsPrimary();
+            await _addressService.registerPrimaryAddress(
+                info: addressInfo, withDidKey: true);
+          }
         } catch (e, stacktrace) {
           log.info('Error while picking primary address', e, stacktrace);
           // rethrow;
         }
-        emit(RouterState(onboardingStep: OnboardingStep.dashboard));
         await _configurationService.setDoneOnboarding(true);
+        unawaited(injector<MetricClientService>()
+            .mixPanelClient
+            .initIfDefaultAccount());
+        emit(RouterState(onboardingStep: OnboardingStep.dashboard));
       } catch (e, stacktrace) {
         await Sentry.captureException(e, stackTrace: stacktrace);
         rethrow;
