@@ -243,6 +243,15 @@ class MockNavigationService extends _i2.Mock implements _i3.NavigationService {
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
   @override
+  _i4.Future<void> showCannotConnectTv() => (super.noSuchMethod(
+        Invocation.method(
+          #showCannotConnectTv,
+          [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
   _i4.Future<void> showDeclinedGeolocalization() => (super.noSuchMethod(
         Invocation.method(
           #showDeclinedGeolocalization,

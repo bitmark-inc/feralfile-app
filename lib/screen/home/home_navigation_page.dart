@@ -192,6 +192,13 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         context,
         options: [
           OptionItem(
+            title: 'Dailies'.tr(),
+            icon: const Icon(AuIcon.discover),
+            onTap: () {
+              Navigator.of(context).popAndPushNamed(AppRouter.dailyWorkPage);
+            },
+          ),
+          OptionItem(
             title: 'featured_works'.tr(),
             icon: const Icon(AuIcon.discover),
             onTap: () async {

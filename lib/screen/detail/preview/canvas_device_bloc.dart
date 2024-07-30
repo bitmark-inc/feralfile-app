@@ -110,6 +110,13 @@ class CanvasDeviceCastExhibitionEvent extends CanvasDeviceEvent {
   CanvasDeviceCastExhibitionEvent(this.device, this.castRequest);
 }
 
+class CanvasDeviceCastDailyWorkEvent extends CanvasDeviceEvent {
+  final CanvasDevice device;
+  final CastDailyWorkRequest castRequest;
+
+  CanvasDeviceCastDailyWorkEvent(this.device, this.castRequest);
+}
+
 class CanvasDeviceState {
   final List<DeviceState> devices;
   final Map<String, CheckDeviceStatusReply> canvasDeviceStatus;
@@ -382,6 +389,38 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
         final newStatus = state.canvasDeviceStatus;
         newStatus[device.deviceId] = status;
         final displayKey = event.castRequest.displayKey;
+        emit(
+          state
+              .updateOnCast(device: device, displayKey: displayKey)
+              .replaceDeviceState(
+                  device: device,
+                  deviceState: currentDeviceState.copyWith(isPlaying: true))
+              .copyWith(controllingDeviceStatus: newStatus),
+        );
+      } catch (_) {
+        emit(state.replaceDeviceState(
+            device: device, deviceState: DeviceState(device: device)));
+      }
+    });
+
+    on<CanvasDeviceCastDailyWorkEvent>((event, emit) async {
+      final device = event.device;
+      try {
+        final ok = await _canvasClientServiceV2.castDailyWork(
+            device, event.castRequest);
+        if (!ok) {
+          throw Exception('Failed to cast to device');
+        }
+        final currentDeviceState = state.devices.firstWhereOrNull(
+            (element) => element.device.deviceId == device.deviceId);
+        if (currentDeviceState == null) {
+          throw Exception('Device not found');
+        }
+        final status =
+            await _canvasClientServiceV2.getDeviceCastingStatus(device);
+        final newStatus = state.canvasDeviceStatus;
+        newStatus[device.deviceId] = status;
+        final displayKey = CastDailyWorkRequest.displayKey;
         emit(
           state
               .updateOnCast(device: device, displayKey: displayKey)

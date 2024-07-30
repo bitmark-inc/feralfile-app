@@ -358,6 +358,8 @@ extension RouteExt on Route {
         data = {
           MixpanelProp.exhibitionId: payload.id,
         };
+      case AppRouter.dailyWorkPage:
+        data = {};
       default:
         break;
     }
@@ -449,6 +451,7 @@ final screenNameMap = {
   AppRouter.projectsList: 'Projects',
   AppRouter.artistsListPage: 'Artists list',
   AppRouter.exhibitionCustomNote: 'Exhibition Custom Note',
+  AppRouter.dailyWorkPage: 'Daily Work',
 };
 
 String getPageName(String routeName) {

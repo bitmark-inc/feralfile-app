@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/model/dailies.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
@@ -99,6 +100,14 @@ abstract class FeralFileApi {
     @Header('Web3Token') String web3Token,
     @Header('X-FF-Signer') String signer,
   );
+
+  // get list of dailies token
+  @GET('/api/dailies/upcoming')
+  Future<FeralFileListResponse<DailyToken>> getDailiesToken({
+    @Query('offset') int? offset = 0,
+    @Query('limit') int? limit = 1,
+    @Query('startDisplayTime') String? startDisplayTime,
+  });
 }
 
 class ActionMessageResponse {

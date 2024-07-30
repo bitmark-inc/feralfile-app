@@ -31,6 +31,8 @@ abstract class TvCastService {
 
   Future<CastExhibitionReply> castExhibition(CastExhibitionRequest request);
 
+  Future<CastDailyWorkReply> castDailyWork(CastDailyWorkRequest request);
+
   Future<GestureReply> tap(TapGestureRequest request);
 
   Future<GestureReply> drag(DragGestureRequest request);
@@ -146,6 +148,18 @@ class TvCastServiceImpl implements TvCastService {
       CastExhibitionRequest request) async {
     final result = await _cast(_getBody(request));
     return CastExhibitionReply.fromJson(result);
+  }
+
+  @override
+  Future<CastDailyWorkReply> castDailyWork(CastDailyWorkRequest request) async {
+    try {
+      final body = _getBody(request);
+      final result = await _cast(body);
+      return CastDailyWorkReply.fromJson(result);
+    } catch (e) {
+      print(e);
+      rethrow;
+    }
   }
 
   @override

@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/feralfile_api.dart';
 import 'package:autonomy_flutter/gateway/source_exhibition_api.dart';
+import 'package:autonomy_flutter/model/dailies.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
@@ -21,6 +22,7 @@ import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/crawl_helper.dart';
+import 'package:autonomy_flutter/util/dailies_helper.dart';
 import 'package:autonomy_flutter/util/download_helper.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -180,6 +182,8 @@ abstract class FeralFileService {
 
   Future<File?> downloadFeralfileArtwork(AssetToken assetToken,
       {Function(int received, int total)? onReceiveProgress});
+
+  Future<DailyToken?> getCurrentDailiesToken();
 }
 
 class FeralFileServiceImpl extends FeralFileService {
@@ -716,6 +720,27 @@ class FeralFileServiceImpl extends FeralFileService {
         series,
         null,
         null);
+  }
+
+  Future<List<DailyToken>> _fetchDailiesTokens({DateTime? startTime}) async {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final startDisplayTime = startTime ?? today;
+    final resp = await _feralFileApi.getDailiesToken(
+        startDisplayTime: startDisplayTime.toIso8601String());
+    final dailiesTokens = resp.result;
+    DailiesHelper.updateDailies(dailiesTokens);
+    return dailiesTokens;
+  }
+
+  @override
+  Future<DailyToken?> getCurrentDailiesToken() async {
+    DailyToken? currentDailiesToken = DailiesHelper.currentDailies;
+    if (currentDailiesToken == null) {
+      await _fetchDailiesTokens();
+      currentDailiesToken = DailiesHelper.currentDailies;
+    }
+    return currentDailiesToken;
   }
 }
 

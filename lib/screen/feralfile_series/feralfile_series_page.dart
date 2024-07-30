@@ -55,7 +55,7 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
           offset: pageKey,
           // ignore: avoid_redundant_argument_values
           limit: _pageSize);
-      final isLastPage = !newItems.paging.shouldLoadMore;
+      final isLastPage = !(newItems.paging?.shouldLoadMore ?? false);
       if (isLastPage) {
         _pagingController.appendLastPage(newItems.result);
       } else {
