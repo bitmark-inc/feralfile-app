@@ -1052,8 +1052,9 @@ Widget postcardDetailsMetadataSection(
 
 class ArtworkAttributesText extends StatelessWidget {
   final Artwork artwork;
+  final Color? color;
 
-  const ArtworkAttributesText({required this.artwork, super.key});
+  const ArtworkAttributesText({required this.artwork, super.key, this.color});
 
   @override
   Widget build(BuildContext context) {
@@ -1061,7 +1062,7 @@ class ArtworkAttributesText extends StatelessWidget {
     return Text(
       artwork.attributesString ?? '',
       style: theme.textTheme.ppMori400FFQuickSilver12.copyWith(
-        color: AppColor.feralFileMediumGrey,
+        color: color ?? AppColor.feralFileMediumGrey,
       ),
     );
   }
