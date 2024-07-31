@@ -742,7 +742,7 @@ class LibAukChannelHandler {
                                     })
                                 setSeedSink.store(in: &self.cancelBag)
                                 
-                                try storage.generateSeedPublicData(seed: seed)
+                                try storage.generateSeedPublicData(seed: seed, preGenerateLimit: 1)
                                     .sink(receiveCompletion: { completion in
                                         // Handle completion
                                     }, receiveValue: { seedPublicData in
