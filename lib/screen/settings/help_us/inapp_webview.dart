@@ -5,7 +5,6 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/http_certificate_check.dart';
@@ -150,22 +149,7 @@ class _InAppWebViewPageState extends State<InAppWebViewPage> {
                         shouldOverrideUrlLoading:
                             (controller, navigationAction) async {
                           log.info('shouldOverrideUrlLoading');
-                          var uri = navigationAction.request.url!;
-                          final List<dynamic> remoteConfigUriSchemeWhitelist =
-                              injector<RemoteConfigService>()
-                                  .getConfig<List<dynamic>>(
-                                      ConfigGroup.inAppWebView,
-                                      ConfigKey.uriSchemeWhiteList, []);
-                          if (remoteConfigUriSchemeWhitelist.isEmpty) {
-                            return NavigationActionPolicy.CANCEL;
-                          }
-
-                          if (remoteConfigUriSchemeWhitelist
-                              .contains(uri.scheme)) {
-                            return NavigationActionPolicy.ALLOW;
-                          }
-
-                          return NavigationActionPolicy.CANCEL;
+                          return NavigationActionPolicy.ALLOW;
                         },
                       ),
                       if (isLoading)
