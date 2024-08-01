@@ -136,7 +136,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
         await _exitFullScreen();
       },
     );
-    _detector?.startListening();
   }
 
   @override
@@ -299,6 +298,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
             BackdropScaffold(
               backgroundColor: AppColor.primaryBlack,
               resizeToAvoidBottomInset: !hasKeyboard,
+              frontLayerElevation: _isFullScreen ? 0 : 1,
               appBar: _isFullScreen
                   ? null
                   : PreferredSize(
