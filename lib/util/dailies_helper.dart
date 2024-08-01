@@ -10,6 +10,12 @@ class DailiesHelper {
         .lastWhereOrNull((element) => element.displayTime.isBefore(now));
   }
 
+  static DailyToken? get nextDailies {
+    final now = DateTime.now();
+    return _dailies
+        .firstWhereOrNull((element) => element.displayTime.isAfter(now));
+  }
+
   static void updateDailies(List<DailyToken> dailies) {
     _dailies = dailies;
   }

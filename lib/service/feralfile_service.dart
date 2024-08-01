@@ -184,6 +184,8 @@ abstract class FeralFileService {
       {Function(int received, int total)? onReceiveProgress});
 
   Future<DailyToken?> getCurrentDailiesToken();
+
+  Future<DailyToken?> getNextDailiesToken();
 }
 
 class FeralFileServiceImpl extends FeralFileService {
@@ -722,12 +724,8 @@ class FeralFileServiceImpl extends FeralFileService {
         null);
   }
 
-  Future<List<DailyToken>> _fetchDailiesTokens({DateTime? startTime}) async {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final startDisplayTime = startTime ?? today;
-    final resp = await _feralFileApi.getDailiesToken(
-        startDisplayTime: startDisplayTime.toIso8601String());
+  Future<List<DailyToken>> _fetchDailiesTokens({int limit = 2}) async {
+    final resp = await _feralFileApi.getDailiesToken(limit: limit);
     final dailiesTokens = resp.result;
     DailiesHelper.updateDailies(dailiesTokens);
     return dailiesTokens;
@@ -736,6 +734,16 @@ class FeralFileServiceImpl extends FeralFileService {
   @override
   Future<DailyToken?> getCurrentDailiesToken() async {
     DailyToken? currentDailiesToken = DailiesHelper.currentDailies;
+    if (currentDailiesToken == null) {
+      await _fetchDailiesTokens();
+      currentDailiesToken = DailiesHelper.currentDailies;
+    }
+    return currentDailiesToken;
+  }
+
+  @override
+  Future<DailyToken?> getNextDailiesToken() async {
+    DailyToken? currentDailiesToken = DailiesHelper.nextDailies;
     if (currentDailiesToken == null) {
       await _fetchDailiesTokens();
       currentDailiesToken = DailiesHelper.currentDailies;
