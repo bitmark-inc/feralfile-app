@@ -125,7 +125,7 @@ Widget accountItem(BuildContext context, Account account,
             ],
           ),
           const SizedBox(height: 10),
-          FutureBuilder<Pair<String, String>>(
+          FutureBuilder<Pair<String, String>?>(
             future: balance,
             builder: (context, snapshot) {
               final balances = snapshot.data ?? Pair('--', '--');
@@ -157,9 +157,9 @@ Widget accountItem(BuildContext context, Account account,
   );
 }
 
-Future<Pair<String, String>> getAddressBalance(
+Future<Pair<String, String>?> getAddressBalance(
     String address, CryptoType cryptoType,
-    {bool getNFT = true}) async {
+    {bool getNFT = true, int minimumCryptoBalance = 0}) async {
   late String nftBalance;
   if (getNFT) {
     final tokenDao = injector<TokenDao>();
@@ -172,16 +172,22 @@ Future<Pair<String, String>> getAddressBalance(
   switch (cryptoType) {
     case CryptoType.ETH:
       final etherAmount = await injector<EthereumService>().getBalance(address);
+      if (etherAmount.getInWei < BigInt.from(minimumCryptoBalance)) {
+        return null;
+      }
       final cryptoBalance =
           '${EthAmountFormatter().format(etherAmount.getInWei)} ETH';
       return Pair(cryptoBalance, nftBalance);
     case CryptoType.XTZ:
       final tezosAmount = await injector<TezosService>().getBalance(address);
+      if (tezosAmount < minimumCryptoBalance) {
+        return null;
+      }
       final cryptoBalance = '${XtzAmountFormatter().format(tezosAmount)} XTZ';
       return Pair(cryptoBalance, nftBalance);
     case CryptoType.USDC:
     case CryptoType.UNKNOWN:
-      return Pair('', '');
+      return minimumCryptoBalance > 0 ? null : Pair('', '');
   }
 }
 
@@ -270,7 +276,7 @@ Widget primaryLabel(BuildContext context) {
   return DecoratedBox(
       decoration: BoxDecoration(
           color: AppColor.primaryBlack,
-          border: Border.all(color: AppColor.primaryBlack),
+          border: Border.all(),
           borderRadius: BorderRadius.circular(20)),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),

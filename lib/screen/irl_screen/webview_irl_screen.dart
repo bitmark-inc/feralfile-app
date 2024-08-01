@@ -25,7 +25,6 @@ import 'package:autonomy_flutter/util/wc2_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/select_address.dart';
 import 'package:collection/collection.dart';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:nft_collection/graphql/model/get_list_tokens.dart';
@@ -101,7 +100,7 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
         if (personas.isEmpty) {
           return _logAndReturnJSResult(
             '_countAddress',
-            JSResult.error('Account not found'),
+            JSResult.error('Address not found'),
           );
         }
         final addedAddress = await personas.first.insertNextAddress(
@@ -111,17 +110,23 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
         addresses.add(addedAddress.first);
       }
       String? address;
-      if (addresses.length == 1) {
+      final params = arguments['params'] as Map?;
+      final minimumCryptoBalance =
+          int.tryParse(params?['minimumCryptoBalance'] ?? '') ?? 0;
+      if (addresses.length == 1 && minimumCryptoBalance > 0) {
         address = addresses.first.address;
       } else {
         if (!mounted) {
           return null;
         }
+        final type = SelectAddressType.fromString(params?['type'] ?? '');
         address = await UIHelper.showDialog(
           context,
-          'select_address_irl'.tr(),
-          SelectAddressView(
+          type.popUpTitle,
+          IRLSelectAddressView(
             addresses: addresses,
+            selectButton: type.selectButton,
+            minimumCryptoBalance: minimumCryptoBalance,
           ),
           padding: const EdgeInsets.symmetric(vertical: 32),
           paddingTitle: const EdgeInsets.symmetric(horizontal: 14),
