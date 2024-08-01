@@ -166,7 +166,7 @@ class _FeralFileArtworkPreviewPageState
                     Expanded(
                       child: _buildArtworkPreview(),
                     ),
-                    if (!_isFullScreen)
+                    if (!_isFullScreen) ...[
                       const Padding(
                         padding: EdgeInsets.symmetric(vertical: 18),
                         child: ArtworkDetailsHeader(
@@ -175,6 +175,14 @@ class _FeralFileArtworkPreviewPageState
                           color: Colors.transparent,
                         ),
                       ),
+                      if (isCrystallineWork) ...[
+                        const SizedBox(height: 20),
+                        ArtworkAttributesText(
+                          artwork: widget.payload.artwork,
+                          color: Colors.transparent,
+                        ),
+                      ]
+                    ]
                   ],
                 ),
                 frontLayer: _isFullScreen
