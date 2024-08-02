@@ -11,14 +11,14 @@ class FFArtworkPreviewConfigByArtwork extends FFArtworkPreviewEvent {
 /// -----------------------------------
 
 class FFArtworkPreviewState {
-  final String? medium;
+  final Map<String, String> mediumMap;
 
-  FFArtworkPreviewState({this.medium});
+  FFArtworkPreviewState({this.mediumMap = const {}});
 
   FFArtworkPreviewState copyWith({
-    String? medium,
+    Map<String, String>? mediumMap,
   }) =>
       FFArtworkPreviewState(
-        medium: medium ?? this.medium,
+        mediumMap: mediumMap ?? this.mediumMap,
       );
 }
