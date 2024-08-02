@@ -79,24 +79,6 @@ void nameContinue(BuildContext context) {
   }
 }
 
-Future askForNotification() async {
-  if (injector<ConfigurationService>().isNotificationEnabled() != null) {
-    // Skip asking for notifications
-    return;
-  }
-
-  await Future<dynamic>.delayed(const Duration(seconds: 1), () async {
-    final context = injector<NavigationService>().navigatorKey.currentContext;
-    if (context == null) {
-      return null;
-    }
-
-    return await Navigator.of(context).pushNamed(
-        AppRouter.notificationOnboardingPage,
-        arguments: {'isOnboarding': false});
-  });
-}
-
 class UIHelper {
   static String currentDialogTitle = '';
   static final metricClient = injector.get<MetricClientService>();

@@ -44,7 +44,6 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
-import 'package:autonomy_flutter/screen/detail/preview/canvas_help_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/keyboard_control_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/touchpad_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview_primer.dart';
@@ -81,7 +80,6 @@ import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_bloc.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_page.dart';
 import 'package:autonomy_flutter/screen/moma_postcard_page/moma_postcard_page.dart';
-import 'package:autonomy_flutter/screen/notification_onboarding_page.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/import_seeds.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/name_address_persona.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/select_addresses.dart';
@@ -110,7 +108,6 @@ import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/linked_wal
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
 import 'package:autonomy_flutter/screen/settings/data_management/data_management_page.dart';
-import 'package:autonomy_flutter/screen/settings/help_us/help_us_page.dart';
 import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
 import 'package:autonomy_flutter/screen/settings/hidden_artworks/hidden_artworks_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/hidden_artworks/hidden_artworks_page.dart';
@@ -147,7 +144,6 @@ class AppRouter {
   static const editPlayListPage = 'edit_playlist_page';
   static const previewPrimerPage = 'preview_primer_page';
   static const onboardingPage = 'onboarding_page';
-  static const notificationOnboardingPage = 'notification_onboarding_page';
   static const nameLinkedAccountPage = 'name_linked_account_page';
   static const homePage = 'home_page';
   static const homePageNoTransition = 'home_page_no_transition';
@@ -186,7 +182,6 @@ class AppRouter {
   static const walletPage = 'wallet_page';
   static const subscriptionPage = 'subscription_page';
   static const dataManagementPage = 'data_management_page';
-  static const helpUsPage = 'help_us_page';
   static const inappWebviewPage = 'inapp_webview_page';
   static const postcardExplain = 'postcard_explain_screen';
   static const designStamp = 'design_stamp_screen';
@@ -199,7 +194,6 @@ class AppRouter {
   static const receivePostcardPage = 'receive_postcard_page';
   static const irlWebView = 'irl_web_view';
   static const irlSignMessage = 'irl_sign_message';
-  static const canvasHelpPage = 'canvas_help_page';
   static const keyboardControlPage = 'keyboard_control_page';
   static const touchPadPage = 'touch_pad_page';
   static const postcardLeaderboardPage = 'postcard_leaderboard_page';
@@ -471,13 +465,6 @@ class AppRouter {
           ),
         );
 
-      case notificationOnboardingPage:
-        return CupertinoPageRoute(
-          settings: settings,
-          fullscreenDialog: true,
-          builder: (context) => const NotificationOnboardingPage(),
-        );
-
       case AppRouter.testArtwork:
         return CupertinoPageRoute(
           settings: settings,
@@ -529,6 +516,7 @@ class AppRouter {
                 args: settings.arguments! as WCSendTransactionPageArgs),
           ),
         );
+
       case scanQRPage:
         return PageTransition(
             settings: settings,
@@ -601,6 +589,7 @@ class AppRouter {
                   child: WalletDetailPage(
                       payload: settings.arguments! as WalletDetailsPayload),
                 ));
+
       case linkedWalletDetailsPage:
         return CupertinoPageRoute(
             settings: settings,
@@ -1041,9 +1030,6 @@ class AppRouter {
             builder: (context) => MultiBlocProvider(providers: [
                   BlocProvider(create: (_) => identityBloc),
                 ], child: const DataManagementPage()));
-      case helpUsPage:
-        return CupertinoPageRoute(
-            settings: settings, builder: (context) => const HelpUsPage());
       case inappWebviewPage:
         return PageTransition(
             settings: settings,
@@ -1120,10 +1106,6 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => IRLSignMessageScreen(payload: payload));
-
-      case canvasHelpPage:
-        return CupertinoPageRoute(
-            settings: settings, builder: (context) => const CanvasHelpPage());
 
       case keyboardControlPage:
         return TransparentRoute(
