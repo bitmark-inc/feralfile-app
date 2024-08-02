@@ -409,7 +409,6 @@ class NavigationService {
     if (pair == null) {
       return;
     }
-    await navigateTo(AppRouter.homePageNoTransition);
 
     unawaited(navigateTo(pair.first, arguments: pair.second));
   }
