@@ -63,6 +63,15 @@ class _ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
   }
 
   @override
+  void didUpdateWidget(covariant ArtworkPreviewWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.identity != widget.identity) {
+      bloc.add(ArtworkPreviewDetailGetAssetTokenEvent(widget.identity,
+          useIndexer: widget.useIndexer));
+    }
+  }
+
+  @override
   void dispose() {
     _renderingWidget?.dispose();
     super.dispose();
