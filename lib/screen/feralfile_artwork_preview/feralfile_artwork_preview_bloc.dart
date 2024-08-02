@@ -4,7 +4,6 @@ import 'package:autonomy_flutter/util/exhibition_ext.dart';
 
 class FFArtworkPreviewBloc
     extends AuBloc<FFArtworkPreviewEvent, FFArtworkPreviewState> {
-
   FFArtworkPreviewBloc() : super(FFArtworkPreviewState()) {
     on<FFArtworkPreviewConfigByArtwork>((event, emit) async {
       if (!state.mediumMap.containsKey(event.artwork.previewURL)) {
