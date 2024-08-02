@@ -244,11 +244,22 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 
   void _infoExpand() {
     _scrollController?.jumpTo(0);
-    _scrollController ??= ScrollController();
+    if (_scrollController == null) {
+      _initScrollController();
+    }
     setState(() {
       _isInfoExpand = true;
     });
     _animationController.animateTo(_infoExpandPosition);
+  }
+
+  void _initScrollController() {
+    _scrollController = ScrollController();
+    _scrollController!.addListener(() {
+      if (_scrollController!.position.pixels < -20 && _isInfoExpand) {
+        _infoShrink();
+      }
+    });
   }
 
   @override
@@ -422,8 +433,11 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                             _infoShrink();
                           }
                         },
-                        child: _infoHeader(context, asset, artistName,
-                            state.isViewOnly, canvasState),
+                        child: Container(
+                          color: Colors.transparent,
+                          child: _infoHeader(context, asset, artistName,
+                              state.isViewOnly, canvasState),
+                        ),
                       ),
                     ),
             ),
@@ -433,6 +447,12 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                 child: GestureDetector(
                   behavior: HitTestBehavior.translucent,
                   onTap: _infoShrink,
+                  onVerticalDragEnd: (details) {
+                    final dy = details.primaryVelocity ?? 0;
+                    if (dy > 0) {
+                      _infoShrink();
+                    }
+                  },
                   child: Container(
                     color: Colors.transparent,
                     height: MediaQuery.of(context).size.height / 2 -
@@ -551,6 +571,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
             )),
         SingleChildScrollView(
           controller: _scrollController,
+          physics: const BouncingScrollPhysics(),
           child: SizedBox(
             width: double.infinity,
             child: Column(
