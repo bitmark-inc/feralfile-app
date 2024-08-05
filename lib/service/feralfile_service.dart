@@ -733,6 +733,9 @@ class FeralFileServiceImpl extends FeralFileService {
 
   @override
   Future<DailyToken?> getCurrentDailiesToken() async {
+    // call nextDailies to make daily tokens up to date
+    DailiesHelper.nextDailies;
+
     DailyToken? currentDailiesToken = DailiesHelper.currentDailies;
     if (currentDailiesToken == null) {
       await _fetchDailiesTokens();

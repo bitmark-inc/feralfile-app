@@ -1191,7 +1191,7 @@ class AppRouter {
               create: (_) => DailyWorkBloc(injector(), injector()),
             ),
             BlocProvider.value(value: canvasDeviceBloc),
-          ], child: DailyWorkPage()),
+          ], child: const DailyWorkPage()),
         );
 
       default:

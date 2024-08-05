@@ -19,6 +19,7 @@ import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nft_collection/models/asset_token.dart';
+import 'package:sentry/sentry.dart';
 
 class DailyWorkPage extends StatefulWidget {
   const DailyWorkPage({super.key});
@@ -49,6 +50,9 @@ class _DailyWorkPageState extends State<DailyWorkPage> {
     ); // add 3 seconds to avoid the same artwork
     final nextDailyToken =
         await injector<FeralFileService>().getNextDailiesToken();
+    if (nextDailyToken == null) {
+      unawaited(Sentry.captureMessage('nextDailyToken is null'));
+    }
     final nextDailyTokenTime = nextDailyToken?.displayTime ?? startNextDay;
     final duration = nextDailyTokenTime.difference(now);
     _timer?.cancel();
