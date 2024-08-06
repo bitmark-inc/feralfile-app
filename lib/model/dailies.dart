@@ -1,5 +1,3 @@
-import 'package:autonomy_flutter/util/string_ext.dart';
-
 class DailyToken {
   final DateTime displayTime;
   final String blockchain;
@@ -29,10 +27,17 @@ class DailyToken {
 }
 
 extension DailiesTokenExtension on DailyToken {
+  String get _blockchainPrefix {
+    switch (blockchain.toLowerCase()) {
+      case 'bitmark':
+        return 'bmk';
+      default:
+        return blockchain.substring(0, 3).toLowerCase();
+    }
+  }
+
   String get indexId {
-    final blockchainPrefix = blockchain.substring(0, 3).toLowerCase();
-    // if artworkID is a hex string, convert it to decimal
-    final tokenId = tokenID.isDecimal ? tokenID : tokenID.hexToDecimal;
-    return '$blockchainPrefix-$contractAddress-$tokenId';
+    final blockchainPrefix = _blockchainPrefix;
+    return '$blockchainPrefix-$contractAddress-$tokenID';
   }
 }
