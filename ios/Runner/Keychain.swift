@@ -81,7 +81,6 @@ class Keychain {
         let query = [
             kSecClass as String: kSecClassGenericPassword,
             kSecReturnData as String: kCFBooleanTrue!,
-            kSecAttrSynchronizable as String: kSecAttrSynchronizableAny,
             kSecReturnAttributes as String : kCFBooleanTrue,
             kSecMatchLimit as String: kSecMatchLimitAll,
             kSecAttrAccessGroup as String: Constant.keychainGroup

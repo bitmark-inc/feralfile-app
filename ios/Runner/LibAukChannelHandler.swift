@@ -721,7 +721,7 @@ class LibAukChannelHandler {
                         .replacingOccurrences(of: "_ethInfo", with: "")
                     if let personaUUID = UUID(uuidString: personaUUIDString) {
                         let storage = LibAuk.shared.storage(for: personaUUID)
-                        let sink = storage.exportSeedWithoutAccess()
+                        let sink = storage.exportSeed()
                         .sink(receiveCompletion: { completion in
                             switch completion {
                             case .failure(let error):
