@@ -24,6 +24,7 @@ dependencies:
   after_layout: ^1.2.0
   bs58check: ^1.0.2
   bubble: ^1.2.1
+  cached_network_image: ^3.2.1
   carousel_slider: ^4.2.1
   collection: ^1.15.0
   confetti: ^0.7.0
@@ -38,6 +39,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_bloc: ^8.0.0
+  flutter_cache_manager: ^3.3.0
   flutter_chat_types: ^3.3.1
   flutter_chat_ui: ^1.6.4
   flutter_dotenv: ^5.0.2
@@ -67,7 +69,7 @@ dependencies:
   libauk_dart:
     git:
       url: https://github.com/autonomy-system/libauk-dart.git
-      ref: 00d6b099d7a9d70f29c5715280256c6c9513a34e
+      ref: 598a4627345f746d7e8fd62e7d0da4766ed29fb6
   local_auth: ^2.1.0
   logging: ^1.2.0
   measured_size: ^1.0.0
@@ -162,8 +164,6 @@ dependencies:
   retry: ^3.1.2
   network_info_plus: ^5.0.3
   backdrop: ^0.9.1
-  cached_network_image: ^3.3.1
-  flutter_cache_manager: ^3.3.1
   cryptography: ^2.7.0
   cryptography_flutter: ^2.3.2
 dependency_overrides:

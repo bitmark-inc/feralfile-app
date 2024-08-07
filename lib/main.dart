@@ -46,7 +46,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:libauk_dart/libauk_dart.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -141,7 +140,6 @@ Future<void> _setupApp() async {
   await setup();
 
   await DeviceInfo.instance.init();
-  await LibAukDart.migrate();
 
   await injector<DeviceInfoService>().init();
 

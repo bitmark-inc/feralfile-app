@@ -11,6 +11,7 @@ import 'dart:typed_data';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
+import 'package:autonomy_flutter/service/local_auth_service.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -179,6 +180,11 @@ class _WCSignMessagePageState extends State<WCSignMessagePage> {
             child: PrimaryButton(
               text: 'sign'.tr(),
               onTap: () => withDebounce(() async {
+                final didAuthenticate =
+                    await LocalAuthenticationService.checkLocalAuth();
+                if (!didAuthenticate) {
+                  return;
+                }
                 final args = widget.args;
                 final WalletIndex wallet;
                 wallet =

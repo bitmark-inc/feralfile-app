@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_state.dart';
 import 'package:autonomy_flutter/service/currency_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
+import 'package:autonomy_flutter/service/local_auth_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/pending_token_service.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
@@ -82,6 +83,14 @@ class WCSendTransactionBloc
       log.info('[WCSendTransactionBloc][Start] send transaction');
       final sendingState = state.clone()..isSending = true;
       emit(sendingState);
+
+      final didAuthenticate = await LocalAuthenticationService.checkLocalAuth();
+
+      if (!didAuthenticate) {
+        final newState = sendingState.clone()..isSending = false;
+        emit(newState);
+        return;
+      }
 
       final WalletStorage persona = LibAukDart.getWallet(event.uuid);
       final index = event.index;

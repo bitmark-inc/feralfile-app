@@ -28,12 +28,12 @@ import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.android.FlutterView
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
-import java.io.BufferedReader
 import java.io.File
-import java.io.FileReader
-import java.net.InetSocketAddress
-import java.net.Socket
 import java.security.MessageDigest
+import java.io.BufferedReader
+import java.io.FileReader
+import java.net.Socket
+import java.net.InetSocketAddress
 
 class MainActivity : FlutterFragmentActivity() {
     companion object {
@@ -98,7 +98,7 @@ class MainActivity : FlutterFragmentActivity() {
             }
         }
 
-        BackupDartPlugin().createChannels(flutterEngine, this)
+        BackupDartPlugin().createChannels(flutterEngine, applicationContext)
         TezosBeaconDartPlugin().createChannels(flutterEngine)
 
         MethodChannel(
@@ -226,7 +226,6 @@ class MainActivity : FlutterFragmentActivity() {
             "FlutterSharedPreferences",
             Context.MODE_PRIVATE
         )
-
         val isEnabled = sharedPreferences.getBoolean("flutter.device_passcode", false)
         if (isEnabled && !isAuthenticate) {
             val biometricManager = BiometricManager.from(this)
