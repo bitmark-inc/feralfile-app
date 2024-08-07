@@ -138,6 +138,52 @@ class Persona {
     return null;
   }
 
+  Future<WalletAddress> _generateETHAddressByIndex(int index,
+          {String? name}) async =>
+      WalletAddress(
+          address: await wallet().getETHEip55Address(index: index),
+          uuid: uuid,
+          index: index,
+          cryptoType: CryptoType.ETH.source,
+          createdAt: DateTime.now(),
+          name: name ?? CryptoType.ETH.source);
+
+  Future<WalletAddress> _generateTezosAddressByIndex(int index,
+          {String? name}) async =>
+      WalletAddress(
+          address: await wallet().getTezosAddress(index: index),
+          uuid: uuid,
+          index: index,
+          cryptoType: CryptoType.XTZ.source,
+          createdAt: DateTime.now(),
+          name: name ?? CryptoType.XTZ.source);
+
+  Future<List<WalletAddress>> insertAddressAtIndex(
+      {required WalletType walletType,
+      required int index,
+      String? name}) async {
+    List<WalletAddress> walletAddresses = [];
+    switch (walletType) {
+      case WalletType.Ethereum:
+        walletAddresses = [await _generateETHAddressByIndex(index, name: name)];
+      case WalletType.Tezos:
+        walletAddresses = [
+          await _generateTezosAddressByIndex(index, name: name),
+        ];
+      case WalletType.Autonomy:
+        walletAddresses = [
+          await _generateETHAddressByIndex(index, name: name),
+          await _generateTezosAddressByIndex(index, name: name)
+        ];
+    }
+    await injector<AccountService>()
+        .removeDoubleViewOnly(walletAddresses.map((e) => e.address).toList());
+    await injector<CloudDatabase>().addressDao.insertAddresses(walletAddresses);
+    await injector<AddressService>()
+        .addAddresses(walletAddresses.map((e) => e.address).toList());
+    return walletAddresses;
+  }
+
   Future<List<WalletAddress>> insertNextAddress(WalletType walletType,
       {String? name}) async {
     final List<WalletAddress> addresses = [];
@@ -169,10 +215,8 @@ class Persona {
     switch (walletType) {
       case WalletType.Ethereum:
         addresses.add(ethAddress);
-        break;
       case WalletType.Tezos:
         addresses.add(tezAddress);
-        break;
       default:
         addresses.addAll([ethAddress, tezAddress]);
     }

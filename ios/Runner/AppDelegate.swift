@@ -180,6 +180,15 @@ import Logging
             case "getDeviceID":
                 SystemChannelHandler.shared.getDeviceUniqueID(call: call, result: result)
                 
+            case "getPrimaryAddress":
+                SystemChannelHandler.shared.getPrimaryAddress(call: call, result: result)
+                
+            case "setPrimaryAddress":
+                SystemChannelHandler.shared.setPrimaryAddress(call: call, result: result)
+                
+            case "clearPrimaryAddress":
+                SystemChannelHandler.shared.clearPrimaryAddress(call: call)
+                
             default:
                 result(FlutterMethodNotImplemented)
             }

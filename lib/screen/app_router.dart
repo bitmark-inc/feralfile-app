@@ -222,7 +222,8 @@ class AppRouter {
   static const chatThreadPage = 'chat_thread_page';
   static const accessMethodPage = 'access_method_page';
   static const wcSignMessagePage = 'wc_sign_message_page';
-  static const wcSendTransactionPage = 'wc_send_transaction_page';
+  static const wcSendTransactionPage =
+      'wc_sennameAddressPersonaPaged_transaction_page';
   static const collectionPage = 'collection_page';
   static const organizePage = 'organize_page';
   static const exhibitionsPage = 'exhibitions_page';
@@ -234,7 +235,7 @@ class AppRouter {
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector(), injector());
     final tezosBloc = TezosBloc(injector(), injector());
-    final usdcBloc = USDCBloc(injector());
+    final usdcBloc = USDCBloc(injector(), injector());
     final accountsBloc = AccountsBloc(injector(), injector());
     final personaBloc = PersonaBloc(
       injector<CloudDatabase>(),
@@ -323,9 +324,10 @@ class AppRouter {
                 injector(),
                 injector(),
                 injector(),
-                injector<CloudDatabase>(),
                 injector(),
-                injector<AuditService>(),
+                injector(),
+                injector(),
+                injector(),
                 injector(),
               ),
             ),

@@ -14,7 +14,8 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/model/backup_versions.dart';
-import 'package:autonomy_flutter/util/custom_exception.dart';
+import 'package:autonomy_flutter/service/address_service.dart';
+import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/util/helpers.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration/migration_util.dart';
@@ -36,8 +37,11 @@ class BackupService {
 
   BackupService(this._iapApi);
 
-  Future backupCloudDatabase(WalletStorage account) async {
+  Future backupCloudDatabase() async {
     log.info('[BackupService] start database backup');
+    final primaryAddressInfo =
+        await injector<AddressService>().getPrimaryAddressInfo();
+    final account = LibAukDart.getWallet(primaryAddressInfo!.uuid);
     try {
       final path = await sqfliteDatabaseFactory.getDatabasePath(_dbFileName);
       String tempDir = (await getTemporaryDirectory()).path;
@@ -51,8 +55,9 @@ class BackupService {
       String version = packageInfo.version;
       String? deviceId = await getBackupId();
 
-      await _iapApi.uploadProfile(
+      final response = await _iapApi.uploadProfile(
           deviceId, _dbEncryptedFileName, version, file);
+      log.info('[BackupService] response: $response');
       await file.delete();
     } catch (err) {
       debugPrint('[BackupService] error database backup, $err');
@@ -61,12 +66,16 @@ class BackupService {
     log.info('[BackupService] done database backup');
   }
 
-  Future<String> fetchBackupVersion(WalletStorage account) async {
+  Future<String> getBackupVersion() async {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
     String version = packageInfo.version;
 
     String? deviceId = await getBackupId();
-    final authToken = await getAuthToken(account);
+    final authToken = await injector<AuthService>().getAuthToken();
+
+    if (authToken == null) {
+      return '';
+    }
 
     final endpoint = Environment.autonomyAuthURL;
 
@@ -79,7 +88,7 @@ class BackupService {
                 '$endpoint/apis/v1/premium/profile-data/versions?filename=$filename'),
             headers: {
               'requester': deviceId,
-              'Authorization': 'Bearer $authToken'
+              'Authorization': 'Bearer ${authToken.jwtToken}'
             });
         if (response.statusCode == 200) {
           break;
@@ -91,7 +100,7 @@ class BackupService {
 
     if (response == null || response.statusCode != 200) {
       log.warning('[BackupService] failed fetchBackupVersion');
-      throw FailedFetchBackupVersion();
+      return '';
     }
 
     final result = BackupVersions.fromJson(json.decode(response.body));
@@ -113,25 +122,30 @@ class BackupService {
     log.info('[BackupService][start] deleteAllProfiles');
     String? deviceId = await getBackupId();
     final endpoint = Environment.autonomyAuthURL;
-    final authToken = await getAuthToken(account);
+    final authToken = await injector<AuthService>().getAuthToken();
 
     await http.delete(Uri.parse('$endpoint/apis/v1/premium/profile-data'),
-        headers: {'requester': deviceId, 'Authorization': 'Bearer $authToken'});
+        headers: {
+          'requester': deviceId,
+          'Authorization': 'Bearer ${authToken?.jwtToken}'
+        });
   }
 
-  Future restoreCloudDatabase(WalletStorage account, String version,
-      {String dbName = 'cloud_database.db'}) async {
+  Future restoreCloudDatabase({String dbName = 'cloud_database.db'}) async {
     log.info('[BackupService] start database restore');
+    final version = await getBackupVersion();
     String? deviceId = await getBackupId();
-    final authToken = await getAuthToken(account);
-
+    final authToken = await injector<AuthService>().getAuthToken();
+    final primaryAddressInfo =
+        await injector<AddressService>().getPrimaryAddressInfo();
+    final account = LibAukDart.getWallet(primaryAddressInfo!.uuid);
     final endpoint = Environment.autonomyAuthURL;
     final resp = await http.get(
       Uri.parse(
           '$endpoint/apis/v1/premium/profile-data?filename=$_dbEncryptedFileName&appVersion=$version'),
       headers: {
         'requester': deviceId,
-        'Authorization': 'Bearer $authToken',
+        'Authorization': 'Bearer ${authToken?.jwtToken}',
       },
     );
     if (resp.statusCode == 200) {
@@ -179,11 +193,11 @@ class BackupService {
         await injector<CloudDatabase>().copyDataFrom(tempDb);
         await tempFile.delete();
         await File(dbFilePath).delete();
-        log.info('[BackupService] Cloud database is restored $backUpVersion to '
-            '$version');
+        log.info('[BackupService] Cloud database is restored '
+            '$backUpVersion to $version');
         return;
       } catch (e) {
-        log.info("[BackupService] Failed to restore Cloud Database $e");
+        log.info('[BackupService] Failed to restore Cloud Database $e');
         unawaited(Sentry.captureException(e, stackTrace: StackTrace.current));
         return;
       }
@@ -196,20 +210,5 @@ class BackupService {
     String? deviceId = await MigrationUtil.getBackupDeviceID();
 
     return '${deviceId}_${packageInfo.packageName}';
-  }
-
-  Future<String> getAuthToken(WalletStorage account) async {
-    final message = DateTime.now().millisecondsSinceEpoch.toString();
-    final accountDID = await account.getAccountDID();
-    final signature = await account.getAccountDIDSignature(message);
-
-    Map<String, dynamic> payload = {
-      'requester': accountDID,
-      'timestamp': message,
-      'signature': signature,
-    };
-
-    final jwt = await _iapApi.auth(payload);
-    return jwt.jwtToken;
   }
 }

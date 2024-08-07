@@ -297,7 +297,7 @@ extension RouteExt on Route {
       case AppRouter.nameAddressPersonaPage:
         final payload = settings.arguments! as NameAddressPersonaPayload;
         data = {
-          MixpanelProp.address: payload.addressInfo.address,
+          MixpanelProp.address: payload.listAddressInfo.first.address,
         };
       case AppRouter.addressAliasPage:
         final payload = settings.arguments! as AddressAliasPayload;
