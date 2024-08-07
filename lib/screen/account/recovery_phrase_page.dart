@@ -7,13 +7,13 @@
 
 import 'dart:async';
 import 'dart:io';
-import 'dart:ui';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/cloud_service.dart';
 import 'package:autonomy_flutter/service/local_auth_service.dart';
+import 'package:autonomy_flutter/util/secure_screen_channel.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -22,13 +22,20 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:libauk_dart/libauk_dart.dart';
 import 'package:open_settings/open_settings.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-class RecoveryPhrasePage extends StatefulWidget {
-  final List<String> words;
+class RecoveryPhrasePayload {
+  final WalletStorage wallet;
 
-  const RecoveryPhrasePage({required this.words, super.key});
+  RecoveryPhrasePayload({required this.wallet});
+}
+
+class RecoveryPhrasePage extends StatefulWidget {
+  final RecoveryPhrasePayload payload;
+
+  const RecoveryPhrasePage({required this.payload, super.key});
 
   @override
   State<RecoveryPhrasePage> createState() => _RecoveryPhrasePageState();
@@ -36,14 +43,24 @@ class RecoveryPhrasePage extends StatefulWidget {
 
 class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
   bool _isShow = false;
+  List<String>? _words;
+  String _passphrase = '';
   bool? _isBackUpAvailable;
 
   @override
   void initState() {
     super.initState();
+    SecureScreenChannel.setSecureFlag(true);
     WidgetsBinding.instance.addPostFrameCallback((context) {
       unawaited(_checkBackUpAvailable());
+      unawaited(_loadRecoveryPhrase());
     });
+  }
+
+  @override
+  void dispose() {
+    SecureScreenChannel.setSecureFlag(false);
+    super.dispose();
   }
 
   Future<void> _checkBackUpAvailable() async {
@@ -54,91 +71,155 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
       final isAndroidEndToEndEncryptionAvailable =
           await injector<AccountService>()
               .isAndroidEndToEndEncryptionAvailable();
-      _isBackUpAvailable = isAndroidEndToEndEncryptionAvailable != null;
+      _isBackUpAvailable = isAndroidEndToEndEncryptionAvailable ?? false;
     }
     setState(() {});
   }
 
+  Future<void> _loadRecoveryPhrase() async {
+    final words = await widget.payload.wallet.exportMnemonicWords();
+    final passphrase = await widget.payload.wallet.exportMnemonicPassphrase();
+    setState(() {
+      _words = words.split(' ');
+      _passphrase = passphrase;
+    });
+  }
+
   @override
-  Widget build(BuildContext context) {
-    final roundNumber = widget.words.length ~/ 2 + widget.words.length % 2;
+  Widget build(BuildContext context) => Scaffold(
+        appBar: getBackAppBar(
+          context,
+          title: 'your_recovery_phrase'.tr(),
+          onBack: () {
+            Navigator.of(context).pop();
+          },
+        ),
+        body: _body(context, _words, _passphrase),
+      );
 
-    return Scaffold(
-      appBar: getBackAppBar(
-        context,
-        title: 'your_recovery_phrase'.tr(),
-        onBack: () {
-          Navigator.of(context).pop();
-        },
-      ),
-      body: Container(
-        margin: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    addTitleSpace(),
-                    _getBackUpState(context),
-                    Stack(
-                      children: [
-                        Table(
-                          children: List.generate(
-                            roundNumber,
-                            (index) => _tableRow(context, index, roundNumber),
+  Widget _body(BuildContext context, List<String>? words, String passphrase) {
+    if (words == null) {
+      return const SizedBox();
+    }
+    final theme = Theme.of(context);
+    final roundNumber = words.length ~/ 2 + words.length % 2;
+    return Container(
+      margin: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              physics: const ClampingScrollPhysics(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  addTitleSpace(),
+                  _getBackUpState(context),
+                  Stack(
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Table(
+                            children: List.generate(
+                              roundNumber,
+                              (index) =>
+                                  _tableRow(context, index, roundNumber, words),
+                            ),
+                            border: TableBorder.all(
+                                color: AppColor.auLightGrey,
+                                borderRadius: BorderRadius.circular(10)),
                           ),
-                          border: TableBorder.all(
-                              color: AppColor.auLightGrey,
-                              borderRadius: BorderRadius.circular(10)),
-                        ),
-                        if (!_isShow)
-                          Positioned.fill(
-                            child: ClipRect(
-                                child: BackdropFilter(
-                              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                              child: Center(
-                                  child: ConstrainedBox(
-                                constraints: const BoxConstraints.tightFor(
-                                    width: 168, height: 45),
-                                child: PrimaryButton(
-                                  text: 'tap_to_reveal'.tr(),
-                                  onTap: () async {
-                                    final didAuthenticate =
-                                        await LocalAuthenticationService
-                                            .checkLocalAuth();
-
-                                    if (!didAuthenticate) {
-                                      return;
-                                    }
-                                    setState(() {
-                                      _isShow = !_isShow;
-                                    });
-                                  },
+                          if (passphrase.isNotEmpty) ...[
+                            const SizedBox(height: 20),
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: AppColor.auLightGrey),
+                                borderRadius: BorderRadius.circular(5),
+                              ),
+                              child: RichText(
+                                text: TextSpan(
+                                  children: <TextSpan>[
+                                    TextSpan(
+                                      text: 'passphrase'.tr(),
+                                      style: theme
+                                          .textTheme.ppMori400FFQuickSilver14,
+                                    ),
+                                    const TextSpan(text: '  '),
+                                    TextSpan(
+                                        text: passphrase,
+                                        style: theme.textTheme.ppMori400Black14
+                                            .copyWith(
+                                                color: _isShow
+                                                    ? AppColor.primaryBlack
+                                                    : AppColor.white)),
+                                  ],
                                 ),
-                              )),
+                              ),
+                            ),
+                          ]
+                        ],
+                      ),
+                      if (!_isShow)
+                        Positioned.fill(
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              color: AppColor.white.withOpacity(0.6),
+                            ),
+                            child: Center(
+                                child: ConstrainedBox(
+                              constraints: const BoxConstraints.tightFor(
+                                  width: 168, height: 45),
+                              child: _revealButton(context),
                             )),
                           ),
-                      ],
-                    ),
-                    _recommend(context),
-                  ],
-                ),
+                        ),
+                    ],
+                  ),
+                  _recommend(context),
+                  const SizedBox(height: 30),
+                ],
               ),
             ),
-            _settingButton(context)
-          ],
-        ),
+          ),
+          _settingButton(context)
+        ],
       ),
     );
   }
 
-  Widget _rowItem(BuildContext context, int index) {
+  Widget _revealButton(BuildContext context) => PrimaryButton(
+        text: 'tap_to_reveal'.tr(),
+        onTap: () async {
+          final didAuthenticate =
+              await LocalAuthenticationService.checkLocalAuth();
+
+          if (!didAuthenticate) {
+            return;
+          }
+          setState(() {
+            _isShow = !_isShow;
+          });
+          Future.delayed(
+            const Duration(seconds: 60),
+            () {
+              if (mounted) {
+                setState(() {
+                  _isShow = !_isShow;
+                });
+              }
+            },
+          );
+        },
+      );
+
+  Widget _rowItem(BuildContext context, int index, List<String> words) {
     final theme = Theme.of(context);
-    final isNull = index >= widget.words.length;
-    final word = isNull ? '' : widget.words[index];
+    final isNull = index >= words.length;
+    final word = isNull ? '' : words[index];
     NumberFormat formatter = NumberFormat('00');
 
     return Padding(
@@ -152,7 +233,9 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
                 style: theme.textTheme.ppMori400Grey14),
           ),
           const SizedBox(width: 16),
-          Text(word, style: theme.textTheme.ppMori400Black14),
+          Text(word,
+              style: theme.textTheme.ppMori400Black14.copyWith(
+                  color: _isShow ? AppColor.primaryBlack : AppColor.white)),
         ],
       ),
     );
@@ -167,10 +250,23 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
     if (_isBackUpAvailable == null) {
       return const SizedBox();
     }
-    if (_isBackUpAvailable!) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'SRP_is_crucial'.tr(),
+          style: theme.textTheme.ppMori400Black14,
+        ),
+        const SizedBox(height: 12),
+        Text(
+          'as_a_non_custodial_wallet'.tr(),
+          style: theme.textTheme.ppMori400Black14,
+        ),
+        const SizedBox(height: 12),
+        Text('remember_if_you_lose_your_SRP'.tr(),
+            style: theme.textTheme.ppMori700Black14),
+        const SizedBox(height: 12),
+        if (_isBackUpAvailable == true) ...[
           RichText(
             text: TextSpan(
               style: theme.textTheme.ppMori400Black14,
@@ -210,13 +306,7 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
               ],
             ),
           ),
-          const SizedBox(height: 30),
-        ],
-      );
-    } else {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        ] else ...[
           RichText(
             text: TextSpan(
               style: theme.textTheme.ppMori400Black14,
@@ -261,10 +351,10 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
               ],
             ),
           ),
-          const SizedBox(height: 40),
         ],
-      );
-    }
+        const SizedBox(height: 30),
+      ],
+    );
   }
 
   Widget _recommend(BuildContext context) {
@@ -312,9 +402,10 @@ class _RecoveryPhrasePageState extends State<RecoveryPhrasePage> {
     );
   }
 
-  TableRow _tableRow(BuildContext context, int index, int itemsEachCol) =>
+  TableRow _tableRow(BuildContext context, int index, int itemsEachCol,
+          List<String> words) =>
       TableRow(children: [
-        _rowItem(context, index),
-        _rowItem(context, index + itemsEachCol),
+        _rowItem(context, index, words),
+        _rowItem(context, index + itemsEachCol, words),
       ]);
 }

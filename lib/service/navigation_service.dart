@@ -14,9 +14,9 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
-import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
+import 'package:autonomy_flutter/util/feral_file_custom_tab.dart';
 import 'package:autonomy_flutter/util/feral_file_helper.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -39,6 +39,7 @@ class NavigationService {
   // workaround solution for unknown reason
   // ModalRoute(navigatorKey.currentContext) returns nil
   bool _isWCConnectInShow = false;
+  final _browser = FeralFileBrowser();
 
   BuildContext get context => navigatorKey.currentContext!;
 
@@ -262,7 +263,7 @@ class NavigationService {
     popUntilHome();
     await Future.delayed(const Duration(seconds: 1), () async {
       await (homePageKey.currentState ?? homePageNoTransactionKey.currentState)
-          ?.openExhibition(exhibitionID ?? '');
+          ?.openExhibition(exhibitionID);
     });
   }
 
@@ -366,9 +367,7 @@ class NavigationService {
       return;
     }
     final url = FeralFileHelper.getArtistUrl(alias);
-    await Navigator.of(navigatorKey.currentContext!).pushNamed(
-        AppRouter.inappWebviewPage,
-        arguments: InAppWebViewPayload(url));
+    await _browser.openUrl(url);
   }
 
   Future<void> openFeralFileCuratorPage(String alias) async {
@@ -376,9 +375,7 @@ class NavigationService {
       return;
     }
     final url = FeralFileHelper.getCuratorUrl(alias);
-    await Navigator.of(navigatorKey.currentContext!).pushNamed(
-        AppRouter.inappWebviewPage,
-        arguments: InAppWebViewPayload(url));
+    await _browser.openUrl(url);
   }
 
   Future<void> openFeralFileExhibitionNotePage(String exhibitionSlug) async {
@@ -386,10 +383,7 @@ class NavigationService {
       return;
     }
     final url = FeralFileHelper.getExhibitionNoteUrl(exhibitionSlug);
-    await Navigator.of(navigatorKey.currentContext!).pushNamed(
-      AppRouter.inappWebviewPage,
-      arguments: InAppWebViewPayload(url),
-    );
+    await _browser.openUrl(url);
   }
 
   Future<void> openFeralFilePostPage(Post post, String exhibitionID) async {
@@ -397,9 +391,6 @@ class NavigationService {
       return;
     }
     final url = FeralFileHelper.getPostUrl(post, exhibitionID);
-    await Navigator.of(navigatorKey.currentContext!).pushNamed(
-      AppRouter.inappWebviewPage,
-      arguments: InAppWebViewPayload(url),
-    );
+    await _browser.openUrl(url);
   }
 }

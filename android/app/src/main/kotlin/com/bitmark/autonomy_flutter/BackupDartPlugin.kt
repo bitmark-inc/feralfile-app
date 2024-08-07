@@ -10,9 +10,7 @@ import android.content.Context
 import android.util.Log
 import androidx.annotation.NonNull
 import com.bitmark.libauk.LibAuk
-import com.google.android.gms.auth.blockstore.Blockstore
-import com.google.android.gms.auth.blockstore.BlockstoreClient
-import com.google.android.gms.auth.blockstore.StoreBytesData
+import com.google.android.gms.auth.blockstore.*
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -47,6 +45,7 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler {
             "isEndToEndEncryptionAvailable" -> isEndToEndEncryptionAvailable(result)
             "backupKeys" -> backupKeys(call, result)
             "restoreKeys" -> restoreKeys(call, result)
+            "deleteKeys" -> deleteKeys(call, result)
             else -> {
                 result.notImplemented()
             }
@@ -73,9 +72,11 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler {
                 Single.zip(
                     LibAuk.getInstance().getStorage(UUID.fromString(it), context)
                         .exportMnemonicWords(),
+                    LibAuk.getInstance().getStorage(UUID.fromString(it), context)
+                        .exportMnemonicPassphrase(),
                     LibAuk.getInstance().getStorage(UUID.fromString(it), context).getName()
-                ) { mnemonic, name ->
-                    BackupAccount(it, mnemonic, name)
+                ) { mnemonic, passphrase, name ->
+                    BackupAccount(it, mnemonic, passphrase, name)
                 }.toObservable()
             }
             .toList()
@@ -113,12 +114,14 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler {
     }
 
     private fun restoreKeys(call: MethodCall, result: MethodChannel.Result) {
-        client.retrieveBytes()
+        val retrieveBytesRequestBuilder = RetrieveBytesRequest.Builder()
+            .setRetrieveAll(true)
+        client.retrieveBytes(retrieveBytesRequestBuilder.build())
             .addOnSuccessListener { bytes ->
                 try {
                     val data = jsonKT.decodeFromString(
                         BackupData.serializer(),
-                        bytes.toString(Charsets.UTF_8)
+                        bytes.toString()
                     )
 
                     Observable.fromIterable(data.accounts)
@@ -132,6 +135,7 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler {
                                             .getStorage(UUID.fromString(account.uuid), context)
                                             .importKey(
                                                 account.mnemonic.split(" "),
+                                                account.passphrase ?: "",
                                                 account.name,
                                                 Date()
                                             )
@@ -144,6 +148,7 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler {
                                         BackupAccount(
                                             account.uuid,
                                             "",
+                                            account.passphrase ?: "",
                                             account.name
                                         )
                                     )
@@ -168,6 +173,20 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler {
                 result.error("restoreKey error", it.message, it)
             }
     }
+
+
+    private fun deleteKeys(call: MethodCall, result: MethodChannel.Result) {
+        val deleteRequestBuilder = DeleteBytesRequest.Builder()
+            .setDeleteAll(true)
+        client.deleteBytes(deleteRequestBuilder.build())
+            .addOnSuccessListener {
+                result.success("")
+            }
+            .addOnFailureListener { e ->
+                Log.e("BackupDartPlugin", e.message ?: "")
+                result.error("deleteKeys error", e.message, e)
+            }
+    }
 }
 
 @Serializable
@@ -182,6 +201,8 @@ data class BackupAccount(
     val uuid: String,
     @SerialName("mnemonic")
     val mnemonic: String,
+    @SerialName("passphrase")
+    val passphrase: String?,
     @SerialName("name")
     val name: String,
 )

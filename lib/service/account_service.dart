@@ -57,15 +57,18 @@ abstract class AccountService {
 
   Future androidBackupKeys();
 
+  Future deleteAllKeys();
+
   Future<List<Connection>> removeDoubleViewOnly(List<String> addresses);
 
   Future<bool?> isAndroidEndToEndEncryptionAvailable();
 
   Future androidRestoreKeys();
 
-  Future<Persona> createPersona({String name = '', bool isDefault = false});
+  Future<Persona> createPersona(
+      {String name = '', String passphrase = '', bool isDefault = false});
 
-  Future<Persona> importPersona(String words,
+  Future<Persona> importPersona(String words, String passphrase,
       {WalletType walletType = WalletType.Autonomy});
 
   Future<Connection> nameLinkedAccount(Connection connection, String name);
@@ -133,27 +136,37 @@ class AccountServiceImpl extends AccountService {
 
   @override
   Future<Persona> createPersona(
-      {String name = '', bool isDefault = false}) async {
+      {String name = '',
+      String passphrase = '',
+      bool isDefault = false}) async {
     final uuid = const Uuid().v4();
     final walletStorage = LibAukDart.getWallet(uuid);
-    await walletStorage.createKey(name);
+    await walletStorage.createKey(passphrase, name);
     final persona = Persona.newPersona(
         uuid: uuid, defaultAccount: isDefault ? 1 : null, name: name);
     await _cloudDB.personaDao.insertPersona(persona);
     await androidBackupKeys();
     await _auditService.auditPersonaAction('create', persona);
     unawaited(_autonomyService.postLinkedAddresses());
-    log.info('[AccountService] Created persona ${persona.uuid}}');
+    log.fine('[AccountService] Created persona ${persona.uuid}}');
     return persona;
   }
 
   @override
-  Future<Persona> importPersona(String words,
+  Future<Persona> importPersona(String words, String passphrase,
       {WalletType walletType = WalletType.Autonomy}) async {
+    late String firstEthAddress;
+    try {
+      firstEthAddress =
+          await LibAukDart.calculateFirstEthAddress(words, passphrase);
+    } catch (e) {
+      rethrow;
+    }
+
     final personas = await _cloudDB.personaDao.getPersonas();
     for (final persona in personas) {
-      final mnemonic = await persona.wallet().exportMnemonicWords();
-      if (mnemonic == words) {
+      final ethAddress = await persona.wallet().getETHAddress();
+      if (ethAddress == firstEthAddress) {
         return persona;
       }
     }
@@ -161,13 +174,13 @@ class AccountServiceImpl extends AccountService {
     final uuid = const Uuid().v4();
     final walletStorage = LibAukDart.getWallet(uuid);
     await walletStorage.importKey(
-        words, '', DateTime.now().microsecondsSinceEpoch);
+        words, passphrase, '', DateTime.now().microsecondsSinceEpoch);
 
     final persona = Persona.newPersona(uuid: uuid);
     await _cloudDB.personaDao.insertPersona(persona);
     await androidBackupKeys();
     await _auditService.auditPersonaAction('import', persona);
-    log.info('[AccountService] imported persona ${persona.uuid}');
+    log.fine('[AccountService] imported persona ${persona.uuid}');
     return persona;
   }
 
@@ -214,7 +227,6 @@ class AccountServiceImpl extends AccountService {
           return WalletIndex(
               WalletStorage(walletAddress.uuid), walletAddress.index);
         }
-        break;
       case Wc2Chain.autonomy:
         var personas = await _cloudDB.personaDao.getPersonas();
         for (Persona p in personas) {
@@ -267,7 +279,7 @@ class AccountServiceImpl extends AccountService {
 
   @override
   Future deletePersona(Persona persona) async {
-    log.info('[AccountService] deletePersona start - ${persona.uuid}');
+    log.fine('[AccountService] deletePersona start - ${persona.uuid}');
     await _cloudDB.personaDao.deletePersona(persona);
     await _auditService.auditPersonaAction('delete', persona);
 
@@ -289,7 +301,6 @@ class AccountServiceImpl extends AccountService {
               bcPeers.add(bcPeer);
             }
           }
-          break;
 
         // Note: Should app delete feralFileWeb3 too ??
       }
@@ -303,7 +314,7 @@ class AccountServiceImpl extends AccountService {
       unawaited(Sentry.captureException(exception));
     }
 
-    log.info('[AccountService] deletePersona finished - ${persona.uuid}');
+    log.fine('[AccountService] deletePersona finished - ${persona.uuid}');
   }
 
   @override
@@ -389,6 +400,13 @@ class AccountServiceImpl extends AccountService {
       final uuids = accounts.map((e) => e.uuid).toList();
 
       await _backupChannel.backupKeys(uuids);
+    }
+  }
+
+  @override
+  Future deleteAllKeys() async {
+    if (Platform.isAndroid) {
+      await _backupChannel.deleteAllKeys();
     }
   }
 
@@ -485,7 +503,7 @@ class AccountServiceImpl extends AccountService {
 
     addresses.addAll(linkedAccounts.expand((e) => e.accountNumbers));
     if (logHiddenAddress) {
-      log.info(
+      log.fine(
           '[Account Service] all addresses (persona ${addressPersona.length}): '
           '${addresses.join(", ")}');
       final hiddenAddresses = addressPersona
@@ -493,7 +511,7 @@ class AccountServiceImpl extends AccountService {
           .map((e) => e.address.maskOnly(5))
           .toList()
         ..addAll(_configurationService.getLinkedAccountsHiddenInGallery());
-      log.info(
+      log.fine(
           "[Account Service] hidden addresses: ${hiddenAddresses.join(", ")}");
     }
 
@@ -514,13 +532,11 @@ class AccountServiceImpl extends AccountService {
       switch (blockchain.toLowerCase()) {
         case 'tezos':
           addresses.addAll(await persona.getTezosAddresses());
-          break;
         case 'ethereum':
           final address = await personaWallet.getETHEip55Address();
           if (address.isNotEmpty) {
             addresses.addAll(await persona.getEthAddresses());
           }
-          break;
       }
     }
 

@@ -67,7 +67,12 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
       },
       'dont_fake_artwork_series_ids': ['0a954c31-d336-4e37-af0f-ec336c064879'],
     },
+    'in_app_webview': {
+      'uri_scheme_white_list': ['https'],
+      'allowed_fingerprints': [],
+    },
     'dApp_urls': {
+      'deny_dApp_list': [],
       'tezos_nodes': [
         'https://mainnet.api.tez.ie',
         'https://rpc.tzbeta.net',
@@ -83,7 +88,7 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
     try {
       final data = await _pubdocAPI.getConfigs();
       _configs = jsonDecode(data) as Map<String, dynamic>;
-      log.info('RemoteConfigService: loadConfigs: $_configs');
+      log.fine('RemoteConfigService: loadConfigs: $_configs');
     } catch (e) {
       log.warning('RemoteConfigService: loadConfigs: $e');
     }
@@ -127,9 +132,10 @@ enum ConfigGroup {
   feature,
   postcardAction,
   feralfileArtworkAction,
+  inAppWebView,
+  dAppUrls,
   exhibition,
   johnGerrard,
-  dAppUrls,
 }
 
 // ConfigGroup getString extension
@@ -148,12 +154,14 @@ extension ConfigGroupExtension on ConfigGroup {
         return 'postcard_action';
       case ConfigGroup.feralfileArtworkAction:
         return 'feralfile_artwork_action';
+      case ConfigGroup.inAppWebView:
+        return 'in_app_webview';
+      case ConfigGroup.dAppUrls:
+        return 'dApp_urls';
       case ConfigGroup.exhibition:
         return 'exhibition';
       case ConfigGroup.johnGerrard:
         return 'john_gerrard';
-      case ConfigGroup.dAppUrls:
-        return 'dApp_urls';
     }
   }
 }
@@ -185,6 +193,9 @@ enum ConfigKey {
   dontFakeArtworkSeriesIds,
   ongoingExhibitionIDs,
   yokoOnoPrivateTokenIds,
+  uriSchemeWhiteList,
+  denyDAppList,
+  allowedFingerprints,
   tezosNodes,
   seriesIds,
   assetIds,
@@ -247,6 +258,12 @@ extension ConfigKeyExtension on ConfigKey {
         return 'on_going_exhibition_ids';
       case ConfigKey.yokoOnoPrivateTokenIds:
         return 'yoko_ono_private_token_ids';
+      case ConfigKey.uriSchemeWhiteList:
+        return 'uri_scheme_white_list';
+      case ConfigKey.denyDAppList:
+        return 'deny_dApp_list';
+      case ConfigKey.allowedFingerprints:
+        return 'allowed_fingerprints';
       case ConfigKey.tezosNodes:
         return 'tezos_nodes';
       case ConfigKey.seriesIds:
