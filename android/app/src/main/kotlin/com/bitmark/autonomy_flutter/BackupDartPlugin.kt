@@ -6,16 +6,12 @@
 
 package com.bitmark.autonomy_flutter
 
-import android.app.Activity
 import android.content.Context
 import android.util.Log
 import androidx.annotation.NonNull
 import com.bitmark.libauk.LibAuk
 import com.google.android.gms.auth.blockstore.*
-import com.google.android.gms.auth.blockstore.BlockstoreClient.DEFAULT_BYTES_DATA_KEY
 import io.flutter.embedding.engine.FlutterEngine
-import io.flutter.embedding.engine.plugins.activity.ActivityAware
-import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.reactivex.Completable
@@ -26,7 +22,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import java.util.*
 
-class BackupDartPlugin : MethodChannel.MethodCallHandler, ActivityAware {
+class BackupDartPlugin : MethodChannel.MethodCallHandler {
     /// The MethodChannel that will the communication between Flutter and native Android
     ///
     /// This local reference serves to register the plugin with the Flutter Engine and unregister it
@@ -35,7 +31,6 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler, ActivityAware {
     private lateinit var context: Context
     private lateinit var disposables: CompositeDisposable
     private lateinit var client: BlockstoreClient
-    private lateinit var activity: Activity
 
     fun createChannels(@NonNull flutterEngine: FlutterEngine, @NonNull context: Context) {
         this.context = context
@@ -124,11 +119,9 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler, ActivityAware {
         client.retrieveBytes(retrieveBytesRequestBuilder.build())
             .addOnSuccessListener { bytes ->
                 try {
-                    val dataMap = bytes.blockstoreDataMap;
-                    val defaultBytesData = dataMap[DEFAULT_BYTES_DATA_KEY];
                     val data = jsonKT.decodeFromString(
                         BackupData.serializer(),
-                        defaultBytesData?.bytes?.toString(Charsets.UTF_8) ?: ""
+                        bytes.toString()
                     )
 
                     Observable.fromIterable(data.accounts)
@@ -144,8 +137,7 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler, ActivityAware {
                                                 account.mnemonic.split(" "),
                                                 account.passphrase ?: "",
                                                 account.name,
-                                                Date(),
-                                                true
+                                                Date()
                                             )
                                     } else {
                                         Completable.complete()
@@ -194,24 +186,6 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler, ActivityAware {
                 Log.e("BackupDartPlugin", e.message ?: "")
                 result.error("deleteKeys error", e.message, e)
             }
-    }
-
-    override fun onAttachedToActivity(binding: ActivityPluginBinding) {
-        context = binding.activity
-        activity = binding.activity
-    }
-
-    override fun onDetachedFromActivityForConfigChanges() {
-        disposables.clear()
-    }
-
-    override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
-        context = binding.activity
-        activity = binding.activity
-    }
-
-    override fun onDetachedFromActivity() {
-        disposables.clear()
     }
 }
 

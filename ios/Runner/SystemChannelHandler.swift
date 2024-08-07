@@ -88,8 +88,9 @@ class SystemChannelHandler: NSObject {
         var personaUUIDs = [String]()
         let query: NSDictionary = [
             kSecClass: kSecClassGenericPassword,
-//            kSecAttrSynchronizable: kCFBooleanTrue,
+            kSecAttrSynchronizable: kCFBooleanTrue,
             kSecReturnData: kCFBooleanTrue,
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
             kSecReturnAttributes as String : kCFBooleanTrue,
             kSecMatchLimit as String: kSecMatchLimitAll,
             kSecAttrAccessGroup as String: Constant.keychainGroup,
