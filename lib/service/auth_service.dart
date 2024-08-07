@@ -143,7 +143,7 @@ class AuthService {
     final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
     final defaultAccount = await injector<AccountService>().getDefaultAccount();
     final messageForAddress = _addressService.getFeralfileAccountMessage(
-      address: address,
+      address: address!,
       timestamp: timestamp,
     );
     final signatureForAddress = await _addressService.getAddressSignature(

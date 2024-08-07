@@ -24,8 +24,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/rpc_error_extension.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
-import 'package:easy_localization/easy_localization.dart';
-import 'package:synchronized/synchronized.dart';
+import 'package:easy_localization/easy_localizationed.dart';
 import 'package:tezart/tezart.dart';
 import 'package:web3dart/json_rpc.dart';
 import 'package:web3dart/web3dart.dart';
@@ -68,7 +67,7 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
             final ownerAddress =
                 await event.wallet.getETHEip55Address(index: event.index);
             final balance =
-                await _ethereumService.getBalance(ownerAddress, doRetry: true);
+                await _ethereumService.getBalance(ownerAddress!, doRetry: true);
 
             newState.balance = balance.getInWei;
 
@@ -84,7 +83,7 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
             final address =
                 await event.wallet.getTezosAddress(index: event.index);
             final balance =
-                await _tezosService.getBalance(address, doRetry: true);
+                await _tezosService.getBalance(address!, doRetry: true);
 
             newState.balance = BigInt.from(balance);
             if (state.feeOptionValue != null) {
@@ -98,7 +97,7 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
           case CryptoType.USDC:
             final address =
                 await event.wallet.getETHEip55Address(index: event.index);
-            final ownerAddress = EthereumAddress.fromHex(address);
+            final ownerAddress = EthereumAddress.fromHex(address!);
             final contractAddress =
                 EthereumAddress.fromHex(usdcContractAddress);
 
@@ -256,7 +255,7 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
             }
 
             final address = await wallet.getETHEip55Address(index: index);
-            final ownerAddress = EthereumAddress.fromHex(address);
+            final ownerAddress = EthereumAddress.fromHex(address!);
             final toAddress = EthereumAddress.fromHex(event.address);
             final contractAddress =
                 EthereumAddress.fromHex(usdcContractAddress);

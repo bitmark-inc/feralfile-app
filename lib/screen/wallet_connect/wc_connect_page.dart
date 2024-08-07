@@ -40,6 +40,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:libauk_dart/libauk_dart.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:walletconnect_flutter_v2/apis/core/verify/models/verify_context.dart';
 import 'package:walletconnect_flutter_v2/apis/sign_api/models/sign_client_models.dart';
@@ -187,8 +188,8 @@ class _WCConnectPageState extends State<WCConnectPage>
               isAuConnect: true,
             );
             payloadType = CryptoType.ETH;
-            payloadAddress = await defaultAccount.getETHEip55Address(
-                index: selectedPersona!.index);
+            payloadAddress = (await defaultAccount.getETHEip55Address(
+                index: selectedPersona!.index))!;
           } else {
             final address = await injector<EthereumService>()
                 .getETHAddress(selectedPersona!.wallet, selectedPersona!.index);

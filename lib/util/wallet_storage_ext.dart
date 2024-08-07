@@ -12,23 +12,54 @@ import 'dart:typed_data';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
+import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/primary_address_channel.dart';
 import 'package:autonomy_flutter/util/wc2_ext.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:tezart/src/crypto/crypto.dart' as crypto;
 import 'package:web3dart/credentials.dart';
 
-extension StringExtension on WalletStorage {
-  Future<String> getETHEip55Address({int index = 0}) async {
-    String address = await getETHAddress(index: index);
-    if (address.isNotEmpty) {
-      return EthereumAddress.fromHex(address).hexEip55;
-    } else {
-      return '';
-    }
+extension WalletStorageExtension on WalletStorage {
+  Future<String?> getETHEip55Address({int index = 0}) async {
+    final addresses = await getEthAddressesWithIndexes(indexes: [index]);
+    return addresses[index];
+  }
+
+  Future<Map<int, String>> getETHEip55Addresses(
+      {required List<int> indexes}) async {
+    final infoes = indexes
+        .map(
+            (index) => AddressInfo(uuid: uuid, chain: 'ethereum', index: index))
+        .toList();
+    final addresses =
+        await injector<AddressService>().getAddresses(infoes: infoes);
+    return addresses.map((key, value) =>
+        MapEntry(key.index, EthereumAddress.fromHex(value).hexEip55));
+  }
+
+  Future<String> deriveETHEip55Address({int index = 0}) async {
+    final addresses = await getEthAddressesWithIndexes(indexes: [index]);
+    return addresses[index]!;
+  }
+
+  Future<Map<int, String>> deriveETHEip55Addresses(
+      {required List<int> indexes}) async {
+    final addresses = await getEthAddressesWithIndexes(indexes: indexes);
+    return addresses.map(
+        (key, value) => MapEntry(key, EthereumAddress.fromHex(value).hexEip55));
+  }
+
+  int getOwnedQuantity(AssetToken token) => token.getCurrentBalance ?? 0;
+
+  Future<String?> getTezosAddress({required int index}) async {
+    final address =
+        injector<AddressService>().getTezosAddress(uuid: uuid, index: index);
+    return address;
   }
 }
 
@@ -36,18 +67,6 @@ extension StringHelper on String {
   String getETHEip55Address() => EthereumAddress.fromHex(this).hexEip55;
 
   String publicKeyToTezosAddress() => crypto.addressFromPublicKey(this);
-}
-
-extension WalletStorageExtension on WalletStorage {
-  int getOwnedQuantity(AssetToken token) => token.getCurrentBalance ?? 0;
-
-  Future<String> getTezosAddress({int index = 0}) async {
-    final publicKey = await getTezosPublicKey(index: index);
-    return crypto.addressFromPublicKey(publicKey);
-  }
-
-  String getTezosAddressFromPubKey(String publicKey) =>
-      crypto.addressFromPublicKey(publicKey);
 }
 
 class WalletIndex {
@@ -81,7 +100,13 @@ extension WalletIndexExtension on WalletIndex {
   }) async {
     switch (chain.caip2Namespace) {
       case 'eip155':
-        final ethAddress = await wallet.getETHEip55Address(index: index);
+        final ethAddress = await injector<AddressService>().getAddress(
+            info: AddressInfo(
+                uuid: wallet.uuid, chain: 'ethereum', index: index));
+        if (ethAddress == null) {
+          log.info('[signPermissionRequest] eip155 Address not found');
+          return null;
+        }
         return Wc2Chain(
           chain: chain,
           address: ethAddress,

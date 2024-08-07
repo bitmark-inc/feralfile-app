@@ -23,8 +23,7 @@ import 'package:autonomy_flutter/util/rpc_error_extension.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/material.dart';
-import 'package:nft_collection/models/asset_token.dart';
+import 'package:flutter/materialsset_token.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:synchronized/synchronized.dart';
 import 'package:tezart/tezart.dart';
@@ -68,7 +67,7 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
             final ownerAddress =
                 await event.wallet.getETHEip55Address(index: event.index);
             final balance =
-                await _ethereumService.getBalance(ownerAddress, doRetry: true);
+                await _ethereumService.getBalance(ownerAddress!, doRetry: true);
 
             newState.balance = balance.getInWei;
             newState.isValid = _isValid(newState);
@@ -76,7 +75,7 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
             final address =
                 await event.wallet.getTezosAddress(index: event.index);
             final balance =
-                await _tezosService.getBalance(address, doRetry: true);
+                await _tezosService.getBalance(address!, doRetry: true);
 
             newState.balance = BigInt.from(balance);
             newState.isValid = _isValid(newState);
@@ -158,7 +157,7 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
                 EthereumAddress.fromHex(event.contractAddress);
             final to = EthereumAddress.fromHex(event.address);
             final from = EthereumAddress.fromHex(
-                await state.wallet!.getETHEip55Address(index: index));
+                (await state.wallet!.getETHEip55Address(index: index))!);
 
             try {
               final data = _asset.contractType == 'erc1155'
@@ -202,9 +201,10 @@ class SendArtworkBloc extends AuBloc<SendArtworkEvent, SendArtworkState> {
               return;
             }
             try {
+              final address = await wallet.getTezosAddress(index: index);
               final operation = await _tezosService.getFa2TransferOperation(
                   event.contractAddress,
-                  await wallet.getTezosAddress(index: index),
+                  address!,
                   event.address,
                   event.tokenId,
                   event.quantity);

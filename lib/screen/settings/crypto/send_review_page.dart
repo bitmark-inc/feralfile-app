@@ -88,7 +88,7 @@ class _SendReviewPageState extends State<SendReviewPage> {
         case CryptoType.USDC:
           final address = await widget.payload.wallet
               .getETHEip55Address(index: widget.payload.index);
-          final ownerAddress = EthereumAddress.fromHex(address);
+          final ownerAddress = EthereumAddress.fromHex(address!);
           final toAddress = EthereumAddress.fromHex(widget.payload.address);
           final contractAddress = EthereumAddress.fromHex(usdcContractAddress);
 

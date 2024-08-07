@@ -26,7 +26,10 @@ import 'package:web3dart/web3dart.dart';
 const double gWeiFactor = 1000000000;
 
 abstract class EthereumService {
-  Future<String> getETHAddress(WalletStorage wallet, int index);
+  Future<String?> getETHAddress(WalletStorage wallet, int index);
+
+  Future<Map<int, String>> getETHAddressesWithIndexes(
+      WalletStorage wallet, List<int> indexes);
 
   Future<EtherAmount> getBalance(String address, {bool doRetry = false});
 
@@ -91,8 +94,8 @@ class EthereumServiceImpl extends EthereumService {
     log.info('[EthereumService] estimateFee - to: $to - amount $amount');
 
     final gasPrice = await _getFeeOptionValue();
-    final sender =
-        EthereumAddress.fromHex(await wallet.getETHEip55Address(index: index));
+    final senderETHEip55Address = await wallet.getETHEip55Address(index: index);
+    final sender = EthereumAddress.fromHex(senderETHEip55Address!);
     final fee = await _getEthereumFee(feeOption);
 
     try {
@@ -118,15 +121,16 @@ class EthereumServiceImpl extends EthereumService {
   }
 
   @override
-  Future<String> getETHAddress(WalletStorage wallet, int index) async {
-    final address = await wallet.getETHAddress(index: index);
-    if (address.isEmpty) {
-      return '';
-    } else {
-      log.info(address);
-      return EthereumAddress.fromHex(address).hexEip55;
-    }
+  Future<Map<int, String>> getETHAddressesWithIndexes(
+      WalletStorage wallet, List<int> indexes) async {
+    final addresses = await wallet.getEthAddressesWithIndexes(indexes: indexes);
+    return addresses.map(
+        (key, value) => MapEntry(key, EthereumAddress.fromHex(value).hexEip55));
   }
+
+  @override
+  Future<String?> getETHAddress(WalletStorage wallet, int index) async =>
+      await wallet.getETHEip55Address(index: index);
 
   @override
   Future<EtherAmount> getBalance(String address, {bool doRetry = false}) async {

@@ -31,7 +31,7 @@ class PersonaBloc extends AuBloc<PersonaEvent, PersonaState> {
           namedPersonas.add(persona.copyWith(
             name: event.useDidKeyForAlias
                 ? await persona.wallet().getAccountDID()
-                : address.mask(4),
+                : address?.mask(4),
           ));
         } else {
           namedPersonas.add(persona);

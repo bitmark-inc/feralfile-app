@@ -177,7 +177,9 @@ class AccountServiceImpl extends AccountService {
 
     final personas = await _cloudDB.personaDao.getPersonas();
     for (final persona in personas) {
-      final ethAddress = await persona.wallet().getETHAddress();
+      final ethAddress = await persona.wallet().getETHAddressWithIndex(
+            index: 0,
+          );
       if (ethAddress == firstEthAddress) {
         return persona;
       }
@@ -565,7 +567,7 @@ class AccountServiceImpl extends AccountService {
           addresses.addAll(await persona.getTezosAddresses());
         case 'ethereum':
           final address = await personaWallet.getETHEip55Address();
-          if (address.isNotEmpty) {
+          if (address?.isNotEmpty ?? false) {
             addresses.addAll(await persona.getEthAddresses());
           }
       }

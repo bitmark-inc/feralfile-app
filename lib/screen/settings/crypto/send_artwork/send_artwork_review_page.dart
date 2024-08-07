@@ -65,8 +65,9 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
         final contractAddress =
             EthereumAddress.fromHex(assetToken.contractAddress!);
         final to = EthereumAddress.fromHex(widget.payload.address);
-        final from = EthereumAddress.fromHex(await widget.payload.wallet
-            .getETHEip55Address(index: widget.payload.index));
+        final fromETHEip55Address = await widget.payload.wallet
+            .getETHEip55Address(index: widget.payload.index);
+        final from = EthereumAddress.fromHex(fromETHEip55Address!);
         final tokenId = assetToken.tokenId!;
 
         final data = widget.payload.assetToken.contractType == 'erc1155'
@@ -123,7 +124,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
         final address = await wallet.getTezosAddress(index: index);
         final operation = await tezosService.getFa2TransferOperation(
           widget.payload.assetToken.contractAddress!,
-          address,
+          address!,
           widget.payload.address,
           tokenId,
           widget.payload.quantity,

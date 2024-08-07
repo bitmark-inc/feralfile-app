@@ -141,7 +141,7 @@ class Persona {
   Future<WalletAddress> _generateETHAddressByIndex(int index,
           {String? name}) async =>
       WalletAddress(
-          address: await wallet().getETHEip55Address(index: index),
+          address: await wallet().deriveETHEip55Address(index: index),
           uuid: uuid,
           index: index,
           cryptoType: CryptoType.ETH.source,
@@ -151,7 +151,7 @@ class Persona {
   Future<WalletAddress> _generateTezosAddressByIndex(int index,
           {String? name}) async =>
       WalletAddress(
-          address: await wallet().getTezosAddress(index: index),
+          address: await wallet().deriveTezosAddress(index: index),
           uuid: uuid,
           index: index,
           cryptoType: CryptoType.XTZ.source,
@@ -198,15 +198,27 @@ class Persona {
         .map((e) => e.index)
         .toList();
     final tezIndex = _getNextIndex(tezIndexes);
-    final ethAddress = WalletAddress(
-        address: await wallet().getETHEip55Address(index: ethIndex),
+    final ethAddressIndex =
+        LibaukAddressIndex(chain: 'ethereum', index: ethIndex);
+    final tezAddressIndex = LibaukAddressIndex(chain: 'tezos', index: tezIndex);
+    final addressIndexes = [
+      ethAddressIndex,
+      tezAddressIndex,
+    ];
+    final addressesIndexMap =
+        await wallet().getAddressesWithIndexes(addressIndexes);
+    final ethAddress = addressesIndexMap[ethAddressIndex];
+    final tezAddress = addressesIndexMap[tezAddressIndex];
+
+    final ethWalletAddress = WalletAddress(
+        address: ethAddress ?? '',
         uuid: uuid,
         index: ethIndex,
         cryptoType: CryptoType.ETH.source,
         createdAt: DateTime.now(),
         name: name ?? CryptoType.ETH.source);
-    final tezAddress = WalletAddress(
-        address: await wallet().getTezosAddress(index: tezIndex),
+    final tezWalletAddress = WalletAddress(
+        address: tezAddress ?? '',
         uuid: uuid,
         index: tezIndex,
         cryptoType: CryptoType.XTZ.source,
@@ -214,11 +226,11 @@ class Persona {
         name: name ?? CryptoType.XTZ.source);
     switch (walletType) {
       case WalletType.Ethereum:
-        addresses.add(ethAddress);
+        addresses.add(ethWalletAddress);
       case WalletType.Tezos:
-        addresses.add(tezAddress);
+        addresses.add(tezWalletAddress);
       default:
-        addresses.addAll([ethAddress, tezAddress]);
+        addresses.addAll([ethWalletAddress, tezWalletAddress]);
     }
     await injector<AccountService>()
         .removeDoubleViewOnly(addresses.map((e) => e.address).toList());

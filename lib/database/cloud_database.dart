@@ -19,6 +19,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:floor/floor.dart';
+import 'package:libauk_dart/libauk_dart.dart';
 import 'package:sqflite/sqflite.dart' as sqflite;
 
 part 'cloud_database.g.dart'; // the generated code will be there

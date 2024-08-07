@@ -13,8 +13,8 @@ import 'package:autonomy_flutter/database/entity/wallet_address.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/primary_address_channel.dart';
-import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/wallet_utils.dart';
+import 'package:collection/collection.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/data/api/indexer_api.dart';
 import 'package:tezart/src/crypto/crypto.dart' as crypto;
@@ -73,21 +73,33 @@ class AddressService {
     return true;
   }
 
-  Future<String> getAddress({required AddressInfo info}) async {
-    final walletStorage = WalletStorage(info.uuid);
-    final chain = info.chain;
-    switch (chain) {
-      case 'ethereum':
-        final address =
-            await walletStorage.getETHEip55Address(index: info.index);
-        final checksumAddress = address.getETHEip55Address();
-        return checksumAddress;
-      case 'tezos':
-        return walletStorage.getTezosAddress(index: info.index);
-      default:
-        throw UnsupportedError('Unsupported chain: $chain');
+  Future<Map<AddressInfo, String>> getAddresses(
+      {required List<AddressInfo> infoes}) async {
+    final addresses = <AddressInfo, String>{};
+    for (final info in infoes) {
+      final address = await getAddress(info: info);
+      addresses[info] = address!;
     }
+    return addresses;
   }
+
+  Future<String?> getAddress({required AddressInfo info}) async {
+    final allAddress = await _cloudDB.addressDao.getAllAddresses();
+    final address = allAddress.firstWhereOrNull((address) =>
+        address.uuid == info.uuid &&
+        address.index == info.index &&
+        address.cryptoType.toLowerCase() == info.chain);
+    return address?.address;
+  }
+
+  Future<String?> getTezosAddress(
+          {required String uuid, required int index}) async =>
+      getAddress(info: AddressInfo(uuid: uuid, chain: 'tezos', index: index));
+
+  Future<String?> getEthereumAddress(
+          {required String uuid, required int index}) async =>
+      getAddress(
+          info: AddressInfo(uuid: uuid, chain: 'ethereum', index: index));
 
   Future<String?> getPrimaryAddress() async {
     final addressInfo = await getPrimaryAddressInfo();

@@ -30,7 +30,6 @@ class MixPanelClientService {
   Future<void> initService() async {
     mixpanel = await Mixpanel.init(Environment.mixpanelKey,
         trackAutomaticEvents: true);
-    await initIfDefaultAccount();
     mixpanel
       ..setLoggingEnabled(false)
       ..setUseIpAddressForGeolocation(true);
@@ -51,7 +50,7 @@ class MixPanelClientService {
       return null;
     }
     final address = await _addressService.getAddress(info: primaryAddressInfo);
-    return sha256.convert(utf8.encode(address)).toString();
+    return sha256.convert(utf8.encode(address!)).toString();
   }
 
   Future initIfDefaultAccount() async {

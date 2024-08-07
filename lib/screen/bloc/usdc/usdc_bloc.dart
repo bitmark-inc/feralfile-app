@@ -26,7 +26,7 @@ class USDCBloc extends AuBloc<USDCEvent, USDCState> {
           .wallet()
           .getETHEip55Address(index: event.index);
       var personaAddresses = state.personaAddresses ?? {};
-      personaAddresses[event.uuid] = address;
+      personaAddresses[event.uuid] = address!;
 
       emit(state.copyWith(personaAddresses: personaAddresses));
     });
@@ -50,7 +50,7 @@ class USDCBloc extends AuBloc<USDCEvent, USDCState> {
           .getETHEip55Address(index: event.index);
 
       final contractAddress = EthereumAddress.fromHex(usdcContractAddress);
-      final owner = EthereumAddress.fromHex(address);
+      final owner = EthereumAddress.fromHex(address!);
       final usdcBalance =
           await _ethereumService.getERC20TokenBalance(contractAddress, owner);
 
