@@ -125,7 +125,6 @@ import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_
 import 'package:autonomy_flutter/screen/wallet_connect/v2/wc2_permission_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
-import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/view/transparent_router.dart';
@@ -230,12 +229,13 @@ class AppRouter {
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector(), injector());
     final tezosBloc = TezosBloc(injector(), injector());
-    final usdcBloc = USDCBloc(injector());
+    final usdcBloc = USDCBloc(injector(), injector());
     final accountsBloc = AccountsBloc(injector(), injector());
     final personaBloc = PersonaBloc(
       injector<CloudDatabase>(),
       injector(),
     );
+    final connectionsBloc = injector<ConnectionsBloc>();
     final identityBloc = IdentityBloc(injector<AppDatabase>(), injector());
     final canvasDeviceBloc = injector<CanvasDeviceBloc>();
 
@@ -318,9 +318,10 @@ class AppRouter {
                 injector(),
                 injector(),
                 injector(),
-                injector<CloudDatabase>(),
                 injector(),
-                injector<AuditService>(),
+                injector(),
+                injector(),
+                injector(),
                 injector(),
               ),
             ),
@@ -359,6 +360,7 @@ class AppRouter {
                     BlocProvider(
                       create: (_) => personaBloc,
                     ),
+                    BlocProvider(lazy: false, create: (_) => connectionsBloc),
                     BlocProvider(create: (_) => canvasDeviceBloc),
                   ],
                   child: HomeNavigationPage(
@@ -384,6 +386,11 @@ class AppRouter {
                       create: (_) => personaBloc,
                     ),
                     BlocProvider(create: (_) => canvasDeviceBloc),
+
+                    /// The page itself doesn't need to use the bloc.
+                    /// This will create bloc instance to receive and handle
+                    /// event disconnect from dApp
+                    BlocProvider(lazy: false, create: (_) => connectionsBloc),
                   ],
                   child: HomeNavigationPage(
                     key: homePageKey,
@@ -546,11 +553,8 @@ class AppRouter {
                       BlocProvider.value(value: tezosBloc),
                       BlocProvider.value(value: usdcBloc),
                       BlocProvider.value(
-                          value: ConnectionsBloc(
-                        injector<CloudDatabase>(),
-                        injector(),
-                        injector(),
-                      ))
+                        value: connectionsBloc,
+                      ),
                     ],
                     child: PersonaConnectionsPage(
                         payload:
@@ -559,12 +563,8 @@ class AppRouter {
       case connectionDetailsPage:
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) => BlocProvider(
-                create: (_) => ConnectionsBloc(
-                      injector<CloudDatabase>(),
-                      injector(),
-                      injector(),
-                    ),
+            builder: (context) => BlocProvider.value(
+                value: connectionsBloc,
                 child: ConnectionDetailsPage(
                   connectionItem: settings.arguments! as ConnectionItem,
                 )));
@@ -576,12 +576,7 @@ class AppRouter {
                   providers: [
                     BlocProvider.value(value: accountsBloc),
                     BlocProvider.value(value: usdcBloc),
-                    BlocProvider.value(
-                        value: ConnectionsBloc(
-                      injector<CloudDatabase>(),
-                      injector(),
-                      injector(),
-                    )),
+                    BlocProvider.value(value: connectionsBloc),
                     BlocProvider(
                         create: (_) => WalletDetailBloc(
                             injector(), injector(), injector())),
@@ -773,7 +768,7 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => RecoveryPhrasePage(
-                  words: settings.arguments! as List<String>,
+                  payload: settings.arguments! as RecoveryPhrasePayload,
                 ));
 
       case cloudPage:

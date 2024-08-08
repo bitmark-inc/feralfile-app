@@ -5,96 +5,76 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
+
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:sentry/sentry.dart';
 
 class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
   final IAPService _iapService;
   final ConfigurationService _configurationService;
 
   UpgradesBloc(this._iapService, this._configurationService)
-      : super(UpgradeState(IAPProductStatus.loading, null)) {
+      : super(UpgradeState(subscriptionDetails: [])) {
     // Query IAP info initially
     on<UpgradeQueryInfoEvent>((event, emit) async {
+      // get JWT from configuration service
       final jwt = _configurationService.getIAPJWT();
+
       if (jwt != null) {
+        // update purchase status in IAP service
         final subscriptionStatus = jwt.getSubscriptionStatus();
         if (subscriptionStatus.isPremium) {
-          if (subscriptionStatus.isTrial) {
-            emit(
-              UpgradeState(
-                IAPProductStatus.trial,
-                null,
-                trialExpiredDate: subscriptionStatus.expireDate,
-              ),
-            );
-          } else {
-            emit(UpgradeState(IAPProductStatus.completed, null));
-          }
+          // if subscription is premium, update purchase in IAP service
+          final id = premiumId();
+          _iapService.purchases.value[id] = subscriptionStatus.isTrial
+              ? IAPProductStatus.trial
+              : IAPProductStatus.completed;
         } else {
-          final result = await _iapService.renewJWT();
-          emit(UpgradeState(
-              result
-                  ? IAPProductStatus.completed
-                  : IAPProductStatus.notPurchased,
-              null));
+          // if subscription is free, update purchase in IAP service
         }
+
+        // after updating purchase status, emit new state
+        emit(UpgradeState(
+          subscriptionDetails: listSubscriptionDetails,
+        ));
       } else {
-        if (_iapService.products.value.isEmpty) {
-          emit(UpgradeState(IAPProductStatus.loading, null));
-        } else {
-          _onNewIAPEventFunc();
-        }
+        // if no JWT, query IAP info
+        _onNewIAPEventFunc();
       }
     });
 
 // Return IAP info after getting from Apple / Google
     on<UpgradeIAPInfoEvent>((event, emit) async {
-      ProductDetails? productDetail;
-      IAPProductStatus state = IAPProductStatus.loading;
-      DateTime? trialExpireDate;
-
-      if (_iapService.products.value.isNotEmpty) {
-        final productId = _iapService.products.value.keys.first;
-        productDetail = _iapService.products.value[productId];
-
-        final subscriptionState = _iapService.purchases.value[productId];
-        state = subscriptionState ?? IAPProductStatus.notPurchased;
-        if (state == IAPProductStatus.trial) {
-          trialExpireDate = _iapService.trialExpireDates.value[productId];
-        }
-      }
-
-      emit(UpgradeState(state, productDetail,
-          trialExpiredDate: trialExpireDate));
-    });
-
-// Update new state if needed
-    on<UpgradeUpdateEvent>((event, emit) async {
-      emit(event.newState);
+      // get list of subscription details from IAP service
+      final subscriptionDetals = listSubscriptionDetails;
+      emit(UpgradeState(subscriptionDetails: subscriptionDetals));
     });
 
 // Purchase event
     on<UpgradePurchaseEvent>((event, emit) async {
-      try {
-        final productId = _iapService.products.value.keys.first;
+      final listSubscriptionDetails = state.subscriptionDetails;
+      final subscriptionIds = event.subscriptionIds;
+      for (final subscriptionId in subscriptionIds) {
         final subscriptionProductDetails =
-            _iapService.products.value[productId];
+            _iapService.products.value[subscriptionId];
         if (subscriptionProductDetails != null) {
           await _iapService.purchase(subscriptionProductDetails);
-          emit(UpgradeState(
-              IAPProductStatus.pending, subscriptionProductDetails));
+          final index = listSubscriptionDetails.indexWhere((element) =>
+              element.productDetails == subscriptionProductDetails);
+          listSubscriptionDetails[index] = SubscriptionDetails(
+              IAPProductStatus.pending, subscriptionProductDetails);
         } else {
+          unawaited(Sentry.captureException('No item to purchase'));
           log.warning('No item to purchase');
         }
-      } catch (error) {
-        log.warning(error);
-        emit(UpgradeState(IAPProductStatus.error, null));
       }
+      emit(UpgradeState(subscriptionDetails: listSubscriptionDetails));
     });
 
     _iapService.purchases.addListener(_onNewIAPEventFunc);
@@ -103,6 +83,44 @@ class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
 
   void _onNewIAPEventFunc() {
     add(UpgradeIAPInfoEvent());
+  }
+
+  List<SubscriptionDetails> get listSubscriptionDetails {
+    final subscriptionDetals = <SubscriptionDetails>[];
+    final listProductDetails = _iapService.products.value.values.toList();
+    for (final productDetails in listProductDetails) {
+      IAPProductStatus subscriptionState = IAPProductStatus.loading;
+      DateTime? trialExpireDate;
+      subscriptionState = _iapService.purchases.value[productDetails.id] ??
+          IAPProductStatus.notPurchased;
+      if (subscriptionState == IAPProductStatus.trial) {
+        trialExpireDate = _iapService.trialExpireDates.value[productDetails.id];
+      }
+      subscriptionDetals.add(SubscriptionDetails(
+        subscriptionState,
+        productDetails,
+        trialExpiredDate: trialExpireDate,
+        purchaseDetails: _iapService.getPurchaseDetails(productDetails.id),
+      ));
+    }
+    return subscriptionDetals;
+  }
+
+  Future<IAPProductStatus> getSubscriptionStatus(
+      ProductDetails productDetails) async {
+    try {
+      final productId = productDetails.id;
+      final subscriptionProductDetails = _iapService.products.value[productId];
+      if (subscriptionProductDetails != null) {
+        await _iapService.purchase(subscriptionProductDetails);
+        return IAPProductStatus.pending;
+      } else {
+        throw Exception('Product not found');
+      }
+    } catch (error) {
+      log.warning(error);
+      return IAPProductStatus.error;
+    }
   }
 
   @override

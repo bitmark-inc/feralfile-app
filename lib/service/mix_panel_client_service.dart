@@ -6,6 +6,7 @@ import 'dart:developer';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -13,12 +14,15 @@ import 'package:crypto/crypto.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 import 'package:mixpanel_flutter/mixpanel_flutter.dart';
+import 'package:sentry/sentry.dart';
 
 class MixPanelClientService {
   final AccountService _accountService;
   final ConfigurationService _configurationService;
+  final AddressService _addressService;
 
-  MixPanelClientService(this._accountService, this._configurationService);
+  MixPanelClientService(
+      this._accountService, this._configurationService, this._addressService);
 
   late Mixpanel mixpanel;
   late Box configHiveBox;
@@ -33,14 +37,28 @@ class MixPanelClientService {
     configHiveBox = await Hive.openBox(MIXPANEL_HIVE_BOX);
   }
 
-  Future initIfDefaultAccount() async {
-    final defaultAccount = await _accountService.getCurrentDefaultAccount();
+  Future<String?> getDidKeyHashedUserID() async {
+    final defaultAccount = await _accountService.getDefaultAccount();
+    final defaultDID = await defaultAccount.getAccountDID();
+    return sha256.convert(utf8.encode(defaultDID)).toString();
+  }
 
-    if (defaultAccount == null) {
+  Future<String?> getHashedUserID() async {
+    final primaryAddressInfo = await _addressService.getPrimaryAddressInfo();
+    if (primaryAddressInfo == null) {
+      unawaited(Sentry.captureMessage(
+          '[MixpanelService] Primary address info is null'));
+      return null;
+    }
+    final address = await _addressService.getAddress(info: primaryAddressInfo);
+    return sha256.convert(utf8.encode(address)).toString();
+  }
+
+  Future initIfDefaultAccount() async {
+    final hashedUserID = await getHashedUserID();
+    if (hashedUserID == null) {
       return;
     }
-    final defaultDID = await defaultAccount.getAccountDID();
-    final hashedUserID = sha256.convert(utf8.encode(defaultDID)).toString();
     final distinctId = await mixpanel.getDistinctId();
     if (hashedUserID != distinctId) {
       mixpanel
@@ -117,5 +135,14 @@ class MixPanelClientService {
 
   Future<void> setConfig(String key, dynamic value) async {
     await configHiveBox.put(key, value);
+  }
+
+  Future<void> migrateFromDidKeyToPrimaryAddress() async {
+    final didKeyHashedUserID = await getDidKeyHashedUserID();
+    if (didKeyHashedUserID == null) {
+      return;
+    }
+    final distinctId = await mixpanel.getDistinctId();
+    mixpanel.alias(didKeyHashedUserID, distinctId);
   }
 }

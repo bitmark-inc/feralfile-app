@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/database/entity/wallet_address.dart';
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/screen/account/recovery_phrase_page.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/connections/connections_bloc.dart';
@@ -22,11 +23,11 @@ import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_state.dart';
-import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/util/address_utils.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/feral_file_custom_tab.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -67,6 +68,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
   final TextEditingController _renameController = TextEditingController();
   final FocusNode _renameFocusNode = FocusNode();
   final usdcFormatter = USDCAmountFormatter();
+  final _browser = FeralFileBrowser();
 
   @override
   void initState() {
@@ -76,6 +78,9 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
     _renameController.text = walletAddress.name ?? widget.payload.type.source;
     address = walletAddress.address;
 
+    context
+        .read<WalletDetailBloc>()
+        .add(WalletDetailPrimaryAddressEvent(walletAddress));
     _callBlocWallet();
     controller = ScrollController();
     controller.addListener(_listener);
@@ -109,15 +114,12 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
             .read<WalletDetailBloc>()
             .add(WalletDetailBalanceEvent(cryptoType, address));
         context.read<USDCBloc>().add(GetUSDCBalanceWithAddressEvent(address));
-        break;
       case CryptoType.XTZ:
         context
             .read<WalletDetailBloc>()
             .add(WalletDetailBalanceEvent(cryptoType, address));
-        break;
       case CryptoType.USDC:
         context.read<USDCBloc>().add(GetUSDCBalanceWithAddressEvent(address));
-        break;
       default:
         // do nothing
         break;
@@ -255,7 +257,13 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                                           )
                                         else
                                           SizedBox(
-                                              height: hideConnection ? 84 : 52),
+                                              height: hideConnection ? 54 : 22),
+                                        if (state.isPrimary) ...[
+                                          Padding(
+                                              padding: padding,
+                                              child: _primaryAddress()),
+                                          const SizedBox(height: 24)
+                                        ],
                                         Padding(
                                           padding: padding,
                                           child: _addressSection(context),
@@ -345,6 +353,25 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
       _isRename = true;
       _renameFocusNode.requestFocus();
     });
+  }
+
+  Widget _primaryAddress() {
+    final theme = Theme.of(context);
+    final primaryAddressStyle =
+        theme.textTheme.ppMori400Black14.copyWith(color: AppColor.auGrey);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+          color: AppColor.primaryBlack,
+          border: Border.all(),
+          borderRadius: BorderRadius.circular(20)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
+        child: Text(
+          'primary_address'.tr(),
+          style: primaryAddressStyle,
+        ),
+      ),
+    );
   }
 
   Widget _usdcBalance(String balance) {
@@ -573,12 +600,8 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
           'show_history'.tr(),
           style: theme.textTheme.ppMori400Black14,
         ),
-        onTap: () {
-          unawaited(Navigator.of(context).pushNamed(
-            AppRouter.inappWebviewPage,
-            arguments:
-                InAppWebViewPayload(addressURL(address, widget.payload.type)),
-          ));
+        onTap: () async {
+          await _browser.openUrl(addressURL(address, widget.payload.type));
         },
       ),
     ]);
@@ -594,14 +617,11 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
           style: theme.textTheme.ppMori400Black14,
         ),
         onTap: () async {
-          final words =
-              await widget.payload.persona.wallet().exportMnemonicWords();
-          if (!context.mounted) {
-            return;
-          }
-          unawaited(Navigator.of(context).pushNamed(
-              AppRouter.recoveryPhrasePage,
-              arguments: words.split(' ')));
+          await Navigator.of(context).pushNamed(
+            AppRouter.recoveryPhrasePage,
+            arguments:
+                RecoveryPhrasePayload(wallet: widget.payload.persona.wallet()),
+          );
         },
       ),
     ]);

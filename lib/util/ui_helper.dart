@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -37,6 +38,7 @@ import 'package:autonomy_flutter/view/postcard_common_widget.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/slide_router.dart';
+import 'package:autonomy_flutter/view/user_agent_utils.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
 import 'package:confetti/confetti.dart';
@@ -50,6 +52,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:walletconnect_flutter_v2/apis/core/pairing/utils/pairing_models.dart';
 
 enum ActionState { notRequested, loading, error, done }
 
@@ -828,6 +831,45 @@ class UIHelper {
   static void hideDialogWithResult<T>(BuildContext context, T result) {
     currentDialogTitle = '';
     Navigator.pop(context, result);
+  }
+
+  static Future showAppReportBottomSheet(
+      BuildContext context, PairingMetadata? metadata) {
+    String buildReportMessage() => 'suspicious_app_report'.tr(namedArgs: {
+          'name': metadata?.name ?? '',
+          'url': metadata?.url ?? '',
+          'iconUrl': metadata?.icons.first ?? '',
+          'description': metadata?.description ?? ''
+        });
+
+    return showDrawerAction(
+      context,
+      options: [
+        OptionItem(
+          title: 'report'.tr(),
+          icon: SvgPicture.asset(
+            'assets/images/warning.svg',
+            colorFilter:
+                const ColorFilter.mode(AppColor.primaryBlack, BlendMode.srcIn),
+          ),
+          onTap: () async {
+            Navigator.of(context).pop();
+            final device = DeviceInfo.instance;
+            final isSupportAvailable = await device.isSupportOS();
+            if (isSupportAvailable) {
+              unawaited(injector<NavigationService>().navigateTo(
+                AppRouter.supportThreadPage,
+                arguments: NewIssuePayload(
+                  reportIssueType: ReportIssueType.Bug,
+                  defaultMessage: buildReportMessage(),
+                ),
+              ));
+            }
+          },
+        ),
+        OptionItem(),
+      ],
+    );
   }
 
   // MARK: - Connection

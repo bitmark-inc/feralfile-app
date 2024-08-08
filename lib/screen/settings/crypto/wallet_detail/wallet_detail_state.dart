@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/database/entity/wallet_address.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 
 abstract class WalletDetailEvent {}
@@ -16,21 +17,31 @@ class WalletDetailBalanceEvent extends WalletDetailEvent {
   WalletDetailBalanceEvent(this.type, this.address);
 }
 
+class WalletDetailPrimaryAddressEvent extends WalletDetailEvent {
+  WalletAddress walletAddress;
+
+  WalletDetailPrimaryAddressEvent(this.walletAddress);
+}
+
 class WalletDetailState {
-  String balance = '';
-  String balanceInUSD = '';
+  final String balance;
+  final String balanceInUSD;
+  final bool isPrimary;
 
   WalletDetailState({
     this.balance = '',
     this.balanceInUSD = '',
+    this.isPrimary = false,
   });
 
   WalletDetailState copyWith({
     String? balance,
     String? balanceInUSD,
+    bool? isPrimary,
   }) =>
       WalletDetailState(
         balance: balance ?? this.balance,
         balanceInUSD: balanceInUSD ?? this.balanceInUSD,
+        isPrimary: isPrimary ?? this.isPrimary,
       );
 }

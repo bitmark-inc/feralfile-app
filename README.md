@@ -67,8 +67,13 @@ Bitmark started with the idea of building tools to help individuals and institut
 3. Initialize submodule by running; `git submodule update --init --recursive`
 - If you don't want to clone the auto-test package, simply run: `git -c submodule.auto-test.update=none submodule update --init --recursive`
 4. Initialize the config file. `cp .env.example .env`
-- Contact with Feral File app development team for development env.
-5. Run `flutter run --flavor inhouse` to run **Feral File** app development on the connected device.
+- Contact with Feral File app development team for development env. 
+5. Initialize the secret config file. `cp .env.secret.example .env.secret`
+- There are credentials information. You may need to provide your own credentials.Contact with Feral File app development team for consultation.
+6. Run ./script/encrypt_secrets.sh <-entropy-> to generate the encrypted secrets file.
+- <-entropy-> is a random string. You can type a random string like akhrdsgl4893tynk3iu4y8hf
+- You only need to run this script again when you want to update .env.secret.
+7. Run `flutter run --flavor inhouse` to run **Feral File** app development on the connected device.
 
 A few resources to get you started if this is your first Flutter project:
 

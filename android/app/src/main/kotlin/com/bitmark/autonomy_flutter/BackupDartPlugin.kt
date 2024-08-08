@@ -10,9 +10,8 @@ import android.content.Context
 import android.util.Log
 import androidx.annotation.NonNull
 import com.bitmark.libauk.LibAuk
-import com.google.android.gms.auth.blockstore.Blockstore
-import com.google.android.gms.auth.blockstore.BlockstoreClient
-import com.google.android.gms.auth.blockstore.StoreBytesData
+import com.google.android.gms.auth.blockstore.*
+import com.google.android.gms.auth.blockstore.BlockstoreClient.DEFAULT_BYTES_DATA_KEY
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -33,6 +32,7 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler {
     private lateinit var context: Context
     private lateinit var disposables: CompositeDisposable
     private lateinit var client: BlockstoreClient
+    private final val primaryAddressStoreKey = "primary_address"
 
     fun createChannels(@NonNull flutterEngine: FlutterEngine, @NonNull context: Context) {
         this.context = context
@@ -47,6 +47,10 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler {
             "isEndToEndEncryptionAvailable" -> isEndToEndEncryptionAvailable(result)
             "backupKeys" -> backupKeys(call, result)
             "restoreKeys" -> restoreKeys(call, result)
+            "setPrimaryAddress" -> setPrimaryAddress(call, result)
+            "getPrimaryAddress" -> getPrimaryAddress(call, result)
+            "clearPrimaryAddress" -> clearPrimaryAddress(call, result)
+            "deleteKeys" -> deleteKeys(call, result)
             else -> {
                 result.notImplemented()
             }
@@ -73,9 +77,11 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler {
                 Single.zip(
                     LibAuk.getInstance().getStorage(UUID.fromString(it), context)
                         .exportMnemonicWords(),
+                    LibAuk.getInstance().getStorage(UUID.fromString(it), context)
+                        .exportMnemonicPassphrase(),
                     LibAuk.getInstance().getStorage(UUID.fromString(it), context).getName()
-                ) { mnemonic, name ->
-                    BackupAccount(it, mnemonic, name)
+                ) { mnemonic, passphrase, name ->
+                    BackupAccount(it, mnemonic, passphrase, name)
                 }.toObservable()
             }
             .toList()
@@ -113,12 +119,16 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler {
     }
 
     private fun restoreKeys(call: MethodCall, result: MethodChannel.Result) {
-        client.retrieveBytes()
+        val retrieveBytesRequestBuilder = RetrieveBytesRequest.Builder()
+            .setRetrieveAll(true)
+        client.retrieveBytes(retrieveBytesRequestBuilder.build())
             .addOnSuccessListener { bytes ->
                 try {
+                    val dataMap = bytes.blockstoreDataMap;
+                    val defaultBytesData = dataMap[DEFAULT_BYTES_DATA_KEY];
                     val data = jsonKT.decodeFromString(
                         BackupData.serializer(),
-                        bytes.toString(Charsets.UTF_8)
+                        defaultBytesData?.bytes?.toString(Charsets.UTF_8) ?: ""
                     )
 
                     Observable.fromIterable(data.accounts)
@@ -132,6 +142,7 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler {
                                             .getStorage(UUID.fromString(account.uuid), context)
                                             .importKey(
                                                 account.mnemonic.split(" "),
+                                                account.passphrase ?: "",
                                                 account.name,
                                                 Date()
                                             )
@@ -144,6 +155,7 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler {
                                         BackupAccount(
                                             account.uuid,
                                             "",
+                                            account.passphrase ?: "",
                                             account.name
                                         )
                                     )
@@ -163,9 +175,101 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler {
                     result.success("")
                 }
             }
+            .addOnFailureListener { e ->
+                // Block store not available or error occurred during retrieval
+                Log.e("RestoreDartPlugin", e.message ?: "Blockstore retrieval error")
+                result.error("restorePrimaryAddress error", e.message, e)
+            }
+    }
+
+    private fun setPrimaryAddress(call: MethodCall, result: MethodChannel.Result) {
+        val data: String = call.argument("data") ?: return
+
+        val storeBytesBuilder = StoreBytesData.Builder()
+            .setKey(primaryAddressStoreKey)
+            .setBytes(data.toByteArray(Charsets.UTF_8))
+
+
+        Log.e("setPrimaryAddress", "Primary address setting");
+
+        client.isEndToEndEncryptionAvailable
+            .addOnSuccessListener { isE2EEAvailable ->
+                if (isE2EEAvailable) {
+                    storeBytesBuilder.setShouldBackupToCloud(true)
+                }
+                client.storeBytes(storeBytesBuilder.build())
+                    .addOnSuccessListener {
+
+                        Log.e("setPrimaryAddress", "Primary address set successfully");
+                        result.success("")
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e("setPrimaryAddress", e.message ?: "")
+                        result.error("setPrimaryAddress error", e.message, e)
+                    }
+            }
+            .addOnFailureListener {
+                // Block store not available
+                Log.e("setPrimaryAddress", it.message ?: "")
+                result.error("setPrimaryAddress error", it.message, it)
+            }
+    }
+
+    private fun getPrimaryAddress(call: MethodCall, result: MethodChannel.Result) {
+        val request = RetrieveBytesRequest.Builder()
+            .setKeys(listOf(primaryAddressStoreKey))  // Specify the key
+            .build()
+        client.retrieveBytes(request)
+            .addOnSuccessListener {
+                try { // Retrieve bytes using the key
+                    val dataMap = it.blockstoreDataMap[primaryAddressStoreKey]
+                    if (dataMap != null) {
+                        val bytes = dataMap.bytes
+                        val jsonString = bytes.toString(Charsets.UTF_8)
+                        Log.d("getPrimaryAddress", "Retrieved JSON: $jsonString")
+
+
+                        result.success(jsonString)
+                    } else {
+                        Log.e("getPrimaryAddress", "No data found for the key")
+                        result.success(null)
+                    }
+                } catch (e: Exception) {
+                    Log.e("getPrimaryAddress", e.message ?: "Error decoding data")
+                    //No primary address found
+                    result.success("")
+                }
+            }
             .addOnFailureListener {
                 //Block store not available
-                result.error("restoreKey error", it.message, it)
+                result.error("getPrimaryAddress Block store error", it.message, it)
+            }
+    }
+
+    private fun clearPrimaryAddress(call: MethodCall, result: MethodChannel.Result) {
+        val retrieveRequest = DeleteBytesRequest.Builder()
+            .setKeys(listOf(primaryAddressStoreKey))
+            .build()
+        client.deleteBytes(retrieveRequest)
+            .addOnSuccessListener {
+                result.success(it)
+            }
+            .addOnFailureListener {
+                result.error("deletePrimaryAddress error", it.message, it)
+            }
+    }
+
+
+    private fun deleteKeys(call: MethodCall, result: MethodChannel.Result) {
+        val deleteRequestBuilder = DeleteBytesRequest.Builder()
+            .setDeleteAll(true)
+        client.deleteBytes(deleteRequestBuilder.build())
+            .addOnSuccessListener {
+                result.success("")
+            }
+            .addOnFailureListener { e ->
+                Log.e("BackupDartPlugin", e.message ?: "")
+                result.error("deleteKeys error", e.message, e)
             }
     }
 }
@@ -182,6 +286,8 @@ data class BackupAccount(
     val uuid: String,
     @SerialName("mnemonic")
     val mnemonic: String,
+    @SerialName("passphrase")
+    val passphrase: String?,
     @SerialName("name")
     val name: String,
 )
