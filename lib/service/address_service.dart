@@ -167,21 +167,25 @@ class AddressService {
     if (allAddress.isEmpty) {
       throw UnsupportedError('No address found');
     }
+    final selectedAddress = await pickMostNftAddress(allAddress);
+    return AddressInfo(
+        uuid: selectedAddress.uuid,
+        index: selectedAddress.index,
+        chain: selectedAddress.cryptoType.toLowerCase());
+  }
+
+  Future<WalletAddress> pickMostNftAddress(
+      List<WalletAddress> addresses) async {
     WalletAddress? selectedAddress;
     int maxNumberNft = -1;
-    for (final address in allAddress) {
+    for (final address in addresses) {
       final numberNft = await getNumberNft(address.address);
       if (numberNft > maxNumberNft) {
         maxNumberNft = numberNft;
         selectedAddress = address;
       }
     }
-    final addressInfo = AddressInfo(
-      uuid: selectedAddress!.uuid,
-      chain: selectedAddress.cryptoType.toLowerCase(),
-      index: selectedAddress.index,
-    );
-    return addressInfo;
+    return selectedAddress!;
   }
 
   Future<int> getNumberNft(String address) async {

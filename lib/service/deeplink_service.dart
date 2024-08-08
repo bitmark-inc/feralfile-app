@@ -11,7 +11,6 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/gateway/branch_api.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/otp.dart';
@@ -43,7 +42,6 @@ import 'package:feralfile_app_tv_proto/models/canvas_device.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_branch_sdk/flutter_branch_sdk.dart';
-import 'package:nft_collection/database/dao/asset_token_dao.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uni_links/uni_links.dart';
 
@@ -504,9 +502,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
             } else {
               log.info('[DeeplinkService] '
                   'InstancePurchase: use address with most tokens');
-              final addressWallets = await injector<CloudDatabase>()
-                  .addressDao
-                  .getAddressesByType(CryptoType.fromSource(chain).source);
+              final addressWallets = await addressService.getAllAddress();
               addressWallets.removeWhere((element) =>
                   element.cryptoType.toLowerCase() != chain ||
                   element.isHidden);
@@ -516,13 +512,9 @@ class DeeplinkServiceImpl extends DeeplinkService {
                 if (addressWallets.length == 1) {
                   primaryAddress = addressWallets.first.address;
                 } else {
-                  final addresses =
-                      addressWallets.map((e) => e.address).toList();
-                  final tokensCount = await injector<AssetTokenDao>()
-                      .countAssetTokensByOwner(addresses);
-                  final listTokensCount = tokensCount.entries.toList();
-                  listTokensCount.sort((a, b) => b.value.compareTo(a.value));
-                  primaryAddress = listTokensCount.first.key;
+                  final address = await addressService
+                      .pickMostNftAddress(addressWallets);
+                  primaryAddress = address.address;
                 }
               }
             }
