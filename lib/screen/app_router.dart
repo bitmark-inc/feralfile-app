@@ -109,7 +109,6 @@ import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_det
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
 import 'package:autonomy_flutter/screen/settings/data_management/data_management_page.dart';
 import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
-import 'package:autonomy_flutter/screen/settings/help_us/help_us_page.dart';
 import 'package:autonomy_flutter/screen/settings/hidden_artworks/hidden_artworks_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/hidden_artworks/hidden_artworks_page.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_bloc.dart';
@@ -219,8 +218,7 @@ class AppRouter {
   static const chatThreadPage = 'chat_thread_page';
   static const accessMethodPage = 'access_method_page';
   static const wcSignMessagePage = 'wc_sign_message_page';
-  static const wcSendTransactionPage =
-      'wc_sennameAddressPersonaPaged_transaction_page';
+  static const wcSendTransactionPage = 'wc_send_transaction_page';
   static const collectionPage = 'collection_page';
   static const organizePage = 'organize_page';
   static const exhibitionsPage = 'exhibitions_page';
@@ -1037,9 +1035,6 @@ class AppRouter {
             reverseDuration: const Duration(milliseconds: 300),
             child: InAppWebViewPage(
                 payload: settings.arguments! as InAppWebViewPayload));
-      case helpUsPage:
-        return CupertinoPageRoute(
-            settings: settings, builder: (context) => const HelpUsPage());
       case claimEmptyPostCard:
         final claimRequest = settings.arguments! as RequestPostcardResponse;
         return PageTransition(
