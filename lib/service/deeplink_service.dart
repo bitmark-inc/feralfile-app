@@ -206,6 +206,10 @@ class DeeplinkServiceImpl extends DeeplinkService {
     final postcardPayToMintPrefixes = [
       'https://autonomy.io/apps/moma-postcards/purchase',
     ];
+
+    final navigationPrefixes = [
+      'feralfile://navigation/',
+    ];
     if (!_configurationService.isDoneOnboarding()) {
       memoryValues.deepLink.value = link;
       await injector<AccountService>().restoreIfNeeded();
@@ -252,6 +256,14 @@ class DeeplinkServiceImpl extends DeeplinkService {
         .firstWhereOrNull((prefix) => link.startsWith(prefix));
     if (callingPostcardPayToMintPrefix != null) {
       await _handlePayToMintDeepLink(link);
+      return true;
+    }
+
+    final callingNavigationPrefix = navigationPrefixes
+        .firstWhereOrNull((prefix) => link.startsWith(prefix));
+    if (callingNavigationPrefix != null) {
+      final navigationPath = link.replaceFirst(callingNavigationPrefix, '');
+      await _navigationService.navigatePath(navigationPath);
       return true;
     }
     memoryValues.deepLink.value = null;
@@ -363,6 +375,10 @@ class DeeplinkServiceImpl extends DeeplinkService {
     if (!doneOnboarding) {
       memoryValues.branchDeeplinkData.value = data;
       return;
+    }
+    final navigatePath = data['navigation_route'];
+    if (navigatePath != null) {
+      await _navigationService.navigatePath(navigatePath);
     }
     final source = data['source'];
     switch (source) {
