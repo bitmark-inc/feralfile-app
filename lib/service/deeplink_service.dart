@@ -20,7 +20,6 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -491,38 +490,23 @@ class DeeplinkServiceImpl extends DeeplinkService {
             purchaseToken != null) {
           final chain = data['chain'].toString().toLowerCase();
           late String? primaryAddress;
-          final addressService = injector<AddressService>();
           try {
-            final primaryAddressInfo =
-                await addressService.getPrimaryAddressInfo();
-            if (primaryAddressInfo != null &&
-                primaryAddressInfo.chain == chain) {
-              log.info(
-                  '[DeeplinkService] InstancePurchase: primary address found');
-              primaryAddress =
-                  await addressService.getAddress(info: primaryAddressInfo);
+            final addressWallets =
+                await injector<CloudDatabase>().addressDao.getAllAddresses();
+            addressWallets.removeWhere((element) =>
+                element.cryptoType.toLowerCase() != chain || element.isHidden);
+            if (addressWallets.isEmpty) {
+              primaryAddress = null;
             } else {
-              log.info('[DeeplinkService] '
-                  'InstancePurchase: use address with most tokens');
-              final addressWallets =
-                  await injector<CloudDatabase>().addressDao.getAllAddresses();
-              addressWallets.removeWhere((element) =>
-                  element.cryptoType.toLowerCase() != chain ||
-                  element.isHidden);
-              if (addressWallets.isEmpty) {
-                primaryAddress = null;
+              if (addressWallets.length == 1) {
+                primaryAddress = addressWallets.first.address;
               } else {
-                if (addressWallets.length == 1) {
-                  primaryAddress = addressWallets.first.address;
-                } else {
-                  final addresses =
-                      addressWallets.map((e) => e.address).toList();
-                  final tokensCount = await injector<AssetTokenDao>()
-                      .countAssetTokensByOwner(addresses);
-                  final listTokensCount = tokensCount.entries.toList();
-                  listTokensCount.sort((a, b) => b.value.compareTo(a.value));
-                  primaryAddress = listTokensCount.first.key;
-                }
+                final addresses = addressWallets.map((e) => e.address).toList();
+                final tokensCount = await injector<AssetTokenDao>()
+                    .countAssetTokensByOwner(addresses);
+                final listTokensCount = tokensCount.entries.toList();
+                listTokensCount.sort((a, b) => b.value.compareTo(a.value));
+                primaryAddress = listTokensCount.first.key;
               }
             }
           } catch (e) {
