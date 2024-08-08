@@ -10,7 +10,7 @@ import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -29,13 +29,9 @@ Future<bool> registerPushNotifications({bool askPermission = false}) async {
   }
 
   try {
-    final environment = await getAppVariant();
-    final identityHash = (await injector<IAPApi>()
-            .generateIdentityHash({'environment': environment}))
-        .hash;
-    final defaultAccount = await injector<AccountService>().getDefaultAccount();
-    final defaultDID = await defaultAccount.getAccountDID();
-    await OneSignal.shared.setExternalUserId(defaultDID, identityHash);
+    final identityHash = await OneSignalHelper.getIdentityHash();
+    final primaryAddress = await injector<AddressService>().getPrimaryAddress();
+    await OneSignal.shared.setExternalUserId(primaryAddress!, identityHash);
     unawaited(injector<ConfigurationService>().setNotificationEnabled(true));
     return true;
   } catch (error) {
@@ -47,4 +43,18 @@ Future<bool> registerPushNotifications({bool askPermission = false}) async {
 Future<void> deregisterPushNotification() async {
   log.info('unregister notification');
   await OneSignal.shared.removeExternalUserId();
+}
+
+class OneSignalHelper {
+  static Future<void> setExternalUserId(
+      {required String userId, String? authHashToken}) async {
+    await OneSignal.shared.setExternalUserId(userId, authHashToken);
+  }
+
+  static Future<String> getIdentityHash() async {
+    final environment = await getAppVariant();
+    return (await injector<IAPApi>()
+            .generateIdentityHash({'environment': environment}))
+        .hash;
+  }
 }
