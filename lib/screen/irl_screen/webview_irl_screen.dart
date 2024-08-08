@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
+import 'package:autonomy_flutter/database/entity/wallet_address.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/model/wc_ethereum_transaction.dart';
@@ -91,12 +92,7 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
           JSResult.error('Blockchain is unsupported'),
         );
       }
-      final addresses = await injector<CloudDatabase>()
-          .addressDao
-          .getAddressesByType(cryptoType.source);
-      final personas = await injector<CloudDatabase>().personaDao.getPersonas();
-      final listUuid = personas.map((e) => e.uuid).toList();
-      addresses.removeWhere((e) => !listUuid.contains(e.uuid));
+      final addresses = await _getWalletAddress(cryptoType);
       if (addresses.isEmpty) {
         final personas =
             await injector<CloudDatabase>().personaDao.getDefaultPersonas();
@@ -179,9 +175,7 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
           JSResult.error('Blockchain is unsupported'),
         );
       }
-      final addresses = await injector<CloudDatabase>()
-          .addressDao
-          .getAddressesByType(cryptoType.source);
+      final addresses = await _getWalletAddress(cryptoType);
       if (addresses.isEmpty) {
         final personas =
             await injector<CloudDatabase>().personaDao.getDefaultPersonas();
@@ -209,6 +203,16 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
         JSResult.error(e.toString()),
       );
     }
+  }
+
+  Future<List<WalletAddress>> _getWalletAddress(CryptoType cryptoType) async {
+    final addresses = await injector<CloudDatabase>()
+        .addressDao
+        .getAddressesByType(cryptoType.source);
+    final personas = await injector<CloudDatabase>().personaDao.getPersonas();
+    final listUuid = personas.map((e) => e.uuid).toList();
+    addresses.removeWhere((e) => !listUuid.contains(e.uuid));
+    return addresses;
   }
 
   Future<void> _receiveData(List<dynamic> args) async {
