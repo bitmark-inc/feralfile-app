@@ -106,7 +106,7 @@ class _FeralfileArtworkPreviewWidgetState
           return BlocBuilder<FFArtworkPreviewBloc, FFArtworkPreviewState>(
             bloc: context.read<FFArtworkPreviewBloc>(),
             builder: (context, state) {
-              final medium = state.medium;
+              final medium = state.mediumMap[previewUrl];
               if (medium == null) {
                 return const SizedBox();
               }

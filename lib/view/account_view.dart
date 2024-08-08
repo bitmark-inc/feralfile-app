@@ -276,7 +276,7 @@ Widget primaryLabel(BuildContext context) {
   return DecoratedBox(
       decoration: BoxDecoration(
           color: AppColor.primaryBlack,
-          border: Border.all(),
+          border: Border.all(color: AppColor.primaryBlack),
           borderRadius: BorderRadius.circular(20)),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),

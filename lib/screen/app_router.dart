@@ -44,7 +44,6 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
-import 'package:autonomy_flutter/screen/detail/preview/canvas_help_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/keyboard_control_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/touchpad_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview_primer.dart';
@@ -81,7 +80,6 @@ import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_bloc.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_page.dart';
 import 'package:autonomy_flutter/screen/moma_postcard_page/moma_postcard_page.dart';
-import 'package:autonomy_flutter/screen/notification_onboarding_page.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/import_seeds.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/name_address_persona.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/select_addresses.dart';
@@ -110,6 +108,7 @@ import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/linked_wal
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
 import 'package:autonomy_flutter/screen/settings/data_management/data_management_page.dart';
+import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
 import 'package:autonomy_flutter/screen/settings/help_us/help_us_page.dart';
 import 'package:autonomy_flutter/screen/settings/hidden_artworks/hidden_artworks_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/hidden_artworks/hidden_artworks_page.dart';
@@ -127,7 +126,6 @@ import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_
 import 'package:autonomy_flutter/screen/wallet_connect/v2/wc2_permission_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
-import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/view/transparent_router.dart';
@@ -141,40 +139,39 @@ GlobalKey<HomeNavigationPageState> homePageKey = GlobalKey();
 GlobalKey<HomeNavigationPageState> homePageNoTransactionKey = GlobalKey();
 
 class AppRouter {
-  static const createPlayListPage = 'createPlayList';
-  static const viewPlayListPage = 'viewPlayList';
-  static const editPlayListPage = 'editPlayList';
-  static const previewPrimerPage = 'preview_primer';
-  static const onboardingPage = 'onboarding';
-  static const notificationOnboardingPage = 'notification_onboarding';
-  static const nameLinkedAccountPage = 'name_linked_account';
+  static const createPlayListPage = 'create_playlist_page';
+  static const viewPlayListPage = 'view_playlist_page';
+  static const editPlayListPage = 'edit_playlist_page';
+  static const previewPrimerPage = 'preview_primer_page';
+  static const onboardingPage = 'onboarding_page';
+  static const nameLinkedAccountPage = 'name_linked_account_page';
   static const homePage = 'home_page';
-  static const homePageNoTransition = 'home_page_NoTransition';
-  static const artworkPreviewPage = 'artwork_preview';
-  static const artworkDetailsPage = 'artwork_detail';
-  static const claimedPostcardDetailsPage = 'claimed_postcard_detail';
-  static const galleryPage = 'galleryPage';
-  static const settingsPage = 'settings';
-  static const personaConnectionsPage = 'persona_connections';
-  static const connectionDetailsPage = 'connection_details';
-  static const walletDetailsPage = 'wallet_detail';
-  static const linkedWalletDetailsPage = 'linked_wallet_detail';
-  static const scanQRPage = 'qr_scanner';
-  static const globalReceivePage = 'global_receive';
-  static const recoveryPhrasePage = 'recovery_phrase';
-  static const tbConnectPage = 'tb_connect';
+  static const homePageNoTransition = 'home_page_no_transition';
+  static const artworkPreviewPage = 'artwork_preview_page';
+  static const artworkDetailsPage = 'artwork_details_page';
+  static const claimedPostcardDetailsPage = 'claimed_postcard_details_page';
+  static const galleryPage = 'gallery_page';
+  static const settingsPage = 'settings_page';
+  static const personaConnectionsPage = 'persona_connections_page';
+  static const connectionDetailsPage = 'connection_details_page';
+  static const walletDetailsPage = 'wallet_details_page';
+  static const linkedWalletDetailsPage = 'linked_wallet_details_page';
+  static const scanQRPage = 'scan_qr_page';
+  static const globalReceivePage = 'global_receive_page';
+  static const recoveryPhrasePage = 'recovery_phrase_page';
+  static const tbConnectPage = 'tb_connect_page';
   static const cloudPage = 'cloud_page';
   static const cloudAndroidPage = 'cloud_android_page';
   static const linkManually = 'link_manually';
   static const testArtwork = 'test_artwork';
-  static const autonomySecurityPage = 'autonomy_security';
-  static const releaseNotesPage = 'releaseNotesPage';
-  static const hiddenArtworksPage = 'hidden_artworks';
-  static const supportCustomerPage = 'supportCustomerPage';
-  static const supportListPage = 'supportListPage';
-  static const merchOrdersPage = 'merchOrderDetailPage';
-  static const supportThreadPage = 'supportThreadPage';
-  static const bugBountyPage = 'bugBountyPage';
+  static const autonomySecurityPage = 'security_page';
+  static const releaseNotesPage = 'release_notes_page';
+  static const hiddenArtworksPage = 'hidden_artworks_page';
+  static const supportCustomerPage = 'support_customer_page';
+  static const supportListPage = 'support_list_page';
+  static const merchOrdersPage = 'merch_orders_page';
+  static const supportThreadPage = 'support_thread_page';
+  static const bugBountyPage = 'bug_bounty_page';
   static const keySyncPage = 'key_sync_page';
   static const githubDocPage = 'github_doc_page';
   static const sendArtworkPage = 'send_artwork_page';
@@ -185,6 +182,7 @@ class AppRouter {
   static const walletPage = 'wallet_page';
   static const subscriptionPage = 'subscription_page';
   static const dataManagementPage = 'data_management_page';
+  static const inappWebviewPage = 'inapp_webview_page';
   static const helpUsPage = 'help_us_page';
   static const postcardExplain = 'postcard_explain_screen';
   static const designStamp = 'design_stamp_screen';
@@ -195,9 +193,8 @@ class AppRouter {
   static const payToMintPostcard = 'pay_to_mint_postcard';
   static const postcardSelectAddressScreen = 'postcard_select_address_screen';
   static const receivePostcardPage = 'receive_postcard_page';
-  static const irlWebView = 'irl_web_claim';
+  static const irlWebView = 'irl_web_view';
   static const irlSignMessage = 'irl_sign_message';
-  static const canvasHelpPage = 'canvas_help_page';
   static const keyboardControlPage = 'keyboard_control_page';
   static const touchPadPage = 'touch_pad_page';
   static const postcardLeaderboardPage = 'postcard_leaderboard_page';
@@ -478,13 +475,6 @@ class AppRouter {
           ),
         );
 
-      case notificationOnboardingPage:
-        return CupertinoPageRoute(
-          settings: settings,
-          fullscreenDialog: true,
-          builder: (context) => const NotificationOnboardingPage(),
-        );
-
       case AppRouter.testArtwork:
         return CupertinoPageRoute(
           settings: settings,
@@ -536,6 +526,7 @@ class AppRouter {
                 args: settings.arguments! as WCSendTransactionPageArgs),
           ),
         );
+
       case scanQRPage:
         return PageTransition(
             settings: settings,
@@ -596,6 +587,7 @@ class AppRouter {
                   child: WalletDetailPage(
                       payload: settings.arguments! as WalletDetailsPayload),
                 ));
+
       case linkedWalletDetailsPage:
         return CupertinoPageRoute(
             settings: settings,
@@ -1036,6 +1028,15 @@ class AppRouter {
             builder: (context) => MultiBlocProvider(providers: [
                   BlocProvider(create: (_) => identityBloc),
                 ], child: const DataManagementPage()));
+      case inappWebviewPage:
+        return PageTransition(
+            settings: settings,
+            type: PageTransitionType.rightToLeft,
+            curve: Curves.easeIn,
+            duration: const Duration(milliseconds: 300),
+            reverseDuration: const Duration(milliseconds: 300),
+            child: InAppWebViewPage(
+                payload: settings.arguments! as InAppWebViewPayload));
       case helpUsPage:
         return CupertinoPageRoute(
             settings: settings, builder: (context) => const HelpUsPage());
@@ -1106,10 +1107,6 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => IRLSignMessageScreen(payload: payload));
-
-      case canvasHelpPage:
-        return CupertinoPageRoute(
-            settings: settings, builder: (context) => const CanvasHelpPage());
 
       case keyboardControlPage:
         return TransparentRoute(

@@ -70,7 +70,7 @@ class _AccountsViewState extends State<AccountsView> {
             final primaryAccount = accounts.firstWhere(
                 (element) =>
                     element.walletAddress
-                        ?.isMatchAddressInfo(state.primaryAddressInfo!) ??
+                        ?.isMatchAddressInfo(state.primaryAddressInfo) ??
                     false,
                 orElse: () => accounts.first);
             final normalAccounts = accounts
