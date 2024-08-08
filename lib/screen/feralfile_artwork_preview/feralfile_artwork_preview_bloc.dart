@@ -6,8 +6,13 @@ class FFArtworkPreviewBloc
     extends AuBloc<FFArtworkPreviewEvent, FFArtworkPreviewState> {
   FFArtworkPreviewBloc() : super(FFArtworkPreviewState()) {
     on<FFArtworkPreviewConfigByArtwork>((event, emit) async {
-      final medium = await event.artwork.renderingType();
-      emit(state.copyWith(medium: medium));
+      if (!state.mediumMap.containsKey(event.artwork.previewURL)) {
+        final medium = await event.artwork.renderingType();
+        final Map<String, String> mediumMap = {};
+        mediumMap[event.artwork.previewURL] = medium;
+        mediumMap.addEntries(state.mediumMap.entries);
+        emit(state.copyWith(mediumMap: mediumMap));
+      }
     });
   }
 }
