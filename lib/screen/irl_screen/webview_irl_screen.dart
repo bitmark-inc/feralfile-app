@@ -112,7 +112,7 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
       final params = arguments['params'] as Map?;
       final minimumCryptoBalance =
           int.tryParse(params?['minimumCryptoBalance'] ?? '') ?? 0;
-      if (addresses.length == 1 && minimumCryptoBalance > 0) {
+      if (addresses.length == 1 && minimumCryptoBalance == 0) {
         address = addresses.first.address;
       } else {
         if (!mounted) {
