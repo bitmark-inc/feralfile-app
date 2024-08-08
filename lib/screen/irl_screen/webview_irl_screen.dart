@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
 import 'package:autonomy_flutter/database/entity/wallet_address.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
@@ -47,12 +46,12 @@ class IRLWebScreen extends StatefulWidget {
 
 class _IRLWebScreenState extends State<IRLWebScreen> {
   InAppWebViewController? _controller;
+  final _accountService = injector<AccountService>();
 
   Future<WalletIndex?> getAccountByAddress(
       {required String chain, required String address}) async {
     try {
-      final accountService = injector<AccountService>();
-      return await accountService.getAccountByAddress(
+      return await _accountService.getAccountByAddress(
         chain: chain,
         address: address,
       );
@@ -94,19 +93,18 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
       }
       final addresses = await _getWalletAddress(cryptoType);
       if (addresses.isEmpty) {
-        final personas =
-            await injector<CloudDatabase>().personaDao.getDefaultPersonas();
-        if (personas.isEmpty) {
+        try {
+          final addedAddress = await _accountService.deriveFirstPersona(
+              cryptoType == CryptoType.XTZ
+                  ? WalletType.Tezos
+                  : WalletType.Ethereum);
+          addresses.add(addedAddress.first);
+        } catch (e) {
           return _logAndReturnJSResult(
-            '_countAddress',
+            '_getAddress',
             JSResult.error('Address not found'),
           );
         }
-        final addedAddress = await personas.first.insertNextAddress(
-            cryptoType == CryptoType.XTZ
-                ? WalletType.Tezos
-                : WalletType.Ethereum);
-        addresses.add(addedAddress.first);
       }
       String? address;
       final params = arguments['params'] as Map?;
@@ -177,21 +175,20 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
       }
       final addresses = await _getWalletAddress(cryptoType);
       if (addresses.isEmpty) {
-        final personas =
-            await injector<CloudDatabase>().personaDao.getDefaultPersonas();
-        if (personas.isEmpty) {
+        try {
+          await _accountService.deriveFirstPersona(cryptoType == CryptoType.XTZ
+              ? WalletType.Tezos
+              : WalletType.Ethereum);
+          return _logAndReturnJSResult(
+            '_countAddress',
+            JSResult.result(1),
+          );
+        } catch (e) {
           return _logAndReturnJSResult(
             '_countAddress',
             JSResult.error('Account not found'),
           );
         }
-        await personas.first.insertNextAddress(cryptoType == CryptoType.XTZ
-            ? WalletType.Tezos
-            : WalletType.Ethereum);
-        return _logAndReturnJSResult(
-          '_countAddress',
-          JSResult.result(1),
-        );
       }
       return _logAndReturnJSResult(
         '_countAddress',
@@ -206,7 +203,7 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
   }
 
   Future<List<WalletAddress>> _getWalletAddress(CryptoType cryptoType) async =>
-      injector<AccountService>().getWalletsAddress(cryptoType);
+      _accountService.getWalletsAddress(cryptoType);
 
   Future<void> _receiveData(List<dynamic> args) async {
     final argument = args.firstOrNull;

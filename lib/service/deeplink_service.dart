@@ -512,8 +512,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
                 if (addressWallets.length == 1) {
                   primaryAddress = addressWallets.first.address;
                 } else {
-                  final address = await addressService
-                      .pickMostNftAddress(addressWallets);
+                  final address =
+                      await addressService.pickMostNftAddress(addressWallets);
                   primaryAddress = address.address;
                 }
               }
