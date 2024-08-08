@@ -504,8 +504,9 @@ class DeeplinkServiceImpl extends DeeplinkService {
             } else {
               log.info('[DeeplinkService] '
                   'InstancePurchase: use address with most tokens');
-              final addressWallets =
-                  await injector<CloudDatabase>().addressDao.getAllAddresses();
+              final addressWallets = await injector<CloudDatabase>()
+                  .addressDao
+                  .getAddressesByType(CryptoType.fromSource(chain).source);
               addressWallets.removeWhere((element) =>
                   element.cryptoType.toLowerCase() != chain ||
                   element.isHidden);

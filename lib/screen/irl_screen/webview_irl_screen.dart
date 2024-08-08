@@ -205,15 +205,8 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
     }
   }
 
-  Future<List<WalletAddress>> _getWalletAddress(CryptoType cryptoType) async {
-    final addresses = await injector<CloudDatabase>()
-        .addressDao
-        .getAddressesByType(cryptoType.source);
-    final personas = await injector<CloudDatabase>().personaDao.getPersonas();
-    final listUuid = personas.map((e) => e.uuid).toList();
-    addresses.removeWhere((e) => !listUuid.contains(e.uuid));
-    return addresses;
-  }
+  Future<List<WalletAddress>> _getWalletAddress(CryptoType cryptoType) async =>
+      injector<AccountService>().getWalletsAddress(cryptoType);
 
   Future<void> _receiveData(List<dynamic> args) async {
     final argument = args.firstOrNull;

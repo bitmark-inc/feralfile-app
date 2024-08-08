@@ -47,6 +47,8 @@ import 'package:synchronized/synchronized.dart';
 import 'package:uuid/uuid.dart';
 
 abstract class AccountService {
+  Future<List<WalletAddress>> getWalletsAddress(CryptoType cryptoType);
+  
   Future<WalletStorage> getDefaultAccount();
 
   Future<Persona> getOrCreateDefaultPersona();
@@ -820,6 +822,17 @@ class AccountServiceImpl extends AccountService {
   Future<List<Connection>> getAllViewOnlyAddresses() {
     final connections = _cloudDB.connectionDao.getLinkedAccounts();
     return connections;
+  }
+
+  @override
+  Future<List<WalletAddress>> getWalletsAddress(CryptoType cryptoType) async {
+    final addresses = await injector<CloudDatabase>()
+        .addressDao
+        .getAddressesByType(cryptoType.source);
+    final personas = await injector<CloudDatabase>().personaDao.getPersonas();
+    final listUuid = personas.map((e) => e.uuid).toList();
+    addresses.removeWhere((e) => !listUuid.contains(e.uuid));
+    return addresses;
   }
 }
 
