@@ -9,6 +9,7 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
+import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
@@ -262,7 +263,7 @@ class NavigationService {
     popUntilHome();
     await Future.delayed(const Duration(seconds: 1), () async {
       await (homePageKey.currentState ?? homePageNoTransactionKey.currentState)
-          ?.openExhibition(exhibitionID ?? '');
+          ?.openExhibition(exhibitionID);
     });
   }
 
@@ -401,5 +402,36 @@ class NavigationService {
       AppRouter.inappWebviewPage,
       arguments: InAppWebViewPayload(url),
     );
+  }
+
+  Future<void> navigatePath(String? path) async {
+    final pair = _resolvePath(path);
+    if (pair == null) {
+      return;
+    }
+
+    unawaited(navigateTo(pair.first, arguments: pair.second));
+  }
+
+  Pair<String, dynamic>? _resolvePath(String? path) {
+    if (path == null || path.isEmpty) {
+      return null;
+    }
+    final parts = path.split('/')..removeWhere((element) => element.isEmpty);
+    if (parts.isEmpty) {
+      return null;
+    }
+    if (parts.length == 1) {
+      return Pair(parts[0], null);
+    }
+
+    return Pair(parts[0], _resolveArgument(parts[1]));
+  }
+
+  dynamic _resolveArgument(String? argument) {
+    if (argument == null || argument.isEmpty) {
+      return null;
+    }
+    return argument;
   }
 }

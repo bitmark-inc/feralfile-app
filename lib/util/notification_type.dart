@@ -143,8 +143,17 @@ class NotificationHandler {
 
     log.info("Tap to notification: ${notification.body ?? "empty"} "
         '\nAdditional data: ${notification.additionalData!}');
+
+    final navigatePath = notification.additionalData!['navigation_route'];
+    if (navigatePath != null) {
+      await injector<NavigationService>().navigatePath(navigatePath);
+    }
+
     final notificationType = NotificationType.fromString(
         notification.additionalData!['notification_type']);
+    if (!context.mounted) {
+      return;
+    }
     switch (notificationType) {
       case NotificationType.galleryNewNft:
         Navigator.of(context).popUntil((route) =>
