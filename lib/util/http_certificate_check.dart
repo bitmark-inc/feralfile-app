@@ -7,31 +7,29 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:sentry/sentry.dart';
 
 Future<String?> _fetchCertificate(Uri url) async {
+  String? hexString;
+  // Create an HttpClient to make a request and get the certificate
+  final client = HttpClient();
   try {
-    // Create an HttpClient to make a request and get the certificate
-    final client = HttpClient();
     final request = await client.headUrl(url);
     final response = await request.close();
 
     // Extract the certificate
     final certificate = response.certificate;
 
-    // Close the HttpClient
-    client.close();
-
-    if (certificate == null) {
-      log.info('No certificate found');
-      return null;
+    if (certificate != null) {
+      log.info('Certificate sha1: ${certificate.sha1}');
+      hexString = certificate.sha1.toHexString();
+      log.info('Certificate sha1 hex: $hexString');
     }
-    log.info('Certificate sha1: ${certificate.sha1}');
-
-    final hexString = certificate.sha1.toHexString();
-    log.info('Certificate sha1 hex: $hexString');
-    return hexString;
   } catch (e) {
     log.info('Error while get certificate: $e');
+  } finally {
+    log.info('Certificate check done $hexString');
+    // Close the HttpClient
+    client.close();
   }
-  return null;
+  return hexString;
 }
 
 Future<bool> checkCertificate(String url) async {
