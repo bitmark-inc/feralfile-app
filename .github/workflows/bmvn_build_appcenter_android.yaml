@@ -30,7 +30,7 @@ on:
         description: Using testnet (Default staging)
 jobs:
   build:
-    runs-on: [self-hosted, macOS]
+    runs-on: [self-hosted, macOS, macm2, android]
     steps:
       - name: Extract Build number for Testnet
         id: extract-version-testnet
