@@ -230,6 +230,24 @@ class NavigationService {
     }
   }
 
+  Future<void> showQRExpired() async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await UIHelper.showInfoDialog(
+          context, 'qr_code_expired'.tr(), 'qr_code_expired_desc'.tr(),
+          onClose: () => UIHelper.hideInfoDialog(context), isDismissible: true);
+    }
+  }
+
+  Future<void> addressNotFoundError() async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await UIHelper.showInfoDialog(
+          context, 'error'.tr(), 'can_not_find_address'.tr(),
+          onClose: () => UIHelper.hideInfoDialog(context), isDismissible: true);
+    }
+  }
+
   Future<void> showCannotConnectTv() async {
     if (navigatorKey.currentContext != null &&
         navigatorKey.currentState?.mounted == true) {
@@ -264,6 +282,14 @@ class NavigationService {
     await Future.delayed(const Duration(seconds: 1), () async {
       await (homePageKey.currentState ?? homePageNoTransactionKey.currentState)
           ?.openExhibition(exhibitionID);
+    });
+  }
+
+  Future<void> popToCollection() async {
+    popUntilHome();
+    await Future.delayed(const Duration(seconds: 1), () async {
+      await (homePageKey.currentState ?? homePageNoTransactionKey.currentState)
+          ?.openCollection();
     });
   }
 

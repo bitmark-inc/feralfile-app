@@ -119,7 +119,7 @@ Widget accountItem(BuildContext context, Account account,
             ],
           ),
           const SizedBox(height: 10),
-          FutureBuilder<Pair<String, String>>(
+          FutureBuilder<Pair<String, String>?>(
             future: balance,
             builder: (context, snapshot) {
               final balances = snapshot.data ?? Pair('--', '--');
@@ -151,25 +151,37 @@ Widget accountItem(BuildContext context, Account account,
   );
 }
 
-Future<Pair<String, String>> getAddressBalance(
-    String address, CryptoType cryptoType) async {
-  final tokenDao = injector<TokenDao>();
-  final tokens = await tokenDao.findTokenIDsOwnersOwn([address]);
-  final nftBalance =
-      "${tokens.length} ${tokens.length == 1 ? 'nft'.tr() : 'nfts'.tr()}";
+Future<Pair<String, String>?> getAddressBalance(
+    String address, CryptoType cryptoType,
+    {bool getNFT = true, int minimumCryptoBalance = 0}) async {
+  late String nftBalance;
+  if (getNFT) {
+    final tokenDao = injector<TokenDao>();
+    final tokens = await tokenDao.findTokenIDsOwnersOwn([address]);
+    nftBalance =
+        "${tokens.length} ${tokens.length == 1 ? 'nft'.tr() : 'nfts'.tr()}";
+  } else {
+    nftBalance = '';
+  }
   switch (cryptoType) {
     case CryptoType.ETH:
       final etherAmount = await injector<EthereumService>().getBalance(address);
+      if (etherAmount.getInWei < BigInt.from(minimumCryptoBalance)) {
+        return null;
+      }
       final cryptoBalance =
           '${EthAmountFormatter().format(etherAmount.getInWei)} ETH';
       return Pair(cryptoBalance, nftBalance);
     case CryptoType.XTZ:
       final tezosAmount = await injector<TezosService>().getBalance(address);
+      if (tezosAmount < minimumCryptoBalance) {
+        return null;
+      }
       final cryptoBalance = '${XtzAmountFormatter().format(tezosAmount)} XTZ';
       return Pair(cryptoBalance, nftBalance);
     case CryptoType.USDC:
     case CryptoType.UNKNOWN:
-      return Pair('', '');
+      return minimumCryptoBalance > 0 ? null : Pair('', '');
   }
 }
 
@@ -248,4 +260,29 @@ Widget viewOnlyLabel(BuildContext context) {
       child: Text('view_only'.tr(), style: theme.textTheme.ppMori400Grey14),
     ),
   );
+}
+
+Widget primaryLabel(BuildContext context) {
+  final theme = Theme.of(context);
+  final primaryStyle = theme.textTheme.ppMori400White14.copyWith(
+    color: AppColor.auGrey,
+  );
+  return DecoratedBox(
+      decoration: BoxDecoration(
+          color: AppColor.primaryBlack,
+          border: Border.all(),
+          borderRadius: BorderRadius.circular(20)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
+        child: Row(
+          children: [
+            SvgPicture.asset('assets/images/pinned.svg'),
+            const SizedBox(width: 10),
+            Text(
+              'primary'.tr(),
+              style: primaryStyle,
+            )
+          ],
+        ),
+      ));
 }

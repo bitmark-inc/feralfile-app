@@ -813,6 +813,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
               await Navigator.of(context).pushNamed(AppRouter.irlWebView,
                   arguments: IRLWebScreenPayload(url,
                       statusBarColor: const Color.fromRGBO(242, 242, 242, 1),
+                      isDarkStatusBar: false,
                       isPlainUI: true,
                       localStorageItems: {'token': jwtToken}));
             },
