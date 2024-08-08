@@ -103,7 +103,7 @@ class _InAppWebViewPageState extends State<InAppWebViewPage> {
                             URLRequest(url: WebUri(widget.payload.url)),
                         initialSettings: InAppWebViewSettings(
                           userAgent: 'user_agent'.tr(
-                            namedArgs: {'version': version},
+                            namedArgs: {'version': '$version ($platform)'},
                           ),
                           useShouldOverrideUrlLoading: true,
                         ),

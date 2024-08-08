@@ -182,7 +182,6 @@ class AppRouter {
   static const subscriptionPage = 'subscription_page';
   static const dataManagementPage = 'data_management_page';
   static const inappWebviewPage = 'inapp_webview_page';
-  static const helpUsPage = 'help_us_page';
   static const postcardExplain = 'postcard_explain_screen';
   static const designStamp = 'design_stamp_screen';
   static const promptPage = 'prompt_page';

@@ -399,7 +399,6 @@ final screenNameMap = {
   AppRouter.subscriptionPage: 'Subscription',
   AppRouter.dataManagementPage: 'Data Management',
   AppRouter.inappWebviewPage: 'Inapp Webview',
-  AppRouter.helpUsPage: 'Help Us',
   AppRouter.postcardExplain: 'Postcard Explain',
   AppRouter.designStamp: 'Design Stamp',
   AppRouter.promptPage: 'Prompt',
