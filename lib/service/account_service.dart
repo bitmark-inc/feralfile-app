@@ -48,7 +48,7 @@ import 'package:uuid/uuid.dart';
 
 abstract class AccountService {
   Future<List<WalletAddress>> getWalletsAddress(CryptoType cryptoType);
-  
+
   Future<WalletStorage> getDefaultAccount();
 
   Future<Persona> getOrCreateDefaultPersona();

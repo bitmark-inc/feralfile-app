@@ -1,17 +1,21 @@
 import 'dart:async';
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/wallet_address.dart';
-import 'package:autonomy_flutter/model/pair.dart';
+import 'package:autonomy_flutter/service/ethereum_service.dart';
+import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/ether_amount_ext.dart';
+import 'package:autonomy_flutter/util/int_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/view/account_view.dart';
 import 'package:autonomy_flutter/view/crypto_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/radio_check_box.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:web3dart/web3dart.dart';
 
 class IRLSelectAddressView extends StatefulWidget {
   final List<WalletAddress> addresses;
@@ -44,7 +48,7 @@ class _IRLSelectAddressViewState extends State<IRLSelectAddressView> {
               child: SingleChildScrollView(
                   child: Column(
                 children: [
-                  if (_isViewing.isEmpty) ...[
+                  if (_isViewing.isEmpty && minimumCryptoBalance > 0) ...[
                     loadingIndicator(valueColor: AppColor.white),
                   ],
                   if (_noAddressHasEnoughBalance()) ...[
@@ -133,46 +137,80 @@ class AddressView extends StatefulWidget {
 }
 
 class _AddressViewState extends State<AddressView> {
-  Pair<String, String>? _balance;
   bool _didLoad = false;
+  EtherAmount? _ethBalance;
+  int? _tezBalance;
+  late CryptoType _cryptoType;
 
   @override
   void initState() {
     super.initState();
+    _cryptoType = CryptoType.fromSource(widget.address.cryptoType);
     unawaited(_loadBalance());
   }
 
   Future<void> _loadBalance() async {
-    final cryptoType = CryptoType.fromSource(widget.address.cryptoType);
-    _balance = await getAddressBalance(
-      widget.address.address,
-      cryptoType,
-      getNFT: false,
-      minimumCryptoBalance: widget.minimumCryptoBalance,
-    );
+    switch (_cryptoType) {
+      case CryptoType.ETH:
+        _ethBalance = await injector<EthereumService>()
+            .getBalance(widget.address.address);
+      case CryptoType.XTZ:
+        _tezBalance =
+            await injector<TezosService>().getBalance(widget.address.address);
+      default:
+    }
     setState(() {
       _didLoad = true;
     });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final balances = _balance;
-    if (_didLoad) {
-      Future.delayed(const Duration(milliseconds: 50), () {
-        widget.onDoneLoading
-            ?.call(balances == null && widget.minimumCryptoBalance > 0);
-      });
+  bool _isEnoughBalance() {
+    if (widget.minimumCryptoBalance == 0) {
+      return true;
     }
-    if (balances == null && widget.minimumCryptoBalance > 0) {
-      return const SizedBox();
+    switch (_cryptoType) {
+      case CryptoType.ETH:
+        if (_ethBalance == null) {
+          return false;
+        }
+        return _ethBalance!.getInWei >=
+            BigInt.from(widget.minimumCryptoBalance);
+      case CryptoType.XTZ:
+        if (_tezBalance == null) {
+          return false;
+        }
+        return _tezBalance! >= widget.minimumCryptoBalance;
+      default:
+        return false;
     }
-    return _addressView(context, balances ?? Pair('--', '--'));
   }
 
-  Widget _addressView(BuildContext context, Pair<String, String> balances) {
+  String _getBalanceString() {
+    switch (_cryptoType) {
+      case CryptoType.ETH:
+        return _ethBalance?.toEthStringValue ?? '--';
+      case CryptoType.XTZ:
+        return _tezBalance?.toZTXStringValue ?? '--';
+      default:
+        return '';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_didLoad) {
+      Future.delayed(const Duration(milliseconds: 50), () {
+        widget.onDoneLoading?.call(!_isEnoughBalance());
+      });
+    }
+    if (!_isEnoughBalance()) {
+      return const SizedBox();
+    }
+    return _addressView(context, _getBalanceString());
+  }
+
+  Widget _addressView(BuildContext context, String balance) {
     final theme = Theme.of(context);
-    final cryptoType = CryptoType.fromSource(widget.address.cryptoType);
     final isSelected = widget.address.address == widget.selectedAddress;
     final color = isSelected ? AppColor.white : AppColor.disabledColor;
     final name = widget.address.name ?? '';
@@ -190,7 +228,7 @@ class _AddressViewState extends State<AddressView> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 LogoCrypto(
-                  cryptoType: cryptoType,
+                  cryptoType: _cryptoType,
                   size: 24,
                 ),
                 const SizedBox(
@@ -202,12 +240,12 @@ class _AddressViewState extends State<AddressView> {
                     Text(
                       name.isNotEmpty
                           ? name
-                          : cryptoType == CryptoType.ETH
+                          : _cryptoType == CryptoType.ETH
                               ? 'Ethereum'
                               : 'Tezos',
                       style: style,
                     ),
-                    Text(balances.first, style: style),
+                    Text(balance, style: style),
                   ],
                 ),
                 const Spacer(),
@@ -216,7 +254,7 @@ class _AddressViewState extends State<AddressView> {
                   width: 20,
                 ),
                 AuCheckBox(
-                  isChecked: widget.address.address == widget.selectedAddress,
+                  isChecked: isSelected,
                   color: color,
                 ),
               ],
