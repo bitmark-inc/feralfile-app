@@ -44,6 +44,16 @@ jobs:
       #        with:
       #          xcode-version: "14.3"
 
+      - name: Delete Travis keychain
+        run: |
+          keychain="TravisKeychain-db"
+          if [ -f ~/Library/Keychains/$keychain ]; then
+            security delete-keychain $keychain
+            echo "Keychain $keychain has been deleted."
+          else
+            echo "Keychain $keychain does not exist. Skipping deletion."
+          fi
+
       - name: Set env
         run: |
           ${{ inputs.testnet == true }} && echo FASTLAN_ENV=test >> $GITHUB_ENV || echo FASTLAN_ENV=main >> $GITHUB_ENV
