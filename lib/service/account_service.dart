@@ -839,8 +839,7 @@ class AccountServiceImpl extends AccountService {
 
   @override
   Future<List<WalletAddress>> deriveFirstPersona(WalletType walletType) async {
-    final personas =
-        await injector<CloudDatabase>().personaDao.getPersonas();
+    final personas = await injector<CloudDatabase>().personaDao.getPersonas();
     final derivedAddresses = await personas.first.insertNextAddress(walletType);
     return derivedAddresses;
   }
