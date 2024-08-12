@@ -200,12 +200,10 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
         ));
       }
       if (resource is Post) {
-        if (resource.coverURI != null) {
-          resources.add(ExhibitionPostView(
-            post: resource,
-            exhibitionID: exhibition.id,
-          ));
-        }
+        resources.add(ExhibitionPostView(
+          post: resource,
+          exhibitionID: exhibition.id,
+        ));
       }
     }
     return resources;
