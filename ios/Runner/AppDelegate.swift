@@ -31,32 +31,32 @@ import Logging
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
-            if !Constant.isInhouse() {
-                if self.checkDebugger() {
-                    self.captureMessage(message: "[Security check] Debugger detected")
-                    self.exitApp()
-                }
-                IOSSecuritySuite.denyDebugger()
-            }
-
-            let isSecure = self.checkMainBundleIdentifier()
-
-            if !isSecure {
-                self.captureMessage(message: "[Security check] Integrity check failed")
-                self.exitApp()
-            }
-
-            if IOSSecuritySuite.amIReverseEngineered() {
-                self.captureMessage(message: "[Security check] Reverse engineering tool detected")
-                self.exitApp()
-            }
-
-            if IOSSecuritySuite.amIJailbroken() {
-                self.captureMessage(message: "[Security check] Jail broken device detected")
-                self.showAlertAndExit()
-            }
-        }
+//         DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+//             if !Constant.isInhouse() {
+//                 if self.checkDebugger() {
+//                     self.captureMessage(message: "[Security check] Debugger detected")
+//                     self.exitApp()
+//                 }
+//                 IOSSecuritySuite.denyDebugger()
+//             }
+//
+//             let isSecure = self.checkMainBundleIdentifier()
+//
+//             if !isSecure {
+//                 self.captureMessage(message: "[Security check] Integrity check failed")
+//                 self.exitApp()
+//             }
+//
+//             if IOSSecuritySuite.amIReverseEngineered() {
+//                 self.captureMessage(message: "[Security check] Reverse engineering tool detected")
+//                 self.exitApp()
+//             }
+//
+//             if IOSSecuritySuite.amIJailbroken() {
+//                 self.captureMessage(message: "[Security check] Jail broken device detected")
+//                 self.showAlertAndExit()
+//             }
+//         }
 
         LibAuk.create(keyChainGroup: Constant.keychainGroup)
         
@@ -388,22 +388,22 @@ import Logging
         }
     }
 
-    func showAlertAndExit() {
-            let alert = UIAlertController(title: "Jailbreak Detected",
-                                          message: "This app cannot run on jailbroken devices.",
-                                          preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { _ in
-                // Dismiss the alert and exit the app
-                self.exitApp()
-            }))
-
-            // Get the root view controller to present the alert
-            if let rootViewController = UIApplication.shared.keyWindow?.rootViewController {
-                rootViewController.present(alert, animated: true, completion: nil)
-
-            }
-
-        }
+//     func showAlertAndExit() {
+//             let alert = UIAlertController(title: "Jailbreak Detected",
+//                                           message: "This app cannot run on jailbroken devices.",
+//                                           preferredStyle: .alert)
+//             alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { _ in
+//                 // Dismiss the alert and exit the app
+//                 self.exitApp()
+//             }))
+//
+//             // Get the root view controller to present the alert
+//             if let rootViewController = UIApplication.shared.keyWindow?.rootViewController {
+//                 rootViewController.present(alert, animated: true, completion: nil)
+//
+//             }
+//
+//         }
 
 
     private func showSplashScreen() {
@@ -428,9 +428,9 @@ import Logging
         }
     }
     
-    private func exitApp() {
-        UIControl().sendAction(#selector(NSXPCConnection.suspend), to: UIApplication.shared, for: nil)
-    }
+//     private func exitApp() {
+//         UIControl().sendAction(#selector(NSXPCConnection.suspend), to: UIApplication.shared, for: nil)
+//     }
 }
 
 extension AppDelegate {
