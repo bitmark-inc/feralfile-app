@@ -8,6 +8,8 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/au_bloc.dart';
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/canvas_device_store.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/util/cast_request_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -113,7 +115,8 @@ class CanvasDeviceCastExhibitionEvent extends CanvasDeviceEvent {
 class CanvasDeviceState {
   final List<DeviceState> devices;
   final Map<String, CheckDeviceStatusReply> canvasDeviceStatus;
-  final Map<String, CanvasDevice> lastSelectedActiveDeviceMap;
+
+  final _selectedCanvasDeviceStore = injector<SelectedCanvasDeviceStore>();
 
   // final String sceneId;
   final RPCError? rpcError;
@@ -121,30 +124,21 @@ class CanvasDeviceState {
   CanvasDeviceState({
     required this.devices,
     Map<String, CheckDeviceStatusReply>? canvasDeviceStatus,
-    Map<String, CanvasDevice>? lastSelectedActiveDeviceMap,
     this.rpcError,
-  })  : canvasDeviceStatus = canvasDeviceStatus ?? {},
-        lastSelectedActiveDeviceMap = lastSelectedActiveDeviceMap ?? {};
+  }) : canvasDeviceStatus = canvasDeviceStatus ?? {};
 
   CanvasDeviceState copyWith(
           {List<DeviceState>? devices,
           Map<String, CheckDeviceStatusReply>? controllingDeviceStatus,
-          Map<String, CanvasDevice>? lastActiveDevice,
           RPCError? rpcError}) =>
       CanvasDeviceState(
           devices: devices ?? this.devices,
           canvasDeviceStatus: controllingDeviceStatus ?? canvasDeviceStatus,
-          lastSelectedActiveDeviceMap:
-              lastActiveDevice ?? lastSelectedActiveDeviceMap,
           rpcError: rpcError ?? this.rpcError);
 
-  CanvasDeviceState updateOnCast(
-      {required CanvasDevice device, required String displayKey}) {
-    lastSelectedActiveDeviceMap.removeWhere((key, value) => value == device);
-    lastSelectedActiveDeviceMap[displayKey] = device;
-    return copyWith(
-      lastActiveDevice: lastSelectedActiveDeviceMap,
-    );
+  Future<void> updateOnCast(
+      {required CanvasDevice device, required String displayKey}) async {
+    await _selectedCanvasDeviceStore.save(device, displayKey);
   }
 
   CanvasDeviceState replaceDeviceState(
@@ -159,17 +153,17 @@ class CanvasDeviceState {
   }
 
   CanvasDevice? lastSelectedActiveDeviceForKey(String key) {
-    final lastActiveDevice = lastSelectedActiveDeviceMap[key];
+    final lastActiveDevice = _selectedCanvasDeviceStore.get(key);
     if (lastActiveDevice != null) {
       if (isDeviceAlive(lastActiveDevice)) {
         return lastActiveDevice;
       } else {
-        lastSelectedActiveDeviceMap.remove(key);
+        unawaited(_selectedCanvasDeviceStore.delete(key));
       }
     }
     final activeDevice = _activeDeviceForKey(key);
     if (activeDevice != null) {
-      lastSelectedActiveDeviceMap[key] = activeDevice;
+      unawaited(_selectedCanvasDeviceStore.save(activeDevice, key));
     }
     return activeDevice;
   }
@@ -178,10 +172,10 @@ class CanvasDeviceState {
     CanvasDevice? lastActiveDevice = lastSelectedActiveDeviceForKey(key);
     final lastActiveDeviceStatus =
         canvasDeviceStatus[lastActiveDevice?.deviceId];
-    final durationInMilisecond =
+    final durationInMillisecond =
         lastActiveDeviceStatus?.artworks.first.duration;
-    if (durationInMilisecond != null) {
-      return Duration(milliseconds: durationInMilisecond);
+    if (durationInMillisecond != null) {
+      return Duration(milliseconds: durationInMillisecond);
     }
     return null;
   }
@@ -350,9 +344,9 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
         final newStatus = state.canvasDeviceStatus;
         newStatus[device.deviceId] = status;
         final displayKey = event.artwork.playArtworksHashCode.toString();
+        await state.updateOnCast(device: device, displayKey: displayKey);
         emit(
           state
-              .updateOnCast(device: device, displayKey: displayKey)
               .replaceDeviceState(
                   device: device,
                   deviceState: currentDeviceState.copyWith(isPlaying: true))
@@ -382,9 +376,9 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
         final newStatus = state.canvasDeviceStatus;
         newStatus[device.deviceId] = status;
         final displayKey = event.castRequest.displayKey;
+        await state.updateOnCast(device: device, displayKey: displayKey);
         emit(
           state
-              .updateOnCast(device: device, displayKey: displayKey)
               .replaceDeviceState(
                   device: device,
                   deviceState: currentDeviceState.copyWith(isPlaying: true))

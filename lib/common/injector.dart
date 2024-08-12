@@ -25,6 +25,7 @@ import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
 import 'package:autonomy_flutter/gateway/source_exhibition_api.dart';
 import 'package:autonomy_flutter/gateway/tv_cast_api.dart';
 import 'package:autonomy_flutter/gateway/tzkt_api.dart';
+import 'package:autonomy_flutter/model/canvas_device_store.dart';
 import 'package:autonomy_flutter/screen/bloc/connections/connections_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
@@ -338,10 +339,11 @@ Future<void> setup() async {
       () => PlayListServiceImp(injector(), injector(), injector(), injector()));
   injector.registerLazySingleton<DeviceInfoService>(() => DeviceInfoService());
 
-  injector.registerLazySingleton<HiveStoreObjectService<CanvasDevice>>(
-      () => HiveStoreObjectServiceImpl());
-  await injector<HiveStoreObjectService<CanvasDevice>>()
-      .init('local.canvas_device');
+  injector.registerLazySingleton<CanvasDeviceStore>(() => CanvasDeviceStore());
+  await injector<CanvasDeviceStore>().init('');
+  injector.registerLazySingleton<SelectedCanvasDeviceStore>(
+      () => SelectedCanvasDeviceStore());
+  await injector<SelectedCanvasDeviceStore>().init('');
   injector.registerLazySingleton<CanvasClientServiceV2>(() =>
       CanvasClientServiceV2(injector(), injector(), injector(), injector()));
 
