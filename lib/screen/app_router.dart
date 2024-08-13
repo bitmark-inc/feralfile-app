@@ -228,6 +228,7 @@ class AppRouter {
   static const collectionPage = 'collection_page';
   static const organizePage = 'organize_page';
   static const exhibitionsPage = 'exhibitions_page';
+  static const explorePage = 'explore_page';
   static const projectsList = 'projects_list';
   static const addEthereumChainPage = 'add_ethereum_chain_page';
   static const artistsListPage = 'artists_list_page';

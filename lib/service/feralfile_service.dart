@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/ff_list_response.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
+import 'package:autonomy_flutter/model/ff_user.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/crawl_helper.dart';
@@ -128,6 +129,17 @@ enum GenerativeMediumTypes {
   }
 }
 
+enum sortOrder {
+  ASC,
+  DESC,
+}
+
+enum sortBy {
+  displayIndex,
+  openAt,
+  createdAt,
+}
+
 abstract class FeralFileService {
   static const int offset = 0;
   static const int limit = 300;
@@ -183,6 +195,27 @@ abstract class FeralFileService {
 
   Future<File?> downloadFeralfileArtwork(AssetToken assetToken,
       {Function(int received, int total)? onReceiveProgress});
+
+  Future<FeralFileListResponse<FFSeries>> exploreArtworks(
+      {String? sortBy,
+      String? sortOrder,
+      String keyword = '',
+      int limit = 300,
+      int offset = 0});
+
+  Future<FeralFileListResponse<FFArtist>> exploreArtists(
+      {int limit = 20,
+      int offset = 0,
+      String keywork = '',
+      String orderBy = 'relevance',
+      String sortOrder = 'DESC'});
+
+  Future<FeralFileListResponse<FFCurator>> exploreCurators(
+      {int limit = 20,
+      int offset = 0,
+      String keywork = '',
+      String orderBy = 'relevance',
+      String sortOrder = 'DESC'});
 }
 
 class FeralFileServiceImpl extends FeralFileService {
@@ -282,9 +315,14 @@ class FeralFileServiceImpl extends FeralFileService {
     String sortOrder = 'DESC',
     int limit = 8,
     int offset = 0,
+    String keywork = '',
   }) async {
     final exhibitions = await _feralFileApi.getAllExhibitions(
-        sortBy: sortBy, sortOrder: sortOrder, limit: limit, offset: offset);
+        sortBy: sortBy,
+        sortOrder: sortOrder,
+        limit: limit,
+        offset: offset,
+        keyword: keywork);
     final listExhibition = exhibitions.result;
     log
       ..info('[FeralFileService] Get all exhibitions: ${listExhibition.length}')
@@ -736,6 +774,54 @@ class FeralFileServiceImpl extends FeralFileService {
         series,
         null,
         null);
+  }
+
+  @override
+  Future<FeralFileListResponse<FFSeries>> exploreArtworks(
+      {String? sortBy,
+      String? sortOrder,
+      String keyword = '',
+      int limit = 300,
+      int offset = 0}) async {
+    final res = await _feralFileApi.exploreArtwork(
+        sortBy: sortBy,
+        sortOrder: sortOrder,
+        keyword: keyword,
+        limit: limit,
+        offset: offset);
+    return res;
+  }
+
+  @override
+  Future<FeralFileListResponse<FFArtist>> exploreArtists(
+      {int limit = 20,
+      int offset = 0,
+      String keywork = '',
+      String orderBy = 'relevance',
+      String sortOrder = 'DESC'}) async {
+    final res = await _feralFileApi.getArtists(
+        limit: limit,
+        offset: offset,
+        keyword: keywork,
+        sortOrder: sortOrder,
+        sortBy: orderBy);
+    return res;
+  }
+
+  @override
+  Future<FeralFileListResponse<FFCurator>> exploreCurators(
+      {int limit = 20,
+      int offset = 0,
+      String keywork = '',
+      String orderBy = 'relevance',
+      String sortOrder = 'DESC'}) async {
+    final res = await _feralFileApi.getCurators(
+        limit: limit,
+        offset: offset,
+        keyword: keywork,
+        sortOrder: sortOrder,
+        sortBy: orderBy);
+    return res;
   }
 }
 

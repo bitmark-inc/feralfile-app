@@ -19,6 +19,8 @@ import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibitions/exhibitions_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibitions/exhibitions_page.dart';
 import 'package:autonomy_flutter/screen/exhibitions/exhibitions_state.dart';
+import 'package:autonomy_flutter/screen/feralfile_home/feralfile_home.dart';
+import 'package:autonomy_flutter/screen/feralfile_home/feralfile_home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/collection_home_page.dart';
 import 'package:autonomy_flutter/screen/home/organize_home_page.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
@@ -70,7 +72,7 @@ class HomeNavigationPagePayload {
   const HomeNavigationPagePayload(
       {bool? fromOnboarding, HomeNavigatorTab? startedTab})
       : fromOnboarding = fromOnboarding ?? false,
-        startedTab = startedTab ?? HomeNavigatorTab.exhibition;
+        startedTab = startedTab ?? HomeNavigatorTab.explore;
 }
 
 class HomeNavigationPage extends StatefulWidget {
@@ -332,6 +334,11 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
           child: ExhibitionsPage(
             key: _exhibitionsPageKey,
           )),
+      MultiBlocProvider(providers: [
+        BlocProvider.value(
+          value: FeralfileHomeBloc(injector()),
+        ),
+      ], child: const FeralfileHomePage()),
       ScanQRPage(
         key: _scanQRPageKey,
         onHandleFinished: () async {
@@ -577,6 +584,19 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
           colorFilter: unselectedColorFilter,
         ),
         label: 'exhibitions',
+      ),
+      FFNavigationBarItem(
+        icon: SvgPicture.asset(
+          'assets/images/controller_icon.svg',
+          height: iconSize,
+          colorFilter: selectedColorFilter,
+        ),
+        unselectedIcon: SvgPicture.asset(
+          'assets/images/controller_icon.svg',
+          height: iconSize,
+          colorFilter: unselectedColorFilter,
+        ),
+        label: 'explore',
       ),
       FFNavigationBarItem(
         icon: SvgPicture.asset(

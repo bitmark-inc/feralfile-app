@@ -197,6 +197,7 @@ class _FeralFileApi implements FeralFileApi {
     String? sortOrder,
     int? limit,
     int? offset,
+    String? keyword,
   }) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
@@ -204,6 +205,7 @@ class _FeralFileApi implements FeralFileApi {
       r'sortOrder': sortOrder,
       r'limit': limit,
       r'offset': offset,
+      r'keyword': keyword,
     };
     queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
@@ -340,7 +342,7 @@ class _FeralFileApi implements FeralFileApi {
       r'sortBy': sortBy,
       r'sortOrder': sortOrder,
       r'isViewable': isViewable,
-      r'filterBurned': filterBurned
+      r'filterBurned': filterBurned,
     };
     queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
@@ -428,6 +430,174 @@ class _FeralFileApi implements FeralFileApi {
               baseUrl,
             ))));
     final value = FeralFileResponse<String>.fromJson(_result.data!);
+    return value;
+  }
+
+  @override
+  Future<FeralFileListResponse<FFSeries>> exploreArtwork({
+    String? sortBy,
+    String? sortOrder,
+    int limit = 20,
+    int offset = 0,
+    bool includeArtist = true,
+    bool includeExhibition = true,
+    bool includeFirstArtwork = true,
+    bool onlyViewable = true,
+    String keyword = '',
+  }) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'sortBy': sortBy,
+      r'sortOrder': sortOrder,
+      r'limit': limit,
+      r'offset': offset,
+      r'includeArtist': includeArtist,
+      r'includeExhibition': includeExhibition,
+      r'includeFirstArtwork': includeFirstArtwork,
+      r'onlyViewable': onlyViewable,
+      r'keyword': keyword,
+    };
+    queryParameters.removeWhere((k, v) => v == null);
+    final _headers = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
+    final _result = await _dio.fetch<Map<String, dynamic>>(
+        _setStreamType<FeralFileListResponse<FFSeries>>(Options(
+      method: 'GET',
+      headers: _headers,
+      extra: _extra,
+    )
+            .compose(
+              _dio.options,
+              '/api/series',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(
+                baseUrl: _combineBaseUrls(
+              _dio.options.baseUrl,
+              baseUrl,
+            ))));
+    final value = FeralFileListResponse<FFSeries>.fromJson(
+        _result.data!, FFSeries.fromJson);
+    return value;
+  }
+
+  @override
+  Future<FeralFileListResponse<FFArtist>> getArtists({
+    int limit = 20,
+    int offset = 0,
+    String sortBy = 'relevance',
+    String sortOrder = 'DESC',
+    String keyword = '',
+    bool unique = true,
+  }) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'limit': limit,
+      r'offset': offset,
+      r'sortBy': sortBy,
+      r'sortOrder': sortOrder,
+      r'keyword': keyword,
+      r'unique': unique,
+    };
+    final _headers = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
+    final _result = await _dio.fetch<Map<String, dynamic>>(
+        _setStreamType<FeralFileListResponse<FFArtist>>(Options(
+      method: 'GET',
+      headers: _headers,
+      extra: _extra,
+    )
+            .compose(
+              _dio.options,
+              '/api/artists',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(
+                baseUrl: _combineBaseUrls(
+              _dio.options.baseUrl,
+              baseUrl,
+            ))));
+    final value = FeralFileListResponse<FFArtist>.fromJson(
+        _result.data!, FFArtist.fromJson);
+    return value;
+  }
+
+  @override
+  Future<FeralFileListResponse<FFCurator>> getCurators({
+    int limit = 20,
+    int offset = 0,
+    String sortBy = 'relevance',
+    String sortOrder = 'DESC',
+    String keyword = '',
+    bool unique = true,
+    bool excludedFF = true,
+  }) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'limit': limit,
+      r'offset': offset,
+      r'sortBy': sortBy,
+      r'sortOrder': sortOrder,
+      r'keyword': keyword,
+      r'unique': unique,
+      r'excludedFF': excludedFF,
+    };
+    final _headers = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
+    final _result = await _dio.fetch<Map<String, dynamic>>(
+        _setStreamType<FeralFileListResponse<FFCurator>>(Options(
+      method: 'GET',
+      headers: _headers,
+      extra: _extra,
+    )
+            .compose(
+              _dio.options,
+              '/api/curators',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(
+                baseUrl: _combineBaseUrls(
+              _dio.options.baseUrl,
+              baseUrl,
+            ))));
+    final value = FeralFileListResponse<FFCurator>.fromJson(
+        _result.data!, FFCurator.fromJson);
+    return value;
+  }
+
+  @override
+  Future<ExploreStatisticsData> getExploreStatistics({
+    bool unique = true,
+    bool excludedFF = true,
+  }) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'unique': unique,
+      r'excludedFF': excludedFF,
+    };
+    final _headers = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
+    final _result = await _dio.fetch<Map<String, dynamic>>(
+        _setStreamType<ExploreStatisticsData>(Options(
+      method: 'GET',
+      headers: _headers,
+      extra: _extra,
+    )
+            .compose(
+              _dio.options,
+              '/api/exploration/statistics',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(
+                baseUrl: _combineBaseUrls(
+              _dio.options.baseUrl,
+              baseUrl,
+            ))));
+    final value = ExploreStatisticsData.fromJson(_result.data!);
     return value;
   }
 

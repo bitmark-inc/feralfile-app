@@ -10,6 +10,8 @@ import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/ff_list_response.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
+import 'package:autonomy_flutter/model/ff_user.dart';
+import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 
@@ -60,6 +62,7 @@ abstract class FeralFileApi {
     @Query('sortOrder') String? sortOrder,
     @Query('limit') int? limit,
     @Query('offset') int? offset,
+    @Query('keyword') String? keyword,
   });
 
   @GET('/api/exhibitions/featured')
@@ -99,6 +102,47 @@ abstract class FeralFileApi {
     @Header('Web3Token') String web3Token,
     @Header('X-FF-Signer') String signer,
   );
+
+  @GET('/api/series')
+  Future<FeralFileListResponse<FFSeries>> exploreArtwork({
+    @Query('sortBy') String? sortBy,
+    @Query('sortOrder') String? sortOrder,
+    @Query('limit') int limit = 20,
+    @Query('offset') int offset = 0,
+    @Query('includeArtist') bool includeArtist = true,
+    @Query('includeExhibition') bool includeExhibition = true,
+    @Query('includeFirstArtwork') bool includeFirstArtwork = true,
+    @Query('onlyViewable') bool onlyViewable = true,
+    @Query('keyword') String keyword = '',
+  });
+
+  @GET('/api/artists')
+  Future<FeralFileListResponse<FFArtist>> getArtists({
+    @Query('limit') int limit = 20,
+    @Query('offset') int offset = 0,
+    @Query('sortBy') String sortBy = 'relevance',
+    @Query('sortOrder') String sortOrder = 'DESC',
+    @Query('keyword') String keyword = '',
+    @Query('unique') bool unique = true,
+  });
+
+  // get https://feralfile.com/api/curators?limit=50&offset=0&sortBy=relevance&sortOrder=DESC&keyword=hihi&unique=true&excludedFF=true
+  @GET('/api/curators')
+  Future<FeralFileListResponse<FFCurator>> getCurators({
+    @Query('limit') int limit = 20,
+    @Query('offset') int offset = 0,
+    @Query('sortBy') String sortBy = 'relevance',
+    @Query('sortOrder') String sortOrder = 'DESC',
+    @Query('keyword') String keyword = '',
+    @Query('unique') bool unique = true,
+    @Query('excludedFF') bool excludedFF = true,
+  });
+
+  @GET('/api/exploration/statistics')
+  Future<ExploreStatisticsData> getExploreStatistics({
+    @Query('unique') bool unique = true,
+    @Query('excludedFF') bool excludedFF = true,
+  });
 }
 
 class ActionMessageResponse {
