@@ -142,7 +142,6 @@ class AuthService {
     final publicKey = await _addressService.getAddressPublicKey(
         addressInfo: primaryAddressInfo);
     final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
-    final defaultAccount = await injector<AccountService>().getDefaultAccount();
     final messageForAddress = _addressService.getFeralfileAccountMessage(
       address: address,
       timestamp: timestamp,
@@ -160,6 +159,8 @@ class AuthService {
       'timestamp': timestamp,
     };
     if (withDidKey) {
+      final defaultAccount =
+          await injector<AccountService>().getDefaultAccount();
       final didKey = await defaultAccount.getAccountDID();
       final messageForDidKey = _addressService.getFeralfileAccountMessage(
         address: didKey,

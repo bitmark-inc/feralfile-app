@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/wallet_address.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/primary_address_channel.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/wallet_utils.dart';
@@ -28,6 +29,7 @@ class AddressService {
 
   Future<AddressInfo?> getPrimaryAddressInfo() async {
     final addressInfo = await _primaryAddressChannel.getPrimaryAddress();
+    log.info('[AddressService] Primary address info: ${addressInfo?.toJson()}');
     return addressInfo;
   }
 
@@ -54,6 +56,7 @@ class AddressService {
 
   Future<bool> setPrimaryAddressInfo({required AddressInfo info}) async {
     await _primaryAddressChannel.setPrimaryAddress(info);
+    log.info('[AddressService] Primary address info set: ${info.toJson()}');
     return true;
   }
 
