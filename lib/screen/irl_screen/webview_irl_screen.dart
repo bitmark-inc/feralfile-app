@@ -176,9 +176,10 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
       final addresses = await _getWalletAddress(cryptoType);
       if (addresses.isEmpty) {
         try {
-          await _accountService.deriveAddressFromFirstPersona(cryptoType == CryptoType.XTZ
-              ? WalletType.Tezos
-              : WalletType.Ethereum);
+          await _accountService.deriveAddressFromFirstPersona(
+              cryptoType == CryptoType.XTZ
+                  ? WalletType.Tezos
+                  : WalletType.Ethereum);
           return _logAndReturnJSResult(
             '_countAddress',
             JSResult.result(1),
