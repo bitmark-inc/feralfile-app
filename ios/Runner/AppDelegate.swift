@@ -31,6 +31,7 @@ import Logging
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
 
+//         DONT REMOVE, We will bring back the security check
 //         DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
 //             if !Constant.isInhouse() {
 //                 if self.checkDebugger() {
@@ -40,6 +41,7 @@ import Logging
 //                 IOSSecuritySuite.denyDebugger()
 //             }
 //
+//            // Check bundle identifier
 //             let isSecure = self.checkMainBundleIdentifier()
 //
 //             if !isSecure {
@@ -47,11 +49,13 @@ import Logging
 //                 self.exitApp()
 //             }
 //
+//             // Check reverse engineering
 //             if IOSSecuritySuite.amIReverseEngineered() {
 //                 self.captureMessage(message: "[Security check] Reverse engineering tool detected")
 //                 self.exitApp()
 //             }
 //
+//             // Check jailbreak
 //             if IOSSecuritySuite.amIJailbroken() {
 //                 self.captureMessage(message: "[Security check] Jail broken device detected")
 //                 self.showAlertAndExit()
@@ -388,6 +392,7 @@ import Logging
         }
     }
 
+//     DONT REMOVE, We will bring back the security check
 //     func showAlertAndExit() {
 //             let alert = UIAlertController(title: "Jailbreak Detected",
 //                                           message: "This app cannot run on jailbroken devices.",
@@ -427,7 +432,10 @@ import Logging
             hideAuthenticationOverlay()
         }
     }
-    
+
+//        DONT REMOVE, We will bring back the security check
+//        Exit app, if security check failed
+//        TODO: we are now suspending the app instead of exiting, need to find a way to exit the app
 //     private func exitApp() {
 //         UIControl().sendAction(#selector(NSXPCConnection.suspend), to: UIApplication.shared, for: nil)
 //     }
