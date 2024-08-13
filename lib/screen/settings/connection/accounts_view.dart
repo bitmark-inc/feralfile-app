@@ -23,6 +23,7 @@ import 'package:autonomy_flutter/view/account_view.dart';
 import 'package:autonomy_flutter/view/crypto_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/cupertino.dart';
@@ -30,6 +31,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:sentry/sentry.dart';
 
 class AccountsView extends StatefulWidget {
   final bool isInSettingsPage;
@@ -67,17 +69,21 @@ class _AccountsViewState extends State<AccountsView> {
             if (!widget.isInSettingsPage) {
               return _noEditAccountsListWidget(accounts);
             }
-            final primaryAccount = accounts.firstWhere(
-                (element) =>
-                    element.walletAddress
-                        ?.isMatchAddressInfo(state.primaryAddressInfo) ??
-                    false,
-                orElse: () => accounts.first);
+            final primaryAccount = accounts.firstWhereOrNull((element) =>
+                element.walletAddress
+                    ?.isMatchAddressInfo(state.primaryAddressInfo) ??
+                false);
+            if (primaryAccount == null) {
+              unawaited(Sentry.captureException(
+                  Exception('Primary account not found in accounts list')));
+            }
             final normalAccounts = accounts
-                .where((element) => element.key != primaryAccount.key)
+                .where((element) => element.key != primaryAccount?.key)
                 .toList();
             return ReorderableListView(
-              header: _accountCard(context, primaryAccount, isPrimary: true),
+              header: primaryAccount == null
+                  ? const SizedBox()
+                  : _accountCard(context, primaryAccount, isPrimary: true),
               onReorder: (int oldIndex, int newIndex) {
                 context.read<AccountsBloc>().add(ChangeAccountOrderEvent(
                     newOrder: newIndex, oldOrder: oldIndex));

@@ -30,7 +30,6 @@ class MixPanelClientService {
   Future<void> initService() async {
     mixpanel = await Mixpanel.init(Environment.mixpanelKey,
         trackAutomaticEvents: true);
-    await initIfDefaultAccount();
     mixpanel
       ..setLoggingEnabled(false)
       ..setUseIpAddressForGeolocation(true);
