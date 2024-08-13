@@ -5,36 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/util/jwt.dart';
-import 'package:collection/collection.dart';
-import 'package:in_app_purchase/in_app_purchase.dart';
-
-enum MembershipType {
-  free,
-  premium;
-
-  String get name {
-    switch (this) {
-      case MembershipType.free:
-        return 'none';
-      case MembershipType.premium:
-        return 'premium';
-    }
-  }
-
-  static MembershipType fromString(String name) {
-    switch (name) {
-      case 'premium':
-      case 'foundation':
-        return MembershipType.premium;
-      case 'none':
-      default:
-        return MembershipType.free;
-    }
-  }
-}
 
 class JWT {
   int? expireIn;
@@ -51,45 +22,27 @@ class JWT {
         'jwt_token': jwtToken,
       };
 
-  bool _isValid() {
+  bool isValid({bool withSubscription = false}) {
     final claim = parseJwt(jwtToken);
     final exp = (claim['exp'] ?? 0) as int;
     final expDate = DateTime.fromMillisecondsSinceEpoch(exp * 1000);
-    return expDate.isAfter(DateTime.now());
-  }
-
-  MembershipType _getMembershipType() {
-    final claim = parseJwt(jwtToken);
-    final membership = claim['membership'] as String;
-    return MembershipType.values
-        .firstWhere((e) => e == MembershipType.fromString(membership));
-  }
-
-  bool isPremiumValid() {
-    final membership = _getMembershipType();
-    return _isValid() && membership == MembershipType.premium;
-  }
-
-  bool isValid({bool withSubscription = false}) {
-    final isJWTvalid = _isValid();
-
-    if (withSubscription && isJWTvalid) {
-      final membership = _getMembershipType();
-      return membership != MembershipType.free;
+    final value = expDate.compareTo(DateTime.now());
+    if (withSubscription) {
+      final plan = claim['plan'] as String;
+      return value > 0 && plan == 'autonomy-premium';
     }
 
-    return isJWTvalid;
+    return value > 0;
   }
 
   SubscriptionStatus getSubscriptionStatus() {
     final claim = parseJwt(jwtToken);
-    final membershipType =
-        MembershipType.fromString(claim['membership'] as String);
+    final plan = claim['plan'] as String;
     final isTrial = (claim['trial'] as bool?) == true;
     final exp = (claim['exp'] ?? 0) as int;
     final expDate = DateTime.fromMillisecondsSinceEpoch(exp * 1000);
     return SubscriptionStatus(
-        membership: membershipType, isTrial: isTrial, expireDate: expDate);
+        plan: plan, isTrial: isTrial, expireDate: expDate);
   }
 
   @override
@@ -97,41 +50,19 @@ class JWT {
 }
 
 class SubscriptionStatus {
-  final MembershipType membership;
+  final String plan;
   final bool isTrial;
   final DateTime expireDate;
 
   SubscriptionStatus(
-      {required this.membership,
-      required this.isTrial,
-      required this.expireDate});
+      {required this.plan, required this.isTrial, required this.expireDate});
 
-  bool _isExpired() => expireDate.isBefore(DateTime.now());
-
-  bool get isPremium => membership == MembershipType.premium && !_isExpired();
+  bool get isPremium =>
+      plan == 'autonomy-premium' && expireDate.isAfter(DateTime.now());
 
   @override
-  String toString() => 'SubscriptionStatus{plan: $membership, '
+  String toString() => 'SubscriptionStatus{plan: $plan, '
       'isTrial: $isTrial, expireDate: $expireDate}';
-
-  ProductDetails? get premiumProductDetails {
-    final allProducts = injector<IAPService>().products.value.values.toList();
-    return allProducts.firstWhereOrNull((element) => element.id == premiumId());
-  }
-
-  ProductDetails? get productDetails {
-    switch (membership) {
-      case MembershipType.free:
-        return null;
-      case MembershipType.premium:
-        return premiumProductDetails;
-    }
-  }
-
-  bool status(ProductDetails productDetails) {
-    final status = injector<IAPService>().purchases.value[productDetails.id];
-    return status == IAPProductStatus.completed;
-  }
 }
 
 class OnesignalIdentityHash {
