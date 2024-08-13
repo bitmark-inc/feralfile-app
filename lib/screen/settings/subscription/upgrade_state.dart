@@ -14,24 +14,18 @@ class UpgradeQueryInfoEvent extends UpgradeEvent {}
 
 class UpgradeIAPInfoEvent extends UpgradeEvent {}
 
-class UpgradePurchaseEvent extends UpgradeEvent {
-  final List<String> subscriptionIds;
+class UpgradePurchaseEvent extends UpgradeEvent {}
 
-  UpgradePurchaseEvent(this.subscriptionIds);
-}
+class UpgradeUpdateEvent extends UpgradeEvent {
+  final UpgradeState newState;
 
-class SubscriptionDetails {
-  final IAPProductStatus status;
-  final ProductDetails productDetails;
-  final DateTime? trialExpiredDate;
-  final PurchaseDetails? purchaseDetails;
-
-  SubscriptionDetails(this.status, this.productDetails,
-      {this.trialExpiredDate, this.purchaseDetails});
+  UpgradeUpdateEvent(this.newState);
 }
 
 class UpgradeState {
-  List<SubscriptionDetails> subscriptionDetails;
+  final IAPProductStatus status;
+  final ProductDetails? productDetails;
+  final DateTime? trialExpiredDate;
 
-  UpgradeState({this.subscriptionDetails = const []});
+  UpgradeState(this.status, this.productDetails, {this.trialExpiredDate});
 }
