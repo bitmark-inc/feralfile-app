@@ -47,7 +47,8 @@ import 'package:synchronized/synchronized.dart';
 import 'package:uuid/uuid.dart';
 
 abstract class AccountService {
-  Future<List<WalletAddress>> deriveFirstPersona(WalletType walletType);
+  Future<List<WalletAddress>> deriveAddressFromFirstPersona(
+      WalletType walletType);
 
   Future<List<WalletAddress>> getWalletsAddress(CryptoType cryptoType);
 
@@ -838,7 +839,8 @@ class AccountServiceImpl extends AccountService {
   }
 
   @override
-  Future<List<WalletAddress>> deriveFirstPersona(WalletType walletType) async {
+  Future<List<WalletAddress>> deriveAddressFromFirstPersona(
+      WalletType walletType) async {
     final personas = await injector<CloudDatabase>().personaDao.getPersonas();
     final derivedAddresses = await personas.first.insertNextAddress(walletType);
     return derivedAddresses;

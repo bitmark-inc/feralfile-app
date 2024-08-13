@@ -169,7 +169,7 @@ Future<Pair<String, String>?> getAddressBalance(
       return Pair(etherAmount.toEthStringValue, nftBalance);
     case CryptoType.XTZ:
       final tezosAmount = await injector<TezosService>().getBalance(address);
-      return Pair(tezosAmount.toZTXStringValue, nftBalance);
+      return Pair(tezosAmount.toXTZStringValue, nftBalance);
     case CryptoType.USDC:
     case CryptoType.UNKNOWN:
       return Pair('', '');

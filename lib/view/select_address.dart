@@ -190,7 +190,7 @@ class _AddressViewState extends State<AddressView> {
       case CryptoType.ETH:
         return _ethBalance?.toEthStringValue ?? '--';
       case CryptoType.XTZ:
-        return _tezBalance?.toZTXStringValue ?? '--';
+        return _tezBalance?.toXTZStringValue ?? '--';
       default:
         return '';
     }
