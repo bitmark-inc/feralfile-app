@@ -6,7 +6,6 @@
 //
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
@@ -58,27 +57,6 @@ class AuthService {
       'timestamp': timeStamp,
       'signature': signature,
     };
-
-    late String? savedReceiptData;
-    if (receiptData != null) {
-      savedReceiptData = receiptData;
-    } else {
-      savedReceiptData = _configurationService.getIAPReceipt();
-    }
-
-    // add the receipt data if available
-    if (savedReceiptData != null) {
-      final String platform;
-      if (Platform.isIOS) {
-        platform = 'apple';
-      } else {
-        platform = 'google';
-      }
-      payload.addAll({
-        'receipt': {'platform': platform, 'receipt_data': savedReceiptData}
-      });
-    }
-
     var newJwt = await _authApi.authAddress(payload);
     _jwt = newJwt;
 
@@ -142,7 +120,6 @@ class AuthService {
     final publicKey = await _addressService.getAddressPublicKey(
         addressInfo: primaryAddressInfo);
     final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
-    final defaultAccount = await injector<AccountService>().getDefaultAccount();
     final messageForAddress = _addressService.getFeralfileAccountMessage(
       address: address,
       timestamp: timestamp,
@@ -160,6 +137,8 @@ class AuthService {
       'timestamp': timestamp,
     };
     if (withDidKey) {
+      final defaultAccount =
+          await injector<AccountService>().getDefaultAccount();
       final didKey = await defaultAccount.getAccountDID();
       final messageForDidKey = _addressService.getFeralfileAccountMessage(
         address: didKey,
