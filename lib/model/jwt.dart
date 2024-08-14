@@ -28,8 +28,8 @@ class JWT {
     final expDate = DateTime.fromMillisecondsSinceEpoch(exp * 1000);
     final value = expDate.compareTo(DateTime.now());
     if (withSubscription) {
-      final plan = claim['plan'] as String;
-      return value > 0 && plan == 'autonomy-premium';
+      final plan = claim['membership'] as String;
+      return value > 0 && plan == 'premium';
     }
 
     return value > 0;
@@ -37,7 +37,7 @@ class JWT {
 
   SubscriptionStatus getSubscriptionStatus() {
     final claim = parseJwt(jwtToken);
-    final plan = claim['plan'] as String;
+    final plan = claim['membership'] as String;
     final isTrial = (claim['trial'] as bool?) == true;
     final exp = (claim['exp'] ?? 0) as int;
     final expDate = DateTime.fromMillisecondsSinceEpoch(exp * 1000);
@@ -57,8 +57,7 @@ class SubscriptionStatus {
   SubscriptionStatus(
       {required this.plan, required this.isTrial, required this.expireDate});
 
-  bool get isPremium =>
-      plan == 'autonomy-premium' && expireDate.isAfter(DateTime.now());
+  bool get isPremium => plan == 'premium' && expireDate.isAfter(DateTime.now());
 
   @override
   String toString() => 'SubscriptionStatus{plan: $plan, '
