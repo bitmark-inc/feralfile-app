@@ -19,7 +19,6 @@ import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dar
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
@@ -258,10 +257,8 @@ class IAPServiceImpl implements IAPService {
         }
       }
       purchases.notifyListeners();
-    });
-    withDebounce(() {
       injector<SubscriptionBloc>().add(GetSubscriptionEvent());
-    }, key: 'GetSubscriptionEvent');
+    });
   }
 
   @override
