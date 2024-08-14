@@ -5,12 +5,10 @@
 //  that can be found in the LICENSE file.
 //
 
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:autonomy_flutter/model/backup_versions.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
-import 'package:autonomy_flutter/util/jwt.dart';
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 
