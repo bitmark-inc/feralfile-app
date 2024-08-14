@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
+import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
@@ -70,6 +71,11 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
 
       // migrate to membership profile
       final primaryAddressInfo = await _addressService.getPrimaryAddressInfo();
+
+      if (primaryAddressInfo != null) {
+        // refresh jwt token for case gift membership
+        await injector<AuthService>().getAuthToken(forceRefresh: true);
+      }
 
       if (_configurationService.isDoneOnboarding()) {
         if (primaryAddressInfo == null) {
