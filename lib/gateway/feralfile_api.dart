@@ -56,6 +56,8 @@ abstract class FeralFileApi {
     @Query('includeArtist') bool includeArtist = true,
   });
 
+  // https://feralfile.com/api/exhibitions?relatedAccountIDs=0x8232F0eBd19327d8003991d52F084869c7C8A6d1&relatedAccountIDs=avaBztmgDtG2pX7cxCeLYLeTjG6gfpouAZSBfeGaP9gPY9VYDu
+
   @GET('/api/exhibitions')
   Future<ListExhibitionResponse> getAllExhibitions({
     @Query('sortBy') String? sortBy,
@@ -63,6 +65,7 @@ abstract class FeralFileApi {
     @Query('limit') int? limit,
     @Query('offset') int? offset,
     @Query('keyword') String? keyword,
+    @Query('relatedAccountIDs') List<String> relatedAccountIDs = const [],
   });
 
   @GET('/api/exhibitions/featured')
@@ -114,6 +117,8 @@ abstract class FeralFileApi {
     @Query('includeFirstArtwork') bool includeFirstArtwork = true,
     @Query('onlyViewable') bool onlyViewable = true,
     @Query('keyword') String keyword = '',
+    @Query('artistIDs') List<String> artistIDs = const [],
+    @Query('includeUniqueFilePath') bool includeUniqueFilePath = true,
   });
 
   @GET('/api/artists')
@@ -126,7 +131,6 @@ abstract class FeralFileApi {
     @Query('unique') bool unique = true,
   });
 
-  // get https://feralfile.com/api/curators?limit=50&offset=0&sortBy=relevance&sortOrder=DESC&keyword=hihi&unique=true&excludedFF=true
   @GET('/api/curators')
   Future<FeralFileListResponse<FFCurator>> getCurators({
     @Query('limit') int limit = 20,
@@ -142,6 +146,23 @@ abstract class FeralFileApi {
   Future<ExploreStatisticsData> getExploreStatistics({
     @Query('unique') bool unique = true,
     @Query('excludedFF') bool excludedFF = true,
+  });
+
+  @GET('/api/accounts/{accountId}')
+  Future<FeralFileResponse<FFUserDetails>> getUser({
+    @Path('accountId') String accountId = '',
+    @Query('includeLinkedAccounts') bool includeLinkedAccounts = true,
+    @Query('includeCollaborationAccounts')
+    bool includeCollaborationAccounts = true,
+  });
+
+  @GET('/api/posts')
+  Future<FeralFileListResponse<Post>> getPosts({
+    @Query('sortBy') String sortBy = 'dateTime',
+    @Query('sortOrder') String sortOrder = 'DESC',
+    @Query('types') List<String> types = const [],
+    @Query('relatedAccountIDs') List<String> relatedAccountIDs = const [],
+    @Query('includeExhibition') bool includeExhibition = true,
   });
 }
 
@@ -197,9 +218,10 @@ class FeralFileResponse<T> {
 
   FeralFileResponse({required this.result});
 
-  factory FeralFileResponse.fromJson(Map<String, dynamic> json) =>
+  factory FeralFileResponse.fromJson(Map<String, dynamic> json,
+          {T Function(Map<String, dynamic>)? fromJson}) =>
       FeralFileResponse(
-        result: json['result'],
+        result: fromJson != null ? fromJson(json['result']) : json['result'],
       );
 
   Map<String, dynamic> toJson() => {

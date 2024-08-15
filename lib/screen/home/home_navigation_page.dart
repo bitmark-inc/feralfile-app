@@ -338,6 +338,9 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         BlocProvider.value(
           value: FeralfileHomeBloc(injector()),
         ),
+        BlocProvider.value(
+          value: injector<SubscriptionBloc>()..add(GetSubscriptionEvent()),
+        ),
       ], child: const FeralfileHomePage()),
       ScanQRPage(
         key: _scanQRPageKey,

@@ -6,6 +6,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class ExhibitionPostView extends StatefulWidget {
   final Post post;
@@ -115,4 +116,49 @@ class _ExhibitionPostViewState extends State<ExhibitionPostView> {
           return _buildThumbnailWidget();
         },
       );
+}
+
+class PostThumbnail extends StatelessWidget {
+  final Post post;
+  final int index;
+
+  const PostThumbnail({
+    required this.post,
+    super.key,
+    this.index = 0,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Image.network(
+      post.thumbnailUrls[index],
+      fit: BoxFit.fitWidth,
+      errorBuilder: (context, error, stackTrace) {
+        if (index >= post.thumbnailUrls.length) {
+          return SvgPicture.asset('assets/images/default_avatat.svg');
+        }
+        return PostThumbnail(
+          post: post,
+          index: index + 1,
+        );
+      },
+    );
+    return CachedNetworkImage(
+      imageUrl: post.thumbnailUrls[index],
+      fit: BoxFit.fitWidth,
+      cacheManager: injector<CacheManager>(),
+      placeholder: (context, url) {
+        return SvgPicture.asset('assets/images/default_avatat.svg');
+      },
+      errorWidget: (context, url, error) {
+        if (index >= post.thumbnailUrls.length) {
+          return SvgPicture.asset('assets/images/default_avatat.svg');
+        }
+        return PostThumbnail(
+          post: post,
+          index: index + 1,
+        );
+      },
+    );
+  }
 }

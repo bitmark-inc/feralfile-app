@@ -164,6 +164,8 @@ abstract class FeralFileService {
     String sortOrder = 'DESC',
     int limit = 8,
     int offset = 0,
+    String keywork = '',
+    List<String> relatedAccountIDs = const [],
   });
 
   Future<Exhibition> getSourceExhibition();
@@ -201,7 +203,13 @@ abstract class FeralFileService {
       String? sortOrder,
       String keyword = '',
       int limit = 300,
-      int offset = 0});
+      int offset = 0,
+      bool includeArtist = true,
+      bool includeExhibition = true,
+      bool includeFirstArtwork = true,
+      bool onlyViewable = true,
+      List<String> artistIds = const [],
+      bool includeUniqeFilePath = true});
 
   Future<FeralFileListResponse<FFArtist>> exploreArtists(
       {int limit = 20,
@@ -216,6 +224,16 @@ abstract class FeralFileService {
       String keywork = '',
       String orderBy = 'relevance',
       String sortOrder = 'DESC'});
+
+  Future<FFUserDetails> getUser(String artistID);
+
+  Future<List<Post>> getPosts({
+    String sortBy = 'dateTime',
+    String sortOrder = '',
+    List<String> types = const [],
+    List<String> relatedAccountIds = const [],
+    bool includeExhibition = true,
+  });
 }
 
 class FeralFileServiceImpl extends FeralFileService {
@@ -316,13 +334,15 @@ class FeralFileServiceImpl extends FeralFileService {
     int limit = 8,
     int offset = 0,
     String keywork = '',
+    List<String> relatedAccountIDs = const [],
   }) async {
     final exhibitions = await _feralFileApi.getAllExhibitions(
         sortBy: sortBy,
         sortOrder: sortOrder,
         limit: limit,
         offset: offset,
-        keyword: keywork);
+        keyword: keywork,
+        relatedAccountIDs: relatedAccountIDs);
     final listExhibition = exhibitions.result;
     log
       ..info('[FeralFileService] Get all exhibitions: ${listExhibition.length}')
@@ -645,6 +665,23 @@ class FeralFileServiceImpl extends FeralFileService {
     return response.result;
   }
 
+  Future<List<Post>> getPosts({
+    String sortBy = 'dateTime',
+    String sortOrder = 'DESC',
+    List<String> types = const [],
+    List<String> relatedAccountIds = const [],
+    bool includeExhibition = true,
+  }) async {
+    final response = await _feralFileApi.getPosts(
+      sortBy: sortBy,
+      sortOrder: sortOrder,
+      types: types,
+      relatedAccountIDs: relatedAccountIds,
+      includeExhibition: includeExhibition,
+    );
+    return response.result;
+  }
+
   // Source Exhibition
   @override
   Future<Exhibition> getSourceExhibition() async {
@@ -782,13 +819,26 @@ class FeralFileServiceImpl extends FeralFileService {
       String? sortOrder,
       String keyword = '',
       int limit = 300,
-      int offset = 0}) async {
+      int offset = 0,
+      bool includeArtist = true,
+      bool includeExhibition = true,
+      bool includeFirstArtwork = true,
+      bool onlyViewable = true,
+      List<String> artistIds = const [],
+      bool includeUniqeFilePath = true}) async {
     final res = await _feralFileApi.exploreArtwork(
         sortBy: sortBy,
         sortOrder: sortOrder,
         keyword: keyword,
         limit: limit,
-        offset: offset);
+        offset: offset,
+        includeArtist: includeArtist,
+        includeExhibition: includeExhibition,
+        includeFirstArtwork: includeFirstArtwork,
+        onlyViewable: onlyViewable,
+        artistIDs: artistIds,
+        includeUniqueFilePath: includeUniqeFilePath);
+
     return res;
   }
 
@@ -822,6 +872,12 @@ class FeralFileServiceImpl extends FeralFileService {
         sortOrder: sortOrder,
         sortBy: orderBy);
     return res;
+  }
+
+  @override
+  Future<FFUserDetails> getUser(String artistID) async {
+    final res = await _feralFileApi.getUser(accountId: artistID);
+    return res.result;
   }
 }
 

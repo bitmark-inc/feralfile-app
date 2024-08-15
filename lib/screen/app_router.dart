@@ -17,6 +17,11 @@ import 'package:autonomy_flutter/screen/account/access_method_page.dart';
 import 'package:autonomy_flutter/screen/account/link_manually_page.dart';
 import 'package:autonomy_flutter/screen/account/recovery_phrase_page.dart';
 import 'package:autonomy_flutter/screen/account/test_artwork_screen.dart';
+import 'package:autonomy_flutter/screen/artist_details/artist_details_bloc.dart';
+import 'package:autonomy_flutter/screen/artist_details/artist_details_page.dart';
+import 'package:autonomy_flutter/screen/artist_details/artist_exhibitions_page.dart';
+import 'package:autonomy_flutter/screen/artist_details/artist_posts_page.dart';
+import 'package:autonomy_flutter/screen/artist_details/artist_works_page.dart';
 import 'package:autonomy_flutter/screen/autonomy_security_page.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/connections/connections_bloc.dart';
@@ -233,6 +238,10 @@ class AppRouter {
   static const addEthereumChainPage = 'add_ethereum_chain_page';
   static const artistsListPage = 'artists_list_page';
   static const exhibitionCustomNote = 'exhibition_custom_note';
+  static const artistDetailsPage = 'artist_details_page';
+  static const artistWorksPage = 'artist_works_page';
+  static const artistExhibitionsPage = 'artist_exhibitions_page';
+  static const artistPostsPage = 'artist_posts_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector(), injector());
@@ -1196,6 +1205,41 @@ class AppRouter {
         return MaterialPageRoute(
           builder: (context) => ExhibitionCustomNotePage(
             info: settings.arguments! as CustomExhibitionNote,
+          ),
+        );
+
+      case artistDetailsPage:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) => MultiBlocProvider(
+              providers: [
+                BlocProvider(create: (_) => UserDetailsBloc()),
+              ],
+              child: UserDetailsPage(
+                payload: settings.arguments! as UserDetailsPagePayload,
+              )),
+        );
+      case artistWorksPage:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) => ArtistWorksPage(
+            payload: settings.arguments! as ArtistWorksPagePayload,
+          ),
+        );
+
+      case artistExhibitionsPage:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) => ArtistExhibitionsPage(
+            payload: settings.arguments! as ArtistExhibitionsPagePayload,
+          ),
+        );
+
+      case artistPostsPage:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) => ArtistPostsPage(
+            payload: settings.arguments! as ArtistPostsPagePayload,
           ),
         );
 

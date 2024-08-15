@@ -390,8 +390,7 @@ Future<void> setup() async {
   injector.registerFactory<AuChatBloc>(() => AuChatBloc(injector()));
   injector.registerLazySingleton<CanvasDeviceBloc>(
       () => CanvasDeviceBloc(injector()));
-  injector
-      .registerLazySingleton<ExhibitionBloc>(() => ExhibitionBloc(injector()));
+  injector.registerFactory<ExhibitionBloc>(() => ExhibitionBloc(injector()));
   injector.registerLazySingleton<SubscriptionBloc>(
       () => SubscriptionBloc(injector()));
 }

@@ -1,13 +1,23 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
+import 'package:autonomy_flutter/model/ff_user.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/artist_details/artist_details_page.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
+import 'package:autonomy_flutter/screen/exhibitions/exhibitions_bloc.dart';
+import 'package:autonomy_flutter/screen/exhibitions/exhibitions_state.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/artwork_view.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/featured_work_view.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/feralfile_home_bloc.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/feralfile_home_state.dart';
+import 'package:autonomy_flutter/screen/feralfile_home/list_artist_view.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/list_exhibition_view.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
+import 'package:autonomy_flutter/util/feralfile_artist_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:collection/collection.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -39,7 +49,7 @@ class _FeralfileHomePageState extends State<FeralfileHomePage> {
     super.initState();
     context.read<FeralfileHomeBloc>().add(FeralFileHomeFetchDataEvent());
     _items = _getItemList(context.read<FeralfileHomeBloc>().state);
-    _selectedIndex = FeralfileHomeTab.exhibitions.index;
+    _selectedIndex = FeralfileHomeTab.artists.index;
   }
 
   @override
@@ -195,32 +205,55 @@ class _FeralfileHomePageState extends State<FeralfileHomePage> {
   }
 
   Widget _exhibitionsWidget() {
-    final featured = context.read<FeralfileHomeBloc>().state.featuredArtworks;
-    return FeaauredWorkView(
-        tokenIDs:
-            featured?.map((e) => e.indexerTokenId).whereNotNull().toList() ??
-                []);
     final exhibitions =
         context.read<FeralfileHomeBloc>().state.exhibitions ?? [];
-    return ListExhibitionView(exhibitions: exhibitions);
+    return MultiBlocProvider(providers: [
+      BlocProvider<ExhibitionBloc>(
+        create: (context) =>
+            ExhibitionBloc(injector())..add(GetAllExhibitionsEvent()),
+      ),
+      BlocProvider<SubscriptionBloc>.value(
+        value: context.read<SubscriptionBloc>(),
+      )
+    ], child: ListExhibitionView(exhibitions: exhibitions));
+  }
+
+  void _gotoArtistDetails(BuildContext context, FFArtist artist) {
+    Navigator.of(context).pushNamed(
+      AppRouter.artistDetailsPage,
+      arguments: UserDetailsPagePayload(user: artist),
+    );
   }
 
   Widget _artistsWidget() {
-    return Container(
-      color: Colors.yellow,
-      child: Center(
-        child: Text('Artists'),
-      ),
-    );
+    final artists =
+        context.read<FeralfileHomeBloc>().state.artists?.result ?? [];
+    return ListUserView(
+        users: artists,
+        onArtistSelected: (user) {
+          if (user is FFUserDetails) {
+            _gotoArtistDetails(context, user.toFFArtist());
+          }
+        });
+  }
+
+  void _gotoCuratorDetails(BuildContext context, FFCurator curator) {
+    unawaited(Navigator.of(context).pushNamed(
+      AppRouter.artistDetailsPage,
+      arguments: UserDetailsPagePayload(user: curator),
+    ));
   }
 
   Widget _curatorsWidget() {
-    return Container(
-      color: Colors.purple,
-      child: Center(
-        child: Text('Curators'),
-      ),
-    );
+    final curator =
+        context.read<FeralfileHomeBloc>().state.curators?.result ?? [];
+    return ListUserView(
+        users: curator,
+        onArtistSelected: (user) {
+          if (user is FFUserDetails) {
+            _gotoCuratorDetails(context, user.toFFCurator());
+          }
+        });
   }
 
   Widget _rAndDWidget() {

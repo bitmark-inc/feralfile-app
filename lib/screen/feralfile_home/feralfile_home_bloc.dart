@@ -15,8 +15,8 @@ class FeralfileHomeBloc
       final featuredWorks = await _feralFileService.getFeaturedArtworks();
       final allArtworks = await _feralFileService.exploreArtworks(limit: 100);
       final exhibitions = await _feralFileService.getAllExhibitions();
-      final artists = null; //await _feralFileService.exploreArtists();
-      final curators = null; //await _feralFileService.exploreCurators();
+      final artists = await _feralFileService.exploreArtists(limit: 200);
+      final curators = await _feralFileService.exploreCurators();
 
       emit(FeralfileHomeBlocState(
         featuredArtworks: featuredWorks,

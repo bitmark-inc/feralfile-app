@@ -4,11 +4,8 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
-import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
 import 'package:autonomy_flutter/screen/exhibitions/exhibitions_bloc.dart';
-import 'package:autonomy_flutter/screen/exhibitions/exhibitions_state.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
@@ -19,7 +16,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:sentry/sentry.dart';
@@ -34,9 +30,7 @@ class ListExhibitionView extends StatefulWidget {
 }
 
 class _ListExhibitionViewState extends State<ListExhibitionView> {
-  String? _autoOpenExhibitionId;
   late ExhibitionBloc _exhibitionBloc;
-  late ScrollController _controller;
   final _navigationService = injector<NavigationService>();
   static const _padding = 14.0;
   static const _exhibitionInfoDivideWidth = 20.0;
@@ -44,132 +38,33 @@ class _ListExhibitionViewState extends State<ListExhibitionView> {
   @override
   void initState() {
     super.initState();
-    _exhibitionBloc = context.read<ExhibitionBloc>();
+    _exhibitionBloc = injector<ExhibitionBloc>();
   }
 
   @override
   Widget build(BuildContext context) {
+    final divider =
+        addDivider(height: 40, color: AppColor.auQuickSilver, thickness: 0.5);
+
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: _padding),
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate(
           (context, index) {
             final exhibition = widget.exhibitions[index];
-            return Container(
-              child: Text(exhibition.title),
+            return Column(
+              children: [
+                _exhibitionItem(
+                    context: context,
+                    viewableExhibitions: widget.exhibitions,
+                    exhibition: exhibition,
+                    isFeaturedExhibition: false),
+                divider,
+              ],
             );
           },
           childCount: widget.exhibitions.length,
         ),
-      ),
-    );
-  }
-
-  Widget _listExhibitions(BuildContext context) =>
-      BlocConsumer<ExhibitionBloc, ExhibitionsState>(
-        listener: (context, exhibitionsState) {
-          if (exhibitionsState.allExhibitions.isNotEmpty &&
-              _autoOpenExhibitionId != null) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              _openExhibition(context, _autoOpenExhibitionId!);
-            });
-          }
-        },
-        builder: (context, exhibitionsState) =>
-            BlocBuilder<SubscriptionBloc, SubscriptionState>(
-          builder: (context, subscriptionState) {
-            if (exhibitionsState.currentPage == 0) {
-              return const SliverToBoxAdapter(
-                child: Center(
-                  child: CircularProgressIndicator(
-                    color: Colors.white,
-                    backgroundColor: AppColor.auQuickSilver,
-                    strokeWidth: 2,
-                  ),
-                ),
-              );
-            } else {
-              final featureExhibition = exhibitionsState.featuredExhibition;
-              final upcomingExhibition = exhibitionsState.upcomingExhibition;
-              final ongoingExhibitions = exhibitionsState.ongoingExhibitions;
-              final pastExhibitions = exhibitionsState.pastExhibitions;
-
-              final allExhibition = exhibitionsState.allExhibitions;
-
-              final divider = addDivider(
-                  height: 40, color: AppColor.auQuickSilver, thickness: 0.5);
-              return SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: _padding),
-                sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final exhibition = allExhibition[index];
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (featureExhibition != null && index == 0) ...[
-                            _exhibitionGroupHeader(
-                              context,
-                              'current_exhibition'.tr(),
-                            ),
-                          ],
-                          if (upcomingExhibition != null && index == 1) ...[
-                            _exhibitionGroupHeader(
-                              context,
-                              'upcoming_exhibition'.tr(),
-                            ),
-                          ],
-                          if (exhibition.id ==
-                              ongoingExhibitions?.firstOrNull?.id) ...[
-                            _exhibitionGroupHeader(
-                              context,
-                              'on_going_exhibition'.tr(),
-                            ),
-                          ],
-                          if (exhibition.id == pastExhibitions?.first.id)
-                            _exhibitionGroupHeader(
-                              context,
-                              'past_exhibition'.tr(),
-                            ),
-                          _exhibitionItem(
-                            context: context,
-                            viewableExhibitions: allExhibition,
-                            exhibition: exhibition,
-                            isFeaturedExhibition:
-                                exhibition.id == featureExhibition?.id,
-                          ),
-                          divider,
-                          if (index == allExhibition.length - 1)
-                            const SizedBox(height: 40),
-                        ],
-                      );
-                    },
-                    childCount: allExhibition.length,
-                  ),
-                ),
-              );
-            }
-          },
-        ),
-      );
-
-  Widget _exhibitionGroupHeader(BuildContext context, String title) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 18),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: theme.textTheme.ppMori700White14,
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }
@@ -204,7 +99,6 @@ class _ListExhibitionViewState extends State<ListExhibitionView> {
         ),
       );
     }
-    _autoOpenExhibitionId = null;
   }
 
   Widget _exhibitionItem({

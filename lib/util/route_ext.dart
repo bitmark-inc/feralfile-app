@@ -3,6 +3,10 @@ import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/artist_details/artist_details_page.dart';
+import 'package:autonomy_flutter/screen/artist_details/artist_exhibitions_page.dart';
+import 'package:autonomy_flutter/screen/artist_details/artist_posts_page.dart';
+import 'package:autonomy_flutter/screen/artist_details/artist_works_page.dart';
 import 'package:autonomy_flutter/screen/bloc/connections/connections_bloc.dart';
 import 'package:autonomy_flutter/screen/chat/chat_thread_page.dart';
 import 'package:autonomy_flutter/screen/cloud/cloud_android_page.dart';
@@ -358,6 +362,36 @@ extension RouteExt on Route {
         data = {
           MixpanelProp.exhibitionId: payload.id,
         };
+      case AppRouter.artistDetailsPage:
+        final payload = settings.arguments! as UserDetailsPagePayload;
+        data = {
+          MixpanelProp.id: payload.user.id,
+          MixpanelProp.title: payload.user.alias,
+          MixpanelProp.address: payload.user.accountNumber,
+        };
+      case AppRouter.artistExhibitionsPage:
+        final payload = settings.arguments! as ArtistExhibitionsPagePayload;
+        data = {
+          MixpanelProp.id: payload.user.id,
+          MixpanelProp.title: payload.user.alias,
+          MixpanelProp.address: payload.user.accountNumber,
+        };
+
+      case AppRouter.artistWorksPage:
+        final payload = settings.arguments! as ArtistWorksPagePayload;
+        data = {
+          MixpanelProp.id: payload.user.id,
+          MixpanelProp.title: payload.user.alias,
+          MixpanelProp.address: payload.user.accountNumber,
+        };
+
+      case AppRouter.artistPostsPage:
+        final payload = settings.arguments! as ArtistPostsPagePayload;
+        data = {
+          MixpanelProp.id: payload.user.id,
+          MixpanelProp.title: payload.user.alias,
+          MixpanelProp.address: payload.user.accountNumber,
+        };
       default:
         break;
     }
@@ -449,6 +483,10 @@ final screenNameMap = {
   AppRouter.projectsList: 'Projects',
   AppRouter.artistsListPage: 'Artists list',
   AppRouter.exhibitionCustomNote: 'Exhibition Custom Note',
+  AppRouter.artistDetailsPage: 'Artist Details',
+  AppRouter.artistExhibitionsPage: 'Artist Exhibitions',
+  AppRouter.artistWorksPage: 'Artist Works',
+  AppRouter.artistPostsPage: 'Artist Posts',
 };
 
 String getPageName(String routeName) {
