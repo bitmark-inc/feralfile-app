@@ -16,9 +16,9 @@ import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/account_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
+import 'package:autonomy_flutter/util/ether_amount_ext.dart';
+import 'package:autonomy_flutter/util/int_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:autonomy_flutter/view/crypto_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/tappable_forward_row.dart';
@@ -125,7 +125,7 @@ Widget accountItem(BuildContext context, Account account,
             ],
           ),
           const SizedBox(height: 10),
-          FutureBuilder<Pair<String, String>>(
+          FutureBuilder<Pair<String, String>?>(
             future: balance,
             builder: (context, snapshot) {
               final balances = snapshot.data ?? Pair('--', '--');
@@ -157,7 +157,7 @@ Widget accountItem(BuildContext context, Account account,
   );
 }
 
-Future<Pair<String, String>> getAddressBalance(
+Future<Pair<String, String>?> getAddressBalance(
     String address, CryptoType cryptoType) async {
   final tokenDao = injector<TokenDao>();
   final tokens = await tokenDao.findTokenIDsOwnersOwn([address]);
@@ -166,13 +166,10 @@ Future<Pair<String, String>> getAddressBalance(
   switch (cryptoType) {
     case CryptoType.ETH:
       final etherAmount = await injector<EthereumService>().getBalance(address);
-      final cryptoBalance =
-          '${EthAmountFormatter().format(etherAmount.getInWei)} ETH';
-      return Pair(cryptoBalance, nftBalance);
+      return Pair(etherAmount.toEthStringValue, nftBalance);
     case CryptoType.XTZ:
       final tezosAmount = await injector<TezosService>().getBalance(address);
-      final cryptoBalance = '${XtzAmountFormatter().format(tezosAmount)} XTZ';
-      return Pair(cryptoBalance, nftBalance);
+      return Pair(tezosAmount.toXTZStringValue, nftBalance);
     case CryptoType.USDC:
     case CryptoType.UNKNOWN:
       return Pair('', '');
@@ -264,7 +261,7 @@ Widget primaryLabel(BuildContext context) {
   return DecoratedBox(
       decoration: BoxDecoration(
           color: AppColor.primaryBlack,
-          border: Border.all(color: AppColor.primaryBlack),
+          border: Border.all(),
           borderRadius: BorderRadius.circular(20)),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),

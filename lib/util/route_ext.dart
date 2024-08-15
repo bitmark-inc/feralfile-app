@@ -33,7 +33,6 @@ import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwor
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_review_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/linked_wallet_detail_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
-import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
@@ -182,11 +181,6 @@ extension RouteExt on Route {
         data = {
           MixpanelProp.title: payload.proposer.name,
           MixpanelProp.url: payload.proposer.url,
-        };
-      case AppRouter.inappWebviewPage:
-        final payload = settings.arguments! as InAppWebViewPayload;
-        data = {
-          MixpanelProp.url: payload.url,
         };
       case AppRouter.postcardExplain:
         final payload = settings.arguments! as PostcardExplainPayload;
