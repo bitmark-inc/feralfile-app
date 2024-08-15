@@ -10,20 +10,18 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
-import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:overlay_support/overlay_support.dart';
+
 // ignore: implementation_imports
 import 'package:overlay_support/src/overlay_state_finder.dart';
 
-Widget _notificationToast(BuildContext context, OSNotification notification,
-        {Function(OSNotification notification)? notificationOpenedHandler}) =>
+Widget _notificationToast(BuildContext context, String id,
+        {Function? handler, String? body}) =>
     _SimpleNotificationToast(
-      notification: notification.body ?? '',
-      key: Key(notification.notificationId),
+      notification: body ?? '',
+      key: Key(id),
       notificationOpenedHandler: () {
-        if (notificationOpenedHandler != null) {
-          notificationOpenedHandler(notification);
-        }
+        handler?.call();
       },
       addOnTextSpan: [
         TextSpan(
@@ -176,15 +174,14 @@ class _NotificationToastWithLink extends StatelessWidget {
   }
 }
 
-void showNotifications(BuildContext context, OSNotification notification,
-    {Function(OSNotification notification)? notificationOpenedHandler}) {
+void showNotifications(BuildContext context, String id,
+    {Function? handler, String? body}) {
   showSimpleNotification(
-    _notificationToast(context, notification,
-        notificationOpenedHandler: notificationOpenedHandler),
+    _notificationToast(context, id, handler: handler, body: body),
     background: Colors.transparent,
     duration: const Duration(seconds: 3),
     elevation: 0,
-    key: Key(notification.notificationId),
+    key: Key(id),
     slideDismissDirection: DismissDirection.up,
   );
   Vibrate.feedback(FeedbackType.warning);

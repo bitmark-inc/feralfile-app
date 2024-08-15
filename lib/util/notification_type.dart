@@ -9,26 +9,17 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
-import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
-import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_bloc.dart';
-import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
-import 'package:autonomy_flutter/service/chat_service.dart';
+import 'package:autonomy_flutter/model/additional_data/additional_data.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
-import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/extensions/extensions.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:nft_collection/database/nft_collection_database.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 
 enum NotificationType {
@@ -46,7 +37,7 @@ enum NotificationType {
   exhibitionViewingOpening,
   exhibitionSalesOpening,
   exhibitionSaleClosing,
-  unknown;
+  general;
 
   // toString method
   @override
@@ -80,8 +71,8 @@ enum NotificationType {
         return 'exhibition_sale_opening';
       case NotificationType.exhibitionSaleClosing:
         return 'exhibition_sale_closing';
-      case NotificationType.unknown:
-        return 'unknown';
+      case NotificationType.general:
+        return 'general';
     }
   }
 
@@ -117,7 +108,7 @@ enum NotificationType {
       case 'exhibition_sale_closing':
         return NotificationType.exhibitionSaleClosing;
       default:
-        return NotificationType.unknown;
+        return NotificationType.general;
     }
   }
 }
@@ -144,145 +135,21 @@ class NotificationHandler {
     log.info("Tap to notification: ${notification.body ?? "empty"} "
         '\nAdditional data: ${notification.additionalData!}');
 
-    final navigatePath = notification.additionalData!['navigation_route'];
-    if (navigatePath != null) {
-      await injector<NavigationService>().navigatePath(navigatePath);
-    }
+    final additionalData =
+        AdditionalData.fromJson(notification.additionalData!);
+    await additionalData.handleTap(context, pageController);
 
-    final notificationType = NotificationType.fromString(
-        notification.additionalData!['notification_type']);
     if (!context.mounted) {
       return;
     }
-    switch (notificationType) {
-      case NotificationType.galleryNewNft:
-        Navigator.of(context).popUntil((route) =>
-            route.settings.name == AppRouter.homePage ||
-            route.settings.name == AppRouter.homePageNoTransition);
-        pageController?.jumpToPage(HomeNavigatorTab.collection.index);
 
-      case NotificationType.customerSupportNewMessage:
-      case NotificationType.customerSupportCloseIssue:
-        final issueID = '${notification.additionalData!["issue_id"]}';
-        final announcement = await injector<CustomerSupportService>()
-            .findAnnouncementFromIssueId(issueID);
-        if (!context.mounted) {
-          return;
-        }
-        unawaited(Navigator.of(context).pushNamedAndRemoveUntil(
-          AppRouter.supportThreadPage,
-          (route) =>
-              route.settings.name == AppRouter.homePage ||
-              route.settings.name == AppRouter.homePageNoTransition,
-          arguments: DetailIssuePayload(
-              reportIssueType: '',
-              issueID: issueID,
-              announcement: announcement),
-        ));
-      case NotificationType.customerSupportNewAnnouncement:
-        final announcementID = '${notification.additionalData!["id"]}';
-        unawaited(_openAnnouncement(context, announcementID));
-
-      case NotificationType.artworkCreated:
-      case NotificationType.artworkReceived:
-        Navigator.of(context).popUntil((route) =>
-            route.settings.name == AppRouter.homePage ||
-            route.settings.name == AppRouter.homePageNoTransition);
-        pageController?.jumpToPage(HomeNavigatorTab.collection.index);
-      case NotificationType.newMessage:
-        if (!_remoteConfig.getBool(ConfigGroup.viewDetail, ConfigKey.chat)) {
-          return;
-        }
-        final data = notification.additionalData;
-        if (data == null) {
-          return;
-        }
-        final tokenId = data['group_id'];
-        final tokens = await injector<NftCollectionDatabase>()
-            .assetTokenDao
-            .findAllAssetTokensByTokenIDs([tokenId]);
-        final owner = tokens.first.owner;
-        final isSkip =
-            injector<ChatService>().isConnecting(address: owner, id: tokenId);
-        if (isSkip) {
-          return;
-        }
-        final GlobalKey<ClaimedPostcardDetailPageState> key = GlobalKey();
-        final postcardDetailPayload = PostcardDetailPagePayload(
-            [ArtworkIdentity(tokenId, owner)], 0,
-            key: key);
-        if (!context.mounted) {
-          return;
-        }
-        unawaited(Navigator.of(context).pushNamed(
-            AppRouter.claimedPostcardDetailsPage,
-            arguments: postcardDetailPayload));
-        Timer.periodic(const Duration(milliseconds: 100), (timer) async {
-          final state = key.currentState;
-          final assetToken =
-              key.currentContext?.read<PostcardDetailBloc>().state.assetToken;
-          if (state != null && assetToken != null) {
-            unawaited(state.gotoChatThread(key.currentContext!));
-            timer.cancel();
-          }
-        });
-
-      case NotificationType.newPostcardTrip:
-      case NotificationType.postcardShareExpired:
-        final data = notification.additionalData;
-        if (data == null) {
-          return;
-        }
-        final indexID = data['indexID'];
-        final tokens = await injector<NftCollectionDatabase>()
-            .assetTokenDao
-            .findAllAssetTokensByTokenIDs([indexID]);
-        if (tokens.isEmpty) {
-          return;
-        }
-        final owner = tokens.first.owner;
-        final postcardDetailPayload = PostcardDetailPagePayload(
-          [ArtworkIdentity(indexID, owner)],
-          0,
-          useIndexer: true,
-        );
-        if (!context.mounted) {
-          return;
-        }
-        Navigator.of(context).popUntil((route) =>
-            route.settings.name == AppRouter.homePage ||
-            route.settings.name == AppRouter.homePageNoTransition);
-        unawaited(Navigator.of(context).pushNamed(
-            AppRouter.claimedPostcardDetailsPage,
-            arguments: postcardDetailPayload));
-
-      case NotificationType.jgCrystallineWorkHasArrived:
-        final jgExhibitionId = JohnGerrardHelper.exhibitionID;
-        await _navigationService
-            .gotoExhibitionDetailsPage(jgExhibitionId ?? '');
-
-      case NotificationType.jgCrystallineWorkGenerated:
-        _navigationService.popUntilHome();
-        final data = notification.additionalData;
-        if (data == null) {
-          return;
-        }
-        final tokenId = data['token_id'];
-        final indexId = JohnGerrardHelper.getIndexID(tokenId);
-        await _navigationService.gotoArtworkDetailsPage(indexId);
-
-      case NotificationType.exhibitionViewingOpening:
-      case NotificationType.exhibitionSalesOpening:
-      case NotificationType.exhibitionSaleClosing:
-        final data = notification.additionalData;
-        if (data == null) {
-          return;
-        }
-        final exhibitionId = data['exhibition_id'];
-        await _navigationService.gotoExhibitionDetailsPage(exhibitionId);
-      default:
-        log.warning('unhandled notification type: $notificationType');
-        break;
+    final navigatePath = notification.additionalData!['navigation_route'];
+    if (navigatePath != null) {
+      try {
+        await _navigationService.navigatePath(navigatePath);
+      } catch (e) {
+        log.info('Failed to navigate to $navigatePath: $e');
+      }
     }
   }
 
@@ -335,8 +202,8 @@ class NotificationHandler {
                   text: 'tap_to_view'.tr(),
                   style: Theme.of(context).textTheme.ppMori400FFYellow14),
             ], openHandler: () async {
-          final announcementID = '${data["id"]}';
-          unawaited(_openAnnouncement(context, announcementID));
+          await handleNotificationClicked(
+              context, event.notification, pageController);
         });
       case NotificationType.newMessage:
         final groupId = data['group_id'];
@@ -347,42 +214,19 @@ class NotificationHandler {
 
         final currentGroupId = memoryValues.currentGroupChatId;
         if (groupId != currentGroupId) {
-          showNotifications(context, event.notification,
-              notificationOpenedHandler: (notification) async {
+          showNotifications(context, event.notification.notificationId,
+              handler: () async {
             await handleNotificationClicked(
-                context, notification, pageController);
+                context, event.notification, pageController);
           });
         }
       default:
-        showNotifications(context, event.notification,
-            notificationOpenedHandler: (notification) async {
+        showNotifications(context, event.notification.notificationId,
+            body: event.notification.body, handler: () async {
           await handleNotificationClicked(
-              context, notification, pageController);
+              context, event.notification, pageController);
         });
     }
     event.complete(null);
-  }
-
-  Future<void> _openAnnouncement(
-      BuildContext context, String announcementID) async {
-    log.info('Open announcement: id = $announcementID');
-    await injector<CustomerSupportService>().fetchAnnouncement();
-    final announcement = await injector<CustomerSupportService>()
-        .findAnnouncement(announcementID);
-    if (announcement != null) {
-      if (!context.mounted) {
-        return;
-      }
-      unawaited(Navigator.of(context).pushNamedAndRemoveUntil(
-        AppRouter.supportThreadPage,
-        (route) =>
-            route.settings.name == AppRouter.homePage ||
-            route.settings.name == AppRouter.homePageNoTransition,
-        arguments: NewIssuePayload(
-          reportIssueType: ReportIssueType.Announcement,
-          announcement: announcement,
-        ),
-      ));
-    }
   }
 }
