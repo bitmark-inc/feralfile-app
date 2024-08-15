@@ -19,6 +19,10 @@ if [ ! -f .env.secret ]; then
     exit 1
 fi
 
+if [ -s ".env.secret" ] && [ "$(tail -c 1 .env.secret)" != "" ]; then
+    echo "" >> .env.secret
+fi
+
 # Initialize an empty JSON object
 json_object="{"
 

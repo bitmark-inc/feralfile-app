@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
 import 'package:web3dart/web3dart.dart';
 
 extension EtherAmountExtension on EtherAmount {
@@ -11,4 +12,6 @@ extension EtherAmountExtension on EtherAmount {
     return EtherAmount.inWei(
         resultInWei > BigInt.zero ? resultInWei : BigInt.zero);
   }
+
+  String get toEthStringValue => '${EthAmountFormatter().format(getInWei)} ETH';
 }
