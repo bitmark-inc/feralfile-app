@@ -8,6 +8,7 @@ import 'package:autonomy_flutter/screen/artist_details/artist_details_page.dart'
 import 'package:autonomy_flutter/screen/feralfile_home/filter_bar.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/util/feralfile_artist_ext.dart';
+import 'package:autonomy_flutter/view/loading_view.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -26,12 +27,11 @@ class ExploreArtistView extends StatefulWidget {
   @override
   State<ExploreArtistView> createState() => _ExploreArtistViewState();
 
-  bool isEqual(Object other) {
-    return other is ExploreArtistView &&
-        other.searchText == searchText &&
-        other.filters == filters &&
-        other.sortBy == sortBy;
-  }
+  bool isEqual(Object other) =>
+      other is ExploreArtistView &&
+      other.searchText == searchText &&
+      other.filters == filters &&
+      other.sortBy == sortBy;
 }
 
 class _ExploreArtistViewState extends State<ExploreArtistView> {
@@ -62,11 +62,10 @@ class _ExploreArtistViewState extends State<ExploreArtistView> {
     }
   }
 
-  Widget _loadingView(BuildContext context) {
-    return Center(
-      child: CircularProgressIndicator(),
-    );
-  }
+  Widget _loadingView(BuildContext context) => Padding(
+        padding: const EdgeInsets.only(bottom: 100),
+        child: loadingView(context, size: 100),
+      );
 
   Widget _emptyView(BuildContext context) {
     final theme = Theme.of(context);
@@ -75,23 +74,22 @@ class _ExploreArtistViewState extends State<ExploreArtistView> {
     );
   }
 
-  Widget _artistView(BuildContext context, List<FFUser> artists) {
-    return ListUserView(
-      users: artists,
-      onUserSelected: (user) {
-        if (user is FFUserDetails) {
-          _gotoArtistDetails(context, user.toFFArtist());
-        }
-      },
-      scrollController: _scrollController,
-    );
-  }
+  Widget _artistView(BuildContext context, List<FFUser> artists) =>
+      ListUserView(
+        users: artists,
+        onUserSelected: (user) {
+          if (user is FFUserDetails) {
+            _gotoArtistDetails(context, user.toFFArtist());
+          }
+        },
+        scrollController: _scrollController,
+      );
 
   void _gotoArtistDetails(BuildContext context, FFArtist artist) {
-    Navigator.of(context).pushNamed(
+    unawaited(Navigator.of(context).pushNamed(
       AppRouter.userDetailsPage,
       arguments: UserDetailsPagePayload(user: artist),
-    );
+    ));
   }
 
   @override
@@ -158,20 +156,19 @@ class ExploreCuratorView extends StatefulWidget {
   final SortBy sortBy;
 
   const ExploreCuratorView(
-      {this.searchText,
-      required this.filters,
+      {required this.filters,
       required this.sortBy,
+      this.searchText,
       super.key});
 
   @override
   State<ExploreCuratorView> createState() => _ExploreCuratorViewState();
 
-  bool isEqual(Object other) {
-    return other is ExploreCuratorView &&
-        other.searchText == searchText &&
-        other.filters == filters &&
-        other.sortBy == sortBy;
-  }
+  bool isEqual(Object other) =>
+      other is ExploreCuratorView &&
+      other.searchText == searchText &&
+      other.filters == filters &&
+      other.sortBy == sortBy;
 }
 
 class _ExploreCuratorViewState extends State<ExploreCuratorView> {
@@ -202,11 +199,10 @@ class _ExploreCuratorViewState extends State<ExploreCuratorView> {
     }
   }
 
-  Widget _loadingView(BuildContext context) {
-    return Center(
-      child: CircularProgressIndicator(),
-    );
-  }
+  Widget _loadingView(BuildContext context) => Padding(
+        padding: const EdgeInsets.only(bottom: 100),
+        child: loadingView(context, size: 100),
+      );
 
   Widget _emptyView(BuildContext context) {
     final theme = Theme.of(context);
@@ -215,17 +211,16 @@ class _ExploreCuratorViewState extends State<ExploreCuratorView> {
     );
   }
 
-  Widget _curatorView(BuildContext context, List<FFUser> curators) {
-    return ListUserView(
-      users: curators,
-      onUserSelected: (user) {
-        if (user is FFUserDetails) {
-          _gotoCuratorDetails(context, user.toFFCurator());
-        }
-      },
-      scrollController: _scrollController,
-    );
-  }
+  Widget _curatorView(BuildContext context, List<FFUser> curators) =>
+      ListUserView(
+        users: curators,
+        onUserSelected: (user) {
+          if (user is FFUserDetails) {
+            _gotoCuratorDetails(context, user.toFFCurator());
+          }
+        },
+        scrollController: _scrollController,
+      );
 
   void _gotoCuratorDetails(BuildContext context, FFCurator curator) {
     unawaited(Navigator.of(context).pushNamed(
@@ -317,38 +312,36 @@ class _ListUserViewState extends State<ListUserView> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return CustomScrollView(
-      controller: _scrollController,
-      slivers: [
-        SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          sliver: SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                childAspectRatio: 102.0 / 129,
-                crossAxisSpacing: 24,
-                mainAxisSpacing: 30,
-              ),
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final user = widget.users[index];
-                  return GestureDetector(
-                    onTap: () {
-                      widget.onUserSelected(user);
-                    },
-                    child: Container(
-                      color: Colors.transparent,
-                      child: _artistItem(context, user),
-                    ),
-                  );
-                },
-                childCount: widget.users.length,
-              )),
-        ),
-      ],
-    );
-  }
+  Widget build(BuildContext context) => CustomScrollView(
+        controller: _scrollController,
+        slivers: [
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            sliver: SliverGrid(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  childAspectRatio: 102.0 / 129,
+                  crossAxisSpacing: 24,
+                  mainAxisSpacing: 30,
+                ),
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final user = widget.users[index];
+                    return GestureDetector(
+                      onTap: () {
+                        widget.onUserSelected(user);
+                      },
+                      child: Container(
+                        color: Colors.transparent,
+                        child: _artistItem(context, user),
+                      ),
+                    );
+                  },
+                  childCount: widget.users.length,
+                )),
+          ),
+        ],
+      );
 
   Widget _artistAvatar(BuildContext context, FFUser user) {
     final avatarUrl = user.avatarUrl;

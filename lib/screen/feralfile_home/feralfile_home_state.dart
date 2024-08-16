@@ -14,11 +14,10 @@ class FeralfileHomeBlocState {
   FeralfileHomeBlocState copyWith({
     ExploreStatisticsData? exploreStatisticsData,
     List<Artwork>? featuredArtworks,
-  }) {
-    return FeralfileHomeBlocState(
-      exploreStatisticsData:
-          exploreStatisticsData ?? this.exploreStatisticsData,
-      featuredArtworks: featuredArtworks ?? this.featuredArtworks,
-    );
-  }
+  }) =>
+      FeralfileHomeBlocState(
+        exploreStatisticsData:
+            exploreStatisticsData ?? this.exploreStatisticsData,
+        featuredArtworks: featuredArtworks ?? this.featuredArtworks,
+      );
 }

@@ -51,16 +51,14 @@ class FilterExpanandedItemState extends State<FilterExpanandedItem> {
     widget.onFilterCleared?.call();
   }
 
-  Widget _clearIcon(BuildContext context) {
-    return GestureDetector(
-      onTap: _onFilterCleared,
-      child: Icon(
-        Icons.clear,
-        color: AppColor.white,
-        size: 16,
-      ),
-    );
-  }
+  Widget _clearIcon(BuildContext context) => GestureDetector(
+        onTap: _onFilterCleared,
+        child: const Icon(
+          Icons.clear,
+          color: AppColor.white,
+          size: 16,
+        ),
+      );
 
   Widget _unexpandedWidget(BuildContext context) {
     final theme = Theme.of(context);
@@ -82,7 +80,10 @@ class FilterExpanandedItemState extends State<FilterExpanandedItem> {
             const SizedBox(
               width: 8,
             ),
-            _selectedValue != null ? _clearIcon(context) : SizedBox(),
+            if (_selectedValue != null)
+              _clearIcon(context)
+            else
+              const SizedBox(),
           ],
         ]),
       ],
@@ -123,7 +124,10 @@ class FilterExpanandedItemState extends State<FilterExpanandedItem> {
               const SizedBox(
                 width: 8,
               ),
-              _selectedValue != null ? _clearIcon(context) : SizedBox(),
+              if (_selectedValue != null)
+                _clearIcon(context)
+              else
+                const SizedBox(),
             ],
           ],
         ),
@@ -133,64 +137,61 @@ class FilterExpanandedItemState extends State<FilterExpanandedItem> {
 
   Widget _expandedBody(BuildContext context) {
     final theme = Theme.of(context);
-    final divider = Divider(
+    const divider = Divider(
       color: AppColor.white,
     );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        ...widget.values.map((value) {
-          return Column(
-            children: [
-              GestureDetector(
-                onTap: () {
-                  _onFilterSelected(value);
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  color: _selectedValue == value
-                      ? AppColor.feralFileHighlight
-                      : Colors.transparent,
-                  child: Text(
-                    value,
-                    style: theme.textTheme.ppMori400White12,
+        ...widget.values.map((value) => Column(
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    _onFilterSelected(value);
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    color: Colors.transparent,
+                    child: Text(
+                      value,
+                      style: theme.textTheme.ppMori400White12,
+                    ),
                   ),
                 ),
-              ),
-              divider,
-            ],
-          );
-        }).toList(),
+                divider,
+              ],
+            )),
       ],
     );
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(8.0),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        color: AppColor.auGreyBackground,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _isExpanded ? _expandedWidget(context) : _unexpandedWidget(context),
-          Visibility(
-            visible: _isExpanded,
-            child: Column(
-              children: [
-                Container(
-                  width: 45,
-                  child: addDivider(),
-                ),
-                _expandedBody(context),
-              ],
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          color: AppColor.auGreyBackground,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (_isExpanded)
+              _expandedWidget(context)
+            else
+              _unexpandedWidget(context),
+            Visibility(
+              visible: _isExpanded,
+              child: Column(
+                children: [
+                  Container(
+                    width: 45,
+                    child: addDivider(),
+                  ),
+                  _expandedBody(context),
+                ],
+              ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
+          ],
+        ),
+      );
 }

@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/screen/gallery/gallery_page.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
+import 'package:autonomy_flutter/view/loading_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nft_collection/models/asset_token.dart';
@@ -24,7 +25,7 @@ class FeaauredWorkView extends StatefulWidget {
 }
 
 class _FeaauredWorkViewState extends State<FeaauredWorkView> {
-  final _featureTokens = <AssetToken>[];
+  List<AssetToken>? _featureTokens = null;
 
   @override
   void initState() {
@@ -40,51 +41,62 @@ class _FeaauredWorkViewState extends State<FeaauredWorkView> {
     }
   }
 
+  Widget _loadingView(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.only(bottom: 80),
+      constraints: BoxConstraints.expand(),
+      child: loadingView(context, size: 100),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return CustomScrollView(
-      slivers: [
-        SliverPadding(
-          padding: EdgeInsets.zero,
-          sliver: SliverList(
-              delegate: SliverChildBuilderDelegate(
-            (context, index) {
-              final token = _featureTokens[index];
-              return BlocBuilder<IdentityBloc, IdentityState>(
-                builder: (context, state) {
-                  final artistName = state.identityMap[token.artistName] ??
-                      token.artistName ??
-                      token.artistID ??
-                      '';
-                  return GestureDetector(
-                    onTap: () {
-                      _gotoArtworkDetails(context, token);
-                    },
-                    child: Container(
-                      color: Colors.transparent,
-                      child: Column(
-                        children: [
-                          Image.network(token.thumbnailURL ?? ''),
-                          _infoHeader(context, token, artistName, false,
-                              context.read<CanvasDeviceBloc>().state),
-                        ],
+    if (_featureTokens == null) {
+      return _loadingView(context);
+    } else
+      return CustomScrollView(
+        slivers: [
+          SliverPadding(
+            padding: EdgeInsets.zero,
+            sliver: SliverList(
+                delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                final token = _featureTokens![index];
+                return BlocBuilder<IdentityBloc, IdentityState>(
+                  builder: (context, state) {
+                    final artistName = state.identityMap[token.artistName] ??
+                        token.artistName ??
+                        token.artistID ??
+                        '';
+                    return GestureDetector(
+                      onTap: () {
+                        _gotoArtworkDetails(context, token);
+                      },
+                      child: Container(
+                        color: Colors.transparent,
+                        child: Column(
+                          children: [
+                            Image.network(token.thumbnailURL ?? ''),
+                            _infoHeader(context, token, artistName, false,
+                                context.read<CanvasDeviceBloc>().state),
+                          ],
+                        ),
                       ),
-                    ),
-                  );
-                },
-              );
-            },
-            childCount: _featureTokens.length,
-          )),
-        ),
-        // safe height for bottom
-        SliverToBoxAdapter(
-          child: Container(
-            height: 80,
+                    );
+                  },
+                );
+              },
+              childCount: _featureTokens?.length ?? 0,
+            )),
           ),
-        ),
-      ],
-    );
+          // safe height for bottom
+          SliverToBoxAdapter(
+            child: Container(
+              height: 80,
+            ),
+          ),
+        ],
+      );
   }
 
   Future<void> _fetchFeaturedTokens(BuildContext context) async {
@@ -99,8 +111,9 @@ class _FeaauredWorkViewState extends State<FeaauredWorkView> {
     }
     bloc.add(GetIdentityEvent(addresses));
     setState(() {
-      _featureTokens.addAll(tokens);
-      log.info('feature tokens: ${_featureTokens.length}');
+      _featureTokens ??= [];
+      _featureTokens!.addAll(tokens);
+      log.info('feature tokens: ${_featureTokens!.length}');
     });
   }
 

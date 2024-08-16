@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_page.d
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/series_ext.dart';
+import 'package:autonomy_flutter/view/loading_view.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -32,13 +33,12 @@ class ExploreSeriesView extends StatefulWidget {
   @override
   State<ExploreSeriesView> createState() => _ExploreSeriesViewState();
 
-  bool isEqual(Object other) {
-    return other is ExploreSeriesView &&
-        other.searchText == searchText &&
-        other.filters == filters &&
-        other.sortBy == sortBy &&
-        other.pageSize == pageSize;
-  }
+  bool isEqual(Object other) =>
+      other is ExploreSeriesView &&
+      other.searchText == searchText &&
+      other.filters == filters &&
+      other.sortBy == sortBy &&
+      other.pageSize == pageSize;
 }
 
 class _ExploreSeriesViewState extends State<ExploreSeriesView> {
@@ -77,11 +77,10 @@ class _ExploreSeriesViewState extends State<ExploreSeriesView> {
     super.dispose();
   }
 
-  Widget _loadingView(BuildContext context) {
-    return Center(
-      child: CircularProgressIndicator(),
-    );
-  }
+  Widget _loadingView(BuildContext context) => Padding(
+        padding: const EdgeInsets.only(bottom: 100),
+        child: loadingView(context, size: 100),
+      );
 
   Widget _emptyView(BuildContext context) {
     final theme = Theme.of(context);
@@ -90,12 +89,10 @@ class _ExploreSeriesViewState extends State<ExploreSeriesView> {
     );
   }
 
-  Widget _seriesView(BuildContext context, List<FFSeries> series) {
-    return SeriesView(
-      series: series,
-      scrollController: _scrollController,
-    );
-  }
+  Widget _seriesView(BuildContext context, List<FFSeries> series) => SeriesView(
+        series: series,
+        scrollController: _scrollController,
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -166,8 +163,14 @@ class _ExploreSeriesViewState extends State<ExploreSeriesView> {
 class SeriesView extends StatefulWidget {
   final List<FFSeries> series;
   final ScrollController? scrollController;
+  final bool isScrollable;
 
-  const SeriesView({required this.series, this.scrollController, super.key});
+  const SeriesView({
+    required this.series,
+    this.scrollController,
+    super.key,
+    this.isScrollable = true,
+  });
 
   @override
   State<SeriesView> createState() => _SeriesViewState();
@@ -183,12 +186,14 @@ class _SeriesViewState extends State<SeriesView> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return CustomScrollView(
-      controller: _scrollController,
-      shrinkWrap: true,
-      slivers: [
-        SliverGrid(
+  Widget build(BuildContext context) => CustomScrollView(
+        controller: _scrollController,
+        shrinkWrap: true,
+        physics: widget.isScrollable
+            ? const AlwaysScrollableScrollPhysics()
+            : const NeverScrollableScrollPhysics(),
+        slivers: [
+          SliverGrid(
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
               crossAxisSpacing: 1,
@@ -201,10 +206,10 @@ class _SeriesViewState extends State<SeriesView> {
                 return _seriesItem(context, series);
               },
               childCount: widget.series.length,
-            ))
-      ],
-    );
-  }
+            ),
+          )
+        ],
+      );
 
   Widget _seriesInfo(BuildContext context, FFSeries series) {
     final theme = Theme.of(context);
@@ -255,67 +260,65 @@ class _SeriesViewState extends State<SeriesView> {
     );
   }
 
-  Widget _seriesItem(BuildContext context, FFSeries series) {
-    return GestureDetector(
-      onTap: () {
-        _gotoSeriesDetails(context, series);
-      },
-      child: Container(
-        color: Colors.transparent,
-        padding: const EdgeInsets.all(8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: Image.network(
-                      series.thumbnailUrl ?? '',
-                      fit: BoxFit.fitWidth,
+  Widget _seriesItem(BuildContext context, FFSeries series) => GestureDetector(
+        onTap: () {
+          _gotoSeriesDetails(context, series);
+        },
+        child: Container(
+          color: Colors.transparent,
+          padding: const EdgeInsets.all(8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Image.network(
+                        series.thumbnailUrl ?? '',
+                        fit: BoxFit.fitWidth,
+                      ),
+                      // Image.network(
+                      //   series.thumbnailUrl ?? '',
+                      //   fit: BoxFit.fitWidth,
+                      // ),
                     ),
-                    // Image.network(
-                    //   series.thumbnailUrl ?? '',
-                    //   fit: BoxFit.fitWidth,
-                    // ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            _seriesInfo(context, series),
-          ],
+              const SizedBox(height: 8),
+              _seriesInfo(context, series),
+            ],
+          ),
         ),
-      ),
-    );
-  }
+      );
 
   void _gotoSeriesDetails(BuildContext context, FFSeries series) {
     if (series.isSingle) {
       final artwork = series.artwork!;
-      Navigator.of(context).pushNamed(
+      unawaited(Navigator.of(context).pushNamed(
         AppRouter.ffArtworkPreviewPage,
         arguments: FeralFileArtworkPreviewPagePayload(
           artwork: artwork,
         ),
-      );
+      ));
     } else {
-      Navigator.of(context).pushNamed(
+      unawaited(Navigator.of(context).pushNamed(
         AppRouter.feralFileSeriesPage,
         arguments: FeralFileSeriesPagePayload(
           seriesId: series.id,
           exhibitionId: series.exhibitionID,
         ),
-      );
+      ));
     }
   }
 
   void _gotoExhibitionDetails(BuildContext context, Exhibition exhibition) {
-    Navigator.of(context).pushNamed(AppRouter.exhibitionDetailPage,
+    unawaited(Navigator.of(context).pushNamed(AppRouter.exhibitionDetailPage,
         arguments: ExhibitionDetailPayload(
           exhibitions: [exhibition],
           index: 0,
-        ));
+        )));
   }
 }

@@ -1,6 +1,7 @@
 import 'package:autonomy_flutter/screen/feralfile_home/feralfile_home.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/filter_bar.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/sort_bar.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/search_bar.dart';
 import 'package:flutter/material.dart';
 
@@ -23,8 +24,8 @@ class ExploreBar extends StatefulWidget {
 
 class _ExploreBarState extends State<ExploreBar> {
   String? _searchText;
-  TextEditingController _controller = TextEditingController();
-  Map<FilterType, FilterValue> _filters = {};
+  final TextEditingController _controller = TextEditingController();
+  final Map<FilterType, FilterValue> _filters = {};
   late SortBy _sortBy;
 
   @override
@@ -48,7 +49,7 @@ class _ExploreBarState extends State<ExploreBar> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    Theme.of(context);
     return Column(
       children: [
         Padding(
@@ -74,20 +75,20 @@ class _ExploreBarState extends State<ExploreBar> {
         ),
         const SizedBox(height: 18),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+          padding: const EdgeInsets.symmetric(horizontal: 8),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               FilterBar(
                 filters: widget.tab.getFilterBy(),
                 onFilterSelected: (type, value) {
-                  print('Filter selected: $type, $value');
+                  log.info('Filter selected: $type, $value');
                   setState(() {
                     _filters[type] = value;
                   });
                 },
                 onFilterCleared: (type) {
-                  print('Filter cleared: $type');
+                  log.info('Filter cleared: $type');
                   setState(() {
                     _filters.remove(type);
                   });
@@ -98,7 +99,7 @@ class _ExploreBarState extends State<ExploreBar> {
                 sortBys: widget.tab.getSortBy(),
                 defaultSortBy: widget.tab.getDefaultSortBy(),
                 onSortSelected: (sortBy) {
-                  print('Sort selected: $sortBy');
+                  log.info('Sort selected: $sortBy');
                   setState(() {
                     _sortBy = sortBy;
                   });
@@ -108,12 +109,7 @@ class _ExploreBarState extends State<ExploreBar> {
           ),
         ),
         const SizedBox(height: 18),
-        Expanded(
-            child: Column(
-          children: [
-            _buildChild(),
-          ],
-        ))
+        Expanded(child: _buildChild())
       ],
     );
   }

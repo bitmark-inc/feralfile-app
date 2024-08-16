@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/feralfile_artist_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/view/loading_view.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -27,20 +28,19 @@ class ExploreExhibition extends StatefulWidget {
   final SortBy sortBy;
 
   const ExploreExhibition(
-      {this.searchText,
-      required this.filters,
+      {required this.filters,
       required this.sortBy,
+      this.searchText,
       super.key});
 
   @override
   State<ExploreExhibition> createState() => _ExploreExhibitionState();
 
-  bool isEqual(Object other) {
-    return other is ExploreExhibition &&
-        other.searchText == searchText &&
-        other.filters == filters &&
-        other.sortBy == sortBy;
-  }
+  bool isEqual(Object other) =>
+      other is ExploreExhibition &&
+      other.searchText == searchText &&
+      other.filters == filters &&
+      other.sortBy == sortBy;
 }
 
 class _ExploreExhibitionState extends State<ExploreExhibition> {
@@ -60,11 +60,10 @@ class _ExploreExhibitionState extends State<ExploreExhibition> {
     }
   }
 
-  Widget _loadingView(BuildContext context) {
-    return Center(
-      child: CircularProgressIndicator(),
-    );
-  }
+  Widget _loadingView(BuildContext context) => Padding(
+        padding: const EdgeInsets.only(bottom: 100),
+        child: loadingView(context, size: 100),
+      );
 
   Widget _emptyView(BuildContext context) {
     final theme = Theme.of(context);
@@ -76,9 +75,8 @@ class _ExploreExhibitionState extends State<ExploreExhibition> {
     );
   }
 
-  Widget _exhibitionView(BuildContext context, List<Exhibition> exhibitions) {
-    return ListExhibitionView(exhibitions: exhibitions);
-  }
+  Widget _exhibitionView(BuildContext context, List<Exhibition> exhibitions) =>
+      ListExhibitionView(exhibitions: exhibitions);
 
   @override
   Widget build(BuildContext context) {
@@ -129,9 +127,14 @@ class _ExploreExhibitionState extends State<ExploreExhibition> {
 class ListExhibitionView extends StatefulWidget {
   final List<Exhibition> exhibitions;
   final ScrollController? scrollController;
+  final bool isScrollable;
 
-  const ListExhibitionView(
-      {required this.exhibitions, this.scrollController, super.key});
+  const ListExhibitionView({
+    required this.exhibitions,
+    this.scrollController,
+    super.key,
+    this.isScrollable = true,
+  });
 
   @override
   State<ListExhibitionView> createState() => _ListExhibitionViewState();
@@ -155,6 +158,10 @@ class _ListExhibitionViewState extends State<ListExhibitionView> {
         addDivider(height: 40, color: AppColor.auQuickSilver, thickness: 0.5);
     return CustomScrollView(
       controller: _scrollController,
+      shrinkWrap: true,
+      physics: widget.isScrollable
+          ? const AlwaysScrollableScrollPhysics()
+          : const NeverScrollableScrollPhysics(),
       slivers: [
         SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: _padding),
@@ -195,7 +202,7 @@ class _ListExhibitionViewState extends State<ListExhibitionView> {
   }
 
   void _openExhibition(BuildContext context, String exhibitionId) {
-    final listExhibitions = widget.exhibitions ?? [];
+    final listExhibitions = widget.exhibitions;
     final index =
         listExhibitions.indexWhere((element) => element.id == exhibitionId);
     if (index < 0) {

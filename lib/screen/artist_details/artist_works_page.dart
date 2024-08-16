@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/model/ff_user.dart';
@@ -5,8 +7,8 @@ import 'package:autonomy_flutter/screen/feralfile_home/artwork_view.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/util/feralfile_artist_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/loading_view.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class ArtistWorksPagePayload {
@@ -18,7 +20,7 @@ class ArtistWorksPagePayload {
 class ArtistWorksPage extends StatefulWidget {
   final ArtistWorksPagePayload payload;
 
-  const ArtistWorksPage({required this.payload, Key? key}) : super(key: key);
+  const ArtistWorksPage({required this.payload, super.key});
 
   @override
   State<ArtistWorksPage> createState() => _ArtistWorksPageState();
@@ -45,7 +47,7 @@ class _ArtistWorksPageState extends State<ArtistWorksPage> {
   @override
   void initState() {
     super.initState();
-    _fetchSeriesList();
+    unawaited(_fetchSeriesList());
   }
 
   @override
@@ -70,13 +72,12 @@ class _ArtistWorksPageState extends State<ArtistWorksPage> {
     );
   }
 
-  Widget _loadingView(BuildContext context) {
-    return const Center(child: CupertinoActivityIndicator());
-  }
+  Widget _loadingView(BuildContext context) => Center(
+        child: loadingView(context),
+      );
 
-  Widget _emptyView(BuildContext context) {
-    return const Center(child: Text('No artwork found'));
-  }
+  Widget _emptyView(BuildContext context) =>
+      const Center(child: Text('No artwork found'));
 
   Widget _buildBody(BuildContext context) {
     final seriesList = _seriesList;
@@ -86,10 +87,6 @@ class _ArtistWorksPageState extends State<ArtistWorksPage> {
     if (seriesList.isEmpty) {
       return _emptyView(context);
     }
-    return CustomScrollView(
-      slivers: [
-        SeriesView(series: seriesList),
-      ],
-    );
+    return SeriesView(series: seriesList);
   }
 }

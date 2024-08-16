@@ -20,12 +20,11 @@ class UserDetailsState {
     List<FFSeries>? series,
     List<Exhibition>? exhibitions,
     List<Post>? posts,
-  }) {
-    return UserDetailsState(
-      artist: artist ?? this.artist,
-      series: series ?? this.series,
-      exhibitions: exhibitions ?? this.exhibitions,
-      posts: posts ?? this.posts,
-    );
-  }
+  }) =>
+      UserDetailsState(
+        artist: artist ?? this.artist,
+        series: series ?? this.series,
+        exhibitions: exhibitions ?? this.exhibitions,
+        posts: posts ?? this.posts,
+      );
 }

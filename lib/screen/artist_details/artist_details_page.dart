@@ -9,12 +9,14 @@ import 'package:autonomy_flutter/screen/artist_details/artist_details_state.dart
 import 'package:autonomy_flutter/screen/artist_details/artist_exhibitions_page.dart';
 import 'package:autonomy_flutter/screen/artist_details/artist_posts_page.dart';
 import 'package:autonomy_flutter/screen/artist_details/artist_works_page.dart';
+import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/artwork_view.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/list_exhibition_view.dart';
 import 'package:autonomy_flutter/util/feralfile_artist_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/loading_view.dart';
 import 'package:autonomy_flutter/view/post_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -49,29 +51,27 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: getFFAppBar(
-        context,
-        onBack: () {
-          Navigator.of(context).pop();
-        },
-      ),
-      backgroundColor: Colors.black,
-      body: BlocConsumer<UserDetailsBloc, UserDetailsState>(
-          listener: (context, state) {},
-          builder: (BuildContext context, UserDetailsState state) {
-            final artist = state.artist;
-            if (artist == null) {
-              return _loading();
-            }
-            return _content(context, state);
-          }),
-    );
-  }
+  Widget build(BuildContext context) => Scaffold(
+        appBar: getFFAppBar(
+          context,
+          onBack: () {
+            Navigator.of(context).pop();
+          },
+        ),
+        backgroundColor: Colors.black,
+        body: BlocConsumer<UserDetailsBloc, UserDetailsState>(
+            listener: (context, state) {},
+            builder: (BuildContext context, UserDetailsState state) {
+              final artist = state.artist;
+              if (artist == null) {
+                return _loading();
+              }
+              return _content(context, state);
+            }),
+      );
 
-  Widget _loading() => const Center(
-        child: CircularProgressIndicator(),
+  Widget _loading() => Center(
+        child: loadingView(context, size: 100),
       );
 
   Widget _avatar(BuildContext context, FFUser user) {
@@ -87,29 +87,31 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
   Widget _content(BuildContext context, UserDetailsState state) {
     final user = state.artist!;
     final series = state.series;
-    return CustomScrollView(slivers: [
-      SliverToBoxAdapter(
-          child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: _userProfile(context, user),
-      )),
-      if ((series?.length ?? 0) > 0)
-        ..._workSection(context, user, series ?? []),
-      const SliverToBoxAdapter(
-        child: SizedBox(
-          height: 36,
-        ),
-      ),
-      if ((state.exhibitions?.length ?? 0) > 0)
-        ..._exhibitionSection(context, user, state.exhibitions ?? []),
-      if ((state.posts?.length ?? 0) > 0)
+    return CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(
+            child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: _userProfile(context, user),
+        )),
+        if ((series?.length ?? 0) > 0)
+          ..._workSection(context, user, series ?? []),
         const SliverToBoxAdapter(
           child: SizedBox(
             height: 36,
           ),
         ),
-      ..._postSection(context, user, state.posts ?? []),
-    ]);
+        if ((state.exhibitions?.length ?? 0) > 0)
+          ..._exhibitionSection(context, user, state.exhibitions ?? []),
+        if ((state.posts?.length ?? 0) > 0)
+          const SliverToBoxAdapter(
+            child: SizedBox(
+              height: 36,
+            ),
+          ),
+        ..._postSection(context, user, state.posts ?? []),
+      ],
+    );
   }
 
   Widget _artistUrl(BuildContext context, String url, {String? title}) {
@@ -263,10 +265,15 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
 
     return [
       SliverToBoxAdapter(child: header),
-      SeriesView(
-        series: series.length > viewALlBreakpoint
-            ? series.sublist(0, viewALlBreakpoint)
-            : series,
+      SliverToBoxAdapter(
+        child: Expanded(
+          child: SeriesView(
+            series: series.length > viewALlBreakpoint
+                ? series.sublist(0, viewALlBreakpoint)
+                : series,
+            isScrollable: false,
+          ),
+        ),
       ),
       const SliverToBoxAdapter(
         child: SizedBox(
@@ -275,7 +282,11 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
       ),
       SliverToBoxAdapter(
         child: series.length > viewALlBreakpoint ? viewAll : const SizedBox(),
-      )
+      ),
+      SliverToBoxAdapter(
+          child: SizedBox(
+        height: 40,
+      ))
     ];
   }
 
@@ -296,14 +307,18 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
       },
       text: 'view_all_exhibitions'.tr(),
     );
-    const viewALlBreakpoint = 0;
+    const viewALlBreakpoint = 2;
     return [
       SliverToBoxAdapter(child: header),
-      ListExhibitionView(
-        exhibitions: exhibitions.length > viewALlBreakpoint
-            ? exhibitions.sublist(0, viewALlBreakpoint)
-            : exhibitions,
-      ),
+      SliverToBoxAdapter(
+          child: Expanded(
+        child: ListExhibitionView(
+          exhibitions: exhibitions.length > viewALlBreakpoint
+              ? exhibitions.sublist(0, viewALlBreakpoint)
+              : exhibitions,
+          isScrollable: false,
+        ),
+      )),
       const SliverToBoxAdapter(
         child: SizedBox(
           height: 36,
@@ -333,31 +348,38 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
       },
       text: 'view_all_posts'.tr(),
     );
-    const viewALlBreakpoint = 1;
+    const viewALlBreakpoint = 2;
 
     return [
       SliverToBoxAdapter(child: header),
-      ListPostView(
-        posts: posts.length > viewALlBreakpoint
-            ? posts.sublist(0, viewALlBreakpoint)
-            : posts,
+      SliverToBoxAdapter(
+        child: Expanded(
+          child: ListPostView(
+            posts: posts.length > viewALlBreakpoint
+                ? posts.sublist(0, viewALlBreakpoint)
+                : posts,
+            isScrollable: false,
+          ),
+        ),
+      ),
+      SliverToBoxAdapter(
+        child: posts.length > viewALlBreakpoint ? viewAll : const SizedBox(),
       ),
       const SliverToBoxAdapter(
         child: SizedBox(
           height: 36,
         ),
       ),
-      SliverToBoxAdapter(
-        child: posts.length > viewALlBreakpoint ? viewAll : const SizedBox(),
-      )
     ];
   }
 }
 
 class ListPostView extends StatefulWidget {
   final List<Post> posts;
+  final bool isScrollable;
 
-  const ListPostView({required this.posts, super.key});
+  const ListPostView(
+      {required this.posts, super.key, this.isScrollable = true});
 
   @override
   State<ListPostView> createState() => _ListPostViewState();
@@ -368,26 +390,34 @@ class _ListPostViewState extends State<ListPostView> {
   Widget build(BuildContext context) {
     final divider =
         addDivider(height: 36, color: AppColor.auQuickSilver, thickness: 0.5);
-    return SliverList(
-        delegate: SliverChildBuilderDelegate(
-      (context, index) {
-        final post = widget.posts[index];
-        return Column(
-          children: [
-            GestureDetector(
-              onTap: () {},
-              child: Container(
-                color: Colors.transparent,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: _postItem(context, post),
-              ),
-            ),
-            divider,
-          ],
-        );
-      },
-      childCount: widget.posts.length,
-    ));
+    return CustomScrollView(
+      shrinkWrap: true,
+      physics: widget.isScrollable
+          ? const AlwaysScrollableScrollPhysics()
+          : const NeverScrollableScrollPhysics(),
+      slivers: [
+        SliverList(
+            delegate: SliverChildBuilderDelegate(
+          (context, index) {
+            final post = widget.posts[index];
+            return Column(
+              children: [
+                GestureDetector(
+                  onTap: () {},
+                  child: Container(
+                    color: Colors.transparent,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: _postItem(context, post),
+                  ),
+                ),
+                divider,
+              ],
+            );
+          },
+          childCount: widget.posts.length,
+        ))
+      ],
+    );
   }
 
   Widget _postItem(BuildContext context, Post post) {
@@ -430,10 +460,15 @@ class _ListPostViewState extends State<ListPostView> {
             ),
             const SizedBox(width: 24),
             if (post.exhibition != null)
-              Text(
-                post.exhibition!.title,
-                style: defaultStyle.copyWith(
-                  decoration: TextDecoration.underline,
+              GestureDetector(
+                onTap: () {
+                  _gotoExhibition(context, post.exhibition!);
+                },
+                child: Text(
+                  post.exhibition!.title,
+                  style: defaultStyle.copyWith(
+                    decoration: TextDecoration.underline,
+                  ),
                 ),
               )
           ],
@@ -453,6 +488,13 @@ class _ListPostViewState extends State<ListPostView> {
       ],
     );
   }
+
+  void _gotoExhibition(BuildContext context, Exhibition exhibition) {
+    unawaited(Navigator.of(context).pushNamed(
+      AppRouter.exhibitionDetailPage,
+      arguments: ExhibitionDetailPayload(exhibitions: [exhibition], index: 0),
+    ));
+  }
 }
 
 class ReadMoreText extends StatefulWidget {
@@ -471,33 +513,31 @@ class _ReadMoreTextState extends State<ReadMoreText> {
   bool _isExpanded = false;
 
   @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _isExpanded = !_isExpanded;
-        });
-      },
-      child: Column(
-        children: [
-          HtmlWidget(
-            widget.text,
-            customStylesBuilder: auHtmlStyle,
-            textStyle: widget.style,
-          ),
-          // if (!_isExpanded) ...[
-          //   const SizedBox(
-          //     height: 16,
-          //   ),
-          //   Text(
-          //     'read_more'.tr(),
-          //     style: widget.style.copyWith(
-          //       color: AppColor.auQuickSilver,
-          //     ),
-          //   ),
-          // ]
-        ],
-      ),
-    );
-  }
+  Widget build(BuildContext context) => GestureDetector(
+        onTap: () {
+          setState(() {
+            _isExpanded = !_isExpanded;
+          });
+        },
+        child: Column(
+          children: [
+            HtmlWidget(
+              widget.text,
+              customStylesBuilder: auHtmlStyle,
+              textStyle: widget.style,
+            ),
+            // if (!_isExpanded) ...[
+            //   const SizedBox(
+            //     height: 16,
+            //   ),
+            //   Text(
+            //     'read_more'.tr(),
+            //     style: widget.style.copyWith(
+            //       color: AppColor.auQuickSilver,
+            //     ),
+            //   ),
+            // ]
+          ],
+        ),
+      );
 }

@@ -17,8 +17,8 @@ class FilterBar extends StatefulWidget {
 }
 
 class _FilterBarState extends State<FilterBar> {
-  Map<FilterType, FilterValue> _selectedFilters = {};
-  Map<FilterType, GlobalKey<FilterExpanandedItemState>> _globalKeys = {};
+  final Map<FilterType, FilterValue> _selectedFilters = {};
+  final Map<FilterType, GlobalKey<FilterExpanandedItemState>> _globalKeys = {};
 
   @override
   void initState() {
@@ -48,42 +48,37 @@ class _FilterBarState extends State<FilterBar> {
     widget.onFilterCleared(type);
   }
 
-  Widget _filterItem(FilterType type, List<FilterValue> values) {
-    return FilterExpanandedItem(
-      key: _globalKeys[type],
-      type: type.name,
-      values: values.map((e) => e.name).toList(),
-      selectedIndex: _selectedFilters[type] != null
-          ? values.indexOf(_selectedFilters[type]!)
-          : null,
-      onFilterSelected: (index) => _onFilterSelected(type, values[index]),
-      onFilterCleared: () => _onFilterCleared(type),
-      onFilterExpanded: () {
-        for (final entry in _globalKeys.entries) {
-          if (entry.key != type) {
-            final state = entry.value.currentState;
-            state?.collapse();
+  Widget _filterItem(FilterType type, List<FilterValue> values) =>
+      FilterExpanandedItem(
+        key: _globalKeys[type],
+        type: type.name,
+        values: values.map((e) => e.name).toList(),
+        selectedIndex: _selectedFilters[type] != null
+            ? values.indexOf(_selectedFilters[type]!)
+            : null,
+        onFilterSelected: (index) => _onFilterSelected(type, values[index]),
+        onFilterCleared: () => _onFilterCleared(type),
+        onFilterExpanded: () {
+          for (final entry in _globalKeys.entries) {
+            if (entry.key != type) {
+              final state = entry.value.currentState;
+              state?.collapse();
+            }
           }
-        }
-      },
-    );
-  }
+        },
+      );
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      child: Row(
+  Widget build(BuildContext context) => Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           for (final entry in widget.filters.entries)
             Container(
-              padding: const EdgeInsets.all(1.0),
+              padding: const EdgeInsets.all(1),
               child: _filterItem(entry.key, entry.value),
             ),
         ],
-      ),
-    );
-  }
+      );
 }
 
 enum FilterType {

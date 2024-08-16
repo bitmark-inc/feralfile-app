@@ -33,30 +33,23 @@ class _SortBarState extends State<SortBar> {
     widget.onSortSelected(sortBy);
   }
 
-  Widget _sortByItem(List<SortBy> values) {
-    return FilterExpanandedItem(
-      type: 'Sort By',
-      values: values.map((e) => e.name).toList(),
-      selectedIndex:
-          _selectedSortBy != null ? values.indexOf(_selectedSortBy!) : null,
-      onFilterSelected: (index) => _onSortSelected(values[index]),
-      onFilterCleared: null,
-      onFilterExpanded: () {},
-    );
-  }
+  Widget _sortByItem(List<SortBy> values) => FilterExpanandedItem(
+        type: 'Sort By',
+        values: values.map((e) => e.name).toList(),
+        selectedIndex:
+            _selectedSortBy != null ? values.indexOf(_selectedSortBy!) : null,
+        onFilterSelected: (index) => _onSortSelected(values[index]),
+        onFilterExpanded: () {},
+      );
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      child: Row(
+  Widget build(BuildContext context) => Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.all(1.0),
+            padding: const EdgeInsets.all(1),
             child: _sortByItem(widget.sortBys),
           ),
         ],
-      ),
-    );
-  }
+      );
 }

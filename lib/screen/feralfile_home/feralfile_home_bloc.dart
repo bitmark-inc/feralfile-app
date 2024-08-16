@@ -14,12 +14,6 @@ class FeralfileHomeBloc
     on<FeralFileHomeFetchDataEvent>((event, emit) async {
       final statistics = await _feralFileService.getExploreStatistics();
       final featuredWorks = await _feralFileService.getFeaturedArtworks();
-      final allArtworks =
-          null; //await _feralFileService.exploreArtworks(limit: 100);
-      final exhibitions = null; //await _feralFileService.getAllExhibitions();
-      final artists =
-          null; //await _feralFileService.exploreArtists(limit: 200);
-      final curators = null; //await _feralFileService.exploreCurators();
 
       emit(FeralfileHomeBlocState(
         exploreStatisticsData: statistics,
