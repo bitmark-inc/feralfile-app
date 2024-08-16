@@ -7,6 +7,9 @@
 
 import 'dart:async';
 
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -178,8 +181,13 @@ class _NotificationToastWithLink extends StatelessWidget {
 }
 
 Future<void> showNotifications(BuildContext context, String id,
-    {Function? handler,Function? callBackOnDismiss, String? body}) async {
+    {Function? handler, Function? callBackOnDismiss, String? body}) async {
+  final configurationService = injector<ConfigurationService>();
+  if (configurationService.showingNotification.value) {
+    return;
+  }
   bool didTap = false;
+  configurationService.showingNotification.value = true;
   final notification = showSimpleNotification(
     _notificationToast(context, id, handler: () async {
       didTap = true;
@@ -192,10 +200,14 @@ Future<void> showNotifications(BuildContext context, String id,
     slideDismissDirection: DismissDirection.up,
   );
   Vibrate.feedback(FeedbackType.warning);
+  await injector<AnnouncementService>().markAsRead(id);
   final future = notification.dismissed;
   await future;
+  configurationService.showingNotification.value = false;
   if (!didTap) {
-    callBackOnDismiss?.call();
+    Future.delayed(const Duration(milliseconds: 100), () {
+      callBackOnDismiss?.call();
+    });
   }
 }
 

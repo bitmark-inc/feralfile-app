@@ -114,10 +114,6 @@ class AnnouncementServiceImpl implements AnnouncementService {
       final context = injector<NavigationService>().context;
       final additionalData =
           AdditionalData.fromJson(announcement.additionalData);
-      await markAsRead(announcement.announcementContentId);
-      if (!context.mounted) {
-        return;
-      }
       await showNotifications(context, announcement.announcementContentId,
           body: announcement.content,
           handler: additionalData.isTappable

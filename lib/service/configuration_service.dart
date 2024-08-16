@@ -197,7 +197,7 @@ abstract class ConfigurationService {
 
   Future<void> removeAll();
 
-  ValueNotifier<bool> get showNotifTip;
+  ValueNotifier<bool> get showingNotification;
 
   ValueNotifier<bool> get showProTip;
 
@@ -792,7 +792,7 @@ class ConfigurationServiceImpl implements ConfigurationService {
   ValueNotifier<bool> showLinkOrImportTip = ValueNotifier(false);
 
   @override
-  ValueNotifier<bool> showNotifTip = ValueNotifier(false);
+  ValueNotifier<bool> showingNotification = ValueNotifier(false);
 
   @override
   ValueNotifier<bool> showTvAppTip = ValueNotifier(false);

@@ -104,6 +104,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   final _playListService = injector<PlaylistService>();
   final _remoteConfig = injector<RemoteConfigService>();
   final _metricClientService = injector<MetricClientService>();
+  final _announcementService = injector<AnnouncementService>();
   late HomeNavigatorTab _initialTab;
   final nftBloc = injector<ClientTokenService>().nftBloc;
 
@@ -347,9 +348,16 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     if (!_configurationService.isReadRemoveSupport()) {
       unawaited(_showRemoveCustomerSupport());
     }
-    unawaited(injector<AnnouncementService>().fetchAnnouncements());
+
+    unawaited(Future.delayed(const Duration(milliseconds: 1000), () {
+      _announcementService.fetchAnnouncements().then(
+        (_) async {
+          await _announcementService.showOldestAnnouncement();
+        },
+      );
+    }));
     OneSignal.shared.setNotificationWillShowInForegroundHandler((event) async {
-      await injector<AnnouncementService>().fetchAnnouncements();
+      await _announcementService.fetchAnnouncements();
       if (!mounted) {
         return;
       }
@@ -362,7 +370,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     injector<AuditService>().auditFirstLog();
     OneSignal.shared.setNotificationOpenedHandler((openedResult) {
       Future.delayed(const Duration(milliseconds: 500), () async {
-        await injector<AnnouncementService>().fetchAnnouncements();
+        await _announcementService.fetchAnnouncements();
         if (!mounted) {
           return;
         }

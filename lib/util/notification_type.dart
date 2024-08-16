@@ -12,7 +12,6 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/additional_data/additional_data.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
@@ -113,8 +112,6 @@ class NotificationHandler {
 
   NotificationHandler._();
 
-  final ConfigurationService _configurationService =
-      injector<ConfigurationService>();
   final RemoteConfigService _remoteConfig = injector<RemoteConfigService>();
   final ClientTokenService _clientTokenService = injector<ClientTokenService>();
   final NavigationService _navigationService = injector<NavigationService>();
@@ -157,9 +154,6 @@ class NotificationHandler {
     if (data == null) {
       event.complete(null);
       return;
-    }
-    if (_configurationService.isNotificationEnabled() != true) {
-      _configurationService.showNotifTip.value = true;
     }
 
     final additionalData = AdditionalData.fromJson(data);
@@ -222,10 +216,6 @@ class NotificationHandler {
       return;
     }
 
-    await _announcementService.markAsRead(additionalData.announcementContentId);
-    if (!context.mounted) {
-      return;
-    }
     await showNotifications(
       context,
       announcement?.announcementContentId ?? event.notification.notificationId,

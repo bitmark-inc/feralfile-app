@@ -65,7 +65,7 @@ class MockConfigurationService extends _i1.Mock
   }
 
   @override
-  _i2.ValueNotifier<bool> get showNotifTip => (super.noSuchMethod(
+  _i2.ValueNotifier<bool> get showingNotification => (super.noSuchMethod(
         Invocation.getter(#showNotifTip),
         returnValue: _FakeValueNotifier_0<bool>(
           this,
