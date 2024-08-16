@@ -31,6 +31,7 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/notification_service.dart' as nc;
 import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
@@ -634,8 +635,11 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     );
   }
 
-  PageController _getPageController(int initialIndex) =>
-      PageController(initialPage: initialIndex);
+  PageController _getPageController(int initialIndex) {
+  final pageController = PageController(initialPage: initialIndex);
+  injector<NavigationService>().setPageController(pageController);
+  return pageController;
+}
 
   void _handleBackground() {
     unawaited(_cloudBackup());

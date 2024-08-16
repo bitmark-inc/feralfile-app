@@ -1,9 +1,13 @@
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
+import 'package:autonomy_flutter/model/additional_data/additional_data.dart';
 import 'package:autonomy_flutter/model/announcement/announcement.dart';
 import 'package:autonomy_flutter/model/announcement/announcement_local.dart';
 import 'package:autonomy_flutter/model/announcement/announcement_request.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_store.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 
 abstract class AnnouncementService {
@@ -18,6 +22,8 @@ abstract class AnnouncementService {
   AnnouncementLocal? getAnnouncement(String? announcementContentId);
 
   AnnouncementLocal? getOldestAnnouncement();
+
+  Future<void> showOldestAnnouncement({bool shouldRepeat = true});
 }
 
 class AnnouncementServiceImpl implements AnnouncementService {
@@ -99,5 +105,33 @@ class AnnouncementServiceImpl implements AnnouncementService {
   AnnouncementLocal? getOldestAnnouncement() {
     final announcements = getUnreadAnnouncements();
     return announcements.firstOrNull;
+  }
+
+  @override
+  Future<void> showOldestAnnouncement({bool shouldRepeat = true}) async {
+    final announcement = getOldestAnnouncement();
+    if (announcement != null) {
+      final context = injector<NavigationService>().context;
+      final additionalData =
+          AdditionalData.fromJson(announcement.additionalData);
+      await markAsRead(announcement.announcementContentId);
+      if (!context.mounted) {
+        return;
+      }
+      await showNotifications(context, announcement.announcementContentId,
+          body: announcement.content,
+          handler: additionalData.isTappable
+              ? () async {
+                  await additionalData.handleTap(
+                    context,
+                    injector<NavigationService>().pageController,
+                  );
+                }
+              : null, callBackOnDismiss: () async {
+        if (shouldRepeat) {
+          await showOldestAnnouncement();
+        }
+      });
+    }
   }
 }

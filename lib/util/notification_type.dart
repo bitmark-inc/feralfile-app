@@ -221,18 +221,24 @@ class NotificationHandler {
     if (announcement?.read == true || announcement?.isExpired == true) {
       return;
     }
-    showNotifications(
-        context,
-        announcement?.announcementContentId ??
-            event.notification.notificationId,
-        body: event.notification.body,
-        handler: additionalData.isTappable
-            ? () async {
-                await handleNotificationClicked(
-                    context, event.notification, pageController);
-              }
-            : null);
 
     await _announcementService.markAsRead(additionalData.announcementContentId);
+    if (!context.mounted) {
+      return;
+    }
+    await showNotifications(
+      context,
+      announcement?.announcementContentId ?? event.notification.notificationId,
+      body: event.notification.body,
+      handler: additionalData.isTappable
+          ? () async {
+              await handleNotificationClicked(
+                  context, event.notification, pageController);
+            }
+          : null,
+      callBackOnDismiss: () async {
+        await _announcementService.showOldestAnnouncement();
+      },
+    );
   }
 }

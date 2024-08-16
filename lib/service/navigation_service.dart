@@ -26,13 +26,16 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:nft_collection/database/nft_collection_database.dart';
 import 'package:nft_collection/models/asset_token.dart'; // ignore_for_file: implementation_imports
 import 'package:overlay_support/src/overlay_state_finder.dart';
 
 class NavigationService {
   final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+  PageController? _pageController;
 
   static const Key contactingKey = Key('tezos_beacon_contacting');
 
@@ -41,6 +44,12 @@ class NavigationService {
   // ModalRoute(navigatorKey.currentContext) returns nil
   bool _isWCConnectInShow = false;
   final _browser = FeralFileBrowser();
+
+  PageController? get pageController => _pageController;
+
+  void setPageController(PageController? controller) {
+    _pageController = controller;
+  }
 
   BuildContext get context => navigatorKey.currentContext!;
 

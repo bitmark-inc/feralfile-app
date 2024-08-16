@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
+
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -175,16 +177,26 @@ class _NotificationToastWithLink extends StatelessWidget {
   }
 }
 
-void showNotifications(BuildContext context, String id,
-    {Function? handler, String? body}) {
-  showSimpleNotification(
-    _notificationToast(context, id, handler: handler, body: body),
+Future<void> showNotifications(BuildContext context, String id,
+    {Function? handler,Function? callBackOnDismiss, String? body}) async {
+  bool didTap = false;
+  final notification = showSimpleNotification(
+    _notificationToast(context, id, handler: () async {
+      didTap = true;
+      handler?.call();
+    }, body: body),
     background: Colors.transparent,
     elevation: 0,
+    duration: const Duration(seconds: 30),
     key: Key(id),
     slideDismissDirection: DismissDirection.up,
   );
   Vibrate.feedback(FeedbackType.warning);
+  final future = notification.dismissed;
+  await future;
+  if (!didTap) {
+    callBackOnDismiss?.call();
+  }
 }
 
 void showInAppNotifications(BuildContext context, String body, String key,
