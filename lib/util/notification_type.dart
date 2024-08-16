@@ -17,8 +17,6 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:easy_localization/easy_localization.dart';
-import 'package:feralfile_app_theme/extensions/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 
@@ -28,7 +26,6 @@ enum NotificationType {
   postcardShareExpired,
   customerSupportNewMessage,
   customerSupportCloseIssue,
-  customerSupportNewAnnouncement,
   artworkCreated,
   artworkReceived,
   newMessage,
@@ -53,8 +50,6 @@ enum NotificationType {
         return 'customer_support_new_message';
       case NotificationType.customerSupportCloseIssue:
         return 'customer_support_close_issue';
-      case NotificationType.customerSupportNewAnnouncement:
-        return 'customer_support_new_announcement';
       case NotificationType.artworkCreated:
         return 'artwork_created';
       case NotificationType.artworkReceived:
@@ -89,8 +84,6 @@ enum NotificationType {
         return NotificationType.customerSupportNewMessage;
       case 'customer_support_close_issue':
         return NotificationType.customerSupportCloseIssue;
-      case 'customer_support_new_announcement':
-        return NotificationType.customerSupportNewAnnouncement;
       case 'artwork_created':
         return NotificationType.artworkCreated;
       case 'artwork_received':
@@ -174,8 +167,7 @@ class NotificationHandler {
         final notificationIssueID =
             '${event.notification.additionalData?['issue_id']}';
         injector<CustomerSupportService>().triggerReloadMessages.value += 1;
-        unawaited(
-            injector<CustomerSupportService>().getIssuesAndAnnouncement());
+        unawaited(injector<CustomerSupportService>().getIssues());
         if (notificationIssueID == memoryValues.viewingSupportThreadIssueID) {
           event.complete(null);
           return;
@@ -194,17 +186,6 @@ class NotificationHandler {
 
     // show notification
     switch (notificationType) {
-      case NotificationType.customerSupportNewAnnouncement:
-        showInfoNotification(
-            const Key('Announcement'), 'au_has_announcement'.tr(),
-            addOnTextSpan: [
-              TextSpan(
-                  text: 'tap_to_view'.tr(),
-                  style: Theme.of(context).textTheme.ppMori400FFYellow14),
-            ], openHandler: () async {
-          await handleNotificationClicked(
-              context, event.notification, pageController);
-        });
       case NotificationType.newMessage:
         final groupId = data['group_id'];
 

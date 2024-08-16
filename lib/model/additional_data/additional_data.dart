@@ -1,4 +1,3 @@
-import 'package:autonomy_flutter/model/additional_data/cs_new_announcement.dart';
 import 'package:autonomy_flutter/model/additional_data/cs_view_thread.dart';
 import 'package:autonomy_flutter/model/additional_data/jg_crystalline_work_generated.dart';
 import 'package:autonomy_flutter/model/additional_data/view_collection.dart'
@@ -30,14 +29,6 @@ class AdditionalData {
         }
         return CsViewThread(
             issueId: issueId, notificationType: notificationType);
-      case NotificationType.customerSupportNewAnnouncement:
-        final announcementId = json['announcement_id'];
-        if (announcementId == null) {
-          log.warning('AdditionalData: announcementId is null');
-          return AdditionalData(notificationType: notificationType);
-        }
-        return CsNewAnnouncement(
-            announcementId: announcementId, notificationType: notificationType);
       case NotificationType.artworkCreated:
       case NotificationType.artworkReceived:
       case NotificationType.galleryNewNft:

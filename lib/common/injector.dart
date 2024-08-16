@@ -10,7 +10,6 @@
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
-import 'package:autonomy_flutter/gateway/announcement_api.dart';
 import 'package:autonomy_flutter/gateway/autonomy_api.dart';
 import 'package:autonomy_flutter/gateway/branch_api.dart';
 import 'package:autonomy_flutter/gateway/chat_api.dart';
@@ -131,6 +130,7 @@ Future<void> setup() async {
     migrateV16ToV17,
     migrateV17ToV18,
     migrateV18ToV19,
+    migrateV19ToV20,
   ]).build();
 
   final cloudDB = await $FloorCloudDatabase
@@ -284,10 +284,6 @@ Future<void> setup() async {
                     receiveTimeout: const Duration(seconds: 10),
                   ),
                 ),
-                baseUrl: Environment.customerSupportURL),
-            injector(),
-            mainnetDB.announcementDao,
-            AnnouncementApi(authenticatedDio,
                 baseUrl: Environment.customerSupportURL),
           ));
 

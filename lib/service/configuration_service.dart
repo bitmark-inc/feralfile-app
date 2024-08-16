@@ -7,8 +7,6 @@
 
 import 'dart:convert';
 
-import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/entity/announcement_local.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
@@ -17,8 +15,6 @@ import 'package:autonomy_flutter/model/shared_postcard.dart';
 import 'package:autonomy_flutter/screen/chat/chat_thread_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart';
-import 'package:autonomy_flutter/service/customer_support_service.dart';
-import 'package:autonomy_flutter/util/announcement_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:collection/collection.dart';
@@ -249,12 +245,6 @@ abstract class ConfigurationService {
 
   Future<void> setVersionInfo(String version);
 
-  Future<void> updateShowAnnouncementNotificationInfo(
-    AnnouncementLocal announcement,
-  );
-
-  ShowAnouncementNotificationInfo getShowAnnouncementNotificationInfo();
-
   // set and get for did_sync_artists
   Future<void> setDidSyncArtists(bool value);
 
@@ -356,9 +346,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_MIXPANEL_PROPS = 'mixpanel_props';
 
   static const String KEY_PACKAGE_INFO = 'package_info';
-
-  static const String KEY_SHOW_ANOUNCEMENT_NOTIFICATION_INFO =
-      'show_anouncement_notification_info';
 
   static const String KEY_PROCESSING_STAMP_POSTCARD =
       'processing_stamp_postcard';
@@ -495,10 +482,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
     if (!currentValue && value && !getIsOldUser()) {
       await setDoneOnboardingTime(DateTime.now());
       await setOldUser();
-      Future.delayed(const Duration(seconds: 2), () async {
-        await injector<CustomerSupportService>()
-            .createAnnouncement(AnnouncementID.WELCOME);
-      });
     }
   }
 
@@ -741,12 +724,10 @@ class ConfigurationServiceImpl implements ConfigurationService {
           playlists.removeWhere((playlist) =>
               value?.any((element) => playlist.id == element.id) ?? false);
           playlistsSave = playlists.map((e) => jsonEncode(e)).toList();
-          break;
         case ConflictAction.abort:
           value?.removeWhere((playlist) =>
               playlists.any((element) => element.id == playlist.id));
           newPlaylists = value?.map((e) => jsonEncode(e)).toList() ?? [];
-          break;
       }
 
       playlistsSave.addAll(newPlaylists);
@@ -1028,29 +1009,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   @override
   Future<void> setVersionInfo(String version) async {
     await _preferences.setString(KEY_PACKAGE_INFO, version);
-  }
-
-  @override
-  Future<void> updateShowAnnouncementNotificationInfo(
-    AnnouncementLocal announcement,
-  ) async {
-    const key = KEY_SHOW_ANOUNCEMENT_NOTIFICATION_INFO;
-    final announcementId = announcement.announcementContextId;
-    var currentValue = _preferences.getString(key) ?? '{}';
-    final currentInfo =
-        ShowAnouncementNotificationInfo.fromJson(jsonDecode(currentValue));
-    currentInfo.showAnnouncementMap.update(announcementId, (value) => value + 1,
-        ifAbsent: () => announcement.unread ? 1 : 2);
-    await _preferences.setString(key, jsonEncode(currentInfo.toJson()));
-  }
-
-  @override
-  ShowAnouncementNotificationInfo getShowAnnouncementNotificationInfo() {
-    final data = _preferences.getString(KEY_SHOW_ANOUNCEMENT_NOTIFICATION_INFO);
-    if (data == null) {
-      return ShowAnouncementNotificationInfo();
-    }
-    return ShowAnouncementNotificationInfo.fromJson(jsonDecode(data));
   }
 
   @override

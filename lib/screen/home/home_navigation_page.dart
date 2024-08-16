@@ -297,7 +297,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     // since we moved to use bonsoir service,
     // we don't need to wait for canvas service to init
     injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent(retry: true));
-    unawaited(injector<CustomerSupportService>().getIssuesAndAnnouncement());
+    unawaited(injector<CustomerSupportService>().getIssues());
     _initialTab = widget.payload.startedTab;
     _selectedIndex = _initialTab.index;
     NftCollectionBloc.eventController.stream.listen((event) async {
@@ -379,13 +379,13 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   }
 
   Future refreshNotification() async {
-    await injector<CustomerSupportService>().getIssuesAndAnnouncement();
+    await injector<CustomerSupportService>().getIssues();
   }
 
   @override
   Future<void> didPopNext() async {
     super.didPopNext();
-    unawaited(injector<CustomerSupportService>().getIssuesAndAnnouncement());
+    unawaited(injector<CustomerSupportService>().getIssues());
     if (_selectedIndex == HomeNavigatorTab.scanQr.index) {
       await _scanQRPageKey.currentState?.resumeCamera();
     }
@@ -647,7 +647,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   Future<void> _handleForeground() async {
     _metricClientService.onForeground();
     injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent(retry: true));
-    await injector<CustomerSupportService>().fetchAnnouncement();
     await _remoteConfig.loadConfigs();
   }
 
