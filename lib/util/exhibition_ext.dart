@@ -4,8 +4,6 @@ import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
-import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
-import 'package:autonomy_flutter/screen/exhibitions/exhibitions_bloc.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -30,13 +28,6 @@ extension ExhibitionExt on Exhibition {
   DateTime get exhibitionViewAt =>
       exhibitionStartAt.subtract(Duration(seconds: previewDuration ?? 0));
 
-  bool get canViewDetails {
-    final exhibitionBloc = injector<ExhibitionBloc>();
-    final subscriptionBloc = injector<SubscriptionBloc>();
-    return subscriptionBloc.state.isSubscribed ||
-        id == exhibitionBloc.state.featuredExhibition?.id;
-  }
-
   String get displayKey => id;
 
   //TODO: implement this
@@ -45,6 +36,13 @@ extension ExhibitionExt on Exhibition {
   bool get isMinted => status == ExhibitionStatus.issued.index;
 
   List<FFSeries> get displayableSeries => series?.displayable ?? [];
+
+  List<String> get disableKeys {
+    if (isJohnGerrardShow) {
+      JohnGerrardHelper.disableKeys;
+    }
+    return [];
+  }
 
   String? get getSeriesArtworkModelText {
     if (this.series == null || id == SOURCE_EXHIBITION_ID) {

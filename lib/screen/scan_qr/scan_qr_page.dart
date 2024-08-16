@@ -212,24 +212,28 @@ class ScanQRPageState extends State<ScanQRPage>
                             duration: const Duration(milliseconds: 300));
                       });
                     },
-                    child: Text(
-                      'show_my_code'.tr(),
-                      style: theme.textTheme.ppMori400White14.copyWith(
-                        decoration: TextDecoration.underline,
-                        decorationColor: AppColor.white,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 10,
+                      ),
+                      child: Text(
+                        'show_my_code'.tr(),
+                        style: theme.textTheme.ppMori400White14.copyWith(
+                          decoration: TextDecoration.underline,
+                          decorationColor: AppColor.white,
+                        ),
                       ),
                     ),
                   )
-                : GestureDetector(
-                    onTap: () {
+                : IconButton(
+                    onPressed: () {
                       if (!_isGlobal) {
                         Navigator.pop(context);
                       }
                     },
-                    child: closeIcon(
+                    icon: closeIcon(
                       color: AppColor.white,
-                    ),
-                  ),
+                    )),
           ),
         ),
       ],
@@ -319,15 +323,21 @@ class ScannerInstruction {
   static ScannerInstruction displayFF = ScannerInstruction(
     name: 'display_with_ff'.tr(),
     detail: 'on_tv_or_desktop'.tr(),
-    icon: GestureDetector(
-        onTap: () {
+    icon: IconButton(
+        onPressed: () {
           final context =
               injector<NavigationService>().navigatorKey.currentContext!;
           UIHelper.showDialog(
               context, 'display'.tr(), const DisplayInstructionView(),
               isDismissible: true, withCloseIcon: true);
         },
-        child: SvgPicture.asset('assets/images/info_white.svg')),
+        constraints: const BoxConstraints(
+          maxWidth: 44,
+          maxHeight: 44,
+          minWidth: 44,
+          minHeight: 44,
+        ),
+        icon: SvgPicture.asset('assets/images/info_white.svg')),
   );
 }
 

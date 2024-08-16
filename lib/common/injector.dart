@@ -25,6 +25,7 @@ import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
 import 'package:autonomy_flutter/gateway/source_exhibition_api.dart';
 import 'package:autonomy_flutter/gateway/tv_cast_api.dart';
 import 'package:autonomy_flutter/gateway/tzkt_api.dart';
+import 'package:autonomy_flutter/screen/bloc/connections/connections_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
 import 'package:autonomy_flutter/screen/chat/chat_bloc.dart';
@@ -53,12 +54,14 @@ import 'package:autonomy_flutter/service/currency_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/device_info_service.dart';
+import 'package:autonomy_flutter/service/domain_address_service.dart';
 import 'package:autonomy_flutter/service/domain_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/hive_service.dart';
 import 'package:autonomy_flutter/service/hive_store_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
+import 'package:autonomy_flutter/service/keychain_service.dart';
 import 'package:autonomy_flutter/service/merchandise_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
@@ -79,6 +82,7 @@ import 'package:autonomy_flutter/util/au_file_service.dart';
 import 'package:autonomy_flutter/util/dio_interceptors.dart';
 import 'package:autonomy_flutter/util/dio_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/primary_address_channel.dart';
 import 'package:dio/dio.dart';
 import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -187,7 +191,7 @@ Future<void> setup() async {
   injector
       .registerLazySingleton<MetricClientService>(() => MetricClientService());
   injector.registerLazySingleton<MixPanelClientService>(
-      () => MixPanelClientService(injector(), injector()));
+      () => MixPanelClientService(injector(), injector(), injector()));
   injector.registerLazySingleton<CacheManager>(() => AUImageCacheManage());
   injector.registerLazySingleton<AccountService>(() => AccountServiceImpl(
         cloudDB,
@@ -197,7 +201,16 @@ Future<void> setup() async {
         injector(),
         injector(),
         injector(),
+        injector(),
       ));
+
+  injector.registerLazySingleton<PrimaryAddressChannel>(
+      () => PrimaryAddressChannel());
+
+  injector.registerLazySingleton<AddressService>(
+      () => AddressService(injector(), cloudDB, injector()));
+
+  injector.registerLazySingleton<KeychainService>(() => KeychainService());
 
   injector.registerLazySingleton(() => ChatApi(chatDio(dioOptions),
       baseUrl: Environment.postcardChatServerUrl.replaceFirst('ws', 'http')));
@@ -389,6 +402,12 @@ Future<void> setup() async {
   injector.registerFactory<IdentityBloc>(
       () => IdentityBloc(injector(), injector()));
   injector.registerFactory<AuChatBloc>(() => AuChatBloc(injector()));
+
+  injector.registerLazySingleton<ConnectionsBloc>(() => ConnectionsBloc(
+        injector<CloudDatabase>(),
+        injector(),
+        injector(),
+      ));
   injector.registerLazySingleton<CanvasDeviceBloc>(
       () => CanvasDeviceBloc(injector()));
   injector

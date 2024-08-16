@@ -30,7 +30,7 @@ on:
         description: Using testnet (Default staging)
 jobs:
   build:
-    runs-on: [self-hosted, macOS]
+    runs-on: [self-hosted, macOS, macm2, android]
     steps:
       - name: Extract Build number for Testnet
         id: extract-version-testnet
@@ -65,6 +65,8 @@ jobs:
           # echo "FLUTTER_VERSION_CODE=${{ inputs.build-number }}" >> $GITHUB_ENV
           echo "BRANCH_KEY=${{ secrets.BRANCH_KEY }}" >> $GITHUB_ENV
           echo "BRANCH_KEY_TEST=${{ secrets.BRANCH_KEY_TEST }}" >> $GITHUB_ENV
+          echo "SIGNATURE_HASH=${{ secrets.SIGNATURE_HASH }}" >> $GITHUB_ENV
+          echo "SIGNATURE_HASH_INHOUSE=${{ secrets.SIGNATURE_HASH_INHOUSE }}" >> $GITHUB_ENV
           ${{ inputs.testnet == true }} && echo APPCENTER_APP_ID=support-zzd0-28/Autonomy-Android-Test >> $GITHUB_ENV || echo APPCENTER_APP_ID=support-zzd0-28/Autonomy-Android-1 >> $GITHUB_ENV
           ${{ inputs.testnet == true }} && echo NAME_SUFFIX=test-${{env.FLUTTER_VERSION_CODE}} >> $GITHUB_ENV || echo NAME_SUFFIX=main-${{env.FLUTTER_VERSION_CODE}} >> $GITHUB_ENV
 
@@ -75,13 +77,25 @@ jobs:
       - name: Create env file
         run: |
           touch .env
-          ${{ inputs.testnet == true }} && echo -e "${{ secrets.DEV_ENV }}" | sed 's/\\n/\n/g' >> .env || echo -e "${{ secrets.STAGING_ENV }}" | sed 's/\\n/\n/g' >> .env
+          ${{ inputs.testnet == true }} && echo -e "${{ secrets.DEV_ENV_VARS }}" | sed 's/\\n/\n/g' >> .env || echo -e "${{ secrets.STAGING_ENV_VARS }}" | sed 's/\\n/\n/g' >> .env
           cat .env
+
+      - name: Create env secret file
+        run: |
+          touch .env.secret
+          ${{ inputs.testnet == true }} && echo -e "${{ secrets.DEV_ENV_SECRET }}" | sed 's/\\n/\n/g' >> .env.secret || echo -e "${{ secrets.STAGING_ENV_SECRET }}" | sed 's/\\n/\n/g' >> .env.secret
+          cat .env.secret
 
       - name: Submoudles update
         run: git -c submodule.auto-test.update=none submodule update --init --recursive
       - run: flutter pub cache repair
       - run: flutter pub get
+
+      # Encrypt secrets before use
+      - name: Encrypt Secrets
+        run: |
+          ./script/encrypt_secrets.sh ${{ secrets.ENTROPY }}
+
       - run: flutter build apk --flavor inhouse
       - run: mv build/app/outputs/flutter-apk/app-inhouse-release.apk build/app/outputs/flutter-apk/app-inhouse-release-${{ env.NAME_SUFFIX }}.apk
       - name: Distribute apk to App Center

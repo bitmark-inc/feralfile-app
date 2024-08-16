@@ -39,6 +39,7 @@ import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:tezart/tezart.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:walletconnect_flutter_v2/apis/core/pairing/utils/pairing_models.dart';
 
 class TBSendTransactionPage extends StatefulWidget {
   final BeaconRequest request;
@@ -62,6 +63,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
   late FeeOption _selectedPriority;
   final xtzFormatter = XtzAmountFormatter();
   final ethFormatter = EthAmountFormatter();
+  late PairingMetadata? appMetadata;
 
   @override
   void dispose() {
@@ -148,6 +150,11 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
     unawaited(fetchPersona());
     feeOption = DEFAULT_FEE_OPTION;
     _selectedPriority = feeOption;
+    appMetadata = PairingMetadata(
+        icons: [widget.request.icon ?? ''],
+        name: widget.request.name ?? '',
+        url: widget.request.url ?? '',
+        description: '');
   }
 
   Future<void> _getExchangeRate() async {
@@ -291,6 +298,8 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
         appBar: getBackAppBar(
           context,
           title: 'confirmation'.tr(),
+          action: () => unawaited(
+              UIHelper.showAppReportBottomSheet(context, appMetadata)),
           onBack: () async {
             if (wc2Topic == null) {
               await injector<TezosBeaconService>()

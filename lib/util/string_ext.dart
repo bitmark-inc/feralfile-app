@@ -145,7 +145,7 @@ extension StringExtension on String {
         return RenderingType.modelViewer;
 
       default:
-        return mimeType;
+        return RenderingType.webview;
     }
   }
 

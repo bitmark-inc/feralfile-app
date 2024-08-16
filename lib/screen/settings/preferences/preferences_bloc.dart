@@ -5,12 +5,14 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/local_auth_service.dart';
 import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/biometrics_util.dart';
@@ -26,7 +28,7 @@ class PreferencesBloc extends AuBloc<PreferenceEvent, PreferenceState> {
   List<BiometricType> _availableBiometrics = List.empty();
 
   PreferencesBloc(this._configurationService)
-      : super(PreferenceState(false, false, false, "", false, false)) {
+      : super(PreferenceState(false, false, false, '', false, false)) {
     on<PreferenceInfoEvent>((event, emit) async {
       _availableBiometrics = await _localAuth.getAvailableBiometrics();
       final canCheckBiometrics = await authenticateIsAvailable();
@@ -57,8 +59,8 @@ class PreferencesBloc extends AuBloc<PreferenceEvent, PreferenceState> {
         if (canCheckBiometrics) {
           bool didAuthenticate = false;
           try {
-            didAuthenticate = await _localAuth.authenticate(
-                localizedReason: "authen_for_autonomy".tr());
+            didAuthenticate = await LocalAuthenticationService.authenticate(
+                localizedReason: 'authen_for_autonomy'.tr());
           } catch (e) {
             log.info(e);
           }
@@ -72,25 +74,26 @@ class PreferencesBloc extends AuBloc<PreferenceEvent, PreferenceState> {
           }
         } else {
           event.newState.isDevicePasscodeEnabled = false;
-          openAppSettings();
+          unawaited(openAppSettings());
         }
       }
 
       if (event.newState.isNotificationEnabled != state.isNotificationEnabled) {
         try {
-          if (event.newState.isNotificationEnabled == true) {
-            registerPushNotifications(askPermission: true)
-                .then((value) => event.newState.isNotificationEnabled == value);
+          if (event.newState.isNotificationEnabled) {
+            unawaited(registerPushNotifications(askPermission: true).then(
+                (value) => event.newState.isNotificationEnabled == value));
           } else if (Platform.isIOS) {
+            // ignore: lines_longer_than_80_chars
             // TODO: for iOS only, do not un-registry push, but silent the notification
-            deregisterPushNotification();
+            unawaited(deregisterPushNotification());
           }
 
           await _configurationService
               .setNotificationEnabled(event.newState.isNotificationEnabled);
           await _configurationService.setPendingSettings(false);
         } catch (error) {
-          log.warning("Error when setting notification: $error");
+          log.warning('Error when setting notification: $error');
         }
       }
 
@@ -98,7 +101,7 @@ class PreferencesBloc extends AuBloc<PreferenceEvent, PreferenceState> {
         await _configurationService
             .setAnalyticEnabled(event.newState.isAnalyticEnabled);
         await _configurationService.setPendingSettings(false);
-        injector<SettingsDataService>().backup();
+        unawaited(injector<SettingsDataService>().backup());
 
         if (event.newState.isAnalyticEnabled) {
           injector<MixPanelClientService>().mixpanel.optInTracking();

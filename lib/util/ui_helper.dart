@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -37,6 +38,7 @@ import 'package:autonomy_flutter/view/postcard_common_widget.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/slide_router.dart';
+import 'package:autonomy_flutter/view/user_agent_utils.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
 import 'package:confetti/confetti.dart';
@@ -50,6 +52,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:walletconnect_flutter_v2/apis/core/pairing/utils/pairing_models.dart';
 
 enum ActionState { notRequested, loading, error, done }
 
@@ -77,24 +80,6 @@ void nameContinue(BuildContext context) {
   } else {
     unawaited(doneOnboarding(context));
   }
-}
-
-Future askForNotification() async {
-  if (injector<ConfigurationService>().isNotificationEnabled() != null) {
-    // Skip asking for notifications
-    return;
-  }
-
-  await Future<dynamic>.delayed(const Duration(seconds: 1), () async {
-    final context = injector<NavigationService>().navigatorKey.currentContext;
-    if (context == null) {
-      return null;
-    }
-
-    return await Navigator.of(context).pushNamed(
-        AppRouter.notificationOnboardingPage,
-        arguments: {'isOnboarding': false});
-  });
 }
 
 class UIHelper {
@@ -170,15 +155,12 @@ class UIHelper {
                               style: theme.primaryTextTheme.ppMori700White24),
                         ),
                         if (withCloseIcon)
-                          Padding(
-                            padding: const EdgeInsets.only(left: 10),
-                            child: GestureDetector(
-                              onTap: () => hideInfoDialog(context),
-                              child: SvgPicture.asset(
-                                'assets/images/circle_close.svg',
-                                width: 22,
-                                height: 22,
-                              ),
+                          IconButton(
+                            onPressed: () => hideInfoDialog(context),
+                            icon: SvgPicture.asset(
+                              'assets/images/circle_close.svg',
+                              width: 22,
+                              height: 22,
                             ),
                           )
                       ],
@@ -851,6 +833,45 @@ class UIHelper {
     Navigator.pop(context, result);
   }
 
+  static Future showAppReportBottomSheet(
+      BuildContext context, PairingMetadata? metadata) {
+    String buildReportMessage() => 'suspicious_app_report'.tr(namedArgs: {
+          'name': metadata?.name ?? '',
+          'url': metadata?.url ?? '',
+          'iconUrl': metadata?.icons.first ?? '',
+          'description': metadata?.description ?? ''
+        });
+
+    return showDrawerAction(
+      context,
+      options: [
+        OptionItem(
+          title: 'report'.tr(),
+          icon: SvgPicture.asset(
+            'assets/images/warning.svg',
+            colorFilter:
+                const ColorFilter.mode(AppColor.primaryBlack, BlendMode.srcIn),
+          ),
+          onTap: () async {
+            Navigator.of(context).pop();
+            final device = DeviceInfo.instance;
+            final isSupportAvailable = await device.isSupportOS();
+            if (isSupportAvailable) {
+              unawaited(injector<NavigationService>().navigateTo(
+                AppRouter.supportThreadPage,
+                arguments: NewIssuePayload(
+                  reportIssueType: ReportIssueType.Bug,
+                  defaultMessage: buildReportMessage(),
+                ),
+              ));
+            }
+          },
+        ),
+        OptionItem(),
+      ],
+    );
+  }
+
   // MARK: - Connection
   static Widget buildConnectionAppWidget(Connection connection, double size) {
     switch (connection.connectionType) {
@@ -1249,6 +1270,12 @@ class UIHelper {
                     alignment: Alignment.centerRight,
                     child: IconButton(
                       onPressed: () => Navigator.pop(context),
+                      constraints: const BoxConstraints(
+                        maxWidth: 44,
+                        maxHeight: 44,
+                        minWidth: 44,
+                        minHeight: 44,
+                      ),
                       icon: const Icon(
                         AuIcon.close,
                         size: 18,
@@ -1630,6 +1657,28 @@ class UIHelper {
         ],
       ),
       isDismissible: true,
+    );
+  }
+
+  static Future<void> openSnackBarExistFullScreen(BuildContext context) async {
+    final theme = Theme.of(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Container(
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 10),
+          decoration: BoxDecoration(
+            color: AppColor.feralFileHighlight.withOpacity(0.9),
+            borderRadius: BorderRadius.circular(64),
+          ),
+          child: Text(
+            'shake_exit'.tr(),
+            textAlign: TextAlign.center,
+            style: theme.textTheme.ppMori600Black12,
+          ),
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
     );
   }
 

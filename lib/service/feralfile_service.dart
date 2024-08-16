@@ -25,6 +25,7 @@ import 'package:autonomy_flutter/util/crawl_helper.dart';
 import 'package:autonomy_flutter/util/dailies_helper.dart';
 import 'package:autonomy_flutter/util/download_helper.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
+import 'package:autonomy_flutter/util/feral_file_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/series_ext.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
@@ -160,6 +161,8 @@ abstract class FeralFileService {
   Future<Exhibition?> getUpcomingExhibition();
 
   Future<Exhibition> getFeaturedExhibition();
+
+  Future<List<Exhibition>> getOngoingExhibitions();
 
   Future<List<Artwork>> getFeaturedArtworks();
 
@@ -306,6 +309,23 @@ class FeralFileServiceImpl extends FeralFileService {
   Future<Exhibition> getFeaturedExhibition() async {
     final exhibitionResponse = await _feralFileApi.getFeaturedExhibition();
     return exhibitionResponse.result!;
+  }
+
+  @override
+  Future<List<Exhibition>> getOngoingExhibitions() async {
+    final ongoingExhibitionIDs = FeralFileHelper.ongoingExhibitionIDs;
+
+    final ongoingExhibitions = <Exhibition>[];
+    for (final exhibitionID in ongoingExhibitionIDs) {
+      try {
+        final exhibition = await getExhibition(exhibitionID);
+        ongoingExhibitions.add(exhibition);
+      } catch (e) {
+        log.info('[FeralFileService] Failed to get ongoing exhibition: $e');
+      }
+    }
+
+    return ongoingExhibitions;
   }
 
   @override
@@ -556,14 +576,16 @@ class FeralFileServiceImpl extends FeralFileService {
         address: assetToken.owner,
         action: FeralfileAction.downloadSeries,
       );
+      const prefix = 'feralfile:';
+      final message2Sign = '$prefix$message';
       final ownerAddress = assetToken.owner;
       final chain = assetToken.blockchain;
       final account = await injector<AccountService>()
           .getAccountByAddress(chain: chain, address: ownerAddress);
       final signature =
-          await account.signMessage(chain: chain, message: message);
+          await account.signMessage(chain: chain, message: message2Sign);
       final publicKey = await account.wallet.getTezosPublicKey();
-      final signatureString = '$message|$signature|$publicKey';
+      final signatureString = '$message2Sign|$signature|$publicKey';
       final signatureHex = base64.encode(utf8.encode(signatureString));
 
       final url =

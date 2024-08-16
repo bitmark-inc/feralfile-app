@@ -19,6 +19,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -36,6 +37,7 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/stream_device_view.dart';
 import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:feralfile_app_tv_proto/models/canvas_device.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -206,6 +208,10 @@ class DeeplinkServiceImpl extends DeeplinkService {
     final postcardPayToMintPrefixes = [
       'https://autonomy.io/apps/moma-postcards/purchase',
     ];
+
+    final navigationPrefixes = [
+      'feralfile://navigation/',
+    ];
     if (!_configurationService.isDoneOnboarding()) {
       memoryValues.deepLink.value = link;
       await injector<AccountService>().restoreIfNeeded();
@@ -254,6 +260,14 @@ class DeeplinkServiceImpl extends DeeplinkService {
       await _handlePayToMintDeepLink(link);
       return true;
     }
+
+    final callingNavigationPrefix = navigationPrefixes
+        .firstWhereOrNull((prefix) => link.startsWith(prefix));
+    if (callingNavigationPrefix != null) {
+      final navigationPath = link.replaceFirst(callingNavigationPrefix, '');
+      await _navigationService.navigatePath(navigationPath);
+      return true;
+    }
     memoryValues.deepLink.value = null;
     return false;
   }
@@ -286,9 +300,10 @@ class DeeplinkServiceImpl extends DeeplinkService {
     final url =
         '${Environment.payToMintBaseUrl}/moma-postcard?address=$address';
     final response = (await _navigationService.goToIRLWebview(
-            IRLWebScreenPayload(url,
-                isPlainUI: true, statusBarColor: POSTCARD_BACKGROUND_COLOR)))
-        as Map<String, dynamic>;
+        IRLWebScreenPayload(url,
+            isPlainUI: true,
+            statusBarColor: POSTCARD_BACKGROUND_COLOR,
+            isDarkStatusBar: false))) as Map<String, dynamic>;
 
     if (response['result'] == true) {
       final previewURL = response['previewURL'];
@@ -364,6 +379,10 @@ class DeeplinkServiceImpl extends DeeplinkService {
       memoryValues.branchDeeplinkData.value = data;
       return;
     }
+    final navigatePath = data['navigation_route'];
+    if (navigatePath != null) {
+      await _navigationService.navigatePath(navigatePath);
+    }
     final source = data['source'];
     switch (source) {
       case 'Postcard':
@@ -432,7 +451,11 @@ class DeeplinkServiceImpl extends DeeplinkService {
             AppRouter.scanQRPage) {
           /// in case scan when open scanQRPage,
           /// scan with navigation home page does not go to this flow
-          _navigationService.goBack(result: device);
+          _navigationService.goBack(result: result);
+          if (!isSuccessful) {
+            await _navigationService.showCannotConnectTv();
+          }
+          break;
         }
         if (isSuccessful) {
           await UIHelper.showFlexibleDialog(
@@ -445,6 +468,72 @@ class DeeplinkServiceImpl extends DeeplinkService {
               autoDismissAfter: 3);
         } else {
           await _navigationService.showCannotConnectTv();
+        }
+
+      case 'InstantPurchase':
+        final url = data['callback_url'];
+        final expiredAt = data['expired_at'];
+        if (expiredAt != null) {
+          final expiredAtDate =
+              DateTime.fromMillisecondsSinceEpoch(int.tryParse(expiredAt) ?? 0);
+          if (expiredAtDate.isBefore(DateTime.now())) {
+            unawaited(_navigationService.showQRExpired());
+            break;
+          }
+        }
+        final instantToken = data['instant_purchase_token'];
+        final purchaseToken = data['purchase_token'];
+        if (url != null &&
+            data['chain'] != null &&
+            instantToken != null &&
+            purchaseToken != null) {
+          final chain = data['chain'].toString().toLowerCase();
+          late String? primaryAddress;
+          final addressService = injector<AddressService>();
+          try {
+            final primaryAddressInfo =
+                await addressService.getPrimaryAddressInfo();
+            if (primaryAddressInfo != null &&
+                primaryAddressInfo.chain == chain) {
+              log.info(
+                  '[DeeplinkService] InstancePurchase: primary address found');
+              primaryAddress =
+                  await addressService.getAddress(info: primaryAddressInfo);
+            } else {
+              log.info('[DeeplinkService] '
+                  'InstancePurchase: use address with most tokens');
+              final addressWallets = await addressService.getAllAddress();
+              addressWallets.removeWhere((element) =>
+                  element.cryptoType.toLowerCase() != chain ||
+                  element.isHidden);
+              if (addressWallets.isEmpty) {
+                primaryAddress = null;
+              } else {
+                if (addressWallets.length == 1) {
+                  primaryAddress = addressWallets.first.address;
+                } else {
+                  final address =
+                      await addressService.pickMostNftAddress(addressWallets);
+                  primaryAddress = address.address;
+                }
+              }
+            }
+          } catch (e) {
+            log.info('[DeeplinkService] get primary address error $e');
+            primaryAddress = null;
+          }
+          _navigationService.popUntilHome();
+          if (primaryAddress == null) {
+            await _navigationService.addressNotFoundError();
+          } else {
+            final link =
+                '$url&ba=$primaryAddress&ipt=$instantToken&pt=$purchaseToken';
+            log.info('InstantPurchase: $link');
+            await _navigationService.goToIRLWebview(IRLWebScreenPayload(link,
+                isPlainUI: true,
+                statusBarColor: AppColor.white,
+                isDarkStatusBar: false));
+          }
         }
 
       default:

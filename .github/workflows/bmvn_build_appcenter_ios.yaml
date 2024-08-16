@@ -32,7 +32,7 @@ on:
 
 jobs:
   fastlane-deploy:
-    runs-on: [self-hosted, macOS]
+    runs-on: [self-hosted, macOS, macm2, ios]
     steps:
       # Set up Flutter.
       - name: Clone Flutter repository with master channel
@@ -69,8 +69,14 @@ jobs:
       - name: Create env file
         run: |
           touch .env
-          ${{ inputs.testnet == true }} && echo -e "${{ secrets.DEV_ENV }}" | sed 's/\\n/\n/g' >> .env || echo -e "${{ secrets.STAGING_ENV }}" | sed 's/\\n/\n/g' >> .env
+          ${{ inputs.testnet == true }} && echo -e "${{ secrets.DEV_ENV_VARS }}" | sed 's/\\n/\n/g' >> .env || echo -e "${{ secrets.STAGING_ENV_VARS }}" | sed 's/\\n/\n/g' >> .env
           cat .env
+
+      - name: Create env secret file
+        run: |
+          touch .env.secret
+          ${{ inputs.testnet == true }} && echo -e "${{ secrets.DEV_ENV_SECRET }}" | sed 's/\\n/\n/g' >> .env.secret || echo -e "${{ secrets.STAGING_ENV_SECRET }}" | sed 's/\\n/\n/g' >> .env.secret
+          cat .env.secret
 
       - name: Flutter doctor
         run: flutter doctor
@@ -95,6 +101,11 @@ jobs:
           flutter pub get
           cd ios/
           pod install
+
+      # Encrypt secrets before use
+      - name: Encrypt Secrets
+        run: |
+          ./script/encrypt_secrets.sh ${{ secrets.ENTROPY }}
 
       - uses: mathieu-bour/setup-sentry-cli@main
 
@@ -124,3 +135,14 @@ jobs:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH }}
         run: |
           flutter packages pub run sentry_dart_plugin
+
+      - name: Clean up - Delete Travis keychain
+        if: ${{ always() }}
+        run: |
+          keychain="TravisKeychain-db"
+          if [ -f ~/Library/Keychains/$keychain ]; then
+            security delete-keychain $keychain
+            echo "Keychain $keychain has been deleted."
+          else
+            echo "Keychain $keychain does not exist. Skipping deletion."
+          fi

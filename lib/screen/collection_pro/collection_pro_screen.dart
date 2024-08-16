@@ -467,19 +467,28 @@ class CollectionProState extends State<CollectionPro>
           ? HeaderView(
               padding: EdgeInsets.zero,
               title: 'organize'.tr(),
-              action: GestureDetector(
-                child: SvgPicture.asset(
-                  'assets/images/search.svg',
-                  width: 24,
-                  height: 24,
-                  colorFilter:
-                      const ColorFilter.mode(AppColor.white, BlendMode.srcIn),
-                ),
-                onTap: () {
+              action: IconButton(
+                onPressed: () {
                   setState(() {
                     isShowSearchBar = true;
                   });
                 },
+                constraints: const BoxConstraints(
+                  maxWidth: 44,
+                  maxHeight: 44,
+                  minWidth: 44,
+                  minHeight: 44,
+                ),
+                icon: Padding(
+                  padding: const EdgeInsets.all(0),
+                  child: SvgPicture.asset(
+                    'assets/images/search.svg',
+                    width: 24,
+                    height: 24,
+                    colorFilter:
+                        const ColorFilter.mode(AppColor.white, BlendMode.srcIn),
+                  ),
+                ),
               ),
             )
           : Column(

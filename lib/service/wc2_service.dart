@@ -27,6 +27,7 @@ import 'package:autonomy_flutter/util/wallet_connect_ext.dart';
 import 'package:autonomy_flutter/util/wc2_ext.dart';
 import 'package:autonomy_flutter/util/wc2_tezos_ext.dart';
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
 import 'package:web3dart/credentials.dart';
 
@@ -75,6 +76,9 @@ class Wc2Service {
 
   final List<String> _approvedConnectionKey = [];
 
+  final ValueNotifier<String?> sessionDeleteNotifier =
+      ValueNotifier<String?>(null);
+
   void addApprovedTopic(List<String> keys) {
     _approvedConnectionKey.addAll(keys);
   }
@@ -106,6 +110,7 @@ class Wc2Service {
     _wcClient.onSessionRequest.subscribe((request) {
       log.info('[Wc2Service] Finish handle request $request');
     });
+    _wcClient.onSessionDelete.subscribe(_onSessionDeleted);
 
     _registerEthRequest('${Wc2Chain.ethereum}:${Environment.web3ChainId}');
 
@@ -237,6 +242,12 @@ class Wc2Service {
   Future _handleEthSendTx(String topic, params) async {
     log.info('[Wc2Service] received eip155-eth_sendTx request $params');
     final proposer = await _getWc2Request(topic, params);
+    final chainId = params[0]['chainId'];
+    if (chainId != null &&
+        BigInt.parse(chainId).toString() !=
+            Environment.web3ChainId.toString()) {
+      throw _chainNotSupported;
+    }
     if (proposer == null) {
       throw _proposalNotFound;
     }
@@ -307,7 +318,19 @@ class Wc2Service {
 
   Future<List<String>> _getAllConnectionKey() async {
     final connections = await _cloudDB.connectionDao.getWc2Connections();
-    return connections.map((e) => e.key).toList();
+    final activeTopics = _wcClient.getActiveSessions().keys;
+    log.info('[Wc2Service] activeTopics: $activeTopics');
+    final inactiveConnections = connections
+        .where((element) =>
+            !activeTopics.any((topic) => element.key.contains(topic)))
+        .toList();
+    await _cloudDB.connectionDao.deleteConnections(inactiveConnections);
+    final keys = connections
+        .where((element) => !inactiveConnections.contains(element))
+        .map((e) => e.key)
+        .toList();
+    log.info('[Wc2Service] connection keys: $keys');
+    return keys;
   }
 
   List<SessionRequest> getPendingRequests() =>
@@ -445,6 +468,12 @@ class Wc2Service {
 
   //#endregion
 
+  Future<void> _onSessionDeleted(SessionDelete? session) async {
+    if (session?.topic != null) {
+      sessionDeleteNotifier.value = session!.topic;
+    }
+  }
+
   //#region Events handling
 
   Future<void> _onSessionProposal(SessionProposalEvent? proposal) async {
@@ -482,10 +511,13 @@ class Wc2Service {
       log.info('[Wc2Service] Proposal contains unsupported methods: '
           '$unsupportedMethods');
     }
-    final wc2Proposal = Wc2Proposal(proposal.id,
-        proposer: proposal.params.proposer.metadata,
-        requiredNamespaces: proposal.params.requiredNamespaces,
-        optionalNamespaces: proposal.params.optionalNamespaces);
+    final wc2Proposal = Wc2Proposal(
+      proposal.id,
+      proposer: proposal.params.proposer.metadata,
+      requiredNamespaces: proposal.params.requiredNamespaces,
+      optionalNamespaces: proposal.params.optionalNamespaces,
+      validation: proposal.verifyContext?.validation,
+    );
     unawaited(_navigationService.navigateTo(AppRouter.wc2ConnectPage,
         arguments: wc2Proposal));
   }
@@ -504,6 +536,16 @@ class Wc2Service {
         message = jsonEncode(params[1]);
       } else {
         message = params[1];
+      }
+    }
+
+    if (signType == WCSignType.TYPED_MESSAGE) {
+      final typedData = jsonDecode(message);
+      final domain = typedData['domain'];
+      final chainId = domain?['chainId'];
+      if (chainId != null &&
+          chainId.toString() != Environment.web3ChainId.toString()) {
+        throw _chainNotSupported;
       }
     }
 

@@ -3,6 +3,7 @@ import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/screen/exhibitions/exhibitions_state.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
+import 'package:autonomy_flutter/util/feral_file_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 
 class ExhibitionBloc extends AuBloc<ExhibitionsEvent, ExhibitionsState> {
@@ -21,17 +22,22 @@ class ExhibitionBloc extends AuBloc<ExhibitionsEvent, ExhibitionsState> {
         _feralFileService.getFeaturedExhibition(),
         _feralFileService.getAllExhibitions(limit: limit),
         _feralFileService.getSourceExhibition(),
+        _feralFileService.getOngoingExhibitions(),
       ]);
       final upcomingExhibition = result[0] as Exhibition?;
       final featuredExhibition = result[1]! as Exhibition;
       final allExhibitions = result[2]! as List<Exhibition>;
       final sourceExhibition = result[3]! as Exhibition;
+      final ongoingExhibitions = result[4]! as List<Exhibition>;
+      final ongoingExhibitionIDs = FeralFileHelper.ongoingExhibitionIDs;
+
       log.info('[ExhibitionBloc] getAllExhibitionsEvent:'
           ' pro ${allExhibitions.length}');
       var pastExhibitions = allExhibitions
           .where((exhibition) =>
               exhibition.id != featuredExhibition.id &&
-              exhibition.id != upcomingExhibition?.id)
+              exhibition.id != upcomingExhibition?.id &&
+              !ongoingExhibitionIDs.contains(exhibition.id))
           .toList();
       pastExhibitions =
           _addSourceExhibitionIfNeeded(pastExhibitions, sourceExhibition);
@@ -40,6 +46,7 @@ class ExhibitionBloc extends AuBloc<ExhibitionsEvent, ExhibitionsState> {
         currentPage: 1,
         upcomingExhibition: upcomingExhibition,
         featuredExhibition: featuredExhibition,
+        ongoingExhibitions: ongoingExhibitions,
         pastExhibitions: pastExhibitions,
       ));
       add(GetNextPageEvent(isLoop: true));
