@@ -113,6 +113,24 @@ class MockConfigurationService extends _i1.Mock
         ),
       ) as _i2.ValueNotifier<bool>);
   @override
+  _i5.Future<void> setLastPullAnnouncementTime(int? lastPullTime) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #setLastPullAnnouncementTime,
+          [lastPullTime],
+        ),
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
+  @override
+  int getLastPullAnnouncementTime() => (super.noSuchMethod(
+        Invocation.method(
+          #getLastPullAnnouncementTime,
+          [],
+        ),
+        returnValue: 0,
+      ) as int);
+  @override
   _i5.Future<void> setRecordOwners(
     List<String>? owners, {
     bool? override = false,

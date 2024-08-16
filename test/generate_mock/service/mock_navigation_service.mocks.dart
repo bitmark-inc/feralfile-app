@@ -10,7 +10,7 @@ import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart'
     as _i7;
 import 'package:autonomy_flutter/service/navigation_service.dart' as _i3;
 import 'package:autonomy_flutter/util/error_handler.dart' as _i6;
-import 'package:flutter/material.dart' as _i1;
+import 'package:flutter/cupertino.dart' as _i1;
 import 'package:mockito/mockito.dart' as _i2;
 import 'package:nft_collection/models/asset_token.dart' as _i5;
 
@@ -92,6 +92,14 @@ class MockNavigationService extends _i2.Mock implements _i3.NavigationService {
         Invocation.getter(#mounted),
         returnValue: false,
       ) as bool);
+  @override
+  void setPageController(_i1.PageController? controller) => super.noSuchMethod(
+        Invocation.method(
+          #setPageController,
+          [controller],
+        ),
+        returnValueForMissingStub: null,
+      );
   @override
   _i4.Future<dynamic>? navigateTo(
     String? routeName, {

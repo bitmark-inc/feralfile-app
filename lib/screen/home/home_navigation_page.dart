@@ -636,10 +636,10 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   }
 
   PageController _getPageController(int initialIndex) {
-  final pageController = PageController(initialPage: initialIndex);
-  injector<NavigationService>().setPageController(pageController);
-  return pageController;
-}
+    final pageController = PageController(initialPage: initialIndex);
+    injector<NavigationService>().setPageController(pageController);
+    return pageController;
+  }
 
   void _handleBackground() {
     unawaited(_cloudBackup());
