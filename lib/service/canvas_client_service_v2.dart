@@ -10,7 +10,7 @@ import 'dart:async';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/tv_cast_api.dart';
 import 'package:autonomy_flutter/model/pair.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/device_info_service.dart';
 import 'package:autonomy_flutter/service/hive_store_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -81,12 +81,10 @@ class CanvasClientServiceV2 {
   Future<ConnectReplyV2> connect(CanvasDevice device) async {
     final stub = _getStub(device);
     final deviceInfo = clientDeviceInfo;
-    final defaultAccount =
-        await injector<AccountService>().getCurrentDefaultAccount();
-    final didKey = await defaultAccount?.getAccountDID();
+    final primaryAddress = await injector<AddressService>().getPrimaryAddress();
 
     final request = ConnectRequestV2(
-        clientDevice: deviceInfo, primaryAddress: didKey ?? '');
+        clientDevice: deviceInfo, primaryAddress: primaryAddress ?? '');
     final response = await stub.connect(request);
     return response;
   }
