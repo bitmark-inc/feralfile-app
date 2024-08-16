@@ -362,7 +362,7 @@ extension RouteExt on Route {
         data = {
           MixpanelProp.exhibitionId: payload.id,
         };
-      case AppRouter.artistDetailsPage:
+      case AppRouter.userDetailsPage:
         final payload = settings.arguments! as UserDetailsPagePayload;
         data = {
           MixpanelProp.id: payload.user.id,
@@ -483,7 +483,7 @@ final screenNameMap = {
   AppRouter.projectsList: 'Projects',
   AppRouter.artistsListPage: 'Artists list',
   AppRouter.exhibitionCustomNote: 'Exhibition Custom Note',
-  AppRouter.artistDetailsPage: 'Artist Details',
+  AppRouter.userDetailsPage: 'Artist Details',
   AppRouter.artistExhibitionsPage: 'Artist Exhibitions',
   AppRouter.artistWorksPage: 'Artist Works',
   AppRouter.artistPostsPage: 'Artist Posts',

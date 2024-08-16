@@ -199,6 +199,7 @@ class _FeralFileApi implements FeralFileApi {
     int? offset,
     String? keyword,
     List<String> relatedAccountIDs = const [],
+    Map<String, dynamic> customQueryParam = const {},
   }) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
@@ -209,6 +210,8 @@ class _FeralFileApi implements FeralFileApi {
       r'keyword': keyword,
       r'relatedAccountIDs': relatedAccountIDs,
     };
+    // add customQueryParams
+    queryParameters.addAll(customQueryParam);
     queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
     final Map<String, dynamic>? _data = null;
@@ -448,6 +451,7 @@ class _FeralFileApi implements FeralFileApi {
     String keyword = '',
     List<String> artistIDs = const [],
     bool includeUniqueFilePath = true,
+    Map<String, dynamic> customQueryParam = const {},
   }) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
@@ -463,6 +467,8 @@ class _FeralFileApi implements FeralFileApi {
       r'artistIDs': artistIDs,
       r'includeUniqueFilePath': includeUniqueFilePath,
     };
+    // add customQueryParams
+    queryParameters.addAll(customQueryParam);
     queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
     final Map<String, dynamic>? _data = null;
@@ -603,7 +609,7 @@ class _FeralFileApi implements FeralFileApi {
               _dio.options.baseUrl,
               baseUrl,
             ))));
-    final value = ExploreStatisticsData.fromJson(_result.data!);
+    final value = ExploreStatisticsData.fromJson(_result.data!['result']);
     return value;
   }
 

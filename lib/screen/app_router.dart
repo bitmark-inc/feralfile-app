@@ -238,7 +238,7 @@ class AppRouter {
   static const addEthereumChainPage = 'add_ethereum_chain_page';
   static const artistsListPage = 'artists_list_page';
   static const exhibitionCustomNote = 'exhibition_custom_note';
-  static const artistDetailsPage = 'artist_details_page';
+  static const userDetailsPage = 'artist_details_page';
   static const artistWorksPage = 'artist_works_page';
   static const artistExhibitionsPage = 'artist_exhibitions_page';
   static const artistPostsPage = 'artist_posts_page';
@@ -1208,7 +1208,7 @@ class AppRouter {
           ),
         );
 
-      case artistDetailsPage:
+      case userDetailsPage:
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) => MultiBlocProvider(

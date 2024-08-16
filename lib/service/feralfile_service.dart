@@ -19,7 +19,9 @@ import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/ff_list_response.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/model/ff_user.dart';
+import 'package:autonomy_flutter/screen/feralfile_home/filter_bar.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/crawl_helper.dart';
 import 'package:autonomy_flutter/util/download_helper.dart';
@@ -129,17 +131,6 @@ enum GenerativeMediumTypes {
   }
 }
 
-enum sortOrder {
-  ASC,
-  DESC,
-}
-
-enum sortBy {
-  displayIndex,
-  openAt,
-  createdAt,
-}
-
 abstract class FeralFileService {
   static const int offset = 0;
   static const int limit = 300;
@@ -166,6 +157,7 @@ abstract class FeralFileService {
     int offset = 0,
     String keywork = '',
     List<String> relatedAccountIDs = const [],
+    Map<FilterType, FilterValue> filters = const {},
   });
 
   Future<Exhibition> getSourceExhibition();
@@ -198,18 +190,20 @@ abstract class FeralFileService {
   Future<File?> downloadFeralfileArtwork(AssetToken assetToken,
       {Function(int received, int total)? onReceiveProgress});
 
-  Future<FeralFileListResponse<FFSeries>> exploreArtworks(
-      {String? sortBy,
-      String? sortOrder,
-      String keyword = '',
-      int limit = 300,
-      int offset = 0,
-      bool includeArtist = true,
-      bool includeExhibition = true,
-      bool includeFirstArtwork = true,
-      bool onlyViewable = true,
-      List<String> artistIds = const [],
-      bool includeUniqeFilePath = true});
+  Future<FeralFileListResponse<FFSeries>> exploreArtworks({
+    String? sortBy,
+    String? sortOrder,
+    String keyword = '',
+    int limit = 300,
+    int offset = 0,
+    bool includeArtist = true,
+    bool includeExhibition = true,
+    bool includeFirstArtwork = true,
+    bool onlyViewable = true,
+    List<String> artistIds = const [],
+    bool includeUniqeFilePath = true,
+    Map<FilterType, FilterValue> filters = const {},
+  });
 
   Future<FeralFileListResponse<FFArtist>> exploreArtists(
       {int limit = 20,
@@ -233,6 +227,11 @@ abstract class FeralFileService {
     List<String> types = const [],
     List<String> relatedAccountIds = const [],
     bool includeExhibition = true,
+  });
+
+  Future<ExploreStatisticsData> getExploreStatistics({
+    bool unique = true,
+    bool excludedFF = true,
   });
 }
 
@@ -335,14 +334,19 @@ class FeralFileServiceImpl extends FeralFileService {
     int offset = 0,
     String keywork = '',
     List<String> relatedAccountIDs = const [],
+    Map<FilterType, FilterValue> filters = const {},
   }) async {
+    final customParams =
+        filters.map((key, value) => MapEntry(key.queryParam, value.queryParam));
     final exhibitions = await _feralFileApi.getAllExhibitions(
-        sortBy: sortBy,
-        sortOrder: sortOrder,
-        limit: limit,
-        offset: offset,
-        keyword: keywork,
-        relatedAccountIDs: relatedAccountIDs);
+      sortBy: sortBy,
+      sortOrder: sortOrder,
+      limit: limit,
+      offset: offset,
+      keyword: keywork,
+      relatedAccountIDs: relatedAccountIDs,
+      customQueryParam: customParams,
+    );
     final listExhibition = exhibitions.result;
     log
       ..info('[FeralFileService] Get all exhibitions: ${listExhibition.length}')
@@ -814,31 +818,41 @@ class FeralFileServiceImpl extends FeralFileService {
   }
 
   @override
-  Future<FeralFileListResponse<FFSeries>> exploreArtworks(
-      {String? sortBy,
-      String? sortOrder,
-      String keyword = '',
-      int limit = 300,
-      int offset = 0,
-      bool includeArtist = true,
-      bool includeExhibition = true,
-      bool includeFirstArtwork = true,
-      bool onlyViewable = true,
-      List<String> artistIds = const [],
-      bool includeUniqeFilePath = true}) async {
+  Future<FeralFileListResponse<FFSeries>> exploreArtworks({
+    String? sortBy,
+    String? sortOrder,
+    String keyword = '',
+    int limit = 300,
+    int offset = 0,
+    bool includeArtist = true,
+    bool includeExhibition = true,
+    bool includeFirstArtwork = true,
+    bool onlyViewable = true,
+    List<String> artistIds = const [],
+    bool includeUniqeFilePath = true,
+    Map<FilterType, FilterValue> filters = const {},
+  }) async {
+    final Map<String, String> customParams = {};
+    for (final entry in filters.entries) {
+      final key = entry.key;
+      final value = entry.value;
+      customParams.addAll({key.queryParam: value.queryParam});
+    }
     final res = await _feralFileApi.exploreArtwork(
-        sortBy: sortBy,
-        sortOrder: sortOrder,
-        keyword: keyword,
-        limit: limit,
-        offset: offset,
-        includeArtist: includeArtist,
-        includeExhibition: includeExhibition,
-        includeFirstArtwork: includeFirstArtwork,
-        onlyViewable: onlyViewable,
-        artistIDs: artistIds,
-        includeUniqueFilePath: includeUniqeFilePath);
-
+      sortBy: sortBy,
+      sortOrder: sortOrder,
+      keyword: keyword,
+      limit: limit,
+      offset: offset,
+      includeArtist: includeArtist,
+      includeExhibition: includeExhibition,
+      includeFirstArtwork: includeFirstArtwork,
+      onlyViewable: onlyViewable,
+      artistIDs: artistIds,
+      includeUniqueFilePath: includeUniqeFilePath,
+      customQueryParam: customParams,
+    );
+    log.info('[FeralFileService] Explore artworks with keyword: $keyword');
     return res;
   }
 
@@ -878,6 +892,17 @@ class FeralFileServiceImpl extends FeralFileService {
   Future<FFUserDetails> getUser(String artistID) async {
     final res = await _feralFileApi.getUser(accountId: artistID);
     return res.result;
+  }
+
+  Future<ExploreStatisticsData> getExploreStatistics({
+    bool unique = true,
+    bool excludedFF = true,
+  }) async {
+    final res = await _feralFileApi.getExploreStatistics(
+      unique: unique,
+      excludedFF: excludedFF,
+    );
+    return res;
   }
 }
 

@@ -5,7 +5,8 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
-import 'package:autonomy_flutter/screen/exhibitions/exhibitions_bloc.dart';
+import 'package:autonomy_flutter/screen/feralfile_home/filter_bar.dart';
+import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
@@ -20,52 +21,163 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:sentry/sentry.dart';
 
-class ListExhibitionView extends StatefulWidget {
-  List<Exhibition> exhibitions;
+class ExploreExhibition extends StatefulWidget {
+  final String? searchText;
+  final Map<FilterType, FilterValue> filters;
+  final SortBy sortBy;
 
-  ListExhibitionView({required this.exhibitions, super.key});
+  const ExploreExhibition(
+      {this.searchText,
+      required this.filters,
+      required this.sortBy,
+      super.key});
+
+  @override
+  State<ExploreExhibition> createState() => _ExploreExhibitionState();
+
+  bool isEqual(Object other) {
+    return other is ExploreExhibition &&
+        other.searchText == searchText &&
+        other.filters == filters &&
+        other.sortBy == sortBy;
+  }
+}
+
+class _ExploreExhibitionState extends State<ExploreExhibition> {
+  List<Exhibition>? _exhibitions;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_fetchExhibitions(context));
+  }
+
+  @override
+  void didUpdateWidget(covariant ExploreExhibition oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!oldWidget.isEqual(widget) || true) {
+      unawaited(_fetchExhibitions(context));
+    }
+  }
+
+  Widget _loadingView(BuildContext context) {
+    return Center(
+      child: CircularProgressIndicator(),
+    );
+  }
+
+  Widget _emptyView(BuildContext context) {
+    final theme = Theme.of(context);
+    return Center(
+      child: Text(
+        'No exhibitions found',
+        style: theme.textTheme.ppMori400White14,
+      ),
+    );
+  }
+
+  Widget _exhibitionView(BuildContext context, List<Exhibition> exhibitions) {
+    return ListExhibitionView(exhibitions: exhibitions);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_exhibitions == null) {
+      return _loadingView(context);
+    } else if (_exhibitions!.isEmpty) {
+      return _emptyView(context);
+    } else {
+      return Expanded(child: _exhibitionView(context, _exhibitions!));
+    }
+  }
+
+  Future<List<Exhibition>> _fetchExhibitions(BuildContext context,
+      {int offset = 0, int pageSize = 20}) async {
+    final sortBy = widget.sortBy;
+    final exhibitions = await injector<FeralFileService>().getAllExhibitions(
+      keywork: widget.searchText ?? '',
+      offset: offset,
+      limit: pageSize,
+      sortBy: sortBy.queryParam,
+      sortOrder: sortBy.sortOrder.queryParam,
+      filters: widget.filters,
+    );
+    setState(() {
+      _exhibitions = exhibitions;
+    });
+    return exhibitions;
+  }
+
+  Future<void> _loadMoreExhibitions(BuildContext context,
+      {int offset = 0, int pageSize = 20}) async {
+    final sortBy = widget.sortBy;
+    final exhibitions = await injector<FeralFileService>().getAllExhibitions(
+      keywork: widget.searchText ?? '',
+      offset: offset,
+      limit: pageSize,
+      sortBy: sortBy.queryParam,
+      sortOrder: sortBy.sortOrder.queryParam,
+      filters: widget.filters,
+    );
+    setState(() {
+      _exhibitions ??= [];
+      _exhibitions?.addAll(exhibitions);
+    });
+  }
+}
+
+class ListExhibitionView extends StatefulWidget {
+  final List<Exhibition> exhibitions;
+  final ScrollController? scrollController;
+
+  const ListExhibitionView(
+      {required this.exhibitions, this.scrollController, super.key});
 
   @override
   State<ListExhibitionView> createState() => _ListExhibitionViewState();
 }
 
 class _ListExhibitionViewState extends State<ListExhibitionView> {
-  late ExhibitionBloc _exhibitionBloc;
   final _navigationService = injector<NavigationService>();
   static const _padding = 14.0;
   static const _exhibitionInfoDivideWidth = 20.0;
+  late ScrollController _scrollController;
 
   @override
   void initState() {
     super.initState();
-    _exhibitionBloc = injector<ExhibitionBloc>();
+    _scrollController = widget.scrollController ?? ScrollController();
   }
 
   @override
   Widget build(BuildContext context) {
     final divider =
         addDivider(height: 40, color: AppColor.auQuickSilver, thickness: 0.5);
-
-    return SliverPadding(
-      padding: const EdgeInsets.symmetric(horizontal: _padding),
-      sliver: SliverList(
-        delegate: SliverChildBuilderDelegate(
-          (context, index) {
-            final exhibition = widget.exhibitions[index];
-            return Column(
-              children: [
-                _exhibitionItem(
-                    context: context,
-                    viewableExhibitions: widget.exhibitions,
-                    exhibition: exhibition,
-                    isFeaturedExhibition: false),
-                divider,
-              ],
-            );
-          },
-          childCount: widget.exhibitions.length,
-        ),
-      ),
+    return CustomScrollView(
+      controller: _scrollController,
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: _padding),
+          sliver: SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                final exhibition = widget.exhibitions[index];
+                return Column(
+                  children: [
+                    _exhibitionItem(
+                        context: context,
+                        viewableExhibitions: widget.exhibitions,
+                        exhibition: exhibition,
+                        isFeaturedExhibition: false),
+                    divider,
+                  ],
+                );
+              },
+              childCount: widget.exhibitions.length,
+            ),
+          ),
+        )
+      ],
     );
   }
 
@@ -83,7 +195,7 @@ class _ListExhibitionViewState extends State<ListExhibitionView> {
   }
 
   void _openExhibition(BuildContext context, String exhibitionId) {
-    final listExhibitions = _exhibitionBloc.state.allExhibitions;
+    final listExhibitions = widget.exhibitions ?? [];
     final index =
         listExhibitions.indexWhere((element) => element.id == exhibitionId);
     if (index < 0) {

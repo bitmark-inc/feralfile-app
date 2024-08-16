@@ -12,18 +12,18 @@ class FeralfileHomeBloc
 
   FeralfileHomeBloc(this._feralFileService) : super(FeralfileHomeBlocState()) {
     on<FeralFileHomeFetchDataEvent>((event, emit) async {
+      final statistics = await _feralFileService.getExploreStatistics();
       final featuredWorks = await _feralFileService.getFeaturedArtworks();
-      final allArtworks = await _feralFileService.exploreArtworks(limit: 100);
-      final exhibitions = await _feralFileService.getAllExhibitions();
-      final artists = await _feralFileService.exploreArtists(limit: 200);
-      final curators = await _feralFileService.exploreCurators();
+      final allArtworks =
+          null; //await _feralFileService.exploreArtworks(limit: 100);
+      final exhibitions = null; //await _feralFileService.getAllExhibitions();
+      final artists =
+          null; //await _feralFileService.exploreArtists(limit: 200);
+      final curators = null; //await _feralFileService.exploreCurators();
 
       emit(FeralfileHomeBlocState(
+        exploreStatisticsData: statistics,
         featuredArtworks: featuredWorks,
-        artworks: allArtworks,
-        exhibitions: exhibitions,
-        artists: artists,
-        curators: curators,
       ));
     });
   }

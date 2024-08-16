@@ -1,24 +1,20 @@
-import 'dart:async';
-
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
-import 'package:autonomy_flutter/model/ff_user.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/artist_details/artist_details_page.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
-import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
-import 'package:autonomy_flutter/screen/exhibitions/exhibitions_bloc.dart';
-import 'package:autonomy_flutter/screen/exhibitions/exhibitions_state.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/artwork_view.dart';
+import 'package:autonomy_flutter/screen/feralfile_home/explore_search_bar.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/featured_work_view.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/feralfile_home_bloc.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/feralfile_home_state.dart';
+import 'package:autonomy_flutter/screen/feralfile_home/filter_bar.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/list_artist_view.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/list_exhibition_view.dart';
+import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
-import 'package:autonomy_flutter/util/feralfile_artist_ext.dart';
+import 'package:autonomy_flutter/util/playlist_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/cast_button.dart';
 import 'package:collection/collection.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
@@ -30,7 +26,75 @@ enum FeralfileHomeTab {
   exhibitions,
   artists,
   curators,
-  rAndD
+  rAndD;
+
+  List<SortBy> getSortBy() {
+    switch (this) {
+      case FeralfileHomeTab.artworks:
+        return [
+          SortBy.createdAt,
+          SortBy.title,
+        ];
+      case FeralfileHomeTab.exhibitions:
+        return [
+          SortBy.openAt,
+          SortBy.title,
+        ];
+      case FeralfileHomeTab.artists:
+      case FeralfileHomeTab.curators:
+        return [
+          SortBy.firstExhibitionJoinedAt,
+          SortBy.alias,
+        ];
+      default:
+        return [
+          SortBy.createdAt,
+          SortBy.title,
+        ];
+    }
+  }
+
+  SortBy getDefaultSortBy() {
+    // make sure the first one is the default
+    return getSortBy().first;
+  }
+
+  Map<FilterType, List<FilterValue>> getFilterBy() {
+    switch (this) {
+      case FeralfileHomeTab.artworks:
+        return {
+          FilterType.type: [
+            FilterValue.edition,
+            FilterValue.series,
+            FilterValue.oneofone,
+          ],
+          FilterType.chain: [
+            FilterValue.ethereum,
+            FilterValue.tezos,
+            // dont support Bitmark chain
+          ],
+          FilterType.medium: [
+            FilterValue.image,
+            FilterValue.video,
+            FilterValue.software,
+            FilterValue.pdf,
+            FilterValue.audio,
+            FilterValue.threeD,
+            FilterValue.animatedGif,
+            FilterValue.text,
+          ],
+        };
+      case FeralfileHomeTab.exhibitions:
+        return {
+          FilterType.type: [
+            FilterValue.solo,
+            FilterValue.group,
+          ],
+        };
+      default:
+        return {};
+    }
+  }
 }
 
 class FeralfileHomePage extends StatefulWidget {
@@ -49,7 +113,19 @@ class _FeralfileHomePageState extends State<FeralfileHomePage> {
     super.initState();
     context.read<FeralfileHomeBloc>().add(FeralFileHomeFetchDataEvent());
     _items = _getItemList(context.read<FeralfileHomeBloc>().state);
-    _selectedIndex = FeralfileHomeTab.artists.index;
+    _selectedIndex = FeralfileHomeTab.featured.index;
+  }
+
+  Widget _castButton(List<Artwork> featuredArtworks) {
+    final tokenIDs =
+        featuredArtworks.map((e) => e.indexerTokenId).whereNotNull().toList();
+    final displayKey = tokenIDs.displayKey ?? '';
+    return FFCastButton(
+      displayKey: displayKey,
+      onDeviceSelected: (device) async {
+        // TODO: implement cast
+      },
+    );
   }
 
   @override
@@ -62,36 +138,34 @@ class _FeralfileHomePageState extends State<FeralfileHomePage> {
     return Scaffold(
       appBar: getDarkEmptyAppBar(),
       backgroundColor: AppColor.primaryBlack,
-      body: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(
-            child: SizedBox(
-              height: MediaQuery.of(context).padding.top,
-            ),
+      body: Column(
+        children: [
+          SizedBox(
+            height: MediaQuery.of(context).padding.top,
           ),
           // Header
-          SliverToBoxAdapter(
-            child: BlocBuilder<FeralfileHomeBloc, FeralfileHomeBlocState>(
-              builder: (context, state) {
-                return ItemExpanedWidget(
+          BlocBuilder<FeralfileHomeBloc, FeralfileHomeBlocState>(
+            builder: (context, state) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: ItemExpanedWidget(
                   items: _getItemList(state),
                   selectedIndex: _selectedIndex,
                   iconOnExpanded: RotatedBox(
-                    quarterTurns: 1,
+                    quarterTurns: 3,
                     child: icon,
                   ),
                   iconOnUnExpanded: RotatedBox(
-                    quarterTurns: 2,
+                    quarterTurns: 1,
                     child: icon,
                   ),
-                );
-              },
-            ),
+                  actions: [],
+                ),
+              );
+            },
           ),
           // body
-          SliverToBoxAdapter(
-            child: SizedBox(height: 16),
-          ),
+          SizedBox(height: 16),
           BlocBuilder<FeralfileHomeBloc, FeralfileHomeBlocState>(
             builder: (context, state) {
               return _bodyWidget(state);
@@ -117,7 +191,7 @@ class _FeralfileHomePageState extends State<FeralfileHomePage> {
       Item(
         id: FeralfileHomeTab.artworks.index.toString(),
         title: 'Artworks',
-        subtitle: state.artworks?.paging.total.toString() ?? '-',
+        subtitle: state.exploreStatisticsData?.totalArtwork.toString() ?? '-',
         onSelected: () {
           setState(() {
             _selectedIndex = FeralfileHomeTab.artworks.index;
@@ -127,7 +201,8 @@ class _FeralfileHomePageState extends State<FeralfileHomePage> {
       Item(
         id: FeralfileHomeTab.exhibitions.index.toString(),
         title: 'Exhibitions',
-        subtitle: state.exhibitions?.length.toString() ?? '-',
+        subtitle:
+            state.exploreStatisticsData?.totalExhibition.toString() ?? '-',
         onSelected: () {
           setState(() {
             _selectedIndex = FeralfileHomeTab.exhibitions.index;
@@ -137,7 +212,7 @@ class _FeralfileHomePageState extends State<FeralfileHomePage> {
       Item(
           id: FeralfileHomeTab.artists.index.toString(),
           title: 'Artists',
-          subtitle: state.artists?.paging.total.toString() ?? '-',
+          subtitle: state.exploreStatisticsData?.totalArtist.toString() ?? '-',
           onSelected: () {
             setState(() {
               _selectedIndex = FeralfileHomeTab.artists.index;
@@ -146,7 +221,7 @@ class _FeralfileHomePageState extends State<FeralfileHomePage> {
       Item(
         id: FeralfileHomeTab.curators.index.toString(),
         title: 'Curators',
-        subtitle: state.curators?.paging.total.toString() ?? '-',
+        subtitle: state.exploreStatisticsData?.totalCurator.toString() ?? '-',
         onSelected: () {
           setState(() {
             _selectedIndex = FeralfileHomeTab.curators.index;
@@ -170,21 +245,21 @@ class _FeralfileHomePageState extends State<FeralfileHomePage> {
     final tab = FeralfileHomeTab.values[_selectedIndex];
     switch (tab) {
       case FeralfileHomeTab.featured:
-        return _featuredWidget(state.featuredArtworks ?? []);
+        return _featuredWidget(context, state.featuredArtworks ?? []);
       case FeralfileHomeTab.artworks:
-        return _artworksWidget();
+        return _artworksWidget(context);
       case FeralfileHomeTab.exhibitions:
-        return _exhibitionsWidget();
+        return _exhibitionsWidget(context);
       case FeralfileHomeTab.artists:
-        return _artistsWidget();
+        return _artistsWidget(context);
       case FeralfileHomeTab.curators:
-        return _curatorsWidget();
+        return _curatorsWidget(context);
       case FeralfileHomeTab.rAndD:
-        return _rAndDWidget();
+        return _rAndDWidget(context);
     }
   }
 
-  Widget _featuredWidget(List<Artwork> featuredArtworks) {
+  Widget _featuredWidget(BuildContext context, List<Artwork> featuredArtworks) {
     final tokenIDs =
         featuredArtworks.map((e) => e.indexerTokenId).whereNotNull().toList();
     return MultiBlocProvider(
@@ -193,74 +268,80 @@ class _FeralfileHomePageState extends State<FeralfileHomePage> {
             create: (context) => IdentityBloc(injector(), injector()),
           ),
         ],
-        child: FeaauredWorkView(
-          tokenIDs: tokenIDs,
+        child: Expanded(
+          child: FeaauredWorkView(
+            tokenIDs: tokenIDs,
+          ),
         ));
   }
 
-  Widget _artworksWidget() {
-    final series =
-        context.read<FeralfileHomeBloc>().state.artworks?.result ?? [];
-    return SeriesView(series: series);
-  }
-
-  Widget _exhibitionsWidget() {
-    final exhibitions =
-        context.read<FeralfileHomeBloc>().state.exhibitions ?? [];
-    return MultiBlocProvider(providers: [
-      BlocProvider<ExhibitionBloc>(
-        create: (context) =>
-            ExhibitionBloc(injector())..add(GetAllExhibitionsEvent()),
+  Widget _artworksWidget(BuildContext context) {
+    return Expanded(
+      child: ExploreBar(
+        key: ValueKey(FeralfileHomeTab.artworks),
+        childBuilder: (searchText, filters, sortBy) {
+          return ExploreSeriesView(
+            searchText: searchText,
+            filters: filters,
+            sortBy: sortBy,
+          );
+        },
       ),
-      BlocProvider<SubscriptionBloc>.value(
-        value: context.read<SubscriptionBloc>(),
-      )
-    ], child: ListExhibitionView(exhibitions: exhibitions));
-  }
-
-  void _gotoArtistDetails(BuildContext context, FFArtist artist) {
-    Navigator.of(context).pushNamed(
-      AppRouter.artistDetailsPage,
-      arguments: UserDetailsPagePayload(user: artist),
     );
   }
 
-  Widget _artistsWidget() {
-    final artists =
-        context.read<FeralfileHomeBloc>().state.artists?.result ?? [];
-    return ListUserView(
-        users: artists,
-        onArtistSelected: (user) {
-          if (user is FFUserDetails) {
-            _gotoArtistDetails(context, user.toFFArtist());
-          }
-        });
+  Widget _exhibitionsWidget(BuildContext context) {
+    return Expanded(
+      child: ExploreBar(
+        key: ValueKey(FeralfileHomeTab.exhibitions),
+        childBuilder: (searchText, filters, sortBy) {
+          return ExploreExhibition(
+            searchText: searchText,
+            filters: filters ?? {},
+            sortBy: sortBy,
+          );
+        },
+        tab: FeralfileHomeTab.exhibitions,
+      ),
+    );
   }
 
-  void _gotoCuratorDetails(BuildContext context, FFCurator curator) {
-    unawaited(Navigator.of(context).pushNamed(
-      AppRouter.artistDetailsPage,
-      arguments: UserDetailsPagePayload(user: curator),
+  Widget _artistsWidget(BuildContext context) {
+    return Expanded(
+        child: ExploreBar(
+      key: ValueKey(FeralfileHomeTab.artists),
+      childBuilder: (searchText, filters, sortBy) {
+        return ExploreArtistView(
+          searchText: searchText,
+          filters: filters,
+          sortBy: sortBy,
+        );
+      },
+      tab: FeralfileHomeTab.artists,
     ));
   }
 
-  Widget _curatorsWidget() {
-    final curator =
-        context.read<FeralfileHomeBloc>().state.curators?.result ?? [];
-    return ListUserView(
-        users: curator,
-        onArtistSelected: (user) {
-          if (user is FFUserDetails) {
-            _gotoCuratorDetails(context, user.toFFCurator());
-          }
-        });
+  Widget _curatorsWidget(BuildContext context) {
+    return Expanded(
+        child: ExploreBar(
+      key: ValueKey(FeralfileHomeTab.curators),
+      childBuilder: (searchText, filters, sortBy) {
+        return ExploreCuratorView(
+          searchText: searchText,
+          filters: filters,
+          sortBy: sortBy,
+        );
+      },
+      tab: FeralfileHomeTab.curators,
+    ));
   }
 
-  Widget _rAndDWidget() {
+  Widget _rAndDWidget(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
-      color: Colors.orange,
+      padding: const EdgeInsets.all(16),
       child: Center(
-        child: Text('R&D'),
+        child: Text('R&D coming soon', style: theme.textTheme.ppMori700White24),
       ),
     );
   }
@@ -323,7 +404,6 @@ class _ItemExpanedWidgetState extends State<ItemExpanedWidget> {
               _isExpanded = !_isExpanded;
             });
           },
-          behavior: HitTestBehavior.opaque,
           child: Container(
             color: Colors.transparent,
             child: _isExpanded ? _expandedHeader() : _unexpandedHeader(),
@@ -362,7 +442,10 @@ class _ItemExpanedWidgetState extends State<ItemExpanedWidget> {
     );
     return Row(
       children: [
-        _itemWidget(context, _selectedItem()),
+        IgnorePointer(
+          child: _itemWidget(context, _selectedItem(), withSubtitle: false),
+        ),
+        const SizedBox(width: 8),
         widget.iconOnUnExpanded ?? defaultIcon,
         const Spacer(),
         ...widget.actions,
@@ -374,7 +457,8 @@ class _ItemExpanedWidgetState extends State<ItemExpanedWidget> {
     return widget.items[_selectedIndex];
   }
 
-  Widget _itemWidget(BuildContext context, Item item) {
+  Widget _itemWidget(BuildContext context, Item item,
+      {bool withSubtitle = true}) {
     final isSelected = item == _selectedItem();
     final theme = Theme.of(context);
     final defaultTitleStyle = theme.textTheme.ppMori700Black36
@@ -410,7 +494,7 @@ class _ItemExpanedWidgetState extends State<ItemExpanedWidget> {
               style: titleStyle,
             ),
             const SizedBox(width: 8),
-            Text(item.subtitle, style: subtitleStyle),
+            if (withSubtitle) Text(item.subtitle, style: subtitleStyle),
           ],
         ),
       ),

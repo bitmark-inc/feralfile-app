@@ -41,39 +41,51 @@ class _FeaauredWorkViewState extends State<FeaauredWorkView> {
   }
 
   @override
-  Widget build(BuildContext context) => SliverPadding(
-        padding: EdgeInsets.zero,
-        sliver: SliverList(
-            delegate: SliverChildBuilderDelegate(
-          (context, index) {
-            final token = _featureTokens[index];
-            return BlocBuilder<IdentityBloc, IdentityState>(
-              builder: (context, state) {
-                final artistName = state.identityMap[token.artistName] ??
-                    token.artistName ??
-                    token.artistID ??
-                    '';
-                return GestureDetector(
-                  onTap: () {
-                    _gotoArtworkDetails(context, token);
-                  },
-                  child: Container(
-                    color: Colors.transparent,
-                    child: Column(
-                      children: [
-                        Image.network(token.thumbnailURL ?? ''),
-                        _infoHeader(context, token, artistName, false,
-                            context.read<CanvasDeviceBloc>().state),
-                      ],
+  Widget build(BuildContext context) {
+    return CustomScrollView(
+      slivers: [
+        SliverPadding(
+          padding: EdgeInsets.zero,
+          sliver: SliverList(
+              delegate: SliverChildBuilderDelegate(
+            (context, index) {
+              final token = _featureTokens[index];
+              return BlocBuilder<IdentityBloc, IdentityState>(
+                builder: (context, state) {
+                  final artistName = state.identityMap[token.artistName] ??
+                      token.artistName ??
+                      token.artistID ??
+                      '';
+                  return GestureDetector(
+                    onTap: () {
+                      _gotoArtworkDetails(context, token);
+                    },
+                    child: Container(
+                      color: Colors.transparent,
+                      child: Column(
+                        children: [
+                          Image.network(token.thumbnailURL ?? ''),
+                          _infoHeader(context, token, artistName, false,
+                              context.read<CanvasDeviceBloc>().state),
+                        ],
+                      ),
                     ),
-                  ),
-                );
-              },
-            );
-          },
-          childCount: _featureTokens.length,
-        )),
-      );
+                  );
+                },
+              );
+            },
+            childCount: _featureTokens.length,
+          )),
+        ),
+        // safe height for bottom
+        SliverToBoxAdapter(
+          child: Container(
+            height: 80,
+          ),
+        ),
+      ],
+    );
+  }
 
   Future<void> _fetchFeaturedTokens(BuildContext context) async {
     final bloc = context.read<IdentityBloc>();

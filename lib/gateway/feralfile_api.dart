@@ -66,6 +66,8 @@ abstract class FeralFileApi {
     @Query('offset') int? offset,
     @Query('keyword') String? keyword,
     @Query('relatedAccountIDs') List<String> relatedAccountIDs = const [],
+    @Query('customQueryParams')
+    Map<String, dynamic> customQueryParam = const {},
   });
 
   @GET('/api/exhibitions/featured')
@@ -119,6 +121,9 @@ abstract class FeralFileApi {
     @Query('keyword') String keyword = '',
     @Query('artistIDs') List<String> artistIDs = const [],
     @Query('includeUniqueFilePath') bool includeUniqueFilePath = true,
+    // custom query params
+    @Query('customQueryParams')
+    Map<String, dynamic> customQueryParam = const {},
   });
 
   @GET('/api/artists')
