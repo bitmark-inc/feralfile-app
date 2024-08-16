@@ -240,6 +240,15 @@ class MockFeralFileService extends _i1.Mock implements _i7.FeralFileService {
         )),
       ) as _i8.Future<_i4.Exhibition>);
   @override
+  _i8.Future<List<_i4.Exhibition>> getOngoingExhibitions() =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getOngoingExhibitions,
+          [],
+        ),
+        returnValue: _i8.Future<List<_i4.Exhibition>>.value(<_i4.Exhibition>[]),
+      ) as _i8.Future<List<_i4.Exhibition>>);
+  @override
   _i8.Future<List<_i6.Artwork>> getFeaturedArtworks() => (super.noSuchMethod(
         Invocation.method(
           #getFeaturedArtworks,

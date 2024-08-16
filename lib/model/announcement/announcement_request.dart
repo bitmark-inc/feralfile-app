@@ -7,5 +7,5 @@ class AnnouncementRequest {
       {required this.lastPullTime, required this.offset, required this.size});
 
   Map<String, dynamic> toJson() =>
-      {'last_pull_time': lastPullTime, 'offset': offset, 'size': size};
+      {'lastPullTime': lastPullTime, 'offset': offset, 'size': size};
 }

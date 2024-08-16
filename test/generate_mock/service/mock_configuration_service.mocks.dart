@@ -3,25 +3,22 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i6;
+import 'dart:async' as _i5;
 
-import 'package:autonomy_flutter/database/entity/announcement_local.dart'
-    as _i15;
-import 'package:autonomy_flutter/model/jwt.dart' as _i7;
-import 'package:autonomy_flutter/model/network.dart' as _i8;
-import 'package:autonomy_flutter/model/play_list_model.dart' as _i10;
-import 'package:autonomy_flutter/model/sent_artwork.dart' as _i9;
-import 'package:autonomy_flutter/model/shared_postcard.dart' as _i12;
+import 'package:autonomy_flutter/model/jwt.dart' as _i6;
+import 'package:autonomy_flutter/model/network.dart' as _i7;
+import 'package:autonomy_flutter/model/play_list_model.dart' as _i9;
+import 'package:autonomy_flutter/model/sent_artwork.dart' as _i8;
+import 'package:autonomy_flutter/model/shared_postcard.dart' as _i11;
 import 'package:autonomy_flutter/screen/chat/chat_thread_page.dart' as _i3;
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart'
-    as _i14;
-import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart'
     as _i13;
-import 'package:autonomy_flutter/service/configuration_service.dart' as _i5;
-import 'package:autonomy_flutter/util/announcement_ext.dart' as _i4;
+import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart'
+    as _i12;
+import 'package:autonomy_flutter/service/configuration_service.dart' as _i4;
 import 'package:flutter/material.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:mockito/src/dummies.dart' as _i11;
+import 'package:mockito/src/dummies.dart' as _i10;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -58,22 +55,11 @@ class _FakePostcardChatConfig_1 extends _i1.SmartFake
         );
 }
 
-class _FakeShowAnouncementNotificationInfo_2 extends _i1.SmartFake
-    implements _i4.ShowAnouncementNotificationInfo {
-  _FakeShowAnouncementNotificationInfo_2(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
-}
-
 /// A class which mocks [ConfigurationService].
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockConfigurationService extends _i1.Mock
-    implements _i5.ConfigurationService {
+    implements _i4.ConfigurationService {
   MockConfigurationService() {
     _i1.throwOnMissingStub(this);
   }
@@ -127,7 +113,7 @@ class MockConfigurationService extends _i1.Mock
         ),
       ) as _i2.ValueNotifier<bool>);
   @override
-  _i6.Future<void> setRecordOwners(
+  _i5.Future<void> setRecordOwners(
     List<String>? owners, {
     bool? override = false,
   }) =>
@@ -137,9 +123,9 @@ class MockConfigurationService extends _i1.Mock
           [owners],
           {#override: override},
         ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
   @override
   List<String> getRecordOwners() => (super.noSuchMethod(
         Invocation.method(
@@ -149,7 +135,7 @@ class MockConfigurationService extends _i1.Mock
         returnValue: <String>[],
       ) as List<String>);
   @override
-  _i6.Future<void> setHasMerchandiseSupport(
+  _i5.Future<void> setHasMerchandiseSupport(
     String? indexId, {
     bool? value = true,
     bool? isOverride = false,
@@ -163,9 +149,9 @@ class MockConfigurationService extends _i1.Mock
             #isOverride: isOverride,
           },
         ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
   @override
   bool hasMerchandiseSupport(String? indexId) => (super.noSuchMethod(
         Invocation.method(
@@ -175,15 +161,15 @@ class MockConfigurationService extends _i1.Mock
         returnValue: false,
       ) as bool);
   @override
-  _i6.Future<void> setPostcardChatConfig(_i3.PostcardChatConfig? config) =>
+  _i5.Future<void> setPostcardChatConfig(_i3.PostcardChatConfig? config) =>
       (super.noSuchMethod(
         Invocation.method(
           #setPostcardChatConfig,
           [config],
         ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
   @override
   _i3.PostcardChatConfig getPostcardChatConfig({
     required String? address,
@@ -211,14 +197,14 @@ class MockConfigurationService extends _i1.Mock
         ),
       ) as _i3.PostcardChatConfig);
   @override
-  _i6.Future<void> setDidMigrateAddress(bool? value) => (super.noSuchMethod(
+  _i5.Future<void> setDidMigrateAddress(bool? value) => (super.noSuchMethod(
         Invocation.method(
           #setDidMigrateAddress,
           [value],
         ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
   @override
   bool getDidMigrateAddress() => (super.noSuchMethod(
         Invocation.method(
@@ -228,24 +214,24 @@ class MockConfigurationService extends _i1.Mock
         returnValue: false,
       ) as bool);
   @override
-  _i6.Future<void> setAnnouncementLastPullTime(int? lastPullTime) =>
+  _i5.Future<void> setAnnouncementLastPullTime(int? lastPullTime) =>
       (super.noSuchMethod(
         Invocation.method(
           #setAnnouncementLastPullTime,
           [lastPullTime],
         ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
   @override
-  _i6.Future<void> setOldUser() => (super.noSuchMethod(
+  _i5.Future<void> setOldUser() => (super.noSuchMethod(
         Invocation.method(
           #setOldUser,
           [],
         ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
   @override
   bool getIsOldUser() => (super.noSuchMethod(
         Invocation.method(
@@ -255,32 +241,32 @@ class MockConfigurationService extends _i1.Mock
         returnValue: false,
       ) as bool);
   @override
-  _i6.Future<void> setIAPReceipt(String? value) => (super.noSuchMethod(
+  _i5.Future<void> setIAPReceipt(String? value) => (super.noSuchMethod(
         Invocation.method(
           #setIAPReceipt,
           [value],
         ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
   @override
-  _i6.Future<void> setIAPJWT(_i7.JWT? value) => (super.noSuchMethod(
+  _i5.Future<void> setIAPJWT(_i6.JWT? value) => (super.noSuchMethod(
         Invocation.method(
           #setIAPJWT,
           [value],
         ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
   @override
-  _i6.Future<void> setPremium(bool? value) => (super.noSuchMethod(
+  _i5.Future<void> setPremium(bool? value) => (super.noSuchMethod(
         Invocation.method(
           #setPremium,
           [value],
         ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
   @override
   bool isPremium() => (super.noSuchMethod(
         Invocation.method(
@@ -290,14 +276,14 @@ class MockConfigurationService extends _i1.Mock
         returnValue: false,
       ) as bool);
   @override
-  _i6.Future<void> setDevicePasscodeEnabled(bool? value) => (super.noSuchMethod(
+  _i5.Future<void> setDevicePasscodeEnabled(bool? value) => (super.noSuchMethod(
         Invocation.method(
           #setDevicePasscodeEnabled,
           [value],
         ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
   @override
   bool isDevicePasscodeEnabled() => (super.noSuchMethod(
         Invocation.method(
@@ -307,23 +293,23 @@ class MockConfigurationService extends _i1.Mock
         returnValue: false,
       ) as bool);
   @override
-  _i6.Future<void> setNotificationEnabled(bool? value) => (super.noSuchMethod(
+  _i5.Future<void> setNotificationEnabled(bool? value) => (super.noSuchMethod(
         Invocation.method(
           #setNotificationEnabled,
           [value],
         ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
   @override
-  _i6.Future<void> setAnalyticEnabled(bool? value) => (super.noSuchMethod(
+  _i5.Future<void> setAnalyticEnabled(bool? value) => (super.noSuchMethod(
         Invocation.method(
           #setAnalyticEnabled,
           [value],
         ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
   @override
   bool isAnalyticsEnabled() => (super.noSuchMethod(
         Invocation.method(
@@ -333,14 +319,14 @@ class MockConfigurationService extends _i1.Mock
         returnValue: false,
       ) as bool);
   @override
-  _i6.Future<void> setDoneOnboarding(bool? value) => (super.noSuchMethod(
+  _i5.Future<void> setDoneOnboarding(bool? value) => (super.noSuchMethod(
         Invocation.method(
           #setDoneOnboarding,
           [value],
         ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
   @override
   bool isDoneOnboarding() => (super.noSuchMethod(
         Invocation.method(
@@ -350,14 +336,14 @@ class MockConfigurationService extends _i1.Mock
         returnValue: false,
       ) as bool);
   @override
-  _i6.Future<void> setPendingSettings(bool? value) => (super.noSuchMethod(
+  _i5.Future<void> setPendingSettings(bool? value) => (super.noSuchMethod(
         Invocation.method(
           #setPendingSettings,
           [value],
         ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
   @override
   bool hasPendingSettings() => (super.noSuchMethod(
         Invocation.method(
@@ -375,32 +361,32 @@ class MockConfigurationService extends _i1.Mock
         returnValue: false,
       ) as bool);
   @override
-  _i6.Future<dynamic> setShouldShowSubscriptionHint(bool? value) =>
+  _i5.Future<dynamic> setShouldShowSubscriptionHint(bool? value) =>
       (super.noSuchMethod(
         Invocation.method(
           #setShouldShowSubscriptionHint,
           [value],
         ),
-        returnValue: _i6.Future<dynamic>.value(),
-      ) as _i6.Future<dynamic>);
+        returnValue: _i5.Future<dynamic>.value(),
+      ) as _i5.Future<dynamic>);
   @override
-  _i6.Future<dynamic> setLastTimeAskForSubscription(DateTime? date) =>
+  _i5.Future<dynamic> setLastTimeAskForSubscription(DateTime? date) =>
       (super.noSuchMethod(
         Invocation.method(
           #setLastTimeAskForSubscription,
           [date],
         ),
-        returnValue: _i6.Future<dynamic>.value(),
-      ) as _i6.Future<dynamic>);
+        returnValue: _i5.Future<dynamic>.value(),
+      ) as _i5.Future<dynamic>);
   @override
-  _i6.Future<void> setDoneOnboardingOnce(bool? value) => (super.noSuchMethod(
+  _i5.Future<void> setDoneOnboardingOnce(bool? value) => (super.noSuchMethod(
         Invocation.method(
           #setDoneOnboardingOnce,
           [value],
         ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
   @override
   bool isDoneOnboardingOnce() => (super.noSuchMethod(
         Invocation.method(
@@ -410,14 +396,14 @@ class MockConfigurationService extends _i1.Mock
         returnValue: false,
       ) as bool);
   @override
-  _i6.Future<void> readRemoveSupport(bool? value) => (super.noSuchMethod(
+  _i5.Future<void> readRemoveSupport(bool? value) => (super.noSuchMethod(
         Invocation.method(
           #readRemoveSupport,
           [value],
         ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
   @override
   bool isReadRemoveSupport() => (super.noSuchMethod(
         Invocation.method(
@@ -427,7 +413,7 @@ class MockConfigurationService extends _i1.Mock
         returnValue: false,
       ) as bool);
   @override
-  _i6.Future<void> setHideLinkedAccountInGallery(
+  _i5.Future<void> setHideLinkedAccountInGallery(
     List<String>? address,
     bool? isEnabled, {
     bool? override = false,
@@ -441,9 +427,9 @@ class MockConfigurationService extends _i1.Mock
           ],
           {#override: override},
         ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
   @override
   List<String> getLinkedAccountsHiddenInGallery() => (super.noSuchMethod(
         Invocation.method(
@@ -461,7 +447,7 @@ class MockConfigurationService extends _i1.Mock
         returnValue: false,
       ) as bool);
   @override
-  List<String> getTempStorageHiddenTokenIDs({_i8.Network? network}) =>
+  List<String> getTempStorageHiddenTokenIDs({_i7.Network? network}) =>
       (super.noSuchMethod(
         Invocation.method(
           #getTempStorageHiddenTokenIDs,
@@ -471,10 +457,10 @@ class MockConfigurationService extends _i1.Mock
         returnValue: <String>[],
       ) as List<String>);
   @override
-  _i6.Future<dynamic> updateTempStorageHiddenTokenIDs(
+  _i5.Future<dynamic> updateTempStorageHiddenTokenIDs(
     List<String>? tokenIDs,
     bool? isAdd, {
-    _i8.Network? network,
+    _i7.Network? network,
     bool? override = false,
   }) =>
       (super.noSuchMethod(
@@ -489,19 +475,19 @@ class MockConfigurationService extends _i1.Mock
             #override: override,
           },
         ),
-        returnValue: _i6.Future<dynamic>.value(),
-      ) as _i6.Future<dynamic>);
+        returnValue: _i5.Future<dynamic>.value(),
+      ) as _i5.Future<dynamic>);
   @override
-  List<_i9.SentArtwork> getRecentlySentToken() => (super.noSuchMethod(
+  List<_i8.SentArtwork> getRecentlySentToken() => (super.noSuchMethod(
         Invocation.method(
           #getRecentlySentToken,
           [],
         ),
-        returnValue: <_i9.SentArtwork>[],
-      ) as List<_i9.SentArtwork>);
+        returnValue: <_i8.SentArtwork>[],
+      ) as List<_i8.SentArtwork>);
   @override
-  _i6.Future<dynamic> updateRecentlySentToken(
-    List<_i9.SentArtwork>? sentArtwork, {
+  _i5.Future<dynamic> updateRecentlySentToken(
+    List<_i8.SentArtwork>? sentArtwork, {
     bool? override = false,
   }) =>
       (super.noSuchMethod(
@@ -510,40 +496,40 @@ class MockConfigurationService extends _i1.Mock
           [sentArtwork],
           {#override: override},
         ),
-        returnValue: _i6.Future<dynamic>.value(),
-      ) as _i6.Future<dynamic>);
+        returnValue: _i5.Future<dynamic>.value(),
+      ) as _i5.Future<dynamic>);
   @override
-  _i6.Future<void> setReadReleaseNotesInVersion(String? version) =>
+  _i5.Future<void> setReadReleaseNotesInVersion(String? version) =>
       (super.noSuchMethod(
         Invocation.method(
           #setReadReleaseNotesInVersion,
           [version],
         ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
   @override
-  _i6.Future<void> setPreviousBuildNumber(String? value) => (super.noSuchMethod(
+  _i5.Future<void> setPreviousBuildNumber(String? value) => (super.noSuchMethod(
         Invocation.method(
           #setPreviousBuildNumber,
           [value],
         ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
   @override
-  List<_i10.PlayListModel> getPlayList() => (super.noSuchMethod(
+  List<_i9.PlayListModel> getPlayList() => (super.noSuchMethod(
         Invocation.method(
           #getPlayList,
           [],
         ),
-        returnValue: <_i10.PlayListModel>[],
-      ) as List<_i10.PlayListModel>);
+        returnValue: <_i9.PlayListModel>[],
+      ) as List<_i9.PlayListModel>);
   @override
-  _i6.Future<void> setPlayList(
-    List<_i10.PlayListModel>? value, {
+  _i5.Future<void> setPlayList(
+    List<_i9.PlayListModel>? value, {
     bool? override = false,
-    _i5.ConflictAction? onConflict = _i5.ConflictAction.abort,
+    _i4.ConflictAction? onConflict = _i4.ConflictAction.abort,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -554,51 +540,51 @@ class MockConfigurationService extends _i1.Mock
             #onConflict: onConflict,
           },
         ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
   @override
-  _i6.Future<void> removePlayList(String? id) => (super.noSuchMethod(
+  _i5.Future<void> removePlayList(String? id) => (super.noSuchMethod(
         Invocation.method(
           #removePlayList,
           [id],
         ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
   @override
-  _i6.Future<String> getAccountHMACSecret() => (super.noSuchMethod(
+  _i5.Future<String> getAccountHMACSecret() => (super.noSuchMethod(
         Invocation.method(
           #getAccountHMACSecret,
           [],
         ),
-        returnValue: _i6.Future<String>.value(_i11.dummyValue<String>(
+        returnValue: _i5.Future<String>.value(_i10.dummyValue<String>(
           this,
           Invocation.method(
             #getAccountHMACSecret,
             [],
           ),
         )),
-      ) as _i6.Future<String>);
+      ) as _i5.Future<String>);
   @override
-  _i6.Future<void> setLastRemindReviewDate(String? value) =>
+  _i5.Future<void> setLastRemindReviewDate(String? value) =>
       (super.noSuchMethod(
         Invocation.method(
           #setLastRemindReviewDate,
           [value],
         ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
   @override
-  _i6.Future<void> setCountOpenApp(int? value) => (super.noSuchMethod(
+  _i5.Future<void> setCountOpenApp(int? value) => (super.noSuchMethod(
         Invocation.method(
           #setCountOpenApp,
           [value],
         ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
   @override
   bool isDemoArtworksMode() => (super.noSuchMethod(
         Invocation.method(
@@ -608,13 +594,13 @@ class MockConfigurationService extends _i1.Mock
         returnValue: false,
       ) as bool);
   @override
-  _i6.Future<bool> toggleDemoArtworksMode() => (super.noSuchMethod(
+  _i5.Future<bool> toggleDemoArtworksMode() => (super.noSuchMethod(
         Invocation.method(
           #toggleDemoArtworksMode,
           [],
         ),
-        returnValue: _i6.Future<bool>.value(false),
-      ) as _i6.Future<bool>);
+        returnValue: _i5.Future<bool>.value(false),
+      ) as _i5.Future<bool>);
   @override
   bool showTokenDebugInfo() => (super.noSuchMethod(
         Invocation.method(
@@ -624,65 +610,65 @@ class MockConfigurationService extends _i1.Mock
         returnValue: false,
       ) as bool);
   @override
-  _i6.Future<dynamic> setShowTokenDebugInfo(bool? show) => (super.noSuchMethod(
+  _i5.Future<dynamic> setShowTokenDebugInfo(bool? show) => (super.noSuchMethod(
         Invocation.method(
           #setShowTokenDebugInfo,
           [show],
         ),
-        returnValue: _i6.Future<dynamic>.value(),
-      ) as _i6.Future<dynamic>);
+        returnValue: _i5.Future<dynamic>.value(),
+      ) as _i5.Future<dynamic>);
   @override
-  _i6.Future<dynamic> setDoneOnboardingTime(DateTime? time) =>
+  _i5.Future<dynamic> setDoneOnboardingTime(DateTime? time) =>
       (super.noSuchMethod(
         Invocation.method(
           #setDoneOnboardingTime,
           [time],
         ),
-        returnValue: _i6.Future<dynamic>.value(),
-      ) as _i6.Future<dynamic>);
+        returnValue: _i5.Future<dynamic>.value(),
+      ) as _i5.Future<dynamic>);
   @override
-  _i6.Future<dynamic> setSubscriptionTime(DateTime? time) =>
+  _i5.Future<dynamic> setSubscriptionTime(DateTime? time) =>
       (super.noSuchMethod(
         Invocation.method(
           #setSubscriptionTime,
           [time],
         ),
-        returnValue: _i6.Future<dynamic>.value(),
-      ) as _i6.Future<dynamic>);
+        returnValue: _i5.Future<dynamic>.value(),
+      ) as _i5.Future<dynamic>);
   @override
-  _i6.Future<dynamic> setAlreadyShowProTip(bool? show) => (super.noSuchMethod(
+  _i5.Future<dynamic> setAlreadyShowProTip(bool? show) => (super.noSuchMethod(
         Invocation.method(
           #setAlreadyShowProTip,
           [show],
         ),
-        returnValue: _i6.Future<dynamic>.value(),
-      ) as _i6.Future<dynamic>);
+        returnValue: _i5.Future<dynamic>.value(),
+      ) as _i5.Future<dynamic>);
   @override
-  _i6.Future<dynamic> setAlreadyShowTvAppTip(bool? show) => (super.noSuchMethod(
+  _i5.Future<dynamic> setAlreadyShowTvAppTip(bool? show) => (super.noSuchMethod(
         Invocation.method(
           #setAlreadyShowTvAppTip,
           [show],
         ),
-        returnValue: _i6.Future<dynamic>.value(),
-      ) as _i6.Future<dynamic>);
+        returnValue: _i5.Future<dynamic>.value(),
+      ) as _i5.Future<dynamic>);
   @override
-  _i6.Future<dynamic> setAlreadyShowCreatePlaylistTip(bool? show) =>
+  _i5.Future<dynamic> setAlreadyShowCreatePlaylistTip(bool? show) =>
       (super.noSuchMethod(
         Invocation.method(
           #setAlreadyShowCreatePlaylistTip,
           [show],
         ),
-        returnValue: _i6.Future<dynamic>.value(),
-      ) as _i6.Future<dynamic>);
+        returnValue: _i5.Future<dynamic>.value(),
+      ) as _i5.Future<dynamic>);
   @override
-  _i6.Future<dynamic> setAlreadyShowLinkOrImportTip(bool? show) =>
+  _i5.Future<dynamic> setAlreadyShowLinkOrImportTip(bool? show) =>
       (super.noSuchMethod(
         Invocation.method(
           #setAlreadyShowLinkOrImportTip,
           [show],
         ),
-        returnValue: _i6.Future<dynamic>.value(),
-      ) as _i6.Future<dynamic>);
+        returnValue: _i5.Future<dynamic>.value(),
+      ) as _i5.Future<dynamic>);
   @override
   bool getAlreadyShowProTip() => (super.noSuchMethod(
         Invocation.method(
@@ -716,52 +702,52 @@ class MockConfigurationService extends _i1.Mock
         returnValue: false,
       ) as bool);
   @override
-  _i6.Future<dynamic> setShowBackupSettingTip(DateTime? time) =>
+  _i5.Future<dynamic> setShowBackupSettingTip(DateTime? time) =>
       (super.noSuchMethod(
         Invocation.method(
           #setShowBackupSettingTip,
           [time],
         ),
-        returnValue: _i6.Future<dynamic>.value(),
-      ) as _i6.Future<dynamic>);
+        returnValue: _i5.Future<dynamic>.value(),
+      ) as _i5.Future<dynamic>);
   @override
-  _i6.Future<dynamic> setSentTezosArtworkMetric(int? hashedAddresses) =>
+  _i5.Future<dynamic> setSentTezosArtworkMetric(int? hashedAddresses) =>
       (super.noSuchMethod(
         Invocation.method(
           #setSentTezosArtworkMetric,
           [hashedAddresses],
         ),
-        returnValue: _i6.Future<dynamic>.value(),
-      ) as _i6.Future<dynamic>);
+        returnValue: _i5.Future<dynamic>.value(),
+      ) as _i5.Future<dynamic>);
   @override
-  _i6.Future<void> reload() => (super.noSuchMethod(
+  _i5.Future<void> reload() => (super.noSuchMethod(
         Invocation.method(
           #reload,
           [],
         ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
   @override
-  _i6.Future<void> removeAll() => (super.noSuchMethod(
+  _i5.Future<void> removeAll() => (super.noSuchMethod(
         Invocation.method(
           #removeAll,
           [],
         ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
   @override
-  List<_i12.SharedPostcard> getSharedPostcard() => (super.noSuchMethod(
+  List<_i11.SharedPostcard> getSharedPostcard() => (super.noSuchMethod(
         Invocation.method(
           #getSharedPostcard,
           [],
         ),
-        returnValue: <_i12.SharedPostcard>[],
-      ) as List<_i12.SharedPostcard>);
+        returnValue: <_i11.SharedPostcard>[],
+      ) as List<_i11.SharedPostcard>);
   @override
-  _i6.Future<void> updateSharedPostcard(
-    List<_i12.SharedPostcard>? sharedPostcards, {
+  _i5.Future<void> updateSharedPostcard(
+    List<_i11.SharedPostcard>? sharedPostcards, {
     bool? override = false,
     bool? isRemoved = false,
   }) =>
@@ -774,20 +760,20 @@ class MockConfigurationService extends _i1.Mock
             #isRemoved: isRemoved,
           },
         ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
   @override
-  _i6.Future<void> removeSharedPostcardWhere(
-          bool Function(_i12.SharedPostcard)? test) =>
+  _i5.Future<void> removeSharedPostcardWhere(
+          bool Function(_i11.SharedPostcard)? test) =>
       (super.noSuchMethod(
         Invocation.method(
           #removeSharedPostcardWhere,
           [test],
         ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
   @override
   List<String> getListPostcardMint() => (super.noSuchMethod(
         Invocation.method(
@@ -797,7 +783,7 @@ class MockConfigurationService extends _i1.Mock
         returnValue: <String>[],
       ) as List<String>);
   @override
-  _i6.Future<void> setListPostcardMint(
+  _i5.Future<void> setListPostcardMint(
     List<String>? tokenID, {
     bool? override = false,
     bool? isRemoved = false,
@@ -811,20 +797,20 @@ class MockConfigurationService extends _i1.Mock
             #isRemoved: isRemoved,
           },
         ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
   @override
-  List<_i13.StampingPostcard> getStampingPostcard() => (super.noSuchMethod(
+  List<_i12.StampingPostcard> getStampingPostcard() => (super.noSuchMethod(
         Invocation.method(
           #getStampingPostcard,
           [],
         ),
-        returnValue: <_i13.StampingPostcard>[],
-      ) as List<_i13.StampingPostcard>);
+        returnValue: <_i12.StampingPostcard>[],
+      ) as List<_i12.StampingPostcard>);
   @override
-  _i6.Future<void> updateStampingPostcard(
-    List<_i13.StampingPostcard>? values, {
+  _i5.Future<void> updateStampingPostcard(
+    List<_i12.StampingPostcard>? values, {
     bool? override = false,
     bool? isRemove = false,
   }) =>
@@ -837,12 +823,12 @@ class MockConfigurationService extends _i1.Mock
             #isRemove: isRemove,
           },
         ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
   @override
-  _i6.Future<void> setProcessingStampPostcard(
-    List<_i13.ProcessingStampPostcard>? values, {
+  _i5.Future<void> setProcessingStampPostcard(
+    List<_i12.ProcessingStampPostcard>? values, {
     bool? override = false,
     bool? isRemove = false,
   }) =>
@@ -855,27 +841,27 @@ class MockConfigurationService extends _i1.Mock
             #isRemove: isRemove,
           },
         ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
   @override
-  List<_i13.ProcessingStampPostcard> getProcessingStampPostcard() =>
+  List<_i12.ProcessingStampPostcard> getProcessingStampPostcard() =>
       (super.noSuchMethod(
         Invocation.method(
           #getProcessingStampPostcard,
           [],
         ),
-        returnValue: <_i13.ProcessingStampPostcard>[],
-      ) as List<_i13.ProcessingStampPostcard>);
+        returnValue: <_i12.ProcessingStampPostcard>[],
+      ) as List<_i12.ProcessingStampPostcard>);
   @override
-  _i6.Future<void> setAutoShowPostcard(bool? value) => (super.noSuchMethod(
+  _i5.Future<void> setAutoShowPostcard(bool? value) => (super.noSuchMethod(
         Invocation.method(
           #setAutoShowPostcard,
           [value],
         ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
   @override
   bool isAutoShowPostcard() => (super.noSuchMethod(
         Invocation.method(
@@ -885,17 +871,17 @@ class MockConfigurationService extends _i1.Mock
         returnValue: false,
       ) as bool);
   @override
-  List<_i14.PostcardIdentity> getListPostcardAlreadyShowYouDidIt() =>
+  List<_i13.PostcardIdentity> getListPostcardAlreadyShowYouDidIt() =>
       (super.noSuchMethod(
         Invocation.method(
           #getListPostcardAlreadyShowYouDidIt,
           [],
         ),
-        returnValue: <_i14.PostcardIdentity>[],
-      ) as List<_i14.PostcardIdentity>);
+        returnValue: <_i13.PostcardIdentity>[],
+      ) as List<_i13.PostcardIdentity>);
   @override
-  _i6.Future<void> setListPostcardAlreadyShowYouDidIt(
-    List<_i14.PostcardIdentity>? value, {
+  _i5.Future<void> setListPostcardAlreadyShowYouDidIt(
+    List<_i13.PostcardIdentity>? value, {
     bool? override = false,
   }) =>
       (super.noSuchMethod(
@@ -904,12 +890,12 @@ class MockConfigurationService extends _i1.Mock
           [value],
           {#override: override},
         ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
   @override
-  _i6.Future<void> setAlreadyShowPostcardUpdates(
-    List<_i14.PostcardIdentity>? value, {
+  _i5.Future<void> setAlreadyShowPostcardUpdates(
+    List<_i13.PostcardIdentity>? value, {
     bool? override = false,
   }) =>
       (super.noSuchMethod(
@@ -918,25 +904,25 @@ class MockConfigurationService extends _i1.Mock
           [value],
           {#override: override},
         ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
   @override
-  List<_i14.PostcardIdentity> getAlreadyShowPostcardUpdates() =>
+  List<_i13.PostcardIdentity> getAlreadyShowPostcardUpdates() =>
       (super.noSuchMethod(
         Invocation.method(
           #getAlreadyShowPostcardUpdates,
           [],
         ),
-        returnValue: <_i14.PostcardIdentity>[],
-      ) as List<_i14.PostcardIdentity>);
+        returnValue: <_i13.PostcardIdentity>[],
+      ) as List<_i13.PostcardIdentity>);
   @override
   String getVersionInfo() => (super.noSuchMethod(
         Invocation.method(
           #getVersionInfo,
           [],
         ),
-        returnValue: _i11.dummyValue<String>(
+        returnValue: _i10.dummyValue<String>(
           this,
           Invocation.method(
             #getVersionInfo,
@@ -945,49 +931,23 @@ class MockConfigurationService extends _i1.Mock
         ),
       ) as String);
   @override
-  _i6.Future<void> setVersionInfo(String? version) => (super.noSuchMethod(
+  _i5.Future<void> setVersionInfo(String? version) => (super.noSuchMethod(
         Invocation.method(
           #setVersionInfo,
           [version],
         ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
   @override
-  _i6.Future<void> updateShowAnnouncementNotificationInfo(
-          _i15.AnnouncementLocal? announcement) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #updateShowAnnouncementNotificationInfo,
-          [announcement],
-        ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
-  @override
-  _i4.ShowAnouncementNotificationInfo getShowAnnouncementNotificationInfo() =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #getShowAnnouncementNotificationInfo,
-          [],
-        ),
-        returnValue: _FakeShowAnouncementNotificationInfo_2(
-          this,
-          Invocation.method(
-            #getShowAnnouncementNotificationInfo,
-            [],
-          ),
-        ),
-      ) as _i4.ShowAnouncementNotificationInfo);
-  @override
-  _i6.Future<void> setDidSyncArtists(bool? value) => (super.noSuchMethod(
+  _i5.Future<void> setDidSyncArtists(bool? value) => (super.noSuchMethod(
         Invocation.method(
           #setDidSyncArtists,
           [value],
         ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
   @override
   bool getDidSyncArtists() => (super.noSuchMethod(
         Invocation.method(
@@ -1005,14 +965,14 @@ class MockConfigurationService extends _i1.Mock
         returnValue: <String>[],
       ) as List<String>);
   @override
-  _i6.Future<void> setShowPostcardBanner(bool? bool) => (super.noSuchMethod(
+  _i5.Future<void> setShowPostcardBanner(bool? bool) => (super.noSuchMethod(
         Invocation.method(
           #setShowPostcardBanner,
           [bool],
         ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
   @override
   bool getShowPostcardBanner() => (super.noSuchMethod(
         Invocation.method(
@@ -1022,14 +982,14 @@ class MockConfigurationService extends _i1.Mock
         returnValue: false,
       ) as bool);
   @override
-  _i6.Future<void> setShowAddAddressBanner(bool? bool) => (super.noSuchMethod(
+  _i5.Future<void> setShowAddAddressBanner(bool? bool) => (super.noSuchMethod(
         Invocation.method(
           #setShowAddAddressBanner,
           [bool],
         ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
   @override
   bool getShowAddAddressBanner() => (super.noSuchMethod(
         Invocation.method(
@@ -1039,7 +999,7 @@ class MockConfigurationService extends _i1.Mock
         returnValue: false,
       ) as bool);
   @override
-  _i6.Future<void> setMerchandiseOrderIds(
+  _i5.Future<void> setMerchandiseOrderIds(
     List<String>? ids, {
     bool? override = false,
   }) =>
@@ -1049,9 +1009,9 @@ class MockConfigurationService extends _i1.Mock
           [ids],
           {#override: override},
         ),
-        returnValue: _i6.Future<void>.value(),
-        returnValueForMissingStub: _i6.Future<void>.value(),
-      ) as _i6.Future<void>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
   @override
   List<String> getMerchandiseOrderIds() => (super.noSuchMethod(
         Invocation.method(
