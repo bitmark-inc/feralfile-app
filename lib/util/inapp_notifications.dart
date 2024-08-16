@@ -24,10 +24,11 @@ Widget _notificationToast(BuildContext context, String id,
         handler?.call();
       },
       addOnTextSpan: [
-        TextSpan(
-          text: ' ${'tap_to_view'.tr()}',
-          style: Theme.of(context).textTheme.ppMori400FFYellow14,
-        )
+        if (handler != null)
+          TextSpan(
+            text: ' ${'tap_to_view'.tr()}',
+            style: Theme.of(context).textTheme.ppMori400FFYellow14,
+          )
       ],
     );
 
@@ -179,7 +180,6 @@ void showNotifications(BuildContext context, String id,
   showSimpleNotification(
     _notificationToast(context, id, handler: handler, body: body),
     background: Colors.transparent,
-    duration: const Duration(seconds: 3),
     elevation: 0,
     key: Key(id),
     slideDismissDirection: DismissDirection.up,

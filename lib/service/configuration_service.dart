@@ -25,6 +25,10 @@ import 'package:uuid/uuid.dart';
 //ignore_for_file: constant_identifier_names
 
 abstract class ConfigurationService {
+  Future<void> setLastPullAnnouncementTime(int lastPullTime);
+
+  int getLastPullAnnouncementTime();
+
   Future<void> setRecordOwners(List<String> owners, {bool override = false});
 
   List<String> getRecordOwners();
@@ -267,6 +271,8 @@ abstract class ConfigurationService {
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
+  static const String keyLastPullAnnouncementTime =
+      'last_pull_announcement_time';
   static const String keyRecordOwners = 'yoko_ono_record_owners';
   static const String KEY_HAS_MERCHANDISE_SUPPORT_INDEX_ID =
       'has_merchandise_support';
@@ -1179,6 +1185,14 @@ class ConfigurationServiceImpl implements ConfigurationService {
       await _preferences.setStringList(keyRecordOwners, currentOwners.toList());
     }
   }
+
+  @override
+  int getLastPullAnnouncementTime() =>
+      _preferences.getInt(keyLastPullAnnouncementTime) ?? 0;
+
+  @override
+  Future<void> setLastPullAnnouncementTime(int lastPullTime) =>
+      _preferences.setInt(keyLastPullAnnouncementTime, lastPullTime);
 }
 
 enum ConflictAction {

@@ -12,12 +12,25 @@ import 'package:flutter/cupertino.dart';
 
 class AdditionalData {
   final NotificationType notificationType;
+  final String? announcementContentId;
 
-  AdditionalData({required this.notificationType});
+  AdditionalData({
+    required this.notificationType,
+    this.announcementContentId,
+  });
 
-  static AdditionalData fromJson(Map<String, dynamic> json, {String? type}) {
+  bool get isTappable => false;
+
+  static AdditionalData fromJson(Map<String, dynamic> json,
+      {String? type, String? announcementId}) {
     final notificationType =
         NotificationType.fromString(type ?? json['notification_type']);
+    final announcementContentId =
+        announcementId ?? json['announcement_content_id'];
+
+    final parentObject = AdditionalData(
+        notificationType: notificationType,
+        announcementContentId: announcementContentId);
 
     switch (notificationType) {
       case NotificationType.customerSupportNewMessage:
@@ -25,62 +38,85 @@ class AdditionalData {
         final issueId = json['issue_id'];
         if (issueId == null) {
           log.warning('AdditionalData: issueId is null');
-          return AdditionalData(notificationType: notificationType);
+          return parentObject;
         }
         return CsViewThread(
-            issueId: issueId, notificationType: notificationType);
+          issueId: issueId,
+          notificationType: notificationType,
+          announcementContentId: announcementContentId,
+        );
       case NotificationType.artworkCreated:
       case NotificationType.artworkReceived:
       case NotificationType.galleryNewNft:
         return view_collection_handler.ViewCollection(
-            notificationType: notificationType);
+          notificationType: notificationType,
+          announcementContentId: announcementContentId,
+        );
       case NotificationType.newMessage:
         final groupId = json['group_id'];
         if (groupId == null) {
           log.warning('AdditionalData: groupId is null');
-          return AdditionalData(notificationType: notificationType);
+          return parentObject;
         }
         return ViewNewMessage(
-            groupId: groupId, notificationType: notificationType);
+          groupId: groupId,
+          notificationType: notificationType,
+          announcementContentId: announcementContentId,
+        );
       case NotificationType.newPostcardTrip:
       case NotificationType.postcardShareExpired:
         final indexID = json['indexID'];
         if (indexID == null) {
           log.warning('AdditionalData: indexID is null');
-          return AdditionalData(notificationType: notificationType);
+          return parentObject;
         }
         return ViewPostcard(
-            indexID: indexID, notificationType: notificationType);
+          indexID: indexID,
+          notificationType: notificationType,
+          announcementContentId: announcementContentId,
+        );
       case NotificationType.jgCrystallineWorkHasArrived:
         final jgExhibitionId = JohnGerrardHelper.exhibitionID;
         return ViewExhibition(
-            exhibitionId: jgExhibitionId ?? '',
-            notificationType: notificationType);
+          exhibitionId: jgExhibitionId ?? '',
+          notificationType: notificationType,
+          announcementContentId: announcementContentId,
+        );
       case NotificationType.jgCrystallineWorkGenerated:
         final tokenId = json['token_id'];
         if (tokenId == null) {
           log.warning('AdditionalData: tokenId is null');
-          return AdditionalData(notificationType: notificationType);
+          return parentObject;
         }
         return JgCrystallineWorkGenerated(
-            tokenId: tokenId, notificationType: notificationType);
+          tokenId: tokenId,
+          notificationType: notificationType,
+          announcementContentId: announcementContentId,
+        );
       case NotificationType.exhibitionViewingOpening:
       case NotificationType.exhibitionSalesOpening:
       case NotificationType.exhibitionSaleClosing:
         final exhibitionId = json['exhibition_id'];
         if (exhibitionId == null) {
           log.warning('AdditionalData: exhibitionId is null');
-          return AdditionalData(notificationType: notificationType);
+          return parentObject;
         }
         return ViewExhibition(
-            exhibitionId: exhibitionId, notificationType: notificationType);
+          exhibitionId: exhibitionId,
+          notificationType: notificationType,
+          announcementContentId: announcementContentId,
+        );
       default:
-        return AdditionalData(notificationType: notificationType);
+        return parentObject;
     }
   }
 
   Future<void> handleTap(
       BuildContext context, PageController? pageController) async {
     log.info('AdditionalData: handle tap: $notificationType');
+  }
+
+  Future<void> handleShowCallback() async {
+    log.info('AdditionalData: handle show callback id: $announcementContentId');
   }
 }

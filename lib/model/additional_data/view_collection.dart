@@ -5,7 +5,13 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/material.dart';
 
 class ViewCollection extends AdditionalData {
-  ViewCollection({required super.notificationType});
+  ViewCollection({
+    required super.notificationType,
+    super.announcementContentId,
+  });
+
+  @override
+  bool get isTappable => true;
 
   @override
   Future<void> handleTap(

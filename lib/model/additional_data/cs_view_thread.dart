@@ -9,7 +9,14 @@ import 'package:flutter/material.dart';
 class CsViewThread extends AdditionalData {
   final String issueId;
 
-  CsViewThread({required this.issueId, required super.notificationType});
+  CsViewThread({
+    required this.issueId,
+    required super.notificationType,
+    super.announcementContentId,
+  });
+
+  @override
+  bool get isTappable => true;
 
   @override
   Future<void> handleTap(
@@ -20,8 +27,7 @@ class CsViewThread extends AdditionalData {
       (route) =>
           route.settings.name == AppRouter.homePage ||
           route.settings.name == AppRouter.homePageNoTransition,
-      arguments: DetailIssuePayload(
-          reportIssueType: '', issueID: issueId),
+      arguments: DetailIssuePayload(reportIssueType: '', issueID: issueId),
     ));
   }
 }

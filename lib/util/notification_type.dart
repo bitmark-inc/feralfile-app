@@ -10,6 +10,7 @@ import 'dart:async';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/additional_data/additional_data.dart';
+import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
@@ -117,6 +118,8 @@ class NotificationHandler {
   final RemoteConfigService _remoteConfig = injector<RemoteConfigService>();
   final ClientTokenService _clientTokenService = injector<ClientTokenService>();
   final NavigationService _navigationService = injector<NavigationService>();
+  final AnnouncementService _announcementService =
+      injector<AnnouncementService>();
 
   Future<void> handleNotificationClicked(BuildContext context,
       OSNotification notification, PageController? pageController) async {
@@ -131,6 +134,7 @@ class NotificationHandler {
     final additionalData =
         AdditionalData.fromJson(notification.additionalData!);
     await additionalData.handleTap(context, pageController);
+    await _announcementService.markAsRead(additionalData.announcementContentId);
 
     if (!context.mounted) {
       return;
@@ -151,14 +155,15 @@ class NotificationHandler {
     log.info('Receive notification: ${event.notification}');
     final data = event.notification.additionalData;
     if (data == null) {
+      event.complete(null);
       return;
     }
     if (_configurationService.isNotificationEnabled() != true) {
       _configurationService.showNotifTip.value = true;
     }
 
-    final notificationType =
-        NotificationType.fromString(data['notification_type']);
+    final additionalData = AdditionalData.fromJson(data);
+    final notificationType = additionalData.notificationType;
 
     // prepare for handling notification
     switch (notificationType) {
@@ -190,24 +195,44 @@ class NotificationHandler {
         final groupId = data['group_id'];
 
         if (!_remoteConfig.getBool(ConfigGroup.viewDetail, ConfigKey.chat)) {
+          event.complete(null);
           return;
         }
 
         final currentGroupId = memoryValues.currentGroupChatId;
         if (groupId != currentGroupId) {
-          showNotifications(context, event.notification.notificationId,
-              handler: () async {
-            await handleNotificationClicked(
-                context, event.notification, pageController);
-          });
+          await _showNotification(
+              context, event, pageController, additionalData);
         }
       default:
-        showNotifications(context, event.notification.notificationId,
-            body: event.notification.body, handler: () async {
-          await handleNotificationClicked(
-              context, event.notification, pageController);
-        });
+        await _showNotification(context, event, pageController, additionalData);
     }
     event.complete(null);
+  }
+
+  Future<void> _showNotification(
+    BuildContext context,
+    OSNotificationReceivedEvent event,
+    PageController? pageController,
+    AdditionalData additionalData,
+  ) async {
+    final announcement = _announcementService
+        .getAnnouncement(additionalData.announcementContentId);
+    if (announcement?.read == true || announcement?.isExpired == true) {
+      return;
+    }
+    showNotifications(
+        context,
+        announcement?.announcementContentId ??
+            event.notification.notificationId,
+        body: event.notification.body,
+        handler: additionalData.isTappable
+            ? () async {
+                await handleNotificationClicked(
+                    context, event.notification, pageController);
+              }
+            : null);
+
+    await _announcementService.markAsRead(additionalData.announcementContentId);
   }
 }

@@ -38,6 +38,8 @@ import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_bl
 import 'package:autonomy_flutter/screen/predefined_collection/predefined_collection_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
+import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
+import 'package:autonomy_flutter/service/announcement/announcement_store.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/autonomy_service.dart';
@@ -409,4 +411,10 @@ Future<void> setup() async {
       .registerLazySingleton<ExhibitionBloc>(() => ExhibitionBloc(injector()));
   injector.registerLazySingleton<SubscriptionBloc>(
       () => SubscriptionBloc(injector()));
+
+  injector.registerLazySingleton<AnnouncementStore>(() => AnnouncementStore());
+  await injector<AnnouncementStore>().init('');
+
+  injector.registerLazySingleton<AnnouncementService>(
+      () => AnnouncementServiceImpl(injector(), injector(), injector()));
 }

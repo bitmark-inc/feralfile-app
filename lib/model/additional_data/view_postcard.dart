@@ -12,7 +12,14 @@ import 'package:nft_collection/database/nft_collection_database.dart';
 class ViewPostcard extends AdditionalData {
   final String indexID;
 
-  ViewPostcard({required this.indexID, required super.notificationType});
+  ViewPostcard({
+    required this.indexID,
+    required super.notificationType,
+    super.announcementContentId,
+  });
+
+  @override
+  bool get isTappable => true;
 
   @override
   Future<void> handleTap(

@@ -7,7 +7,14 @@ import 'package:flutter/cupertino.dart';
 class ViewExhibition extends AdditionalData {
   final String exhibitionId;
 
-  ViewExhibition({required this.exhibitionId, required super.notificationType});
+  ViewExhibition({
+    required this.exhibitionId,
+    required super.notificationType,
+    super.announcementContentId,
+  });
+
+  @override
+  bool get isTappable => true;
 
   @override
   Future<void> handleTap(

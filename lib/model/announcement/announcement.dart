@@ -20,4 +20,6 @@ class Announcement {
         startedAt: json['startedAt'],
         endedAt: json['endedAt'],
       );
+
+  bool get isExpired => DateTime.now().millisecondsSinceEpoch > endedAt;
 }

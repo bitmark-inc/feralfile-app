@@ -8,8 +8,14 @@ import 'package:flutter/material.dart';
 class JgCrystallineWorkGenerated extends AdditionalData {
   final String tokenId;
 
-  JgCrystallineWorkGenerated(
-      {required this.tokenId, required super.notificationType});
+  JgCrystallineWorkGenerated({
+    required this.tokenId,
+    required super.notificationType,
+    super.announcementContentId,
+  });
+
+  @override
+  bool get isTappable => true;
 
   @override
   Future<void> handleTap(

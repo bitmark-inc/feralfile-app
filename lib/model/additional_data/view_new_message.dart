@@ -16,7 +16,14 @@ import 'package:nft_collection/database/nft_collection_database.dart';
 class ViewNewMessage extends AdditionalData {
   final String groupId;
 
-  ViewNewMessage({required this.groupId, required super.notificationType});
+  ViewNewMessage({
+    required this.groupId,
+    required super.notificationType,
+    super.announcementContentId,
+  });
+
+  @override
+  bool get isTappable => true;
 
   @override
   Future<void> handleTap(
