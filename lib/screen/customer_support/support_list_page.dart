@@ -63,8 +63,7 @@ class _SupportListPageState extends State<SupportListPage>
   }
 
   Future<void> loadIssues() async {
-    final issues =
-        await injector<CustomerSupportService>().getIssues();
+    final issues = await injector<CustomerSupportService>().getIssues();
     if (mounted) {
       setState(() {
         _issues = issues;
