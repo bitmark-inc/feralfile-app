@@ -14,7 +14,6 @@ import 'package:autonomy_flutter/service/announcement/announcement_service.dart'
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
@@ -37,6 +36,7 @@ enum NotificationType {
   exhibitionSalesOpening,
   exhibitionSaleClosing,
   giftMembership,
+  navigate,
   general;
 
   // toString method
@@ -71,6 +71,8 @@ enum NotificationType {
         return 'exhibition_sale_closing';
       case NotificationType.giftMembership:
         return 'gift_membership';
+      case NotificationType.navigate:
+        return 'navigate';
       case NotificationType.general:
         return 'general';
     }
@@ -121,7 +123,6 @@ class NotificationHandler {
 
   final RemoteConfigService _remoteConfig = injector<RemoteConfigService>();
   final ClientTokenService _clientTokenService = injector<ClientTokenService>();
-  final NavigationService _navigationService = injector<NavigationService>();
   final AnnouncementService _announcementService =
       injector<AnnouncementService>();
   final MetricClientService _metricClientService =
@@ -142,7 +143,6 @@ class NotificationHandler {
         AdditionalData.fromJson(notification.additionalData!);
     final id =
         additionalData.announcementContentId ?? notification.notificationId;
-    await additionalData.handleTap(context, pageController);
 
     /// mixpanel tracking: tap to notification
     _metricClientService.addEvent(
@@ -153,19 +153,10 @@ class NotificationHandler {
       },
     );
     await _announcementService.markAsRead(additionalData.announcementContentId);
-
     if (!context.mounted) {
       return;
     }
-
-    final navigatePath = notification.additionalData!['navigation_route'];
-    if (navigatePath != null) {
-      try {
-        await _navigationService.navigatePath(navigatePath);
-      } catch (e) {
-        log.info('Failed to navigate to $navigatePath: $e');
-      }
-    }
+    await additionalData.handleTap(context, pageController);
   }
 
   Future<void> shouldShowNotifications(BuildContext context,
