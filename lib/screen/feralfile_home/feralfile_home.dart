@@ -441,6 +441,7 @@ class ItemExpanedWidget extends StatefulWidget {
 class _ItemExpanedWidgetState extends State<ItemExpanedWidget> {
   bool _isExpanded = false;
   late int _selectedIndex;
+  final FocusNode _focusNode = FocusNode();
 
   @override
   void initState() {
@@ -449,24 +450,52 @@ class _ItemExpanedWidgetState extends State<ItemExpanedWidget> {
   }
 
   @override
-  Widget build(BuildContext context) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  Widget build(BuildContext context) => Stack(
         children: [
-          GestureDetector(
-            onTap: () {
-              setState(() {
-                _isExpanded = !_isExpanded;
-              });
-            },
-            child: Container(
-              color: Colors.transparent,
-              child: _isExpanded ? _expandedHeader() : _unexpandedHeader(),
+          Visibility(
+            visible: _isExpanded,
+            child: TextField(
+              showCursor: false,
+              focusNode: _focusNode,
+              decoration: InputDecoration(
+                border: InputBorder.none,
+              ),
+              keyboardType: TextInputType.none,
+              onTapOutside: (_) {
+                final isExpanded = _isExpanded;
+                Future.delayed(const Duration(milliseconds: 100), () {
+                  if (context.mounted && isExpanded)
+                    setState(() {
+                      _isExpanded = false;
+                    });
+                });
+              },
             ),
           ),
-          // Expanded items
-          if (_isExpanded) ...[
-            for (var item in widget.items.skip(1)) _itemWidget(context, item),
-          ]
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _isExpanded = !_isExpanded;
+                  });
+                  if (_isExpanded) {
+                    _focusNode.requestFocus();
+                  }
+                },
+                child: Container(
+                  color: Colors.transparent,
+                  child: _isExpanded ? _expandedHeader() : _unexpandedHeader(),
+                ),
+              ),
+              // Expanded items
+              if (_isExpanded) ...[
+                for (var item in widget.items.skip(1))
+                  _itemWidget(context, item),
+              ]
+            ],
+          ),
         ],
       );
 
