@@ -19,6 +19,7 @@ import 'package:collection/collection.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 
 enum FeralfileHomeTab {
   featured,
@@ -28,33 +29,38 @@ enum FeralfileHomeTab {
   curators,
   rAndD;
 
-  List<SortBy> getSortBy() {
+  List<SortBy> getSortBy({bool isSearching = false}) {
     switch (this) {
       case FeralfileHomeTab.artworks:
         return [
+          if (isSearching) SortBy.relevance,
           SortBy.createdAt,
           SortBy.title,
         ];
       case FeralfileHomeTab.exhibitions:
         return [
+          if (isSearching) SortBy.relevance,
           SortBy.openAt,
           SortBy.title,
         ];
       case FeralfileHomeTab.artists:
       case FeralfileHomeTab.curators:
         return [
+          if (isSearching) SortBy.relevance,
           SortBy.firstExhibitionJoinedAt,
           SortBy.alias,
         ];
       default:
         return [
+          if (isSearching) SortBy.relevance,
           SortBy.createdAt,
           SortBy.title,
         ];
     }
   }
 
-  SortBy getDefaultSortBy() => getSortBy().first;
+  SortBy getDefaultSortBy({bool isSearching = false}) =>
+      getSortBy(isSearching: isSearching).first;
 
   Map<FilterType, List<FilterValue>> getFilterBy() {
     switch (this) {
@@ -166,69 +172,81 @@ class _FeralfileHomePageState extends State<FeralfileHomePage> {
     );
   }
 
-  List<Item> _getItemList(FeralfileHomeBlocState state) => [
-        Item(
-          id: FeralfileHomeTab.featured.index.toString(),
-          title: 'Featured',
-          subtitle: state.featuredArtworks?.length.toString() ?? '-',
+  List<Item> _getItemList(FeralfileHomeBlocState state) {
+    final numberFormater = NumberFormat('#,###', 'en_US');
+    return [
+      Item(
+        id: FeralfileHomeTab.featured.index.toString(),
+        title: 'Featured',
+        subtitle: state.featuredArtworks != null
+            ? numberFormater.format(state.featuredArtworks!.length)
+            : '-',
+        onSelected: () {
+          setState(() {
+            _selectedIndex = FeralfileHomeTab.featured.index;
+          });
+        },
+      ),
+      Item(
+        id: FeralfileHomeTab.artworks.index.toString(),
+        title: 'Artworks',
+        subtitle: state.exploreStatisticsData != null
+            ? numberFormater.format(state.exploreStatisticsData!.totalArtwork)
+            : '-',
+        onSelected: () {
+          setState(() {
+            _selectedIndex = FeralfileHomeTab.artworks.index;
+          });
+        },
+      ),
+      Item(
+        id: FeralfileHomeTab.exhibitions.index.toString(),
+        title: 'Exhibitions',
+        subtitle: state.exploreStatisticsData != null
+            ? numberFormater
+                .format(state.exploreStatisticsData!.totalExhibition)
+            : '-',
+        onSelected: () {
+          setState(() {
+            _selectedIndex = FeralfileHomeTab.exhibitions.index;
+          });
+        },
+      ),
+      Item(
+          id: FeralfileHomeTab.artists.index.toString(),
+          title: 'Artists',
+          subtitle: state.exploreStatisticsData != null
+              ? numberFormater.format(state.exploreStatisticsData!.totalArtist)
+              : '-',
           onSelected: () {
             setState(() {
-              _selectedIndex = FeralfileHomeTab.featured.index;
+              _selectedIndex = FeralfileHomeTab.artists.index;
             });
-          },
-        ),
-        Item(
-          id: FeralfileHomeTab.artworks.index.toString(),
-          title: 'Artworks',
-          subtitle: state.exploreStatisticsData?.totalArtwork.toString() ?? '-',
-          onSelected: () {
-            setState(() {
-              _selectedIndex = FeralfileHomeTab.artworks.index;
-            });
-          },
-        ),
-        Item(
-          id: FeralfileHomeTab.exhibitions.index.toString(),
-          title: 'Exhibitions',
-          subtitle:
-              state.exploreStatisticsData?.totalExhibition.toString() ?? '-',
-          onSelected: () {
-            setState(() {
-              _selectedIndex = FeralfileHomeTab.exhibitions.index;
-            });
-          },
-        ),
-        Item(
-            id: FeralfileHomeTab.artists.index.toString(),
-            title: 'Artists',
-            subtitle:
-                state.exploreStatisticsData?.totalArtist.toString() ?? '-',
-            onSelected: () {
-              setState(() {
-                _selectedIndex = FeralfileHomeTab.artists.index;
-              });
-            }),
-        Item(
-          id: FeralfileHomeTab.curators.index.toString(),
-          title: 'Curators',
-          subtitle: state.exploreStatisticsData?.totalCurator.toString() ?? '-',
-          onSelected: () {
-            setState(() {
-              _selectedIndex = FeralfileHomeTab.curators.index;
-            });
-          },
-        ),
-        Item(
-          id: FeralfileHomeTab.rAndD.index.toString(),
-          title: 'R&D',
-          subtitle: '2',
-          onSelected: () {
-            setState(() {
-              _selectedIndex = FeralfileHomeTab.rAndD.index;
-            });
-          },
-        ),
-      ];
+          }),
+      Item(
+        id: FeralfileHomeTab.curators.index.toString(),
+        title: 'Curators',
+        subtitle: state.exploreStatisticsData != null
+            ? numberFormater.format(state.exploreStatisticsData!.totalCurator)
+            : '-',
+        onSelected: () {
+          setState(() {
+            _selectedIndex = FeralfileHomeTab.curators.index;
+          });
+        },
+      ),
+      // Item(
+      //   id: FeralfileHomeTab.rAndD.index.toString(),
+      //   title: 'R&D',
+      //   subtitle: '2',
+      //   onSelected: () {
+      //     setState(() {
+      //       _selectedIndex = FeralfileHomeTab.rAndD.index;
+      //     });
+      //   },
+      // ),
+    ];
+  }
 
   Widget _bodyWidget(FeralfileHomeBlocState state) {
     final tab = FeralfileHomeTab.values[_selectedIndex];

@@ -31,7 +31,8 @@ class _ExploreBarState extends State<ExploreBar> {
   @override
   void initState() {
     super.initState();
-    _sortBy = widget.tab.getDefaultSortBy();
+    _sortBy =
+        widget.tab.getDefaultSortBy(isSearching: _controller.text.isNotEmpty);
   }
 
   @override
@@ -50,6 +51,7 @@ class _ExploreBarState extends State<ExploreBar> {
   @override
   Widget build(BuildContext context) {
     Theme.of(context);
+    final canCancel = _searchText != null && _searchText!.isNotEmpty;
     return Column(
       children: [
         Padding(
@@ -67,10 +69,12 @@ class _ExploreBarState extends State<ExploreBar> {
                 // _onSearch(value);
               },
             ),
-            onCancel: () {
-              _controller.clear();
-              _onSearch(null);
-            },
+            onCancel: canCancel
+                ? () {
+                    _controller.clear();
+                    _onSearch(null);
+                  }
+                : null,
           ),
         ),
         const SizedBox(height: 18),
@@ -96,8 +100,12 @@ class _ExploreBarState extends State<ExploreBar> {
               ),
               const Spacer(),
               SortBar(
-                sortBys: widget.tab.getSortBy(),
-                defaultSortBy: widget.tab.getDefaultSortBy(),
+                sortBys: widget.tab.getSortBy(
+                    isSearching:
+                        _searchText != null && _searchText!.isNotEmpty),
+                defaultSortBy: widget.tab.getDefaultSortBy(
+                    isSearching:
+                        _searchText != null && _searchText!.isNotEmpty),
                 onSortSelected: (sortBy) {
                   log.info('Sort selected: $sortBy');
                   setState(() {

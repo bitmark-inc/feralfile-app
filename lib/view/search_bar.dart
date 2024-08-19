@@ -119,20 +119,21 @@ class _ActionBarState extends State<ActionBar> {
           Expanded(
             child: widget.searchBar,
           ),
-          IconButton(
-            icon: const Padding(
-              padding: EdgeInsets.all(5),
-              child: Icon(
-                AuIcon.close,
-                size: 18,
-                color: AppColor.white,
+          if (widget.onCancel != null)
+            IconButton(
+              icon: const Padding(
+                padding: EdgeInsets.all(5),
+                child: Icon(
+                  AuIcon.close,
+                  size: 18,
+                  color: AppColor.white,
+                ),
               ),
-            ),
-            constraints: const BoxConstraints(maxWidth: 44, maxHeight: 44),
-            onPressed: () {
-              widget.onCancel?.call();
-            },
-          )
+              constraints: const BoxConstraints(maxWidth: 44, maxHeight: 44),
+              onPressed: () {
+                widget.onCancel?.call();
+              },
+            )
         ],
       );
 }

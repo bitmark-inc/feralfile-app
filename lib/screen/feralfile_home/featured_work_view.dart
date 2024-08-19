@@ -10,8 +10,10 @@ import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/loading_view.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/services/tokens_service.dart';
 
@@ -53,7 +55,7 @@ class _FeaauredWorkViewState extends State<FeaauredWorkView> {
   Widget build(BuildContext context) {
     if (_featureTokens == null) {
       return _loadingView(context);
-    } else
+    } else {
       return CustomScrollView(
         slivers: [
           SliverPadding(
@@ -76,7 +78,30 @@ class _FeaauredWorkViewState extends State<FeaauredWorkView> {
                         color: Colors.transparent,
                         child: Column(
                           children: [
-                            Image.network(token.thumbnailURL ?? ''),
+                            // Image.network(token.thumbnailURL ?? ''),
+                            CachedNetworkImage(
+                              imageUrl: token.thumbnailURL ?? '',
+                              cacheManager: injector<CacheManager>(),
+                              fit: BoxFit.cover,
+                              height: 200,
+                              width: double.infinity,
+                              errorWidget: (context, url, error) =>
+                                  const Icon(Icons.error),
+                              // loadingBuilder: (context, child, loadingProgress) {
+                              //   if (loadingProgress == null) {
+                              //     return child;
+                              //   }
+                              //   return Center(
+                              //     child: Text(
+                              //       loadingProgress.expectedTotalBytes !=
+                              //               null
+                              //           ? loadingProgress.cumulativeBytesLoaded /
+                              //               loadingProgress.expectedTotalBytes!
+                              //           : null,
+                              //     ),
+                              //   );
+                              // },
+                            ),
                             _infoHeader(context, token, artistName, false,
                                 context.read<CanvasDeviceBloc>().state),
                           ],
@@ -97,6 +122,7 @@ class _FeaauredWorkViewState extends State<FeaauredWorkView> {
           ),
         ],
       );
+    }
   }
 
   Future<void> _fetchFeaturedTokens(BuildContext context) async {

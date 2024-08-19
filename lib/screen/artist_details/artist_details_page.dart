@@ -220,7 +220,7 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
       {required String title, String? subtitle}) {
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16),
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
       child: Row(
         children: [
           Expanded(
@@ -235,7 +235,7 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
             ),
             Text(
               subtitle,
-              style: theme.textTheme.ppMori700White24
+              style: theme.textTheme.ppMori400White24
                   .copyWith(fontSize: 36, color: AppColor.auQuickSilver),
             ),
           ]
@@ -256,6 +256,7 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
     final header =
         _header(context, title: 'works'.tr(), subtitle: '${series.length}');
     final viewAll = PrimaryAsyncButton(
+      color: AppColor.white,
       onTap: () {
         _gotoUserWork(context, user);
       },
@@ -266,13 +267,17 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
     return [
       SliverToBoxAdapter(child: header),
       SliverToBoxAdapter(
-        child: Expanded(
-          child: SeriesView(
-            series: series.length > viewALlBreakpoint
-                ? series.sublist(0, viewALlBreakpoint)
-                : series,
-            isScrollable: false,
-          ),
+        child: Row(
+          children: [
+            Expanded(
+              child: SeriesView(
+                series: series.length > viewALlBreakpoint
+                    ? series.sublist(0, viewALlBreakpoint)
+                    : series,
+                isScrollable: false,
+              ),
+            ),
+          ],
         ),
       ),
       const SliverToBoxAdapter(
@@ -281,9 +286,14 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
         ),
       ),
       SliverToBoxAdapter(
-        child: series.length > viewALlBreakpoint ? viewAll : const SizedBox(),
+        child: series.length > viewALlBreakpoint
+            ? Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: viewAll,
+              )
+            : const SizedBox(),
       ),
-      SliverToBoxAdapter(
+      const SliverToBoxAdapter(
           child: SizedBox(
         height: 40,
       ))
@@ -305,19 +315,24 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
       onTap: () {
         _viewAllArtistExhibitions(context, user);
       },
+      color: AppColor.white,
       text: 'view_all_exhibitions'.tr(),
     );
     const viewALlBreakpoint = 2;
     return [
       SliverToBoxAdapter(child: header),
       SliverToBoxAdapter(
-          child: Expanded(
-        child: ListExhibitionView(
-          exhibitions: exhibitions.length > viewALlBreakpoint
-              ? exhibitions.sublist(0, viewALlBreakpoint)
-              : exhibitions,
-          isScrollable: false,
-        ),
+          child: Row(
+        children: [
+          Expanded(
+            child: ListExhibitionView(
+              exhibitions: exhibitions.length > viewALlBreakpoint
+                  ? exhibitions.sublist(0, viewALlBreakpoint)
+                  : exhibitions,
+              isScrollable: false,
+            ),
+          ),
+        ],
       )),
       const SliverToBoxAdapter(
         child: SizedBox(
@@ -325,8 +340,12 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
         ),
       ),
       SliverToBoxAdapter(
-        child:
-            exhibitions.length > viewALlBreakpoint ? viewAll : const SizedBox(),
+        child: exhibitions.length > viewALlBreakpoint
+            ? Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: viewAll,
+              )
+            : const SizedBox(),
       )
     ];
   }
@@ -346,6 +365,7 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
       onTap: () {
         _viewAllArtistPosts(context, user);
       },
+      color: AppColor.white,
       text: 'view_all_posts'.tr(),
     );
     const viewALlBreakpoint = 2;
@@ -353,17 +373,26 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
     return [
       SliverToBoxAdapter(child: header),
       SliverToBoxAdapter(
-        child: Expanded(
-          child: ListPostView(
-            posts: posts.length > viewALlBreakpoint
-                ? posts.sublist(0, viewALlBreakpoint)
-                : posts,
-            isScrollable: false,
-          ),
+        child: Row(
+          children: [
+            Expanded(
+              child: ListPostView(
+                posts: posts.length > viewALlBreakpoint
+                    ? posts.sublist(0, viewALlBreakpoint)
+                    : posts,
+                isScrollable: false,
+              ),
+            ),
+          ],
         ),
       ),
       SliverToBoxAdapter(
-        child: posts.length > viewALlBreakpoint ? viewAll : const SizedBox(),
+        child: posts.length > viewALlBreakpoint
+            ? Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: viewAll,
+              )
+            : const SizedBox(),
       ),
       const SliverToBoxAdapter(
         child: SizedBox(
@@ -422,7 +451,7 @@ class _ListPostViewState extends State<ListPostView> {
 
   Widget _postItem(BuildContext context, Post post) {
     final theme = Theme.of(context);
-    final dateFormat = DateFormat('EEEE, MMM d, y');
+    final dateFormat = DateFormat('d MMMM y');
     final dateTime = post.dateTime ?? post.createdAt;
     final defaultStyle = theme.textTheme.ppMori400White12
         .copyWith(color: AppColor.auQuickSilver);

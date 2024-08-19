@@ -1,5 +1,5 @@
 import 'package:autonomy_flutter/screen/feralfile_home/filter_bar.dart';
-import 'package:autonomy_flutter/screen/feralfile_home/filter_expanded_item.dart';
+import 'package:autonomy_flutter/screen/feralfile_home/filter_home.dart';
 import 'package:flutter/material.dart';
 
 class SortBar extends StatefulWidget {
@@ -26,6 +26,16 @@ class _SortBarState extends State<SortBar> {
     _selectedSortBy = widget.defaultSortBy;
   }
 
+  @override
+  void didUpdateWidget(covariant SortBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.defaultSortBy != widget.defaultSortBy) {
+      if (_selectedSortBy == oldWidget.defaultSortBy) {
+        _selectedSortBy = widget.defaultSortBy;
+      }
+    }
+  }
+
   void _onSortSelected(SortBy sortBy) {
     setState(() {
       _selectedSortBy = sortBy;
@@ -33,7 +43,7 @@ class _SortBarState extends State<SortBar> {
     widget.onSortSelected(sortBy);
   }
 
-  Widget _sortByItem(List<SortBy> values) => FilterExpanandedItem(
+  Widget _sortByItem(List<SortBy> values) => FilterItem(
         type: 'Sort By',
         values: values.map((e) => e.name).toList(),
         selectedIndex:

@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/screen/feralfile_home/filter_expanded_item.dart';
+import 'package:autonomy_flutter/screen/feralfile_home/filter_home.dart';
 import 'package:flutter/material.dart';
 
 class FilterBar extends StatefulWidget {
@@ -48,8 +49,7 @@ class _FilterBarState extends State<FilterBar> {
     widget.onFilterCleared(type);
   }
 
-  Widget _filterItem(FilterType type, List<FilterValue> values) =>
-      FilterExpanandedItem(
+  Widget _filterItem(FilterType type, List<FilterValue> values) => FilterItem(
         key: _globalKeys[type],
         type: type.name,
         values: values.map((e) => e.name).toList(),
@@ -140,7 +140,7 @@ enum FilterValue {
       case FilterValue.series:
         return 'Series';
       case FilterValue.oneofone:
-        return 'One of One';
+        return '1 of 1';
       case FilterValue.solo:
         return 'Solo';
       case FilterValue.group:
@@ -164,7 +164,7 @@ enum FilterValue {
       case FilterValue.animatedGif:
         return 'Animated GIF';
       case FilterValue.text:
-        return 'Text';
+        return 'TXT';
     }
   }
 
@@ -209,6 +209,7 @@ enum SortBy {
   createdAt,
   openAt,
   alias,
+  relevance,
   title;
 
   String get queryParam {
@@ -223,6 +224,8 @@ enum SortBy {
         return 'title';
       case SortBy.alias:
         return 'alias';
+      case SortBy.relevance:
+        return 'relevance';
     }
   }
 
@@ -235,6 +238,8 @@ enum SortBy {
       case SortBy.alias:
       case SortBy.title:
         return 'A to Z';
+      case SortBy.relevance:
+        return 'Relevance';
     }
   }
 
@@ -243,6 +248,7 @@ enum SortBy {
       case SortBy.firstExhibitionJoinedAt:
       case SortBy.createdAt:
       case SortBy.openAt:
+      case SortBy.relevance:
         return SortOrder.desc;
       case SortBy.title:
       case SortBy.alias:

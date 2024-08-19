@@ -87,6 +87,8 @@ class _ArtistWorksPageState extends State<ArtistWorksPage> {
     if (seriesList.isEmpty) {
       return _emptyView(context);
     }
-    return SeriesView(series: seriesList);
+    return SeriesView(
+      series: seriesList,
+    );
   }
 }

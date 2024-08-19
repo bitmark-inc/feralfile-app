@@ -1210,10 +1210,13 @@ class UIHelper {
                     );
                   },
                   itemCount: options.length,
-                  separatorBuilder: (context, index) => const Divider(
-                    height: 1,
-                    color: AppColor.primaryBlack,
-                    thickness: 0.25,
+                  separatorBuilder: (context, index) => Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 13),
+                    child: const Divider(
+                      height: 1,
+                      color: AppColor.primaryBlack,
+                      thickness: 1,
+                    ),
                   ),
                 )
               ],

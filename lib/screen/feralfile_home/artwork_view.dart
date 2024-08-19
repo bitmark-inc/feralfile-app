@@ -10,6 +10,7 @@ import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artw
 import 'package:autonomy_flutter/screen/feralfile_home/filter_bar.dart';
 import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_page.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
+import 'package:autonomy_flutter/util/feralfile_artist_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/series_ext.dart';
 import 'package:autonomy_flutter/view/loading_view.dart';
@@ -92,6 +93,7 @@ class _ExploreSeriesViewState extends State<ExploreSeriesView> {
   Widget _seriesView(BuildContext context, List<FFSeries> series) => SeriesView(
         series: series,
         scrollController: _scrollController,
+        padding: const EdgeInsets.only(bottom: 100),
       );
 
   @override
@@ -164,12 +166,14 @@ class SeriesView extends StatefulWidget {
   final List<FFSeries> series;
   final ScrollController? scrollController;
   final bool isScrollable;
+  final EdgeInsets padding;
 
   const SeriesView({
     required this.series,
     this.scrollController,
     super.key,
     this.isScrollable = true,
+    this.padding = EdgeInsets.zero,
   });
 
   @override
@@ -196,18 +200,44 @@ class _SeriesViewState extends State<SeriesView> {
           SliverGrid(
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
-              crossAxisSpacing: 1,
-              mainAxisSpacing: 1,
+              crossAxisSpacing: 0,
+              mainAxisSpacing: 0,
               childAspectRatio: 188 / 307,
             ),
             delegate: SliverChildBuilderDelegate(
               (context, index) {
                 final series = widget.series[index];
-                return _seriesItem(context, series);
+                final boder = Border(
+                  top: BorderSide(
+                    color: AppColor.auGreyBackground,
+                    width: 1,
+                  ),
+                  right: BorderSide(
+                    color:
+                        // if index is even, show border on the right
+                        index.isEven
+                            ? AppColor.auGreyBackground
+                            : Colors.transparent,
+                    width: 1,
+                  ),
+                  // if last row, add border on the bottom
+                  bottom: index >=
+                          widget.series.length - (2 - widget.series.length % 2)
+                      ? BorderSide(
+                          color: AppColor.auGreyBackground,
+                          width: 1,
+                        )
+                      : BorderSide.none,
+                );
+                return _seriesItem(context, series, boder);
               },
               childCount: widget.series.length,
             ),
-          )
+          ),
+          SliverPadding(
+            padding: widget.padding,
+            sliver: SliverToBoxAdapter(),
+          ),
         ],
       );
 
@@ -221,7 +251,7 @@ class _SeriesViewState extends State<SeriesView> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                series.artist?.alias ?? '',
+                series.artist?.displayAlias ?? '',
                 style: defaultStyle,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -260,12 +290,17 @@ class _SeriesViewState extends State<SeriesView> {
     );
   }
 
-  Widget _seriesItem(BuildContext context, FFSeries series) => GestureDetector(
+  Widget _seriesItem(BuildContext context, FFSeries series, Border border) =>
+      GestureDetector(
         onTap: () {
           _gotoSeriesDetails(context, series);
         },
         child: Container(
-          color: Colors.transparent,
+          decoration: BoxDecoration(
+            // border on the top and right
+            border: border,
+            color: Colors.transparent,
+          ),
           padding: const EdgeInsets.all(8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

@@ -320,7 +320,7 @@ class _ListUserViewState extends State<ListUserView> {
             sliver: SliverGrid(
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 3,
-                  childAspectRatio: 102.0 / 129,
+                  childAspectRatio: 102.0 / 146,
                   crossAxisSpacing: 24,
                   mainAxisSpacing: 30,
                 ),
@@ -379,6 +379,7 @@ class _ListUserViewState extends State<ListUserView> {
                   user.displayAlias,
                   style: theme.textTheme.ppMori400White12,
                   overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
                 ),
               ],
             )),
