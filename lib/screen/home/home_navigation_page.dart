@@ -349,13 +349,9 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
       unawaited(_showRemoveCustomerSupport());
     }
 
-    unawaited(Future.delayed(const Duration(milliseconds: 1000), () {
-      _announcementService.fetchAnnouncements().then(
-        (_) async {
-          await _announcementService.showOldestAnnouncement();
-        },
-      );
-    }));
+
+    _triggerShowAnnouncement();
+
     OneSignal.shared.setNotificationWillShowInForegroundHandler((event) async {
       await _announcementService.fetchAnnouncements();
       if (!mounted) {
@@ -654,6 +650,16 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     _metricClientService.onBackground();
   }
 
+  void _triggerShowAnnouncement() {
+    unawaited(Future.delayed(const Duration(milliseconds: 1000), () {
+      _announcementService.fetchAnnouncements().then(
+            (_) async {
+          await _announcementService.showOldestAnnouncement();
+        },
+      );
+    }));
+  }
+
   Future<void> _handleForeBackground(FGBGType event) async {
     switch (event) {
       case FGBGType.foreground:
@@ -670,6 +676,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     _metricClientService.onForeground();
     injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent(retry: true));
     await _remoteConfig.loadConfigs();
+    _triggerShowAnnouncement();
   }
 
   @override
