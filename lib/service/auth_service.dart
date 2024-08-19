@@ -174,4 +174,9 @@ class AuthService {
     }
     await _authApi.registerPrimaryAddress(payload);
   }
+
+  Future<bool> redeemGiftCode(String giftCode) async {
+    final response = await _authApi.redeemGiftCode(giftCode);
+    return response.ok == 1;
+  }
 }

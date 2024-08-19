@@ -243,6 +243,15 @@ class MockNavigationService extends _i2.Mock implements _i3.NavigationService {
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
   @override
+  _i4.Future<void> showCannotConnectTv() => (super.noSuchMethod(
+        Invocation.method(
+          #showCannotConnectTv,
+          [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
   _i4.Future<void> showDeclinedGeolocalization() => (super.noSuchMethod(
         Invocation.method(
           #showDeclinedGeolocalization,
@@ -427,6 +436,15 @@ class MockNavigationService extends _i2.Mock implements _i3.NavigationService {
             post,
             exhibitionID,
           ],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
+  _i4.Future<void> navigatePath(String? path) => (super.noSuchMethod(
+        Invocation.method(
+          #navigatePath,
+          [path],
         ),
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),

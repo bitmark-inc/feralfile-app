@@ -108,15 +108,6 @@ class MockAccountService extends _i1.Mock implements _i6.AccountService {
         )),
       ) as _i7.Future<_i3.Persona>);
   @override
-  _i7.Future<_i2.WalletStorage?> getCurrentDefaultAccount() =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #getCurrentDefaultAccount,
-          [],
-        ),
-        returnValue: _i7.Future<_i2.WalletStorage?>.value(),
-      ) as _i7.Future<_i2.WalletStorage?>);
-  @override
   _i7.Future<_i4.WalletIndex> getAccountByAddress({
     required String? chain,
     required String? address,
@@ -185,6 +176,23 @@ class MockAccountService extends _i1.Mock implements _i6.AccountService {
         ),
         returnValue: _i7.Future<dynamic>.value(),
       ) as _i7.Future<dynamic>);
+  @override
+  _i7.Future<_i3.Persona> getPersona({required String? uuid}) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getPersona,
+          [],
+          {#uuid: uuid},
+        ),
+        returnValue: _i7.Future<_i3.Persona>.value(_FakePersona_1(
+          this,
+          Invocation.method(
+            #getPersona,
+            [],
+            {#uuid: uuid},
+          ),
+        )),
+      ) as _i7.Future<_i3.Persona>);
   @override
   _i7.Future<_i3.Persona> createPersona({
     String? name = r'',

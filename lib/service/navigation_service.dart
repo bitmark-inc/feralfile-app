@@ -258,6 +258,51 @@ class NavigationService {
     }
   }
 
+  Future<void> showMembershipGiftCodeEmpty() async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await UIHelper.showInfoDialog(context, 'can_not_get_gift_code'.tr(),
+          'can_not_get_gift_code_desc'.tr(),
+          onClose: () => UIHelper.hideInfoDialog(context), isDismissible: true);
+    }
+  }
+
+  Future<void> showFailToRedeemMembership() async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await UIHelper.showInfoDialog(context, 'fail_to_redeem_membership'.tr(),
+          'fail_to_redeem_membership_desc'.tr(),
+          onClose: () => UIHelper.hideInfoDialog(context), isDismissible: true);
+    }
+  }
+
+  Future<void> showRedeemMembershipCodeUsed() async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await UIHelper.showInfoDialog(context, 'fail_to_redeem_membership'.tr(),
+          'redeem_code_used_desc'.tr(),
+          onClose: () => UIHelper.hideInfoDialog(context), isDismissible: true);
+    }
+  }
+
+  Future<void> showPremiumUserCanNotClaim() async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await UIHelper.showInfoDialog(context, 'fail_to_redeem_membership'.tr(),
+          'premium_user_can_not_claim'.tr(),
+          onClose: () => UIHelper.hideInfoDialog(context), isDismissible: true);
+    }
+  }
+
+  Future<void> showRedeemMembershipSuccess() async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await UIHelper.showInfoDialog(context, 'redeem_membership_success'.tr(),
+          'redeem_membership_success_desc'.tr(),
+          onClose: () => UIHelper.hideInfoDialog(context), isDismissible: true);
+    }
+  }
+
   Future<void> showDeclinedGeolocalization() async {
     if (navigatorKey.currentContext != null &&
         navigatorKey.currentState?.mounted == true) {

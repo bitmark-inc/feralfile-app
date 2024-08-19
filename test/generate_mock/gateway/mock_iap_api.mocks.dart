@@ -3,12 +3,13 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i5;
-import 'dart:io' as _i6;
+import 'dart:async' as _i6;
+import 'dart:io' as _i7;
 
-import 'package:autonomy_flutter/gateway/iap_api.dart' as _i4;
+import 'package:autonomy_flutter/gateway/iap_api.dart' as _i5;
 import 'package:autonomy_flutter/model/backup_versions.dart' as _i3;
 import 'package:autonomy_flutter/model/jwt.dart' as _i2;
+import 'package:autonomy_flutter/model/ok_response.dart' as _i4;
 import 'package:mockito/mockito.dart' as _i1;
 
 // ignore_for_file: type=lint
@@ -56,34 +57,69 @@ class _FakeOnesignalIdentityHash_2 extends _i1.SmartFake
         );
 }
 
+class _FakeOkResponse_3 extends _i1.SmartFake implements _i4.OkResponse {
+  _FakeOkResponse_3(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
 /// A class which mocks [IAPApi].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockIAPApi extends _i1.Mock implements _i4.IAPApi {
+class MockIAPApi extends _i1.Mock implements _i5.IAPApi {
   MockIAPApi() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i5.Future<_i2.JWT> auth(Map<String, dynamic>? body) => (super.noSuchMethod(
+  _i6.Future<_i2.JWT> auth(Map<String, dynamic>? body) => (super.noSuchMethod(
         Invocation.method(
           #auth,
           [body],
         ),
-        returnValue: _i5.Future<_i2.JWT>.value(_FakeJWT_0(
+        returnValue: _i6.Future<_i2.JWT>.value(_FakeJWT_0(
           this,
           Invocation.method(
             #auth,
             [body],
           ),
         )),
-      ) as _i5.Future<_i2.JWT>);
+      ) as _i6.Future<_i2.JWT>);
   @override
-  _i5.Future<dynamic> uploadProfile(
+  _i6.Future<_i2.JWT> authAddress(Map<String, dynamic>? body) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #authAddress,
+          [body],
+        ),
+        returnValue: _i6.Future<_i2.JWT>.value(_FakeJWT_0(
+          this,
+          Invocation.method(
+            #authAddress,
+            [body],
+          ),
+        )),
+      ) as _i6.Future<_i2.JWT>);
+  @override
+  _i6.Future<void> registerPrimaryAddress(Map<String, dynamic>? body) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #registerPrimaryAddress,
+          [body],
+        ),
+        returnValue: _i6.Future<void>.value(),
+        returnValueForMissingStub: _i6.Future<void>.value(),
+      ) as _i6.Future<void>);
+  @override
+  _i6.Future<dynamic> uploadProfile(
     String? requester,
     String? filename,
     String? appVersion,
-    _i6.File? data,
+    _i7.File? data,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -95,10 +131,10 @@ class MockIAPApi extends _i1.Mock implements _i4.IAPApi {
             data,
           ],
         ),
-        returnValue: _i5.Future<dynamic>.value(),
-      ) as _i5.Future<dynamic>);
+        returnValue: _i6.Future<dynamic>.value(),
+      ) as _i6.Future<dynamic>);
   @override
-  _i5.Future<_i3.BackupVersions> getProfileVersions(
+  _i6.Future<_i3.BackupVersions> getProfileVersions(
     String? requester,
     String? filename,
   ) =>
@@ -110,7 +146,7 @@ class MockIAPApi extends _i1.Mock implements _i4.IAPApi {
             filename,
           ],
         ),
-        returnValue: _i5.Future<_i3.BackupVersions>.value(_FakeBackupVersions_1(
+        returnValue: _i6.Future<_i3.BackupVersions>.value(_FakeBackupVersions_1(
           this,
           Invocation.method(
             #getProfileVersions,
@@ -120,9 +156,9 @@ class MockIAPApi extends _i1.Mock implements _i4.IAPApi {
             ],
           ),
         )),
-      ) as _i5.Future<_i3.BackupVersions>);
+      ) as _i6.Future<_i3.BackupVersions>);
   @override
-  _i5.Future<dynamic> getProfileData(
+  _i6.Future<dynamic> getProfileData(
     String? requester,
     String? filename,
     String? version,
@@ -136,34 +172,34 @@ class MockIAPApi extends _i1.Mock implements _i4.IAPApi {
             version,
           ],
         ),
-        returnValue: _i5.Future<dynamic>.value(),
-      ) as _i5.Future<dynamic>);
+        returnValue: _i6.Future<dynamic>.value(),
+      ) as _i6.Future<dynamic>);
   @override
-  _i5.Future<dynamic> deleteAllProfiles(String? requester) =>
+  _i6.Future<dynamic> deleteAllProfiles(String? requester) =>
       (super.noSuchMethod(
         Invocation.method(
           #deleteAllProfiles,
           [requester],
         ),
-        returnValue: _i5.Future<dynamic>.value(),
-      ) as _i5.Future<dynamic>);
+        returnValue: _i6.Future<dynamic>.value(),
+      ) as _i6.Future<dynamic>);
   @override
-  _i5.Future<dynamic> deleteUserData() => (super.noSuchMethod(
+  _i6.Future<dynamic> deleteUserData() => (super.noSuchMethod(
         Invocation.method(
           #deleteUserData,
           [],
         ),
-        returnValue: _i5.Future<dynamic>.value(),
-      ) as _i5.Future<dynamic>);
+        returnValue: _i6.Future<dynamic>.value(),
+      ) as _i6.Future<dynamic>);
   @override
-  _i5.Future<_i2.OnesignalIdentityHash> generateIdentityHash(
+  _i6.Future<_i2.OnesignalIdentityHash> generateIdentityHash(
           Map<String, String>? body) =>
       (super.noSuchMethod(
         Invocation.method(
           #generateIdentityHash,
           [body],
         ),
-        returnValue: _i5.Future<_i2.OnesignalIdentityHash>.value(
+        returnValue: _i6.Future<_i2.OnesignalIdentityHash>.value(
             _FakeOnesignalIdentityHash_2(
           this,
           Invocation.method(
@@ -171,5 +207,19 @@ class MockIAPApi extends _i1.Mock implements _i4.IAPApi {
             [body],
           ),
         )),
-      ) as _i5.Future<_i2.OnesignalIdentityHash>);
+      ) as _i6.Future<_i2.OnesignalIdentityHash>);
+  @override
+  _i6.Future<_i4.OkResponse> redeemGiftCode(String? id) => (super.noSuchMethod(
+        Invocation.method(
+          #redeemGiftCode,
+          [id],
+        ),
+        returnValue: _i6.Future<_i4.OkResponse>.value(_FakeOkResponse_3(
+          this,
+          Invocation.method(
+            #redeemGiftCode,
+            [id],
+          ),
+        )),
+      ) as _i6.Future<_i4.OkResponse>);
 }

@@ -21,6 +21,7 @@ import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/gift_handler.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -46,6 +47,7 @@ enum NotificationType {
   exhibitionViewingOpening,
   exhibitionSalesOpening,
   exhibitionSaleClosing,
+  giftMembership,
   unknown;
 
   // toString method
@@ -80,6 +82,8 @@ enum NotificationType {
         return 'exhibition_sale_opening';
       case NotificationType.exhibitionSaleClosing:
         return 'exhibition_sale_closing';
+      case NotificationType.giftMembership:
+        return 'gift_membership';
       case NotificationType.unknown:
         return 'unknown';
     }
@@ -116,6 +120,8 @@ enum NotificationType {
         return NotificationType.exhibitionSalesOpening;
       case 'exhibition_sale_closing':
         return NotificationType.exhibitionSaleClosing;
+      case 'gift_membership':
+        return NotificationType.giftMembership;
       default:
         return NotificationType.unknown;
     }
@@ -280,6 +286,9 @@ class NotificationHandler {
         }
         final exhibitionId = data['exhibition_id'];
         await _navigationService.gotoExhibitionDetailsPage(exhibitionId);
+      case NotificationType.giftMembership:
+        final giftCode = notification.additionalData?['gift_code'];
+        await GiftHandler.handleGiftMembership(giftCode);
       default:
         log.warning('unhandled notification type: $notificationType');
         break;
