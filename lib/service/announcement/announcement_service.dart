@@ -6,7 +6,9 @@ import 'package:autonomy_flutter/model/announcement/announcement_local.dart';
 import 'package:autonomy_flutter/model/announcement/announcement_request.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_store.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 
@@ -88,9 +90,7 @@ class AnnouncementServiceImpl implements AnnouncementService {
   @override
   List<AnnouncementLocal> getUnreadAnnouncements() {
     final allAnnouncements = getLocalAnnouncements();
-    return allAnnouncements
-        .where((element) => !element.read && !element.isExpired)
-        .toList();
+    return allAnnouncements.where((element) => !element.read).toList();
   }
 
   @override
@@ -114,6 +114,22 @@ class AnnouncementServiceImpl implements AnnouncementService {
       final context = injector<NavigationService>().context;
       final additionalData =
           AdditionalData.fromJson(announcement.additionalData);
+
+      /// If the announcement is expired, mark it as read and show the next one
+      if (announcement.isExpired) {
+        injector<MetricClientService>().addEvent(
+          MixpanelEvent.expiredBeforeViewing,
+          data: {
+            MixpanelProp.notificationId: announcement.announcementContentId,
+            MixpanelProp.channel: 'in-app',
+          },
+        );
+        await markAsRead(announcement.announcementContentId);
+        if (shouldRepeat) {
+          await showOldestAnnouncement();
+        }
+        return;
+      }
       await showNotifications(context, announcement.announcementContentId,
           body: announcement.content,
           handler: additionalData.isTappable

@@ -13,8 +13,10 @@ import 'package:autonomy_flutter/model/additional_data/additional_data.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/material.dart';
@@ -122,10 +124,12 @@ class NotificationHandler {
   final NavigationService _navigationService = injector<NavigationService>();
   final AnnouncementService _announcementService =
       injector<AnnouncementService>();
+  final MetricClientService _metricClientService =
+      injector<MetricClientService>();
 
   Future<void> handleNotificationClicked(BuildContext context,
       OSNotification notification, PageController? pageController,
-      {String type = 'push'}) async {
+      {String channel = 'push'}) async {
     if (notification.additionalData == null) {
       // Skip handling the notification without data
       return;
@@ -136,9 +140,18 @@ class NotificationHandler {
 
     final additionalData =
         AdditionalData.fromJson(notification.additionalData!);
+    final id =
+        additionalData.announcementContentId ?? notification.notificationId;
     await additionalData.handleTap(context, pageController);
+
     /// mixpanel tracking: tap to notification
-    ///
+    _metricClientService.addEvent(
+      MixpanelEvent.tappedNotification,
+      data: {
+        MixpanelProp.notificationId: id,
+        MixpanelProp.channel: channel,
+      },
+    );
     await _announcementService.markAsRead(additionalData.announcementContentId);
 
     if (!context.mounted) {
@@ -224,8 +237,17 @@ class NotificationHandler {
       return;
     }
     if (announcement?.isExpired == true) {
-      /// mixpanel tracking: expired before viewing
-      ///
+      _metricClientService.addEvent(
+        MixpanelEvent.expiredBeforeViewing,
+        data: {
+          MixpanelProp.notificationId: announcement?.announcementContentId ??
+              event.notification.notificationId,
+          MixpanelProp.channel: 'in-app',
+        },
+      );
+      await _announcementService
+          .markAsRead(announcement?.announcementContentId);
+      await _announcementService.showOldestAnnouncement();
       return;
     }
 
@@ -239,7 +261,7 @@ class NotificationHandler {
                 context,
                 event.notification,
                 pageController,
-                type: 'in-app',
+                channel: 'in-app',
               );
             }
           : null,

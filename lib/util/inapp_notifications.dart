@@ -10,6 +10,8 @@ import 'dart:async';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -187,19 +189,23 @@ Future<void> showNotifications(BuildContext context, String id,
     return;
   }
 
+  bool didTap = false;
+
   /// mixpanel tracking: delivered notification
-
-  /// reserve code for future use
-  // bool didTap = false;
-  /// ---------------------------
-
+  final metricClientService = injector<MetricClientService>()
+    ..addEvent(
+      MixpanelEvent.deliveredNotification,
+      data: {
+        MixpanelProp.notificationId: id,
+        MixpanelProp.channel: 'in-app',
+      },
+    );
   configurationService.showingNotification.value = true;
   final notification = showSimpleNotification(
     _notificationToast(context, id, handler: () async {
-      /// this is how to detect user tap on notification, but we don't need it
+      /// this is how to detect user tap on notification
       /// this must put before handler?.call() to make sure it's called first
-      // didTap = true;
-      /// -----------------------
+      didTap = true;
 
       handler?.call();
     }, body: body),
@@ -214,6 +220,15 @@ Future<void> showNotifications(BuildContext context, String id,
   final future = notification.dismissed;
   await future;
   configurationService.showingNotification.value = false;
+  if (!didTap) {
+    metricClientService.addEvent(
+      MixpanelEvent.dismissedNotification,
+      data: {
+        MixpanelProp.notificationId: id,
+        MixpanelProp.channel: 'in-app',
+      },
+    );
+  }
 
   /// always show next announcement in queue, event user tap to see it
   Future.delayed(const Duration(milliseconds: 100), () {
