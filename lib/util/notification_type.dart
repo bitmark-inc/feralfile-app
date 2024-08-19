@@ -164,7 +164,6 @@ class NotificationHandler {
     log.info('Receive notification: ${event.notification}');
     final data = event.notification.additionalData;
     if (data == null) {
-      event.complete(null);
       return;
     }
 
@@ -180,7 +179,6 @@ class NotificationHandler {
         injector<CustomerSupportService>().triggerReloadMessages.value += 1;
         unawaited(injector<CustomerSupportService>().getIssues());
         if (notificationIssueID == memoryValues.viewingSupportThreadIssueID) {
-          event.complete(null);
           return;
         }
 
@@ -201,7 +199,6 @@ class NotificationHandler {
         final groupId = data['group_id'];
 
         if (!_remoteConfig.getBool(ConfigGroup.viewDetail, ConfigKey.chat)) {
-          event.complete(null);
           return;
         }
 
@@ -213,7 +210,6 @@ class NotificationHandler {
       default:
         await _showNotification(context, event, pageController, additionalData);
     }
-    event.complete(null);
   }
 
   Future<void> _showNotification(
