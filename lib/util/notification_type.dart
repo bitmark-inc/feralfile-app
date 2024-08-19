@@ -34,6 +34,7 @@ enum NotificationType {
   exhibitionViewingOpening,
   exhibitionSalesOpening,
   exhibitionSaleClosing,
+  giftMembership,
   general;
 
   // toString method
@@ -66,6 +67,8 @@ enum NotificationType {
         return 'exhibition_sale_opening';
       case NotificationType.exhibitionSaleClosing:
         return 'exhibition_sale_closing';
+      case NotificationType.giftMembership:
+        return 'gift_membership';
       case NotificationType.general:
         return 'general';
     }
@@ -100,6 +103,8 @@ enum NotificationType {
         return NotificationType.exhibitionSalesOpening;
       case 'exhibition_sale_closing':
         return NotificationType.exhibitionSaleClosing;
+      case 'gift_membership':
+        return NotificationType.giftMembership;
       default:
         return NotificationType.general;
     }
