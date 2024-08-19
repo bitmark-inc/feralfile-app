@@ -349,7 +349,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
       unawaited(_showRemoveCustomerSupport());
     }
 
-
     _triggerShowAnnouncement();
 
     OneSignal.shared.setNotificationWillShowInForegroundHandler((event) async {
@@ -653,7 +652,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   void _triggerShowAnnouncement() {
     unawaited(Future.delayed(const Duration(milliseconds: 1000), () {
       _announcementService.fetchAnnouncements().then(
-            (_) async {
+        (_) async {
           await _announcementService.showOldestAnnouncement();
         },
       );
