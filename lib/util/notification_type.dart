@@ -119,7 +119,8 @@ class NotificationHandler {
       injector<AnnouncementService>();
 
   Future<void> handleNotificationClicked(BuildContext context,
-      OSNotification notification, PageController? pageController) async {
+      OSNotification notification, PageController? pageController,
+      {String type = 'push'}) async {
     if (notification.additionalData == null) {
       // Skip handling the notification without data
       return;
@@ -131,6 +132,8 @@ class NotificationHandler {
     final additionalData =
         AdditionalData.fromJson(notification.additionalData!);
     await additionalData.handleTap(context, pageController);
+    /// mixpanel tracking: tap to notification
+    ///
     await _announcementService.markAsRead(additionalData.announcementContentId);
 
     if (!context.mounted) {
@@ -212,7 +215,12 @@ class NotificationHandler {
   ) async {
     final announcement = _announcementService
         .getAnnouncement(additionalData.announcementContentId);
-    if (announcement?.read == true || announcement?.isExpired == true) {
+    if (announcement?.read == true) {
+      return;
+    }
+    if (announcement?.isExpired == true) {
+      /// mixpanel tracking: expired before viewing
+      ///
       return;
     }
 
@@ -223,7 +231,11 @@ class NotificationHandler {
       handler: additionalData.isTappable
           ? () async {
               await handleNotificationClicked(
-                  context, event.notification, pageController);
+                context,
+                event.notification,
+                pageController,
+                type: 'in-app',
+              );
             }
           : null,
       callBackOnDismiss: () async {

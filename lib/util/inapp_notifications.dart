@@ -187,6 +187,8 @@ Future<void> showNotifications(BuildContext context, String id,
     return;
   }
 
+  /// mixpanel tracking: delivered notification
+
   /// reserve code for future use
   // bool didTap = false;
   /// ---------------------------
