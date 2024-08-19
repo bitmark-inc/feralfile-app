@@ -203,7 +203,7 @@ Future<void> showNotifications(BuildContext context, String id,
     }, body: body),
     background: Colors.transparent,
     elevation: 0,
-    duration: const Duration(seconds: 30),
+    duration: const Duration(minutes: 5),
     key: Key(id),
     slideDismissDirection: DismissDirection.up,
   );
