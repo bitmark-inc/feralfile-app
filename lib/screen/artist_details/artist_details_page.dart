@@ -135,7 +135,8 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
             'assets/images/arrow_45.svg',
             width: 12,
             height: 12,
-            color: AppColor.auQuickSilver,
+            colorFilter:
+                const ColorFilter.mode(AppColor.auQuickSilver, BlendMode.srcIn),
           ),
         ],
       ),
@@ -189,20 +190,22 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
             height: 24,
           ),
         ],
-        if (user is FFUserDetails && user.website != null) ...[
+        if (user is FFUserDetails &&
+            user.website != null &&
+            user.website!.isNotEmpty) ...[
           _artistUrl(context, user.website!),
           const SizedBox(
             height: 12,
           ),
         ],
-        if (user.instagramUrl != null) ...[
+        if (user.instagramUrl != null && user.instagramUrl!.isNotEmpty) ...[
           _artistUrl(context, user.instagramUrl!, title: 'Instagram'),
           const SizedBox(
             height: 12,
           ),
         ],
 
-        if (user.twitterUrl != null) ...[
+        if (user.twitterUrl != null && user.twitterUrl!.isNotEmpty) ...[
           _artistUrl(context, user.twitterUrl!, title: 'Twitter'),
           const SizedBox(
             height: 12,

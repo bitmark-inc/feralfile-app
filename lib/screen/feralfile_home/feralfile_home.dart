@@ -130,6 +130,10 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
     );
   }
 
+  void scrollToTop() {
+    final tab = FeralfileHomeTab.values[_selectedIndex];
+  }
+
   @override
   Widget build(BuildContext context) {
     final icon = Icon(
@@ -138,7 +142,9 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
       color: Theme.of(context).colorScheme.secondary,
     );
     return Scaffold(
-      appBar: getDarkEmptyAppBar(),
+      appBar: getDarkEmptyAppBar(Colors.transparent),
+      extendBody: true,
+      extendBodyBehindAppBar: true,
       backgroundColor: AppColor.primaryBlack,
       body: Column(
         children: [

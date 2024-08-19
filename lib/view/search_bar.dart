@@ -70,6 +70,7 @@ class _SearchBarState extends State<AuSearchBar> {
                   hintStyle: theme.textTheme.ppMori400Grey12
                       .copyWith(color: AppColor.auQuickSilver),
                   border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 10),
                 ),
                 onChanged: (value) {
                   widget.onChanged?.call(value);

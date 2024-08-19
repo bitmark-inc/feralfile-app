@@ -154,6 +154,9 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         if (index == HomeNavigatorTab.exhibition.index) {
           _exhibitionsPageKey.currentState?.scrollToTop();
         }
+        if (index == HomeNavigatorTab.explore.index) {
+          _feralfileHomePageKey.currentState?.scrollToTop();
+        }
       } else {
         if (index == HomeNavigatorTab.scanQr.index) {
           await _scanQRPageKey.currentState?.resumeCamera();
