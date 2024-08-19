@@ -124,7 +124,6 @@ class AnnouncementServiceImpl implements AnnouncementService {
             MixpanelProp.channel: 'in-app',
           },
         );
-        await markAsRead(announcement.announcementContentId);
         if (shouldRepeat) {
           await showOldestAnnouncement();
         }

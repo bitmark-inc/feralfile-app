@@ -211,14 +211,14 @@ Future<void> showNotifications(BuildContext context, String id,
     }, body: body),
     background: Colors.transparent,
     elevation: 0,
-    duration: const Duration(minutes: 5),
+    duration: const Duration(days: 1),
     key: Key(id),
     slideDismissDirection: DismissDirection.up,
   );
   Vibrate.feedback(FeedbackType.warning);
-  await injector<AnnouncementService>().markAsRead(id);
   final future = notification.dismissed;
   await future;
+  await injector<AnnouncementService>().markAsRead(id);
   configurationService.showingNotification.value = false;
   if (!didTap) {
     metricClientService.addEvent(

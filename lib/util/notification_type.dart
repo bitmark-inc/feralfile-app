@@ -245,8 +245,6 @@ class NotificationHandler {
           MixpanelProp.channel: 'in-app',
         },
       );
-      await _announcementService
-          .markAsRead(announcement?.announcementContentId);
       await _announcementService.showOldestAnnouncement();
       return;
     }
