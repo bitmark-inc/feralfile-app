@@ -26,7 +26,7 @@ class ExploreArtistView extends StatefulWidget {
       super.key});
 
   @override
-  State<ExploreArtistView> createState() => _ExploreArtistViewState();
+  State<ExploreArtistView> createState() => ExploreArtistViewState();
 
   bool isEqual(Object other) =>
       other is ExploreArtistView &&
@@ -35,7 +35,7 @@ class ExploreArtistView extends StatefulWidget {
       other.sortBy == sortBy;
 }
 
-class _ExploreArtistViewState extends State<ExploreArtistView> {
+class ExploreArtistViewState extends State<ExploreArtistView> {
   List<FFUser>? _artists;
   late Paging _paging;
   late ScrollController _scrollController;
@@ -61,6 +61,20 @@ class _ExploreArtistViewState extends State<ExploreArtistView> {
     if (!oldWidget.isEqual(widget) || true) {
       unawaited(_fetchArtists(context));
     }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void scrollToTop() {
+    _scrollController.animateTo(
+      0,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
   }
 
   Widget _loadingView(BuildContext context) => Padding(
@@ -167,7 +181,7 @@ class ExploreCuratorView extends StatefulWidget {
       super.key});
 
   @override
-  State<ExploreCuratorView> createState() => _ExploreCuratorViewState();
+  State<ExploreCuratorView> createState() => ExploreCuratorViewState();
 
   bool isEqual(Object other) =>
       other is ExploreCuratorView &&
@@ -176,7 +190,7 @@ class ExploreCuratorView extends StatefulWidget {
       other.sortBy == sortBy;
 }
 
-class _ExploreCuratorViewState extends State<ExploreCuratorView> {
+class ExploreCuratorViewState extends State<ExploreCuratorView> {
   List<FFUser>? _curators;
   late ScrollController _scrollController;
   late Paging _paging;
@@ -202,6 +216,20 @@ class _ExploreCuratorViewState extends State<ExploreCuratorView> {
     if (!oldWidget.isEqual(widget) || true) {
       unawaited(_fetchCurators(context));
     }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void scrollToTop() {
+    _scrollController.animateTo(
+      0,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
   }
 
   Widget _loadingView(BuildContext context) => Padding(

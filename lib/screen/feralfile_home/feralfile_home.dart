@@ -116,6 +116,11 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
     with AutomaticKeepAliveClientMixin {
   late int _selectedIndex;
   late CanvasDeviceBloc _canvasDeviceBloc;
+  final _featuredWorkKey = GlobalKey<FeaauredWorkViewState>();
+  final _artworkViewKey = GlobalKey<ExploreSeriesViewState>();
+  final _exhibitionViewKey = GlobalKey<ExploreExhibitionState>();
+  final _artistViewKey = GlobalKey<ExploreArtistViewState>();
+  final _curatorViewKey = GlobalKey<ExploreCuratorViewState>();
 
   @override
   void initState() {
@@ -151,6 +156,25 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
 
   void scrollToTop() {
     final tab = FeralfileHomeTab.values[_selectedIndex];
+    switch (tab) {
+      case FeralfileHomeTab.featured:
+        _featuredWorkKey.currentState?.scrollToTop();
+        break;
+      case FeralfileHomeTab.artworks:
+        _artworkViewKey.currentState?.scrollToTop();
+        break;
+      case FeralfileHomeTab.exhibitions:
+        _exhibitionViewKey.currentState?.scrollToTop();
+        break;
+      case FeralfileHomeTab.artists:
+        _artistViewKey.currentState?.scrollToTop();
+        break;
+      case FeralfileHomeTab.curators:
+        _curatorViewKey.currentState?.scrollToTop();
+        break;
+      case FeralfileHomeTab.rAndD:
+        break;
+    }
   }
 
   @override
@@ -309,6 +333,7 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
         ],
         child: Expanded(
           child: FeaauredWorkView(
+            key: _featuredWorkKey,
             tokenIDs: tokenIDs,
           ),
         ));
@@ -318,6 +343,7 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
         child: ExploreBar(
           key: const ValueKey(FeralfileHomeTab.artworks),
           childBuilder: (searchText, filters, sortBy) => ExploreSeriesView(
+            key: _artworkViewKey,
             searchText: searchText,
             filters: filters,
             sortBy: sortBy,
@@ -329,6 +355,7 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
         child: ExploreBar(
           key: const ValueKey(FeralfileHomeTab.exhibitions),
           childBuilder: (searchText, filters, sortBy) => ExploreExhibition(
+            key: _exhibitionViewKey,
             searchText: searchText,
             filters: filters,
             sortBy: sortBy,
@@ -341,6 +368,7 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
           child: ExploreBar(
         key: const ValueKey(FeralfileHomeTab.artists),
         childBuilder: (searchText, filters, sortBy) => ExploreArtistView(
+          key: _artistViewKey,
           searchText: searchText,
           filters: filters,
           sortBy: sortBy,
@@ -352,6 +380,7 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
           child: ExploreBar(
         key: const ValueKey(FeralfileHomeTab.curators),
         childBuilder: (searchText, filters, sortBy) => ExploreCuratorView(
+          key: _curatorViewKey,
           searchText: searchText,
           filters: filters,
           sortBy: sortBy,

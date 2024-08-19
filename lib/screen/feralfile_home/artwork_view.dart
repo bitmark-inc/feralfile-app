@@ -32,7 +32,7 @@ class ExploreSeriesView extends StatefulWidget {
       this.filters = const {}});
 
   @override
-  State<ExploreSeriesView> createState() => _ExploreSeriesViewState();
+  State<ExploreSeriesView> createState() => ExploreSeriesViewState();
 
   bool isEqual(Object other) =>
       other is ExploreSeriesView &&
@@ -42,11 +42,19 @@ class ExploreSeriesView extends StatefulWidget {
       other.pageSize == pageSize;
 }
 
-class _ExploreSeriesViewState extends State<ExploreSeriesView> {
+class ExploreSeriesViewState extends State<ExploreSeriesView> {
   List<FFSeries>? _series;
   late Paging _paging;
   late ScrollController _scrollController;
   bool _isLoading = false;
+
+  void scrollToTop() {
+    _scrollController.animateTo(
+      0,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+  }
 
   @override
   void initState() {

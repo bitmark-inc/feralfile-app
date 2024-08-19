@@ -27,17 +27,19 @@ class FeaauredWorkView extends StatefulWidget {
   const FeaauredWorkView({required this.tokenIDs, super.key});
 
   @override
-  State<FeaauredWorkView> createState() => _FeaauredWorkViewState();
+  State<FeaauredWorkView> createState() => FeaauredWorkViewState();
 }
 
-class _FeaauredWorkViewState extends State<FeaauredWorkView> {
+class FeaauredWorkViewState extends State<FeaauredWorkView> {
   List<AssetToken>? _featureTokens = null;
   late CanvasDeviceBloc _canvasDeviceBloc;
   final _canvasClientServiceV2 = injector<CanvasClientServiceV2>();
+  late ScrollController _scrollController;
 
   @override
   void initState() {
     super.initState();
+    _scrollController = ScrollController();
     _canvasDeviceBloc = injector<CanvasDeviceBloc>();
     unawaited(_fetchFeaturedTokens(context));
   }
@@ -48,6 +50,20 @@ class _FeaauredWorkViewState extends State<FeaauredWorkView> {
     if (oldWidget.tokenIDs != widget.tokenIDs) {
       unawaited(_fetchFeaturedTokens(context));
     }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void scrollToTop() {
+    _scrollController.animateTo(
+      0,
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeInOut,
+    );
   }
 
   Widget _loadingView(BuildContext context) {
@@ -64,6 +80,7 @@ class _FeaauredWorkViewState extends State<FeaauredWorkView> {
       return _loadingView(context);
     } else {
       return CustomScrollView(
+        controller: _scrollController,
         slivers: [
           SliverToBoxAdapter(
             child: BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
@@ -200,7 +217,7 @@ class _FeaauredWorkViewState extends State<FeaauredWorkView> {
       subTitle = artistName;
     }
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 12, 5, 20),
+      padding: const EdgeInsets.fromLTRB(12, 12, 5, 40),
       child: Row(
         children: [
           Expanded(

@@ -34,7 +34,7 @@ class ExploreExhibition extends StatefulWidget {
       super.key});
 
   @override
-  State<ExploreExhibition> createState() => _ExploreExhibitionState();
+  State<ExploreExhibition> createState() => ExploreExhibitionState();
 
   bool isEqual(Object other) =>
       other is ExploreExhibition &&
@@ -43,13 +43,21 @@ class ExploreExhibition extends StatefulWidget {
       other.sortBy == sortBy;
 }
 
-class _ExploreExhibitionState extends State<ExploreExhibition> {
+class ExploreExhibitionState extends State<ExploreExhibition> {
   List<Exhibition>? _exhibitions;
+  late ScrollController _scrollController;
 
   @override
   void initState() {
     super.initState();
+    _scrollController = ScrollController();
     unawaited(_fetchExhibitions(context));
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -58,6 +66,14 @@ class _ExploreExhibitionState extends State<ExploreExhibition> {
     if (!oldWidget.isEqual(widget) || true) {
       unawaited(_fetchExhibitions(context));
     }
+  }
+
+  void scrollToTop() {
+    _scrollController.animateTo(
+      0,
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeInOut,
+    );
   }
 
   Widget _loadingView(BuildContext context) => Padding(
@@ -77,6 +93,7 @@ class _ExploreExhibitionState extends State<ExploreExhibition> {
 
   Widget _exhibitionView(BuildContext context, List<Exhibition> exhibitions) =>
       ListExhibitionView(
+          scrollController: _scrollController,
           exhibitions: exhibitions,
           padding: const EdgeInsets.only(bottom: 100));
 
