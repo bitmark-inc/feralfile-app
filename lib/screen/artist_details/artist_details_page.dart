@@ -15,6 +15,7 @@ import 'package:autonomy_flutter/screen/feralfile_home/list_exhibition_view.dart
 import 'package:autonomy_flutter/util/feralfile_artist_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/url_hepler.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/loading_view.dart';
 import 'package:autonomy_flutter/view/post_view.dart';
@@ -123,14 +124,19 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
       child: Row(
         children: [
           Text(
-            title ?? url,
+            title ?? UrlHepler.shortenUrl(url),
             style: theme.textTheme.ppMori400White12
                 .copyWith(color: AppColor.auQuickSilver),
           ),
           const SizedBox(
             width: 8,
           ),
-          const Icon(Icons.link),
+          SvgPicture.asset(
+            'assets/images/arrow_45.svg',
+            width: 12,
+            height: 12,
+            color: AppColor.auQuickSilver,
+          ),
         ],
       ),
     );
@@ -170,7 +176,7 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
           style: theme.textTheme.ppMori700White24.copyWith(fontSize: 36),
         ),
         const SizedBox(
-          height: 16,
+          height: 24,
         ),
         if (user is FFUserDetails && user.location != null) ...[
           Text(
@@ -180,28 +186,31 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
             ),
           ),
           const SizedBox(
-            height: 16,
+            height: 24,
           ),
         ],
         if (user is FFUserDetails && user.website != null) ...[
           _artistUrl(context, user.website!),
           const SizedBox(
-            height: 16,
+            height: 12,
           ),
         ],
         if (user.instagramUrl != null) ...[
           _artistUrl(context, user.instagramUrl!, title: 'Instagram'),
           const SizedBox(
-            height: 16,
+            height: 12,
           ),
         ],
 
         if (user.twitterUrl != null) ...[
           _artistUrl(context, user.twitterUrl!, title: 'Twitter'),
           const SizedBox(
-            height: 16,
+            height: 12,
           ),
         ],
+        const SizedBox(
+          height: 32,
+        ),
         if (user.bio != null) ...[
           ReadMoreText(
             text: user.bio!,

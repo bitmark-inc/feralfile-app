@@ -76,7 +76,9 @@ class _ExploreExhibitionState extends State<ExploreExhibition> {
   }
 
   Widget _exhibitionView(BuildContext context, List<Exhibition> exhibitions) =>
-      ListExhibitionView(exhibitions: exhibitions);
+      ListExhibitionView(
+          exhibitions: exhibitions,
+          padding: const EdgeInsets.only(bottom: 100));
 
   @override
   Widget build(BuildContext context) {
@@ -128,12 +130,14 @@ class ListExhibitionView extends StatefulWidget {
   final List<Exhibition> exhibitions;
   final ScrollController? scrollController;
   final bool isScrollable;
+  final EdgeInsets padding;
 
   const ListExhibitionView({
     required this.exhibitions,
     this.scrollController,
     super.key,
     this.isScrollable = true,
+    this.padding = const EdgeInsets.all(0),
   });
 
   @override
@@ -142,7 +146,7 @@ class ListExhibitionView extends StatefulWidget {
 
 class _ListExhibitionViewState extends State<ListExhibitionView> {
   final _navigationService = injector<NavigationService>();
-  static const _padding = 14.0;
+  static const _padding = 12.0;
   static const _exhibitionInfoDivideWidth = 20.0;
   late ScrollController _scrollController;
 
@@ -164,7 +168,8 @@ class _ListExhibitionViewState extends State<ListExhibitionView> {
           : const NeverScrollableScrollPhysics(),
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: _padding),
+          padding:
+              EdgeInsets.symmetric(horizontal: _padding).add(widget.padding),
           sliver: SliverList(
             delegate: SliverChildBuilderDelegate(
               (context, index) {

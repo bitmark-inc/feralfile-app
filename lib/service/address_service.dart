@@ -1,6 +1,7 @@
 import 'package:autonomy_flutter/model/address.dart';
 import 'package:autonomy_flutter/service/domain_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/feral_file_explore_helper.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:web3dart/credentials.dart';
 
@@ -143,5 +144,6 @@ extension ExploreStatisticsDataExt on ExploreStatisticsData {
 
   int get totalArtist => artist;
 
-  int get totalCurator => curator;
+  int get totalCurator =>
+      curator - FeralFileExploreHelper.ignoreCuratorIds.length;
 }

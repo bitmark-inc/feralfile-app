@@ -104,10 +104,11 @@ class FeralfileHomePage extends StatefulWidget {
   const FeralfileHomePage({super.key});
 
   @override
-  State<FeralfileHomePage> createState() => _FeralfileHomePageState();
+  State<FeralfileHomePage> createState() => FeralfileHomePageState();
 }
 
-class _FeralfileHomePageState extends State<FeralfileHomePage> {
+class FeralfileHomePageState extends State<FeralfileHomePage>
+    with AutomaticKeepAliveClientMixin {
   late int _selectedIndex;
 
   @override
@@ -336,6 +337,9 @@ class _FeralfileHomePageState extends State<FeralfileHomePage> {
       ),
     );
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }
 
 class Item {

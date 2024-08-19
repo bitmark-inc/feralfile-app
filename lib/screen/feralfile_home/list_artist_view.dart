@@ -7,6 +7,7 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/artist_details/artist_details_page.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/filter_bar.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
+import 'package:autonomy_flutter/util/feral_file_explore_helper.dart';
 import 'package:autonomy_flutter/util/feralfile_artist_ext.dart';
 import 'package:autonomy_flutter/view/loading_view.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -76,14 +77,18 @@ class _ExploreArtistViewState extends State<ExploreArtistView> {
 
   Widget _artistView(BuildContext context, List<FFUser> artists) =>
       ListUserView(
-        users: artists,
-        onUserSelected: (user) {
-          if (user is FFUserDetails) {
-            _gotoArtistDetails(context, user.toFFArtist());
-          }
-        },
-        scrollController: _scrollController,
-      );
+          users: artists,
+          onUserSelected: (user) {
+            if (user is FFUserDetails) {
+              _gotoArtistDetails(context, user.toFFArtist());
+            }
+          },
+          scrollController: _scrollController,
+          padding: const EdgeInsets.only(
+            left: 12,
+            right: 12,
+            bottom: 100,
+          ));
 
   void _gotoArtistDetails(BuildContext context, FFArtist artist) {
     unawaited(Navigator.of(context).pushNamed(
@@ -220,6 +225,11 @@ class _ExploreCuratorViewState extends State<ExploreCuratorView> {
           }
         },
         scrollController: _scrollController,
+        padding: const EdgeInsets.only(
+          left: 12,
+          right: 12,
+          bottom: 100,
+        ),
       );
 
   void _gotoCuratorDetails(BuildContext context, FFCurator curator) {
@@ -250,10 +260,13 @@ class _ExploreCuratorViewState extends State<ExploreCuratorView> {
       orderBy: widget.sortBy.queryParam,
       sortOrder: widget.sortBy.sortOrder.queryParam,
     );
+    final ignoreCuratorIds = FeralFileExploreHelper.ignoreCuratorIds;
     final curators = resp.result;
     final paging = resp.paging;
     setState(() {
-      _curators = curators;
+      _curators = curators.where((curator) {
+        return !ignoreCuratorIds.contains(curator.id);
+      }).toList();
       _paging = paging;
     });
     _isLoading = false;
@@ -277,10 +290,14 @@ class _ExploreCuratorViewState extends State<ExploreCuratorView> {
       sortOrder: widget.sortBy.sortOrder.queryParam,
     );
 
+    final ignoreCuratorIds = FeralFileExploreHelper.ignoreCuratorIds;
+
     final curators = resp.result;
     final paging = resp.paging;
     setState(() {
-      _curators!.addAll(curators);
+      _curators!.addAll(curators.where((curator) {
+        return !ignoreCuratorIds.contains(curator.id);
+      }).toList());
       _paging = paging;
     });
     _isLoading = false;
@@ -291,11 +308,13 @@ class ListUserView extends StatefulWidget {
   final List<FFUser> users;
   final Function(FFUser) onUserSelected;
   final ScrollController? scrollController;
+  final EdgeInsets padding;
 
   const ListUserView(
       {required this.users,
       required this.onUserSelected,
       this.scrollController,
+      this.padding = const EdgeInsets.all(0),
       super.key});
 
   @override
@@ -316,11 +335,11 @@ class _ListUserViewState extends State<ListUserView> {
         controller: _scrollController,
         slivers: [
           SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
+            padding: widget.padding,
             sliver: SliverGrid(
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 3,
-                  childAspectRatio: 102.0 / 146,
+                  childAspectRatio: 102.0 / 152,
                   crossAxisSpacing: 24,
                   mainAxisSpacing: 30,
                 ),
@@ -361,15 +380,17 @@ class _ListUserViewState extends State<ListUserView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: Row(
-            children: [
-              Expanded(child: _artistAvatar(context, user)),
-            ],
-          ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+                child: AspectRatio(
+                    aspectRatio: 1.0, child: _artistAvatar(context, user))),
+          ],
         ),
         const SizedBox(height: 14),
         Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
                 child: Column(

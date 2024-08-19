@@ -257,7 +257,7 @@ class _SeriesViewState extends State<SeriesView> {
               ),
               const SizedBox(height: 4),
               Text(
-                series.title,
+                series.displayTitle,
                 style: defaultStyle,
                 overflow: TextOverflow.ellipsis,
               ),

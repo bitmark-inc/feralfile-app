@@ -83,24 +83,9 @@ class _FeaauredWorkViewState extends State<FeaauredWorkView> {
                               imageUrl: token.thumbnailURL ?? '',
                               cacheManager: injector<CacheManager>(),
                               fit: BoxFit.cover,
-                              height: 200,
                               width: double.infinity,
                               errorWidget: (context, url, error) =>
                                   const Icon(Icons.error),
-                              // loadingBuilder: (context, child, loadingProgress) {
-                              //   if (loadingProgress == null) {
-                              //     return child;
-                              //   }
-                              //   return Center(
-                              //     child: Text(
-                              //       loadingProgress.expectedTotalBytes !=
-                              //               null
-                              //           ? loadingProgress.cumulativeBytesLoaded /
-                              //               loadingProgress.expectedTotalBytes!
-                              //           : null,
-                              //     ),
-                              //   );
-                              // },
                             ),
                             _infoHeader(context, token, artistName, false,
                                 context.read<CanvasDeviceBloc>().state),
@@ -138,6 +123,7 @@ class _FeaauredWorkViewState extends State<FeaauredWorkView> {
     bloc.add(GetIdentityEvent(addresses));
     setState(() {
       _featureTokens ??= [];
+      _featureTokens!.clear();
       _featureTokens!.addAll(tokens);
       log.info('feature tokens: ${_featureTokens!.length}');
     });
@@ -165,7 +151,7 @@ class _FeaauredWorkViewState extends State<FeaauredWorkView> {
       subTitle = artistName;
     }
     return Padding(
-      padding: const EdgeInsets.fromLTRB(15, 15, 5, 20),
+      padding: const EdgeInsets.fromLTRB(12, 12, 5, 20),
       child: Row(
         children: [
           Expanded(
