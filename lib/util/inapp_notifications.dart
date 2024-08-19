@@ -186,11 +186,19 @@ Future<void> showNotifications(BuildContext context, String id,
   if (configurationService.showingNotification.value) {
     return;
   }
-  bool didTap = false;
+
+  /// reserve code for future use
+  // bool didTap = false;
+  /// ---------------------------
+
   configurationService.showingNotification.value = true;
   final notification = showSimpleNotification(
     _notificationToast(context, id, handler: () async {
-      didTap = true;
+      /// this is how to detect user tap on notification, but we don't need it
+      /// this must put before handler?.call() to make sure it's called first
+      // didTap = true;
+      /// -----------------------
+
       handler?.call();
     }, body: body),
     background: Colors.transparent,
@@ -204,11 +212,11 @@ Future<void> showNotifications(BuildContext context, String id,
   final future = notification.dismissed;
   await future;
   configurationService.showingNotification.value = false;
-  if (!didTap) {
-    Future.delayed(const Duration(milliseconds: 100), () {
-      callBackOnDismiss?.call();
-    });
-  }
+
+  /// always show next announcement in queue, event user tap to see it
+  Future.delayed(const Duration(milliseconds: 100), () {
+    callBackOnDismiss?.call();
+  });
 }
 
 void showInAppNotifications(BuildContext context, String body, String key,
