@@ -365,9 +365,7 @@ extension RouteExt on Route {
       case AppRouter.userDetailsPage:
         final payload = settings.arguments! as UserDetailsPagePayload;
         data = {
-          MixpanelProp.id: payload.user.id,
-          MixpanelProp.title: payload.user.alias,
-          MixpanelProp.address: payload.user.accountNumber,
+          MixpanelProp.id: payload.userId,
         };
       case AppRouter.artistExhibitionsPage:
         final payload = settings.arguments! as ArtistExhibitionsPagePayload;

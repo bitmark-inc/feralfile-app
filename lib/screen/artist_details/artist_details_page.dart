@@ -29,9 +29,9 @@ import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class UserDetailsPagePayload {
-  final FFUser user;
+  final String userId;
 
-  UserDetailsPagePayload({required this.user});
+  UserDetailsPagePayload({required this.userId});
 }
 
 class UserDetailsPage extends StatefulWidget {
@@ -47,8 +47,9 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
   @override
   void initState() {
     super.initState();
-    context.read<UserDetailsBloc>().add(ArtistDetailsFetchArtistEvent(
-        artistId: widget.payload.user.slug ?? widget.payload.user.id));
+    context
+        .read<UserDetailsBloc>()
+        .add(ArtistDetailsFetchArtistEvent(artistId: widget.payload.userId));
   }
 
   @override
@@ -80,7 +81,7 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
     return avatarUrl != null
         ? Image.network(
             avatarUrl,
-            fit: BoxFit.fitWidth,
+            fit: BoxFit.fill,
           )
         : SvgPicture.asset('assets/images/default_avatat.svg');
   }
@@ -161,7 +162,13 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _avatar(context, user),
+        Row(
+          children: [
+            Expanded(
+              child: _avatar(context, user),
+            ),
+          ],
+        ),
         const SizedBox(
           height: 8,
         ),

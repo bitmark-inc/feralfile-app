@@ -93,7 +93,7 @@ class _ExploreArtistViewState extends State<ExploreArtistView> {
   void _gotoArtistDetails(BuildContext context, FFArtist artist) {
     unawaited(Navigator.of(context).pushNamed(
       AppRouter.userDetailsPage,
-      arguments: UserDetailsPagePayload(user: artist),
+      arguments: UserDetailsPagePayload(userId: artist.slug ?? artist.id),
     ));
   }
 
@@ -235,7 +235,7 @@ class _ExploreCuratorViewState extends State<ExploreCuratorView> {
   void _gotoCuratorDetails(BuildContext context, FFCurator curator) {
     unawaited(Navigator.of(context).pushNamed(
       AppRouter.userDetailsPage,
-      arguments: UserDetailsPagePayload(user: curator),
+      arguments: UserDetailsPagePayload(userId: curator.slug ?? curator.id),
     ));
   }
 

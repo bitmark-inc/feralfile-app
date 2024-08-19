@@ -10,6 +10,7 @@ import 'dart:async';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/artist_details/artist_details_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
@@ -365,20 +366,20 @@ class NavigationService {
     if (alias.contains(',') || alias.isEmpty) {
       return;
     }
-    final url = FeralFileHelper.getArtistUrl(alias);
-    await Navigator.of(navigatorKey.currentContext!).pushNamed(
-        AppRouter.inappWebviewPage,
-        arguments: InAppWebViewPayload(url));
+    Navigator.of(navigatorKey.currentContext!).pushNamed(
+      AppRouter.userDetailsPage,
+      arguments: UserDetailsPagePayload(userId: alias),
+    );
   }
 
   Future<void> openFeralFileCuratorPage(String alias) async {
     if (alias.contains(',') || alias.isEmpty) {
       return;
     }
-    final url = FeralFileHelper.getCuratorUrl(alias);
-    await Navigator.of(navigatorKey.currentContext!).pushNamed(
-        AppRouter.inappWebviewPage,
-        arguments: InAppWebViewPayload(url));
+    Navigator.of(navigatorKey.currentContext!).pushNamed(
+      AppRouter.userDetailsPage,
+      arguments: UserDetailsPagePayload(userId: alias),
+    );
   }
 
   Future<void> openFeralFileExhibitionNotePage(String exhibitionSlug) async {

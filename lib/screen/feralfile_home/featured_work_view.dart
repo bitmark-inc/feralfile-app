@@ -1,15 +1,19 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/gallery/gallery_page.dart';
+import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/playlist_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/loading_view.dart';
+import 'package:autonomy_flutter/view/stream_common_widget.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -28,10 +32,13 @@ class FeaauredWorkView extends StatefulWidget {
 
 class _FeaauredWorkViewState extends State<FeaauredWorkView> {
   List<AssetToken>? _featureTokens = null;
+  late CanvasDeviceBloc _canvasDeviceBloc;
+  final _canvasClientServiceV2 = injector<CanvasClientServiceV2>();
 
   @override
   void initState() {
     super.initState();
+    _canvasDeviceBloc = injector<CanvasDeviceBloc>();
     unawaited(_fetchFeaturedTokens(context));
   }
 
@@ -58,6 +65,27 @@ class _FeaauredWorkViewState extends State<FeaauredWorkView> {
     } else {
       return CustomScrollView(
         slivers: [
+          SliverToBoxAdapter(
+            child: BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
+              bloc: injector<CanvasDeviceBloc>(),
+              builder: (context, canvasDeviceState) {
+                final displayKey = widget.tokenIDs.displayKey;
+                final isPlaylistCasting = canvasDeviceState
+                        .lastSelectedActiveDeviceForKey(displayKey ?? '') !=
+                    null;
+                if (isPlaylistCasting) {
+                  return Padding(
+                    padding: const EdgeInsets.all(15),
+                    child: PlaylistControl(
+                      displayKey: displayKey!,
+                    ),
+                  );
+                } else {
+                  return const SizedBox();
+                }
+              },
+            ),
+          ),
           SliverPadding(
             padding: EdgeInsets.zero,
             sliver: SliverList(
@@ -72,7 +100,7 @@ class _FeaauredWorkViewState extends State<FeaauredWorkView> {
                         '';
                     return GestureDetector(
                       onTap: () {
-                        _gotoArtworkDetails(context, token);
+                        _onTapArtwork(context, token);
                       },
                       child: Container(
                         color: Colors.transparent,
@@ -129,19 +157,40 @@ class _FeaauredWorkViewState extends State<FeaauredWorkView> {
     });
   }
 
+  void _onTapArtwork(BuildContext context, AssetToken token) {
+    _gotoArtworkDetails(context, token);
+    _moveToArtwork(token);
+  }
+
   void _gotoArtworkDetails(BuildContext context, AssetToken token) {
+    final playlist = PlayListModel(
+      tokenIDs: widget.tokenIDs,
+    );
     unawaited(Navigator.of(context).pushNamed(
       AppRouter.artworkDetailsPage,
-      arguments: ArtworkDetailPayload(
-        [
-          ArtworkIdentity(
-            token.id,
-            token.owner,
-          ),
-        ],
-        0,
-      ),
+      arguments: ArtworkDetailPayload([
+        ArtworkIdentity(
+          token.id,
+          token.owner,
+        ),
+      ], 0, playlist: playlist),
     ));
+  }
+
+  // when displaying, tap on the artwork to move to the artwork
+  Future<bool> _moveToArtwork(AssetToken assetToken) {
+    final displayKey = widget.tokenIDs.displayKey;
+    if (displayKey == null) {
+      return Future.value(false);
+    }
+
+    final lastSelectedCanvasDevice =
+        _canvasDeviceBloc.state.lastSelectedActiveDeviceForKey(displayKey);
+    if (lastSelectedCanvasDevice != null) {
+      return _canvasClientServiceV2.moveToArtwork(lastSelectedCanvasDevice,
+          artworkId: assetToken.id);
+    }
+    return Future.value(false);
   }
 
   Widget _infoHeader(BuildContext context, AssetToken asset, String? artistName,
@@ -157,7 +206,7 @@ class _FeaauredWorkViewState extends State<FeaauredWorkView> {
           Expanded(
             child: ArtworkDetailsHeader(
               title: asset.displayTitle ?? '',
-              onTitleTap: () => _gotoArtworkDetails(context, asset),
+              onTitleTap: () => _onTapArtwork(context, asset),
               subTitle: subTitle,
               onSubTitleTap: asset.artistID != null
                   ? () => unawaited(
