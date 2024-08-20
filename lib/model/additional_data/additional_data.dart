@@ -28,7 +28,6 @@ class AdditionalData {
     final notificationType =
         NotificationType.fromString(type ?? json['notification_type']);
     final announcementContentId = announcementId ??
-        json['announcement_content_id'] ??
         json['announcementContentID'];
 
     final parentObject = AdditionalData(

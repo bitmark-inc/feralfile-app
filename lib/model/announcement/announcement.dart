@@ -14,7 +14,7 @@ class Announcement {
   });
 
   factory Announcement.fromJson(Map<String, dynamic> json) => Announcement(
-        announcementContentId: json['announcementContentId'],
+        announcementContentId: json['announcementContentID'],
         content: json['content'],
         additionalData: json['additionalData'],
         startedAt: json['startedAt'],
