@@ -122,6 +122,8 @@ class AnnouncementServiceImpl implements AnnouncementService {
           data: {
             MixpanelProp.notificationId: announcement.announcementContentId,
             MixpanelProp.channel: 'in-app',
+            MixpanelProp.type:
+                announcement.additionalData?.notificationType.toString()
           },
         );
         await markAsRead(announcement.announcementContentId);

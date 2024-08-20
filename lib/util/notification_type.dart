@@ -150,6 +150,7 @@ class NotificationHandler {
       data: {
         MixpanelProp.notificationId: id,
         MixpanelProp.channel: channel,
+        MixpanelProp.type: additionalData.notificationType.toString(),
       },
     );
     await _announcementService.markAsRead(additionalData.announcementContentId);
@@ -230,6 +231,7 @@ class NotificationHandler {
           MixpanelProp.notificationId: announcement?.announcementContentId ??
               event.notification.notificationId,
           MixpanelProp.channel: 'in-app',
+          MixpanelProp.type: additionalData.notificationType.toString(),
         },
       );
       await _announcementService

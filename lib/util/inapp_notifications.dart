@@ -188,6 +188,7 @@ Future<void> showNotifications(BuildContext context, String id,
   if (configurationService.showingNotification.value) {
     return;
   }
+  final announcement = injector<AnnouncementService>().getAnnouncement(id);
 
   bool didTap = false;
 
@@ -198,6 +199,8 @@ Future<void> showNotifications(BuildContext context, String id,
       data: {
         MixpanelProp.notificationId: id,
         MixpanelProp.channel: 'in-app',
+        MixpanelProp.type:
+            announcement?.additionalData?.notificationType.toString()
       },
     );
   configurationService.showingNotification.value = true;
@@ -226,6 +229,8 @@ Future<void> showNotifications(BuildContext context, String id,
       data: {
         MixpanelProp.notificationId: id,
         MixpanelProp.channel: 'in-app',
+        MixpanelProp.type:
+            announcement?.additionalData?.notificationType.toString()
       },
     );
   }
