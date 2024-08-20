@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/model/additional_data/additional_data.dart';
@@ -11,6 +13,7 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:flutter_app_badger/flutter_app_badger.dart';
 
 abstract class AnnouncementService {
   Future<List<Announcement>> fetchAnnouncements();
@@ -95,6 +98,7 @@ class AnnouncementServiceImpl implements AnnouncementService {
   Future<void> _markAsReadAnnouncement(AnnouncementLocal announcement) async {
     _queue.removeWhere((element) =>
         element.announcementContentId == announcement.announcementContentId);
+    _updateBadger(_queue.length);
     await _announcementStore.save(
         announcement.markAsRead(), announcement.announcementContentId);
   }
@@ -107,6 +111,7 @@ class AnnouncementServiceImpl implements AnnouncementService {
       _queue
           .addAll(allAnnouncements.where((element) => !element.read).toList());
     }
+    _updateBadger(_queue.length);
     return _queue;
   }
 
@@ -168,6 +173,14 @@ class AnnouncementServiceImpl implements AnnouncementService {
         },
         additionalData: additionalData,
       );
+    }
+  }
+
+  void _updateBadger(int count) {
+    if (count > 0) {
+      unawaited(FlutterAppBadger.updateBadgeCount(count));
+    } else {
+      unawaited(FlutterAppBadger.removeBadge());
     }
   }
 }
