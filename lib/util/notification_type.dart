@@ -164,20 +164,17 @@ class NotificationHandler {
       event.complete(null);
       return;
     }
-
     final additionalData = AdditionalData.fromJson(data);
 
+    event.complete(null);
     // prepare for handling notification
     final shouldShow = await additionalData.prepareBeforeShowing();
     if (!shouldShow || !context.mounted) {
-      event.complete(null);
       return;
     }
 
     unawaited(
         _showNotification(context, event, pageController, additionalData));
-
-    event.complete(null);
   }
 
   Future<void> _showNotification(

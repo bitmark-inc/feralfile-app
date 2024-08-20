@@ -16,7 +16,8 @@ class Announcement {
   factory Announcement.fromJson(Map<String, dynamic> json) => Announcement(
         announcementContentId: json['announcementContentID'],
         content: json['content'],
-        additionalData: json['additionalData'] as Map<String, dynamic>,
+        additionalData: (json['additionalData'] ?? <String, dynamic>{})
+            as Map<String, dynamic>,
         startedAt: DateTime.parse(json['startedAt']).millisecondsSinceEpoch,
         endedAt: DateTime.parse(json['startedAt']).millisecondsSinceEpoch,
       );
