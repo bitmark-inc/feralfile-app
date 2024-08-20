@@ -13,7 +13,9 @@ import 'package:autonomy_flutter/model/additional_data/additional_data.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
+import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
@@ -127,6 +129,7 @@ class NotificationHandler {
       injector<AnnouncementService>();
   final MetricClientService _metricClientService =
       injector<MetricClientService>();
+  final NavigationService _navigationService = injector<NavigationService>();
 
   Future<void> handleNotificationClicked(BuildContext context,
       OSNotification notification, PageController? pageController,
@@ -192,8 +195,20 @@ class NotificationHandler {
         unawaited(_clientTokenService.refreshTokens());
       case NotificationType.artworkCreated:
       case NotificationType.artworkReceived:
+      case NotificationType.giftMembership:
+        final isSubscribe = await injector<IAPService>().isSubscribed();
+        if (isSubscribe) {
+          await _navigationService.showPremiumUserCanNotClaim();
+          event.complete(null);
+          return;
+        }
       default:
         break;
+    }
+
+    if (!context.mounted) {
+      event.complete(null);
+      return;
     }
 
     // show notification
@@ -263,6 +278,7 @@ class NotificationHandler {
       callBackOnDismiss: () async {
         await _announcementService.showOldestAnnouncement();
       },
+      additionalData: additionalData,
     );
   }
 }

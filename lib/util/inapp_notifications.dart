@@ -8,6 +8,7 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/additional_data/additional_data.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -182,13 +183,18 @@ class _NotificationToastWithLink extends StatelessWidget {
   }
 }
 
-Future<void> showNotifications(BuildContext context, String id,
-    {Function? handler, Function? callBackOnDismiss, String? body}) async {
+Future<void> showNotifications(
+  BuildContext context,
+  String id, {
+  Function? handler,
+  Function? callBackOnDismiss,
+  String? body,
+  AdditionalData? additionalData,
+}) async {
   final configurationService = injector<ConfigurationService>();
   if (configurationService.showingNotification.value) {
     return;
   }
-  final announcement = injector<AnnouncementService>().getAnnouncement(id);
 
   bool didTap = false;
 
@@ -199,8 +205,7 @@ Future<void> showNotifications(BuildContext context, String id,
       data: {
         MixpanelProp.notificationId: id,
         MixpanelProp.channel: 'in-app',
-        MixpanelProp.type:
-            announcement?.additionalData?.notificationType.toString()
+        MixpanelProp.type: additionalData?.notificationType.toString()
       },
     );
   configurationService.showingNotification.value = true;
@@ -229,8 +234,7 @@ Future<void> showNotifications(BuildContext context, String id,
       data: {
         MixpanelProp.notificationId: id,
         MixpanelProp.channel: 'in-app',
-        MixpanelProp.type:
-            announcement?.additionalData?.notificationType.toString()
+        MixpanelProp.type: additionalData?.notificationType.toString()
       },
     );
   }

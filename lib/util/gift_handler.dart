@@ -2,12 +2,18 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
+import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/dio_exception_ext.dart';
 import 'package:dio/dio.dart';
 
 class GiftHandler {
   static Future<void> handleGiftMembership(String? giftCode) async {
+    final isSubscribe = await injector<IAPService>().isSubscribed();
+    if (isSubscribe) {
+      await injector<NavigationService>().showPremiumUserCanNotClaim();
+      return;
+    }
     final navigationService = injector<NavigationService>();
     if (giftCode == null) {
       await navigationService.showMembershipGiftCodeEmpty();

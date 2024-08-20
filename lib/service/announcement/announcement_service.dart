@@ -132,20 +132,25 @@ class AnnouncementServiceImpl implements AnnouncementService {
         }
         return;
       }
-      await showNotifications(context, announcement.announcementContentId,
-          body: announcement.content,
-          handler: additionalData.isTappable
-              ? () async {
-                  await additionalData.handleTap(
-                    context,
-                    injector<NavigationService>().pageController,
-                  );
-                }
-              : null, callBackOnDismiss: () async {
-        if (shouldRepeat) {
-          await showOldestAnnouncement();
-        }
-      });
+      await showNotifications(
+        context,
+        announcement.announcementContentId,
+        body: announcement.content,
+        handler: additionalData.isTappable
+            ? () async {
+                await additionalData.handleTap(
+                  context,
+                  injector<NavigationService>().pageController,
+                );
+              }
+            : null,
+        callBackOnDismiss: () async {
+          if (shouldRepeat) {
+            await showOldestAnnouncement();
+          }
+        },
+        additionalData: additionalData,
+      );
     }
   }
 }
