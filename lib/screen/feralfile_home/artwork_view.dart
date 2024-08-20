@@ -6,14 +6,13 @@ import 'package:autonomy_flutter/model/ff_list_response.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
-import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artwork_preview_page.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/filter_bar.dart';
 import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_page.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/util/feralfile_artist_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/series_ext.dart';
-import 'package:autonomy_flutter/view/loading_view.dart';
+import 'package:autonomy_flutter/view/loading.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -49,11 +48,11 @@ class ExploreSeriesViewState extends State<ExploreSeriesView> {
   bool _isLoading = false;
 
   void scrollToTop() {
-    _scrollController.animateTo(
+    unawaited(_scrollController.animateTo(
       0,
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
-    );
+    ));
   }
 
   @override
@@ -86,9 +85,9 @@ class ExploreSeriesViewState extends State<ExploreSeriesView> {
     super.dispose();
   }
 
-  Widget _loadingView(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(bottom: 100),
-        child: loadingView(context, size: 100),
+  Widget _loadingView(BuildContext context) => const Padding(
+        padding: EdgeInsets.only(bottom: 100),
+        child: LoadingWidget(),
       );
 
   Widget _emptyView(BuildContext context) {
@@ -208,17 +207,14 @@ class _SeriesViewState extends State<SeriesView> {
           SliverGrid(
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
-              crossAxisSpacing: 0,
-              mainAxisSpacing: 0,
               childAspectRatio: 188 / 307,
             ),
             delegate: SliverChildBuilderDelegate(
               (context, index) {
                 final series = widget.series[index];
                 final boder = Border(
-                  top: BorderSide(
+                  top: const BorderSide(
                     color: AppColor.auGreyBackground,
-                    width: 1,
                   ),
                   right: BorderSide(
                     color:
@@ -226,14 +222,11 @@ class _SeriesViewState extends State<SeriesView> {
                         index.isEven
                             ? AppColor.auGreyBackground
                             : Colors.transparent,
-                    width: 1,
                   ),
                   // if last row, add border on the bottom
-                  bottom: index >=
-                          widget.series.length - (2 - widget.series.length % 2)
-                      ? BorderSide(
+                  bottom: index >= widget.series.length - 2
+                      ? const BorderSide(
                           color: AppColor.auGreyBackground,
-                          width: 1,
                         )
                       : BorderSide.none,
                 );
@@ -244,7 +237,7 @@ class _SeriesViewState extends State<SeriesView> {
           ),
           SliverPadding(
             padding: widget.padding,
-            sliver: SliverToBoxAdapter(),
+            sliver: const SliverToBoxAdapter(),
           ),
         ],
       );
@@ -266,10 +259,11 @@ class _SeriesViewState extends State<SeriesView> {
               const SizedBox(height: 4),
               Text(
                 series.displayTitle,
-                style: defaultStyle,
+                style: defaultStyle.copyWith(fontWeight: FontWeight.bold),
                 overflow: TextOverflow.ellipsis,
               ),
-              if (series.exhibition != null)
+              if (series.exhibition != null) ...[
+                const SizedBox(height: 12),
                 RichText(
                   overflow: TextOverflow.ellipsis,
                   text: TextSpan(
@@ -291,6 +285,7 @@ class _SeriesViewState extends State<SeriesView> {
                     ],
                   ),
                 ),
+              ]
             ],
           ),
         )
@@ -338,23 +333,35 @@ class _SeriesViewState extends State<SeriesView> {
       );
 
   void _gotoSeriesDetails(BuildContext context, FFSeries series) {
-    if (series.isSingle) {
-      final artwork = series.artwork!;
-      unawaited(Navigator.of(context).pushNamed(
-        AppRouter.ffArtworkPreviewPage,
-        arguments: FeralFileArtworkPreviewPagePayload(
-          artwork: artwork,
-        ),
-      ));
-    } else {
-      unawaited(Navigator.of(context).pushNamed(
+    unawaited(
+      Navigator.of(context).pushNamed(
         AppRouter.feralFileSeriesPage,
         arguments: FeralFileSeriesPagePayload(
           seriesId: series.id,
           exhibitionId: series.exhibitionID,
         ),
-      ));
-    }
+      ),
+    );
+
+    // Need server support to add includeFirstArtwork
+    // we will do later
+    // if (series.isSingle) {
+    //   final artwork = series.artwork!;
+    //   unawaited(Navigator.of(context).pushNamed(
+    //     AppRouter.ffArtworkPreviewPage,
+    //     arguments: FeralFileArtworkPreviewPagePayload(
+    //       artwork: artwork,
+    //     ),
+    //   ));
+    // } else {
+    //   unawaited(Navigator.of(context).pushNamed(
+    //     AppRouter.feralFileSeriesPage,
+    //     arguments: FeralFileSeriesPagePayload(
+    //       seriesId: series.id,
+    //       exhibitionId: series.exhibitionID,
+    //     ),
+    //   ));
+    // }
   }
 
   void _gotoExhibitionDetails(BuildContext context, Exhibition exhibition) {

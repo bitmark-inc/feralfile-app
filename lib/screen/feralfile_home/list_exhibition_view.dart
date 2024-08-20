@@ -12,7 +12,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/feralfile_artist_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/view/loading_view.dart';
+import 'package:autonomy_flutter/view/loading.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -20,7 +20,6 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:sentry/sentry.dart';
 
 class ExploreExhibition extends StatefulWidget {
   final String? searchText;
@@ -76,9 +75,9 @@ class ExploreExhibitionState extends State<ExploreExhibition> {
     );
   }
 
-  Widget _loadingView(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(bottom: 100),
-        child: loadingView(context, size: 100),
+  Widget _loadingView(BuildContext context) => const Padding(
+        padding: EdgeInsets.only(bottom: 100),
+        child: LoadingWidget(),
       );
 
   Widget _emptyView(BuildContext context) {
@@ -185,19 +184,21 @@ class _ListExhibitionViewState extends State<ListExhibitionView> {
           : const NeverScrollableScrollPhysics(),
       slivers: [
         SliverPadding(
-          padding:
-              EdgeInsets.symmetric(horizontal: _padding).add(widget.padding),
+          padding: widget.padding,
           sliver: SliverList(
             delegate: SliverChildBuilderDelegate(
               (context, index) {
                 final exhibition = widget.exhibitions[index];
                 return Column(
                   children: [
-                    _exhibitionItem(
-                        context: context,
-                        viewableExhibitions: widget.exhibitions,
-                        exhibition: exhibition,
-                        isFeaturedExhibition: false),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: _padding),
+                      child: _exhibitionItem(
+                          context: context,
+                          viewableExhibitions: widget.exhibitions,
+                          exhibition: exhibition,
+                          isFeaturedExhibition: false),
+                    ),
                     divider,
                   ],
                 );
@@ -218,25 +219,6 @@ class _ListExhibitionViewState extends State<ListExhibitionView> {
         arguments: ExhibitionDetailPayload(
           exhibitions: viewableExhibitions,
           index: index,
-        ),
-      );
-    }
-  }
-
-  void _openExhibition(BuildContext context, String exhibitionId) {
-    final listExhibitions = widget.exhibitions;
-    final index =
-        listExhibitions.indexWhere((element) => element.id == exhibitionId);
-    if (index < 0) {
-      unawaited(Sentry.captureMessage('Exhibition not found: $exhibitionId'));
-    } else {
-      unawaited(
-        _navigationService.navigateTo(
-          AppRouter.exhibitionDetailPage,
-          arguments: ExhibitionDetailPayload(
-            exhibitions: listExhibitions,
-            index: index,
-          ),
         ),
       );
     }

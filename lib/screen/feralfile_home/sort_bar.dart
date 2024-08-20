@@ -31,7 +31,9 @@ class _SortBarState extends State<SortBar> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.defaultSortBy != widget.defaultSortBy) {
       if (_selectedSortBy == oldWidget.defaultSortBy) {
-        _selectedSortBy = widget.defaultSortBy;
+        setState(() {
+          _selectedSortBy = widget.defaultSortBy;
+        });
       }
     }
   }

@@ -7,10 +7,11 @@ import 'package:autonomy_flutter/screen/artist_details/artist_details_page.dart'
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/util/feralfile_artist_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
-import 'package:autonomy_flutter/view/loading_view.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
+
+import '../../view/loading.dart';
 
 class ArtistPostsPagePayload {
   final FFUser user;
@@ -75,7 +76,7 @@ class _ArtistPostsPageState extends State<ArtistPostsPage> {
   }
 
   Widget _loadingView(BuildContext context) => Center(
-        child: loadingView(context, size: 100),
+        child: LoadingWidget(),
       );
 
   Widget _emptyView(BuildContext context) {

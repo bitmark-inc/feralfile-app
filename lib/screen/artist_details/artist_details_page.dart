@@ -17,7 +17,7 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/url_hepler.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
-import 'package:autonomy_flutter/view/loading_view.dart';
+import 'package:autonomy_flutter/view/loading.dart';
 import 'package:autonomy_flutter/view/post_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -72,8 +72,8 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
             }),
       );
 
-  Widget _loading() => Center(
-        child: loadingView(context, size: 100),
+  Widget _loading() => const Center(
+        child: LoadingWidget(),
       );
 
   Widget _avatar(BuildContext context, FFUser user) {
@@ -341,6 +341,9 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
     return [
       SliverToBoxAdapter(child: header),
       SliverToBoxAdapter(
+          child: addDivider(
+              height: 36, color: AppColor.auQuickSilver, thickness: 0.5)),
+      SliverToBoxAdapter(
           child: Row(
         children: [
           Expanded(
@@ -392,6 +395,9 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
     return [
       SliverToBoxAdapter(child: header),
       SliverToBoxAdapter(
+          child: addDivider(
+              height: 36, color: AppColor.auQuickSilver, thickness: 0.5)),
+      SliverToBoxAdapter(
         child: Row(
           children: [
             Expanded(
@@ -403,6 +409,11 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
               ),
             ),
           ],
+        ),
+      ),
+      const SliverToBoxAdapter(
+        child: SizedBox(
+          height: 36,
         ),
       ),
       SliverToBoxAdapter(
@@ -493,7 +504,13 @@ class _ListPostViewState extends State<ListPostView> {
                       post: post,
                     )
                   else
-                    SvgPicture.asset('assets/images/default_avatat.svg'),
+                    AspectRatio(
+                      aspectRatio: 1.0,
+                      child: SvgPicture.asset(
+                        'assets/images/default_avatat.svg',
+                        fit: BoxFit.fitWidth,
+                      ),
+                    ),
                 ],
               ),
             ),

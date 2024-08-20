@@ -12,7 +12,7 @@ import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/playlist_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
-import 'package:autonomy_flutter/view/loading_view.dart';
+import 'package:autonomy_flutter/view/loading.dart';
 import 'package:autonomy_flutter/view/stream_common_widget.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -31,7 +31,7 @@ class FeaauredWorkView extends StatefulWidget {
 }
 
 class FeaauredWorkViewState extends State<FeaauredWorkView> {
-  List<AssetToken>? _featureTokens = null;
+  List<AssetToken>? _featureTokens;
   late CanvasDeviceBloc _canvasDeviceBloc;
   final _canvasClientServiceV2 = injector<CanvasClientServiceV2>();
   late ScrollController _scrollController;
@@ -59,20 +59,18 @@ class FeaauredWorkViewState extends State<FeaauredWorkView> {
   }
 
   void scrollToTop() {
-    _scrollController.animateTo(
+    unawaited(_scrollController.animateTo(
       0,
       duration: const Duration(milliseconds: 500),
       curve: Curves.easeInOut,
-    );
+    ));
   }
 
-  Widget _loadingView(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.only(bottom: 80),
-      constraints: BoxConstraints.expand(),
-      child: loadingView(context, size: 100),
-    );
-  }
+  Widget _loadingView(BuildContext context) => Container(
+        padding: const EdgeInsets.only(bottom: 80),
+        constraints: const BoxConstraints.expand(),
+        child: const LoadingWidget(),
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -131,6 +129,8 @@ class FeaauredWorkViewState extends State<FeaauredWorkView> {
                               width: double.infinity,
                               errorWidget: (context, url, error) =>
                                   const Icon(Icons.error),
+                              placeholder: (context, url) =>
+                                  const GalleryThumbnailPlaceholder(),
                             ),
                             _infoHeader(context, token, artistName, false,
                                 context.read<CanvasDeviceBloc>().state),
@@ -176,7 +176,7 @@ class FeaauredWorkViewState extends State<FeaauredWorkView> {
 
   void _onTapArtwork(BuildContext context, AssetToken token) {
     _gotoArtworkDetails(context, token);
-    _moveToArtwork(token);
+    unawaited(_moveToArtwork(token));
   }
 
   void _gotoArtworkDetails(BuildContext context, AssetToken token) {

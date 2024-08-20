@@ -159,19 +159,14 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
     switch (tab) {
       case FeralfileHomeTab.featured:
         _featuredWorkKey.currentState?.scrollToTop();
-        break;
       case FeralfileHomeTab.artworks:
         _artworkViewKey.currentState?.scrollToTop();
-        break;
       case FeralfileHomeTab.exhibitions:
         _exhibitionViewKey.currentState?.scrollToTop();
-        break;
       case FeralfileHomeTab.artists:
         _artistViewKey.currentState?.scrollToTop();
-        break;
       case FeralfileHomeTab.curators:
         _curatorViewKey.currentState?.scrollToTop();
-        break;
       case FeralfileHomeTab.rAndD:
         break;
     }
@@ -179,6 +174,7 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final icon = Icon(
       AuIcon.chevron_Sm,
       size: 18,
@@ -446,6 +442,13 @@ class _ItemExpanedWidgetState extends State<ItemExpanedWidget> {
   @override
   void initState() {
     super.initState();
+    _focusNode.addListener(() {
+      if (!_focusNode.hasFocus) {
+        setState(() {
+          _isExpanded = false;
+        });
+      }
+    });
     _selectedIndex = widget.selectedIndex;
   }
 
@@ -457,17 +460,18 @@ class _ItemExpanedWidgetState extends State<ItemExpanedWidget> {
             child: TextField(
               showCursor: false,
               focusNode: _focusNode,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 border: InputBorder.none,
               ),
               keyboardType: TextInputType.none,
               onTapOutside: (_) {
                 final isExpanded = _isExpanded;
                 Future.delayed(const Duration(milliseconds: 100), () {
-                  if (context.mounted && isExpanded)
+                  if (context.mounted && isExpanded) {
                     setState(() {
                       _isExpanded = false;
                     });
+                  }
                 });
               },
             ),

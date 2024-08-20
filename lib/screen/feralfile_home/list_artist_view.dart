@@ -9,7 +9,7 @@ import 'package:autonomy_flutter/screen/feralfile_home/filter_bar.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/util/feral_file_explore_helper.dart';
 import 'package:autonomy_flutter/util/feralfile_artist_ext.dart';
-import 'package:autonomy_flutter/view/loading_view.dart';
+import 'package:autonomy_flutter/view/loading.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -70,16 +70,16 @@ class ExploreArtistViewState extends State<ExploreArtistView> {
   }
 
   void scrollToTop() {
-    _scrollController.animateTo(
+    unawaited(_scrollController.animateTo(
       0,
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
-    );
+    ));
   }
 
-  Widget _loadingView(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(bottom: 100),
-        child: loadingView(context, size: 100),
+  Widget _loadingView(BuildContext context) => const Padding(
+        padding: EdgeInsets.only(bottom: 100),
+        child: LoadingWidget(),
       );
 
   Widget _emptyView(BuildContext context) {
@@ -225,16 +225,16 @@ class ExploreCuratorViewState extends State<ExploreCuratorView> {
   }
 
   void scrollToTop() {
-    _scrollController.animateTo(
+    unawaited(_scrollController.animateTo(
       0,
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
-    );
+    ));
   }
 
-  Widget _loadingView(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(bottom: 100),
-        child: loadingView(context, size: 100),
+  Widget _loadingView(BuildContext context) => const Padding(
+        padding: EdgeInsets.only(bottom: 100),
+        child: LoadingWidget(),
       );
 
   Widget _emptyView(BuildContext context) {
@@ -292,9 +292,9 @@ class ExploreCuratorViewState extends State<ExploreCuratorView> {
     final curators = resp.result;
     final paging = resp.paging;
     setState(() {
-      _curators = curators.where((curator) {
-        return !ignoreCuratorIds.contains(curator.id);
-      }).toList();
+      _curators = curators
+          .where((curator) => !ignoreCuratorIds.contains(curator.id))
+          .toList();
       _paging = paging;
     });
     _isLoading = false;
@@ -323,9 +323,9 @@ class ExploreCuratorViewState extends State<ExploreCuratorView> {
     final curators = resp.result;
     final paging = resp.paging;
     setState(() {
-      _curators!.addAll(curators.where((curator) {
-        return !ignoreCuratorIds.contains(curator.id);
-      }).toList());
+      _curators!.addAll(curators
+          .where((curator) => !ignoreCuratorIds.contains(curator.id))
+          .toList());
       _paging = paging;
     });
     _isLoading = false;
