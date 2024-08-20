@@ -27,12 +27,23 @@ class MixPanelClientService {
   late Mixpanel mixpanel;
   late Box configHiveBox;
 
+  void _setFirstAppOpenDate() {
+    // set first app open date
+    // if it's already set, it won't be updated
+    final now = DateTime.now();
+    mixpanel
+        .getPeople()
+        .setOnce(MixpanelProp.firstAppOpenDate, now.toUtc().toIso8601String());
+  }
+
   Future<void> initService() async {
     mixpanel = await Mixpanel.init(Environment.mixpanelKey,
         trackAutomaticEvents: true);
     mixpanel
       ..setLoggingEnabled(false)
       ..setUseIpAddressForGeolocation(true);
+
+    _setFirstAppOpenDate();
     configHiveBox = await Hive.openBox(MIXPANEL_HIVE_BOX);
   }
 
@@ -68,6 +79,8 @@ class MixPanelClientService {
 
   Future reset() async {
     mixpanel.reset();
+    // when user reset, we need to set the first app open date again
+    _setFirstAppOpenDate();
   }
 
   void timerEvent(String name) {
