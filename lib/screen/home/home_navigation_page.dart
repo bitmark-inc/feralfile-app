@@ -352,9 +352,9 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     _triggerShowAnnouncement();
 
     OneSignal.shared.setNotificationWillShowInForegroundHandler((event) async {
-      event.complete(null);
       await _announcementService.fetchAnnouncements();
       if (!mounted) {
+        event.complete(null);
         return;
       }
       await NotificationHandler.instance.shouldShowNotifications(
