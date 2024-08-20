@@ -105,6 +105,8 @@ enum NotificationType {
         return NotificationType.exhibitionSaleClosing;
       case 'gift_membership':
         return NotificationType.giftMembership;
+      case 'navigate':
+        return NotificationType.navigate;
       default:
         return NotificationType.general;
     }
