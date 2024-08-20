@@ -25,107 +25,114 @@ class AdditionalData {
 
   static AdditionalData fromJson(Map<String, dynamic> json,
       {String? type, String? announcementId}) {
-    final notificationType =
-        NotificationType.fromString(type ?? json['notification_type']);
-    final announcementContentId = announcementId ??
-        json['announcementContentID'];
+    final announcementContentId =
+        announcementId ?? json['announcementContentID'];
+    try {
+      final notificationType =
+          NotificationType.fromString(type ?? json['notification_type']);
 
-    final parentObject = AdditionalData(
-        notificationType: notificationType,
-        announcementContentId: announcementContentId);
+      final parentObject = AdditionalData(
+          notificationType: notificationType,
+          announcementContentId: announcementContentId);
 
-    switch (notificationType) {
-      case NotificationType.customerSupportNewMessage:
-      case NotificationType.customerSupportCloseIssue:
-        final issueId = json['issue_id'];
-        if (issueId == null) {
-          log.warning('AdditionalData: issueId is null');
+      switch (notificationType) {
+        case NotificationType.customerSupportNewMessage:
+        case NotificationType.customerSupportCloseIssue:
+          final issueId = json['issue_id'];
+          if (issueId == null) {
+            log.warning('AdditionalData: issueId is null');
+            return parentObject;
+          }
+          return CsViewThread(
+            issueId: issueId,
+            notificationType: notificationType,
+            announcementContentId: announcementContentId,
+          );
+        case NotificationType.artworkCreated:
+        case NotificationType.artworkReceived:
+        case NotificationType.galleryNewNft:
+          return view_collection_handler.ViewCollection(
+            notificationType: notificationType,
+            announcementContentId: announcementContentId,
+          );
+        case NotificationType.newMessage:
+          final groupId = json['group_id'];
+          if (groupId == null) {
+            log.warning('AdditionalData: groupId is null');
+            return parentObject;
+          }
+          return ViewNewMessage(
+            groupId: groupId,
+            notificationType: notificationType,
+            announcementContentId: announcementContentId,
+          );
+        case NotificationType.newPostcardTrip:
+        case NotificationType.postcardShareExpired:
+          final indexID = json['indexID'];
+          if (indexID == null) {
+            log.warning('AdditionalData: indexID is null');
+            return parentObject;
+          }
+          return ViewPostcard(
+            indexID: indexID,
+            notificationType: notificationType,
+            announcementContentId: announcementContentId,
+          );
+        case NotificationType.jgCrystallineWorkHasArrived:
+          final jgExhibitionId = JohnGerrardHelper.exhibitionID;
+          return ViewExhibition(
+            exhibitionId: jgExhibitionId ?? '',
+            notificationType: notificationType,
+            announcementContentId: announcementContentId,
+          );
+        case NotificationType.jgCrystallineWorkGenerated:
+          final tokenId = json['token_id'];
+          if (tokenId == null) {
+            log.warning('AdditionalData: tokenId is null');
+            return parentObject;
+          }
+          return JgCrystallineWorkGenerated(
+            tokenId: tokenId,
+            notificationType: notificationType,
+            announcementContentId: announcementContentId,
+          );
+        case NotificationType.exhibitionViewingOpening:
+        case NotificationType.exhibitionSalesOpening:
+        case NotificationType.exhibitionSaleClosing:
+          final exhibitionId = json['exhibition_id'];
+          if (exhibitionId == null) {
+            log.warning('AdditionalData: exhibitionId is null');
+            return parentObject;
+          }
+          return ViewExhibition(
+            exhibitionId: exhibitionId,
+            notificationType: notificationType,
+            announcementContentId: announcementContentId,
+          );
+        case NotificationType.giftMembership:
+          final giftCode = json['gift_code'];
+          return GiftMembership(
+            giftCode: giftCode,
+            notificationType: notificationType,
+            announcementContentId: announcementContentId,
+          );
+        case NotificationType.navigate:
+          final navigationRoute = json['navigation_route'];
+          final homeIndex = json['home_index'];
+          return NavigationPath(
+            navigationRoute: navigationRoute,
+            notificationType: notificationType,
+            announcementContentId: announcementContentId,
+            homeIndex: homeIndex,
+          );
+        default:
           return parentObject;
-        }
-        return CsViewThread(
-          issueId: issueId,
-          notificationType: notificationType,
-          announcementContentId: announcementContentId,
-        );
-      case NotificationType.artworkCreated:
-      case NotificationType.artworkReceived:
-      case NotificationType.galleryNewNft:
-        return view_collection_handler.ViewCollection(
-          notificationType: notificationType,
-          announcementContentId: announcementContentId,
-        );
-      case NotificationType.newMessage:
-        final groupId = json['group_id'];
-        if (groupId == null) {
-          log.warning('AdditionalData: groupId is null');
-          return parentObject;
-        }
-        return ViewNewMessage(
-          groupId: groupId,
-          notificationType: notificationType,
-          announcementContentId: announcementContentId,
-        );
-      case NotificationType.newPostcardTrip:
-      case NotificationType.postcardShareExpired:
-        final indexID = json['indexID'];
-        if (indexID == null) {
-          log.warning('AdditionalData: indexID is null');
-          return parentObject;
-        }
-        return ViewPostcard(
-          indexID: indexID,
-          notificationType: notificationType,
-          announcementContentId: announcementContentId,
-        );
-      case NotificationType.jgCrystallineWorkHasArrived:
-        final jgExhibitionId = JohnGerrardHelper.exhibitionID;
-        return ViewExhibition(
-          exhibitionId: jgExhibitionId ?? '',
-          notificationType: notificationType,
-          announcementContentId: announcementContentId,
-        );
-      case NotificationType.jgCrystallineWorkGenerated:
-        final tokenId = json['token_id'];
-        if (tokenId == null) {
-          log.warning('AdditionalData: tokenId is null');
-          return parentObject;
-        }
-        return JgCrystallineWorkGenerated(
-          tokenId: tokenId,
-          notificationType: notificationType,
-          announcementContentId: announcementContentId,
-        );
-      case NotificationType.exhibitionViewingOpening:
-      case NotificationType.exhibitionSalesOpening:
-      case NotificationType.exhibitionSaleClosing:
-        final exhibitionId = json['exhibition_id'];
-        if (exhibitionId == null) {
-          log.warning('AdditionalData: exhibitionId is null');
-          return parentObject;
-        }
-        return ViewExhibition(
-          exhibitionId: exhibitionId,
-          notificationType: notificationType,
-          announcementContentId: announcementContentId,
-        );
-      case NotificationType.giftMembership:
-        final giftCode = json['gift_code'];
-        return GiftMembership(
-          giftCode: giftCode,
-          notificationType: notificationType,
-          announcementContentId: announcementContentId,
-        );
-      case NotificationType.navigate:
-        final navigationRoute = json['navigation_route'];
-        final homeIndex = json['home_index'];
-        return NavigationPath(
-          navigationRoute: navigationRoute,
-          notificationType: notificationType,
-          announcementContentId: announcementContentId,
-          homeIndex: homeIndex,
-        );
-      default:
-        return parentObject;
+      }
+    } catch (_) {
+      log.info('AdditionalData: error parsing additional data');
+      return AdditionalData(
+          notificationType: NotificationType.general,
+          announcementContentId: announcementContentId);
     }
   }
 

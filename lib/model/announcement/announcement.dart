@@ -17,8 +17,8 @@ class Announcement {
         announcementContentId: json['announcementContentID'],
         content: json['content'],
         additionalData: json['additionalData'],
-        startedAt: json['startedAt'],
-        endedAt: json['endedAt'],
+        startedAt: DateTime.parse(json['startedAt']).millisecondsSinceEpoch,
+        endedAt: DateTime.parse(json['startedAt']).millisecondsSinceEpoch,
       );
 
   bool get isExpired => DateTime.now().millisecondsSinceEpoch > endedAt;

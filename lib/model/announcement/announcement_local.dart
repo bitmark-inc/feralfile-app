@@ -12,8 +12,9 @@ class AnnouncementLocal extends Announcement {
     this.read = false,
   });
 
-  void markAsRead() {
+  AnnouncementLocal markAsRead() {
     read = true;
+    return this;
   }
 
   static AnnouncementLocal fromAnnouncement(Announcement announcement) =>

@@ -39,6 +39,9 @@ class AnnouncementServiceImpl implements AnnouncementService {
     this._configurationService,
   );
 
+  // queue of unread announcements, use this to avoid access to hive box
+  final List<AnnouncementLocal> _queue = [];
+
   static const int _fetchSize = 10;
 
   @override
@@ -52,14 +55,18 @@ class AnnouncementServiceImpl implements AnnouncementService {
     late List<Announcement> announcements;
     try {
       announcements = await _iapApi.getAnnouncements(request);
+      final localAnnouncement = _announcementStore.getAll();
+      announcements.removeWhere((element) =>
+          localAnnouncement.any((local) =>
+              local.announcementContentId == element.announcementContentId));
       for (final announcement in announcements) {
         final localAnnouncement =
             AnnouncementLocal.fromAnnouncement(announcement);
         await _announcementStore.save(
             localAnnouncement, localAnnouncement.announcementContentId);
       }
-      await _configurationService
-          .setLastPullAnnouncementTime(DateTime.now().millisecondsSinceEpoch);
+      await _configurationService.setLastPullAnnouncementTime(
+          DateTime.now().millisecondsSinceEpoch ~/ 1000);
     } catch (e) {
       log.info('Error fetching announcements: $e');
       return [];
@@ -82,15 +89,26 @@ class AnnouncementServiceImpl implements AnnouncementService {
     }
     final announcement = _announcementStore.get(announcementContentId);
     if (announcement != null) {
-      announcement.markAsRead();
-      await _announcementStore.save(announcement, announcementContentId);
+      await _markAsReadAnnouncement(announcement);
     }
+  }
+
+  Future<void> _markAsReadAnnouncement(AnnouncementLocal announcement) async {
+    _queue.removeWhere((element) =>
+        element.announcementContentId == announcement.announcementContentId);
+    await _announcementStore.save(
+        announcement.markAsRead(), announcement.announcementContentId);
   }
 
   @override
   List<AnnouncementLocal> getUnreadAnnouncements() {
-    final allAnnouncements = getLocalAnnouncements();
-    return allAnnouncements.where((element) => !element.read).toList();
+    _queue.removeWhere((element) => element.read);
+    if (_queue.isEmpty) {
+      final allAnnouncements = getLocalAnnouncements();
+      _queue
+          .addAll(allAnnouncements.where((element) => !element.read).toList());
+    }
+    return _queue;
   }
 
   @override
@@ -122,11 +140,10 @@ class AnnouncementServiceImpl implements AnnouncementService {
           data: {
             MixpanelProp.notificationId: announcement.announcementContentId,
             MixpanelProp.channel: 'in-app',
-            MixpanelProp.type:
-                announcement.additionalData?.notificationType.toString()
+            MixpanelProp.type: additionalData.notificationType.toString()
           },
         );
-        await markAsRead(announcement.announcementContentId);
+        await _markAsReadAnnouncement(announcement);
         if (shouldRepeat) {
           await showOldestAnnouncement();
         }
