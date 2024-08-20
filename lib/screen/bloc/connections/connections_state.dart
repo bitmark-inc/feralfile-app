@@ -32,6 +32,12 @@ class DeleteConnectionsEvent extends ConnectionsEvent {
   DeleteConnectionsEvent(this.connectionItem);
 }
 
+class SessionDeletedEvent extends ConnectionsEvent {
+  final String topic;
+
+  SessionDeletedEvent(this.topic);
+}
+
 class ConnectionItem {
   final Connection representative;
   final List<Connection> connections;

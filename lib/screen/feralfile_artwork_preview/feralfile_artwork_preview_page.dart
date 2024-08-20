@@ -202,8 +202,11 @@ class _FeralFileArtworkPreviewPageState
                               _infoShrink();
                             }
                           },
-                          child: _infoHeader(
-                              context, widget.payload.artwork, canvasState),
+                          child: Container(
+                            color: Colors.transparent,
+                            child: _infoHeader(
+                                context, widget.payload.artwork, canvasState),
+                          ),
                         ),
                       ),
               ));
@@ -246,11 +249,22 @@ class _FeralFileArtworkPreviewPageState
 
   void _infoExpand() {
     _scrollController?.jumpTo(0);
-    _scrollController ??= ScrollController();
+    if (_scrollController == null) {
+      _initScrollController();
+    }
     setState(() {
       _isInfoExpand = true;
     });
     _animationController.animateTo(_infoExpandPosition);
+  }
+
+  void _initScrollController() {
+    _scrollController = ScrollController();
+    _scrollController!.addListener(() {
+      if (_scrollController!.position.pixels < -20 && _isInfoExpand) {
+        _infoShrink();
+      }
+    });
   }
 
   Widget _artworkInfoIcon() => Semantics(
@@ -406,6 +420,7 @@ class _FeralFileArtworkPreviewPageState
         )),
         SingleChildScrollView(
           controller: _scrollController,
+          physics: const BouncingScrollPhysics(),
           child: SizedBox(
             width: double.infinity,
             child: Column(

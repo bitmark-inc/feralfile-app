@@ -1,116 +1,202 @@
-import 'package:autonomy_flutter/model/address.dart';
-import 'package:autonomy_flutter/service/domain_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/feral_file_explore_helper.dart';
-import 'package:autonomy_flutter/util/xtz_utils.dart';
-import 'package:web3dart/credentials.dart';
+//
+//  SPDX-License-Identifier: BSD-2-Clause-Patent
+//  Copyright © 2022 Bitmark. All rights reserved.
+//  Use of this source code is governed by the BSD-2-Clause Plus Patent License
+//  that can be found in the LICENSE file.
+//
 
-abstract class DomainAddressService {
-  String? verifyEthereumAddress(String address);
+import 'dart:convert';
 
-  String? verifyTezosAddress(String address);
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/database/entity/wallet_address.dart';
+import 'package:autonomy_flutter/service/auth_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/primary_address_channel.dart';
+import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
+import 'package:autonomy_flutter/util/wallet_utils.dart';
+import 'package:libauk_dart/libauk_dart.dart';
+import 'package:nft_collection/data/api/indexer_api.dart';
+import 'package:tezart/src/crypto/crypto.dart' as crypto;
 
-  Address? verifyAddress(String value);
+class AddressService {
+  final PrimaryAddressChannel _primaryAddressChannel;
+  final CloudDatabase _cloudDB;
+  final IndexerApi _indexerApi;
 
-  Future<Address?> verifyEthereumAddressOrDomain(String value);
+  AddressService(this._primaryAddressChannel, this._cloudDB, this._indexerApi);
 
-  Future<Address?> verifyTezosAddressOrDomain(String value);
-
-  Future<Address?> verifyAddressOrDomain(String value);
-
-  Future<Address?> verifyAddressOrDomainWithType(String value, CryptoType type);
-}
-
-class DomainAddressServiceImpl implements DomainAddressService {
-  final DomainService _domainService;
-
-  DomainAddressServiceImpl(this._domainService);
-
-  @override
-  Address? verifyAddress(String value) {
-    final ethAddress = verifyEthereumAddress(value);
-    if (ethAddress != null) {
-      return Address(address: ethAddress, type: CryptoType.ETH);
-    }
-    final tezosAddress = verifyTezosAddress(value);
-    if (tezosAddress != null) {
-      return Address(address: tezosAddress, type: CryptoType.XTZ);
-    }
-    return null;
+  Future<AddressInfo?> getPrimaryAddressInfo() async {
+    final addressInfo = await _primaryAddressChannel.getPrimaryAddress();
+    log.info('[AddressService] Primary address info: ${addressInfo?.toJson()}');
+    return addressInfo;
   }
 
-  @override
-  Future<Address?> verifyEthereumAddressOrDomain(String value) async {
-    final ethAddress = verifyEthereumAddress(value);
-    if (ethAddress != null) {
-      return Future.value(Address(address: ethAddress, type: CryptoType.ETH));
+  Future<void> deriveAddressesFromAllPersona() async {
+    final personas = await _cloudDB.personaDao.getPersonas();
+    for (final persona in personas) {
+      await Future.wait([
+        persona.insertAddressAtIndex(walletType: WalletType.Ethereum, index: 0),
+        persona.insertAddressAtIndex(walletType: WalletType.Tezos, index: 0),
+      ]);
     }
-    final address = await _domainService.getEthAddress(value);
-    final checksumAddress =
-        address == null ? null : verifyEthereumAddress(address);
-    if (checksumAddress != null) {
-      return Address(
-          address: checksumAddress, domain: value, type: CryptoType.ETH);
-    }
-    return null;
   }
 
-  @override
-  Future<Address?> verifyAddressOrDomain(String value) async {
-    final address = verifyAddress(value);
-    if (address != null) {
-      return address;
+  Future<void> derivePrimaryAddress() async {
+    final primaryAddressInfo = await getPrimaryAddressInfo();
+    if (primaryAddressInfo == null) {
+      return;
     }
-    final ethAddress = await verifyEthereumAddressOrDomain(value);
-    if (ethAddress != null) {
-      return ethAddress;
-    }
-    final tezosAddress = await verifyTezosAddressOrDomain(value);
-    if (tezosAddress != null) {
-      return tezosAddress;
-    }
-    return null;
+    final persona = await _cloudDB.personaDao.findById(primaryAddressInfo.uuid);
+    await persona?.insertAddressAtIndex(
+        walletType: primaryAddressInfo.walletType,
+        index: primaryAddressInfo.index);
   }
 
-  @override
-  String? verifyEthereumAddress(String address) {
-    try {
-      final checksumAddress = EthereumAddress.fromHex(address).hexEip55;
-      return checksumAddress;
-    } catch (_) {
+  Future<bool> setPrimaryAddressInfo({required AddressInfo info}) async {
+    await _primaryAddressChannel.setPrimaryAddress(info);
+    log.info('[AddressService] Primary address info set: ${info.toJson()}');
+    return true;
+  }
+
+  Future<bool> registerPrimaryAddress(
+      {required AddressInfo info, bool withDidKey = false}) async {
+    await injector<AuthService>().registerPrimaryAddress(
+        primaryAddressInfo: info, withDidKey: withDidKey);
+    final res = setPrimaryAddressInfo(info: info);
+    if (withDidKey) {
+      await injector<MetricClientService>().migrateFromDidKeyToPrimaryAddress();
+    }
+    // when register primary address, we need to update the auth token
+    await injector<AuthService>().getAuthToken(forceRefresh: true);
+    return res;
+  }
+
+  Future<bool> clearPrimaryAddress() async {
+    await _primaryAddressChannel.clearPrimaryAddress();
+    return true;
+  }
+
+  Future<String> getAddress({required AddressInfo info}) async {
+    final walletStorage = WalletStorage(info.uuid);
+    final chain = info.chain;
+    switch (chain) {
+      case 'ethereum':
+        final address =
+            await walletStorage.getETHEip55Address(index: info.index);
+        final checksumAddress = address.getETHEip55Address();
+        return checksumAddress;
+      case 'tezos':
+        return walletStorage.getTezosAddress(index: info.index);
+      default:
+        throw UnsupportedError('Unsupported chain: $chain');
+    }
+  }
+
+  Future<String?> getPrimaryAddress() async {
+    final addressInfo = await getPrimaryAddressInfo();
+    if (addressInfo == null) {
       return null;
     }
+    return getAddress(info: addressInfo);
   }
 
-  @override
-  String? verifyTezosAddress(String address) =>
-      address.isValidTezosAddress ? address : null;
-
-  @override
-  Future<Address?> verifyTezosAddressOrDomain(String value) async {
-    final tezosAddress = verifyTezosAddress(value);
-    if (tezosAddress != null) {
-      return Future.value(Address(address: tezosAddress, type: CryptoType.XTZ));
-    }
-    final address = await _domainService.getTezosAddress(value);
-    if (address != null) {
-      return Address(address: address, domain: value, type: CryptoType.XTZ);
-    }
-    return null;
-  }
-
-  @override
-  Future<Address?> verifyAddressOrDomainWithType(
-      String value, CryptoType type) async {
-    switch (type) {
-      case CryptoType.ETH:
-      case CryptoType.USDC:
-        return await verifyEthereumAddressOrDomain(value);
-      case CryptoType.XTZ:
-        return await verifyTezosAddressOrDomain(value);
+  Future<String> getAddressSignature(
+      {required AddressInfo addressInfo, required String message}) async {
+    final walletStorage = WalletStorage(addressInfo.uuid);
+    final chain = addressInfo.chain;
+    String signature;
+    switch (chain) {
+      case 'ethereum':
+        signature = await walletStorage.ethSignPersonalMessage(
+            utf8.encode(message),
+            index: addressInfo.index);
+      case 'tezos':
+        final signatureUInt8List = await walletStorage
+            .tezosSignMessage(utf8.encode(message), index: addressInfo.index);
+        signature = crypto.encodeWithPrefix(
+            prefix: crypto.Prefixes.edsig, bytes: signatureUInt8List);
       default:
-        return null;
+        throw UnsupportedError('Unsupported chain: $chain');
     }
+    return signature;
+  }
+
+  Future<String?> getPrimaryAddressSignature({required String message}) async {
+    final addressInfo = await getPrimaryAddressInfo();
+    if (addressInfo == null) {
+      return null;
+    }
+    return getAddressSignature(addressInfo: addressInfo, message: message);
+  }
+
+  Future<String> getAddressPublicKey({required AddressInfo addressInfo}) async {
+    final walletStorage = WalletStorage(addressInfo.uuid);
+    final chain = addressInfo.chain;
+    String publicKey;
+    switch (chain) {
+      case 'ethereum':
+        publicKey = '';
+      case 'tezos':
+        publicKey =
+            await walletStorage.getTezosPublicKey(index: addressInfo.index);
+      default:
+        throw UnsupportedError('Unsupported chain: $chain');
+    }
+    return publicKey;
+  }
+
+  Future<String> getPrimaryAddressPublicKey() async {
+    final addressInfo = await getPrimaryAddressInfo();
+    if (addressInfo == null) {
+      throw UnsupportedError('Primary address not found');
+    }
+    return getAddressPublicKey(addressInfo: addressInfo);
+  }
+
+  String getFeralfileAccountMessage(
+          {required String address, required String timestamp}) =>
+      'feralfile-account: {"requester":"$address","timestamp":"$timestamp"}';
+
+  Future<List<WalletAddress>> getAllAddress() async {
+    final addresses = await _cloudDB.addressDao.getAllAddresses();
+    final persona = await _cloudDB.personaDao.getPersonas();
+    addresses
+        .removeWhere((address) => !persona.any((p) => p.uuid == address.uuid));
+    return addresses;
+  }
+
+  Future<AddressInfo> pickAddressAsPrimary() async {
+    final allAddress = await getAllAddress();
+    if (allAddress.isEmpty) {
+      throw UnsupportedError('No address found');
+    }
+    final selectedAddress = await pickMostNftAddress(allAddress);
+    return AddressInfo(
+        uuid: selectedAddress.uuid,
+        index: selectedAddress.index,
+        chain: selectedAddress.cryptoType.toLowerCase());
+  }
+
+  Future<WalletAddress> pickMostNftAddress(
+      List<WalletAddress> addresses) async {
+    WalletAddress? selectedAddress;
+    int maxNumberNft = -1;
+    for (final address in addresses) {
+      final numberNft = await getNumberNft(address.address);
+      if (numberNft > maxNumberNft) {
+        maxNumberNft = numberNft;
+        selectedAddress = address;
+      }
+    }
+    return selectedAddress!;
+  }
+
+  Future<int> getNumberNft(String address) async {
+    final response = await _indexerApi.numberNft(address);
+    final numberNft = response['total'];
+    return numberNft;
   }
 }
 

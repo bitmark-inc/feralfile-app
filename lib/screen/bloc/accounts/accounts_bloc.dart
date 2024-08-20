@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
+
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
@@ -13,10 +15,13 @@ import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/database/entity/wallet_address.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/primary_address_channel.dart';
 import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
+import 'package:sentry/sentry.dart';
 
 part 'accounts_state.dart';
 
@@ -50,7 +55,18 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
 
       accounts.sort(_compareAccount);
 
-      emit(AccountsState(accounts: accounts));
+      final primaryAddressInfo =
+          await injector<AddressService>().getPrimaryAddressInfo();
+
+      if (primaryAddressInfo == null) {
+        unawaited(Sentry.captureMessage(
+            '[Accounts Bloc] GetAccountsEvent: Primary address info is null'));
+      }
+
+      emit(AccountsState(
+        accounts: accounts,
+        primaryAddressInfo: primaryAddressInfo,
+      ));
     });
 
     on<ChangeAccountOrderEvent>((event, emit) {

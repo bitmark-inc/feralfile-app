@@ -19,8 +19,8 @@ import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.Result
 import it.airgap.beaconsdk.blockchain.substrate.substrate
 import it.airgap.beaconsdk.blockchain.tezos.data.TezosAccount
-import it.airgap.beaconsdk.blockchain.tezos.data.TezosPermission
 import it.airgap.beaconsdk.blockchain.tezos.data.TezosNetwork
+import it.airgap.beaconsdk.blockchain.tezos.data.TezosPermission
 import it.airgap.beaconsdk.blockchain.tezos.data.operation.*
 import it.airgap.beaconsdk.blockchain.tezos.internal.wallet.*
 import it.airgap.beaconsdk.blockchain.tezos.message.request.BroadcastTezosRequest
@@ -356,7 +356,7 @@ class TezosBeaconDartPlugin : MethodChannel.MethodCallHandler, EventChannel.Stre
         CoroutineScope(Dispatchers.IO).launch {
             beaconClient?.stop()
             beaconClient = BeaconWalletClient(
-                "Autonomy",
+                "Feral File",
             ) {
                 support(tezos(), substrate())
                 use(p2pMatrix())

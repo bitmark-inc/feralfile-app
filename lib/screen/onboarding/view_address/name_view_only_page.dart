@@ -108,7 +108,7 @@ class _NameViewOnlyAddressPageState extends State<NameViewOnlyAddressPage> {
               Row(
                 children: [
                   Expanded(
-                    child: PrimaryButton(
+                    child: PrimaryAsyncButton(
                       text: 'continue'.tr(),
                       onTap: _isSavingAliasDisabled
                           ? null

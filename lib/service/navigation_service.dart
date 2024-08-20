@@ -9,15 +9,16 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
+import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/artist_details/artist_details_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
-import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
+import 'package:autonomy_flutter/util/feral_file_custom_tab.dart';
 import 'package:autonomy_flutter/util/feral_file_helper.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -40,6 +41,7 @@ class NavigationService {
   // workaround solution for unknown reason
   // ModalRoute(navigatorKey.currentContext) returns nil
   bool _isWCConnectInShow = false;
+  final _browser = FeralFileBrowser();
 
   BuildContext get context => navigatorKey.currentContext!;
 
@@ -230,6 +232,24 @@ class NavigationService {
     }
   }
 
+  Future<void> showQRExpired() async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await UIHelper.showInfoDialog(
+          context, 'qr_code_expired'.tr(), 'qr_code_expired_desc'.tr(),
+          onClose: () => UIHelper.hideInfoDialog(context), isDismissible: true);
+    }
+  }
+
+  Future<void> addressNotFoundError() async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await UIHelper.showInfoDialog(
+          context, 'error'.tr(), 'can_not_find_address'.tr(),
+          onClose: () => UIHelper.hideInfoDialog(context), isDismissible: true);
+    }
+  }
+
   Future<void> showCannotConnectTv() async {
     if (navigatorKey.currentContext != null &&
         navigatorKey.currentState?.mounted == true) {
@@ -263,7 +283,15 @@ class NavigationService {
     popUntilHome();
     await Future.delayed(const Duration(seconds: 1), () async {
       await (homePageKey.currentState ?? homePageNoTransactionKey.currentState)
-          ?.openExhibition(exhibitionID ?? '');
+          ?.openExhibition(exhibitionID);
+    });
+  }
+
+  Future<void> popToCollection() async {
+    popUntilHome();
+    await Future.delayed(const Duration(seconds: 1), () async {
+      await (homePageKey.currentState ?? homePageNoTransactionKey.currentState)
+          ?.openCollection();
     });
   }
 
@@ -387,10 +415,7 @@ class NavigationService {
       return;
     }
     final url = FeralFileHelper.getExhibitionNoteUrl(exhibitionSlug);
-    await Navigator.of(navigatorKey.currentContext!).pushNamed(
-      AppRouter.inappWebviewPage,
-      arguments: InAppWebViewPayload(url),
-    );
+    await _browser.openUrl(url);
   }
 
   Future<void> openFeralFilePostPage(Post post, String exhibitionID) async {
@@ -398,9 +423,37 @@ class NavigationService {
       return;
     }
     final url = FeralFileHelper.getPostUrl(post, exhibitionID);
-    await Navigator.of(navigatorKey.currentContext!).pushNamed(
-      AppRouter.inappWebviewPage,
-      arguments: InAppWebViewPayload(url),
-    );
+    await _browser.openUrl(url);
+  }
+
+  Future<void> navigatePath(String? path) async {
+    final pair = _resolvePath(path);
+    if (pair == null) {
+      return;
+    }
+
+    unawaited(navigateTo(pair.first, arguments: pair.second));
+  }
+
+  Pair<String, dynamic>? _resolvePath(String? path) {
+    if (path == null || path.isEmpty) {
+      return null;
+    }
+    final parts = path.split('/')..removeWhere((element) => element.isEmpty);
+    if (parts.isEmpty) {
+      return null;
+    }
+    if (parts.length == 1) {
+      return Pair(parts[0], null);
+    }
+
+    return Pair(parts[0], _resolveArgument(parts[1]));
+  }
+
+  dynamic _resolveArgument(String? argument) {
+    if (argument == null || argument.isEmpty) {
+      return null;
+    }
+    return argument;
   }
 }

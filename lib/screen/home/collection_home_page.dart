@@ -198,7 +198,7 @@ class CollectionHomePageState extends State<CollectionHomePage>
             _assetsWidget(context, tokens),
       ),
       listener: (context, state) async {
-        log.info('[NftCollectionBloc] State update $state');
+        log.info('[NftCollectionBloc] State update ${state.tokens.length}');
         if (state.state == NftLoadingState.done) {
           unawaited(_onTokensUpdate(state.tokens.items));
         }

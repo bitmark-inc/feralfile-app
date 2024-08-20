@@ -27,13 +27,13 @@ import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_wid
 import 'package:autonomy_flutter/screen/gallery/gallery_page.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_page.dart';
-import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/feral_file_custom_tab.dart';
 import 'package:autonomy_flutter/util/file_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/playlist_ext.dart';
@@ -244,11 +244,22 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 
   void _infoExpand() {
     _scrollController?.jumpTo(0);
-    _scrollController ??= ScrollController();
+    if (_scrollController == null) {
+      _initScrollController();
+    }
     setState(() {
       _isInfoExpand = true;
     });
     _animationController.animateTo(_infoExpandPosition);
+  }
+
+  void _initScrollController() {
+    _scrollController = ScrollController();
+    _scrollController!.addListener(() {
+      if (_scrollController!.position.pixels < -20 && _isInfoExpand) {
+        _infoShrink();
+      }
+    });
   }
 
   @override
@@ -422,8 +433,11 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                             _infoShrink();
                           }
                         },
-                        child: _infoHeader(context, asset, artistName,
-                            state.isViewOnly, canvasState),
+                        child: Container(
+                          color: Colors.transparent,
+                          child: _infoHeader(context, asset, artistName,
+                              state.isViewOnly, canvasState),
+                        ),
                       ),
                     ),
             ),
@@ -433,6 +447,12 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                 child: GestureDetector(
                   behavior: HitTestBehavior.translucent,
                   onTap: _infoShrink,
+                  onVerticalDragEnd: (details) {
+                    final dy = details.primaryVelocity ?? 0;
+                    if (dy > 0) {
+                      _infoShrink();
+                    }
+                  },
                   child: Container(
                     color: Colors.transparent,
                     height: MediaQuery.of(context).size.height / 2 -
@@ -550,6 +570,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
             )),
         SingleChildScrollView(
           controller: _scrollController,
+          physics: const BouncingScrollPhysics(),
           child: SizedBox(
             width: double.infinity,
             child: Column(
@@ -717,11 +738,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               height: 18,
             ),
             onTap: () async {
-              await Navigator.popAndPushNamed(
-                context,
-                AppRouter.inappWebviewPage,
-                arguments: InAppWebViewPayload(asset.secondaryMarketURL),
-              );
+              final browser = FeralFileBrowser();
+              await browser.openUrl(asset.secondaryMarketURL);
             },
           ),
         if (!widget.payload.useIndexer)

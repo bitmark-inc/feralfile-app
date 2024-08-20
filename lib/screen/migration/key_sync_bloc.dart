@@ -41,14 +41,11 @@ class KeySyncBloc extends AuBloc<KeySyncEvent, KeySyncState> {
 
       final cloudWallet = accounts[1].wallet();
       try {
-        final cloudBackupVersion =
-            await _backupService.fetchBackupVersion(cloudWallet);
+        final cloudBackupVersion = await _backupService.getBackupVersion();
 
         if (cloudBackupVersion.isNotEmpty) {
           const tmpCloudDbName = 'tmp_cloud_database.db';
-          await _backupService.restoreCloudDatabase(
-              cloudWallet, cloudBackupVersion,
-              dbName: tmpCloudDbName);
+          await _backupService.restoreCloudDatabase(dbName: tmpCloudDbName);
 
           final tmpCloudDb = await $FloorCloudDatabase
               .databaseBuilder(tmpCloudDbName)

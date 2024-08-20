@@ -74,18 +74,21 @@ class _NameAddressPersonaState extends State<NameAddressPersona> {
                         ? null
                         : () async {
                             final accountService = injector<AccountService>();
-                            final walletAddress =
-                                await accountService.getAddressPersona(
-                                    widget.payload.addressInfo.address);
-                            if (walletAddress == null) {
-                              return;
-                            }
-                            await accountService.updateAddressPersona(
-                                walletAddress.copyWith(
-                                    name: _nameController.text.trim()));
-                            if (!mounted) {
-                              return;
-                            }
+                            final listAddressInfo =
+                                widget.payload.listAddressInfo;
+                            final name = _nameController.text.trim();
+
+                            // update name
+                            await Future.forEach(listAddressInfo,
+                                (AddressInfo addressInfo) async {
+                              final walletAddress = await accountService
+                                  .getAddressPersona(addressInfo.address);
+                              if (walletAddress == null) {
+                                return;
+                              }
+                              await accountService.updateAddressPersona(
+                                  walletAddress.copyWith(name: name));
+                            });
                             await doneNaming(context);
                           },
                   ),
@@ -104,10 +107,10 @@ Future<void> doneNaming(BuildContext context) async {
 }
 
 class NameAddressPersonaPayload {
-  final AddressInfo addressInfo;
+  final List<AddressInfo> listAddressInfo;
 
   //constructor
   NameAddressPersonaPayload(
-    this.addressInfo,
+    this.listAddressInfo,
   );
 }

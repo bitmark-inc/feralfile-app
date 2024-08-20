@@ -37,7 +37,6 @@ import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwor
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_review_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/linked_wallet_detail_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
-import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
@@ -187,11 +186,6 @@ extension RouteExt on Route {
           MixpanelProp.title: payload.proposer.name,
           MixpanelProp.url: payload.proposer.url,
         };
-      case AppRouter.inappWebviewPage:
-        final payload = settings.arguments! as InAppWebViewPayload;
-        data = {
-          MixpanelProp.url: payload.url,
-        };
       case AppRouter.postcardExplain:
         final payload = settings.arguments! as PostcardExplainPayload;
         data = {
@@ -307,7 +301,7 @@ extension RouteExt on Route {
       case AppRouter.nameAddressPersonaPage:
         final payload = settings.arguments! as NameAddressPersonaPayload;
         data = {
-          MixpanelProp.address: payload.addressInfo.address,
+          MixpanelProp.address: payload.listAddressInfo.first.address,
         };
       case AppRouter.addressAliasPage:
         final payload = settings.arguments! as AddressAliasPayload;
@@ -402,7 +396,6 @@ final screenNameMap = {
   AppRouter.viewPlayListPage: 'View Playlist',
   AppRouter.editPlayListPage: 'Edit Playlist',
   AppRouter.onboardingPage: 'Onboarding',
-  AppRouter.notificationOnboardingPage: 'Notification Onboarding',
   AppRouter.artworkPreviewPage: 'Artwork Preview',
   AppRouter.artworkDetailsPage: 'Artwork Detail',
   AppRouter.claimedPostcardDetailsPage: 'Postcard Detail',
@@ -437,7 +430,6 @@ final screenNameMap = {
   AppRouter.walletPage: 'Wallet',
   AppRouter.subscriptionPage: 'Subscription',
   AppRouter.dataManagementPage: 'Data Management',
-  AppRouter.helpUsPage: 'Help Us',
   AppRouter.inappWebviewPage: 'Inapp Webview',
   AppRouter.postcardExplain: 'Postcard Explain',
   AppRouter.designStamp: 'Design Stamp',
@@ -450,7 +442,6 @@ final screenNameMap = {
   AppRouter.receivePostcardPage: 'Receive Postcard',
   AppRouter.irlWebView: 'IRL Webview',
   AppRouter.irlSignMessage: 'IRL Sign Message',
-  AppRouter.canvasHelpPage: 'Canvas Help',
   AppRouter.keyboardControlPage: 'Keyboard Control',
   AppRouter.touchPadPage: 'Touch Pad',
   AppRouter.postcardLeaderboardPage: 'Postcard Leaderboard',

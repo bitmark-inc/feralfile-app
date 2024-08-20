@@ -6,12 +6,15 @@
 //
 
 import 'package:autonomy_flutter/au_bloc.dart';
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_state.dart';
+import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/currency_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
+import 'package:autonomy_flutter/util/wallet_address_ext.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 
 class WalletDetailBloc extends AuBloc<WalletDetailEvent, WalletDetailState> {
@@ -26,27 +29,37 @@ class WalletDetailBloc extends AuBloc<WalletDetailEvent, WalletDetailState> {
       : super(WalletDetailState()) {
     on<WalletDetailBalanceEvent>((event, emit) async {
       final exchangeRate = await _currencyService.getExchangeRates();
-      final newState = WalletDetailState();
+      String balanceS = '';
+      String balanceInUSD = '';
 
       switch (event.type) {
         case CryptoType.ETH:
           final balance = await _ethereumService.getBalance(event.address);
-          newState.balance = '${ethFormatter.format(balance.getInWei)} ETH';
+          balanceS = '${ethFormatter.format(balance.getInWei)} ETH';
           final usdBalance = exchangeRate.ethToUsd(balance.getInWei);
-          final balanceInUSD = '$usdBalance USD';
-          newState.balanceInUSD = balanceInUSD;
-          break;
+          balanceInUSD = '$usdBalance USD';
         case CryptoType.XTZ:
           final balance = await _tezosService.getBalance(event.address);
-          newState.balance = '${xtzFormatter.format(balance)} XTZ';
+          balanceS = '${xtzFormatter.format(balance)} XTZ';
           final usdBalance = exchangeRate.xtzToUsd(balance);
-          final balanceInUSD = '$usdBalance USD';
-          newState.balanceInUSD = balanceInUSD;
+          balanceInUSD = '$usdBalance USD';
 
-          break;
         default:
-          break;
       }
+
+      emit(state.copyWith(
+        balance: balanceS,
+        balanceInUSD: balanceInUSD,
+      ));
+    });
+
+    on<WalletDetailPrimaryAddressEvent>((event, emit) async {
+      final primaryAddressInfo =
+          await injector<AddressService>().getPrimaryAddressInfo();
+
+      final newState = state.copyWith(
+        isPrimary: event.walletAddress.isMatchAddressInfo(primaryAddressInfo),
+      );
 
       emit(newState);
     });
