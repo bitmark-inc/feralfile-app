@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/util/feralfile_artist_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/series_ext.dart';
 import 'package:autonomy_flutter/view/loading.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -93,7 +94,8 @@ class ExploreSeriesViewState extends State<ExploreSeriesView> {
   Widget _emptyView(BuildContext context) {
     final theme = Theme.of(context);
     return Center(
-      child: Text('No series found', style: theme.textTheme.ppMori400White14),
+      child:
+          Text('no_series_found'.tr(), style: theme.textTheme.ppMori400White14),
     );
   }
 
@@ -259,7 +261,10 @@ class _SeriesViewState extends State<SeriesView> {
               const SizedBox(height: 4),
               Text(
                 series.displayTitle,
-                style: defaultStyle.copyWith(fontWeight: FontWeight.bold),
+                style: defaultStyle.copyWith(
+                  fontWeight: FontWeight.bold,
+                  fontStyle: FontStyle.italic,
+                ),
                 overflow: TextOverflow.ellipsis,
               ),
               if (series.exhibition != null) ...[
@@ -269,8 +274,8 @@ class _SeriesViewState extends State<SeriesView> {
                   text: TextSpan(
                     style: defaultStyle.copyWith(color: AppColor.auQuickSilver),
                     children: [
-                      const TextSpan(
-                        text: 'Exhibited in: ',
+                      TextSpan(
+                        text: 'exhibited_in'.tr(),
                       ),
                       TextSpan(
                         text: series.exhibition!.title,
@@ -317,10 +322,6 @@ class _SeriesViewState extends State<SeriesView> {
                         series.thumbnailUrl ?? '',
                         fit: BoxFit.fitWidth,
                       ),
-                      // Image.network(
-                      //   series.thumbnailUrl ?? '',
-                      //   fit: BoxFit.fitWidth,
-                      // ),
                     ),
                   ],
                 ),

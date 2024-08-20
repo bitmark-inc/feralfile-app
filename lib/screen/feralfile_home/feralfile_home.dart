@@ -20,11 +20,11 @@ import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/cast_button.dart';
 import 'package:autonomy_flutter/view/stream_common_widget.dart';
 import 'package:collection/collection.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:feralfile_app_tv_proto/models/model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
 
 enum FeralfileHomeTab {
   featured,
@@ -229,7 +229,7 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
     return [
       Item(
         id: FeralfileHomeTab.featured.index.toString(),
-        title: 'Featured',
+        title: 'featured'.tr(),
         subtitle: state.featuredArtworks != null
             ? numberFormater.format(state.featuredArtworks!.length)
             : '-',
@@ -241,7 +241,7 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
       ),
       Item(
         id: FeralfileHomeTab.artworks.index.toString(),
-        title: 'Artworks',
+        title: '_artworks'.tr(),
         subtitle: state.exploreStatisticsData != null
             ? numberFormater.format(state.exploreStatisticsData!.totalArtwork)
             : '-',
@@ -253,7 +253,7 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
       ),
       Item(
         id: FeralfileHomeTab.exhibitions.index.toString(),
-        title: 'Exhibitions',
+        title: 'exhibitions'.tr(),
         subtitle: state.exploreStatisticsData != null
             ? numberFormater
                 .format(state.exploreStatisticsData!.totalExhibition)
@@ -266,7 +266,7 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
       ),
       Item(
           id: FeralfileHomeTab.artists.index.toString(),
-          title: 'Artists',
+          title: 'artists'.tr(),
           subtitle: state.exploreStatisticsData != null
               ? numberFormater.format(state.exploreStatisticsData!.totalArtist)
               : '-',
@@ -277,7 +277,7 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
           }),
       Item(
         id: FeralfileHomeTab.curators.index.toString(),
-        title: 'Curators',
+        title: 'curators'.tr(),
         subtitle: state.exploreStatisticsData != null
             ? numberFormater.format(state.exploreStatisticsData!.totalCurator)
             : '-',
@@ -287,16 +287,6 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
           });
         },
       ),
-      // Item(
-      //   id: FeralfileHomeTab.rAndD.index.toString(),
-      //   title: 'R&D',
-      //   subtitle: '2',
-      //   onSelected: () {
-      //     setState(() {
-      //       _selectedIndex = FeralfileHomeTab.rAndD.index;
-      //     });
-      //   },
-      // ),
     ];
   }
 
@@ -437,70 +427,40 @@ class ItemExpanedWidget extends StatefulWidget {
 class _ItemExpanedWidgetState extends State<ItemExpanedWidget> {
   bool _isExpanded = false;
   late int _selectedIndex;
-  final FocusNode _focusNode = FocusNode();
 
   @override
   void initState() {
     super.initState();
-    _focusNode.addListener(() {
-      if (!_focusNode.hasFocus) {
-        setState(() {
-          _isExpanded = false;
-        });
-      }
-    });
     _selectedIndex = widget.selectedIndex;
   }
 
   @override
-  Widget build(BuildContext context) => Stack(
-        children: [
-          Visibility(
-            visible: _isExpanded,
-            child: TextField(
-              showCursor: false,
-              focusNode: _focusNode,
-              decoration: const InputDecoration(
-                border: InputBorder.none,
-              ),
-              keyboardType: TextInputType.none,
-              onTapOutside: (_) {
-                final isExpanded = _isExpanded;
-                Future.delayed(const Duration(milliseconds: 100), () {
-                  if (context.mounted && isExpanded) {
-                    setState(() {
-                      _isExpanded = false;
-                    });
-                  }
+  Widget build(BuildContext context) => TapRegion(
+        onTapOutside: (event) {
+          setState(() {
+            _isExpanded = false;
+          });
+        },
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  _isExpanded = !_isExpanded;
                 });
               },
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _isExpanded = !_isExpanded;
-                  });
-                  if (_isExpanded) {
-                    _focusNode.requestFocus();
-                  }
-                },
-                child: Container(
-                  color: Colors.transparent,
-                  child: _isExpanded ? _expandedHeader() : _unexpandedHeader(),
-                ),
+              child: Container(
+                color: Colors.transparent,
+                child: _isExpanded ? _expandedHeader() : _unexpandedHeader(),
               ),
-              // Expanded items
-              if (_isExpanded) ...[
-                for (var item in widget.items.skip(1))
-                  _itemWidget(context, item),
-              ]
-            ],
-          ),
-        ],
+            ),
+            // Expanded items
+            if (_isExpanded) ...[
+              for (var item in widget.items.skip(1)) _itemWidget(context, item),
+            ]
+          ],
+        ),
       );
 
   Widget _expandedHeader() {

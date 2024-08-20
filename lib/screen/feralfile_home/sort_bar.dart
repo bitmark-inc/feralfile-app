@@ -34,6 +34,7 @@ class _SortBarState extends State<SortBar> {
         setState(() {
           _selectedSortBy = widget.defaultSortBy;
         });
+        widget.onSortSelected(widget.defaultSortBy);
       }
     }
   }

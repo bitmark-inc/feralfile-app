@@ -507,28 +507,27 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
             ),
           ),
           _artworkInfoIcon(),
-          if (!widget.payload.useIndexer)
-            Semantics(
-              label: 'artworkDotIcon',
-              child: Padding(
-                padding: const EdgeInsets.only(left: 5),
-                child: IconButton(
-                  onPressed: () async => _showArtworkOptionsDialog(
-                      context, asset, isViewOnly, canvasState),
-                  constraints: const BoxConstraints(
-                    maxWidth: 44,
-                    maxHeight: 44,
-                    minWidth: 44,
-                    minHeight: 44,
-                  ),
-                  icon: SvgPicture.asset(
-                    'assets/images/more_circle.svg',
-                    width: 22,
-                    height: 22,
-                  ),
+          Semantics(
+            label: 'artworkDotIcon',
+            child: Padding(
+              padding: const EdgeInsets.only(left: 5),
+              child: IconButton(
+                onPressed: () async => _showArtworkOptionsDialog(
+                    context, asset, isViewOnly, canvasState),
+                constraints: const BoxConstraints(
+                  maxWidth: 44,
+                  maxHeight: 44,
+                  minWidth: 44,
+                  minHeight: 44,
+                ),
+                icon: SvgPicture.asset(
+                  'assets/images/more_circle.svg',
+                  width: 22,
+                  height: 22,
                 ),
               ),
             ),
+          ),
         ],
       ),
     );
@@ -725,27 +724,28 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               );
             },
           ),
-        OptionItem(
-          title: isHidden ? 'unhide_aw'.tr() : 'hide_aw'.tr(),
-          icon: SvgPicture.asset('assets/images/hide_artwork_white.svg'),
-          onTap: () async {
-            await injector<ConfigurationService>()
-                .updateTempStorageHiddenTokenIDs([asset.id], !isHidden);
-            unawaited(injector<SettingsDataService>().backup());
+        if (!widget.payload.useIndexer)
+          OptionItem(
+            title: isHidden ? 'unhide_aw'.tr() : 'hide_aw'.tr(),
+            icon: SvgPicture.asset('assets/images/hide_artwork_white.svg'),
+            onTap: () async {
+              await injector<ConfigurationService>()
+                  .updateTempStorageHiddenTokenIDs([asset.id], !isHidden);
+              unawaited(injector<SettingsDataService>().backup());
 
-            if (!context.mounted) {
-              return;
-            }
-            NftCollectionBloc.eventController.add(ReloadEvent());
-            Navigator.of(context).pop();
-            unawaited(UIHelper.showHideArtworkResultDialog(context, !isHidden,
-                onOK: () {
-              Navigator.of(context).popUntil((route) =>
-                  route.settings.name == AppRouter.homePage ||
-                  route.settings.name == AppRouter.homePageNoTransition);
-            }));
-          },
-        ),
+              if (!context.mounted) {
+                return;
+              }
+              NftCollectionBloc.eventController.add(ReloadEvent());
+              Navigator.of(context).pop();
+              unawaited(UIHelper.showHideArtworkResultDialog(context, !isHidden,
+                  onOK: () {
+                Navigator.of(context).popUntil((route) =>
+                    route.settings.name == AppRouter.homePage ||
+                    route.settings.name == AppRouter.homePageNoTransition);
+              }));
+            },
+          ),
         if (asset.shouldShowDownloadArtwork && !isViewOnly)
           OptionItem(
             title: 'download_artwork'.tr(),
@@ -860,24 +860,25 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
             },
           ),
         ],
-        OptionItem(
-          title: 'refresh_metadata'.tr(),
-          icon: SvgPicture.asset(
-            'assets/images/refresh_metadata_white.svg',
-            width: 20,
-            height: 20,
+        if (!widget.payload.useIndexer)
+          OptionItem(
+            title: 'refresh_metadata'.tr(),
+            icon: SvgPicture.asset(
+              'assets/images/refresh_metadata_white.svg',
+              width: 20,
+              height: 20,
+            ),
+            onTap: () async {
+              await injector<TokensService>().fetchManualTokens([asset.id]);
+              if (!context.mounted) {
+                return;
+              }
+              Navigator.of(context).pop();
+              await Navigator.of(context).pushReplacementNamed(
+                  AppRouter.artworkDetailsPage,
+                  arguments: widget.payload.copyWith());
+            },
           ),
-          onTap: () async {
-            await injector<TokensService>().fetchManualTokens([asset.id]);
-            if (!context.mounted) {
-              return;
-            }
-            Navigator.of(context).pop();
-            await Navigator.of(context).pushReplacementNamed(
-                AppRouter.artworkDetailsPage,
-                arguments: widget.payload.copyWith());
-          },
-        ),
         OptionItem.emptyOptionItem,
       ],
     ));

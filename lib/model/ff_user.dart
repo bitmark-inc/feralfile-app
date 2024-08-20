@@ -83,7 +83,6 @@ class FFUserDetails extends FFUser {
   final String? location;
   final String? website;
 
-  // final VaultAddress? vaultAddresses;
   final List<FFUserDetails>? childs;
 
   FFUserDetails({
@@ -104,7 +103,6 @@ class FFUserDetails extends FFUser {
     super.accountNumber,
     this.location,
     this.website,
-    // this.vaultAddresses,
     this.childs,
   });
 
@@ -134,15 +132,13 @@ class FFUserDetails extends FFUser {
         accountNumber: json['accountNumber'] as String?,
         location: json['location'] as String?,
         website: json['website'] as String?,
-        // vaultAddresses: json['vaultAddresses'] != null
-        //     ? VaultAddress.fromJson(json['vaultAddresses'])
-        //     : null,
         childs: (json['childs'] as List?)
             ?.map((e) => FFUserDetails.fromJson(e))
             .toList(),
       );
 
   // toJson
+  @override
   Map<String, dynamic> toJson() => {
         'ID': id,
         'alias': alias,
@@ -217,6 +213,7 @@ class FFArtist extends FFUserDetails {
             : null,
       );
 
+  @override
   Map<String, dynamic> toJson() => {
         'ID': id,
         'alias': alias,
@@ -295,6 +292,7 @@ class FFCurator extends FFUserDetails {
       );
 
   // toJson
+  @override
   Map<String, dynamic> toJson() => {
         'ID': id,
         'alias': alias,

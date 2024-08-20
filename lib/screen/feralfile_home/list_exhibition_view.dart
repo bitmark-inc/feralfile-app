@@ -199,7 +199,7 @@ class _ListExhibitionViewState extends State<ListExhibitionView> {
                           exhibition: exhibition,
                           isFeaturedExhibition: false),
                     ),
-                    divider,
+                    if (index != widget.exhibitions.length - 1) divider,
                   ],
                 );
               },

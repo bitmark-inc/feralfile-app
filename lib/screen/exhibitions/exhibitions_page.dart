@@ -153,47 +153,50 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
         color: Colors.transparent,
         child: Column(
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: exhibition.id == SOURCE_EXHIBITION_ID
-                  ? SvgPicture.network(
-                      exhibition.coverUrl,
-                      height: estimatedHeight,
-                      placeholderBuilder: (context) => Container(
+            Expanded(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: exhibition.id == SOURCE_EXHIBITION_ID
+                    ? SvgPicture.network(
+                        exhibition.coverUrl,
                         height: estimatedHeight,
-                        width: estimatedWidth,
-                        color: Colors.transparent,
-                        child: const Center(
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            backgroundColor: AppColor.auQuickSilver,
-                            strokeWidth: 2,
+                        placeholderBuilder: (context) => Container(
+                          height: estimatedHeight,
+                          width: estimatedWidth,
+                          color: Colors.transparent,
+                          child: const Center(
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              backgroundColor: AppColor.auQuickSilver,
+                              strokeWidth: 2,
+                            ),
                           ),
                         ),
-                      ),
-                    )
-                  : CachedNetworkImage(
-                      imageUrl: exhibition.coverUrl,
-                      height: estimatedHeight,
-                      maxWidthDiskCache: estimatedWidth.toInt(),
-                      memCacheWidth: estimatedWidth.toInt(),
-                      memCacheHeight: estimatedHeight.toInt(),
-                      maxHeightDiskCache: estimatedHeight.toInt(),
-                      cacheManager: injector<CacheManager>(),
-                      placeholder: (context, url) => Container(
-                        height: estimatedHeight,
-                        width: estimatedWidth,
-                        color: Colors.transparent,
-                        child: const Center(
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            backgroundColor: AppColor.auQuickSilver,
-                            strokeWidth: 2,
+                      )
+                    : CachedNetworkImage(
+                        imageUrl: exhibition.coverUrl,
+                        // height: estimatedHeight,
+                        // maxWidthDiskCache: estimatedWidth.toInt(),
+                        // memCacheWidth: estimatedWidth.toInt(),
+                        // memCacheHeight: estimatedHeight.toInt(),
+                        // maxHeightDiskCache: estimatedHeight.toInt(),
+                        cacheManager: injector<CacheManager>(),
+                        placeholder: (context, url) => Container(
+                          height: estimatedHeight,
+                          width: estimatedWidth,
+                          color: Colors.transparent,
+                          child: const Center(
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              backgroundColor: AppColor.auQuickSilver,
+                              strokeWidth: 2,
+                            ),
                           ),
                         ),
+                        fit: BoxFit.fitWidth,
+                        filterQuality: FilterQuality.high,
                       ),
-                      fit: BoxFit.fitWidth,
-                    ),
+              ),
             ),
             const SizedBox(height: 20),
             Row(

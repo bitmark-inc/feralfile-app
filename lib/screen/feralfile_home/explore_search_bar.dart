@@ -65,9 +65,7 @@ class _ExploreBarState extends State<ExploreBar> {
               onClear: (value) {
                 _onSearch(null);
               },
-              onChanged: (value) {
-                // _onSearch(value);
-              },
+              onChanged: (value) {},
             ),
             onCancel: canCancel
                 ? () {

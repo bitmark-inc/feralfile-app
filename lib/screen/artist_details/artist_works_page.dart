@@ -8,6 +8,7 @@ import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/util/feralfile_artist_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/loading.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 
@@ -64,7 +65,7 @@ class _ArtistWorksPageState extends State<ArtistWorksPage> {
                 style: theme.textTheme.ppMori400White14,
               ),
               const SizedBox(height: 4),
-              Text('Artworks', style: theme.textTheme.ppMori700White14),
+              Text('artworks', style: theme.textTheme.ppMori700White14),
             ],
           )),
       backgroundColor: AppColor.primaryBlack,
@@ -76,8 +77,15 @@ class _ArtistWorksPageState extends State<ArtistWorksPage> {
         child: LoadingWidget(),
       );
 
-  Widget _emptyView(BuildContext context) =>
-      const Center(child: Text('No artwork found'));
+  Widget _emptyView(BuildContext context) {
+    final theme = Theme.of(context);
+    return Center(
+      child: Text(
+        'no_artwork_found'.tr(),
+        style: theme.textTheme.ppMori400White14,
+      ),
+    );
+  }
 
   Widget _buildBody(BuildContext context) {
     final seriesList = _seriesList;
@@ -89,6 +97,7 @@ class _ArtistWorksPageState extends State<ArtistWorksPage> {
     }
     return SeriesView(
       series: seriesList,
+      padding: const EdgeInsets.only(bottom: 48),
     );
   }
 }

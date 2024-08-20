@@ -56,8 +56,6 @@ abstract class FeralFileApi {
     @Query('includeArtist') bool includeArtist = true,
   });
 
-  // https://feralfile.com/api/exhibitions?relatedAccountIDs=0x8232F0eBd19327d8003991d52F084869c7C8A6d1&relatedAccountIDs=avaBztmgDtG2pX7cxCeLYLeTjG6gfpouAZSBfeGaP9gPY9VYDu
-
   @GET('/api/exhibitions')
   Future<ListExhibitionResponse> getAllExhibitions({
     @Query('sortBy') String? sortBy,

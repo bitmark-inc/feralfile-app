@@ -80,7 +80,7 @@ class _ArtistExhibitionsPageState extends State<ArtistExhibitionsPage> {
   Widget _emptyView(BuildContext context) {
     final theme = Theme.of(context);
     return Center(
-        child: Text('No Exhibition found',
+        child: Text('no_exhibition_found'.tr(),
             style: theme.textTheme.ppMori400White14));
   }
 
@@ -94,6 +94,7 @@ class _ArtistExhibitionsPageState extends State<ArtistExhibitionsPage> {
     }
     return ListExhibitionView(
       exhibitions: exhibitions,
+      padding: const EdgeInsets.only(bottom: 48),
     );
   }
 }

@@ -121,7 +121,6 @@ class FeaauredWorkViewState extends State<FeaauredWorkView> {
                         color: Colors.transparent,
                         child: Column(
                           children: [
-                            // Image.network(token.thumbnailURL ?? ''),
                             CachedNetworkImage(
                               imageUrl: token.thumbnailURL ?? '',
                               cacheManager: injector<CacheManager>(),
@@ -190,7 +189,7 @@ class FeaauredWorkViewState extends State<FeaauredWorkView> {
           token.id,
           token.owner,
         ),
-      ], 0, playlist: playlist),
+      ], 0, playlist: playlist, useIndexer: true),
     ));
   }
 
