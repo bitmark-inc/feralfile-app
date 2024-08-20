@@ -56,9 +56,8 @@ class AnnouncementServiceImpl implements AnnouncementService {
     try {
       announcements = await _iapApi.getAnnouncements(request);
       final localAnnouncement = _announcementStore.getAll();
-      announcements.removeWhere((element) =>
-          localAnnouncement.any((local) =>
-              local.announcementContentId == element.announcementContentId));
+      announcements.removeWhere((element) => localAnnouncement.any((local) =>
+          local.announcementContentId == element.announcementContentId));
       for (final announcement in announcements) {
         final localAnnouncement =
             AnnouncementLocal.fromAnnouncement(announcement);
@@ -130,8 +129,9 @@ class AnnouncementServiceImpl implements AnnouncementService {
     final announcement = getOldestAnnouncement();
     if (announcement != null) {
       final context = injector<NavigationService>().context;
-      final additionalData =
-          AdditionalData.fromJson(announcement.additionalData);
+      final additionalData = AdditionalData.fromJson(
+          announcement.additionalData,
+          announcementId: announcement.announcementContentId);
 
       /// If the announcement is expired, mark it as read and show the next one
       if (announcement.isExpired) {

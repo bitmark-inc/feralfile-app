@@ -9,7 +9,7 @@ class AnnouncementLocalAdapter extends TypeAdapter<AnnouncementLocal> {
   AnnouncementLocal read(BinaryReader reader) => AnnouncementLocal(
         announcementContentId: reader.readString(),
         content: reader.readString(),
-        additionalData: reader.read(),
+        additionalData: reader.readMap().cast<String, dynamic>(),
         startedAt: reader.readInt(),
         endedAt: reader.readInt(),
         read: reader.readBool(),
@@ -20,7 +20,7 @@ class AnnouncementLocalAdapter extends TypeAdapter<AnnouncementLocal> {
     writer
       ..writeString(obj.announcementContentId)
       ..writeString(obj.content)
-      ..write(obj.additionalData)
+      ..writeMap(obj.additionalData)
       ..writeInt(obj.startedAt)
       ..writeInt(obj.endedAt)
       ..writeBool(obj.read);
