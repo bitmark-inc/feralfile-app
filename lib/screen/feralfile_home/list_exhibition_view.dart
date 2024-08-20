@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/util/feralfile_artist_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/loading.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/gestures.dart';
@@ -107,8 +108,35 @@ class ExploreExhibitionState extends State<ExploreExhibition> {
     }
   }
 
+  Future<List<Exhibition>> _addSourceExhibitionIfNeeded(
+    List<Exhibition> exhibitions,
+  ) async {
+    final isExistingSourceExhibition =
+        exhibitions.any((exhibition) => exhibition.id == SOURCE_EXHIBITION_ID);
+
+    final shouldAddSourceExhibition = !isExistingSourceExhibition &&
+        widget.filters.isEmpty &&
+        (widget.searchText == null || widget.searchText!.isEmpty) &&
+        widget.sortBy == SortBy.openAt;
+
+    if (!shouldAddSourceExhibition) {
+      return exhibitions;
+    }
+    final sourceExhibition =
+        await injector<FeralFileService>().getSourceExhibition();
+    final exhibitionAfterSource = exhibitions.firstWhereOrNull((exhibition) =>
+        exhibition.exhibitionStartAt
+            .isBefore(sourceExhibition.exhibitionStartAt));
+    if (exhibitionAfterSource == null) {
+      return exhibitions..insert(exhibitions.length - 1, sourceExhibition);
+    } else {
+      final index = exhibitions.indexOf(exhibitionAfterSource);
+      return exhibitions..insert(index, sourceExhibition);
+    }
+  }
+
   Future<List<Exhibition>> _fetchExhibitions(BuildContext context,
-      {int offset = 0, int pageSize = 20}) async {
+      {int offset = 0, int pageSize = 50}) async {
     final sortBy = widget.sortBy;
     final exhibitions = await injector<FeralFileService>().getAllExhibitions(
       keywork: widget.searchText ?? '',
@@ -118,10 +146,12 @@ class ExploreExhibitionState extends State<ExploreExhibition> {
       sortOrder: sortBy.sortOrder.queryParam,
       filters: widget.filters,
     );
+    final exhibitionsWithSource =
+        await _addSourceExhibitionIfNeeded(exhibitions);
     setState(() {
-      _exhibitions = exhibitions;
+      _exhibitions = exhibitionsWithSource;
     });
-    return exhibitions;
+    return exhibitionsWithSource;
   }
 
   Future<void> _loadMoreExhibitions(BuildContext context,

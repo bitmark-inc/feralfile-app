@@ -31,36 +31,49 @@ class _ListPostViewState extends State<ListPostView> {
   Widget build(BuildContext context) {
     final divider =
         addDivider(height: 36, color: AppColor.auQuickSilver, thickness: 0.5);
-    return Padding(
-      padding: widget.padding,
-      child: CustomScrollView(
-        shrinkWrap: true,
-        physics: widget.isScrollable
-            ? const AlwaysScrollableScrollPhysics()
-            : const NeverScrollableScrollPhysics(),
-        slivers: [
-          SliverList(
-              delegate: SliverChildBuilderDelegate(
-            (context, index) {
-              final post = widget.posts[index];
-              return Column(
-                children: [
-                  GestureDetector(
-                    onTap: () {},
-                    child: Container(
-                      color: Colors.transparent,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: _postItem(context, post),
-                    ),
+    return CustomScrollView(
+      shrinkWrap: true,
+      physics: widget.isScrollable
+          ? const AlwaysScrollableScrollPhysics()
+          : const NeverScrollableScrollPhysics(),
+      slivers: [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsets.only(
+              top: widget.padding.top,
+            ),
+            child: SizedBox(),
+          ),
+        ),
+        SliverList(
+            delegate: SliverChildBuilderDelegate(
+          (context, index) {
+            final post = widget.posts[index];
+            return Column(
+              children: [
+                GestureDetector(
+                  onTap: () {},
+                  child: Container(
+                    color: Colors.transparent,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: _postItem(context, post),
                   ),
-                  if (index != widget.posts.length - 1) divider,
-                ],
-              );
-            },
-            childCount: widget.posts.length,
-          )),
-        ],
-      ),
+                ),
+                if (index != widget.posts.length - 1) divider,
+              ],
+            );
+          },
+          childCount: widget.posts.length,
+        )),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsets.only(
+              bottom: widget.padding.bottom,
+            ),
+            child: SizedBox(),
+          ),
+        ),
+      ],
     );
   }
 

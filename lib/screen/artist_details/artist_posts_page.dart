@@ -95,7 +95,7 @@ class _ArtistPostsPageState extends State<ArtistPostsPage> {
     }
     return ListPostView(
       posts: posts,
-      padding: const EdgeInsets.only(bottom: 48),
+      padding: const EdgeInsets.only(bottom: 48, top: 32),
     );
   }
 }

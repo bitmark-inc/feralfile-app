@@ -35,10 +35,10 @@ class _ArtistExhibitionsPageState extends State<ArtistExhibitionsPage> {
     final artistId = artist.id;
     final linkedAccountIds =
         artist.linkedAccounts.map((account) => account.id).toList();
-
     final response = await injector<FeralFileService>().getAllExhibitions(
       relatedAccountIDs: [artistId, ...linkedAccountIds],
     );
+
     setState(() {
       _exhibitions = response;
     });
@@ -94,7 +94,7 @@ class _ArtistExhibitionsPageState extends State<ArtistExhibitionsPage> {
     }
     return ListExhibitionView(
       exhibitions: exhibitions,
-      padding: const EdgeInsets.only(bottom: 48),
+      padding: const EdgeInsets.only(bottom: 48, top: 32),
     );
   }
 }
