@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/additional_data/additional_data.dart';
+import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -24,5 +27,11 @@ class JgCrystallineWorkGenerated extends AdditionalData {
 
     final indexId = JohnGerrardHelper.getIndexID(tokenId);
     await injector<NavigationService>().gotoArtworkDetailsPage(indexId);
+  }
+
+  @override
+  Future<bool> prepareBeforeShowing() async {
+    unawaited(injector<ClientTokenService>().refreshTokens());
+    return true;
   }
 }

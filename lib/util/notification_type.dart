@@ -8,15 +8,9 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/additional_data/additional_data.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
-import 'package:autonomy_flutter/service/client_token_service.dart';
-import 'package:autonomy_flutter/service/customer_support_service.dart';
-import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
-import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -123,13 +117,10 @@ class NotificationHandler {
 
   NotificationHandler._();
 
-  final RemoteConfigService _remoteConfig = injector<RemoteConfigService>();
-  final ClientTokenService _clientTokenService = injector<ClientTokenService>();
   final AnnouncementService _announcementService =
       injector<AnnouncementService>();
   final MetricClientService _metricClientService =
       injector<MetricClientService>();
-  final NavigationService _navigationService = injector<NavigationService>();
 
   Future<void> handleNotificationClicked(BuildContext context,
       OSNotification notification, PageController? pageController,
@@ -173,63 +164,16 @@ class NotificationHandler {
     }
 
     final additionalData = AdditionalData.fromJson(data);
-    final notificationType = additionalData.notificationType;
 
     // prepare for handling notification
-    switch (notificationType) {
-      case NotificationType.customerSupportNewMessage:
-      case NotificationType.customerSupportCloseIssue:
-        final notificationIssueID =
-            '${event.notification.additionalData?['issue_id']}';
-        injector<CustomerSupportService>().triggerReloadMessages.value += 1;
-        unawaited(injector<CustomerSupportService>().getIssues());
-        if (notificationIssueID == memoryValues.viewingSupportThreadIssueID) {
-          event.complete(null);
-          return;
-        }
-
-      case NotificationType.galleryNewNft:
-      case NotificationType.newPostcardTrip:
-      case NotificationType.jgCrystallineWorkGenerated:
-      case NotificationType.jgCrystallineWorkHasArrived:
-        unawaited(_clientTokenService.refreshTokens());
-      case NotificationType.artworkCreated:
-      case NotificationType.artworkReceived:
-      case NotificationType.giftMembership:
-        final isSubscribe = await injector<IAPService>().isSubscribed();
-        if (isSubscribe) {
-          await _navigationService.showPremiumUserCanNotClaim();
-          event.complete(null);
-          return;
-        }
-      default:
-        break;
-    }
-
-    if (!context.mounted) {
+    final shouldShow = await additionalData.prepareBeforeShowing();
+    if (!shouldShow || !context.mounted) {
       event.complete(null);
       return;
     }
 
-    // show notification
-    switch (notificationType) {
-      case NotificationType.newMessage:
-        final groupId = data['group_id'];
-
-        if (!_remoteConfig.getBool(ConfigGroup.viewDetail, ConfigKey.chat)) {
-          event.complete(null);
-          return;
-        }
-
-        final currentGroupId = memoryValues.currentGroupChatId;
-        if (groupId != currentGroupId) {
-          unawaited(_showNotification(
-              context, event, pageController, additionalData));
-        }
-      default:
-        unawaited(
-            _showNotification(context, event, pageController, additionalData));
-    }
+    unawaited(
+        _showNotification(context, event, pageController, additionalData));
 
     event.complete(null);
   }

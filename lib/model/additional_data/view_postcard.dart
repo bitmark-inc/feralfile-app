@@ -5,6 +5,7 @@ import 'package:autonomy_flutter/model/additional_data/additional_data.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
+import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/material.dart';
 import 'package:nft_collection/database/nft_collection_database.dart';
@@ -47,5 +48,11 @@ class ViewPostcard extends AdditionalData {
     unawaited(Navigator.of(context).pushNamed(
         AppRouter.claimedPostcardDetailsPage,
         arguments: postcardDetailPayload));
+  }
+
+  @override
+  Future<bool> prepareBeforeShowing() async {
+    unawaited(injector<ClientTokenService>().refreshTokens());
+    return true;
   }
 }

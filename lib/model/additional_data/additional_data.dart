@@ -134,7 +134,5 @@ class AdditionalData {
     log.info('AdditionalData: handle tap: $notificationType');
   }
 
-  Future<void> handleShowCallback() async {
-    log.info('AdditionalData: handle show callback id: $announcementContentId');
-  }
+  Future<bool> prepareBeforeShowing() async => true;
 }

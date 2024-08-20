@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/additional_data/additional_data.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
@@ -22,6 +23,9 @@ class ViewNewMessage extends AdditionalData {
     super.announcementContentId,
   });
 
+  final RemoteConfigService _remoteConfigService =
+      injector<RemoteConfigService>();
+
   @override
   bool get isTappable => true;
 
@@ -29,8 +33,7 @@ class ViewNewMessage extends AdditionalData {
   Future<void> handleTap(
       BuildContext context, PageController? pageController) async {
     log.info('ViewNewMessage: handle tap: $groupId');
-    if (!injector<RemoteConfigService>()
-        .getBool(ConfigGroup.viewDetail, ConfigKey.chat)) {
+    if (!_remoteConfigService.getBool(ConfigGroup.viewDetail, ConfigKey.chat)) {
       return;
     }
 
@@ -62,5 +65,17 @@ class ViewNewMessage extends AdditionalData {
         timer.cancel();
       }
     });
+  }
+
+  @override
+  Future<bool> prepareBeforeShowing() async {
+    if (!_remoteConfigService.getBool(ConfigGroup.viewDetail, ConfigKey.chat)) {
+      return false;
+    }
+    final currentGroupId = memoryValues.currentGroupChatId;
+    if (groupId == currentGroupId) {
+      return false;
+    }
+    return true;
   }
 }
