@@ -539,7 +539,7 @@ class MixpanelProp {
   static const method = 'method';
   static const isOnboarding = 'isOnboarding';
   static const id = 'id';
-  static const firstAppOpenDate = 'First App Open Date';
+  static const firstAppOpenDate = 'Test First App Open Date';
 }
 
 class MixpanelConfig {}
