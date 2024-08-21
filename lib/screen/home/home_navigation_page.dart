@@ -10,6 +10,7 @@ import 'dart:async';
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/model/additional_data/additional_data.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
@@ -351,28 +352,50 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
 
     _triggerShowAnnouncement();
 
-    OneSignal.shared.setNotificationWillShowInForegroundHandler((event) async {
-      await _announcementService.fetchAnnouncements();
-      if (!mounted) {
+    OneSignal.shared.setNotificationWillShowInForegroundHandler((event) {
+      log.info('Receive notification: ${event.notification.additionalData}');
+      if (event.notification.additionalData == null) {
         event.complete(null);
         return;
       }
-      await NotificationHandler.instance.shouldShowNotifications(
-        context,
-        event,
-        _pageController,
-      );
-    });
-    injector<AuditService>().auditFirstLog();
-    OneSignal.shared.setNotificationOpenedHandler((openedResult) {
+      final additionalData =
+          AdditionalData.fromJson(event.notification.additionalData!);
+      final id = additionalData.announcementContentId ??
+          event.notification.notificationId;
+      final body = event.notification.body;
+
+      /// should complete event after getting all data needed
+      /// and before calling async function
+      event.complete(null);
       Future.delayed(const Duration(milliseconds: 500), () async {
-        await _announcementService.fetchAnnouncements();
+        await injector<AnnouncementService>().fetchAnnouncements();
         if (!mounted) {
           return;
         }
-        unawaited(NotificationHandler.instance.handleNotificationClicked(
-            context, openedResult.notification, _pageController));
+        await NotificationHandler.instance.shouldShowNotifications(
+          context,
+          additionalData,
+          id,
+          body ?? '',
+          _pageController,
+        );
       });
+    });
+    injector<AuditService>().auditFirstLog();
+    OneSignal.shared.setNotificationOpenedHandler((openedResult) async {
+      log.info('Tapped push notification: '
+          '${openedResult.notification.additionalData}');
+      final additionalData =
+          AdditionalData.fromJson(openedResult.notification.additionalData!);
+      final id = additionalData.announcementContentId ??
+          openedResult.notification.notificationId;
+      final body = openedResult.notification.body;
+      await _announcementService.fetchAnnouncements();
+      if (!mounted) {
+        return;
+      }
+      unawaited(NotificationHandler.instance.handleNotificationClicked(
+          context, additionalData, id, body ?? '', _pageController));
     });
 
     if (!widget.payload.fromOnboarding) {

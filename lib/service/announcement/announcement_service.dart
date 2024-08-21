@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter_app_badger/flutter_app_badger.dart';
+import 'package:synchronized/synchronized.dart';
 
 abstract class AnnouncementService {
   Future<List<Announcement>> fetchAnnouncements();
@@ -44,6 +45,7 @@ class AnnouncementServiceImpl implements AnnouncementService {
 
   // queue of unread announcements, use this to avoid access to hive box
   final List<AnnouncementLocal> _queue = [];
+  final Lock _lock = Lock();
 
   static const int _fetchSize = 10;
 
@@ -64,8 +66,7 @@ class AnnouncementServiceImpl implements AnnouncementService {
       for (final announcement in announcements) {
         final localAnnouncement =
             AnnouncementLocal.fromAnnouncement(announcement);
-        await _announcementStore.save(
-            localAnnouncement, localAnnouncement.announcementContentId);
+        await _saveAnnouncement(localAnnouncement);
       }
       await _configurationService.setLastPullAnnouncementTime(
           DateTime.now().millisecondsSinceEpoch ~/ 1000);
@@ -99,8 +100,7 @@ class AnnouncementServiceImpl implements AnnouncementService {
     _queue.removeWhere((element) =>
         element.announcementContentId == announcement.announcementContentId);
     _updateBadger(_queue.length);
-    await _announcementStore.save(
-        announcement.markAsRead(), announcement.announcementContentId);
+    await _saveAnnouncement(announcement.markAsRead());
   }
 
   @override
@@ -182,5 +182,12 @@ class AnnouncementServiceImpl implements AnnouncementService {
     } else {
       unawaited(FlutterAppBadger.removeBadge());
     }
+  }
+
+  Future<void> _saveAnnouncement(AnnouncementLocal announcement) async {
+    await _lock.synchronized(() async {
+      await _announcementStore.save(
+          announcement, announcement.announcementContentId);
+    });
   }
 }

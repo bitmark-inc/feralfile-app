@@ -15,7 +15,6 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/material.dart';
-import 'package:onesignal_flutter/onesignal_flutter.dart';
 
 enum NotificationType {
   galleryNewNft,
@@ -124,21 +123,14 @@ class NotificationHandler {
   final MetricClientService _metricClientService =
       injector<MetricClientService>();
 
-  Future<void> handleNotificationClicked(BuildContext context,
-      OSNotification notification, PageController? pageController,
+  Future<void> handleNotificationClicked(
+      BuildContext context,
+      AdditionalData additionalData,
+      String id,
+      String body,
+      PageController? pageController,
       {String channel = 'push'}) async {
-    if (notification.additionalData == null) {
-      // Skip handling the notification without data
-      return;
-    }
-
-    log.info("Tap to notification: ${notification.body ?? "empty"} "
-        '\nAdditional data: ${notification.additionalData!}');
-
-    final additionalData =
-        AdditionalData.fromJson(notification.additionalData!);
-    final id =
-        additionalData.announcementContentId ?? notification.notificationId;
+    log.info('Tap to notification: $body ');
 
     /// mixpanel tracking: tap to notification
     _metricClientService.addEvent(
@@ -156,17 +148,17 @@ class NotificationHandler {
     await additionalData.handleTap(context, pageController);
   }
 
-  Future<void> shouldShowNotifications(BuildContext context,
-      OSNotificationReceivedEvent event, PageController? pageController) async {
-    log.info('Receive notification: ${event.notification}');
-    final data = event.notification.additionalData;
-    if (data == null) {
-      event.complete(null);
+  Future<void> shouldShowNotifications(
+      BuildContext context,
+      AdditionalData additionalData,
+      String id,
+      String body,
+      PageController? pageController) async {
+    /// after getting additionalData
+    await _announcementService.fetchAnnouncements();
+    if (!context.mounted) {
       return;
     }
-    final additionalData = AdditionalData.fromJson(data);
-
-    event.complete(null);
     // prepare for handling notification
     final shouldShow = await additionalData.prepareBeforeShowing();
     if (!shouldShow || !context.mounted) {
@@ -174,12 +166,13 @@ class NotificationHandler {
     }
 
     unawaited(
-        _showNotification(context, event, pageController, additionalData));
+        _showNotification(context, id, body, pageController, additionalData));
   }
 
   Future<void> _showNotification(
     BuildContext context,
-    OSNotificationReceivedEvent event,
+    String id,
+    String body,
     PageController? pageController,
     AdditionalData additionalData,
   ) async {
@@ -192,8 +185,7 @@ class NotificationHandler {
       _metricClientService.addEvent(
         MixpanelEvent.expiredBeforeViewing,
         data: {
-          MixpanelProp.notificationId: announcement?.announcementContentId ??
-              event.notification.notificationId,
+          MixpanelProp.notificationId: id,
           MixpanelProp.channel: 'in-app',
           MixpanelProp.type: additionalData.notificationType.toString(),
         },
@@ -206,13 +198,15 @@ class NotificationHandler {
 
     await showNotifications(
       context,
-      announcement?.announcementContentId ?? event.notification.notificationId,
-      body: event.notification.body,
+      id,
+      body: body,
       handler: additionalData.isTappable
           ? () async {
               await handleNotificationClicked(
                 context,
-                event.notification,
+                additionalData,
+                id,
+                body,
                 pageController,
                 channel: 'in-app',
               );
