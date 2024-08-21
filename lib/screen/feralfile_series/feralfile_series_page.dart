@@ -132,8 +132,8 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
             builderDelegate: PagedChildBuilderDelegate<Artwork>(
               itemBuilder: (context, artwork, index) => FFArtworkThumbnailView(
                 artwork: artwork,
-                cacheWidth: cacheWidth,
-                cacheHeight: cacheHeight,
+                // cacheWidth: cacheWidth,
+                // cacheHeight: cacheHeight,
                 onTap: () async {
                   final displayKey = series.displayKey;
                   final lastSelectedCanvasDevice = _canvasDeviceBloc.state

@@ -12,8 +12,8 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/feralfile_artist_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/view/feralfile_cache_network_image.dart';
 import 'package:autonomy_flutter/view/loading.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -293,7 +293,7 @@ class _ListExhibitionViewState extends State<ListExhibitionView> {
                         ),
                       ),
                     )
-                  : CachedNetworkImage(
+                  : FFCacheNetworkImage(
                       imageUrl: exhibition.coverUrl,
                       height: estimatedHeight,
                       maxWidthDiskCache: estimatedWidth.toInt(),
