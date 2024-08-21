@@ -65,7 +65,7 @@ class _ArtistWorksPageState extends State<ArtistWorksPage> {
                 style: theme.textTheme.ppMori400White14,
               ),
               const SizedBox(height: 4),
-              Text('artworks'.tr(), style: theme.textTheme.ppMori700White14),
+              Text('_artworks'.tr(), style: theme.textTheme.ppMori700White14),
             ],
           )),
       backgroundColor: AppColor.primaryBlack,
