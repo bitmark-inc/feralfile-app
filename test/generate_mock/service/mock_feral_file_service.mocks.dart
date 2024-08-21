@@ -6,6 +6,7 @@
 import 'dart:async' as _i8;
 import 'dart:io' as _i10;
 
+import 'package:autonomy_flutter/model/dailies.dart' as _i12;
 import 'package:autonomy_flutter/model/ff_account.dart' as _i3;
 import 'package:autonomy_flutter/model/ff_artwork.dart' as _i6;
 import 'package:autonomy_flutter/model/ff_exhibition.dart' as _i4;
@@ -116,6 +117,7 @@ class MockFeralFileService extends _i1.Mock implements _i7.FeralFileService {
           ),
         )),
       ) as _i8.Future<_i2.FFSeries>);
+
   @override
   _i8.Future<List<_i2.FFSeries>> getListSeries(
     String? exhibitionId, {
@@ -129,6 +131,7 @@ class MockFeralFileService extends _i1.Mock implements _i7.FeralFileService {
         ),
         returnValue: _i8.Future<List<_i2.FFSeries>>.value(<_i2.FFSeries>[]),
       ) as _i8.Future<List<_i2.FFSeries>>);
+
   @override
   _i8.Future<_i4.Exhibition?> getExhibitionFromTokenID(String? artworkID) =>
       (super.noSuchMethod(
@@ -138,6 +141,7 @@ class MockFeralFileService extends _i1.Mock implements _i7.FeralFileService {
         ),
         returnValue: _i8.Future<_i4.Exhibition?>.value(),
       ) as _i8.Future<_i4.Exhibition?>);
+
   @override
   _i8.Future<_i3.FeralFileResaleInfo> getResaleInfo(String? exhibitionID) =>
       (super.noSuchMethod(
@@ -154,6 +158,7 @@ class MockFeralFileService extends _i1.Mock implements _i7.FeralFileService {
           ),
         )),
       ) as _i8.Future<_i3.FeralFileResaleInfo>);
+
   @override
   _i8.Future<String?> getPartnerFullName(String? exhibitionId) =>
       (super.noSuchMethod(
@@ -163,6 +168,7 @@ class MockFeralFileService extends _i1.Mock implements _i7.FeralFileService {
         ),
         returnValue: _i8.Future<String?>.value(),
       ) as _i8.Future<String?>);
+
   @override
   _i8.Future<_i4.Exhibition> getExhibition(
     String? id, {
@@ -183,6 +189,7 @@ class MockFeralFileService extends _i1.Mock implements _i7.FeralFileService {
           ),
         )),
       ) as _i8.Future<_i4.Exhibition>);
+
   @override
   _i8.Future<List<_i4.Exhibition>> getAllExhibitions({
     String? sortBy = r'openAt',
@@ -203,6 +210,7 @@ class MockFeralFileService extends _i1.Mock implements _i7.FeralFileService {
         ),
         returnValue: _i8.Future<List<_i4.Exhibition>>.value(<_i4.Exhibition>[]),
       ) as _i8.Future<List<_i4.Exhibition>>);
+
   @override
   _i8.Future<_i4.Exhibition> getSourceExhibition() => (super.noSuchMethod(
         Invocation.method(
@@ -217,6 +225,7 @@ class MockFeralFileService extends _i1.Mock implements _i7.FeralFileService {
           ),
         )),
       ) as _i8.Future<_i4.Exhibition>);
+
   @override
   _i8.Future<_i4.Exhibition?> getUpcomingExhibition() => (super.noSuchMethod(
         Invocation.method(
@@ -225,6 +234,7 @@ class MockFeralFileService extends _i1.Mock implements _i7.FeralFileService {
         ),
         returnValue: _i8.Future<_i4.Exhibition?>.value(),
       ) as _i8.Future<_i4.Exhibition?>);
+
   @override
   _i8.Future<_i4.Exhibition> getFeaturedExhibition() => (super.noSuchMethod(
         Invocation.method(
@@ -239,6 +249,7 @@ class MockFeralFileService extends _i1.Mock implements _i7.FeralFileService {
           ),
         )),
       ) as _i8.Future<_i4.Exhibition>);
+
   @override
   _i8.Future<List<_i6.Artwork>> getFeaturedArtworks() => (super.noSuchMethod(
         Invocation.method(
@@ -247,6 +258,7 @@ class MockFeralFileService extends _i1.Mock implements _i7.FeralFileService {
         ),
         returnValue: _i8.Future<List<_i6.Artwork>>.value(<_i6.Artwork>[]),
       ) as _i8.Future<List<_i6.Artwork>>);
+
   @override
   _i8.Future<_i5.FeralFileListResponse<_i6.Artwork>> getSeriesArtworks(
     String? seriesId,
@@ -285,6 +297,7 @@ class MockFeralFileService extends _i1.Mock implements _i7.FeralFileService {
           ),
         )),
       ) as _i8.Future<_i5.FeralFileListResponse<_i6.Artwork>>);
+
   @override
   _i8.Future<_i6.Artwork?> getFirstViewableArtwork(String? seriesId) =>
       (super.noSuchMethod(
@@ -294,6 +307,7 @@ class MockFeralFileService extends _i1.Mock implements _i7.FeralFileService {
         ),
         returnValue: _i8.Future<_i6.Artwork?>.value(),
       ) as _i8.Future<_i6.Artwork?>);
+
   @override
   _i8.Future<String> getFeralfileActionMessage({
     required String? address,
@@ -320,6 +334,7 @@ class MockFeralFileService extends _i1.Mock implements _i7.FeralFileService {
           ),
         )),
       ) as _i8.Future<String>);
+
   @override
   _i8.Future<String> getFeralfileArtworkDownloadUrl({
     required String? artworkId,
@@ -349,6 +364,7 @@ class MockFeralFileService extends _i1.Mock implements _i7.FeralFileService {
           ),
         )),
       ) as _i8.Future<String>);
+
   @override
   _i8.Future<_i6.Artwork> getArtwork(String? artworkId) => (super.noSuchMethod(
         Invocation.method(
@@ -363,6 +379,7 @@ class MockFeralFileService extends _i1.Mock implements _i7.FeralFileService {
           ),
         )),
       ) as _i8.Future<_i6.Artwork>);
+
   @override
   _i8.Future<_i10.File?> downloadFeralfileArtwork(
     _i11.AssetToken? assetToken, {
@@ -379,4 +396,13 @@ class MockFeralFileService extends _i1.Mock implements _i7.FeralFileService {
         ),
         returnValue: _i8.Future<_i10.File?>.value(),
       ) as _i8.Future<_i10.File?>);
+
+  @override
+  _i8.Future<_i12.DailyToken?> getCurrentDailiesToken() => (super.noSuchMethod(
+        Invocation.method(
+          #getCurrentDailiesToken,
+          [],
+        ),
+        returnValue: _i8.Future<_i12.DailyToken?>.value(),
+      ) as _i8.Future<_i12.DailyToken?>);
 }

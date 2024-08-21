@@ -131,7 +131,7 @@ class ExploreSeriesViewState extends State<ExploreSeriesView> {
         limit: pageSize,
         filters: widget.filters);
     final series = res.result;
-    final paging = res.paging;
+    final paging = res.paging!;
     setState(() {
       _series = series;
       _paging = paging;
@@ -161,7 +161,7 @@ class ExploreSeriesViewState extends State<ExploreSeriesView> {
         sortOrder: widget.sortBy.sortOrder.queryParam,
         filters: widget.filters);
     final series = res.result;
-    final paging = res.paging;
+    final paging = res.paging!;
     setState(() {
       _series ??= [];
       _series!.addAll(series);

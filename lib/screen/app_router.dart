@@ -44,6 +44,8 @@ import 'package:autonomy_flutter/screen/customer_support/merchandise_order/merch
 import 'package:autonomy_flutter/screen/customer_support/support_customer_page.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_list_page.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
+import 'package:autonomy_flutter/screen/dailies_work/dailies_work_bloc.dart';
+import 'package:autonomy_flutter/screen/dailies_work/dailies_work_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_bloc.dart';
@@ -231,6 +233,7 @@ class AppRouter {
   static const addEthereumChainPage = 'add_ethereum_chain_page';
   static const artistsListPage = 'artists_list_page';
   static const exhibitionCustomNote = 'exhibition_custom_note';
+  static const dailyWorkPage = 'daily_work_page';
   static const userDetailsPage = 'artist_details_page';
   static const artistWorksPage = 'artist_works_page';
   static const artistExhibitionsPage = 'artist_exhibitions_page';
@@ -1183,6 +1186,17 @@ class AppRouter {
           builder: (context) => ExhibitionCustomNotePage(
             info: settings.arguments! as CustomExhibitionNote,
           ),
+        );
+
+      case dailyWorkPage:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) => MultiBlocProvider(providers: [
+            BlocProvider(
+              create: (_) => DailyWorkBloc(injector(), injector()),
+            ),
+            BlocProvider.value(value: canvasDeviceBloc),
+          ], child: const DailyWorkPage()),
         );
 
       case userDetailsPage:

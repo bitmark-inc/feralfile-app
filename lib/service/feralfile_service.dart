@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/feralfile_api.dart';
 import 'package:autonomy_flutter/gateway/source_exhibition_api.dart';
+import 'package:autonomy_flutter/model/dailies.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
@@ -24,6 +25,7 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/crawl_helper.dart';
+import 'package:autonomy_flutter/util/dailies_helper.dart';
 import 'package:autonomy_flutter/util/download_helper.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/feral_file_helper.dart';
@@ -189,6 +191,10 @@ abstract class FeralFileService {
 
   Future<File?> downloadFeralfileArtwork(AssetToken assetToken,
       {Function(int received, int total)? onReceiveProgress});
+
+  Future<DailyToken?> getCurrentDailiesToken();
+
+  Future<DailyToken?> getNextDailiesToken();
 
   Future<FeralFileListResponse<FFSeries>> exploreArtworks({
     String? sortBy,
@@ -817,6 +823,36 @@ class FeralFileServiceImpl extends FeralFileService {
         series,
         null,
         null);
+  }
+
+  Future<List<DailyToken>> _fetchDailiesTokens({int limit = 2}) async {
+    final resp = await _feralFileApi.getDailiesToken(limit: limit);
+    final dailiesTokens = resp.result;
+    DailiesHelper.updateDailies(dailiesTokens);
+    return dailiesTokens;
+  }
+
+  @override
+  Future<DailyToken?> getCurrentDailiesToken() async {
+    // call nextDailies to make daily tokens up to date
+    DailiesHelper.nextDailies;
+
+    DailyToken? currentDailiesToken = DailiesHelper.currentDailies;
+    if (currentDailiesToken == null) {
+      await _fetchDailiesTokens();
+      currentDailiesToken = DailiesHelper.currentDailies;
+    }
+    return currentDailiesToken;
+  }
+
+  @override
+  Future<DailyToken?> getNextDailiesToken() async {
+    DailyToken? currentDailiesToken = DailiesHelper.nextDailies;
+    if (currentDailiesToken == null) {
+      await _fetchDailiesTokens();
+      currentDailiesToken = DailiesHelper.currentDailies;
+    }
+    return currentDailiesToken;
   }
 
   @override

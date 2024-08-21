@@ -30,6 +30,7 @@ import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/au_file_service.dart';
 import 'package:autonomy_flutter/util/canvas_device_adapter.dart';
 import 'package:autonomy_flutter/util/custom_route_observer.dart';
+import 'package:autonomy_flutter/util/dailies_helper.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
@@ -158,6 +159,7 @@ Future<void> _setupApp() async {
   final isPremium = await injector.get<IAPService>().isSubscribed();
   await injector<ConfigurationService>().setPremium(isPremium);
   await JohnGerrardHelper.updateJohnGerrardLatestRevealIndex();
+  DailiesHelper.updateDailies([]);
 
   runApp(
     EasyLocalization(

@@ -134,7 +134,7 @@ class ExploreArtistViewState extends State<ExploreArtistView> {
       sortOrder: widget.sortBy.sortOrder.queryParam,
     );
     final artists = resp.result;
-    final paging = resp.paging;
+    final paging = resp.paging!;
     setState(() {
       _artists = artists;
       _paging = paging;
@@ -160,7 +160,7 @@ class ExploreArtistViewState extends State<ExploreArtistView> {
     );
 
     final artists = resp.result;
-    final paging = resp.paging;
+    final paging = resp.paging!;
     setState(() {
       _artists!.addAll(artists);
       _paging = paging;
@@ -290,7 +290,7 @@ class ExploreCuratorViewState extends State<ExploreCuratorView> {
     );
     final ignoreCuratorIds = FeralFileExploreHelper.ignoreCuratorIds;
     final curators = resp.result;
-    final paging = resp.paging;
+    final paging = resp.paging!;
     setState(() {
       _curators = curators
           .where((curator) => !ignoreCuratorIds.contains(curator.id))
@@ -321,7 +321,7 @@ class ExploreCuratorViewState extends State<ExploreCuratorView> {
     final ignoreCuratorIds = FeralFileExploreHelper.ignoreCuratorIds;
 
     final curators = resp.result;
-    final paging = resp.paging;
+    final paging = resp.paging!;
     setState(() {
       _curators!.addAll(curators
           .where((curator) => !ignoreCuratorIds.contains(curator.id))
