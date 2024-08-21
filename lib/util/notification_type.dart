@@ -30,7 +30,6 @@ enum NotificationType {
   exhibitionViewingOpening,
   exhibitionSalesOpening,
   exhibitionSaleClosing,
-  giftMembership,
   navigate,
   general;
 
@@ -64,8 +63,6 @@ enum NotificationType {
         return 'exhibition_sale_opening';
       case NotificationType.exhibitionSaleClosing:
         return 'exhibition_sale_closing';
-      case NotificationType.giftMembership:
-        return 'gift_membership';
       case NotificationType.navigate:
         return 'navigate';
       case NotificationType.general:
@@ -102,8 +99,6 @@ enum NotificationType {
         return NotificationType.exhibitionSalesOpening;
       case 'exhibition_sale_closing':
         return NotificationType.exhibitionSaleClosing;
-      case 'gift_membership':
-        return NotificationType.giftMembership;
       case 'navigate':
         return NotificationType.navigate;
       default:

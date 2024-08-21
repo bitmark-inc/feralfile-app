@@ -1,5 +1,4 @@
 import 'package:autonomy_flutter/model/additional_data/cs_view_thread.dart';
-import 'package:autonomy_flutter/model/additional_data/gift_membership.dart';
 import 'package:autonomy_flutter/model/additional_data/jg_crystalline_work_generated.dart';
 import 'package:autonomy_flutter/model/additional_data/navigation_path.dart';
 import 'package:autonomy_flutter/model/additional_data/view_collection.dart'
@@ -106,13 +105,6 @@ class AdditionalData {
           }
           return ViewExhibition(
             exhibitionId: exhibitionId,
-            notificationType: notificationType,
-            announcementContentId: announcementContentId,
-          );
-        case NotificationType.giftMembership:
-          final giftCode = json['gift_code'];
-          return GiftMembership(
-            giftCode: giftCode,
             notificationType: notificationType,
             announcementContentId: announcementContentId,
           );
