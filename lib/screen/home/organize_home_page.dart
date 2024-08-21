@@ -17,7 +17,6 @@ import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
@@ -89,9 +88,7 @@ class OrganizeHomePageState extends State<OrganizeHomePage>
   }
 
   @override
-  void afterFirstLayout(BuildContext context) {
-    unawaited(injector<AutonomyService>().postLinkedAddresses());
-  }
+  void afterFirstLayout(BuildContext context) {}
 
   @override
   void dispose() {

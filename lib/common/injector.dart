@@ -41,7 +41,6 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
-import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/chat_auth_service.dart';
@@ -185,8 +184,6 @@ Future<void> setup() async {
   injector.registerSingleton<ConfigurationService>(
       ConfigurationServiceImpl(sharedPreferences));
   injector.registerLazySingleton(() => http.Client());
-  injector.registerLazySingleton<AutonomyService>(
-      () => AutonomyServiceImpl(injector(), injector()));
   injector
       .registerLazySingleton<MetricClientService>(() => MetricClientService());
   injector.registerLazySingleton<MixPanelClientService>(
@@ -197,7 +194,6 @@ Future<void> setup() async {
         injector(),
         injector(),
         auditService,
-        injector(),
         injector(),
         injector(),
         injector(),
