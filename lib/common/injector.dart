@@ -11,7 +11,6 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/gateway/announcement_api.dart';
-import 'package:autonomy_flutter/gateway/autonomy_api.dart';
 import 'package:autonomy_flutter/gateway/branch_api.dart';
 import 'package:autonomy_flutter/gateway/chat_api.dart';
 import 'package:autonomy_flutter/gateway/currency_exchange_api.dart';
@@ -212,8 +211,6 @@ Future<void> setup() async {
   injector.registerLazySingleton(() => ChatAuthService(injector()));
   injector.registerLazySingleton(
       () => IAPApi(authenticatedDio, baseUrl: Environment.autonomyAuthURL));
-  injector.registerLazySingleton(() =>
-      AutonomyApi(authenticatedDio, baseUrl: Environment.autonomyAuthURL));
 
   final tzktUrl = Environment.appTestnetConfig
       ? Environment.tzktTestnetURL
