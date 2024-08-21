@@ -14,9 +14,6 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
-import 'package:autonomy_flutter/screen/exhibitions/exhibitions_bloc.dart';
-import 'package:autonomy_flutter/screen/exhibitions/exhibitions_page.dart';
-import 'package:autonomy_flutter/screen/exhibitions/exhibitions_state.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/feralfile_home.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/feralfile_home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/collection_home_page.dart';
@@ -90,7 +87,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   late List<Widget> _pages;
   final GlobalKey<OrganizeHomePageState> _organizeHomePageKey = GlobalKey();
   final GlobalKey<CollectionHomePageState> _collectionHomePageKey = GlobalKey();
-  final GlobalKey<ExhibitionsPageState> _exhibitionsPageKey = GlobalKey();
   final GlobalKey<FeralfileHomePageState> _feralfileHomePageKey = GlobalKey();
   final GlobalKey<ScanQRPageState> _scanQRPageKey = GlobalKey();
   final _configurationService = injector<ConfigurationService>();
@@ -133,11 +129,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   }
 
   Future<void> openExhibition(String exhibitionId) async {
-    await _onItemTapped(HomeNavigatorTab.exhibition.index);
-    // delay to ensure the page is loaded
-    Future.delayed(const Duration(milliseconds: 1000), () {
-      _exhibitionsPageKey.currentState?.setAutoOpenExhibition(exhibitionId);
-    });
+    await _onItemTapped(HomeNavigatorTab.explore.index);
   }
 
   Future<void> openCollection() async {
@@ -153,9 +145,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         }
         if (index == HomeNavigatorTab.organization.index) {
           _organizeHomePageKey.currentState?.scrollToTop();
-        }
-        if (index == HomeNavigatorTab.exhibition.index) {
-          _exhibitionsPageKey.currentState?.scrollToTop();
         }
         if (index == HomeNavigatorTab.explore.index) {
           _feralfileHomePageKey.currentState?.scrollToTop();
@@ -176,9 +165,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
           index == HomeNavigatorTab.organization.index) {
         unawaited(_clientTokenService.refreshTokens());
         unawaited(_playListService.refreshPlayLists());
-      }
-      if (index == HomeNavigatorTab.exhibition.index) {
-        _exhibitionsPageKey.currentState?.refreshExhibitions();
       }
     } else {
       final currentIndex = _selectedIndex;
@@ -289,18 +275,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     _pages = <Widget>[
       CollectionHomePage(key: _collectionHomePageKey),
       OrganizeHomePage(key: _organizeHomePageKey),
-      MultiBlocProvider(
-          providers: [
-            BlocProvider.value(
-              value: injector<ExhibitionBloc>()..add(GetAllExhibitionsEvent()),
-            ),
-            BlocProvider.value(
-              value: injector<SubscriptionBloc>()..add(GetSubscriptionEvent()),
-            ),
-          ],
-          child: ExhibitionsPage(
-            key: _exhibitionsPageKey,
-          )),
       MultiBlocProvider(
           providers: [
             BlocProvider.value(
@@ -545,19 +519,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
           colorFilter: unselectedColorFilter,
         ),
         label: 'organize',
-      ),
-      FFNavigationBarItem(
-        icon: SvgPicture.asset(
-          'assets/images/controller_icon.svg',
-          height: iconSize,
-          colorFilter: selectedColorFilter,
-        ),
-        unselectedIcon: SvgPicture.asset(
-          'assets/images/controller_icon.svg',
-          height: iconSize,
-          colorFilter: unselectedColorFilter,
-        ),
-        label: 'exhibitions',
       ),
       FFNavigationBarItem(
         icon: SvgPicture.asset(

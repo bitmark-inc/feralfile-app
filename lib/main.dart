@@ -263,7 +263,6 @@ class MemoryValues {
 enum HomeNavigatorTab {
   collection,
   organization,
-  exhibition,
   explore,
   scanQr,
   menu;
@@ -276,8 +275,6 @@ enum HomeNavigatorTab {
         return AppRouter.collectionPage;
       case HomeNavigatorTab.organization:
         return AppRouter.organizePage;
-      case HomeNavigatorTab.exhibition:
-        return AppRouter.exhibitionsPage;
       case HomeNavigatorTab.explore:
         return AppRouter.explorePage;
       case HomeNavigatorTab.scanQr:

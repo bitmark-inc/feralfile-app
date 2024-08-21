@@ -1,8 +1,10 @@
 import 'dart:async';
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/post_view.dart';
@@ -52,7 +54,9 @@ class _ListPostViewState extends State<ListPostView> {
             return Column(
               children: [
                 GestureDetector(
-                  onTap: () {},
+                  onTap: () {
+                    _gotoPostDetail(context, post, post.exhibitionID!);
+                  },
                   child: Container(
                     color: Colors.transparent,
                     padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -157,5 +161,9 @@ class _ListPostViewState extends State<ListPostView> {
       AppRouter.exhibitionDetailPage,
       arguments: ExhibitionDetailPayload(exhibitions: [exhibition], index: 0),
     ));
+  }
+
+  void _gotoPostDetail(BuildContext context, Post post, String exhibitionID) {
+    injector<NavigationService>().openFeralFilePostPage(post, exhibitionID);
   }
 }

@@ -125,7 +125,7 @@ class _ProjectsPageState extends State<ProjectsPage>
             : tokenGalleryThumbnailWidget(
                 context,
                 asset,
-                cachedImageSize,
+                cachedImageSize * 3,
                 useHero: false,
                 usingThumbnailID: false,
               );
