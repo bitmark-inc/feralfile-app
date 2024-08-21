@@ -32,13 +32,13 @@ on:
 
 jobs:
   fastlane-deploy:
-    runs-on: [self-hosted, macOS, macm2, ios]
+    runs-on: [ self-hosted, macOS, macm2, ios ]
     steps:
       # Set up Flutter.
       - name: Clone Flutter repository with master channel
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.22.1"
+          flutter-version: "3.24.0"
           channel: stable
       #      - uses: maxim-lobanov/setup-xcode@v1
       #        with:
