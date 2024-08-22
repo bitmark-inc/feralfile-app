@@ -80,7 +80,7 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
       if (_configurationService.isDoneOnboarding()) {
         if (primaryAddressInfo == null) {
           try {
-            final addresses = await _addressService.getAllAddress();
+            final addresses = await _addressService.getAllEthereumAddress();
             if (addresses.isEmpty) {
               await _addressService.deriveAddressesFromAllPersona();
             }
@@ -183,7 +183,7 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
         try {
           final primaryAddressInfo =
               await _addressService.getPrimaryAddressInfo();
-          final addresses = await _addressService.getAllAddress();
+          final addresses = await _addressService.getAllEthereumAddress();
           if (addresses.isEmpty) {
             await _addressService.deriveAddressesFromAllPersona();
           }

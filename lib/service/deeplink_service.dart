@@ -509,13 +509,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
               if (addressWallets.isEmpty) {
                 primaryAddress = null;
               } else {
-                if (addressWallets.length == 1) {
-                  primaryAddress = addressWallets.first.address;
-                } else {
-                  final address =
-                      await addressService.pickMostNftAddress(addressWallets);
-                  primaryAddress = address.address;
-                }
+                primaryAddress = addressWallets.first.address;
               }
             }
           } catch (e) {

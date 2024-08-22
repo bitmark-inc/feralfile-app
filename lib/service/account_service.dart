@@ -371,7 +371,11 @@ class AccountServiceImpl extends AccountService {
     await _cloudDB.connectionDao.insertConnection(connection);
     await _nftCollectionAddressService.addAddresses([checkSumAddress]);
     unawaited(_autonomyService.postLinkedAddresses());
-    final allAddresses = await _addressService.getAllAddress();
+
+    /// to do:
+    /// after apply new onboarding, we disable view-only address at onboarding,
+    /// therefore, we do not need to register primary address here
+    final allAddresses = await _addressService.getAllEthereumAddress();
     if (allAddresses.isEmpty) {
       // for case when import view-only address,
       // the default account is not exist,
@@ -768,7 +772,7 @@ class AccountServiceImpl extends AccountService {
       // make sure has addresses
       // case 1: user has no backup,
       // case 2: user has backup but no addresses
-      final addresses = await _addressService.getAllAddress();
+      final addresses = await _addressService.getAllEthereumAddress();
       if (addresses.isEmpty) {
         // if user has no backup, derive addresses from keychain
         await _addressService.deriveAddressesFromAllPersona();
