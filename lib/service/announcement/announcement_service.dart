@@ -67,6 +67,12 @@ class AnnouncementServiceImpl implements AnnouncementService {
         final localAnnouncement =
             AnnouncementLocal.fromAnnouncement(announcement);
         await _saveAnnouncement(localAnnouncement);
+        if (_queue.isNotEmpty &&
+            !_queue.any((element) =>
+                element.announcementContentId ==
+                localAnnouncement.announcementContentId)) {
+          _queue.add(localAnnouncement);
+        }
       }
       await _configurationService.setLastPullAnnouncementTime(
           DateTime.now().millisecondsSinceEpoch ~/ 1000);
@@ -75,6 +81,7 @@ class AnnouncementServiceImpl implements AnnouncementService {
       return [];
     }
     log.info('Fetched announcements: ${announcements.length}');
+    _updateBadger(_queue.length);
     return announcements;
   }
 
