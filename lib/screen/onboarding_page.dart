@@ -450,7 +450,7 @@ class _OnboardingPageState extends State<OnboardingPage>
             margin: EdgeInsets.only(bottom: 40),
             builder: DotSwiperPaginationBuilder(
               color: Colors.grey,
-              activeColor: AppColor.feralFileHighlight,
+              activeColor: AppColor.white,
             ),
           ),
           control: const SwiperControl(

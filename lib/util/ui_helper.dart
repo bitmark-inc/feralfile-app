@@ -66,7 +66,7 @@ Future<void> doneOnboarding(BuildContext context) async {
   unawaited(
       injector<MetricClientService>().mixPanelClient.initIfDefaultAccount());
   await injector<NavigationService>()
-      .navigateUntil(AppRouter.homePage, (route) => false);
+      .navigateUntil(AppRouter.homePageNoTransition, (route) => false);
 }
 
 void nameContinue(BuildContext context) {

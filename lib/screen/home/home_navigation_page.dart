@@ -462,6 +462,10 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
 
   @override
   void dispose() {
+    _exhibitionsPageKey.currentState?.dispose();
+    _scanQRPageKey.currentState?.dispose();
+    _organizeHomePageKey.currentState?.dispose();
+    _collectionHomePageKey.currentState?.dispose();
     _pageController?.dispose();
     WidgetsBinding.instance.removeObserver(this);
     unawaited(_fgbgSubscription?.cancel());
