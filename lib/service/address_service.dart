@@ -28,6 +28,7 @@ class AddressService {
   AddressService(this._primaryAddressChannel, this._cloudDB, this._indexerApi);
 
   Future<AddressInfo?> getPrimaryAddressInfo() async {
+    return null;
     final addressInfo = await _primaryAddressChannel.getPrimaryAddress();
     log.info('[AddressService] Primary address info: ${addressInfo?.toJson()}');
     return addressInfo;
