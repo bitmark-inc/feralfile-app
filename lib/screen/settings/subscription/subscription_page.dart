@@ -49,39 +49,42 @@ class _SubscriptionPageState extends State<SubscriptionPage>
   Widget build(BuildContext context) {
     context.read<UpgradesBloc>().add(UpgradeQueryInfoEvent());
 
-    return Scaffold(
-      appBar: getBackAppBar(
-        context,
-        title: 'autonomy_pro'.tr(),
-        onBack: () {
-          if (widget.payload?.onBack != null) {
-            widget.payload?.onBack?.call();
-          } else {
-            Navigator.of(context).pop();
-          }
-        },
-      ),
-      body: SafeArea(
-        child:
-            BlocBuilder<UpgradesBloc, UpgradeState>(builder: (context, state) {
-          final subscriptionDetails = state.activeSubscriptionDetails;
-          return Swiper(
-            itemCount: subscriptionDetails.length,
-            onIndexChanged: (index) {},
-            index: initialIndex,
-            loop: false,
-            itemBuilder: (context, index) =>
-                _subcribeView(context, subscriptionDetails[index]),
-            pagination: subscriptionDetails.length > 1
-                ? const SwiperPagination(
-                    builder: DotSwiperPaginationBuilder(
-                        color: AppColor.auLightGrey,
-                        activeColor: MomaPallet.lightYellow),
-                  )
-                : null,
-            controller: SwiperController(),
-          );
-        }),
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
+        appBar: getBackAppBar(
+          context,
+          title: 'autonomy_pro'.tr(),
+          onBack: () {
+            if (widget.payload?.onBack != null) {
+              widget.payload?.onBack?.call();
+            } else {
+              Navigator.of(context).pop();
+            }
+          },
+        ),
+        body: SafeArea(
+          child: BlocBuilder<UpgradesBloc, UpgradeState>(
+              builder: (context, state) {
+            final subscriptionDetails = state.activeSubscriptionDetails;
+            return Swiper(
+              itemCount: subscriptionDetails.length,
+              onIndexChanged: (index) {},
+              index: initialIndex,
+              loop: false,
+              itemBuilder: (context, index) =>
+                  _subcribeView(context, subscriptionDetails[index]),
+              pagination: subscriptionDetails.length > 1
+                  ? const SwiperPagination(
+                      builder: DotSwiperPaginationBuilder(
+                          color: AppColor.auLightGrey,
+                          activeColor: MomaPallet.lightYellow),
+                    )
+                  : null,
+              controller: SwiperController(),
+            );
+          }),
+        ),
       ),
     );
   }
