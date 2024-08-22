@@ -27,9 +27,7 @@ class _ExhibitionPostViewState extends State<ExhibitionPostView> {
 
   @override
   void initState() {
-    if (widget.post.thumbnailUrls.isNotEmpty) {
-      thumbnailUrl = widget.post.thumbnailUrls[0];
-    }
+    thumbnailUrl = widget.post.thumbnailUrls.firstOrNull;
     loadThumbnailFailedCount = 0;
     super.initState();
   }
@@ -57,7 +55,7 @@ class _ExhibitionPostViewState extends State<ExhibitionPostView> {
                 style: theme.textTheme.ppMori400White12,
               ),
               const SizedBox(height: 30),
-              if (widget.post.thumbnailUrls.isNotEmpty) ...[
+              if (thumbnailUrl != null) ...[
                 _buildThumbnailWidget(),
                 const SizedBox(height: 20),
               ],
