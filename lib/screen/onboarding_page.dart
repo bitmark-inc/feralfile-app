@@ -361,13 +361,12 @@ class _OnboardingPageState extends State<OnboardingPage>
                 BlocBuilder<UpgradesBloc, UpgradeState>(
                     builder: (context, subscriptionState) {
                   final subscriptionDetails =
-                      subscriptionState.activeSubscriptionDetails;
+                      subscriptionState.activeSubscriptionDetails.firstOrNull;
                   return Column(
                     children: [
                       MembershipCard(
                           type: MembershipCardType.essential,
-                          price:
-                              '${subscriptionDetails.first.productDetails.currencySymbol}0/${subscriptionDetails.first.productDetails.period.name}',
+                          price: _getEssentialPrice(subscriptionDetails),
                           isProcessing: personaState.createAccountState ==
                                   ActionState.loading &&
                               _selectedMembershipCardType ==
@@ -380,8 +379,7 @@ class _OnboardingPageState extends State<OnboardingPage>
                       const SizedBox(height: 15),
                       MembershipCard(
                           type: MembershipCardType.premium,
-                          price:
-                              '${subscriptionDetails.first.productDetails.price}/${subscriptionDetails.first.productDetails.period.name}',
+                          price: _getPremiumPrice(subscriptionDetails),
                           isProcessing: personaState.createAccountState ==
                                   ActionState.loading &&
                               _selectedMembershipCardType ==
@@ -395,6 +393,20 @@ class _OnboardingPageState extends State<OnboardingPage>
                   );
                 })),
       );
+
+  String _getEssentialPrice(SubscriptionDetails? subscriptionDetails) {
+    if (subscriptionDetails == null) {
+      return r'$0/year';
+    }
+    return '${subscriptionDetails.productDetails.currencySymbol}0/${subscriptionDetails.productDetails.period.name}';
+  }
+
+  String _getPremiumPrice(SubscriptionDetails? subscriptionDetails) {
+    if (subscriptionDetails == null) {
+      return r'$200/year';
+    }
+    return '${subscriptionDetails.productDetails.price}/${subscriptionDetails.productDetails.period.name}';
+  }
 
   void _selectMembershipType(
       MembershipCardType type, PersonaState personaState) {

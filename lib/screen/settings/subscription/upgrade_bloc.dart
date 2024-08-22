@@ -24,29 +24,35 @@ class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
     // Query IAP info initially
     on<UpgradeQueryInfoEvent>((event, emit) async {
       // get JWT from configuration service
-      final jwt = _configurationService.getIAPJWT();
+      try {
+        final jwt = _configurationService.getIAPJWT();
 
-      if (jwt != null) {
-        // update purchase status in IAP service
-        final subscriptionStatus = jwt.getSubscriptionStatus();
-        if (subscriptionStatus.isPremium) {
-          // if subscription is premium, update purchase in IAP service
-          final id = premiumId();
-          _iapService.purchases.value[id] = subscriptionStatus.isTrial
-              ? IAPProductStatus.trial
-              : IAPProductStatus.completed;
+        if (jwt != null) {
+          // update purchase status in IAP service
+          final subscriptionStatus = jwt.getSubscriptionStatus();
+          if (subscriptionStatus.isPremium) {
+            // if subscription is premium, update purchase in IAP service
+            final id = premiumId();
+            _iapService.purchases.value[id] = subscriptionStatus.isTrial
+                ? IAPProductStatus.trial
+                : IAPProductStatus.completed;
+          } else {
+            // if subscription is free, update purchase in IAP service
+          }
+
+          // after updating purchase status, emit new state
+          emit(UpgradeState(
+            subscriptionDetails: listSubscriptionDetails,
+          ));
         } else {
-          // if subscription is free, update purchase in IAP service
+          // if no JWT, query IAP info
+          _onNewIAPEventFunc();
         }
-
-        // after updating purchase status, emit new state
-        emit(UpgradeState(
-          subscriptionDetails: listSubscriptionDetails,
-        ));
-      } else {
-        // if no JWT, query IAP info
-        _onNewIAPEventFunc();
+      } catch (error) {
+        log.info('UpgradeQueryInfoEvent error');
+        emit(UpgradeState(subscriptionDetails: []));
       }
+
     });
 
 // Return IAP info after getting from Apple / Google
