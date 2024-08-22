@@ -52,7 +52,6 @@ class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
         log.info('UpgradeQueryInfoEvent error');
         emit(UpgradeState(subscriptionDetails: []));
       }
-
     });
 
 // Return IAP info after getting from Apple / Google
