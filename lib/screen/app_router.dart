@@ -328,6 +328,9 @@ class AppRouter {
             BlocProvider(
               create: (_) => personaBloc,
             ),
+            BlocProvider(
+              create: (_) => UpgradesBloc(injector(), injector()),
+            )
           ], child: const OnboardingPage()),
         );
 
@@ -1012,13 +1015,14 @@ class AppRouter {
                   BlocProvider.value(value: accountsBloc),
                 ], child: const PreferencePage()));
       case subscriptionPage:
+        final payload = settings.arguments as SubscriptionPagePayload?;
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => MultiBlocProvider(providers: [
                   BlocProvider(
                     create: (_) => UpgradesBloc(injector(), injector()),
                   ),
-                ], child: const SubscriptionPage()));
+                ], child: SubscriptionPage(payload: payload)));
       case dataManagementPage:
         return CupertinoPageRoute(
             settings: settings,

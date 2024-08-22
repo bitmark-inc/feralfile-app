@@ -7,12 +7,14 @@ class MembershipCard extends StatelessWidget {
   final MembershipCardType type;
   final String price;
   final bool isProcessing;
-  final Function() onTap;
+  final bool isEnable;
+  final Function(MembershipCardType type) onTap;
 
   const MembershipCard({
     required this.type,
     required this.price,
     required this.isProcessing,
+    required this.isEnable,
     required this.onTap,
     super.key,
   });
@@ -38,7 +40,7 @@ class MembershipCard extends StatelessWidget {
                   ),
                   const Spacer(),
                   Text(
-                    '$price${'per_year'.tr()}',
+                    price,
                     style:
                         theme.textTheme.ppMori400Black16.copyWith(fontSize: 24),
                   ),
@@ -62,8 +64,8 @@ class MembershipCard extends StatelessWidget {
                   PrimaryButton(
                     text: 'select'.tr(),
                     isProcessing: isProcessing,
-                    enabled: !isProcessing,
-                    onTap: onTap,
+                    enabled: !isProcessing && isEnable,
+                    onTap: () => onTap(type),
                     color: AppColor.feralFileLightBlue,
                   )
                 ],

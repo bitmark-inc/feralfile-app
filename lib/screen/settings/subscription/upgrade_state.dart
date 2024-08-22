@@ -34,4 +34,21 @@ class UpgradeState {
   List<SubscriptionDetails> subscriptionDetails;
 
   UpgradeState({this.subscriptionDetails = const []});
+
+  List<SubscriptionDetails> get activeSubscriptionDetails {
+    final activeSubscriptionDetails = <SubscriptionDetails>[];
+    for (final subscriptionDetail in subscriptionDetails) {
+      final shouldIgnoreOnUI =
+          inactiveIds().contains(subscriptionDetail.productDetails.id) &&
+              !(subscriptionDetail.status == IAPProductStatus.completed ||
+                  subscriptionDetail.status == IAPProductStatus.trial &&
+                      subscriptionDetail.trialExpiredDate != null &&
+                      subscriptionDetail.trialExpiredDate!
+                          .isBefore(DateTime.now()));
+      if (!shouldIgnoreOnUI) {
+        activeSubscriptionDetails.add(subscriptionDetail);
+      }
+    }
+    return activeSubscriptionDetails;
+  }
 }

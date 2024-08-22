@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
@@ -54,15 +55,15 @@ class PersonaBloc extends AuBloc<PersonaEvent, PersonaState> {
 
     on<CreatePersonaAddressesEvent>((event, emit) async {
       emit(PersonaState(createAccountState: ActionState.loading));
-      // await Future.delayed(SHOW_DIALOG_DURATION);
-      Persona persona = await _accountService.getOrCreateDefaultPersona();
-      await persona.insertNextAddress(event.walletType, name: event.name);
-      emit(
-          PersonaState(createAccountState: ActionState.done, persona: persona));
-
-      await Future.delayed(const Duration(microseconds: 500), () {
+      try {
+        final persona = await _accountService.getOrCreateDefaultPersona();
+        await persona.insertNextAddress(event.walletType, name: event.name);
+        emit(PersonaState(
+            createAccountState: ActionState.done, persona: persona));
+      } catch (e) {
+        log.info('CreatePersonaAddressesEvent error', e);
         emit(state.copyWith(createAccountState: ActionState.error));
-      });
+      }
     });
   }
 }

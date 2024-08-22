@@ -27,7 +27,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class SubscriptionPage extends StatefulWidget {
-  const SubscriptionPage({super.key});
+  final SubscriptionPagePayload? payload;
+
+  const SubscriptionPage({super.key, this.payload});
 
   @override
   State<SubscriptionPage> createState() => _SubscriptionPageState();
@@ -43,24 +45,6 @@ class _SubscriptionPageState extends State<SubscriptionPage>
     injector<ConfigurationService>().showProTip.value = false;
   }
 
-  List<SubscriptionDetails> activeSubscriptionDetails(
-      List<SubscriptionDetails> subscriptionDetails) {
-    final activeSubscriptionDetails = <SubscriptionDetails>[];
-    for (final subscriptionDetail in subscriptionDetails) {
-      final shouldIgnoreOnUI =
-          inactiveIds().contains(subscriptionDetail.productDetails.id) &&
-              !(subscriptionDetail.status == IAPProductStatus.completed ||
-                  subscriptionDetail.status == IAPProductStatus.trial &&
-                      subscriptionDetail.trialExpiredDate != null &&
-                      subscriptionDetail.trialExpiredDate!
-                          .isBefore(DateTime.now()));
-      if (!shouldIgnoreOnUI) {
-        activeSubscriptionDetails.add(subscriptionDetail);
-      }
-    }
-    return activeSubscriptionDetails;
-  }
-
   @override
   Widget build(BuildContext context) {
     context.read<UpgradesBloc>().add(UpgradeQueryInfoEvent());
@@ -70,14 +54,17 @@ class _SubscriptionPageState extends State<SubscriptionPage>
         context,
         title: 'autonomy_pro'.tr(),
         onBack: () {
-          Navigator.of(context).pop();
+          if (widget.payload?.onBack != null) {
+            widget.payload?.onBack?.call();
+          } else {
+            Navigator.of(context).pop();
+          }
         },
       ),
       body: SafeArea(
         child:
             BlocBuilder<UpgradesBloc, UpgradeState>(builder: (context, state) {
-          final subscriptionDetails =
-              activeSubscriptionDetails(state.subscriptionDetails);
+          final subscriptionDetails = state.activeSubscriptionDetails;
           return Swiper(
             itemCount: subscriptionDetails.length,
             onIndexChanged: (index) {},
@@ -396,4 +383,10 @@ class _SubscriptionPageState extends State<SubscriptionPage>
     final ids = [subscriptionDetails.productDetails.id];
     context.read<UpgradesBloc>().add(UpgradePurchaseEvent(ids));
   }
+}
+
+class SubscriptionPagePayload {
+  final Function()? onBack;
+
+  SubscriptionPagePayload({this.onBack});
 }
