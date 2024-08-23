@@ -63,6 +63,8 @@ class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
 
 // Purchase event
     on<UpgradePurchaseEvent>((event, emit) async {
+      emit(UpgradeState(
+          subscriptionDetails: state.subscriptionDetails, isProcessing: true));
       final listSubscriptionDetails = state.subscriptionDetails;
       final subscriptionIds = event.subscriptionIds;
       for (final subscriptionId in subscriptionIds) {

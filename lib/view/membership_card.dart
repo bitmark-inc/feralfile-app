@@ -9,6 +9,7 @@ class MembershipCard extends StatelessWidget {
   final bool isProcessing;
   final bool isEnable;
   final Function(MembershipCardType type) onTap;
+  final String? buttonText;
 
   const MembershipCard({
     required this.type,
@@ -16,6 +17,7 @@ class MembershipCard extends StatelessWidget {
     required this.isProcessing,
     required this.isEnable,
     required this.onTap,
+    this.buttonText,
     super.key,
   });
 
@@ -62,7 +64,7 @@ class MembershipCard extends StatelessWidget {
                       )),
                   const SizedBox(height: 10),
                   PrimaryButton(
-                    text: 'select'.tr(),
+                    text: buttonText ?? 'select'.tr(),
                     isProcessing: isProcessing,
                     enabled: !isProcessing && isEnable,
                     onTap: () => onTap(type),

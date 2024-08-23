@@ -22,6 +22,7 @@ import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/product_details_ext.dart';
+import 'package:autonomy_flutter/util/subscription_detail_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -405,7 +406,7 @@ class _OnboardingPageState extends State<OnboardingPage>
     if (subscriptionDetails == null) {
       return r'$200/year';
     }
-    return '${subscriptionDetails.productDetails.price}/${subscriptionDetails.productDetails.period.name}';
+    return subscriptionDetails.price;
   }
 
   void _selectMembershipType(

@@ -54,7 +54,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
       child: Scaffold(
         appBar: getBackAppBar(
           context,
-          title: 'autonomy_pro'.tr(),
+          title: 'go_premium'.tr(),
           onBack: () {
             if (widget.payload?.onBack != null) {
               widget.payload?.onBack?.call();

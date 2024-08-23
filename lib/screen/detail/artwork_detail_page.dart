@@ -337,45 +337,39 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                           centerTitle: false,
                           backgroundColor: Colors.transparent,
                           actions: [
-                            BlocBuilder<SubscriptionBloc, SubscriptionState>(
-                                builder: (context, subscriptionState) {
-                              if (subscriptionState.isSubscribed) {
-                                return FFCastButton(
-                                  displayKey: _getDisplayKey(asset),
-                                  onDeviceSelected: (device) {
-                                    if (widget.payload.playlist == null) {
-                                      final artwork = PlayArtworkV2(
-                                        token: CastAssetToken(id: asset.id),
-                                        duration: 0,
-                                      );
-                                      _canvasDeviceBloc.add(
-                                          CanvasDeviceCastListArtworkEvent(
-                                              device, [artwork]));
-                                    } else {
-                                      final playlist = widget.payload.playlist!;
-                                      final listTokenIds = playlist.tokenIDs;
-                                      if (listTokenIds == null) {
-                                        log.info('Playlist tokenIds is null');
-                                        return;
-                                      }
+                            FFCastButton(
+                              displayKey: _getDisplayKey(asset),
+                              onDeviceSelected: (device) {
+                                if (widget.payload.playlist == null) {
+                                  final artwork = PlayArtworkV2(
+                                    token: CastAssetToken(id: asset.id),
+                                    duration: 0,
+                                  );
+                                  _canvasDeviceBloc.add(
+                                      CanvasDeviceCastListArtworkEvent(
+                                          device, [artwork]));
+                                } else {
+                                  final playlist = widget.payload.playlist!;
+                                  final listTokenIds = playlist.tokenIDs;
+                                  if (listTokenIds == null) {
+                                    log.info('Playlist tokenIds is null');
+                                    return;
+                                  }
 
-                                      final duration = speedValues
-                                          .values.first.inMilliseconds;
-                                      final listPlayArtwork = listTokenIds
-                                          .rotateListByItem(asset.id)
-                                          .map((e) => PlayArtworkV2(
-                                              token: CastAssetToken(id: e),
-                                              duration: duration))
-                                          .toList();
-                                      _canvasDeviceBloc.add(
-                                          CanvasDeviceChangeControlDeviceEvent(
-                                              device, listPlayArtwork));
-                                    }
-                                  },
-                                );
-                              }
-                              return const SizedBox();
-                            }),
+                                  final duration =
+                                      speedValues.values.first.inMilliseconds;
+                                  final listPlayArtwork = listTokenIds
+                                      .rotateListByItem(asset.id)
+                                      .map((e) => PlayArtworkV2(
+                                          token: CastAssetToken(id: e),
+                                          duration: duration))
+                                      .toList();
+                                  _canvasDeviceBloc.add(
+                                      CanvasDeviceChangeControlDeviceEvent(
+                                          device, listPlayArtwork));
+                                }
+                              },
+                            ),
                           ],
                         ),
                       ),
