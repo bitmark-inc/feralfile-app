@@ -10,7 +10,6 @@
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
-import 'package:autonomy_flutter/gateway/autonomy_api.dart';
 import 'package:autonomy_flutter/gateway/branch_api.dart';
 import 'package:autonomy_flutter/gateway/chat_api.dart';
 import 'package:autonomy_flutter/gateway/currency_exchange_api.dart';
@@ -42,7 +41,6 @@ import 'package:autonomy_flutter/service/announcement/announcement_service.dart'
 import 'package:autonomy_flutter/service/announcement/announcement_store.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
-import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/chat_auth_service.dart';
@@ -187,8 +185,6 @@ Future<void> setup() async {
   injector.registerSingleton<ConfigurationService>(
       ConfigurationServiceImpl(sharedPreferences));
   injector.registerLazySingleton(() => http.Client());
-  injector.registerLazySingleton<AutonomyService>(
-      () => AutonomyServiceImpl(injector(), injector()));
   injector
       .registerLazySingleton<MetricClientService>(() => MetricClientService());
   injector.registerLazySingleton<MixPanelClientService>(
@@ -199,7 +195,6 @@ Future<void> setup() async {
         injector(),
         injector(),
         auditService,
-        injector(),
         injector(),
         injector(),
         injector(),
@@ -218,8 +213,6 @@ Future<void> setup() async {
   injector.registerLazySingleton(() => ChatAuthService(injector()));
   injector.registerLazySingleton(
       () => IAPApi(authenticatedDio, baseUrl: Environment.autonomyAuthURL));
-  injector.registerLazySingleton(() =>
-      AutonomyApi(authenticatedDio, baseUrl: Environment.autonomyAuthURL));
 
   final tzktUrl = Environment.appTestnetConfig
       ? Environment.tzktTestnetURL

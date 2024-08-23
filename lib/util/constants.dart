@@ -547,6 +547,7 @@ class MixpanelProp {
   static const content = 'content';
   static const category = 'category';
   static const channel = 'channel';
+  static const firstAppOpenDate = 'First App Open Date';
 }
 
 class MixpanelConfig {}
