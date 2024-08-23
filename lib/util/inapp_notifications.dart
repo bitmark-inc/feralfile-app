@@ -224,8 +224,7 @@ Future<void> showNotifications(
     slideDismissDirection: DismissDirection.up,
   );
   Vibrate.feedback(FeedbackType.warning);
-  final future = notification.dismissed;
-  await future;
+  await notification.dismissed;
   await injector<AnnouncementService>().markAsRead(id);
   configurationService.showingNotification.value = false;
   if (!didTap) {

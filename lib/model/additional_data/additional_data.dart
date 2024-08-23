@@ -23,9 +23,8 @@ class AdditionalData {
   bool get isTappable => false;
 
   static AdditionalData fromJson(Map<String, dynamic> json,
-      {String? type, String? announcementId}) {
-    final announcementContentId =
-        announcementId ?? json['announcementContentID'];
+      {String? type}) {
+    final announcementContentId = json['announcementContentID'];
     try {
       final notificationType =
           NotificationType.fromString(type ?? json['notification_type']);

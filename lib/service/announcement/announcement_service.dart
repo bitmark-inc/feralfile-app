@@ -141,9 +141,10 @@ class AnnouncementServiceImpl implements AnnouncementService {
     final announcement = getOldestUnreadAnnouncement();
     if (announcement != null) {
       final context = injector<NavigationService>().context;
-      final additionalData = AdditionalData.fromJson(
-          announcement.additionalData,
-          announcementId: announcement.announcementContentId);
+      final data = announcement.additionalData;
+      data['announcementContentID'] = announcement.announcementContentId;
+      final additionalData =
+          AdditionalData.fromJson(announcement.additionalData);
 
       /// If the announcement is expired, mark it as read and show the next one
       if (announcement.isExpired) {

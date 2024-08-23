@@ -46,7 +46,7 @@ class NavigationService {
 
   PageController? get pageController => _pageController;
 
-  void setPageController(PageController? controller) {
+  void setGlobalHomeTabController(PageController? controller) {
     _pageController = controller;
   }
 

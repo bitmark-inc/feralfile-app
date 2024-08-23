@@ -664,7 +664,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
 
   PageController _getPageController(int initialIndex) {
     final pageController = PageController(initialPage: initialIndex);
-    injector<NavigationService>().setPageController(pageController);
+    injector<NavigationService>().setGlobalHomeTabController(pageController);
     return pageController;
   }
 
