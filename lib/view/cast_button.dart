@@ -23,13 +23,16 @@ class FFCastButton extends StatefulWidget {
   final String displayKey;
   final String? text;
   final String? type;
+  final bool shouldCheckSubscription;
 
-  const FFCastButton(
-      {required this.displayKey,
-      this.type = '',
-      super.key,
-      this.onDeviceSelected,
-      this.text});
+  const FFCastButton({
+    required this.displayKey,
+    this.type = '',
+    super.key,
+    this.onDeviceSelected,
+    this.text,
+    this.shouldCheckSubscription = true,
+  });
 
   @override
   State<FFCastButton> createState() => _FFCastButtonState();
@@ -61,7 +64,7 @@ class _FFCastButtonState extends State<FFCastButton> {
           final isSubscribed = subscriptionState.isSubscribed;
           return IconButton(
             onPressed: () async {
-              if (isSubscribed) {
+              if (widget.shouldCheckSubscription && isSubscribed) {
                 await _showStreamAction(context, widget.displayKey);
               } else {
                 await _showUpgradeDialog(context);

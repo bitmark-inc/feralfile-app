@@ -195,7 +195,6 @@ class DailyWorkPageState extends State<DailyWorkPage>
               canvasDeviceBloc.add(CanvasDeviceCastDailyWorkEvent(
                   device, CastDailyWorkRequest()));
             },
-            text: 'display'.tr(),
           ),
         ],
       );

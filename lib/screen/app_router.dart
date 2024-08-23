@@ -374,6 +374,9 @@ class AppRouter {
                             )),
                     BlocProvider(create: (_) => identityBloc),
                     BlocProvider.value(value: royaltyBloc),
+                    BlocProvider.value(
+                      value: subscriptionBloc,
+                    ),
                     BlocProvider(
                       create: (_) => personaBloc,
                     ),
@@ -400,6 +403,9 @@ class AppRouter {
                             )),
                     BlocProvider(create: (_) => identityBloc),
                     BlocProvider.value(value: royaltyBloc),
+                    BlocProvider.value(
+                      value: subscriptionBloc,
+                    ),
                     BlocProvider(
                       create: (_) => personaBloc,
                     ),
