@@ -6,11 +6,9 @@
 //
 
 import 'dart:convert';
-import 'dart:io';
 import 'dart:math';
 
 import 'package:autonomy_flutter/common/environment.dart';
-import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/feralfile_api.dart';
 import 'package:autonomy_flutter/gateway/source_exhibition_api.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
@@ -18,19 +16,15 @@ import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/ff_list_response.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/crawl_helper.dart';
-import 'package:autonomy_flutter/util/download_helper.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/feral_file_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/series_ext.dart';
-import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import 'package:nft_collection/models/asset_token.dart';
 
 enum ArtworkModel {
   multi,
@@ -170,19 +164,7 @@ abstract class FeralFileService {
 
   Future<Artwork?> getFirstViewableArtwork(String seriesId);
 
-  Future<String> getFeralfileActionMessage(
-      {required String address, required FeralfileAction action});
-
-  Future<String> getFeralfileArtworkDownloadUrl({
-    required String artworkId,
-    required String owner,
-    required String signature,
-  });
-
   Future<Artwork> getArtwork(String artworkId);
-
-  Future<File?> downloadFeralfileArtwork(AssetToken assetToken,
-      {Function(int received, int total)? onReceiveProgress});
 }
 
 class FeralFileServiceImpl extends FeralFileService {
@@ -440,8 +422,8 @@ class FeralFileServiceImpl extends FeralFileService {
             );
             previewURI += tokenParameters;
           } catch (error, stackTrace) {
-            log.info(
-                '[FeralFileService] Get preview URI failed: $error, $stackTrace');
+            log.info('[FeralFileService] '
+                'Get preview URI failed: $error, $stackTrace');
           }
         } else {
           previewURI = '${series.uniquePreviewPath}/$artworkIndex';
@@ -534,67 +516,9 @@ class FeralFileServiceImpl extends FeralFileService {
   }
 
   @override
-  Future<String> getFeralfileActionMessage(
-      {required String address, required FeralfileAction action}) async {
-    final response = await _feralFileApi.getActionMessage({
-      'address': address,
-      'action': action.action,
-    });
-    return response.message;
-  }
-
-  @override
-  Future<String> getFeralfileArtworkDownloadUrl(
-      {required String artworkId,
-      required String owner,
-      required String signature}) async {
-    final FeralFileResponse<String> response =
-        await _feralFileApi.getDownloadUrl(artworkId, signature, owner);
-    return response.result;
-  }
-
-  @override
   Future<Artwork> getArtwork(String artworkId) async {
     final response = await _feralFileApi.getArtworks(artworkId);
     return response.result;
-  }
-
-  @override
-  Future<File?> downloadFeralfileArtwork(AssetToken assetToken,
-      {Function(int received, int total)? onReceiveProgress}) async {
-    try {
-      final artwork = await injector<FeralFileService>()
-          .getArtwork(assetToken.tokenId ?? '');
-      final message =
-          await injector<FeralFileService>().getFeralfileActionMessage(
-        address: assetToken.owner,
-        action: FeralfileAction.downloadSeries,
-      );
-      const prefix = 'feralfile:';
-      final message2Sign = '$prefix$message';
-      final ownerAddress = assetToken.owner;
-      final chain = assetToken.blockchain;
-      final account = await injector<AccountService>()
-          .getAccountByAddress(chain: chain, address: ownerAddress);
-      final signature =
-          await account.signMessage(chain: chain, message: message2Sign);
-      final publicKey = await account.wallet.getTezosPublicKey();
-      final signatureString = '$message2Sign|$signature|$publicKey';
-      final signatureHex = base64.encode(utf8.encode(signatureString));
-
-      final url =
-          await injector<FeralFileService>().getFeralfileArtworkDownloadUrl(
-        artworkId: artwork.id,
-        signature: signatureHex,
-        owner: ownerAddress,
-      );
-      final file = DownloadHelper.fileChunkedDownload(url,
-          onReceiveProgress: onReceiveProgress);
-      return file;
-    } catch (e) {
-      log.info('Error downloading artwork: $e');
-      rethrow;
-    }
   }
 
   @override
@@ -738,16 +662,5 @@ class FeralFileServiceImpl extends FeralFileService {
         series,
         null,
         null);
-  }
-}
-
-enum FeralfileAction {
-  downloadSeries;
-
-  String get action {
-    switch (this) {
-      case FeralfileAction.downloadSeries:
-        return 'download series';
-    }
   }
 }
