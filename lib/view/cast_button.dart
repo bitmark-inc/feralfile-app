@@ -170,7 +170,7 @@ class _FFCastButtonState extends State<FFCastButton> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'you_need_to_subscribe'.tr(),
+                    'see_more_art'.tr(),
                     style: Theme.of(context).textTheme.ppMori400White14,
                   ),
                   const SizedBox(height: 20),

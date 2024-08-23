@@ -58,9 +58,12 @@ class MembershipCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  ...type.features.map((feature) => Text(
-                        feature,
-                        style: theme.textTheme.ppMori400Black14,
+                  ...type.features.map((feature) => Padding(
+                        padding: const EdgeInsets.only(left: 5),
+                        child: Text(
+                          feature,
+                          style: theme.textTheme.ppMori400Black14,
+                        ),
                       )),
                   const SizedBox(height: 10),
                   PrimaryButton(
@@ -101,8 +104,8 @@ enum MembershipCardType {
         ];
       case MembershipCardType.premium:
         return [
-          'feature_1'.tr(),
           'feature_3'.tr(),
+          'feature_4'.tr(),
         ];
     }
   }
