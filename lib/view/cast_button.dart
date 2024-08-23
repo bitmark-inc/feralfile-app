@@ -64,7 +64,7 @@ class _FFCastButtonState extends State<FFCastButton> {
           final isSubscribed = subscriptionState.isSubscribed;
           return IconButton(
             onPressed: () async {
-              if (widget.shouldCheckSubscription && isSubscribed) {
+              if (!widget.shouldCheckSubscription || isSubscribed) {
                 await _showStreamAction(context, widget.displayKey);
               } else {
                 await _showUpgradeDialog(context);
