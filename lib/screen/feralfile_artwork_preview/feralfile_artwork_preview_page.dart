@@ -4,8 +4,6 @@ import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
-import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/keyboard_control_page.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -136,19 +134,12 @@ class _FeralFileArtworkPreviewPageState
                           )
                         : getFFAppBar(context,
                             onBack: () => Navigator.pop(context),
-                            action: BlocBuilder<SubscriptionBloc,
-                                    SubscriptionState>(
-                                builder: (context, subscriptionState) {
-                              if (subscriptionState.isSubscribed) {
-                                return FFCastButton(
-                                  displayKey: widget.payload.artwork.series
-                                          ?.exhibitionID ??
+                            action: FFCastButton(
+                              displayKey:
+                                  widget.payload.artwork.series?.exhibitionID ??
                                       '',
-                                  onDeviceSelected: _onDeviceSelected,
-                                );
-                              }
-                              return const SizedBox();
-                            })),
+                              onDeviceSelected: _onDeviceSelected,
+                            )),
                 backgroundColor: AppColor.primaryBlack,
                 frontLayerElevation: _isFullScreen ? 0 : 1,
                 frontLayerBackgroundColor:

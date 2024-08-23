@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/model/jwt.dart'; // import 'package:autonomy_fl
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/notification_util.dart';
 import 'package:autonomy_flutter/util/primary_address_channel.dart';
 import 'package:libauk_dart/libauk_dart.dart';
@@ -166,6 +167,7 @@ class AuthService {
         address: didKey,
         timestamp: timestamp,
       );
+      log.info('setting external user by did: $didKey');
       unawaited(OneSignalHelper.setExternalUserId(userId: didKey));
       final signatureForDidKey =
           await defaultAccount.getAccountDIDSignature(messageForDidKey);

@@ -14,18 +14,43 @@ class UpgradeQueryInfoEvent extends UpgradeEvent {}
 
 class UpgradeIAPInfoEvent extends UpgradeEvent {}
 
-class UpgradePurchaseEvent extends UpgradeEvent {}
+class UpgradePurchaseEvent extends UpgradeEvent {
+  final List<String> subscriptionIds;
 
-class UpgradeUpdateEvent extends UpgradeEvent {
-  final UpgradeState newState;
+  UpgradePurchaseEvent(this.subscriptionIds);
+}
 
-  UpgradeUpdateEvent(this.newState);
+class SubscriptionDetails {
+  final IAPProductStatus status;
+  final ProductDetails productDetails;
+  final DateTime? trialExpiredDate;
+  final PurchaseDetails? purchaseDetails;
+
+  SubscriptionDetails(this.status, this.productDetails,
+      {this.trialExpiredDate, this.purchaseDetails});
 }
 
 class UpgradeState {
-  final IAPProductStatus status;
-  final ProductDetails? productDetails;
-  final DateTime? trialExpiredDate;
+  List<SubscriptionDetails> subscriptionDetails;
+  bool isProcessing;
 
-  UpgradeState(this.status, this.productDetails, {this.trialExpiredDate});
+  UpgradeState(
+      {this.subscriptionDetails = const [], this.isProcessing = false});
+
+  List<SubscriptionDetails> get activeSubscriptionDetails {
+    final activeSubscriptionDetails = <SubscriptionDetails>[];
+    for (final subscriptionDetail in subscriptionDetails) {
+      final shouldIgnoreOnUI =
+          inactiveIds().contains(subscriptionDetail.productDetails.id) &&
+              !(subscriptionDetail.status == IAPProductStatus.completed ||
+                  subscriptionDetail.status == IAPProductStatus.trial &&
+                      subscriptionDetail.trialExpiredDate != null &&
+                      subscriptionDetail.trialExpiredDate!
+                          .isBefore(DateTime.now()));
+      if (!shouldIgnoreOnUI) {
+        activeSubscriptionDetails.add(subscriptionDetail);
+      }
+    }
+    return activeSubscriptionDetails;
+  }
 }

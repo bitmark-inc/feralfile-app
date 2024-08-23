@@ -18,12 +18,10 @@ import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
-import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/locale_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
@@ -84,7 +82,6 @@ class CollectionHomePageState extends State<CollectionHomePage>
     _controller = ScrollController()..addListener(_scrollListenerToLoadMore);
     unawaited(_configurationService.setAutoShowPostcard(true));
     context.read<HomeBloc>().add(CheckReviewAppEvent());
-    unawaited(injector<IAPService>().setup());
   }
 
   void _scrollListenerToLoadMore() {
@@ -112,7 +109,6 @@ class CollectionHomePageState extends State<CollectionHomePage>
   @override
   void afterFirstLayout(BuildContext context) {
     unawaited(_handleForeground());
-    unawaited(injector<AutonomyService>().postLinkedAddresses());
   }
 
   @override

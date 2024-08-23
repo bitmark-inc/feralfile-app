@@ -17,8 +17,6 @@ import 'package:autonomy_flutter/model/sent_artwork.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
-import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
-import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
@@ -28,13 +26,11 @@ import 'package:autonomy_flutter/screen/gallery/gallery_page.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/feral_file_custom_tab.dart';
-import 'package:autonomy_flutter/util/file_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/playlist_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -49,7 +45,6 @@ import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/stream_common_widget.dart';
 import 'package:autonomy_flutter/view/webview_controller_text_field.dart';
 import 'package:backdrop/backdrop.dart';
-import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
@@ -92,7 +87,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 
   HashSet<String> _accountNumberHash = HashSet.identity();
   AssetToken? currentAsset;
-  final _feralfileService = injector.get<FeralFileService>();
   final _focusNode = FocusNode();
   final _textController = TextEditingController();
   InAppWebViewController? _webViewController;
@@ -341,45 +335,39 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                           centerTitle: false,
                           backgroundColor: Colors.transparent,
                           actions: [
-                            BlocBuilder<SubscriptionBloc, SubscriptionState>(
-                                builder: (context, subscriptionState) {
-                              if (subscriptionState.isSubscribed) {
-                                return FFCastButton(
-                                  displayKey: _getDisplayKey(asset),
-                                  onDeviceSelected: (device) {
-                                    if (widget.payload.playlist == null) {
-                                      final artwork = PlayArtworkV2(
-                                        token: CastAssetToken(id: asset.id),
-                                        duration: 0,
-                                      );
-                                      _canvasDeviceBloc.add(
-                                          CanvasDeviceCastListArtworkEvent(
-                                              device, [artwork]));
-                                    } else {
-                                      final playlist = widget.payload.playlist!;
-                                      final listTokenIds = playlist.tokenIDs;
-                                      if (listTokenIds == null) {
-                                        log.info('Playlist tokenIds is null');
-                                        return;
-                                      }
+                            FFCastButton(
+                              displayKey: _getDisplayKey(asset),
+                              onDeviceSelected: (device) {
+                                if (widget.payload.playlist == null) {
+                                  final artwork = PlayArtworkV2(
+                                    token: CastAssetToken(id: asset.id),
+                                    duration: 0,
+                                  );
+                                  _canvasDeviceBloc.add(
+                                      CanvasDeviceCastListArtworkEvent(
+                                          device, [artwork]));
+                                } else {
+                                  final playlist = widget.payload.playlist!;
+                                  final listTokenIds = playlist.tokenIDs;
+                                  if (listTokenIds == null) {
+                                    log.info('Playlist tokenIds is null');
+                                    return;
+                                  }
 
-                                      final duration = speedValues
-                                          .values.first.inMilliseconds;
-                                      final listPlayArtwork = listTokenIds
-                                          .rotateListByItem(asset.id)
-                                          .map((e) => PlayArtworkV2(
-                                              token: CastAssetToken(id: e),
-                                              duration: duration))
-                                          .toList();
-                                      _canvasDeviceBloc.add(
-                                          CanvasDeviceChangeControlDeviceEvent(
-                                              device, listPlayArtwork));
-                                    }
-                                  },
-                                );
-                              }
-                              return const SizedBox();
-                            }),
+                                  final duration =
+                                      speedValues.values.first.inMilliseconds;
+                                  final listPlayArtwork = listTokenIds
+                                      .rotateListByItem(asset.id)
+                                      .map((e) => PlayArtworkV2(
+                                          token: CastAssetToken(id: e),
+                                          duration: duration))
+                                      .toList();
+                                  _canvasDeviceBloc.add(
+                                      CanvasDeviceChangeControlDeviceEvent(
+                                          device, listPlayArtwork));
+                                }
+                              },
+                            ),
                           ],
                         ),
                       ),
@@ -762,67 +750,6 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                     route.settings.name == AppRouter.homePage ||
                     route.settings.name == AppRouter.homePageNoTransition);
               }));
-            },
-          ),
-        if (asset.shouldShowDownloadArtwork && !isViewOnly)
-          OptionItem(
-            title: 'download_artwork'.tr(),
-            icon: SvgPicture.asset('assets/images/download_artwork_white.svg'),
-            iconOnDisable: SvgPicture.asset(
-              'assets/images/download_artwork.svg',
-              colorFilter: const ColorFilter.mode(
-                AppColor.disabledColor,
-                BlendMode.srcIn,
-              ),
-            ),
-            iconOnProcessing: ValueListenableBuilder(
-                valueListenable: downloadProgress,
-                builder: (context, double value, child) => SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        value: value <= 0 ? null : value,
-                        valueColor: value <= 0
-                            ? null
-                            : const AlwaysStoppedAnimation<Color>(Colors.blue),
-                        backgroundColor:
-                            value <= 0 ? null : AppColor.disabledColor,
-                        color: AppColor.disabledColor,
-                        strokeWidth: 2,
-                      ),
-                    )),
-            onTap: () async {
-              try {
-                final file = await _feralfileService.downloadFeralfileArtwork(
-                    asset, onReceiveProgress: (received, total) {
-                  setState(() {
-                    downloadProgress.value = received / total;
-                  });
-                });
-                if (!context.mounted) {
-                  return;
-                }
-                setState(() {
-                  downloadProgress.value = 0;
-                });
-                Navigator.of(context).pop();
-                if (file != null) {
-                  await FileHelper.shareFile(file, deleteAfterShare: true);
-                } else {
-                  unawaited(UIHelper.showFeralfileArtworkSavedFailed(context));
-                }
-              } catch (e) {
-                if (!context.mounted) {
-                  return;
-                }
-                setState(() {
-                  downloadProgress.value = 0;
-                });
-                log.info('Download artwork failed: $e');
-                if (e is DioException) {
-                  unawaited(UIHelper.showFeralfileArtworkSavedFailed(context));
-                }
-              }
             },
           ),
         if (ownerWallet != null && asset.isTransferable) ...[

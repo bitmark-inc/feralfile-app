@@ -96,18 +96,6 @@ abstract class FeralFileApi {
     @Query('filterBurned') bool? filterBurned,
   });
 
-  @POST('/api/web3/messages/action')
-  Future<ActionMessageResponse> getActionMessage(
-    @Body() Map<String, dynamic> body,
-  );
-
-  @GET('/api/artworks/{artworkId}/download-url')
-  Future<FeralFileResponse<String>> getDownloadUrl(
-    @Path('artworkId') String artworkId,
-    @Header('Web3Token') String web3Token,
-    @Header('X-FF-Signer') String signer,
-  );
-
   // get list of dailies token
   @GET('/api/dailies/upcoming')
   Future<FeralFileListResponse<DailyToken>> getDailiesToken({

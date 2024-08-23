@@ -18,7 +18,6 @@ import 'package:autonomy_flutter/screen/settings/forget_exist/forget_exist_state
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
-import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/keychain_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -33,7 +32,6 @@ import 'package:package_info_plus/package_info_plus.dart';
 class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
   final AuthService _authService;
   final AccountService _accountService;
-  final AutonomyService _autonomyService;
   final IAPApi _iapApi;
   final CloudDatabase _cloudDatabase;
   final AppDatabase _appDatabase;
@@ -44,7 +42,6 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
   ForgetExistBloc(
     this._authService,
     this._accountService,
-    this._autonomyService,
     this._iapApi,
     this._cloudDatabase,
     this._appDatabase,
@@ -61,12 +58,15 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
 
       unawaited(_addressService.clearPrimaryAddress());
       unawaited(deregisterPushNotification());
-      await _autonomyService.clearLinkedAddresses();
       PackageInfo packageInfo = await PackageInfo.fromPlatform();
       String? deviceId = await MigrationUtil.getBackupDeviceID();
       final requester = '${deviceId}_${packageInfo.packageName}';
-      await _iapApi.deleteAllProfiles(requester);
-      await _iapApi.deleteUserData();
+      try {
+        await _iapApi.deleteAllProfiles(requester);
+        await _iapApi.deleteUserData();
+      } catch (e) {
+        log.info('Error when delete all profiles: $e');
+      }
 
       final List<Persona> personas =
           await _cloudDatabase.personaDao.getPersonas();

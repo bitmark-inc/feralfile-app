@@ -12,21 +12,24 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/router/router_bloc.dart';
-import 'package:autonomy_flutter/screen/onboarding/import_address/name_address_persona.dart';
-import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_address.dart';
+import 'package:autonomy_flutter/screen/settings/subscription/subscription_page.dart';
+import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
+import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/product_details_ext.dart';
+import 'package:autonomy_flutter/util/subscription_detail_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/membership_card.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:card_swiper/card_swiper.dart';
-import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
@@ -50,21 +53,25 @@ class _OnboardingPageState extends State<OnboardingPage>
   final deepLinkService = injector.get<DeeplinkService>();
 
   late SwiperController _swiperController;
-  late int _currentIndex;
+  MembershipCardType? _selectedMembershipCardType;
 
   final _onboardingLogo = Semantics(
     label: 'onboarding_logo',
-    child: SvgPicture.asset('assets/images/feral_file_onboarding.svg'),
+    child: Center(
+      child: SvgPicture.asset(
+        'assets/images/feral_file_onboarding.svg',
+      ),
+    ),
   );
 
   @override
   void initState() {
     super.initState();
     _swiperController = SwiperController();
-    _currentIndex = 0;
     unawaited(handleBranchLink());
     handleDeepLink();
     handleIrlLink();
+    context.read<UpgradesBloc>().add(UpgradeQueryInfoEvent());
   }
 
   @override
@@ -228,9 +235,7 @@ class _OnboardingPageState extends State<OnboardingPage>
             }
             if (state.onboardingStep == OnboardingStep.startScreen) {
               return Container(
-                  padding: const EdgeInsets.only(bottom: 40),
-                  color: AppColor.primaryBlack,
-                  child: _swiper(context));
+                  color: AppColor.primaryBlack, child: _swiper(context));
             }
 
             final button = ((fromBranchLink ||
@@ -262,12 +267,7 @@ class _OnboardingPageState extends State<OnboardingPage>
                   .copyWith(bottom: 40),
               child: Stack(
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.only(top: 15),
-                    child: Center(
-                      child: _onboardingLogo,
-                    ),
-                  ),
+                  _onboardingLogo,
                   Positioned.fill(
                     child: Column(
                       children: [
@@ -283,118 +283,161 @@ class _OnboardingPageState extends State<OnboardingPage>
         ));
   }
 
-  Widget _onboardingItem(BuildContext context,
-      {required String title,
-      required String desc,
-      required String image,
-      Widget? subDesc}) {
+  Widget _onboardingItemWidget(BuildContext context,
+      {required String title, required String desc, required Widget subDesc}) {
     final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 100),
-        Text(
-          title,
-          style: theme.textTheme.ppMori700White24
-              .copyWith(fontSize: 36, height: 1),
-        ),
-        const SizedBox(height: 40),
-        SizedBox(
-          width: double.infinity,
-          child: Image.asset(
-            image,
-            fit: BoxFit.fitWidth,
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 15),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                height: 44,
+              ),
+              Text(
+                title,
+                style: theme.textTheme.ppMori700White24,
+              ),
+              Container(
+                height: 30,
+              ),
+              Text(
+                desc,
+                style: theme.textTheme.ppMori400White14,
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 40),
-        Text(
-          desc,
-          style: theme.textTheme.ppMori400White14
-              .copyWith(fontSize: 24, height: 1),
-        ),
-        const SizedBox(height: 10),
-        subDesc ?? const SizedBox(),
+        const Spacer(),
+        SizedBox(height: 514, child: subDesc),
       ],
     );
   }
 
+  Widget _onboardingItemImage(BuildContext context,
+          {required String title,
+          required String desc,
+          required String image}) =>
+      _onboardingItemWidget(context,
+          title: title,
+          desc: desc,
+          subDesc: SizedBox(
+            width: double.infinity,
+            child: Image.asset(
+              image,
+              fit: BoxFit.fitWidth,
+            ),
+          ));
+
+  Widget _membershipCards(BuildContext context) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 15),
+        child: BlocConsumer<PersonaBloc, PersonaState>(
+            listener: (context, personaState) async {
+              switch (personaState.createAccountState) {
+                case ActionState.done:
+                  switch (_selectedMembershipCardType) {
+                    case MembershipCardType.essential:
+                      nameContinue(context);
+                    case MembershipCardType.premium:
+                      await Navigator.of(context)
+                          .pushNamed(AppRouter.subscriptionPage,
+                              arguments: SubscriptionPagePayload(onBack: () {
+                        nameContinue(context);
+                      }));
+                    default:
+                      break;
+                  }
+                case ActionState.error:
+                  setState(() {
+                    _selectedMembershipCardType = null;
+                  });
+                default:
+                  break;
+              }
+            },
+            builder: (context, personaState) =>
+                BlocBuilder<UpgradesBloc, UpgradeState>(
+                    builder: (context, subscriptionState) {
+                  final subscriptionDetails =
+                      subscriptionState.activeSubscriptionDetails.firstOrNull;
+                  return Column(
+                    children: [
+                      MembershipCard(
+                          type: MembershipCardType.essential,
+                          price: _getEssentialPrice(subscriptionDetails),
+                          isProcessing: personaState.createAccountState ==
+                                  ActionState.loading &&
+                              _selectedMembershipCardType ==
+                                  MembershipCardType.essential,
+                          isEnable: personaState.createAccountState ==
+                              ActionState.notRequested,
+                          onTap: (type) {
+                            _selectMembershipType(type, personaState);
+                          }),
+                      const SizedBox(height: 15),
+                      MembershipCard(
+                          type: MembershipCardType.premium,
+                          price: _getPremiumPrice(subscriptionDetails),
+                          isProcessing: personaState.createAccountState ==
+                                  ActionState.loading &&
+                              _selectedMembershipCardType ==
+                                  MembershipCardType.premium,
+                          isEnable: personaState.createAccountState ==
+                              ActionState.notRequested,
+                          onTap: (type) async {
+                            _selectMembershipType(type, personaState);
+                          }),
+                    ],
+                  );
+                })),
+      );
+
+  String _getEssentialPrice(SubscriptionDetails? subscriptionDetails) {
+    if (subscriptionDetails == null) {
+      return r'$0/year';
+    }
+    return '${subscriptionDetails.productDetails.currencySymbol}0/${subscriptionDetails.productDetails.period.name}';
+  }
+
+  String _getPremiumPrice(SubscriptionDetails? subscriptionDetails) {
+    if (subscriptionDetails == null) {
+      return r'$200/year';
+    }
+    return subscriptionDetails.price;
+  }
+
+  void _selectMembershipType(
+      MembershipCardType type, PersonaState personaState) {
+    _selectedMembershipCardType = type;
+    context
+        .read<PersonaBloc>()
+        .add(CreatePersonaAddressesEvent(WalletType.Autonomy));
+  }
+
   Widget _swiper(BuildContext context) {
-    final theme = Theme.of(context);
-    final List<Map<String, String>> exploreArtworks = [
-      {'Licia He': 'Fictional Lullaby'},
-    ];
-    final List<Map<String, String>> streamArtworks = [
-      {'Refik Anadol': 'Unsupervised'},
-      {'Nancy Baker Cahill': 'Slipstream 001'},
-      {'Refik Anadol': 'Unsupervised'}
-    ];
     final pages = [
-      Center(
-        child: _onboardingLogo,
-      ),
-      _onboardingItem(
+      _onboardingItemImage(
         context,
-        title: 'explore_exhibitions'.tr(),
-        desc: 'explore_exhibitions_desc'.tr(),
-        image: 'assets/images/feral_file_onboarding_exhibition.png',
-        subDesc: RichText(
-          text: TextSpan(
-              text: 'artwork_'.tr(),
-              style: theme.textTheme.ppMori400Grey12,
-              children: exploreArtworks
-                  .mapIndexed((index, e) => [
-                        TextSpan(
-                          text: e.keys.first,
-                        ),
-                        const TextSpan(text: ', '),
-                        TextSpan(
-                          text: e.values.first,
-                          style: const TextStyle(
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                        if (index != exploreArtworks.length - 1)
-                          const TextSpan(text: '; ')
-                      ])
-                  .flattened
-                  .toList()),
-        ),
+        title: 'live_with_art'.tr(),
+        desc: 'live_with_art_desc'.tr(),
+        image: 'assets/images/onboarding_1.png',
       ),
-      _onboardingItem(context,
-          title: 'manage_your_collection'.tr(),
-          desc: 'manage_your_collection_desc'.tr(),
-          image: 'assets/images/feral_file_onboarding_organize.png'),
-      _onboardingItem(
+      _onboardingItemImage(
         context,
-        title: 'view_everywhere'.tr(),
-        desc: 'view_everywhere_desc'.tr(),
-        image: 'assets/images/feral_file_onboarding_stream.png',
-        subDesc: RichText(
-          text: TextSpan(
-              text: 'artwork_'.tr(),
-              style: theme.textTheme.ppMori400Grey12,
-              children: streamArtworks
-                  .mapIndexed((index, e) => [
-                        TextSpan(
-                          text: e.keys.first,
-                        ),
-                        const TextSpan(text: ', '),
-                        TextSpan(
-                          text: e.values.first,
-                          style: const TextStyle(
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                        if (index != streamArtworks.length - 1)
-                          const TextSpan(text: '; ')
-                      ])
-                  .flattened
-                  .toList()),
-        ),
+        title: 'new_art_everyday'.tr(),
+        desc: 'new_art_everyday_desc'.tr(),
+        image: 'assets/images/onboarding_2.png',
+      ),
+      _onboardingItemWidget(
+        context,
+        title: 'membership'.tr(),
+        desc: 'membership_desc'.tr(),
+        subDesc: _membershipCards(context),
       ),
     ];
-    final isLastPage = _currentIndex == pages.length - 1;
-    final padding = ResponsiveLayout.pageHorizontalEdgeInsets;
 
     return Stack(
       children: [
@@ -402,20 +445,13 @@ class _OnboardingPageState extends State<OnboardingPage>
           itemCount: pages.length,
           itemBuilder: (context, index) {
             final page = pages[index];
-            return Padding(
-              padding: ResponsiveLayout.pageEdgeInsets,
-              child: page,
-            );
-          },
-          onIndexChanged: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
+            return page;
           },
           pagination: const SwiperPagination(
+            margin: EdgeInsets.only(bottom: 40),
             builder: DotSwiperPaginationBuilder(
               color: Colors.grey,
-              activeColor: AppColor.feralFileHighlight,
+              activeColor: AppColor.white,
             ),
           ),
           control: const SwiperControl(
@@ -425,50 +461,6 @@ class _OnboardingPageState extends State<OnboardingPage>
           loop: false,
           controller: _swiperController,
         ),
-        Visibility(
-          visible: isLastPage,
-          child: Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              color: AppColor.primaryBlack,
-              padding: padding,
-              child: Column(
-                children: [
-                  BlocConsumer<PersonaBloc, PersonaState>(
-                    builder: (context, state) => PrimaryButton(
-                      text: 'get_started'.tr(),
-                      isProcessing:
-                          state.createAccountState == ActionState.loading,
-                      onTap: () async {
-                        context.read<PersonaBloc>().add(
-                            CreatePersonaAddressesEvent(WalletType.Autonomy));
-                      },
-                    ),
-                    listener: (context, state) async {
-                      if (state.createAccountState == ActionState.done) {
-                        await doneNaming(context);
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  TextButton(
-                    onPressed: () async {
-                      await Navigator.of(context).pushNamed(
-                          AppRouter.viewExistingAddressPage,
-                          arguments: ViewExistingAddressPayload(true));
-                    },
-                    child: Text(
-                      'already_have_an_address'.tr(),
-                      style: theme.textTheme.ppMori400Grey14,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        )
       ],
     );
   }
