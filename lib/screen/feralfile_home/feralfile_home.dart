@@ -1,8 +1,6 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
-import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
-import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/artwork_view.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/explore_search_bar.dart';
@@ -134,24 +132,18 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
     final tokenIDs =
         featuredArtworks.map((e) => e.indexerTokenId).whereNotNull().toList();
     final displayKey = tokenIDs.displayKey ?? '';
-    return BlocBuilder<SubscriptionBloc, SubscriptionState>(
-        builder: (context, subscriptionState) {
-      if (subscriptionState.isSubscribed) {
-        return FFCastButton(
-          displayKey: displayKey,
-          onDeviceSelected: (device) async {
-            final duration = speedValues.values.first.inMilliseconds;
-            final listPlayArtwork = tokenIDs
-                .map((e) => PlayArtworkV2(
-                    token: CastAssetToken(id: e), duration: duration))
-                .toList();
-            _canvasDeviceBloc.add(
-                CanvasDeviceChangeControlDeviceEvent(device, listPlayArtwork));
-          },
-        );
-      }
-      return const SizedBox();
-    });
+    return FFCastButton(
+      displayKey: displayKey,
+      onDeviceSelected: (device) async {
+        final duration = speedValues.values.first.inMilliseconds;
+        final listPlayArtwork = tokenIDs
+            .map((e) =>
+                PlayArtworkV2(token: CastAssetToken(id: e), duration: duration))
+            .toList();
+        _canvasDeviceBloc
+            .add(CanvasDeviceChangeControlDeviceEvent(device, listPlayArtwork));
+      },
+    );
   }
 
   void scrollToTop() {
