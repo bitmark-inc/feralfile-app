@@ -6,6 +6,7 @@ import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/subscription_detail_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/membership_card.dart';
@@ -153,6 +154,7 @@ class _FFCastButtonState extends State<FFCastButton> {
             listener: (context, upgradeState) {
               final status =
                   upgradeState.subscriptionDetails.firstOrNull?.status;
+              log.info('Cast button: upgradeState: $status');
               if (status == IAPProductStatus.completed) {
                 Navigator.pop(context);
               }
@@ -191,6 +193,7 @@ class _FFCastButtonState extends State<FFCastButton> {
 
   void _onPressSubscribe({required SubscriptionDetails subscriptionDetails}) {
     final ids = [subscriptionDetails.productDetails.id];
+    log.info('Cast button: upgrade purchase: ${ids.first}');
     _upgradesBloc.add(UpgradePurchaseEvent(ids));
   }
 }
