@@ -19,7 +19,6 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_state.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
-import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
@@ -126,7 +125,6 @@ class AccountServiceImpl extends AccountService {
   final ConfigurationService _configurationService;
   final AndroidBackupChannel _backupChannel = AndroidBackupChannel();
   final AuditService _auditService;
-  final AutonomyService _autonomyService;
   final BackupService _backupService;
   final nft.AddressService _nftCollectionAddressService;
   final AddressService _addressService;
@@ -137,7 +135,6 @@ class AccountServiceImpl extends AccountService {
     this._tezosBeaconService,
     this._configurationService,
     this._auditService,
-    this._autonomyService,
     this._backupService,
     this._nftCollectionAddressService,
     this._addressService,
@@ -156,7 +153,6 @@ class AccountServiceImpl extends AccountService {
     await _cloudDB.personaDao.insertPersona(persona);
     await androidBackupKeys();
     await _auditService.auditPersonaAction('create', persona);
-    unawaited(_autonomyService.postLinkedAddresses());
     log.fine('[AccountService] Created persona ${persona.uuid}}');
     if (isDefault) {
       await _addressService.registerPrimaryAddress(
@@ -370,7 +366,6 @@ class AccountServiceImpl extends AccountService {
 
     await _cloudDB.connectionDao.insertConnection(connection);
     await _nftCollectionAddressService.addAddresses([checkSumAddress]);
-    unawaited(_autonomyService.postLinkedAddresses());
 
     /// to do:
     /// after apply new onboarding, we disable view-only address at onboarding,

@@ -13,7 +13,6 @@ import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/linked_wallet_detail_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/util/account_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -385,7 +384,5 @@ class _AccountsViewState extends State<AccountsView> {
     if (connection != null) {
       await injector<AccountService>().deleteLinkedAccount(connection);
     }
-
-    unawaited(injector<AutonomyService>().postLinkedAddresses());
   }
 }
