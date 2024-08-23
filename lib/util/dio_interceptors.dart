@@ -148,6 +148,7 @@ class AutonomyAuthInterceptor extends Interceptor {
     final shouldIgnoreAuthorizationPath = [
       IAPApi.authenticationPath,
       IAPApi.addressAuthenticationPath,
+      IAPApi.registerPrimaryAddressPath,
     ];
     if (!shouldIgnoreAuthorizationPath.contains(options.path)) {
       final jwt = await injector<AuthService>()
