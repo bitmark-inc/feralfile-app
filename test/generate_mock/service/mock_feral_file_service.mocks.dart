@@ -4,7 +4,6 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i8;
-import 'dart:io' as _i10;
 
 import 'package:autonomy_flutter/model/ff_account.dart' as _i3;
 import 'package:autonomy_flutter/model/ff_artwork.dart' as _i6;
@@ -13,8 +12,6 @@ import 'package:autonomy_flutter/model/ff_list_response.dart' as _i5;
 import 'package:autonomy_flutter/model/ff_series.dart' as _i2;
 import 'package:autonomy_flutter/service/feralfile_service.dart' as _i7;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:mockito/src/dummies.dart' as _i9;
-import 'package:nft_collection/models/asset_token.dart' as _i11;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -295,61 +292,6 @@ class MockFeralFileService extends _i1.Mock implements _i7.FeralFileService {
         returnValue: _i8.Future<_i6.Artwork?>.value(),
       ) as _i8.Future<_i6.Artwork?>);
   @override
-  _i8.Future<String> getFeralfileActionMessage({
-    required String? address,
-    required _i7.FeralfileAction? action,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #getFeralfileActionMessage,
-          [],
-          {
-            #address: address,
-            #action: action,
-          },
-        ),
-        returnValue: _i8.Future<String>.value(_i9.dummyValue<String>(
-          this,
-          Invocation.method(
-            #getFeralfileActionMessage,
-            [],
-            {
-              #address: address,
-              #action: action,
-            },
-          ),
-        )),
-      ) as _i8.Future<String>);
-  @override
-  _i8.Future<String> getFeralfileArtworkDownloadUrl({
-    required String? artworkId,
-    required String? owner,
-    required String? signature,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #getFeralfileArtworkDownloadUrl,
-          [],
-          {
-            #artworkId: artworkId,
-            #owner: owner,
-            #signature: signature,
-          },
-        ),
-        returnValue: _i8.Future<String>.value(_i9.dummyValue<String>(
-          this,
-          Invocation.method(
-            #getFeralfileArtworkDownloadUrl,
-            [],
-            {
-              #artworkId: artworkId,
-              #owner: owner,
-              #signature: signature,
-            },
-          ),
-        )),
-      ) as _i8.Future<String>);
-  @override
   _i8.Future<_i6.Artwork> getArtwork(String? artworkId) => (super.noSuchMethod(
         Invocation.method(
           #getArtwork,
@@ -363,20 +305,4 @@ class MockFeralFileService extends _i1.Mock implements _i7.FeralFileService {
           ),
         )),
       ) as _i8.Future<_i6.Artwork>);
-  @override
-  _i8.Future<_i10.File?> downloadFeralfileArtwork(
-    _i11.AssetToken? assetToken, {
-    dynamic Function(
-      int,
-      int,
-    )? onReceiveProgress,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #downloadFeralfileArtwork,
-          [assetToken],
-          {#onReceiveProgress: onReceiveProgress},
-        ),
-        returnValue: _i8.Future<_i10.File?>.value(),
-      ) as _i8.Future<_i10.File?>);
 }
