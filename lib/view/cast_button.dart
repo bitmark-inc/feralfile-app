@@ -149,7 +149,7 @@ class _FFCastButtonState extends State<FFCastButton> {
   Future<void> _showUpgradeDialog(BuildContext context) async {
     await UIHelper.showDialog(
       context,
-      'display'.tr(),
+      'see_more_art'.tr(),
       BlocProvider.value(
         value: _upgradesBloc,
         child: BlocConsumer<UpgradesBloc, UpgradeState>(
@@ -170,7 +170,7 @@ class _FFCastButtonState extends State<FFCastButton> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'see_more_art'.tr(),
+                    'you_need_to_subscribe'.tr(),
                     style: Theme.of(context).textTheme.ppMori400White14,
                   ),
                   const SizedBox(height: 20),
