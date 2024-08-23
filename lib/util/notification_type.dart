@@ -155,7 +155,7 @@ class NotificationHandler {
       return;
     }
     // prepare for handling notification
-    final shouldShow = await additionalData.prepareBeforeShowing();
+    final shouldShow = await additionalData.prepareAndDidSuccess();
     if (!shouldShow || !context.mounted) {
       return;
     }

@@ -30,7 +30,7 @@ class JgCrystallineWorkGenerated extends AdditionalData {
   }
 
   @override
-  Future<bool> prepareBeforeShowing() async {
+  Future<bool> prepareAndDidSuccess() async {
     unawaited(injector<ClientTokenService>().refreshTokens());
     return true;
   }

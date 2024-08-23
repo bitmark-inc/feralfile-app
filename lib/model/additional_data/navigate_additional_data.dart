@@ -4,11 +4,11 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/material.dart';
 
-class NavigationPath extends AdditionalData {
+class NavigateAdditionalData extends AdditionalData {
   final String navigationRoute;
   final int? homeIndex;
 
-  NavigationPath({
+  NavigateAdditionalData({
     required this.navigationRoute,
     required super.notificationType,
     super.announcementContentId,

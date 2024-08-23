@@ -38,7 +38,7 @@ class CsViewThread extends AdditionalData {
   }
 
   @override
-  Future<bool> prepareBeforeShowing() async {
+  Future<bool> prepareAndDidSuccess() async {
     _customerSupportService.triggerReloadMessages.value += 1;
     unawaited(_customerSupportService.getIssues());
     if (issueId == memoryValues.viewingSupportThreadIssueID) {

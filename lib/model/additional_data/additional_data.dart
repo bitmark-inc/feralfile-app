@@ -1,6 +1,6 @@
 import 'package:autonomy_flutter/model/additional_data/cs_view_thread.dart';
 import 'package:autonomy_flutter/model/additional_data/jg_crystalline_work_generated.dart';
-import 'package:autonomy_flutter/model/additional_data/navigation_path.dart';
+import 'package:autonomy_flutter/model/additional_data/navigate_additional_data.dart';
 import 'package:autonomy_flutter/model/additional_data/view_collection.dart'
     as view_collection_handler;
 import 'package:autonomy_flutter/model/additional_data/view_exhibition.dart';
@@ -30,7 +30,7 @@ class AdditionalData {
       final notificationType =
           NotificationType.fromString(type ?? json['notification_type']);
 
-      final parentObject = AdditionalData(
+      final defaultAdditionalData = AdditionalData(
           notificationType: notificationType,
           announcementContentId: announcementContentId);
 
@@ -40,7 +40,7 @@ class AdditionalData {
           final issueId = json['issue_id'];
           if (issueId == null) {
             log.warning('AdditionalData: issueId is null');
-            return parentObject;
+            return defaultAdditionalData;
           }
           return CsViewThread(
             issueId: issueId,
@@ -58,7 +58,7 @@ class AdditionalData {
           final groupId = json['group_id'];
           if (groupId == null) {
             log.warning('AdditionalData: groupId is null');
-            return parentObject;
+            return defaultAdditionalData;
           }
           return ViewNewMessage(
             groupId: groupId,
@@ -70,7 +70,7 @@ class AdditionalData {
           final indexID = json['indexID'];
           if (indexID == null) {
             log.warning('AdditionalData: indexID is null');
-            return parentObject;
+            return defaultAdditionalData;
           }
           return ViewPostcard(
             indexID: indexID,
@@ -88,7 +88,7 @@ class AdditionalData {
           final tokenId = json['token_id'];
           if (tokenId == null) {
             log.warning('AdditionalData: tokenId is null');
-            return parentObject;
+            return defaultAdditionalData;
           }
           return JgCrystallineWorkGenerated(
             tokenId: tokenId,
@@ -101,7 +101,7 @@ class AdditionalData {
           final exhibitionId = json['exhibition_id'];
           if (exhibitionId == null) {
             log.warning('AdditionalData: exhibitionId is null');
-            return parentObject;
+            return defaultAdditionalData;
           }
           return ViewExhibition(
             exhibitionId: exhibitionId,
@@ -111,14 +111,14 @@ class AdditionalData {
         case NotificationType.navigate:
           final navigationRoute = json['navigation_route'];
           final homeIndex = json['home_index'];
-          return NavigationPath(
+          return NavigateAdditionalData(
             navigationRoute: navigationRoute,
             notificationType: notificationType,
             announcementContentId: announcementContentId,
             homeIndex: homeIndex,
           );
         default:
-          return parentObject;
+          return defaultAdditionalData;
       }
     } catch (_) {
       log.info('AdditionalData: error parsing additional data');
@@ -133,5 +133,5 @@ class AdditionalData {
     log.info('AdditionalData: handle tap: $notificationType');
   }
 
-  Future<bool> prepareBeforeShowing() async => true;
+  Future<bool> prepareAndDidSuccess() async => true;
 }
