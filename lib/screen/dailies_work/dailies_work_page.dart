@@ -573,7 +573,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'exhibition'.tr(),
+          'exhibited_in'.tr(),
           style: theme.textTheme.ppMori400Grey12,
         ),
         const SizedBox(height: 16),
