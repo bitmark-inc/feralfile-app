@@ -63,4 +63,13 @@ extension DailiesTokenExtension on DailyToken {
       return _convertToIndexId(blockchain, contractAddress, tokenID);
     }
   }
+
+  String get artworkId {
+    final swap = this.artwork?.swap;
+    if (swap != null) {
+      return swap.token!;
+    } else {
+      return tokenID;
+    }
+  }
 }

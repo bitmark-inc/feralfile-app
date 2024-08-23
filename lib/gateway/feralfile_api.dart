@@ -77,6 +77,7 @@ abstract class FeralFileApi {
     @Query('includeArtist') bool includeArtist = true,
     @Query('includeExhibition') bool includeExhibition = true,
     @Query('includeExhibitionContract') bool includeExhibitionContract = true,
+    @Query('includeSuccessfulSwap') bool includeSuccessfulSwap = true,
   });
 
   @GET('/api/exhibitions/upcoming')

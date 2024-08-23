@@ -64,7 +64,7 @@ class HomeNavigationPagePayload {
   const HomeNavigationPagePayload(
       {bool? fromOnboarding, HomeNavigatorTab? startedTab})
       : fromOnboarding = fromOnboarding ?? false,
-        startedTab = startedTab ?? HomeNavigatorTab.explore;
+        startedTab = startedTab ?? HomeNavigatorTab.daily;
 }
 
 class HomeNavigationPage extends StatefulWidget {
@@ -91,7 +91,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   final GlobalKey<OrganizeHomePageState> _organizeHomePageKey = GlobalKey();
   final GlobalKey<CollectionHomePageState> _collectionHomePageKey = GlobalKey();
   final GlobalKey<FeralfileHomePageState> _feralfileHomePageKey = GlobalKey();
-  final GlobalKey<ScanQRPageState> _scanQRPageKey = GlobalKey();
   final _configurationService = injector<ConfigurationService>();
   late Timer? _timer;
   final _clientTokenService = injector<ClientTokenService>();
@@ -112,12 +111,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
 
   void sendVisitPageEvent() {
     if (_selectedIndex != HomeNavigatorTab.menu.index) {
-      final title = (_selectedIndex == HomeNavigatorTab.scanQr.index)
-          ? QRScanTab
-              .values[_scanQRPageKey.currentState?.tabController.index ??
-                  QRScanTab.scan.index]
-              .screenName
-          : HomeNavigatorTab.values[_selectedIndex].screenName;
+      final title = HomeNavigatorTab.values[_selectedIndex].screenName;
       _metricClientService
         ..addEvent(
           MixpanelEvent.visitPage,
@@ -156,13 +150,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
       }
       // when user change tap
       else {
-        // if tap on qr code tap, resume camera,
-        // otherwise pause camera
-        if (index == HomeNavigatorTab.scanQr.index) {
-          await _scanQRPageKey.currentState?.resumeCamera();
-        } else {
-          await _scanQRPageKey.currentState?.pauseCamera();
-        }
         // if tap on daily, resume daily work,
         // otherwise pause daily work
         if (index == HomeNavigatorTab.daily.index) {
@@ -211,6 +198,16 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
             },
           ),
           OptionItem(
+            title: 'scan'.tr(),
+            icon: const Icon(
+              AuIcon.scan,
+            ),
+            onTap: () {
+              Navigator.of(context).popAndPushNamed(AppRouter.scanQRPage,
+                  arguments: ScannerItem.GLOBAL);
+            },
+          ),
+          OptionItem(
             title: 'addresses'.tr(),
             icon: const Icon(
               AuIcon.wallet,
@@ -254,9 +251,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         setState(() {
           _selectedIndex = currentIndex;
         });
-        if (_selectedIndex == HomeNavigatorTab.scanQr.index) {
-          await _scanQRPageKey.currentState?.resumeCamera();
-        }
       }
     }
   }
@@ -301,8 +295,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
           child: DailyWorkPage(
             key: _dailyWorkKey,
           )),
-      CollectionHomePage(key: _collectionHomePageKey),
-      OrganizeHomePage(key: _organizeHomePageKey),
       MultiBlocProvider(
           providers: [
             BlocProvider.value(
@@ -315,12 +307,8 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
           child: FeralfileHomePage(
             key: _feralfileHomePageKey,
           )),
-      ScanQRPage(
-        key: _scanQRPageKey,
-        onHandleFinished: () async {
-          await _onItemTapped(_initialTab.index);
-        },
-      )
+      CollectionHomePage(key: _collectionHomePageKey),
+      OrganizeHomePage(key: _organizeHomePageKey),
     ];
     if (!_configurationService.isReadRemoveSupport()) {
       unawaited(_showRemoveCustomerSupport());
@@ -366,9 +354,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   Future<void> didPopNext() async {
     super.didPopNext();
     unawaited(injector<CustomerSupportService>().getIssuesAndAnnouncement());
-    if (_selectedIndex == HomeNavigatorTab.scanQr.index) {
-      await _scanQRPageKey.currentState?.resumeCamera();
-    }
     unawaited(_clientTokenService.refreshTokens());
     unawaited(refreshNotification());
     final connectivityResult = await Connectivity().checkConnectivity();
@@ -466,11 +451,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
                   setState(() {
                     _initialTab = widget.payload.startedTab;
                   });
-                } else {
-                  setState(() {
-                    _initialTab = HomeNavigatorTab.collection;
-                  });
-                }
+                } else {}
               },
               buildWhen: (previous, current) {
                 final shouldRebuild = _pageController == null;
@@ -537,6 +518,19 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
       ),
       FFNavigationBarItem(
         icon: SvgPicture.asset(
+          'assets/images/controller_icon.svg',
+          height: iconSize,
+          colorFilter: selectedColorFilter,
+        ),
+        unselectedIcon: SvgPicture.asset(
+          'assets/images/controller_icon.svg',
+          height: iconSize,
+          colorFilter: unselectedColorFilter,
+        ),
+        label: 'explore',
+      ),
+      FFNavigationBarItem(
+        icon: SvgPicture.asset(
           'assets/images/icon_collection.svg',
           height: iconSize,
           colorFilter: selectedColorFilter,
@@ -560,32 +554,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
           colorFilter: unselectedColorFilter,
         ),
         label: 'organize',
-      ),
-      FFNavigationBarItem(
-        icon: SvgPicture.asset(
-          'assets/images/controller_icon.svg',
-          height: iconSize,
-          colorFilter: selectedColorFilter,
-        ),
-        unselectedIcon: SvgPicture.asset(
-          'assets/images/controller_icon.svg',
-          height: iconSize,
-          colorFilter: unselectedColorFilter,
-        ),
-        label: 'explore',
-      ),
-      FFNavigationBarItem(
-        icon: SvgPicture.asset(
-          'assets/images/icon_scan.svg',
-          height: iconSize,
-          colorFilter: selectedColorFilter,
-        ),
-        unselectedIcon: SvgPicture.asset(
-          'assets/images/icon_scan.svg',
-          height: iconSize,
-          colorFilter: unselectedColorFilter,
-        ),
-        label: 'scan',
       ),
       FFNavigationBarItem(
         icon: ValueListenableBuilder<List<int>?>(

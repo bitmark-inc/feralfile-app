@@ -26,6 +26,7 @@ import 'package:autonomy_flutter/view/exhibition_item.dart';
 import 'package:autonomy_flutter/view/important_note_view.dart';
 import 'package:autonomy_flutter/view/keep_alive_widget.dart';
 import 'package:autonomy_flutter/view/user_widget.dart';
+import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
@@ -222,8 +223,8 @@ class DailyWorkPageState extends State<DailyWorkPage>
 
   Widget _artworkInfoIcon() => Semantics(
         label: 'artworkInfoIcon',
-        child: IconButton(
-          onPressed: () {
+        child: GestureDetector(
+          onTap: () {
             _currentIndex == 0
                 ? unawaited(_pageController?.animateToPage(1,
                     duration: const Duration(milliseconds: 300),
@@ -232,18 +233,15 @@ class DailyWorkPageState extends State<DailyWorkPage>
                     duration: const Duration(milliseconds: 300),
                     curve: Curves.easeInOut));
           },
-          constraints: const BoxConstraints(
-            maxWidth: 44,
-            maxHeight: 44,
-            minWidth: 44,
-            minHeight: 44,
-          ),
-          icon: SvgPicture.asset(
-            _currentIndex == 0
-                ? 'assets/images/info_white.svg'
-                : 'assets/images/info_white_active.svg',
-            width: 22,
-            height: 22,
+          child: Container(
+            padding: const EdgeInsets.only(top: 8, bottom: 8, left: 8),
+            child: SvgPicture.asset(
+              _currentIndex == 0
+                  ? 'assets/images/info_white.svg'
+                  : 'assets/images/info_white_active.svg',
+              width: 22,
+              height: 22,
+            ),
           ),
         ),
       );
@@ -330,6 +328,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
             assetToken.artistID ??
             '';
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Expanded(
           child: ArtworkDetailsHeader(
@@ -382,9 +381,22 @@ class DailyWorkPageState extends State<DailyWorkPage>
             slivers: [
               SliverToBoxAdapter(
                 child: SizedBox(
-                  height: MediaQuery.of(context).padding.top + 32,
+                  height: MediaQuery.of(context).padding.top + 48,
                 ),
               ),
+              if (state.currentDailyToken != null &&
+                  state.currentExhibition != null) ...[
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: _mediumDescription(context, state.currentDailyToken!,
+                        state.currentExhibition!),
+                  ),
+                ),
+                const SliverToBoxAdapter(
+                  child: SizedBox(height: 32),
+                ),
+              ],
               // artwork desc
               SliverToBoxAdapter(
                 child: Padding(
@@ -499,6 +511,35 @@ class DailyWorkPageState extends State<DailyWorkPage>
           ),
         );
       },
+    );
+  }
+
+  Widget _mediumDescription(BuildContext context, DailyToken currentDailyToken,
+      Exhibition exhibition) {
+    final theme = Theme.of(context);
+    final seriesId = currentDailyToken.artwork?.seriesID;
+    if (seriesId == null) {
+      return const SizedBox();
+    }
+
+    final mediumDesc = exhibition.series
+        ?.firstWhereOrNull((series) => series.id == seriesId)
+        ?.metadata?['mediumDescription'] as List?;
+
+    if (mediumDesc == null) {
+      return const SizedBox();
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: mediumDesc.map((desc) {
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 4),
+          child: Text(
+            desc,
+            style: theme.textTheme.ppMori400White14,
+          ),
+        );
+      }).toList(),
     );
   }
 

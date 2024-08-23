@@ -268,12 +268,14 @@ class _FeralFileApi implements FeralFileApi {
     bool includeArtist = true,
     bool includeExhibition = true,
     bool includeExhibitionContract = true,
+    bool includeSuccessfulSwap = true,
   }) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
       r'includeArtist': includeArtist,
       r'includeExhibition': includeExhibition,
       r'includeExhibitionContract': includeExhibitionContract,
+      r'includeSuccessfulSwap': includeSuccessfulSwap,
     };
     final _headers = <String, dynamic>{};
     final Map<String, dynamic>? _data = null;

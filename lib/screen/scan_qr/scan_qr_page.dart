@@ -203,37 +203,41 @@ class ScanQRPageState extends State<ScanQRPage>
           padding: EdgeInsets.only(top: MediaQuery.of(context).viewPadding.top),
           child: HeaderView(
             title: 'scan'.tr(),
-            action: _isGlobal
-                ? GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        unawaited(pauseCamera());
-                        _tabController.animateTo(QRScanTab.showMyCode.index,
-                            duration: const Duration(milliseconds: 300));
-                      });
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 10,
-                      ),
-                      child: Text(
-                        'show_my_code'.tr(),
-                        style: theme.textTheme.ppMori400White14.copyWith(
-                          decoration: TextDecoration.underline,
-                          decorationColor: AppColor.white,
+            action: Row(
+              children: [
+                _isGlobal
+                    ? GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            unawaited(pauseCamera());
+                            _tabController.animateTo(QRScanTab.showMyCode.index,
+                                duration: const Duration(milliseconds: 300));
+                          });
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 10,
+                          ),
+                          child: Text(
+                            'show_my_code'.tr(),
+                            style: theme.textTheme.ppMori400White14.copyWith(
+                              decoration: TextDecoration.underline,
+                              decorationColor: AppColor.white,
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                  )
-                : IconButton(
+                      )
+                    : SizedBox(),
+                const SizedBox(width: 20),
+                IconButton(
                     onPressed: () {
-                      if (!_isGlobal) {
-                        Navigator.pop(context);
-                      }
+                      Navigator.pop(context);
                     },
                     icon: closeIcon(
                       color: AppColor.white,
                     )),
+              ],
+            ),
           ),
         ),
       ],
