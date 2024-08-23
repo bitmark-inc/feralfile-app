@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/screen/dailies_work/dailies_work_state.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
+import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
 import 'package:autonomy_flutter/screen/gallery/gallery_page.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
@@ -461,8 +462,9 @@ class DailyWorkPageState extends State<DailyWorkPage>
                     onTap: () {
                       unawaited(Navigator.of(context).pushNamed(
                           AppRouter.exhibitionDetailPage,
-                          arguments: ExhibitionDetail(
-                              exhibition: state.currentExhibition!)));
+                          arguments: ExhibitionDetailPayload(
+                              exhibitions: [state.currentExhibition!],
+                              index: 0)));
                     },
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
