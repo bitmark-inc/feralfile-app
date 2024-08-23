@@ -10,16 +10,16 @@ import 'dart:async';
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dart';
+import 'package:autonomy_flutter/screen/dailies_work/dailies_work_bloc.dart';
+import 'package:autonomy_flutter/screen/dailies_work/dailies_work_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/feralfile_home.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/feralfile_home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/collection_home_page.dart';
 import 'package:autonomy_flutter/screen/home/organize_home_page.dart';
-import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
@@ -27,7 +27,6 @@ import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
-import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/notification_service.dart' as nc;
 import 'package:autonomy_flutter/service/playlist_service.dart';
@@ -37,9 +36,7 @@ import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/dio_util.dart';
-import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
-import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/notification_type.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -90,6 +87,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   late int _selectedIndex;
   PageController? _pageController;
   late List<Widget> _pages;
+  final GlobalKey<DailyWorkPageState> _dailyWorkKey = GlobalKey();
   final GlobalKey<OrganizeHomePageState> _organizeHomePageKey = GlobalKey();
   final GlobalKey<CollectionHomePageState> _collectionHomePageKey = GlobalKey();
   final GlobalKey<FeralfileHomePageState> _feralfileHomePageKey = GlobalKey();
@@ -144,6 +142,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
 
   Future<void> _onItemTapped(int index) async {
     if (index < _pages.length) {
+      // handle scroll to top when tap on the same tab
       if (_selectedIndex == index) {
         if (index == HomeNavigatorTab.collection.index) {
           _collectionHomePageKey.currentState?.scrollToTop();
@@ -154,12 +153,24 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         if (index == HomeNavigatorTab.explore.index) {
           _feralfileHomePageKey.currentState?.scrollToTop();
         }
-      } else {
+      }
+      // when user change tap
+      else {
+        // if tap on qr code tap, resume camera,
+        // otherwise pause camera
         if (index == HomeNavigatorTab.scanQr.index) {
           await _scanQRPageKey.currentState?.resumeCamera();
         } else {
           await _scanQRPageKey.currentState?.pauseCamera();
         }
+        // if tap on daily, resume daily work,
+        // otherwise pause daily work
+        if (index == HomeNavigatorTab.daily.index) {
+          _dailyWorkKey.currentState?.resumeDailyWork();
+        } else {
+          _dailyWorkKey.currentState?.pauseDailyWork();
+        }
+
         sendVisitPageEvent();
       }
       setState(() {
@@ -171,7 +182,9 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         unawaited(_clientTokenService.refreshTokens());
         unawaited(_playListService.refreshPlayLists());
       }
-    } else {
+    }
+    // handle hamburger menu
+    else {
       final currentIndex = _selectedIndex;
       _metricClientService.addEvent(
         MixpanelEvent.visitPage,
@@ -186,13 +199,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
       await UIHelper.showCenterMenu(
         context,
         options: [
-          OptionItem(
-            title: 'daily_work'.tr(),
-            icon: const Icon(AuIcon.playlists),
-            onTap: () {
-              Navigator.of(context).popAndPushNamed(AppRouter.dailyWorkPage);
-            },
-          ),
           OptionItem(
             title: 'rnd'.tr(),
             icon: SvgPicture.asset(
@@ -285,6 +291,16 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     });
 
     _pages = <Widget>[
+      MultiBlocProvider(
+          providers: [
+            BlocProvider(
+              create: (_) => DailyWorkBloc(injector(), injector()),
+            ),
+            BlocProvider.value(value: injector<CanvasDeviceBloc>()),
+          ],
+          child: DailyWorkPage(
+            key: _dailyWorkKey,
+          )),
       CollectionHomePage(key: _collectionHomePageKey),
       OrganizeHomePage(key: _organizeHomePageKey),
       MultiBlocProvider(
@@ -506,6 +522,19 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         ColorFilter.mode(unselectedColor, BlendMode.srcIn);
     const iconSize = 25.0;
     final bottomItems = [
+      FFNavigationBarItem(
+        icon: SvgPicture.asset(
+          'assets/images/discover.svg',
+          height: iconSize,
+          colorFilter: selectedColorFilter,
+        ),
+        unselectedIcon: SvgPicture.asset(
+          'assets/images/discover.svg',
+          height: iconSize,
+          colorFilter: unselectedColorFilter,
+        ),
+        label: 'dailies',
+      ),
       FFNavigationBarItem(
         icon: SvgPicture.asset(
           'assets/images/icon_collection.svg',

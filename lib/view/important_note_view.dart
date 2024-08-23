@@ -11,29 +11,40 @@ import 'package:flutter/material.dart';
 
 class ImportantNoteView extends StatelessWidget {
   final String note;
+  final String? title;
+  final Color? backgroundColor;
+  final TextStyle? titleStyle;
+  final TextStyle? noteStyle;
 
-  const ImportantNoteView({required this.note, super.key});
+  const ImportantNoteView({
+    required this.note,
+    super.key,
+    this.title,
+    this.backgroundColor,
+    this.titleStyle,
+    this.noteStyle,
+  });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      decoration: const BoxDecoration(
-        color: AppColor.feralFileHighlight,
-        borderRadius: BorderRadius.all(Radius.circular(5)),
+      decoration: BoxDecoration(
+        color: backgroundColor ?? AppColor.feralFileHighlight,
+        borderRadius: const BorderRadius.all(Radius.circular(5)),
       ),
       padding: const EdgeInsets.all(15),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'important'.tr(),
-            style: theme.textTheme.ppMori700Black14,
+            title ?? 'important'.tr(),
+            style: titleStyle ?? theme.textTheme.ppMori700Black14,
           ),
           const SizedBox(height: 15),
           Text(
             note,
-            style: theme.textTheme.ppMori400Black14,
+            style: noteStyle ?? theme.textTheme.ppMori400Black14,
           ),
         ],
       ),

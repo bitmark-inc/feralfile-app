@@ -329,7 +329,7 @@ class FeralFileServiceImpl extends FeralFileService {
   @override
   Future<Exhibition?> getExhibitionFromTokenID(String artworkID) async {
     final artwork = await _feralFileApi.getArtworks(artworkID);
-    return artwork.result.series?.exhibition;
+    return getExhibition(artwork.result.series?.exhibitionID ?? '');
   }
 
   @override
@@ -826,8 +826,9 @@ class FeralFileServiceImpl extends FeralFileService {
   }
 
   Future<List<DailyToken>> _fetchDailiesTokens({int limit = 2}) async {
-    final resp = await _feralFileApi.getDailiesToken(limit: limit);
+    final resp = await _feralFileApi.getDailiesToken(limit: 15);
     final dailiesTokens = resp.result;
+
     DailiesHelper.updateDailies(dailiesTokens);
     return dailiesTokens;
   }

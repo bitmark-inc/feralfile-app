@@ -1826,7 +1826,7 @@ class _ArtworkRightsViewState extends State<ArtworkRightsView> {
       BlocBuilder<RoyaltyBloc, RoyaltyState>(builder: (context, state) {
         final data = state.markdownData?.replaceAll('.**', '**');
         return SectionExpandedWidget(
-          header: 'rights'.tr(),
+          header: 'collector_rights'.tr(),
           padding: const EdgeInsets.only(bottom: 23),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

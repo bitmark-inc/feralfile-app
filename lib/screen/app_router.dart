@@ -370,6 +370,7 @@ class AppRouter {
                               injector(),
                             )),
                     BlocProvider(create: (_) => identityBloc),
+                    BlocProvider.value(value: royaltyBloc),
                     BlocProvider(
                       create: (_) => personaBloc,
                     ),
@@ -395,6 +396,7 @@ class AppRouter {
                               injector(),
                             )),
                     BlocProvider(create: (_) => identityBloc),
+                    BlocProvider.value(value: royaltyBloc),
                     BlocProvider(
                       create: (_) => personaBloc,
                     ),
