@@ -27,7 +27,7 @@ abstract class AnnouncementService {
 
   AnnouncementLocal? getAnnouncement(String? announcementContentId);
 
-  AnnouncementLocal? getOldestAnnouncement();
+  AnnouncementLocal? getOldestUnreadAnnouncement();
 
   Future<void> showOldestAnnouncement({bool shouldRepeat = true});
 }
@@ -131,14 +131,14 @@ class AnnouncementServiceImpl implements AnnouncementService {
   }
 
   @override
-  AnnouncementLocal? getOldestAnnouncement() {
+  AnnouncementLocal? getOldestUnreadAnnouncement() {
     final announcements = getUnreadAnnouncements();
     return announcements.firstOrNull;
   }
 
   @override
   Future<void> showOldestAnnouncement({bool shouldRepeat = true}) async {
-    final announcement = getOldestAnnouncement();
+    final announcement = getOldestUnreadAnnouncement();
     if (announcement != null) {
       final context = injector<NavigationService>().context;
       final additionalData = AdditionalData.fromJson(
