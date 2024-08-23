@@ -34,7 +34,8 @@ class UpgradeState {
   List<SubscriptionDetails> subscriptionDetails;
   bool isProcessing;
 
-  UpgradeState({this.subscriptionDetails = const [], this.isProcessing = false});
+  UpgradeState(
+      {this.subscriptionDetails = const [], this.isProcessing = false});
 
   List<SubscriptionDetails> get activeSubscriptionDetails {
     final activeSubscriptionDetails = <SubscriptionDetails>[];
