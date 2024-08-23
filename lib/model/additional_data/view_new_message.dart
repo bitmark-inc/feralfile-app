@@ -30,8 +30,7 @@ class ViewNewMessage extends AdditionalData {
   bool get isTappable => true;
 
   @override
-  Future<void> handleTap(
-      BuildContext context, PageController? pageController) async {
+  Future<void> handleTap(BuildContext context) async {
     log.info('ViewNewMessage: handle tap: $groupId');
     if (!_remoteConfigService.getBool(ConfigGroup.viewDetail, ConfigKey.chat)) {
       return;

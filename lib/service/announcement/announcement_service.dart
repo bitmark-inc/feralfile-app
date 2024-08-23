@@ -167,10 +167,7 @@ class AnnouncementServiceImpl implements AnnouncementService {
         body: announcement.content,
         handler: additionalData.isTappable
             ? () async {
-                await additionalData.handleTap(
-                  context,
-                  injector<NavigationService>().pageController,
-                );
+                await additionalData.handleTap(context);
               }
             : null,
         callBackOnDismiss: () async {

@@ -21,8 +21,7 @@ class JgCrystallineWorkGenerated extends AdditionalData {
   bool get isTappable => true;
 
   @override
-  Future<void> handleTap(
-      BuildContext context, PageController? pageController) async {
+  Future<void> handleTap(BuildContext context) async {
     log.info('JgCrystallineWorkGenerated: handle tap');
 
     final indexId = JohnGerrardHelper.getIndexID(tokenId);

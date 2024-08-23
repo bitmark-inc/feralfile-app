@@ -4,10 +4,10 @@ import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/cupertino.dart';
 
-class ViewExhibition extends AdditionalData {
+class ViewExhibitionData extends AdditionalData {
   final String exhibitionId;
 
-  ViewExhibition({
+  ViewExhibitionData({
     required this.exhibitionId,
     required super.notificationType,
     super.announcementContentId,
@@ -17,8 +17,7 @@ class ViewExhibition extends AdditionalData {
   bool get isTappable => true;
 
   @override
-  Future<void> handleTap(
-      BuildContext context, PageController? pageController) async {
+  Future<void> handleTap(BuildContext context) async {
     log.info('ViewExhibition: handle tap: $exhibitionId');
     await injector<NavigationService>().gotoExhibitionDetailsPage(exhibitionId);
   }

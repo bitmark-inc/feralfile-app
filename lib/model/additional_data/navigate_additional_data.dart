@@ -19,15 +19,8 @@ class NavigateAdditionalData extends AdditionalData {
   bool get isTappable => true;
 
   @override
-  Future<void> handleTap(
-      BuildContext context, PageController? pageController) async {
+  Future<void> handleTap(BuildContext context) async {
     log.info('NavigationPath: handle tap: $navigationRoute');
     await injector<NavigationService>().navigatePath(navigationRoute);
-
-    await Future.delayed(const Duration(milliseconds: 300), () {
-      if (homeIndex != null) {
-        pageController?.jumpToPage(homeIndex!);
-      }
-    });
   }
 }

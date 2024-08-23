@@ -123,7 +123,6 @@ class NotificationHandler {
       AdditionalData additionalData,
       String id,
       String body,
-      PageController? pageController,
       {String channel = 'push'}) async {
     log.info('Tap to notification: $body ');
 
@@ -140,7 +139,7 @@ class NotificationHandler {
     if (!context.mounted) {
       return;
     }
-    await additionalData.handleTap(context, pageController);
+    await additionalData.handleTap(context);
   }
 
   Future<void> shouldShowNotifications(
@@ -202,7 +201,6 @@ class NotificationHandler {
                 additionalData,
                 id,
                 body,
-                pageController,
                 channel: 'in-app',
               );
             }

@@ -25,8 +25,7 @@ class CsViewThread extends AdditionalData {
   bool get isTappable => true;
 
   @override
-  Future<void> handleTap(
-      BuildContext context, PageController? pageController) async {
+  Future<void> handleTap(BuildContext context) async {
     log.info('CsViewThread: handle tap: $issueId');
     unawaited(Navigator.of(context).pushNamedAndRemoveUntil(
       AppRouter.supportThreadPage,

@@ -8,6 +8,7 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -478,8 +479,36 @@ class NavigationService {
     if (pair == null) {
       return;
     }
+    late String route;
+    switch (pair.first) {
+      case AppRouter.collectionPage:
+      case AppRouter.organizePage:
+      case AppRouter.exhibitionsPage:
+      case AppRouter.scanQRPage:
+        route = AppRouter.homePageNoTransition;
+      default:
+        route = pair.first;
+    }
 
-    unawaited(navigateTo(pair.first, arguments: pair.second));
+    unawaited(navigateTo(route, arguments: pair.second));
+    Future.delayed(const Duration(milliseconds: 300), () {
+      switch (pair.first) {
+        case AppRouter.collectionPage:
+          _navigateHomeTab(HomeNavigatorTab.collection.index);
+        case AppRouter.organizePage:
+          _navigateHomeTab(HomeNavigatorTab.organization.index);
+        case AppRouter.exhibitionsPage:
+          _navigateHomeTab(HomeNavigatorTab.exhibition.index);
+        case AppRouter.scanQRPage:
+          _navigateHomeTab(HomeNavigatorTab.scanQr.index);
+        default:
+          break;
+      }
+    });
+  }
+
+  void _navigateHomeTab(int index) {
+    _pageController?.jumpToPage(index);
   }
 
   Pair<String, dynamic>? _resolvePath(String? path) {

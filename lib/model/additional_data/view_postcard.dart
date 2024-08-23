@@ -23,8 +23,7 @@ class ViewPostcard extends AdditionalData {
   bool get isTappable => true;
 
   @override
-  Future<void> handleTap(
-      BuildContext context, PageController? pageController) async {
+  Future<void> handleTap(BuildContext context) async {
     log.info('ViewPostcard: handle tap');
 
     final tokens = await injector<NftCollectionDatabase>()

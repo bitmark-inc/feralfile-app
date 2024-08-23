@@ -79,7 +79,7 @@ class AdditionalData {
           );
         case NotificationType.jgCrystallineWorkHasArrived:
           final jgExhibitionId = JohnGerrardHelper.exhibitionID;
-          return ViewExhibition(
+          return ViewExhibitionData(
             exhibitionId: jgExhibitionId ?? '',
             notificationType: notificationType,
             announcementContentId: announcementContentId,
@@ -103,7 +103,7 @@ class AdditionalData {
             log.warning('AdditionalData: exhibitionId is null');
             return defaultAdditionalData;
           }
-          return ViewExhibition(
+          return ViewExhibitionData(
             exhibitionId: exhibitionId,
             notificationType: notificationType,
             announcementContentId: announcementContentId,
@@ -128,8 +128,7 @@ class AdditionalData {
     }
   }
 
-  Future<void> handleTap(
-      BuildContext context, PageController? pageController) async {
+  Future<void> handleTap(BuildContext context) async {
     log.info('AdditionalData: handle tap: $notificationType');
   }
 

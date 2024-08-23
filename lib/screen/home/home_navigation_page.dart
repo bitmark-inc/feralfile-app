@@ -394,8 +394,8 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
       if (!mounted) {
         return;
       }
-      unawaited(NotificationHandler.instance.handleNotificationClicked(
-          context, additionalData, id, body ?? '', _pageController));
+      unawaited(NotificationHandler.instance
+          .handleNotificationClicked(context, additionalData, id, body ?? ''));
     });
 
     if (!widget.payload.fromOnboarding) {
