@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/explore_statistics_data.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
@@ -10,7 +11,6 @@ import 'package:autonomy_flutter/screen/feralfile_home/feralfile_home_state.dart
 import 'package:autonomy_flutter/screen/feralfile_home/filter_bar.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/list_artist_view.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/list_exhibition_view.dart';
-import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/playlist_ext.dart';
