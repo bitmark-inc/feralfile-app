@@ -413,7 +413,7 @@ class _ListUserViewState extends State<ListUserView> {
           children: [
             Expanded(
                 child: AspectRatio(
-                    aspectRatio: 1.0, child: _artistAvatar(context, user))),
+                    aspectRatio: 1, child: _artistAvatar(context, user))),
           ],
         ),
         const SizedBox(height: 14),

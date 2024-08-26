@@ -73,7 +73,7 @@ class _ArtistWorksPageState extends State<ArtistWorksPage> {
     );
   }
 
-  Widget _loadingView(BuildContext context) => Center(
+  Widget _loadingView(BuildContext context) => const Center(
         child: LoadingWidget(),
       );
 

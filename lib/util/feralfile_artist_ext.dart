@@ -71,7 +71,7 @@ extension FFUserDetailsExt on FFUserDetails {
   FFCurator toFFCurator() => FFCurator(
         id: id,
         alias: alias,
-        slug: this.slug,
+        slug: slug,
         avatarURI: avatarURI,
         bio: bio,
         fullName: fullName,

@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/gateway/feralfile_api.dart';
 import 'package:autonomy_flutter/gateway/source_exhibition_api.dart';
 import 'package:autonomy_flutter/model/dailies.dart';
+import 'package:autonomy_flutter/model/explore_statistics_data.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
@@ -19,7 +20,6 @@ import 'package:autonomy_flutter/model/ff_list_response.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/model/ff_user.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/filter_bar.dart';
-import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/crawl_helper.dart';
 import 'package:autonomy_flutter/util/dailies_helper.dart';
@@ -601,6 +601,7 @@ class FeralFileServiceImpl extends FeralFileService {
     return response.result;
   }
 
+  @override
   Future<List<Post>> getPosts({
     String sortBy = 'dateTime',
     String sortOrder = 'DESC',
@@ -750,7 +751,7 @@ class FeralFileServiceImpl extends FeralFileService {
   }
 
   Future<List<DailyToken>> _fetchDailiesTokens({int limit = 2}) async {
-    final resp = await _feralFileApi.getDailiesToken(limit: 15);
+    final resp = await _feralFileApi.getDailiesToken(limit: limit);
     final dailiesTokens = resp.result;
 
     DailiesHelper.updateDailies(dailiesTokens);
@@ -857,6 +858,7 @@ class FeralFileServiceImpl extends FeralFileService {
     return res.result;
   }
 
+  @override
   Future<ExploreStatisticsData> getExploreStatistics({
     bool unique = true,
     bool excludedFF = true,

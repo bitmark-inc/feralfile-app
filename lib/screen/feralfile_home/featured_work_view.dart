@@ -21,16 +21,16 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/services/tokens_service.dart';
 
-class FeaauredWorkView extends StatefulWidget {
+class FeaturedWorkView extends StatefulWidget {
   final List<String> tokenIDs;
 
-  const FeaauredWorkView({required this.tokenIDs, super.key});
+  const FeaturedWorkView({required this.tokenIDs, super.key});
 
   @override
-  State<FeaauredWorkView> createState() => FeaauredWorkViewState();
+  State<FeaturedWorkView> createState() => FeaturedWorkViewState();
 }
 
-class FeaauredWorkViewState extends State<FeaauredWorkView> {
+class FeaturedWorkViewState extends State<FeaturedWorkView> {
   List<AssetToken>? _featureTokens;
   late CanvasDeviceBloc _canvasDeviceBloc;
   final _canvasClientServiceV2 = injector<CanvasClientServiceV2>();
@@ -45,7 +45,7 @@ class FeaauredWorkViewState extends State<FeaauredWorkView> {
   }
 
   @override
-  void didUpdateWidget(covariant FeaauredWorkView oldWidget) {
+  void didUpdateWidget(covariant FeaturedWorkView oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.tokenIDs != widget.tokenIDs) {
       unawaited(_fetchFeaturedTokens(context));

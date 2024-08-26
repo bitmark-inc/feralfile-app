@@ -114,7 +114,7 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
     with AutomaticKeepAliveClientMixin {
   late int _selectedIndex;
   late CanvasDeviceBloc _canvasDeviceBloc;
-  final _featuredWorkKey = GlobalKey<FeaauredWorkViewState>();
+  final _featuredWorkKey = GlobalKey<FeaturedWorkViewState>();
   final _artworkViewKey = GlobalKey<ExploreSeriesViewState>();
   final _exhibitionViewKey = GlobalKey<ExploreExhibitionState>();
   final _artistViewKey = GlobalKey<ExploreArtistViewState>();
@@ -186,7 +186,7 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
           BlocBuilder<FeralfileHomeBloc, FeralfileHomeBlocState>(
             builder: (context, state) => Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: ItemExpanedWidget(
+              child: ItemExpandedWidget(
                 items: _getItemList(state),
                 selectedIndex: _selectedIndex,
                 iconOnExpanded: RotatedBox(
@@ -310,7 +310,7 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
           ),
         ],
         child: Expanded(
-          child: FeaauredWorkView(
+          child: FeaturedWorkView(
             key: _featuredWorkKey,
             tokenIDs: tokenIDs,
           ),
@@ -394,7 +394,7 @@ class Item {
   });
 }
 
-class ItemExpanedWidget extends StatefulWidget {
+class ItemExpandedWidget extends StatefulWidget {
   final Widget? iconOnExpanded;
   final Widget? iconOnUnExpanded;
   final List<Item> items;
@@ -403,7 +403,7 @@ class ItemExpanedWidget extends StatefulWidget {
   // actions on unexpanded
   final List<Widget> actions;
 
-  const ItemExpanedWidget({
+  const ItemExpandedWidget({
     required this.items,
     required this.selectedIndex,
     super.key,
@@ -413,10 +413,10 @@ class ItemExpanedWidget extends StatefulWidget {
   });
 
   @override
-  State<ItemExpanedWidget> createState() => _ItemExpanedWidgetState();
+  State<ItemExpandedWidget> createState() => _ItemExpandedWidgetState();
 }
 
-class _ItemExpanedWidgetState extends State<ItemExpanedWidget> {
+class _ItemExpandedWidgetState extends State<ItemExpandedWidget> {
   bool _isExpanded = false;
   late int _selectedIndex;
 
