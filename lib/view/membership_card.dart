@@ -59,7 +59,7 @@ class MembershipCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   ...type.features.map((feature) => Padding(
-                        padding: const EdgeInsets.only(left: 5),
+                        padding: const EdgeInsets.only(left: 10),
                         child: Text(
                           feature,
                           style: theme.textTheme.ppMori400Black14,
