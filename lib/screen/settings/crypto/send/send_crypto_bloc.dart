@@ -12,14 +12,15 @@ import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/address.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_state.dart';
-import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/currency_service.dart';
+import 'package:autonomy_flutter/service/domain_address_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/fee_util.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/rpc_error_extension.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
@@ -38,7 +39,7 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
   final DomainAddressService _domainAddressService;
   String? cachedAddress;
   BigInt? cachedAmount;
-  bool isEstimating = false;
+  final _estimateLock = Lock();
 
   final _xtzSafeBuffer = BigInt.from(10);
   final _ethSafeBuffer = BigInt.from(100);
@@ -54,68 +55,73 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
     this._domainAddressService,
   ) : super(SendCryptoState()) {
     on<GetBalanceEvent>((event, emit) async {
-      final newState = state.clone()
-        ..wallet = event.wallet
-        ..index = event.index;
+      await _estimateLock.synchronized(() async {
+        final newState = state.clone()
+          ..wallet = event.wallet
+          ..index = event.index;
 
-      final exchangeRate = await _currencyService.getExchangeRates();
-      newState.exchangeRate = exchangeRate;
+        final exchangeRate = await _currencyService.getExchangeRates();
+        newState.exchangeRate = exchangeRate;
 
-      switch (_type) {
-        case CryptoType.ETH:
-          final ownerAddress =
-              await event.wallet.getETHEip55Address(index: event.index);
-          final balance = await _ethereumService.getBalance(ownerAddress);
+        switch (_type) {
+          case CryptoType.ETH:
+            final ownerAddress =
+                await event.wallet.getETHEip55Address(index: event.index);
+            final balance =
+                await _ethereumService.getBalance(ownerAddress, doRetry: true);
 
-          newState.balance = balance.getInWei;
+            newState.balance = balance.getInWei;
 
-          if (state.feeOptionValue != null) {
-            final maxAllow =
-                balance.getInWei - state.feeOptionValue!.high - _ethSafeBuffer;
-            newState
-              ..maxAllow = maxAllow
-              ..isValid = _isValid(newState);
-          }
-          break;
-        case CryptoType.XTZ:
-          final address =
-              await event.wallet.getTezosAddress(index: event.index);
-          final balance = await _tezosService.getBalance(address);
+            if (state.feeOptionValue != null) {
+              final maxAllow = balance.getInWei -
+                  state.feeOptionValue!.high -
+                  _ethSafeBuffer;
+              newState
+                ..maxAllow = maxAllow
+                ..isValid = _isValid(newState);
+            }
+          case CryptoType.XTZ:
+            final address =
+                await event.wallet.getTezosAddress(index: event.index);
+            final balance =
+                await _tezosService.getBalance(address, doRetry: true);
 
-          newState.balance = BigInt.from(balance);
-          if (state.feeOptionValue != null) {
-            final maxAllow =
-                newState.balance! - state.feeOptionValue!.high - _xtzSafeBuffer;
-            newState
-              ..maxAllow = maxAllow
-              ..isValid = _isValid(newState);
-          }
-          break;
-        case CryptoType.USDC:
-          final address =
-              await event.wallet.getETHEip55Address(index: event.index);
-          final ownerAddress = EthereumAddress.fromHex(address);
-          final contractAddress = EthereumAddress.fromHex(usdcContractAddress);
+            newState.balance = BigInt.from(balance);
+            if (state.feeOptionValue != null) {
+              final maxAllow = newState.balance! -
+                  state.feeOptionValue!.high -
+                  _xtzSafeBuffer;
+              newState
+                ..maxAllow = maxAllow
+                ..isValid = _isValid(newState);
+            }
+          case CryptoType.USDC:
+            final address =
+                await event.wallet.getETHEip55Address(index: event.index);
+            final ownerAddress = EthereumAddress.fromHex(address);
+            final contractAddress =
+                EthereumAddress.fromHex(usdcContractAddress);
 
-          final balance = await _ethereumService.getERC20TokenBalance(
-              contractAddress, ownerAddress);
-          final ethBalance = await _ethereumService.getBalance(address);
+            final balance = await _ethereumService.getERC20TokenBalance(
+                contractAddress, ownerAddress);
+            final ethBalance =
+                await _ethereumService.getBalance(address, doRetry: true);
 
-          newState.balance = balance;
-          newState.ethBalance = ethBalance.getInWei;
+            newState.balance = balance;
+            newState.ethBalance = ethBalance.getInWei;
 
-          if (state.feeOptionValue != null) {
-            final maxAllow = balance;
-            newState
-              ..maxAllow = maxAllow
-              ..isValid = _isValid(newState);
-          }
-          break;
-        default:
-          break;
-      }
+            if (state.feeOptionValue != null) {
+              final maxAllow = balance;
+              newState
+                ..maxAllow = maxAllow
+                ..isValid = _isValid(newState);
+            }
+          default:
+            break;
+        }
 
-      emit(newState);
+        emit(newState);
+      });
     });
 
     on<AddressChangedEvent>((event, emit) async {
@@ -142,7 +148,7 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
       emit(newState);
     });
 
-    on<AmountChangedEvent>((event, emit) async {
+    on<AmountChangedEvent>((event, emit) {
       final newState = state.clone();
 
       if (event.amount.isNotEmpty) {
@@ -151,10 +157,8 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
           switch (_type) {
             case CryptoType.ETH:
               value *= double.parse(state.exchangeRate.eth);
-              break;
             case CryptoType.XTZ:
               value *= double.parse(state.exchangeRate.xtz);
-              break;
             default:
               break;
           }
@@ -180,146 +184,140 @@ class SendCryptoBloc extends AuBloc<SendCryptoEvent, SendCryptoState> {
       emit(newState);
     });
 
-    on<CurrencyTypeChangedEvent>((event, emit) async {
+    on<CurrencyTypeChangedEvent>((event, emit) {
       final newState = state.clone()..isCrypto = event.isCrypto;
       emit(newState);
     });
 
     on<EstimateFeeEvent>((event, emit) async {
-      if (isEstimating) {
-        return;
-      }
+      await _estimateLock.synchronized(() async {
+        log.info('EstimateFeeEvent: ${event.address}, ${event.amount}');
+        final newState = state.clone();
 
-      isEstimating = true;
+        BigInt fee = BigInt.zero;
+        FeeOptionValue feeOptionValue = FeeOptionValue(fee, fee, fee);
 
-      final newState =
-          event.newState == null ? state.clone() : event.newState!.clone();
-
-      BigInt fee = BigInt.zero;
-      FeeOptionValue feeOptionValue = FeeOptionValue(fee, fee, fee);
-
-      switch (_type) {
-        case CryptoType.ETH:
-          final address = EthereumAddress.fromHex(event.address);
-          final wallet = state.wallet;
-          final index = state.index;
-          if (wallet == null || index == null) {
-            return;
-          }
-          feeOptionValue = await _ethereumService.estimateFee(
-              wallet, index, address, EtherAmount.inWei(event.amount), null);
-          fee = feeOptionValue.getFee(state.feeOption);
-          break;
-        case CryptoType.XTZ:
-          final wallet = state.wallet;
-          final index = state.index;
-          if (wallet == null || index == null) {
-            return;
-          }
-          try {
-            final tezosFee = await _tezosService.estimateFee(
-                await wallet.getTezosPublicKey(index: index),
-                event.address,
-                event.amount.toInt(),
-                baseOperationCustomFee:
-                    state.feeOption.tezosBaseOperationCustomFee);
-            fee = BigInt.from(tezosFee);
-            feeOptionValue = FeeOptionValue(
-                BigInt.from(tezosFee -
-                    state.feeOption.tezosBaseOperationCustomFee +
-                    baseOperationCustomFeeLow),
-                BigInt.from(tezosFee -
-                    state.feeOption.tezosBaseOperationCustomFee +
-                    baseOperationCustomFeeMedium),
-                BigInt.from(tezosFee -
-                    state.feeOption.tezosBaseOperationCustomFee +
-                    baseOperationCustomFeeHigh));
-          } on TezartNodeError catch (err) {
-            unawaited(UIHelper.showInfoDialog(
-              injector<NavigationService>().navigatorKey.currentContext!,
-              'estimation_failed'.tr(),
-              getTezosErrorMessage(err),
-              isDismissible: true,
-            ));
-            fee = BigInt.zero;
-            feeOptionValue =
-                FeeOptionValue(BigInt.zero, BigInt.zero, BigInt.zero);
-          } catch (err) {
-            unawaited(showErrorDialogFromException(err));
-            fee = BigInt.zero;
-            feeOptionValue =
-                FeeOptionValue(BigInt.zero, BigInt.zero, BigInt.zero);
-          }
-          break;
-        case CryptoType.USDC:
-          final wallet = state.wallet;
-          final index = state.index;
-          if (wallet == null || index == null) {
-            return;
-          }
-
-          final address = await wallet.getETHEip55Address(index: index);
-          final ownerAddress = EthereumAddress.fromHex(address);
-          final toAddress = EthereumAddress.fromHex(event.address);
-          final contractAddress = EthereumAddress.fromHex(usdcContractAddress);
-
-          final data = await _ethereumService.getERC20TransferTransactionData(
-              contractAddress, ownerAddress, toAddress, event.amount);
-          try {
+        switch (_type) {
+          case CryptoType.ETH:
+            final address = EthereumAddress.fromHex(event.address);
+            final wallet = state.wallet;
+            final index = state.index;
+            if (wallet == null || index == null) {
+              return;
+            }
             feeOptionValue = await _ethereumService.estimateFee(
-                wallet, index, contractAddress, EtherAmount.zero(), data);
+                wallet, index, address, EtherAmount.inWei(event.amount), null);
             fee = feeOptionValue.getFee(state.feeOption);
-          } on RPCError catch (e) {
-            _navigationService.showErrorDialog(
-                ErrorEvent(e, 'estimation_failed'.tr(), e.errorMessage,
-                    ErrorItemState.tryAgain), cancelAction: () {
-              _navigationService.hideInfoDialog();
+          case CryptoType.XTZ:
+            final wallet = state.wallet;
+            final index = state.index;
+            if (wallet == null || index == null) {
               return;
-            }, defaultAction: () {
-              add(event);
-            });
-          } catch (e) {
-            _navigationService.showErrorDialog(
-                ErrorEvent(e, 'estimation_failed'.tr(), e.toString(),
-                    ErrorItemState.tryAgain), cancelAction: () {
-              _navigationService.hideInfoDialog();
+            }
+            try {
+              final tezosFee = await _tezosService.estimateFee(
+                  await wallet.getTezosPublicKey(index: index),
+                  event.address,
+                  event.amount.toInt(),
+                  baseOperationCustomFee:
+                      state.feeOption.tezosBaseOperationCustomFee);
+              fee = BigInt.from(tezosFee);
+              feeOptionValue = FeeOptionValue(
+                  BigInt.from(tezosFee -
+                      state.feeOption.tezosBaseOperationCustomFee +
+                      baseOperationCustomFeeLow),
+                  BigInt.from(tezosFee -
+                      state.feeOption.tezosBaseOperationCustomFee +
+                      baseOperationCustomFeeMedium),
+                  BigInt.from(tezosFee -
+                      state.feeOption.tezosBaseOperationCustomFee +
+                      baseOperationCustomFeeHigh));
+            } on TezartNodeError catch (err) {
+              unawaited(UIHelper.showInfoDialog(
+                injector<NavigationService>().navigatorKey.currentContext!,
+                'estimation_failed'.tr(),
+                getTezosErrorMessage(err),
+                isDismissible: true,
+              ));
+              fee = BigInt.zero;
+              feeOptionValue =
+                  FeeOptionValue(BigInt.zero, BigInt.zero, BigInt.zero);
+            } catch (err) {
+              unawaited(showErrorDialogFromException(err));
+              fee = BigInt.zero;
+              feeOptionValue =
+                  FeeOptionValue(BigInt.zero, BigInt.zero, BigInt.zero);
+            }
+          case CryptoType.USDC:
+            final wallet = state.wallet;
+            final index = state.index;
+            if (wallet == null || index == null) {
               return;
-            }, defaultAction: () {
-              add(event);
-            });
-          }
-          break;
-        default:
-          fee = BigInt.zero;
-          feeOptionValue =
-              FeeOptionValue(BigInt.zero, BigInt.zero, BigInt.zero);
-      }
+            }
 
-      newState
-        ..fee = fee
-        ..feeOptionValue = feeOptionValue;
+            final address = await wallet.getETHEip55Address(index: index);
+            final ownerAddress = EthereumAddress.fromHex(address);
+            final toAddress = EthereumAddress.fromHex(event.address);
+            final contractAddress =
+                EthereumAddress.fromHex(usdcContractAddress);
 
-      if (state.balance != null) {
-        var maxAllow = _type != CryptoType.USDC
-            ? state.balance! -
-                fee -
-                (_type == CryptoType.ETH ? _ethSafeBuffer : _xtzSafeBuffer)
-            : state.balance!;
-        if (maxAllow < BigInt.zero) {
-          maxAllow = BigInt.zero;
+            final data = await _ethereumService.getERC20TransferTransactionData(
+                contractAddress, ownerAddress, toAddress, event.amount);
+            try {
+              feeOptionValue = await _ethereumService.estimateFee(
+                  wallet, index, contractAddress, EtherAmount.zero(), data);
+              fee = feeOptionValue.getFee(state.feeOption);
+            } on RPCError catch (e) {
+              _navigationService.showErrorDialog(
+                  ErrorEvent(e, 'estimation_failed'.tr(), e.errorMessage,
+                      ErrorItemState.tryAgain), cancelAction: () {
+                _navigationService.hideInfoDialog();
+                return;
+              }, defaultAction: () {
+                add(event);
+              });
+            } catch (e) {
+              _navigationService.showErrorDialog(
+                  ErrorEvent(e, 'estimation_failed'.tr(), e.toString(),
+                      ErrorItemState.tryAgain), cancelAction: () {
+                _navigationService.hideInfoDialog();
+                return;
+              }, defaultAction: () {
+                add(event);
+              });
+            }
+          default:
+            fee = BigInt.zero;
+            feeOptionValue =
+                FeeOptionValue(BigInt.zero, BigInt.zero, BigInt.zero);
         }
-        newState
-          ..maxAllow = maxAllow
-          ..address = cachedAddress
-          ..amount = cachedAmount
-          ..isValid = _isValid(newState);
-      }
 
-      isEstimating = false;
-      emit(newState);
+        newState
+          ..fee = fee
+          ..feeOptionValue = feeOptionValue;
+
+        if (state.balance != null) {
+          var maxAllow = _type != CryptoType.USDC
+              ? state.balance! -
+                  fee -
+                  (_type == CryptoType.ETH ? _ethSafeBuffer : _xtzSafeBuffer)
+              : state.balance!;
+          if (maxAllow < BigInt.zero) {
+            maxAllow = BigInt.zero;
+          }
+          newState
+            ..maxAllow = maxAllow
+            ..address = cachedAddress
+            ..amount = cachedAmount
+            ..isValid = _isValid(newState);
+        }
+
+        log.info('EstimateFeeEvent: done');
+        emit(newState);
+      });
     });
 
-    on<FeeOptionChangedEvent>((event, emit) async {
+    on<FeeOptionChangedEvent>((event, emit) {
       final newState = state.clone()..feeOption = event.feeOption;
       if (state.balance != null &&
           state.fee != null &&

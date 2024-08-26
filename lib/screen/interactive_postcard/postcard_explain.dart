@@ -207,8 +207,8 @@ class _PostcardExplainState extends State<PostcardExplain> {
 
   Widget _page1(VideoPlayerController controller) {
     final theme = Theme.of(context);
-    final termsConditionsStyle = theme.textTheme.moMASans400Grey12
-        .copyWith(color: AppColor.auQuickSilver);
+    final termsConditionsStyle = theme.textTheme.moMASans400Grey12.copyWith(
+        color: AppColor.auQuickSilver, decorationColor: AppColor.auQuickSilver);
     return SingleChildScrollView(
       child: Column(
         children: [

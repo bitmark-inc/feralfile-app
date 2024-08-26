@@ -8,19 +8,16 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/model/ff_series.dart';
-import 'package:autonomy_flutter/model/otp.dart';
+import 'package:autonomy_flutter/model/ff_exhibition.dart';
+import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/claim/activation/claim_activation_page.dart';
-import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
+import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
-import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
+import 'package:autonomy_flutter/util/feral_file_custom_tab.dart';
 import 'package:autonomy_flutter/util/feral_file_helper.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -30,6 +27,7 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:nft_collection/database/nft_collection_database.dart';
 import 'package:nft_collection/models/asset_token.dart'; // ignore_for_file: implementation_imports
 import 'package:overlay_support/src/overlay_state_finder.dart';
 
@@ -42,6 +40,7 @@ class NavigationService {
   // workaround solution for unknown reason
   // ModalRoute(navigatorKey.currentContext) returns nil
   bool _isWCConnectInShow = false;
+  final _browser = FeralFileBrowser();
 
   BuildContext get context => navigatorKey.currentContext!;
 
@@ -50,7 +49,9 @@ class NavigationService {
   Future<dynamic>? navigateTo(String routeName, {Object? arguments}) {
     log.info('NavigationService.navigateTo: $routeName');
 
-    if (routeName == AppRouter.wcConnectPage && _isWCConnectInShow) {
+    if ((routeName == AppRouter.tbConnectPage ||
+            routeName == AppRouter.wc2ConnectPage) &&
+        _isWCConnectInShow) {
       log.info('[NavigationService] skip because WCConnectPage is in showing');
       return null;
     }
@@ -67,7 +68,9 @@ class NavigationService {
   Future<dynamic>? popAndPushNamed(String routeName, {Object? arguments}) {
     log.info('NavigationService.popAndPushNamed: $routeName');
 
-    if (routeName == AppRouter.wcConnectPage && _isWCConnectInShow) {
+    if ((routeName == AppRouter.wc2ConnectPage ||
+            routeName == AppRouter.tbConnectPage) &&
+        _isWCConnectInShow) {
       log.info(
           // ignore: lines_longer_than_80_chars
           '[NavigationService] skip popAndPushNamed because WCConnectPage is in showing');
@@ -99,7 +102,9 @@ class NavigationService {
   }) {
     log.info('NavigationService.navigateTo: $routeName');
 
-    if (routeName == AppRouter.wcConnectPage && _isWCConnectInShow) {
+    if ((routeName == AppRouter.tbConnectPage ||
+            routeName == AppRouter.wc2ConnectPage) &&
+        _isWCConnectInShow) {
       log.info('[NavigationService] skip because WCConnectPage is in showing');
       return null;
     }
@@ -114,90 +119,6 @@ class NavigationService {
   }
 
   NavigatorState navigatorState() => Navigator.of(navigatorKey.currentContext!);
-
-  Future showAirdropNotStarted(String? artworkId) async {
-    log.info('NavigationService.showAirdropNotStarted');
-    if (navigatorKey.currentState?.mounted == true &&
-        navigatorKey.currentContext != null) {
-      await UIHelper.showAirdropNotStarted(
-          navigatorKey.currentContext!, artworkId);
-    } else {
-      await Future.value(0);
-    }
-  }
-
-  Future showAirdropExpired(String? artworkId) async {
-    log.info('NavigationService.showAirdropExpired');
-    if (navigatorKey.currentState?.mounted == true &&
-        navigatorKey.currentContext != null) {
-      await UIHelper.showAirdropExpired(
-          navigatorKey.currentContext!, artworkId);
-    } else {
-      await Future.value(0);
-    }
-  }
-
-  Future showNoRemainingToken({
-    required FFSeries series,
-  }) async {
-    log.info('NavigationService.showNoRemainingToken');
-    if (navigatorKey.currentState?.mounted == true &&
-        navigatorKey.currentContext != null) {
-      await UIHelper.showNoRemainingAirdropToken(
-        navigatorKey.currentContext!,
-        series: series,
-      );
-    } else {
-      await Future.value(0);
-    }
-  }
-
-  Future showOtpExpired(String? artworkId) async {
-    log.info('NavigationService.showOtpExpired');
-    if (navigatorKey.currentState?.mounted == true &&
-        navigatorKey.currentContext != null) {
-      await UIHelper.showOtpExpired(navigatorKey.currentContext!, artworkId);
-    } else {
-      await Future.value(0);
-    }
-  }
-
-  Future openClaimTokenPage(
-    FFSeries series, {
-    Otp? otp,
-    Future<ClaimResponse?> Function({required String receiveAddress})?
-        claimFunction,
-  }) async {
-    log.info('NavigationService.openClaimTokenPage');
-    if (navigatorKey.currentState?.mounted == true &&
-        navigatorKey.currentContext != null) {
-      await navigatorKey.currentState?.pushNamed(
-        AppRouter.claimFeralfileTokenPage,
-        arguments: ClaimTokenPagePayload(
-          series: series,
-          otp: otp,
-          allowViewOnlyClaim: true,
-          claimFunction: claimFunction,
-        ),
-      );
-    } else {
-      await Future.value(0);
-    }
-  }
-
-  Future<void> openActivationPage(
-      {required ClaimActivationPagePayload payload}) async {
-    log.info('NavigationService.openActivationPage');
-    if (navigatorKey.currentState?.mounted == true &&
-        navigatorKey.currentContext != null) {
-      await navigatorKey.currentState?.pushNamed(
-        AppRouter.claimActivationPage,
-        arguments: payload,
-      );
-    } else {
-      await Future.value(0);
-    }
-  }
 
   void showErrorDialog(
     ErrorEvent event, {
@@ -257,9 +178,6 @@ class NavigationService {
   Future<void> showContactingDialog() async {
     if (navigatorKey.currentState?.mounted == true &&
         navigatorKey.currentContext != null) {
-      final metricClient = injector.get<MetricClientService>()
-        ..timerEvent(MixpanelEvent.cancelContact);
-
       bool dialogShowed = false;
       showInfoNotificationWithLink(
         contactingKey,
@@ -276,8 +194,10 @@ class NavigationService {
                 .textTheme
                 .ppMori400White12
                 .copyWith(
-                    color: AppColor.auQuickSilver,
-                    decoration: TextDecoration.underline),
+                  color: AppColor.auQuickSilver,
+                  decoration: TextDecoration.underline,
+                  decorationColor: AppColor.auQuickSilver,
+                ),
           ),
         ),
         duration: const Duration(seconds: 15),
@@ -291,7 +211,6 @@ class NavigationService {
           waitTooLongDialog();
         }
       });
-      await metricClient.addEvent(MixpanelEvent.connectContactSuccess);
     }
   }
 
@@ -306,12 +225,36 @@ class NavigationService {
         isDismissible: true,
         autoDismissAfter: 20,
         onClose: () {
-          injector
-              .get<MetricClientService>()
-              .addEvent(MixpanelEvent.cancelContact);
           hideInfoDialog();
         },
       );
+    }
+  }
+
+  Future<void> showQRExpired() async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await UIHelper.showInfoDialog(
+          context, 'qr_code_expired'.tr(), 'qr_code_expired_desc'.tr(),
+          onClose: () => UIHelper.hideInfoDialog(context), isDismissible: true);
+    }
+  }
+
+  Future<void> addressNotFoundError() async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await UIHelper.showInfoDialog(
+          context, 'error'.tr(), 'can_not_find_address'.tr(),
+          onClose: () => UIHelper.hideInfoDialog(context), isDismissible: true);
+    }
+  }
+
+  Future<void> showCannotConnectTv() async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await UIHelper.showInfoDialog(context, 'can_not_connect_to_tv'.tr(),
+          'can_not_connect_to_tv_desc'.tr(),
+          onClose: () => UIHelper.hideInfoDialog(context), isDismissible: true);
     }
   }
 
@@ -335,6 +278,36 @@ class NavigationService {
     }
   }
 
+  Future<void> gotoExhibitionDetailsPage(String exhibitionID) async {
+    popUntilHome();
+    await Future.delayed(const Duration(seconds: 1), () async {
+      await (homePageKey.currentState ?? homePageNoTransactionKey.currentState)
+          ?.openExhibition(exhibitionID);
+    });
+  }
+
+  Future<void> popToCollection() async {
+    popUntilHome();
+    await Future.delayed(const Duration(seconds: 1), () async {
+      await (homePageKey.currentState ?? homePageNoTransactionKey.currentState)
+          ?.openCollection();
+    });
+  }
+
+  Future<void> gotoArtworkDetailsPage(String indexID) async {
+    popUntilHome();
+    final tokens = await injector<NftCollectionDatabase>()
+        .assetTokenDao
+        .findAllAssetTokensByTokenIDs([indexID]);
+    final owner = tokens.first.owner;
+    final artworkDetailPayload =
+        ArtworkDetailPayload([ArtworkIdentity(indexID, owner)], 0);
+    if (context.mounted) {
+      unawaited(Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
+          arguments: artworkDetailPayload));
+    }
+  }
+
   Future<dynamic> goToIRLWebview(IRLWebScreenPayload payload) async {
     if (navigatorKey.currentState?.mounted == true &&
         navigatorKey.currentContext != null) {
@@ -348,34 +321,6 @@ class NavigationService {
     if (navigatorKey.currentContext != null &&
         navigatorKey.currentState?.mounted == true) {
       await UIHelper.showAlreadyDelivered(navigatorKey.currentContext!);
-    }
-  }
-
-  Future<void> showAirdropJustOnce() async {
-    if (navigatorKey.currentContext != null &&
-        navigatorKey.currentState?.mounted == true) {
-      await UIHelper.showAirdropJustOnce(navigatorKey.currentContext!);
-    }
-  }
-
-  Future<void> showAirdropAlreadyClaimed() async {
-    if (navigatorKey.currentContext != null &&
-        navigatorKey.currentState?.mounted == true) {
-      await UIHelper.showAirdropAlreadyClaim(navigatorKey.currentContext!);
-    }
-  }
-
-  Future<void> showActivationError(Object e, String id) async {
-    if (navigatorKey.currentContext != null &&
-        navigatorKey.currentState?.mounted == true) {
-      await UIHelper.showActivationError(navigatorKey.currentContext!, e, id);
-    }
-  }
-
-  Future<void> showAirdropClaimFailed() async {
-    if (navigatorKey.currentContext != null &&
-        navigatorKey.currentState?.mounted == true) {
-      await UIHelper.showAirdropClaimFailed(navigatorKey.currentContext!);
     }
   }
 
@@ -449,9 +394,7 @@ class NavigationService {
       return;
     }
     final url = FeralFileHelper.getArtistUrl(alias);
-    await Navigator.of(navigatorKey.currentContext!).pushNamed(
-        AppRouter.inappWebviewPage,
-        arguments: InAppWebViewPayload(url));
+    await _browser.openUrl(url);
   }
 
   Future<void> openFeralFileCuratorPage(String alias) async {
@@ -459,29 +402,53 @@ class NavigationService {
       return;
     }
     final url = FeralFileHelper.getCuratorUrl(alias);
-    await Navigator.of(navigatorKey.currentContext!).pushNamed(
-        AppRouter.inappWebviewPage,
-        arguments: InAppWebViewPayload(url));
+    await _browser.openUrl(url);
   }
 
-  Future<void> showFeralFileClaimTokenPassLimit(
-      {required FFSeries series}) async {
-    if (navigatorKey.currentContext != null &&
-        navigatorKey.currentState?.mounted == true) {
-      await UIHelper.showFeralFileClaimTokenPassLimit(
-        context,
-        series: series,
-      );
+  Future<void> openFeralFileExhibitionNotePage(String exhibitionSlug) async {
+    if (exhibitionSlug.isEmpty) {
+      return;
     }
+    final url = FeralFileHelper.getExhibitionNoteUrl(exhibitionSlug);
+    await _browser.openUrl(url);
   }
 
-  Future showClaimTokenError(
-    Object e, {
-    required FFSeries series,
-  }) async {
-    if (navigatorKey.currentContext != null &&
-        navigatorKey.currentState?.mounted == true) {
-      await UIHelper.showClaimTokenError(context, e, series: series);
+  Future<void> openFeralFilePostPage(Post post, String exhibitionID) async {
+    if (post.slug.isEmpty || exhibitionID.isEmpty) {
+      return;
     }
+    final url = FeralFileHelper.getPostUrl(post, exhibitionID);
+    await _browser.openUrl(url);
+  }
+
+  Future<void> navigatePath(String? path) async {
+    final pair = _resolvePath(path);
+    if (pair == null) {
+      return;
+    }
+
+    unawaited(navigateTo(pair.first, arguments: pair.second));
+  }
+
+  Pair<String, dynamic>? _resolvePath(String? path) {
+    if (path == null || path.isEmpty) {
+      return null;
+    }
+    final parts = path.split('/')..removeWhere((element) => element.isEmpty);
+    if (parts.isEmpty) {
+      return null;
+    }
+    if (parts.length == 1) {
+      return Pair(parts[0], null);
+    }
+
+    return Pair(parts[0], _resolveArgument(parts[1]));
+  }
+
+  dynamic _resolveArgument(String? argument) {
+    if (argument == null || argument.isEmpty) {
+      return null;
+    }
+    return argument;
   }
 }

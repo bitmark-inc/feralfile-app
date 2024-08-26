@@ -8,11 +8,8 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/cloud_service.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/external_app_info_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -102,7 +99,7 @@ class CloudPage extends StatelessWidget {
             children: [
               Expanded(
                 child: PrimaryButton(
-                  text: 'continue'.tr(),
+                  text: 'go_back'.tr(),
                   onTap: () => _continue(context),
                 ),
               ),
@@ -149,15 +146,7 @@ class CloudPage extends StatelessWidget {
   }
 
   void _continue(BuildContext context) {
-    if (injector<ConfigurationService>().isDoneOnboarding()) {
-      Navigator.of(context).popUntil((route) =>
-          route.settings.name == AppRouter.claimSelectAccountPage ||
-          route.settings.name == AppRouter.wcConnectPage ||
-          route.settings.name == AppRouter.homePage ||
-          route.settings.name == AppRouter.homePageNoTransition);
-    } else {
-      unawaited(doneOnboarding(context));
-    }
+    Navigator.of(context).pop();
   }
 }
 

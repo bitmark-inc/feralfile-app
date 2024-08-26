@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
@@ -35,12 +36,11 @@ class NameViewOnlyAddressPage extends StatefulWidget {
 class _NameViewOnlyAddressPageState extends State<NameViewOnlyAddressPage> {
   final TextEditingController _nameController = TextEditingController();
 
-  bool isSavingAliasDisabled = false;
-  bool canPop = false;
+  bool _isSavingAliasDisabled = false;
 
   void saveAliasButtonChangedState() {
     setState(() {
-      isSavingAliasDisabled = !isSavingAliasDisabled;
+      _isSavingAliasDisabled = !_isSavingAliasDisabled;
     });
   }
 
@@ -56,15 +56,24 @@ class _NameViewOnlyAddressPageState extends State<NameViewOnlyAddressPage> {
     super.dispose();
   }
 
+  Future<void> _deleteConnection(BuildContext context) async {
+    await injector<AccountService>().deleteLinkedAccount(widget.connection);
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return WillPopScope(
-      onWillPop: () async => canPop,
+    return PopScope(
+      canPop: false,
       child: Scaffold(
-        appBar: getBackAppBar(context,
-            title: 'view_existing_address'.tr(),
-            onBack: () => Navigator.of(context).pop()),
+        appBar: getBackAppBar(context, title: 'view_existing_address'.tr(),
+            onBack: () async {
+          await _deleteConnection(context);
+          if (!context.mounted) {
+            return;
+          }
+          Navigator.of(context).pop();
+        }),
         body: Container(
           margin: ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
           child: Column(
@@ -88,7 +97,7 @@ class _NameViewOnlyAddressPageState extends State<NameViewOnlyAddressPage> {
                           controller: _nameController,
                           onChanged: (valueChanged) {
                             if (_nameController.text.trim().isEmpty !=
-                                isSavingAliasDisabled) {
+                                _isSavingAliasDisabled) {
                               saveAliasButtonChangedState();
                             }
                           }),
@@ -99,9 +108,9 @@ class _NameViewOnlyAddressPageState extends State<NameViewOnlyAddressPage> {
               Row(
                 children: [
                   Expanded(
-                    child: PrimaryButton(
+                    child: PrimaryAsyncButton(
                       text: 'continue'.tr(),
-                      onTap: isSavingAliasDisabled
+                      onTap: _isSavingAliasDisabled
                           ? null
                           : () {
                               context.read<AccountsBloc>().add(

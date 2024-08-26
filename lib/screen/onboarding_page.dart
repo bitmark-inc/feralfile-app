@@ -10,8 +10,9 @@ import 'dart:async';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/router/router_bloc.dart';
-import 'package:autonomy_flutter/screen/onboarding/new_address/address_alias.dart';
+import 'package:autonomy_flutter/screen/onboarding/import_address/name_address_persona.dart';
 import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_address.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
@@ -50,6 +51,11 @@ class _OnboardingPageState extends State<OnboardingPage>
 
   late SwiperController _swiperController;
   late int _currentIndex;
+
+  final _onboardingLogo = Semantics(
+    label: 'onboarding_logo',
+    child: SvgPicture.asset('assets/images/feral_file_onboarding.svg'),
+  );
 
   @override
   void initState() {
@@ -190,7 +196,7 @@ class _OnboardingPageState extends State<OnboardingPage>
     final theme = Theme.of(context);
 
     return Scaffold(
-        appBar: getDarkEmptyAppBar(),
+        appBar: getDarkEmptyAppBar(Colors.transparent),
         backgroundColor: AppColor.primaryBlack,
         body: BlocConsumer<RouterBloc, RouterState>(
           listener: (context, state) async {
@@ -205,10 +211,9 @@ class _OnboardingPageState extends State<OnboardingPage>
                 }
                 // await askForNotification();
                 await injector<VersionService>().checkForUpdate();
-                // hide code show surveys issues/1459
-                // await Future.delayed(SHORT_SHOW_DIALOG_DURATION,
-                //     () => showSurveysNotification(context));
-                break;
+              // hide code show surveys issues/1459
+              // await Future.delayed(SHORT_SHOW_DIALOG_DURATION,
+              //     () => showSurveysNotification(context));
               default:
                 break;
             }
@@ -260,9 +265,7 @@ class _OnboardingPageState extends State<OnboardingPage>
                   Padding(
                     padding: const EdgeInsets.only(top: 15),
                     child: Center(
-                      child: SvgPicture.asset(
-                        'assets/images/feral_file_onboarding.svg',
-                      ),
+                      child: _onboardingLogo,
                     ),
                   ),
                   Positioned.fill(
@@ -327,7 +330,7 @@ class _OnboardingPageState extends State<OnboardingPage>
     ];
     final pages = [
       Center(
-        child: SvgPicture.asset('assets/images/feral_file_onboarding.svg'),
+        child: _onboardingLogo,
       ),
       _onboardingItem(
         context,
@@ -433,18 +436,27 @@ class _OnboardingPageState extends State<OnboardingPage>
               padding: padding,
               child: Column(
                 children: [
-                  PrimaryButton(
-                    text: 'get_started'.tr(),
-                    onTap: () async {
-                      await Navigator.of(context).pushNamed(AddressAlias.tag,
-                          arguments: AddressAliasPayload(WalletType.Autonomy));
+                  BlocConsumer<PersonaBloc, PersonaState>(
+                    builder: (context, state) => PrimaryButton(
+                      text: 'get_started'.tr(),
+                      isProcessing:
+                          state.createAccountState == ActionState.loading,
+                      onTap: () async {
+                        context.read<PersonaBloc>().add(
+                            CreatePersonaAddressesEvent(WalletType.Autonomy));
+                      },
+                    ),
+                    listener: (context, state) async {
+                      if (state.createAccountState == ActionState.done) {
+                        await doneNaming(context);
+                      }
                     },
                   ),
                   const SizedBox(height: 16),
                   TextButton(
                     onPressed: () async {
                       await Navigator.of(context).pushNamed(
-                          ViewExistingAddress.tag,
+                          AppRouter.viewExistingAddressPage,
                           arguments: ViewExistingAddressPayload(true));
                     },
                     child: Text(

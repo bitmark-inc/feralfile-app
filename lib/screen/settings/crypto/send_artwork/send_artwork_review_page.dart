@@ -170,7 +170,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
         };
         Navigator.of(context).pop(payload);
       }
-    } catch (e) {
+    } on Exception catch (_) {
       if (!mounted) {
         return;
       }
@@ -236,7 +236,7 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
                                 _item(
                                   context: context,
                                   title: 'title'.tr(),
-                                  content: assetToken.title ?? '',
+                                  content: assetToken.displayTitle ?? '',
                                 ),
                                 divider,
                                 _item(
@@ -380,13 +380,18 @@ class _SendArtworkReviewPageState extends State<SendArtworkReviewPage> {
             overflow: TextOverflow.ellipsis,
           ),
         ),
-        GestureDetector(
-          onTap: onValueTap,
-          child: Text(
-            content,
-            style: theme.textTheme.ppMori400Black14.copyWith(
+        Expanded(
+          child: GestureDetector(
+            onTap: onValueTap,
+            child: Text(
+              content,
+              style: theme.textTheme.ppMori400Black14.copyWith(
                 decoration:
-                    (onValueTap != null) ? TextDecoration.underline : null),
+                    (onValueTap != null) ? TextDecoration.underline : null,
+                decorationColor: AppColor.primaryBlack,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         )
       ],

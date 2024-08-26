@@ -9,9 +9,8 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
-import 'package:autonomy_flutter/screen/account/access_method_page.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
-import 'package:autonomy_flutter/screen/onboarding/import_address/import_seeds.dart';
 import 'package:autonomy_flutter/screen/onboarding/new_address/address_alias.dart';
 import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_address.dart';
 import 'package:autonomy_flutter/screen/settings/connection/accounts_view.dart';
@@ -29,7 +28,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class WalletPage extends StatefulWidget {
-  const WalletPage({super.key});
+  final WalletPagePayload? payload;
+
+  const WalletPage({super.key, this.payload});
 
   @override
   State<WalletPage> createState() => _WalletPageState();
@@ -43,6 +44,11 @@ class _WalletPageState extends State<WalletPage>
     WidgetsBinding.instance.addObserver(this);
     context.read<AccountsBloc>().add(GetAccountsEvent());
     unawaited(injector<SettingsDataService>().backup());
+    WidgetsBinding.instance.addPostFrameCallback((context) {
+      if (widget.payload?.openAddAddress == true) {
+        _showAddWalletOption();
+      }
+    });
   }
 
   @override
@@ -75,36 +81,34 @@ class _WalletPageState extends State<WalletPage>
         title: 'create_a_new_wallet'.tr(),
         icon: SvgPicture.asset(
           'assets/images/joinFile.svg',
-          colorFilter:
-              const ColorFilter.mode(AppColor.primaryBlack, BlendMode.srcIn),
           height: 24,
         ),
         onTap: () {
-          unawaited(Navigator.of(context).pushNamed(AddressAlias.tag,
+          unawaited(Navigator.of(context).pushNamed(AppRouter.addressAliasPage,
               arguments: AddressAliasPayload(WalletType.Autonomy)));
         },
       ),
       OptionItem(
         title: 'add_an_existing_wallet'.tr(),
-        icon: Image.asset(
-          'assets/images/icon_save.png',
+        icon: SvgPicture.asset(
+          'assets/images/icon_save.svg',
           height: 24,
         ),
         onTap: () {
-          unawaited(Navigator.of(context).popAndPushNamed(ImportSeedsPage.tag));
+          unawaited(Navigator.of(context).popAndPushNamed(
+            AppRouter.importSeedsPage,
+          ));
         },
       ),
       OptionItem(
         title: 'view_existing_address'.tr().toLowerCase().capitalize(),
         icon: SvgPicture.asset(
           'assets/images/unhide.svg',
-          colorFilter:
-              const ColorFilter.mode(AppColor.primaryBlack, BlendMode.srcIn),
           height: 24,
         ),
         onTap: () {
           unawaited(Navigator.of(context).popAndPushNamed(
-              ViewExistingAddress.tag,
+              AppRouter.viewExistingAddressPage,
               arguments: ViewExistingAddressPayload(false)));
         },
       ),
@@ -114,8 +118,8 @@ class _WalletPageState extends State<WalletPage>
           onTap: () async {
             final debug = await isAppCenterBuild();
             if (debug && mounted) {
-              unawaited(
-                  Navigator.of(context).popAndPushNamed(AccessMethodPage.tag));
+              unawaited(Navigator.of(context)
+                  .popAndPushNamed(AppRouter.accessMethodPage));
             }
           }),
     ];
@@ -138,19 +142,20 @@ class _WalletPageState extends State<WalletPage>
             ),
             action: _showAddWalletOption),
         body: SafeArea(
-          child: SingleChildScrollView(
+          child: Padding(
             padding: EdgeInsets.only(
               bottom: ResponsiveLayout.pageEdgeInsetsWithSubmitButton.bottom,
             ),
-            child: const Column(
-              children: [
-                SizedBox(height: 40),
-                AccountsView(
-                  isInSettingsPage: true,
-                ),
-              ],
+            child: const AccountsView(
+              isInSettingsPage: true,
             ),
           ),
         ),
       );
+}
+
+class WalletPagePayload {
+  final bool openAddAddress;
+
+  const WalletPagePayload({required this.openAddAddress});
 }

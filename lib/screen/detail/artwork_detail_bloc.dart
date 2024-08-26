@@ -9,7 +9,6 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
-import 'package:autonomy_flutter/service/airdrop_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:http/http.dart' as http;
@@ -24,7 +23,6 @@ class ArtworkDetailBloc extends AuBloc<ArtworkDetailEvent, ArtworkDetailState> {
   final ProvenanceDao _provenanceDao;
   final IndexerService _indexerService;
   final TokenDao _tokenDao;
-  final AirdropService _airdropService;
   final IndexerApi _indexerApi;
 
   ArtworkDetailBloc(
@@ -33,7 +31,6 @@ class ArtworkDetailBloc extends AuBloc<ArtworkDetailEvent, ArtworkDetailState> {
     this._provenanceDao,
     this._indexerService,
     this._tokenDao,
-    this._airdropService,
     this._indexerApi,
   ) : super(ArtworkDetailState(provenances: [])) {
     on<ArtworkDetailGetInfoEvent>((event, emit) async {
@@ -51,10 +48,13 @@ class ArtworkDetailBloc extends AuBloc<ArtworkDetailEvent, ArtworkDetailState> {
         final assetToken = await _indexerService.getNftTokens(request);
 
         if (assetToken.isNotEmpty) {
+          final isViewOnly = await assetToken.first.isViewOnly();
           emit(ArtworkDetailState(
-              assetToken: assetToken.first,
-              provenances: assetToken.first.provenance,
-              owners: owners));
+            assetToken: assetToken.first,
+            provenances: assetToken.first.provenance,
+            owners: owners,
+            isViewOnly: isViewOnly,
+          ));
         }
         return;
       }
@@ -62,11 +62,12 @@ class ArtworkDetailBloc extends AuBloc<ArtworkDetailEvent, ArtworkDetailState> {
           event.identity.id, event.identity.owner);
       final provenances =
           await _provenanceDao.findProvenanceByTokenID(event.identity.id);
+      final isViewOnly = await assetToken?.isViewOnly();
       emit(ArtworkDetailState(
         assetToken: assetToken,
         provenances: provenances,
         owners: owners,
-      ));
+      ).copyWith(isViewOnly: isViewOnly));
       if (assetToken != null &&
           assetToken.asset != null &&
           (assetToken.mimeType?.isEmpty ?? true)) {
@@ -88,20 +89,7 @@ class ArtworkDetailBloc extends AuBloc<ArtworkDetailEvent, ArtworkDetailState> {
           }
         }
       }
-      if (assetToken != null && assetToken.isAirdropToken) {
-        add(ArtworkDetailGetAirdropDeeplink(assetToken: state.assetToken!));
-      }
       await _indexHistory(event.identity.id);
-    });
-    on<ArtworkDetailGetAirdropDeeplink>((event, emit) async {
-      String deeplink = '';
-      try {
-        deeplink = await _airdropService.shareAirdrop(event.assetToken) ?? '';
-      } catch (error) {
-        log.info('ArtworkDetailGetAirdropDeeplink: share airdrop error',
-            error.toString());
-      }
-      emit(state.copyWith(airdropDeeplink: deeplink));
     });
   }
 

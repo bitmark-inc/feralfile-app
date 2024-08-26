@@ -542,10 +542,11 @@ class CustomBoxDecoration extends ShapeDecoration {
 
 SizedBox addTitleSpace() => const SizedBox(height: 60);
 
-Divider addDivider({double height = 32, Color? color}) => Divider(
+Divider addDivider({double height = 32, Color? color, double thickness = 1}) =>
+    Divider(
       height: height,
-      thickness: 1,
-      color: color,
+      thickness: thickness,
+      color: color ?? AppColor.secondaryDimGreyBackground,
     );
 
 Divider headDivider() => const Divider(
@@ -557,7 +558,7 @@ Divider headDivider() => const Divider(
 Divider addOnlyDivider({Color? color, double border = 1.0}) => Divider(
       height: 1,
       thickness: border,
-      color: color,
+      color: color ?? AppColor.secondaryDimGreyBackground,
     );
 
 Divider addBoldDivider() => const Divider(
@@ -586,6 +587,11 @@ Widget loadingIndicator({
         color: valueColor,
         strokeWidth: strokeWidth,
       ),
+    );
+
+Widget loadingIndicatorLight() => loadingIndicator(
+      valueColor: AppColor.white,
+      backgroundColor: AppColor.auGreyBackground,
     );
 
 Widget closeIcon({Color color = Colors.black}) => SvgPicture.asset(

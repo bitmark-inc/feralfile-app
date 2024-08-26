@@ -58,19 +58,26 @@ class _FFNavigationBarState extends State<FFNavigationBar> {
                         onTap: () {
                           widget.onSelectTab(index);
                         },
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 15, vertical: 10),
-                          child: IconTheme(
-                            data: IconThemeData(
-                              color: isSelected
-                                  ? e.selectedColor ?? widget.selectedItemColor
-                                  : e.unselectedColor ??
-                                      widget.unselectedItemColor,
+                        child: Semantics(
+                          label: e.label,
+                          child: Container(
+                            color: Colors.transparent,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 15, vertical: 10),
+                              child: IconTheme(
+                                data: IconThemeData(
+                                  color: isSelected
+                                      ? e.selectedColor ??
+                                          widget.selectedItemColor
+                                      : e.unselectedColor ??
+                                          widget.unselectedItemColor,
+                                ),
+                                child: isSelected
+                                    ? e.icon
+                                    : e.unselectedIcon ?? e.icon,
+                              ),
                             ),
-                            child: isSelected
-                                ? e.icon
-                                : e.unselectedIcon ?? e.icon,
                           ),
                         ),
                       ),

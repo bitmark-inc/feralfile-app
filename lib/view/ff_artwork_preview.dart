@@ -1,12 +1,12 @@
-import 'package:autonomy_flutter/model/ff_account.dart';
-import 'package:autonomy_flutter/model/ff_series.dart';
+import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
-import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
+import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artwork_preview_page.dart';
 import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_page.dart';
+import 'package:autonomy_flutter/util/series_ext.dart';
+import 'package:autonomy_flutter/view/feralfile_artwork_preview_widget.dart';
 import 'package:autonomy_flutter/view/series_title_view.dart';
-import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 
 class FeralFileArtworkPreview extends StatelessWidget {
   const FeralFileArtworkPreview({required this.payload, super.key});
@@ -14,61 +14,79 @@ class FeralFileArtworkPreview extends StatelessWidget {
   final FeralFileArtworkPreviewPayload payload;
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Column(
-      children: [
-        Expanded(
-          child: ArtworkPreviewWidget(
-            identity: ArtworkIdentity(payload.tokenId, ''),
-            useIndexer: true,
+  Widget build(BuildContext context) => Column(
+        children: [
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              child: _buildArtworkPreview(),
+            ),
           ),
-        ),
-        const SizedBox(height: 20),
-        Padding(
-          padding: const EdgeInsets.only(left: 14, right: 14, bottom: 20),
-          child: GestureDetector(
-            onTap: () async => Navigator.of(context).pushNamed(
-              AppRouter.feralFileSeriesPage,
-              arguments: FeralFileSeriesPagePayload(
-                seriesId: payload.series.id,
-                exhibitionId: payload.series.exhibitionID,
+          const SizedBox(height: 20),
+          Padding(
+            padding: const EdgeInsets.only(left: 14, right: 14, bottom: 20),
+            child: GestureDetector(
+              onTap: () async {
+                final artwork = payload.artwork;
+                if (artwork.series?.isSingle ?? false) {
+                  await Navigator.of(context).pushNamed(
+                    AppRouter.ffArtworkPreviewPage,
+                    arguments: FeralFileArtworkPreviewPagePayload(
+                      artwork: artwork,
+                    ),
+                  );
+                } else {
+                  await Navigator.of(context).pushNamed(
+                    AppRouter.feralFileSeriesPage,
+                    arguments: FeralFileSeriesPagePayload(
+                      seriesId: artwork.series!.id,
+                      exhibitionId: artwork.series!.exhibitionID,
+                    ),
+                  );
+                }
+              },
+              child: Container(
+                color: Colors.transparent,
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Flexible(
+                      flex: 5,
+                      child: SeriesTitleView(
+                        series: payload.artwork.series!,
+                        artist: payload.artwork.series!.artist,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 60),
+                      child: SvgPicture.asset(
+                        'assets/images/icon_series.svg',
+                        width: 22,
+                        height: 22,
+                      ),
+                    )
+                  ],
+                ),
               ),
             ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Flexible(
-                  flex: 5,
-                  child: SeriesTitleView(
-                      series: payload.series, artist: payload.series.artist),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 3),
-                  child: Text(
-                    '${payload.artwork.index + 1}/${payload.series.settings?.maxArtwork ?? '--'}',
-                    style:
-                        theme.textTheme.ppMori400White12.copyWith(fontSize: 10),
-                  ),
-                )
-              ],
-            ),
           ),
+        ],
+      );
+
+  Widget _buildArtworkPreview() => FeralfileArtworkPreviewWidget(
+        payload: FeralFileArtworkPreviewWidgetPayload(
+          artwork: payload.artwork,
+          isMute: true,
         ),
-      ],
-    );
-  }
+      );
 }
 
 class FeralFileArtworkPreviewPayload {
-  final String tokenId;
-  final FFSeries series;
   final Artwork artwork;
 
   const FeralFileArtworkPreviewPayload({
-    required this.tokenId,
-    required this.series,
     required this.artwork,
   });
 }

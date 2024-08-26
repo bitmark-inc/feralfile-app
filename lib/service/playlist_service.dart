@@ -1,6 +1,7 @@
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:collection/collection.dart';
 import 'package:nft_collection/database/dao/dao.dart';
 
 abstract class PlaylistService {
@@ -24,6 +25,21 @@ class PlayListServiceImp implements PlaylistService {
   PlayListServiceImp(this._configurationService, this._tokenDao,
       this._accountService, this._assetTokenDao);
 
+  Future<PlayListModel?> getPlaylistById(String id) async {
+    final playlists = await getPlayList();
+    return playlists.firstWhereOrNull((element) => element.id == id);
+  }
+
+  Future<List<String>> _getHiddenTokenIds() async {
+    final hiddenTokens = _configurationService.getHiddenOrSentTokenIDs();
+    final hiddenAddresses = await _accountService.getHiddenAddressIndexes();
+    final tokens = await _tokenDao
+        .findTokenIDsByOwners(hiddenAddresses.map((e) => e.address).toList());
+
+    hiddenTokens.addAll(tokens);
+    return hiddenTokens;
+  }
+
   @override
   Future<List<PlayListModel>> getPlayList() async {
     final playlists = _getRawPlayList();
@@ -32,12 +48,7 @@ class PlayListServiceImp implements PlaylistService {
       return [];
     }
 
-    final hiddenTokens = _configurationService.getHiddenOrSentTokenIDs();
-    final hiddenAddresses = await _accountService.getHiddenAddressIndexes();
-    final tokens = await _tokenDao
-        .findTokenIDsByOwners(hiddenAddresses.map((e) => e.address).toList());
-
-    hiddenTokens.addAll(tokens);
+    final hiddenTokens = await _getHiddenTokenIds();
 
     for (var playlist in playlists) {
       playlist.tokenIDs

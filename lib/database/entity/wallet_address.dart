@@ -17,6 +17,7 @@ class WalletAddress {
   final DateTime createdAt;
   final bool isHidden;
   final String? name;
+  final int? accountOrder;
 
   WalletAddress(
       {required this.address,
@@ -25,7 +26,8 @@ class WalletAddress {
       required this.cryptoType,
       required this.createdAt,
       this.isHidden = false,
-      this.name});
+      this.name,
+      this.accountOrder});
 
   WalletAddress copyWith({
     String? address,
@@ -35,17 +37,18 @@ class WalletAddress {
     DateTime? createdAt,
     bool? isHidden,
     String? name,
-  }) {
-    return WalletAddress(
-      address: address ?? this.address,
-      uuid: uuid ?? this.uuid,
-      index: index ?? this.index,
-      cryptoType: cryptoType ?? this.cryptoType,
-      createdAt: createdAt ?? this.createdAt,
-      isHidden: isHidden ?? this.isHidden,
-      name: name ?? this.name,
-    );
-  }
+    int? accountOrder,
+  }) =>
+      WalletAddress(
+        address: address ?? this.address,
+        uuid: uuid ?? this.uuid,
+        index: index ?? this.index,
+        cryptoType: cryptoType ?? this.cryptoType,
+        createdAt: createdAt ?? this.createdAt,
+        isHidden: isHidden ?? this.isHidden,
+        name: name ?? this.name,
+        accountOrder: accountOrder ?? this.accountOrder,
+      );
 
   AddressIndex get addressIndex =>
       AddressIndex(address: address, createdAt: createdAt);

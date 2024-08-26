@@ -17,11 +17,9 @@ import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -49,7 +47,6 @@ class OrganizeHomePageState extends State<OrganizeHomePage>
         AutomaticKeepAliveClientMixin {
   StreamSubscription<FGBGType>? _fgbgSubscription;
   late ScrollController _controller;
-  late MetricClientService _metricClient;
 
   final collectionProKey = GlobalKey<CollectionProState>();
 
@@ -61,7 +58,6 @@ class OrganizeHomePageState extends State<OrganizeHomePage>
   @override
   void initState() {
     super.initState();
-    _metricClient = injector.get<MetricClientService>();
     WidgetsBinding.instance.addObserver(this);
     _controller = ScrollController();
     NftCollectionBloc.eventController.stream.listen((event) async {
@@ -83,7 +79,6 @@ class OrganizeHomePageState extends State<OrganizeHomePage>
     context.read<HomeBloc>().add(CheckReviewAppEvent());
 
     unawaited(injector<IAPService>().setup());
-    memoryValues.inGalleryView = true;
   }
 
   @override
@@ -93,9 +88,7 @@ class OrganizeHomePageState extends State<OrganizeHomePage>
   }
 
   @override
-  void afterFirstLayout(BuildContext context) {
-    unawaited(injector<AutonomyService>().postLinkedAddresses());
-  }
+  void afterFirstLayout(BuildContext context) {}
 
   @override
   void dispose() {
@@ -144,7 +137,6 @@ class OrganizeHomePageState extends State<OrganizeHomePage>
             hashedAddresses &&
         tokens.any((asset) =>
             asset.blockchain == Blockchain.TEZOS.name.toLowerCase())) {
-      unawaited(_metricClient.addEvent('collection_has_tezos'));
       unawaited(
           _configurationService.setSentTezosArtworkMetric(hashedAddresses));
     }

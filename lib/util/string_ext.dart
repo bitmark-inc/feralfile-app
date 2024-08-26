@@ -52,6 +52,8 @@ extension StringExtension on String {
 
   bool isValidUrl() => Uri.tryParse(this) != null;
 
+  bool isInvalidRPCScheme() => startsWith('file:') || startsWith('http:');
+
   String replacePrefix(String from, String to) {
     if (startsWith(from)) {
       return replaceRange(0, from.length, to);
@@ -143,9 +145,84 @@ extension StringExtension on String {
         return RenderingType.modelViewer;
 
       default:
-        return mimeType;
+        return RenderingType.webview;
     }
   }
 
   String get hexToDecimal => BigInt.parse(this, radix: 16).toString();
+
+  bool get isHex {
+    String hexString = this;
+    if (hexString.startsWith('0x')) {
+      hexString = hexString.substring(2);
+    }
+    return RegExp(r'^[0-9a-fA-F]+$').hasMatch(hexString);
+  }
 }
+
+extension SearchKeyExtension on String? {
+  String get firstSearchCharacter {
+    if (this == null || this!.isEmpty) {
+      return '#';
+    }
+    if (listCharacters.contains(this![0].toUpperCase())) {
+      return this![0].toUpperCase();
+    }
+    return '#';
+  }
+
+  int compareSearchKey(String? other) {
+    final a = this ?? '';
+    final b = other ?? '';
+    final aFirstCharacter = firstSearchCharacter;
+    final bFirstCharacter = other.firstSearchCharacter;
+    if (aFirstCharacter == '#' && bFirstCharacter != '#') {
+      return 1;
+    }
+    if (aFirstCharacter != '#' && bFirstCharacter == '#') {
+      return -1;
+    }
+    return a.toUpperCase().compareTo(b.toUpperCase());
+  }
+}
+
+extension ListStringExtension on List<String> {
+  List<String> rotateListByItem(String item) {
+    final index = indexOf(item);
+    if (index == -1) {
+      return this;
+    }
+    final newList = sublist(index)..addAll(sublist(0, index));
+    return newList;
+  }
+}
+
+final List<String> listCharacters = [
+  'A',
+  'B',
+  'C',
+  'D',
+  'E',
+  'F',
+  'G',
+  'H',
+  'I',
+  'J',
+  'K',
+  'L',
+  'M',
+  'N',
+  'O',
+  'P',
+  'Q',
+  'R',
+  'S',
+  'T',
+  'U',
+  'V',
+  'W',
+  'X',
+  'Y',
+  'Z',
+  '#'
+];

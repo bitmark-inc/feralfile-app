@@ -17,7 +17,6 @@ import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/pending_token_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
-import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/eth_amount_formatter.dart';
@@ -40,10 +39,9 @@ import 'package:libauk_dart/libauk_dart.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:tezart/tezart.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:walletconnect_flutter_v2/apis/core/pairing/utils/pairing_models.dart';
 
 class TBSendTransactionPage extends StatefulWidget {
-  static const String tag = 'tb_send_transaction';
-
   final BeaconRequest request;
 
   const TBSendTransactionPage({required this.request, super.key});
@@ -57,7 +55,6 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
   WalletIndex? _currentWallet;
   bool _isSending = false;
   String? _estimateMessage;
-  late Wc2Service _wc2Service;
   late FeeOption feeOption;
   FeeOptionValue? feeOptionValue;
   int? balance;
@@ -66,6 +63,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
   late FeeOption _selectedPriority;
   final xtzFormatter = XtzAmountFormatter();
   final ethFormatter = EthAmountFormatter();
+  late PairingMetadata? appMetadata;
 
   @override
   void dispose() {
@@ -80,7 +78,6 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
     setState(() {
       _isSending = true;
     });
-    unawaited(metricClient.addEvent(MixpanelEvent.confirmTransaction));
 
     final didAuthenticate = await LocalAuthenticationService.checkLocalAuth();
     if (!didAuthenticate) {
@@ -98,12 +95,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
           _currentWallet!.index,
           widget.request.operations!,
           baseOperationCustomFee: feeOption.tezosBaseOperationCustomFee);
-      if (wc2Topic != null) {
-        unawaited(_wc2Service.respondOnApprove(
-          wc2Topic,
-          txHash ?? '',
-        ));
-      } else {
+      if (wc2Topic == null) {
         unawaited(injector<TezosBeaconService>()
             .operationResponse(widget.request.id, txHash));
       }
@@ -148,7 +140,6 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
 
   @override
   void initState() {
-    _wc2Service = injector<Wc2Service>();
     super.initState();
     unawaited(_getExchangeRate());
     _totalAmount = widget.request.operations?.fold(
@@ -159,6 +150,11 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
     unawaited(fetchPersona());
     feeOption = DEFAULT_FEE_OPTION;
     _selectedPriority = feeOption;
+    appMetadata = PairingMetadata(
+        icons: [widget.request.icon ?? ''],
+        name: widget.request.name ?? '',
+        url: widget.request.url ?? '',
+        description: '');
   }
 
   Future<void> _getExchangeRate() async {
@@ -182,12 +178,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
 
     if (currentWallet == null) {
       final wc2Topic = widget.request.wc2Topic;
-      if (wc2Topic != null) {
-        await _wc2Service.respondOnReject(
-          wc2Topic,
-          reason: 'Address ${widget.request.sourceAddress} not found',
-        );
-      } else {
+      if (wc2Topic == null) {
         unawaited(injector<TezosBeaconService>()
             .signResponse(widget.request.id, null));
       }
@@ -224,8 +215,9 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
           BigInt.from(fee -
               feeOption.tezosBaseOperationCustomFee +
               baseOperationCustomFeeHigh));
-      balance = await injector<TezosService>()
-          .getBalance(await wallet.getTezosAddress(index: index));
+      balance = await injector<TezosService>().getBalance(
+          await wallet.getTezosAddress(index: index),
+          doRetry: true);
       setState(() {
         _fee = fee;
       });
@@ -300,35 +292,21 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
         ? '- XTZ (- USD)'
         : '${xtzFormatter.format(total)} XTZ '
             '(${_exchangeRate?.xtzToUsd(total)} USD)';
-    return WillPopScope(
-      onWillPop: () async {
-        unawaited(metricClient.addEvent(MixpanelEvent.backConfirmTransaction));
-        if (wc2Topic != null) {
-          unawaited(_wc2Service.respondOnReject(
-            wc2Topic,
-            reason: 'User reject',
-          ));
-        } else {
-          unawaited(injector<TezosBeaconService>()
-              .operationResponse(widget.request.id, null));
-        }
-        return true;
-      },
+    return PopScope(
+      canPop: wc2Topic != null,
       child: Scaffold(
         appBar: getBackAppBar(
           context,
           title: 'confirmation'.tr(),
-          onBack: () {
-            unawaited(
-                metricClient.addEvent(MixpanelEvent.backConfirmTransaction));
-            if (wc2Topic != null) {
-              unawaited(_wc2Service.respondOnReject(
-                wc2Topic,
-                reason: 'User reject',
-              ));
-            } else {
-              unawaited(injector<TezosBeaconService>()
-                  .operationResponse(widget.request.id, null));
+          action: () => unawaited(
+              UIHelper.showAppReportBottomSheet(context, appMetadata)),
+          onBack: () async {
+            if (wc2Topic == null) {
+              await injector<TezosBeaconService>()
+                  .operationResponse(widget.request.id, null);
+            }
+            if (!context.mounted) {
+              return;
             }
             Navigator.of(context).pop();
           },
@@ -526,8 +504,10 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
           child: Text(
             content,
             style: theme.textTheme.ppMori400Black14.copyWith(
-                decoration:
-                    (onValueTap != null) ? TextDecoration.underline : null),
+              decoration:
+                  (onValueTap != null) ? TextDecoration.underline : null,
+              decorationColor: AppColor.primaryBlack,
+            ),
           ),
         )
       ],
@@ -573,6 +553,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
           child: Text('edit_priority'.tr(),
               style: theme.textTheme.ppMori400White14.copyWith(
                 decoration: TextDecoration.underline,
+                decorationColor: AppColor.white,
               )),
         ),
       ],

@@ -15,11 +15,11 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/usdc/usdc_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_state.dart';
-import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/util/address_utils.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/feral_file_custom_tab.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -57,6 +57,7 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
   final FocusNode _renameFocusNode = FocusNode();
   late Connection _connection;
   late String _address;
+  final _browser = FeralFileBrowser();
 
   final usdcFormatter = USDCAmountFormatter();
 
@@ -479,12 +480,8 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
           'show_history'.tr(),
           style: theme.textTheme.ppMori400Black14,
         ),
-        onTap: () {
-          unawaited(Navigator.of(context).pushNamed(
-            AppRouter.inappWebviewPage,
-            arguments:
-                InAppWebViewPayload(addressURL(_address, widget.payload.type)),
-          ));
+        onTap: () async {
+          await _browser.openUrl(addressURL(_address, widget.payload.type));
         },
       ),
     ]);
@@ -500,8 +497,6 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
           title: 'unhide_from_collection_view'.tr(),
           icon: SvgPicture.asset(
             'assets/images/unhide.svg',
-            colorFilter:
-                const ColorFilter.mode(AppColor.primaryBlack, BlendMode.srcIn),
           ),
           onTap: () {
             unawaited(injector<AccountService>().setHideLinkedAccountInGallery(
@@ -517,7 +512,7 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
           title: 'hide_from_collection_view'.tr(),
           icon: const Icon(
             AuIcon.hidden_artwork,
-            color: AppColor.primaryBlack,
+            color: AppColor.white,
           ),
           onTap: () {
             unawaited(injector<AccountService>().setHideLinkedAccountInGallery(
@@ -532,8 +527,6 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
         title: 'rename'.tr(),
         icon: SvgPicture.asset(
           'assets/images/rename_icon.svg',
-          colorFilter:
-              const ColorFilter.mode(AppColor.primaryBlack, BlendMode.srcIn),
         ),
         onTap: _onRenameTap,
       ),

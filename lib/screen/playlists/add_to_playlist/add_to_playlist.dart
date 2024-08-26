@@ -9,8 +9,8 @@ import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playl
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist_state.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/token_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
@@ -175,30 +175,44 @@ class _AddToCollectionScreenState extends State<AddToCollectionScreen>
             .length;
         return Scaffold(
           backgroundColor: theme.colorScheme.background,
-          appBar: getDoneAppBar(
+          appBar: getPlaylistAppBar(
             context,
-            title: 'adding_to'.tr(namedArgs: {
-              'title': widget.playList.getName(),
-            }),
-            onDone: (selectedCount > 0)
-                ? () {
-                    bloc.add(
-                      CreatePlaylist(
-                        name: widget.playList.name ?? '',
-                      ),
-                    );
-                  }
-                : null,
-            onCancel: () {
-              Navigator.pop(context);
-              unawaited(injector<MetricClientService>()
-                  .addEvent(MixpanelEvent.undoCreatePlaylist));
-            },
-            bottom: PreferredSize(
-              preferredSize: const Size.fromHeight(0.25),
-              child:
-                  addOnlyDivider(color: AppColor.auQuickSilver, border: 0.25),
+            title: Column(
+              children: [
+                Text(
+                  tr('adding_to').capitalize(),
+                  style: theme.textTheme.ppMori400White14,
+                ),
+                const SizedBox(
+                  height: 4,
+                ),
+                Text(
+                  widget.playList.getName(),
+                  style: theme.textTheme.ppMori700White14,
+                ),
+              ],
             ),
+            actions: [
+              GestureDetector(
+                onTap: () {
+                  selectedCount > 0
+                      ? bloc.add(
+                          CreatePlaylist(
+                            name: widget.playList.name ?? '',
+                          ),
+                        )
+                      : null;
+                },
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 18, horizontal: 15),
+                  child: Text(
+                    tr('done').capitalize(),
+                    style: theme.textTheme.ppMori400White14,
+                  ),
+                ),
+              ),
+            ],
           ),
           body: AnnotatedRegion<SystemUiOverlayStyle>(
             value: SystemUiOverlayStyle.light,

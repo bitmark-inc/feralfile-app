@@ -71,8 +71,10 @@ class _ReleaseNotesPageState extends State<ReleaseNotesPage> {
                         GestureDetector(
                           child: Text(
                             'open_source'.tr(),
-                            style: theme.textTheme.ppMori400Black16
-                                .copyWith(decoration: TextDecoration.underline),
+                            style: theme.textTheme.ppMori400Black16.copyWith(
+                              decoration: TextDecoration.underline,
+                              decorationColor: AppColor.primaryBlack,
+                            ),
                           ),
                           onTap: () async => launchUrl(
                               Uri.parse(AUTONOMY_CLIENT_GITHUB_LINK),

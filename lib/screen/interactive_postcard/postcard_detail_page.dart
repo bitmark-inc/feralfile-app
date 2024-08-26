@@ -7,7 +7,6 @@
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:after_layout/after_layout.dart';
@@ -15,6 +14,7 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/prompt.dart';
+import 'package:autonomy_flutter/model/sent_artwork.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
@@ -31,6 +31,7 @@ import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/postcar
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_state.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
+import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_page.dart';
 import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/chat_service.dart';
@@ -44,11 +45,13 @@ import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
+import 'package:autonomy_flutter/util/feral_file_custom_tab.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/moma_style_color.dart';
 import 'package:autonomy_flutter/util/share_helper.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/postcard_button.dart';
 import 'package:autonomy_flutter/view/postcard_chat.dart';
@@ -77,7 +80,7 @@ class PostcardDetailPagePayload extends ArtworkDetailPayload {
     super.identities,
     super.currentIndex, {
     super.key,
-    super.playControl,
+    super.playlist,
     super.twitterCaption,
     this.isFromLeaderboard = false,
     super.useIndexer,
@@ -109,11 +112,12 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
 
   HashSet<String> _accountNumberHash = HashSet.identity();
   AssetToken? currentAsset;
-  final _metricClient = injector.get<MetricClientService>();
   final _configurationService = injector<ConfigurationService>();
   final _postcardService = injector<PostcardService>();
   final _remoteConfig = injector<RemoteConfigService>();
   Prompt? _prompt;
+  final _metricClientService = injector<MetricClientService>();
+  final _browser = FeralFileBrowser();
 
   @override
   void initState() {
@@ -137,9 +141,10 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
 
   @override
   void afterFirstLayout(BuildContext context) {
-    _metricClient.timerEvent(
-      MixpanelEvent.stayInArtworkDetail,
-    );
+    _metricClientService.addEvent(MixpanelEvent.visitPage, data: {
+      MixpanelProp.tokenId:
+          widget.payload.identities[widget.payload.currentIndex],
+    });
   }
 
   Future<void> _showSharingExpired(BuildContext context) async {
@@ -203,7 +208,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             ),
           ],
         ),
-      )
+      ),
     ]);
   }
 
@@ -271,14 +276,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
 
   @override
   void dispose() {
-    final artworkId =
-        jsonEncode(widget.payload.identities[widget.payload.currentIndex]);
-    unawaited(_metricClient.addEvent(
-      MixpanelEvent.stayInArtworkDetail,
-      data: {
-        'id': artworkId,
-      },
-    ));
     _scrollController.dispose();
     timer?.cancel();
     unawaited(injector<ChatService>().dispose());
@@ -295,11 +292,11 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     if (wallet == null) {
       return;
     }
-    if (!mounted) {
+    if (!context.mounted) {
       return;
     }
     await Navigator.of(context).pushNamed(
-      ChatThreadPage.tag,
+      AppRouter.chatThreadPage,
       arguments: ChatThreadPagePayload(
           token: asset,
           wallet: wallet,
@@ -372,6 +369,10 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           !isNotOwner &&
           current.isViewOnly == false) {
         unawaited(_youDidIt(context, current.assetToken!));
+      }
+      if (previous.assetToken != current.assetToken &&
+          current.assetToken != null) {
+        unawaited(current.assetToken?.sendViewArtworkEvent());
       }
       return true;
     }, listener: (context, state) async {
@@ -492,10 +493,11 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                   statusBarIconBrightness: Brightness.dark,
                   statusBarBrightness: Brightness.light,
                 ),
+                scrolledUnderElevation: 0,
                 toolbarHeight: 70,
                 centerTitle: false,
                 title: Text(
-                  asset.title!,
+                  asset.displayTitle!,
                   style: theme.textTheme.moMASans400Black12,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -750,11 +752,11 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                     onTap: () async {
                       final isSuccess =
                           await retryStampPostcardIfNeed(context, asset);
-                      if (mounted && isSuccess == false) {
+                      if (context.mounted && isSuccess == false) {
                         await UIHelper.showPostcardStampFailed(context);
                         return;
                       }
-                      if (!mounted) {
+                      if (!context.mounted) {
                         return;
                       }
                       final box = context.findRenderObject() as RenderBox?;
@@ -800,7 +802,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
             onTap: () async {
               final indexId = assetToken.id;
               final jwtToken =
-                  (await injector<AuthService>().getAuthToken()).jwtToken;
+                  (await injector<AuthService>().getAuthToken())!.jwtToken;
               final userIndex = assetToken.stampIndex;
               log.info('?indexId=$indexId&userIndex=$userIndex');
               if (!context.mounted) {
@@ -813,6 +815,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
               await Navigator.of(context).pushNamed(AppRouter.irlWebView,
                   arguments: IRLWebScreenPayload(url,
                       statusBarColor: const Color.fromRGBO(242, 242, 242, 1),
+                      isDarkStatusBar: false,
                       isPlainUI: true,
                       localStorageItems: {'token': jwtToken}));
             },
@@ -892,12 +895,8 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                     .moMASans700Black16
                     .copyWith(fontSize: 18),
               ),
-              onTap: () {
-                unawaited(Navigator.pushNamed(
-                  context,
-                  AppRouter.inappWebviewPage,
-                  arguments: InAppWebViewPayload(POSTCARD_ABOUT_THE_PROJECT),
-                ));
+              onTap: () async {
+                await _browser.openUrl(POSTCARD_ABOUT_THE_PROJECT);
               },
             ),
           ),
@@ -994,11 +993,15 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   Future _showArtworkOptionsDialog(
       BuildContext context, AssetToken asset) async {
     final theme = Theme.of(context);
-    if (!mounted) {
-      return;
-    }
+
+    final owner = await asset.getOwnerWallet();
+    final ownerWallet = owner?.first;
+    final addressIndex = owner?.second;
     const isHidden = false;
     final isStamped = asset.isStamped;
+    if (!context.mounted) {
+      return;
+    }
     await UIHelper.showPostcardDrawerAction(
       context,
       options: [
@@ -1062,22 +1065,21 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                   await _postcardService.downloadStamp(
                       tokenId: asset.tokenId!,
                       stampIndex: asset.stampIndexWithStamping);
-                  if (!mounted) {
+                  if (!context.mounted) {
                     return;
                   }
                   Navigator.of(context).pop();
                   await UIHelper.showPostcardStampSaved(context);
                 } catch (e) {
                   log.info('Download stamp failed: error $e');
-                  if (!mounted) {
+                  if (!context.mounted) {
                     return;
                   }
                   Navigator.of(context).pop();
                   switch (e.runtimeType) {
-                    case MediaPermissionException:
+                    case MediaPermissionException _:
                       await UIHelper.showPostcardStampPhotoAccessFailed(
                           context);
-                      break;
                     default:
                       if (!mounted) {
                         return;
@@ -1114,21 +1116,20 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
               onTap: () async {
                 try {
                   await _postcardService.downloadPostcard(asset.tokenId!);
-                  if (!mounted) {
+                  if (!context.mounted) {
                     return;
                   }
                   Navigator.of(context).pop();
                   await UIHelper.showPostcardSaved(context);
                 } catch (e) {
                   log.info('Download postcard failed: error $e');
-                  if (!mounted) {
+                  if (!context.mounted) {
                     return;
                   }
                   Navigator.of(context).pop();
                   switch (e.runtimeType) {
-                    case MediaPermissionException:
+                    case MediaPermissionException _:
                       await UIHelper.showPostcardPhotoAccessFailed(context);
-                      break;
                     default:
                       if (!mounted) {
                         return;
@@ -1138,6 +1139,56 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                 }
               },
             ),
+        ],
+        if (ownerWallet != null &&
+            asset.isTransferable &&
+            asset.isCompleted) ...[
+          OptionItem(
+            title: 'send_artwork'.tr(),
+            icon: SvgPicture.asset('assets/images/send_postcard.svg'),
+            onTap: () async {
+              final payload = await Navigator.of(context).popAndPushNamed(
+                  AppRouter.sendArtworkPage,
+                  arguments: SendArtworkPayload(
+                      asset,
+                      ownerWallet,
+                      addressIndex!,
+                      ownerWallet.getOwnedQuantity(asset))) as Map?;
+              if (payload == null) {
+                return;
+              }
+
+              final sentQuantity = payload['sentQuantity'] as int;
+              final isSentAll = payload['isSentAll'] as bool;
+              unawaited(injector<ConfigurationService>()
+                  .updateRecentlySentToken([
+                SentArtwork(asset.id, asset.owner, DateTime.now(), sentQuantity,
+                    isSentAll)
+              ]));
+              if (!context.mounted) {
+                return;
+              }
+              setState(() {});
+              if (!payload['isTezos']) {
+                if (isSentAll) {
+                  unawaited(Navigator.of(context)
+                      .popAndPushNamed(AppRouter.homePage));
+                }
+                return;
+              }
+              unawaited(UIHelper.showMessageAction(
+                context,
+                'success'.tr(),
+                'send_success_des'.tr(),
+                closeButton: 'close'.tr(),
+                onClose: () => isSentAll
+                    ? Navigator.of(context).popAndPushNamed(
+                        AppRouter.homePage,
+                      )
+                    : null,
+              ));
+            },
+          ),
         ],
         OptionItem(
           title: 'hide'.tr(),
@@ -1160,7 +1211,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
                 .updateTempStorageHiddenTokenIDs([asset.id], !isHidden);
             await injector<SettingsDataService>().backup();
 
-            if (!mounted) {
+            if (!context.mounted) {
               return;
             }
             NftCollectionBloc.eventController.add(ReloadEvent());

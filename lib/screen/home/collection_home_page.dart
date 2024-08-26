@@ -9,7 +9,6 @@ import 'dart:async';
 
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/blockchain.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -19,7 +18,6 @@ import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
@@ -30,7 +28,6 @@ import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
-import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -38,10 +35,9 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/token_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/get_started_banner.dart';
 import 'package:autonomy_flutter/view/header.dart';
-import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -86,26 +82,8 @@ class CollectionHomePageState extends State<CollectionHomePage>
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
     _controller = ScrollController()..addListener(_scrollListenerToLoadMore);
     unawaited(_configurationService.setAutoShowPostcard(true));
-    NftCollectionBloc.eventController.stream.listen((event) async {
-      switch (event.runtimeType) {
-        case ReloadEvent:
-        case GetTokensByOwnerEvent:
-        case UpdateTokensEvent:
-        case GetTokensBeforeByOwnerEvent:
-          nftBloc.add(event);
-          break;
-        default:
-      }
-    });
-    unawaited(
-        _clientTokenService.refreshTokens(syncAddresses: true).then((value) {
-      nftBloc.add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
-    }));
-
     context.read<HomeBloc>().add(CheckReviewAppEvent());
-
     unawaited(injector<IAPService>().setup());
-    memoryValues.inGalleryView = true;
   }
 
   void _scrollListenerToLoadMore() {
@@ -133,8 +111,6 @@ class CollectionHomePageState extends State<CollectionHomePage>
   @override
   void afterFirstLayout(BuildContext context) {
     unawaited(_handleForeground());
-    unawaited(injector<AutonomyService>().postLinkedAddresses());
-    unawaited(_checkForKeySync(context));
   }
 
   @override
@@ -149,26 +125,6 @@ class CollectionHomePageState extends State<CollectionHomePage>
   @override
   Future<void> didPopNext() async {
     super.didPopNext();
-    final connectivityResult = await Connectivity().checkConnectivity();
-    unawaited(_clientTokenService.refreshTokens());
-    unawaited(refreshNotification());
-    if (connectivityResult == ConnectivityResult.mobile ||
-        connectivityResult == ConnectivityResult.wifi) {
-      Future.delayed(const Duration(milliseconds: 1000), () async {
-        if (!mounted) {
-          return;
-        }
-        nftBloc
-            .add(RequestIndexEvent(await _clientTokenService.getAddresses()));
-      });
-    }
-    memoryValues.inGalleryView = true;
-  }
-
-  @override
-  void didPushNext() {
-    memoryValues.inGalleryView = false;
-    super.didPushNext();
   }
 
   Future<void> _onTokensUpdate(List<CompactedAssetToken> tokens) async {
@@ -209,7 +165,6 @@ class CollectionHomePageState extends State<CollectionHomePage>
             hashedAddresses &&
         tokens.any((asset) =>
             asset.blockchain == Blockchain.TEZOS.name.toLowerCase())) {
-      unawaited(_metricClient.addEvent('collection_has_tezos'));
       unawaited(
           _configurationService.setSentTezosArtworkMetric(hashedAddresses));
     }
@@ -241,7 +196,7 @@ class CollectionHomePageState extends State<CollectionHomePage>
             _assetsWidget(context, tokens),
       ),
       listener: (context, state) async {
-        log.info('[NftCollectionBloc] State update $state');
+        log.info('[NftCollectionBloc] State update ${state.tokens.length}');
         if (state.state == NftLoadingState.done) {
           unawaited(_onTokensUpdate(state.tokens.items));
         }
@@ -264,7 +219,9 @@ class CollectionHomePageState extends State<CollectionHomePage>
     final paddingTop = MediaQuery.of(context).viewPadding.top;
     return Padding(
       padding: EdgeInsets.only(top: paddingTop),
-      child: HeaderView(title: 'collection'.tr()),
+      child: HeaderView(
+        title: 'collection'.tr(),
+      ),
     );
   }
 
@@ -291,11 +248,12 @@ class CollectionHomePageState extends State<CollectionHomePage>
         if (_showPostcardBanner)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 15),
-            child: MakingPostcardBanner(
+            child: GetStartedBanner(
               onClose: () async {
                 await _hidePostcardBanner();
               },
-              onMakingPostcard: _onMakePostcard,
+              title: 'try_making_your_own_postcard'.tr(),
+              onGetStarted: _onMakePostcard,
             ),
           )
         else
@@ -365,11 +323,12 @@ class CollectionHomePageState extends State<CollectionHomePage>
           SliverToBoxAdapter(
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 15),
-              child: MakingPostcardBanner(
+              child: GetStartedBanner(
                 onClose: () async {
                   await _hidePostcardBanner();
                 },
-                onMakingPostcard: _onMakePostcard,
+                title: 'try_making_your_own_postcard'.tr(),
+                onGetStarted: _onMakePostcard,
               ),
             ),
           ),
@@ -406,7 +365,7 @@ class CollectionHomePageState extends State<CollectionHomePage>
   }) {
     final theme = Theme.of(context);
     final asset = tokens[index];
-    final title = asset.title;
+    final title = asset.displayTitle;
     final artistTitle = asset.artistTitle?.toIdentityOrMask(artistIdentities);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -463,6 +422,7 @@ class CollectionHomePageState extends State<CollectionHomePage>
           ? PendingTokenWidget(
               thumbnail: asset.galleryThumbnailURL,
               tokenId: asset.tokenId,
+              shouldRefreshCache: asset.shouldRefreshThumbnailCache,
             )
           : tokenGalleryThumbnailWidget(
               context,
@@ -491,23 +451,8 @@ class CollectionHomePageState extends State<CollectionHomePage>
         unawaited(Navigator.of(context)
             .pushNamed(pageName, ////need change to pageName
                 arguments: payload));
-
-        unawaited(_metricClient
-            .addEvent(MixpanelEvent.viewArtwork, data: {'id': asset.id}));
       },
     );
-  }
-
-  Future<void> _checkForKeySync(BuildContext context) async {
-    final cloudDatabase = injector<CloudDatabase>();
-    final defaultAccounts = await cloudDatabase.personaDao.getDefaultPersonas();
-
-    if (defaultAccounts.length >= 2) {
-      if (!mounted) {
-        return;
-      }
-      unawaited(Navigator.of(context).pushNamed(AppRouter.keySyncPage));
-    }
   }
 
   void scrollToTop() {
@@ -516,18 +461,12 @@ class CollectionHomePageState extends State<CollectionHomePage>
         curve: Curves.fastOutSlowIn));
   }
 
-  Future refreshNotification() async {
-    await injector<CustomerSupportService>().getIssuesAndAnnouncement();
-  }
-
   Future<void> _handleForeBackground(FGBGType event) async {
     switch (event) {
       case FGBGType.foreground:
         unawaited(_handleForeground());
-        break;
       case FGBGType.background:
         _handleBackground();
-        break;
     }
   }
 
@@ -548,8 +487,6 @@ class CollectionHomePageState extends State<CollectionHomePage>
     }
 
     unawaited(_clientTokenService.refreshTokens(checkPendingToken: true));
-    unawaited(refreshNotification());
-    unawaited(_metricClient.addEvent('device_foreground'));
     unawaited(injector<VersionService>().checkForUpdate());
     // Reload token in Isolate
 
@@ -558,7 +495,6 @@ class CollectionHomePageState extends State<CollectionHomePage>
   }
 
   void _handleBackground() {
-    unawaited(_metricClient.addEvent(MixpanelEvent.deviceBackground));
     unawaited(_metricClient.sendAndClearMetrics());
     unawaited(FileLogger.shrinkLogFileIfNeeded());
   }
@@ -578,62 +514,4 @@ class CollectionHomePageState extends State<CollectionHomePage>
 
   @override
   bool get wantKeepAlive => true;
-}
-
-class MakingPostcardBanner extends StatelessWidget {
-  final Function? onClose;
-  final Function? onMakingPostcard;
-
-  const MakingPostcardBanner({super.key, this.onMakingPostcard, this.onClose});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
-    return Container(
-      decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
-          color: AppColor.auGreyBackground),
-      padding: const EdgeInsets.all(15),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Text(
-                  'try_making_your_own_postcard'.tr(),
-                  style: textTheme.ppMori400White14,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              IconButton(
-                onPressed: () {
-                  onClose?.call();
-                },
-                iconSize: 18,
-                constraints: const BoxConstraints(maxHeight: 18, maxWidth: 18),
-                icon: const Icon(
-                  AuIcon.close,
-                  color: AppColor.white,
-                ),
-                padding: EdgeInsets.zero,
-              )
-            ],
-          ),
-          const SizedBox(
-            height: 20,
-          ),
-          PrimaryAsyncButton(
-            onTap: () {
-              onMakingPostcard?.call();
-            },
-            text: 'get_started'.tr(),
-          )
-        ],
-      ),
-    );
-  }
 }

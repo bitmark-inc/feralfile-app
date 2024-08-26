@@ -23,7 +23,6 @@ import 'package:autonomy_flutter/screen/send_receive_postcard/request_response.d
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -125,7 +124,6 @@ class PostcardServiceImpl extends PostcardService {
   final ConfigurationService _configurationService;
   final AccountService _accountService;
   final TokensService _tokensService;
-  final MetricClientService _metricClientService;
   final ChatService _chatService;
 
   PostcardServiceImpl(
@@ -135,14 +133,13 @@ class PostcardServiceImpl extends PostcardService {
     this._configurationService,
     this._accountService,
     this._tokensService,
-    this._metricClientService,
     this._chatService,
   );
 
   @override
   Future<ClaimPostCardResponse> claimEmptyPostcard(
       ClaimPostCardRequest request) async {
-    log.info('claimEmptyPostcard request: ${request.toJson()}');
+    log.fine('claimEmptyPostcard request: ${request.toJson()}');
     return _postcardApi.claim(request);
   }
 
@@ -152,7 +149,7 @@ class PostcardServiceImpl extends PostcardService {
     required String address,
     Location? location,
   }) async {
-    log.info('receivePostcard shareCode: $shareCode, address: $address');
+    log.fine('receivePostcard shareCode: $shareCode, address: $address');
     try {
       final timestamp =
           (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
@@ -229,7 +226,7 @@ class PostcardServiceImpl extends PostcardService {
       ids: [tokenId],
     );
     final assets = await _indexerService.getNftTokens(request);
-    log.info('getPostcard assets: ${assets.first.asset?.artworkMetadata}');
+    log.fine('getPostcard assets: ${assets.first.asset?.artworkMetadata}');
     return assets.first;
   }
 
@@ -272,7 +269,7 @@ class PostcardServiceImpl extends PostcardService {
       final publicKey = await wallet.getTezosPublicKey(index: index);
       final lat = location?.lat;
       final lon = location?.lon;
-      log.info('''
+      log.fine('''
         stampPostcard tokenId: $tokenId, address: $address, 
          lat: $lat, lon: $lon, counter: $counter
         ''');
@@ -293,11 +290,6 @@ class PostcardServiceImpl extends PostcardService {
       final ok = result['metadataCID'] as String;
       final isStampSuccess = ok.isNotEmpty;
       if (isStampSuccess) {
-        unawaited(
-            _metricClientService.addEvent(MixpanelEvent.postcardStamp, data: {
-          'postcardId': tokenId,
-          'index': counter,
-        }));
         if (counter == MAX_STAMP_IN_POSTCARD) {
           try {
             unawaited(_chatService.sendPostcardCompleteMessage(
@@ -442,7 +434,7 @@ class PostcardServiceImpl extends PostcardService {
       }
       final bodyByte = response.bodyBytes;
       await tempFile.create(recursive: true);
-      log.info('Created file $tempFilePath');
+      log.fine('Created file $tempFilePath');
       await tempFile.writeAsBytes(bodyByte);
     }
     return tempFile;
@@ -536,10 +528,6 @@ class PostcardServiceImpl extends PostcardService {
       location: [moMAGeoLocation.position.lat, moMAGeoLocation.position.lon],
     );
     final result = await claimEmptyPostcard(claimRequest);
-    unawaited(
-        _metricClientService.addEvent(MixpanelEvent.postcardClaimEmpty, data: {
-      'postcardId': result.tokenID,
-    }));
     final tokenID = 'tez-${result.contractAddress}-${result.tokenID}';
     final prompt = await getPrompt(result.tokenID ?? '');
     final postcardMetadata = PostcardMetadata(
@@ -591,7 +579,7 @@ class PostcardServiceImpl extends PostcardService {
   AssetToken getPendingTokenAfterClaimShare(
       {required AssetToken assetToken, required String address}) {
     var postcardMetadata = assetToken.postcardMetadata;
-    log.info(
+    log.fine(
         'claimSharedPostcardToAddress metadata ${postcardMetadata.toJson()}');
     var newAsset = assetToken.asset;
     newAsset?.artworkMetadata = jsonEncode(postcardMetadata.toJson());
@@ -623,7 +611,7 @@ class PostcardServiceImpl extends PostcardService {
 
     final walletIndex = await asset.getOwnerWallet();
     if (walletIndex == null) {
-      log.info('[POSTCARD] Wallet index not found. address: $address');
+      log.fine('[POSTCARD] Wallet index not found. address: $address');
       return false;
     }
     final processingStampPostcard = asset.processingStampPostcard ??

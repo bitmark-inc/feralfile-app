@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/environment.dart';
@@ -12,6 +13,8 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
+import 'package:autonomy_flutter/service/network_issue_manager.dart';
+import 'package:autonomy_flutter/util/exception_ext.dart';
 import 'package:autonomy_flutter/util/isolated_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:crypto/crypto.dart';
@@ -31,9 +34,9 @@ class LoggingInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     final curl = cURLRepresentation(err.requestOptions);
-    final message = err.message;
-    apiLog.info("API Request: $curl");
-    apiLog.warning("Respond error: $message");
+    apiLog
+      ..info('API Request: $curl')
+      ..warning('Respond error: ${err.response}');
     return handler.next(err);
   }
 
@@ -41,55 +44,57 @@ class LoggingInterceptor extends Interceptor {
   Future onResponse(
       Response response, ResponseInterceptorHandler handler) async {
     handler.next(response);
-    writeAPILog(response);
+    await writeAPILog(response);
   }
 
   Future writeAPILog(Response response) async {
     final apiPath =
         response.requestOptions.baseUrl + response.requestOptions.path;
     final skipLog = _skipLogPaths.any((element) => apiPath.contains(element));
-    if (skipLog) return;
+    if (skipLog) {
+      return;
+    }
     bool shortCurlLog = await IsolatedUtil().shouldShortCurlLog(apiPath);
     if (shortCurlLog) {
       final request = response.requestOptions;
-      apiLog.info(
-          "API Request: ${request.method} ${request.uri.toString()} ${request.data}");
+      apiLog.fine(
+          'API Request: ${request.method} ${request.uri} ${request.data}');
     } else {
       final curl = cURLRepresentation(response.requestOptions);
-      apiLog.info("API Request: $curl");
+      apiLog.fine('API Request: $curl');
     }
 
     bool shortAPIResponseLog =
         await IsolatedUtil().shouldShortAPIResponseLog(apiPath);
     if (shortAPIResponseLog) {
-      apiLog.info("API Response Status: ${response.statusCode}");
+      apiLog.info('API Response Status: ${response.statusCode}');
     } else {
       final message = response.toString();
-      apiLog.info("API Response: $message");
+      apiLog.fine('API Response: $message');
     }
   }
 
   String cURLRepresentation(RequestOptions options) {
-    List<String> components = ["\$ curl -i"];
-    if (options.method.toUpperCase() == "GET") {
-      components.add("-X ${options.method}");
+    List<String> components = [r'$ curl -i'];
+    if (options.method.toUpperCase() == 'GET') {
+      components.add('-X ${options.method}');
     }
 
     options.headers.forEach((k, v) {
-      if (k != "Cookie") {
-        components.add("-H \"$k: $v\"");
+      if (k != 'Cookie') {
+        components.add('-H "$k: $v"');
       }
     });
 
     try {
       var data = json.encode(options.data);
-      data = data.replaceAll('"', '\\"');
-      components.add("-d \"$data\"");
+      data = data.replaceAll('"', r'\"');
+      components.add('-d "$data"');
     } catch (err) {
       //ignore
     }
 
-    components.add("\"${options.uri.toString()}\"");
+    components.add('"${options.uri}"');
 
     return components.join('\\\n\t');
   }
@@ -103,22 +108,19 @@ class SentryInterceptor extends InterceptorsWrapper {
       'method': response.requestOptions.method,
       'status_code': response.statusCode,
     };
-    if (response.requestOptions.headers.isNotEmpty) {
-      data['header'] = response.requestOptions.headers.toString();
-    }
-    Sentry.addBreadcrumb(
+    unawaited(Sentry.addBreadcrumb(
       Breadcrumb(
         type: 'http',
         category: 'http',
         data: data,
       ),
-    );
+    ));
     super.onResponse(response, handler);
   }
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
-    Sentry.addBreadcrumb(
+    unawaited(Sentry.addBreadcrumb(
       Breadcrumb(
         type: 'http',
         category: 'http',
@@ -126,12 +128,12 @@ class SentryInterceptor extends InterceptorsWrapper {
         data: {
           'url': err.requestOptions.uri.toString(),
           'method': err.requestOptions.method,
-          'status_code': err.response?.statusCode ?? "NA",
+          'status_code': err.response?.statusCode ?? 'NA',
           'reason': err.type.name,
         },
         message: err.message,
       ),
-    );
+    ));
     super.onError(err, handler);
   }
 }
@@ -140,11 +142,20 @@ class AutonomyAuthInterceptor extends Interceptor {
   AutonomyAuthInterceptor();
 
   @override
-  void onRequest(
+  Future<void> onRequest(
       RequestOptions options, RequestInterceptorHandler handler) async {
-    if (options.path != IAPApi.authenticationPath) {
-      final jwt = await injector<AuthService>().getAuthToken();
-      options.headers["Authorization"] = "Bearer ${jwt.jwtToken}";
+    final shouldIgnoreAuthorizationPath = [
+      IAPApi.authenticationPath,
+      IAPApi.addressAuthenticationPath,
+      IAPApi.registerPrimaryAddressPath,
+    ];
+    if (!shouldIgnoreAuthorizationPath.contains(options.path)) {
+      final jwt = await injector<AuthService>()
+          .getAuthToken(shouldGetDidKeyInstead: true);
+      if (jwt == null) {
+        unawaited(Sentry.captureMessage('JWT is null'));
+      }
+      options.headers['Authorization'] = 'Bearer ${jwt!.jwtToken}';
     }
 
     return handler.next(options);
@@ -157,9 +168,9 @@ class QuickAuthInterceptor extends Interceptor {
   QuickAuthInterceptor(this.jwtToken);
 
   @override
-  void onRequest(
+  Future<void> onRequest(
       RequestOptions options, RequestInterceptorHandler handler) async {
-    options.headers["Authorization"] = "Bearer $jwtToken";
+    options.headers['Authorization'] = 'Bearer $jwtToken';
     return handler.next(options);
   }
 }
@@ -167,20 +178,20 @@ class QuickAuthInterceptor extends Interceptor {
 class FeralfileAuthInterceptor extends Interceptor {
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    if (options.headers["X-Api-Signature"] == null &&
-        options.method.toUpperCase() == "POST") {
+    if (options.headers['X-Api-Signature'] == null &&
+        options.method.toUpperCase() == 'POST') {
       final timestamp =
           (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
       final canonicalString = List<String>.of([
         options.uri.toString(),
         json.encode(options.data),
         timestamp,
-      ]).join("|");
+      ]).join('|');
       final hmacSha256 =
           Hmac(sha256, utf8.encode(Environment.feralFileSecretKey));
       final digest = hmacSha256.convert(utf8.encode(canonicalString));
       final sig = bytesToHex(digest.bytes);
-      options.headers["X-Api-Signature"] = "t=$timestamp,s=$sig";
+      options.headers['X-Api-Signature'] = 't=$timestamp,s=$sig';
     }
     handler.next(options);
   }
@@ -190,10 +201,10 @@ class FeralfileAuthInterceptor extends Interceptor {
     DioException exp = err;
     try {
       final errorBody = err.response?.data as Map<String, dynamic>;
-      exp = err.copyWith(error: FeralfileError.fromJson(errorBody["error"]));
+      exp = err.copyWith(error: FeralfileError.fromJson(errorBody['error']));
     } catch (e) {
       log.info(
-          "[FeralfileAuthInterceptor] Can't parse error. ${err.response?.data}");
+          '[FeralfileAuthInterceptor] Can not parse . ${err.response?.data}');
     } finally {
       handler.next(exp);
     }
@@ -207,12 +218,12 @@ class HmacAuthInterceptor extends Interceptor {
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    if (options.headers["X-Api-Signature"] == null) {
+    if (options.headers['X-Api-Signature'] == null) {
       final timestamp =
           (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
-      String body = "";
-      if (options.data is FormData || options.method.toUpperCase() == "GET") {
-        body = "";
+      String body = '';
+      if (options.data is FormData || options.method.toUpperCase() == 'GET') {
+        body = '';
       } else {
         body = bytesToHex(sha256
             .convert(options.data != null
@@ -221,15 +232,15 @@ class HmacAuthInterceptor extends Interceptor {
             .bytes);
       }
       final canonicalString = List<String>.of([
-        options.path.split("?").first,
+        options.path.split('?').first,
         body,
         timestamp,
-      ]).join("|");
+      ]).join('|');
       final hmacSha256 = Hmac(sha256, utf8.encode(secretKey));
       final digest = hmacSha256.convert(utf8.encode(canonicalString));
       final sig = bytesToHex(digest.bytes);
-      options.headers["X-Api-Signature"] = sig;
-      options.headers["X-Api-Timestamp"] = timestamp;
+      options.headers['X-Api-Signature'] = sig;
+      options.headers['X-Api-Timestamp'] = timestamp;
     }
     handler.next(options);
   }
@@ -241,14 +252,37 @@ class AirdropInterceptor extends Interceptor {
     DioException exp = err;
     try {
       final errorBody = err.response?.data as Map<String, dynamic>;
-      final json = errorBody["message"] != null
-          ? jsonDecode(errorBody["message"])
+      final json = errorBody['message'] != null
+          ? jsonDecode(errorBody['message'])
           : errorBody;
-      exp = err.copyWith(error: FeralfileError.fromJson(json["error"]));
+      exp = err.copyWith(error: FeralfileError.fromJson(json['error']));
     } catch (e) {
       log.info("[AirdropInterceptor] Can't parse error. ${err.response?.data}");
     } finally {
       handler.next(exp);
     }
+  }
+}
+
+class ConnectingExceptionInterceptor extends Interceptor {
+  @override
+  void onError(DioException err, ErrorInterceptorHandler handler) {
+    if (err.isNetworkIssue) {
+      log.warning('ConnectingExceptionInterceptor timeout');
+      unawaited(injector<NetworkIssueManager>().showNetworkIssueWarning());
+    }
+    handler.next(err);
+  }
+}
+
+class TVKeyInterceptor extends Interceptor {
+  final String tvKey;
+
+  TVKeyInterceptor(this.tvKey);
+
+  @override
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+    options.headers['API-KEY'] = tvKey;
+    handler.next(options);
   }
 }

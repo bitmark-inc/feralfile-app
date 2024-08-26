@@ -19,14 +19,11 @@ import 'package:nft_collection/services/address_service.dart';
 
 class DateTimeConverter extends TypeConverter<DateTime, int> {
   @override
-  DateTime decode(int databaseValue) {
-    return DateTime.fromMillisecondsSinceEpoch(databaseValue);
-  }
+  DateTime decode(int databaseValue) =>
+      DateTime.fromMillisecondsSinceEpoch(databaseValue);
 
   @override
-  int encode(DateTime value) {
-    return value.millisecondsSinceEpoch;
-  }
+  int encode(DateTime value) => value.millisecondsSinceEpoch;
 }
 
 @entity
@@ -48,18 +45,18 @@ class Persona {
       this.defaultAccount,
       this.ethereumIndex = 1,
       this.tezosIndex = 1,
-      this.ethereumIndexes = "",
-      this.tezosIndexes = ""});
+      this.ethereumIndexes = '',
+      this.tezosIndexes = ''});
 
   Persona.newPersona(
       {required this.uuid,
-      this.name = "",
+      this.name = '',
       this.defaultAccount,
       DateTime? createdAt,
       this.ethereumIndex = 1,
       this.tezosIndex = 1,
-      this.ethereumIndexes = "0",
-      this.tezosIndexes = "0"})
+      this.ethereumIndexes = '0',
+      this.tezosIndexes = '0'})
       : createdAt = createdAt ?? DateTime.now();
 
   Persona copyWith({
@@ -67,49 +64,53 @@ class Persona {
     DateTime? createdAt,
     String? ethereumIndexes,
     String? tezosIndexes,
-  }) {
-    return Persona(
-        uuid: uuid,
-        name: name ?? this.name,
-        defaultAccount: defaultAccount,
-        createdAt: createdAt ?? this.createdAt,
-        ethereumIndexes: ethereumIndexes ?? this.ethereumIndexes,
-        tezosIndexes: tezosIndexes ?? this.tezosIndexes);
-  }
+  }) =>
+      Persona(
+          uuid: uuid,
+          name: name ?? this.name,
+          defaultAccount: defaultAccount,
+          createdAt: createdAt ?? this.createdAt,
+          ethereumIndexes: ethereumIndexes ?? this.ethereumIndexes,
+          tezosIndexes: tezosIndexes ?? this.tezosIndexes);
 
   // fromJson method
-  factory Persona.fromJson(Map<String, dynamic> json) {
-    return Persona(
-      uuid: json['uuid'],
-      name: json['name'],
-      createdAt: DateTimeConverter().decode(json['createdAt']),
-      defaultAccount: json['defaultAccount'],
-      ethereumIndex: json['ethereumIndex'],
-      tezosIndex: json['tezosIndex'],
-      ethereumIndexes: json['ethereumIndexes'],
-      tezosIndexes: json['tezosIndexes'],
-    );
-  }
+  factory Persona.fromJson(Map<String, dynamic> json) => Persona(
+        uuid: json['uuid'],
+        name: json['name'],
+        createdAt: DateTimeConverter().decode(json['createdAt']),
+        defaultAccount: json['defaultAccount'],
+        ethereumIndex: json['ethereumIndex'],
+        tezosIndex: json['tezosIndex'],
+        ethereumIndexes: json['ethereumIndexes'],
+        tezosIndexes: json['tezosIndexes'],
+      );
 
-  WalletStorage wallet() {
-    return LibAukDart.getWallet(uuid);
-  }
+  // toJson method
+  Map<String, dynamic> toJson() => {
+        'uuid': uuid,
+        'name': name,
+        'createdAt': DateTimeConverter().encode(createdAt),
+        'defaultAccount': defaultAccount,
+        'ethereumIndex': ethereumIndex,
+        'tezosIndex': tezosIndex,
+        'ethereumIndexes': ethereumIndexes,
+        'tezosIndexes': tezosIndexes,
+      };
 
-  Future<List<WalletAddress>> getWalletAddresses() async {
-    return injector<CloudDatabase>().addressDao.findByWalletID(uuid);
-  }
+  WalletStorage wallet() => LibAukDart.getWallet(uuid);
 
-  Future<List<WalletAddress>> getEthWalletAddresses() async {
-    return injector<CloudDatabase>()
-        .addressDao
-        .getAddresses(uuid, CryptoType.ETH.source);
-  }
+  Future<List<WalletAddress>> getWalletAddresses() async =>
+      injector<CloudDatabase>().addressDao.findByWalletID(uuid);
 
-  Future<List<WalletAddress>> getTezWalletAddresses() async {
-    return injector<CloudDatabase>()
-        .addressDao
-        .getAddresses(uuid, CryptoType.XTZ.source);
-  }
+  Future<List<WalletAddress>> getEthWalletAddresses() async =>
+      injector<CloudDatabase>()
+          .addressDao
+          .getAddresses(uuid, CryptoType.ETH.source);
+
+  Future<List<WalletAddress>> getTezWalletAddresses() async =>
+      injector<CloudDatabase>()
+          .addressDao
+          .getAddresses(uuid, CryptoType.XTZ.source);
 
   bool isDefault() => defaultAccount == 1;
 
@@ -135,6 +136,52 @@ class Persona {
       return walletAddress.index;
     }
     return null;
+  }
+
+  Future<WalletAddress> _generateETHAddressByIndex(int index,
+          {String? name}) async =>
+      WalletAddress(
+          address: await wallet().getETHEip55Address(index: index),
+          uuid: uuid,
+          index: index,
+          cryptoType: CryptoType.ETH.source,
+          createdAt: DateTime.now(),
+          name: name ?? CryptoType.ETH.source);
+
+  Future<WalletAddress> _generateTezosAddressByIndex(int index,
+          {String? name}) async =>
+      WalletAddress(
+          address: await wallet().getTezosAddress(index: index),
+          uuid: uuid,
+          index: index,
+          cryptoType: CryptoType.XTZ.source,
+          createdAt: DateTime.now(),
+          name: name ?? CryptoType.XTZ.source);
+
+  Future<List<WalletAddress>> insertAddressAtIndex(
+      {required WalletType walletType,
+      required int index,
+      String? name}) async {
+    List<WalletAddress> walletAddresses = [];
+    switch (walletType) {
+      case WalletType.Ethereum:
+        walletAddresses = [await _generateETHAddressByIndex(index, name: name)];
+      case WalletType.Tezos:
+        walletAddresses = [
+          await _generateTezosAddressByIndex(index, name: name),
+        ];
+      case WalletType.Autonomy:
+        walletAddresses = [
+          await _generateETHAddressByIndex(index, name: name),
+          await _generateTezosAddressByIndex(index, name: name)
+        ];
+    }
+    await injector<AccountService>()
+        .removeDoubleViewOnly(walletAddresses.map((e) => e.address).toList());
+    await injector<CloudDatabase>().addressDao.insertAddresses(walletAddresses);
+    await injector<AddressService>()
+        .addAddresses(walletAddresses.map((e) => e.address).toList());
+    return walletAddresses;
   }
 
   Future<List<WalletAddress>> insertNextAddress(WalletType walletType,
@@ -168,10 +215,8 @@ class Persona {
     switch (walletType) {
       case WalletType.Ethereum:
         addresses.add(ethAddress);
-        break;
       case WalletType.Tezos:
         addresses.add(tezAddress);
-        break;
       default:
         addresses.addAll([ethAddress, tezAddress]);
     }
@@ -187,7 +232,9 @@ class Persona {
 
   @override
   bool operator ==(covariant Persona other) {
-    if (identical(this, other)) return true;
+    if (identical(this, other)) {
+      return true;
+    }
 
     return other.uuid == uuid &&
         other.name == name &&
@@ -198,12 +245,11 @@ class Persona {
   }
 
   @override
-  int get hashCode {
-    return uuid.hashCode ^
-        name.hashCode ^
-        createdAt.hashCode ^
-        defaultAccount.hashCode ^
-        ethereumIndexes.hashCode ^
-        tezosIndexes.hashCode;
-  }
+  int get hashCode =>
+      uuid.hashCode ^
+      name.hashCode ^
+      createdAt.hashCode ^
+      defaultAccount.hashCode ^
+      ethereumIndexes.hashCode ^
+      tezosIndexes.hashCode;
 }

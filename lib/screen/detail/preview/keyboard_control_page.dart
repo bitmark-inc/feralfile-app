@@ -5,7 +5,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/preview/touchpad_page.dart';
-import 'package:autonomy_flutter/service/canvas_client_service.dart';
+import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -18,10 +18,11 @@ import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:nft_collection/models/asset_token.dart';
 
 class KeyboardControlPagePayload {
-  final AssetToken assetToken;
+  final String subtitle;
+  final String description;
   final List<CanvasDevice> devices;
 
-  KeyboardControlPagePayload(this.assetToken, this.devices);
+  KeyboardControlPagePayload(this.subtitle, this.description, this.devices);
 }
 
 class KeyboardControlPage extends StatefulWidget {
@@ -97,8 +98,8 @@ class _KeyboardControlPageState extends State<KeyboardControlPage>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final assetToken = widget.payload.assetToken;
-    final editionSubTitle = getEditionSubTitle(assetToken);
+    final editionSubTitle = widget.payload.subtitle;
+    final description = widget.payload.description;
     return Scaffold(
       backgroundColor: theme.colorScheme.primary.withOpacity(0.8),
       resizeToAvoidBottomInset: false,
@@ -138,7 +139,7 @@ class _KeyboardControlPageState extends State<KeyboardControlPage>
                         const SizedBox(height: 16),
                         HtmlWidget(
                           customStylesBuilder: auHtmlStyle,
-                          assetToken.description ?? '',
+                          description,
                           textStyle: theme.textTheme.ppMori400White14,
                         ),
                         TextField(
@@ -157,7 +158,7 @@ class _KeyboardControlPageState extends State<KeyboardControlPage>
                             final code = text[text.length - 1];
                             _textController.text = '';
                             final devices = widget.payload.devices;
-                            await injector<CanvasClientService>()
+                            await injector<CanvasClientServiceV2>()
                                 .sendKeyBoard(devices, code.codeUnitAt(0));
                           },
                         ),

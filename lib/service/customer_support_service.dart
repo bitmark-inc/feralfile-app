@@ -20,7 +20,6 @@ import 'package:autonomy_flutter/model/customer_support.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/device.dart';
@@ -141,7 +140,10 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
 
       var issueTitle = draftData.title ?? draftData.text;
       if (issueTitle == null || issueTitle.isEmpty) {
-        issueTitle = draftData.attachments?.first.fileName ?? 'Unnamed';
+        issueTitle =
+            draftData.attachments != null && draftData.attachments!.isNotEmpty
+                ? draftData.attachments!.first.fileName
+                : 'Unnamed';
       }
 
       final draftIssue = Issue(
@@ -153,6 +155,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
         total: 1,
         unread: 0,
         lastMessage: null,
+        firstMessage: null,
         draft: draft,
         rating: draft.rating,
         announcementID: draftData.announcementId,
@@ -373,9 +376,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
     // Muted Message
     var mutedMessage = '';
     final deviceID = await getDeviceID();
-    if (deviceID != null) {
-      mutedMessage += '**DeviceID**: $deviceID\n';
-    }
+    mutedMessage += '**DeviceID**: $deviceID\n';
 
     final version = (await PackageInfo.fromPlatform()).version;
     mutedMessage += '**Version**: $version\n';
@@ -494,20 +495,7 @@ class CustomerSupportServiceImpl extends CustomerSupportService {
         lastPullTime: lastPullTime ?? 0);
     final pullTime = DateTime.now().millisecondsSinceEpoch;
     await _configurationService.setAnnouncementLastPullTime(pullTime);
-    final metricClient = injector.get<MetricClientService>();
     for (var announcement in announcements) {
-      if (await _announcementDao
-              .getAnnouncement(announcement.announcementContextId) ==
-          null) {
-        unawaited(metricClient.addEvent(
-          MixpanelEvent.receiveAnnouncement,
-          data: {
-            'id': announcement.announcementContextId,
-            'type': announcement.type,
-            'title': announcement.title,
-          },
-        ));
-      }
       await _announcementDao
           .insertAnnouncement(AnnouncementLocal.fromAnnouncement(announcement));
     }

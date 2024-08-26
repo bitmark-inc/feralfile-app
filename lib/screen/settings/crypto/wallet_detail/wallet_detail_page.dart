@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/database/entity/wallet_address.dart';
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/screen/account/recovery_phrase_page.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/connections/connections_bloc.dart';
@@ -22,11 +23,11 @@ import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send/send_crypto_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_state.dart';
-import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/util/address_utils.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/feral_file_custom_tab.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -67,6 +68,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
   final TextEditingController _renameController = TextEditingController();
   final FocusNode _renameFocusNode = FocusNode();
   final usdcFormatter = USDCAmountFormatter();
+  final _browser = FeralFileBrowser();
 
   @override
   void initState() {
@@ -76,6 +78,9 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
     _renameController.text = walletAddress.name ?? widget.payload.type.source;
     address = walletAddress.address;
 
+    context
+        .read<WalletDetailBloc>()
+        .add(WalletDetailPrimaryAddressEvent(walletAddress));
     _callBlocWallet();
     controller = ScrollController();
     controller.addListener(_listener);
@@ -109,15 +114,12 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
             .read<WalletDetailBloc>()
             .add(WalletDetailBalanceEvent(cryptoType, address));
         context.read<USDCBloc>().add(GetUSDCBalanceWithAddressEvent(address));
-        break;
       case CryptoType.XTZ:
         context
             .read<WalletDetailBloc>()
             .add(WalletDetailBalanceEvent(cryptoType, address));
-        break;
       case CryptoType.USDC:
         context.read<USDCBloc>().add(GetUSDCBalanceWithAddressEvent(address));
-        break;
       default:
         // do nothing
         break;
@@ -255,7 +257,13 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                                           )
                                         else
                                           SizedBox(
-                                              height: hideConnection ? 84 : 52),
+                                              height: hideConnection ? 54 : 22),
+                                        if (state.isPrimary) ...[
+                                          Padding(
+                                              padding: padding,
+                                              child: _primaryAddress()),
+                                          const SizedBox(height: 24)
+                                        ],
                                         Padding(
                                           padding: padding,
                                           child: _addressSection(context),
@@ -347,6 +355,25 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
     });
   }
 
+  Widget _primaryAddress() {
+    final theme = Theme.of(context);
+    final primaryAddressStyle =
+        theme.textTheme.ppMori400Black14.copyWith(color: AppColor.auGrey);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+          color: AppColor.primaryBlack,
+          border: Border.all(),
+          borderRadius: BorderRadius.circular(20)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
+        child: Text(
+          'primary_address'.tr(),
+          style: primaryAddressStyle,
+        ),
+      ),
+    );
+  }
+
   Widget _usdcBalance(String balance) {
     final theme = Theme.of(context);
     final balanceStyle = theme.textTheme.ppMori400White14
@@ -389,20 +416,17 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
 
   Widget _erc20Tag(BuildContext context) {
     final theme = Theme.of(context);
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.transparent,
-          shadowColor: Colors.transparent,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          side: const BorderSide(
-            color: AppColor.auQuickSilver,
-          ),
-          alignment: Alignment.center,
-          padding: const EdgeInsets.symmetric(horizontal: 15)),
-      onPressed: () {},
-      child: Text('ERC-20', style: theme.textTheme.ppMori400Grey14),
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColor.auQuickSilver,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        child: Text('ERC-20', style: theme.textTheme.ppMori400Grey14),
+      ),
     );
   }
 
@@ -480,13 +504,13 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                 builder: (context, setState) => Container(
                     alignment: Alignment.bottomRight,
                     child: SizedBox(
-                      //width: double.infinity,
                       height: 28,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: isCopied
                               ? AppColor.feralFileHighlight
                               : AppColor.auLightGrey,
+                          surfaceTintColor: Colors.transparent,
                           shadowColor: Colors.transparent,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(32),
@@ -576,12 +600,8 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
           'show_history'.tr(),
           style: theme.textTheme.ppMori400Black14,
         ),
-        onTap: () {
-          unawaited(Navigator.of(context).pushNamed(
-            AppRouter.inappWebviewPage,
-            arguments:
-                InAppWebViewPayload(addressURL(address, widget.payload.type)),
-          ));
+        onTap: () async {
+          await _browser.openUrl(addressURL(address, widget.payload.type));
         },
       ),
     ]);
@@ -597,14 +617,11 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
           style: theme.textTheme.ppMori400Black14,
         ),
         onTap: () async {
-          final words =
-              await widget.payload.persona.wallet().exportMnemonicWords();
-          if (!mounted) {
-            return;
-          }
-          unawaited(Navigator.of(context).pushNamed(
-              AppRouter.recoveryPhrasePage,
-              arguments: words.split(' ')));
+          await Navigator.of(context).pushNamed(
+            AppRouter.recoveryPhrasePage,
+            arguments:
+                RecoveryPhrasePayload(wallet: widget.payload.persona.wallet()),
+          );
         },
       ),
     ]);
@@ -637,7 +654,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
               ),
               onPressed: () async {
                 final payload = await Navigator.of(context).pushNamed(
-                    SendCryptoPage.tag,
+                    AppRouter.sendCryptoPage,
                     arguments: SendData(
                         LibAukDart.getWallet(widget.payload.persona.uuid),
                         widget.payload.type,
@@ -647,7 +664,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                   return;
                 }
 
-                if (!mounted) {
+                if (!context.mounted) {
                   return;
                 }
                 unawaited(UIHelper.showMessageAction(
@@ -692,7 +709,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                     accountNumber: address,
                     createdAt: walletAddress.createdAt);
                 unawaited(Navigator.of(context).pushNamed(
-                    GlobalReceiveDetailPage.tag,
+                    AppRouter.globalReceiveDetailPage,
                     arguments: GlobalReceivePayload(
                         address: address,
                         blockchain: widget.payload.type.source,
@@ -718,8 +735,6 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
           title: 'unhide_from_collection_view'.tr(),
           icon: SvgPicture.asset(
             'assets/images/unhide.svg',
-            colorFilter:
-                const ColorFilter.mode(AppColor.primaryBlack, BlendMode.srcIn),
           ),
           onTap: () {
             unawaited(injector<AccountService>()
@@ -735,7 +750,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
           title: 'hide_from_collection_view'.tr(),
           icon: const Icon(
             AuIcon.hidden_artwork,
-            color: AppColor.primaryBlack,
+            color: AppColor.white,
           ),
           onTap: () {
             unawaited(injector<AccountService>()
@@ -750,7 +765,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
         title: 'scan'.tr(),
         icon: const Icon(
           AuIcon.scan,
-          color: AppColor.primaryBlack,
+          color: AppColor.white,
         ),
         onTap: _connectionIconTap,
       ),
@@ -758,8 +773,6 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
         title: 'rename'.tr(),
         icon: SvgPicture.asset(
           'assets/images/rename_icon.svg',
-          colorFilter:
-              const ColorFilter.mode(AppColor.primaryBlack, BlendMode.srcIn),
         ),
         onTap: _onRenameTap,
       ),

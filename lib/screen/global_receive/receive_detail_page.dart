@@ -24,8 +24,6 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 
 class GlobalReceiveDetailPage extends StatefulWidget {
-  static const tag = 'global_receive_detail';
-
   final GlobalReceivePayload payload;
 
   const GlobalReceiveDetailPage({required this.payload, super.key});

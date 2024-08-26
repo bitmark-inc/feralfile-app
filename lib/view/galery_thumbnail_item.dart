@@ -37,6 +37,7 @@ class _GaleryThumbnailItemState extends State<GaleryThumbnailItem> {
           ? PendingTokenWidget(
               thumbnail: asset.galleryThumbnailURL,
               tokenId: asset.tokenId,
+              shouldRefreshCache: asset.shouldRefreshThumbnailCache,
             )
           : tokenGalleryThumbnailWidget(
               context,

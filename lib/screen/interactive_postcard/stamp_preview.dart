@@ -31,7 +31,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nft_collection/models/asset_token.dart';
 
 class StampPreview extends StatefulWidget {
-  static const String tag = 'stamp_preview';
   final StampPreviewPayload payload;
   static const double cellSize = 20;
 
@@ -84,14 +83,14 @@ class _StampPreviewState extends State<StampPreview> with AfterLayoutMixin {
           if (!isStampSuccess) {
             await UIHelper.showPostcardStampFailed(context);
           }
-          if (mounted) {
+          if (context.mounted) {
             _onClose(context);
           }
         }
       });
     } catch (e) {
       if (e is DioException) {
-        if (!mounted) {
+        if (!context.mounted) {
           return;
         }
         if (e.isAlreadyClaimedPostcard) {
@@ -105,7 +104,7 @@ class _StampPreviewState extends State<StampPreview> with AfterLayoutMixin {
             e,
           );
         }
-        if (!mounted) {
+        if (!context.mounted) {
           return;
         }
         unawaited(Navigator.of(context).pushNamedAndRemoveUntil(
@@ -157,13 +156,13 @@ class _StampPreviewState extends State<StampPreview> with AfterLayoutMixin {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     const backgroundColor = AppColor.chatPrimaryColor;
-    return WillPopScope(
-      onWillPop: () async => !confirming,
+    return PopScope(
+      canPop: !confirming,
       child: Scaffold(
         backgroundColor: backgroundColor,
         appBar: getCloseAppBar(
           context,
-          title: widget.payload.asset.title ?? '',
+          title: widget.payload.asset.displayTitle ?? '',
           titleStyle: theme.textTheme.moMASans700Black16.copyWith(
             fontSize: 18,
           ),

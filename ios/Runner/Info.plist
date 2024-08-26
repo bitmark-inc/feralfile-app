@@ -7,6 +7,8 @@
 		<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 		<string>$(PRODUCT_BUNDLE_IDENTIFIER).notification</string>
 	</array>
+	<key>FlutterDeepLinkingEnabled</key>
+	<true/>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
@@ -42,6 +44,7 @@
 				<string>tezos</string>
 				<string>autonomy-wc</string>
 				<string>autonomy-app</string>
+				<string>feralfile</string>
 			</array>
 		</dict>
 	</array>
@@ -61,6 +64,7 @@
 	<array>
 		<string>_googlecast._tcp</string>
 		<string>_YOUR_APP_ID._googlecast._tcp</string>
+		<string>_feralFileCanvas._tcp</string>
 	</array>
 	<key>NSCameraUsageDescription</key>
 	<string>QR code scanning requires camera access.</string>
@@ -126,8 +130,8 @@
 		<string>app.feralfile.com</string>
 		<string>feralfile-app.app.link</string>
 		<string>feralfile-app-alternate.app.link</string>
-		<string>feralfile-app.test.app.link</string>
-		<string>feralfile-app-alternate.test.app.link</string>
+		<string>feralfile-app.test-app.link</string>
+		<string>feralfile-app-alternate.test-app.link</string>
 	</array>
 	<key>io.flutter.embedded_views_preview</key>
 	<true/>

@@ -168,16 +168,14 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
                                   width: double.infinity,
                                   height: double.infinity,
                                   fit: BoxFit.cover,
+                                  cacheManager: injector<CacheManager>(),
+                                  maxHeightDiskCache: _cachedImageSize,
+                                  maxWidthDiskCache: _cachedImageSize,
                                   memCacheHeight: _cachedImageSize,
                                   memCacheWidth: _cachedImageSize,
-                                  cacheManager: injector<CacheManager>(),
-                                  placeholder: (context, index) =>
-                                      const GalleryThumbnailPlaceholder(),
+                                  placeholder: _loadingBuilder,
                                   errorWidget: (context, url, error) =>
                                       const GalleryThumbnailErrorWidget(),
-                                  placeholderFadeInDuration: const Duration(
-                                    milliseconds: 300,
-                                  ),
                                 ),
                         ),
                       ClipRRect(
@@ -200,7 +198,7 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
                     unawaited(injector<SettingsDataService>().backup());
                     NftCollectionBloc.eventController.add(ReloadEvent());
 
-                    if (!mounted) {
+                    if (!context.mounted) {
                       return;
                     }
                     unawaited(UIHelper.showHideArtworkResultDialog(
@@ -223,4 +221,7 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
       controller: ScrollController(),
     );
   }
+
+  Widget _loadingBuilder(BuildContext context, url) =>
+      const GalleryThumbnailPlaceholder();
 }

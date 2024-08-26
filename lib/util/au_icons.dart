@@ -11,6 +11,7 @@ class AuIcon {
   AuIcon._();
 
   static const String _fontFamily = 'AuIcon';
+  static const String _materialFontFamily = 'MaterialIcons';
 
   static const IconData wallet = IconData(0xe918, fontFamily: _fontFamily);
   static const IconData send = IconData(0xe90f, fontFamily: _fontFamily);
@@ -40,6 +41,11 @@ class AuIcon {
   static const IconData settings = IconData(0xe916, fontFamily: _fontFamily);
   static const IconData subscription =
       IconData(0xe917, fontFamily: _fontFamily);
+
   static const IconData rotateRounded =
-      IconData(0xf688, fontFamily: 'MaterialIcons');
+      IconData(0xf688, fontFamily: _materialFontFamily);
+  static const IconData microphone =
+      IconData(0xe3e4, fontFamily: _materialFontFamily);
+  static const IconData bookOutlined =
+      IconData(0xeedf, fontFamily: _materialFontFamily);
 }

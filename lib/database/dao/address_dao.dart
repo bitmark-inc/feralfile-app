@@ -1,5 +1,6 @@
 import 'package:autonomy_flutter/database/entity/wallet_address.dart';
 import 'package:floor/floor.dart';
+//ignore_for_file: lines_longer_than_80_chars
 
 @dao
 abstract class WalletAddressDao {
@@ -32,6 +33,11 @@ abstract class WalletAddressDao {
       'UPDATE WalletAddress SET isHidden = :isHidden WHERE address = :address')
   Future<void> setAddressIsHidden(String address, bool isHidden);
 
+  // update order query
+  @Query(
+      'UPDATE WalletAddress SET accountOrder = :accountOrder WHERE address = :address')
+  Future<void> setAddressOrder(String address, int accountOrder);
+
   @update
   Future<void> updateAddress(WalletAddress address);
 
@@ -40,4 +46,12 @@ abstract class WalletAddressDao {
 
   @Query('DELETE FROM WalletAddress')
   Future<void> removeAll();
+
+  // deleteAddresses by persona
+  @Query('DELETE FROM WalletAddress WHERE uuid = :uuid')
+  Future<void> deleteAddressesByPersona(String uuid);
+
+  // get addresses by persona
+  @Query('SELECT * FROM WalletAddress WHERE uuid = :uuid')
+  Future<List<WalletAddress>> getAddressesByPersona(String uuid);
 }

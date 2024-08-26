@@ -1,9 +1,11 @@
 import 'dart:convert';
 
+import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:eth_sig_util/util/utils.dart';
 import 'package:http/http.dart' as http;
+import 'package:nft_rendering/nft_rendering.dart';
 
 class HttpHelper {
   static Map<String, String> _getHmac(
@@ -15,21 +17,21 @@ class HttpHelper {
     final timestamp =
         (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
     final hexBody = (method == HttpMethod.GET || body is FormData)
-        ? ""
+        ? ''
         : bytesToHex(sha256
             .convert(body == null ? [] : utf8.encode(json.encode(body)))
             .bytes);
     final canonicalString = List<String>.of([
-      path.split("?").first,
+      path.split('?').first,
       hexBody,
       timestamp,
-    ]).join("|");
+    ]).join('|');
     final hmacSha256 = Hmac(sha256, utf8.encode(secretKey));
     final digest = hmacSha256.convert(utf8.encode(canonicalString));
     final sig = bytesToHex(digest.bytes);
     return {
-      "X-Api-Signature": sig,
-      "X-Api-Timestamp": timestamp,
+      'X-Api-Signature': sig,
+      'X-Api-Timestamp': timestamp,
     };
   }
 
@@ -45,7 +47,7 @@ class HttpHelper {
     final hmacHeader = _getHmac(HttpMethod.POST, path, body, secretKey);
     headers.addAll({
       ...hmacHeader,
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     });
 
     final response = await http.post(
@@ -67,7 +69,7 @@ class HttpHelper {
     final hmacHeader = _getHmac(HttpMethod.GET, path, null, secretKey);
     headers.addAll({
       ...hmacHeader,
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     });
 
     final response = await http.get(
@@ -75,6 +77,24 @@ class HttpHelper {
       headers: headers,
     );
     return response;
+  }
+
+  static Future<String> contentType(String link) async {
+    String renderingType = RenderingType.webview;
+    final uri = Uri.tryParse(link);
+    if (uri != null) {
+      try {
+        final res =
+            await http.head(uri).timeout(const Duration(milliseconds: 10000));
+        renderingType =
+            res.headers['content-type']?.toMimeType ?? RenderingType.webview;
+      } catch (e) {
+        renderingType = RenderingType.webview;
+      }
+    } else {
+      renderingType = RenderingType.webview;
+    }
+    return renderingType;
   }
 }
 

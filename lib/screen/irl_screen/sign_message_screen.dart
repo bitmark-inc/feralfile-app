@@ -8,7 +8,9 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/local_auth_service.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
+import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -20,6 +22,7 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:walletconnect_flutter_v2/apis/core/pairing/utils/pairing_models.dart';
 import 'package:web3dart/crypto.dart';
 
 class IRLSignMessagePayload {
@@ -99,10 +102,14 @@ class IRLSignMessageScreen extends StatefulWidget {
 
 class _IRLSignMessageScreenState extends State<IRLSignMessageScreen> {
   WalletIndex? _currentWallet;
+  late PairingMetadata? appMetadata;
 
   @override
   void initState() {
     super.initState();
+    appMetadata = widget.payload.metadata != null
+        ? PairingMetadata.fromJson(widget.payload.metadata!)
+        : null;
     unawaited(getWallet());
   }
 
@@ -146,87 +153,95 @@ class _IRLSignMessageScreenState extends State<IRLSignMessageScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final message = hexToBytes(widget.payload.payload);
-    final Uint8List viewMessage = message.length > 6 &&
-            message.sublist(0, 2).equals(Uint8List.fromList([5, 1]))
-        ? message.sublist(6)
-        : message;
-    final messageInUtf8 = utf8.decode(viewMessage, allowMalformed: true);
+    late String viewingMessage;
+    if (widget.payload.payload.isHex) {
+      final message = hexToBytes(widget.payload.payload);
+      final Uint8List trimmedMessage = message.length > 6 &&
+              message.sublist(0, 2).equals(Uint8List.fromList([5, 1]))
+          ? message.sublist(6)
+          : message;
+      try {
+        viewingMessage = utf8.decode(trimmedMessage, allowMalformed: false);
+      } catch (_) {
+        viewingMessage = '0x${widget.payload.payload}';
+      }
+    } else {
+      viewingMessage = widget.payload.payload;
+    }
 
     final theme = Theme.of(context);
 
-    return WillPopScope(
-      onWillPop: () async => true,
-      child: Scaffold(
-        appBar: getBackAppBar(
-          context,
-          onBack: () {
-            Navigator.of(context).pop();
-          },
-          title: 'signature_request'.tr(),
-        ),
-        body: Container(
-          margin: const EdgeInsets.only(bottom: 32),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      addTitleSpace(),
-                      Padding(
-                        padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-                        child: _metadataInfo(widget.payload.metadata),
+    return Scaffold(
+      appBar: getBackAppBar(
+        context,
+        action: () =>
+            unawaited(UIHelper.showAppReportBottomSheet(context, appMetadata)),
+        onBack: () {
+          Navigator.of(context).pop();
+        },
+        title: 'signature_request'.tr(),
+      ),
+      body: Container(
+        margin: const EdgeInsets.only(bottom: 32),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    addTitleSpace(),
+                    Padding(
+                      padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                      child: _metadataInfo(widget.payload.metadata),
+                    ),
+                    const SizedBox(height: 60),
+                    addOnlyDivider(),
+                    const SizedBox(height: 30),
+                    Padding(
+                      padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                      child: Text(
+                        'message'.tr(),
+                        style: theme.textTheme.ppMori400Black14,
                       ),
-                      const SizedBox(height: 60),
-                      addOnlyDivider(),
-                      const SizedBox(height: 30),
-                      Padding(
-                        padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                    ),
+                    const SizedBox(height: 4),
+                    Padding(
+                      padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 20, horizontal: 22),
+                        decoration: BoxDecoration(
+                          color: AppColor.auLightGrey,
+                          borderRadius: BorderRadius.circular(5),
+                        ),
                         child: Text(
-                          'message'.tr(),
+                          viewingMessage,
                           style: theme.textTheme.ppMori400Black14,
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Padding(
-                        padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 20, horizontal: 22),
-                          decoration: BoxDecoration(
-                            color: AppColor.auLightGrey,
-                            borderRadius: BorderRadius.circular(5),
-                          ),
-                          child: Text(
-                            messageInUtf8,
-                            style: theme.textTheme.ppMori400Black14,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Padding(
-                padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: PrimaryButton(
-                        text: 'sign'.tr(),
-                        onTap: _currentWallet != null
-                            ? () => withDebounce(_sign)
-                            : null,
-                      ),
-                    )
+                    ),
                   ],
                 ),
-              )
-            ],
-          ),
+              ),
+            ),
+            Padding(
+              padding: ResponsiveLayout.pageHorizontalEdgeInsets,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: PrimaryButton(
+                      text: 'sign'.tr(),
+                      onTap: _currentWallet != null
+                          ? () => withDebounce(_sign)
+                          : null,
+                    ),
+                  )
+                ],
+              ),
+            )
+          ],
         ),
       ),
     );

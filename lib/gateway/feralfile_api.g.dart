@@ -19,9 +19,14 @@ class _FeralFileApi implements FeralFileApi {
   String? baseUrl;
 
   @override
-  Future<ExhibitionResponse> getExhibition(String exhibitionId) async {
+  Future<ExhibitionResponse> getExhibition(
+    String exhibitionId, {
+    bool includeFirstArtwork = false,
+  }) async {
     const _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'includeFirstArtwork': includeFirstArtwork
+    };
     final _headers = <String, dynamic>{};
     final Map<String, dynamic>? _data = null;
     final _result = await _dio
@@ -46,9 +51,20 @@ class _FeralFileApi implements FeralFileApi {
   }
 
   @override
-  Future<FFSeriesResponse> getSeries(String seriesId) async {
+  Future<FFSeriesResponse> getSeries({
+    required String seriesId,
+    bool includeFiles = true,
+    bool includeCollectibility = true,
+    bool includeUniqueFilePath = true,
+    bool includeFirstArtwork = true,
+  }) async {
     const _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'includeFiles': includeFiles,
+      r'includeCollectibility': includeCollectibility,
+      r'includeUniqueFilePath': includeUniqueFilePath,
+      r'includeFirstArtwork': includeFirstArtwork,
+    };
     final _headers = <String, dynamic>{};
     final Map<String, dynamic>? _data = null;
     final _result = await _dio
@@ -73,24 +89,33 @@ class _FeralFileApi implements FeralFileApi {
   }
 
   @override
-  Future<TokenClaimResponse> claimSeries(
-    String seriesId,
-    Map<String, dynamic> body,
-  ) async {
+  Future<FFListSeriesResponse> getListSeries({
+    required String exhibitionID,
+    String? sortBy,
+    String? sortOrder,
+    bool includeArtist = true,
+    bool includeUniqueFilePath = true,
+  }) async {
     const _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'exhibitionID': exhibitionID,
+      r'sortBy': sortBy,
+      r'sortOrder': sortOrder,
+      r'includeArtist': includeArtist,
+      r'includeUniqueFilePath': includeUniqueFilePath,
+    };
+    queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
-    final _data = <String, dynamic>{};
-    _data.addAll(body);
-    final _result = await _dio
-        .fetch<Map<String, dynamic>>(_setStreamType<TokenClaimResponse>(Options(
-      method: 'POST',
+    final Map<String, dynamic>? _data = null;
+    final _result = await _dio.fetch<Map<String, dynamic>>(
+        _setStreamType<FFListSeriesResponse>(Options(
+      method: 'GET',
       headers: _headers,
       extra: _extra,
     )
             .compose(
               _dio.options,
-              '/api/series/${seriesId}/claim',
+              '/api/series',
               queryParameters: queryParameters,
               data: _data,
             )
@@ -99,7 +124,7 @@ class _FeralFileApi implements FeralFileApi {
               _dio.options.baseUrl,
               baseUrl,
             ))));
-    final value = TokenClaimResponse.fromJson(_result.data!);
+    final value = FFListSeriesResponse.fromJson(_result.data!);
     return value;
   }
 
@@ -232,26 +257,96 @@ class _FeralFileApi implements FeralFileApi {
   }
 
   @override
-  Future<ArtworksResponse> getListArtworks({
+  Future<FFListArtworksResponse> getFeaturedArtworks({
+    bool includeArtist = true,
+    bool includeExhibition = true,
+    bool includeExhibitionContract = true,
+  }) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'includeArtist': includeArtist,
+      r'includeExhibition': includeExhibition,
+      r'includeExhibitionContract': includeExhibitionContract,
+    };
+    final _headers = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
+    final _result = await _dio.fetch<Map<String, dynamic>>(
+        _setStreamType<FFListArtworksResponse>(Options(
+      method: 'GET',
+      headers: _headers,
+      extra: _extra,
+    )
+            .compose(
+              _dio.options,
+              '/api/artworks/featured',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(
+                baseUrl: _combineBaseUrls(
+              _dio.options.baseUrl,
+              baseUrl,
+            ))));
+    final value = FFListArtworksResponse.fromJson(_result.data!);
+    return value;
+  }
+
+  @override
+  Future<ExhibitionResponse> getUpcomingExhibition() async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
+    final _result = await _dio
+        .fetch<Map<String, dynamic>>(_setStreamType<ExhibitionResponse>(Options(
+      method: 'GET',
+      headers: _headers,
+      extra: _extra,
+    )
+            .compose(
+              _dio.options,
+              '/api/exhibitions/upcoming',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(
+                baseUrl: _combineBaseUrls(
+              _dio.options.baseUrl,
+              baseUrl,
+            ))));
+    final value = ExhibitionResponse.fromJson(_result.data!);
+    return value;
+  }
+
+  @override
+  Future<FeralFileListResponse<Artwork>> getListArtworks({
     String? exhibitionId,
     String? seriesId,
+    int? offset = 0,
+    int? limit = 1,
     bool includeActiveSwap = true,
     String sortBy = 'index',
     String sortOrder = 'ASC',
+    bool? isViewable,
+    bool? filterBurned,
   }) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
       r'exhibitionID': exhibitionId,
       r'seriesID': seriesId,
+      r'offset': offset,
+      r'limit': limit,
       r'includeActiveSwap': includeActiveSwap,
       r'sortBy': sortBy,
       r'sortOrder': sortOrder,
+      r'isViewable': isViewable,
+      r'filterBurned': filterBurned
     };
     queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
     final Map<String, dynamic>? _data = null;
-    final _result = await _dio
-        .fetch<Map<String, dynamic>>(_setStreamType<ArtworksResponse>(Options(
+    final _result = await _dio.fetch<Map<String, dynamic>>(
+        _setStreamType<FeralFileListResponse<Artwork>>(Options(
       method: 'GET',
       headers: _headers,
       extra: _extra,
@@ -267,7 +362,8 @@ class _FeralFileApi implements FeralFileApi {
               _dio.options.baseUrl,
               baseUrl,
             ))));
-    final value = ArtworksResponse.fromJson(_result.data!);
+    final value = FeralFileListResponse<Artwork>.fromJson(
+        _result.data!, Artwork.fromJson);
     return value;
   }
 

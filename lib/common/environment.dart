@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/encrypt_env/secrets.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class Environment {
@@ -42,7 +43,7 @@ class Environment {
       ? connectWebsocketTestnetURL
       : connectWebsocketMainnetURL;
 
-  static String get auClaimSecretKey => dotenv.env['AU_CLAIM_SECRET_KEY'] ?? '';
+  static String get tvCastApiUrl => dotenv.env['TV_CAST_API_URL'] ?? '';
 
   static String get tokenWebviewPrefix =>
       dotenv.env['TOKEN_WEBVIEW_PREFIX'] ?? '';
@@ -52,9 +53,6 @@ class Environment {
 
   static String get indexerTestnetURL =>
       dotenv.env['INDEXER_TESTNET_API_URL'] ?? '';
-
-  static String get web3RpcMainnetURL =>
-      dotenv.env['WEB3_RPC_MAINNET_URL'] ?? '';
 
   static int get web3MainnetChainId =>
       int.tryParse(dotenv.env['WEB3_MAINNET_CHAIN_ID'] ?? '1') ?? 1;
@@ -80,20 +78,14 @@ class Environment {
   static String get feralFileAPIMainnetURL =>
       dotenv.env['FERAL_FILE_API_MAINNET_URL'] ?? '';
 
-  static String get feralFileSecretKeyMainnet =>
-      dotenv.env['FERAL_FILE_SECRET_KEY_MAINNET'] ?? '';
-
   static String get feralFileAPITestnetURL =>
       dotenv.env['FERAL_FILE_API_TESTNET_URL'] ?? '';
 
-  static String get feralFileSecretKeyTestnet =>
-      dotenv.env['FERAL_FILE_SECRET_KEY_TESTNET'] ?? '';
+  static String get feralFileAssetURLTestnet =>
+      dotenv.env['FERAL_FILE_ASSET_URL_TESTNET'] ?? '';
 
   static String get feralFileAssetURLMainnet =>
       dotenv.env['FERAL_FILE_ASSET_URL_MAINNET'] ?? '';
-
-  static String get feralFileAssetURLTestnet =>
-      dotenv.env['FERAL_FILE_ASSET_URL_TESTNET'] ?? '';
 
   static String get extensionSupportMainnetURL =>
       dotenv.env['EXTENSION_SUPPORT_MAINNET_URL'] ?? '';
@@ -119,10 +111,6 @@ class Environment {
 
   static String get pubdocURL => dotenv.env['AUTONOMY_PUBDOC_URL'] ?? '';
 
-  static String get sentryDSN => dotenv.env['SENTRY_DSN'] ?? '';
-
-  static String get onesignalAppID => dotenv.env['ONESIGNAL_APP_ID'] ?? '';
-
   static String get awsIdentityPoolId =>
       dotenv.env['AWS_IDENTITY_POOL_ID'] ?? '';
 
@@ -137,14 +125,6 @@ class Environment {
 
   static bool get appTestnetConfig =>
       dotenv.env['APP_TESTNET_CONFIG']?.toUpperCase() == 'TRUE';
-
-  static String get metricEndpoint => dotenv.env['METRIC_ENDPOINT'] ?? '';
-
-  static String get metricSecretKey => dotenv.env['METRIC_SECRET_KEY'] ?? '';
-
-  static String get branchKey => dotenv.env['BRANCH_KEY'] ?? '';
-
-  static String get mixpanelKey => dotenv.env['MIXPANEL_KEY'] ?? '';
 
   static String get auClaimAPIURL => dotenv.env['AU_CLAIM_API_URL'] ?? '';
 
@@ -166,9 +146,6 @@ class Environment {
   static String get payToMintBaseUrl =>
       dotenv.env['PAY_TO_MINT_BASE_URL'] ?? '';
 
-  static String get chatServerHmacKey =>
-      dotenv.env['CHAT_SERVER_HMAC_KEY'] ?? '';
-
   static String get postcardChatServerUrl =>
       dotenv.env['CHAT_SERVER_URL'] ?? '';
 
@@ -176,14 +153,41 @@ class Environment {
 
   static String get tzktTestnetURL => dotenv.env['TZKT_TESTNET_URL'] ?? '';
 
-  static String get autonomyAirdropURL =>
-      dotenv.env['AUTONOMY_AIRDROP_URL'] ?? '';
-
   static String get autonomyAirDropContractAddress =>
       dotenv.env['AUTONOMY_AIRDROP_CONTRACT_ADDRESS'] ?? '';
 
   static String get autonomyActivationURL =>
       dotenv.env['AUTONOMY_ACTIVATION_URL'] ?? '';
+
+  static String get chatServerHmacKey =>
+      cachedSecretEnv['CHAT_SERVER_HMAC_KEY'] ?? '';
+
+  static String get metricEndpoint => cachedSecretEnv['METRIC_ENDPOINT'] ?? '';
+
+  static String get metricSecretKey =>
+      cachedSecretEnv['METRIC_SECRET_KEY'] ?? '';
+
+  static String get branchKey => cachedSecretEnv['BRANCH_KEY'] ?? '';
+
+  static String get mixpanelKey => cachedSecretEnv['MIXPANEL_KEY'] ?? '';
+
+  static String get auClaimSecretKey =>
+      cachedSecretEnv['AU_CLAIM_SECRET_KEY'] ?? '';
+
+  static String get feralFileSecretKeyTestnet =>
+      cachedSecretEnv['FERAL_FILE_SECRET_KEY_TESTNET'] ?? '';
+
+  static String get feralFileSecretKeyMainnet =>
+      cachedSecretEnv['FERAL_FILE_SECRET_KEY_MAINNET'] ?? '';
+
+  static String get web3RpcMainnetURL =>
+      cachedSecretEnv['WEB3_RPC_MAINNET_URL'] ?? '';
+
+  static String get sentryDSN => cachedSecretEnv['SENTRY_DSN'] ?? '';
+
+  static String get onesignalAppID => cachedSecretEnv['ONESIGNAL_APP_ID'] ?? '';
+
+  static String get tvKey => cachedSecretEnv['TV_API_KEY'] ?? '';
 }
 
 class Secret {

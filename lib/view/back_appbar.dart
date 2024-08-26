@@ -26,6 +26,7 @@ AppBar getBackAppBar(
   bool withDivider = true,
   Color? backgroundColor,
   Color? statusBarColor,
+  Color? surfaceTintColor,
 }) {
   final theme = Theme.of(context);
 
@@ -37,20 +38,10 @@ AppBar getBackAppBar(
         statusBarIconBrightness: isWhite ? Brightness.dark : Brightness.light,
         statusBarBrightness: isWhite ? Brightness.light : Brightness.dark),
     centerTitle: true,
-    leadingWidth: 44,
+    scrolledUnderElevation: 0,
     leading: onBack != null
-        ? Semantics(
-            label: 'BACK',
-            child: IconButton(
-              onPressed: onBack,
-              constraints: const BoxConstraints(maxWidth: 36),
-              icon: SvgPicture.asset(
-                'assets/images/icon_back.svg',
-                colorFilter: ColorFilter.mode(primaryColor, BlendMode.srcIn),
-              ),
-            ),
-          )
-        : const SizedBox(width: 36),
+        ? backButton(context, onBack: onBack, color: primaryColor)
+        : const SizedBox(width: 56),
     automaticallyImplyLeading: false,
     title: Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -68,13 +59,18 @@ AppBar getBackAppBar(
     actions: [
       ...actions ?? [],
       if (action != null)
-        Padding(
-          padding: const EdgeInsets.only(right: 15),
-          child: IconButton(
-            tooltip: 'AppbarAction',
-            constraints: const BoxConstraints(maxWidth: 36),
-            onPressed: action,
-            icon: icon ??
+        IconButton(
+          tooltip: 'AppbarAction',
+          constraints: const BoxConstraints(
+            maxWidth: 44,
+            maxHeight: 44,
+            minWidth: 44,
+            minHeight: 44,
+          ),
+          onPressed: action,
+          icon: Padding(
+            padding: const EdgeInsets.all(5),
+            child: icon ??
                 Icon(
                   Icons.more_horiz,
                   color: primaryColor,
@@ -82,9 +78,10 @@ AppBar getBackAppBar(
           ),
         )
       else
-        const SizedBox(width: 36),
+        const SizedBox(width: 44),
     ],
     backgroundColor: backgroundColor ?? Colors.transparent,
+    surfaceTintColor: surfaceTintColor ?? Colors.transparent,
     shadowColor: Colors.transparent,
     elevation: 0,
     bottom: withDivider
@@ -118,18 +115,9 @@ AppBar getTitleEditAppBar(BuildContext context,
         statusBarBrightness: isWhite ? Brightness.light : Brightness.dark),
     centerTitle: true,
     leadingWidth: 44,
+    scrolledUnderElevation: 0,
     leading: hasBack
-        ? Semantics(
-            label: 'BACK',
-            child: IconButton(
-              onPressed: () {},
-              constraints: const BoxConstraints(maxWidth: 36),
-              icon: SvgPicture.asset(
-                'assets/images/icon_back.svg',
-                colorFilter: ColorFilter.mode(primaryColor, BlendMode.srcIn),
-              ),
-            ),
-          )
+        ? backButton(context, onBack: () {}, color: primaryColor)
         : const SizedBox(),
     automaticallyImplyLeading: false,
     title: Row(
@@ -198,6 +186,7 @@ AppBar getCloseAppBar(
     ),
     centerTitle: isTitleCenter,
     automaticallyImplyLeading: false,
+    scrolledUnderElevation: 0,
     title: Text(
       title,
       overflow: TextOverflow.ellipsis,
@@ -234,6 +223,7 @@ AppBar getDarkEmptyAppBar([Color? statusBarColor]) => AppBar(
       toolbarHeight: 0,
       shadowColor: Colors.transparent,
       elevation: 0,
+      scrolledUnderElevation: 0,
     );
 
 AppBar getLightEmptyAppBar([Color? statusBarColor]) => AppBar(
@@ -242,6 +232,7 @@ AppBar getLightEmptyAppBar([Color? statusBarColor]) => AppBar(
       toolbarHeight: 0,
       shadowColor: Colors.transparent,
       elevation: 0,
+      scrolledUnderElevation: 0,
     );
 
 SystemUiOverlayStyle _systemUiOverlayDarkStyle(Color? statusBarColor) =>
@@ -277,12 +268,13 @@ AppBar getDoneAppBar(
       statusBarBrightness: isWhite ? Brightness.light : Brightness.dark,
     ),
     elevation: 1,
+    scrolledUnderElevation: 0,
     shadowColor: Colors.transparent,
     leadingWidth: 80,
     leading: GestureDetector(
       onTap: onCancel,
       child: Padding(
-        padding: const EdgeInsets.only(left: 14),
+        padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 15),
         child: Center(
           child: Text(
             tr('cancel'),
@@ -296,19 +288,22 @@ AppBar getDoneAppBar(
         padding: const EdgeInsets.only(right: 14),
         child: GestureDetector(
           onTap: onDone,
-          child: Center(
-            child: Text(
-              tr('done'),
-              style: (onDone != null)
-                  ? theme.textTheme.ppMori700Black14
-                  : theme.textTheme.ppMori700Black14
-                      .copyWith(color: AppColor.disabledColor),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 15),
+            child: Center(
+              child: Text(
+                tr('done'),
+                style: (onDone != null)
+                    ? theme.textTheme.ppMori700Black14
+                    : theme.textTheme.ppMori700Black14
+                        .copyWith(color: AppColor.disabledColor),
+              ),
             ),
           ),
         ),
       ),
     ],
-    backgroundColor: theme.colorScheme.background,
+    backgroundColor: theme.colorScheme.surface,
     automaticallyImplyLeading: false,
     centerTitle: true,
     title: Text(
@@ -337,10 +332,12 @@ AppBar getCustomDoneAppBar(
     shadowColor: Colors.transparent,
     elevation: 1,
     leadingWidth: 80,
+    scrolledUnderElevation: 0,
+    surfaceTintColor: Colors.transparent,
     leading: GestureDetector(
       onTap: onCancel,
       child: Padding(
-        padding: const EdgeInsets.only(left: 14),
+        padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 15),
         child: Center(
           child: Text(
             tr('cancel'),
@@ -350,10 +347,10 @@ AppBar getCustomDoneAppBar(
       ),
     ),
     actions: [
-      Padding(
-        padding: const EdgeInsets.only(right: 14),
-        child: GestureDetector(
-          onTap: onDone,
+      GestureDetector(
+        onTap: onDone,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 15),
           child: Center(
             child: Text(
               tr('done'),
@@ -366,7 +363,7 @@ AppBar getCustomDoneAppBar(
         ),
       ),
     ],
-    backgroundColor: theme.colorScheme.background,
+    backgroundColor: AppColor.white,
     automaticallyImplyLeading: false,
     centerTitle: true,
     title: title,
@@ -374,11 +371,50 @@ AppBar getCustomDoneAppBar(
   );
 }
 
+AppBar getPlaylistAppBar(
+  BuildContext context, {
+  required Widget title,
+  required List<Widget> actions,
+}) =>
+    AppBar(
+      systemOverlayStyle: systemUiOverlayDarkStyle,
+      elevation: 0,
+      shadowColor: Colors.transparent,
+      leading: Semantics(
+          label: 'BACK',
+          child: IconButton(
+            constraints: const BoxConstraints(
+              maxWidth: 44,
+              maxHeight: 44,
+              minWidth: 44,
+              minHeight: 44,
+            ),
+            onPressed: () => Navigator.pop(context),
+            icon: SvgPicture.asset(
+              'assets/images/ff_back_dark.svg',
+              width: 28,
+              height: 28,
+            ),
+          )),
+      leadingWidth: 70,
+      titleSpacing: 0,
+      backgroundColor: AppColor.primaryBlack,
+      automaticallyImplyLeading: false,
+      centerTitle: true,
+      title: title,
+      actions: actions,
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(0.25),
+        child: addOnlyDivider(color: AppColor.auQuickSilver, border: 0.25),
+      ),
+    );
+
 AppBar getFFAppBar(
   BuildContext context, {
   required Function()? onBack,
   Widget? title,
   Widget? action,
+  bool? centerTitle = true,
 }) {
   const secondaryColor = AppColor.primaryBlack;
   return AppBar(
@@ -386,21 +422,28 @@ AppBar getFFAppBar(
           statusBarColor: secondaryColor,
           statusBarIconBrightness: Brightness.light,
           statusBarBrightness: Brightness.dark),
-      centerTitle: true,
+      centerTitle: centerTitle,
       toolbarHeight: 66,
-      leadingWidth: 44,
+      scrolledUnderElevation: 0,
       leading: onBack != null
           ? Semantics(
               label: 'BACK',
               child: IconButton(
-                constraints: const BoxConstraints(maxWidth: 34),
-                onPressed: onBack,
+                onPressed: () => Navigator.pop(context),
+                constraints: const BoxConstraints(
+                  maxWidth: 44,
+                  maxHeight: 44,
+                  minWidth: 44,
+                  minHeight: 44,
+                ),
                 icon: SvgPicture.asset(
                   'assets/images/ff_back_dark.svg',
+                  width: 28,
+                  height: 28,
                 ),
-                padding: const EdgeInsets.all(0),
-              ))
-          : const SizedBox(width: 36),
+              ),
+            )
+          : const SizedBox(width: 44),
       automaticallyImplyLeading: false,
       title: title,
       actions: [
@@ -408,12 +451,37 @@ AppBar getFFAppBar(
           Padding(
               padding: const EdgeInsets.symmetric(vertical: 6), child: action)
         else
-          const SizedBox(width: 36),
+          const SizedBox(width: 44),
       ],
       backgroundColor: Colors.transparent,
       shadowColor: Colors.transparent,
       elevation: 0);
 }
+
+Widget backButton(BuildContext context,
+        {required Function() onBack, Color? color}) =>
+    Semantics(
+        label: 'BACK',
+        child: IconButton(
+          constraints: const BoxConstraints(
+            maxWidth: 44,
+            maxHeight: 44,
+            minWidth: 44,
+            minHeight: 44,
+          ),
+          onPressed: onBack,
+          icon: Padding(
+            padding: const EdgeInsets.all(10),
+            child: SvgPicture.asset(
+              'assets/images/icon_back.svg',
+              width: 24,
+              height: 24,
+              colorFilter: color != null
+                  ? ColorFilter.mode(color, BlendMode.srcIn)
+                  : null,
+            ),
+          ),
+        ));
 
 // class MomaPallet to save colors
 // Path: lib/util/style.dart

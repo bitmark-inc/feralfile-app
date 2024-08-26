@@ -107,14 +107,15 @@ class _DataManagementPageState extends State<DataManagementPage> {
       'forget_exist'.tr(),
       BlocProvider(
         create: (_) => ForgetExistBloc(
-            injector(),
-            injector(),
-            injector(),
-            injector(),
-            injector(),
-            injector(),
-            injector<NftCollectionBloc>().database,
-            injector()),
+          injector(),
+          injector(),
+          injector(),
+          injector(),
+          injector(),
+          injector<NftCollectionBloc>().database,
+          injector(),
+          injector(),
+        ),
         child: const ForgetExistView(),
       ),
     ));
@@ -130,6 +131,7 @@ class _DataManagementPageState extends State<DataManagementPage> {
       () async {
         await injector<TokensService>().purgeCachedGallery();
         await injector<CacheManager>().emptyCache();
+        await DefaultCacheManager().emptyCache();
         await injector<ClientTokenService>().refreshTokens(syncAddresses: true);
         NftCollectionBloc.eventController
             .add(GetTokensByOwnerEvent(pageKey: PageKey.init()));

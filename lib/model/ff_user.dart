@@ -25,9 +25,8 @@ class FFUser {
 class FFArtist {
   final String id;
   final String alias;
-  final String slug;
+  final String? slug;
   final bool? verified;
-  final bool? isArtist;
   final String? fullName;
   final String? avatarURI;
   final String? accountNumber;
@@ -38,7 +37,6 @@ class FFArtist {
     this.alias,
     this.slug,
     this.verified,
-    this.isArtist,
     this.fullName,
     this.avatarURI,
     this.accountNumber,
@@ -48,9 +46,8 @@ class FFArtist {
   factory FFArtist.fromJson(Map<String, dynamic> json) => FFArtist(
         json['ID'] as String,
         json['alias'] as String,
-        json['slug'] as String,
+        json['slug'] as String?,
         json['verified'] as bool?,
-        json['isArtist'] as bool?,
         json['fullName'] as String?,
         json['avatarURI'] as String?,
         json['accountNumber'] as String?,
@@ -62,7 +59,6 @@ class FFArtist {
         'alias': alias,
         'slug': slug,
         'verified': verified,
-        'isArtist': isArtist,
         'fullName': fullName,
         'avatarURI': avatarURI,
         'accountNumber': accountNumber,
@@ -72,7 +68,7 @@ class FFArtist {
 
 class FFCurator extends FFUser {
   final String? email;
-  final String avatarUri;
+  final String? avatarUri;
 
   FFCurator({
     required super.id,
@@ -91,13 +87,17 @@ class FFCurator extends FFUser {
         id: json['ID'],
         alias: json['alias'],
         slug: json['slug'],
-        email: json['email'],
-        avatarUri: json['avatarURI'],
-        fullName: json['fullName'],
-        type: json['type'],
-        metadata: json['metadata'],
-        createdAt: DateTime.tryParse(json['createdAt']),
-        updatedAt: DateTime.tryParse(json['updatedAt']),
+        email: json['email'] as String?,
+        avatarUri: json['avatarURI'] as String?,
+        fullName: json['fullName'] as String?,
+        type: json['type'] as String?,
+        metadata: json['metadata'] as Map<String, dynamic>?,
+        createdAt: json['createdAt'] != null
+            ? DateTime.tryParse(json['createdAt'])
+            : null,
+        updatedAt: json['updatedAt'] != null
+            ? DateTime.tryParse(json['updatedAt'])
+            : null,
       );
 
   Map<String, dynamic> toJson() => {

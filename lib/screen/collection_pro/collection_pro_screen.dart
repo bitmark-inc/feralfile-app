@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
@@ -7,24 +8,28 @@ import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/shared_postcard.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
+import 'package:autonomy_flutter/screen/collection_pro/artists_list_page/artists_list_page.dart';
 import 'package:autonomy_flutter/screen/collection_pro/collection_pro_bloc.dart';
 import 'package:autonomy_flutter/screen/collection_pro/collection_pro_state.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/playlists/list_playlists/list_playlists.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
 import 'package:autonomy_flutter/screen/predefined_collection/predefined_collection_screen.dart';
+import 'package:autonomy_flutter/screen/wallet/wallet_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
+import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/collection_ext.dart';
-import 'package:autonomy_flutter/util/medium_category_ext.dart';
 import 'package:autonomy_flutter/util/predefined_collection_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
-import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/galery_thumbnail_item.dart';
+import 'package:autonomy_flutter/view/get_started_banner.dart';
 import 'package:autonomy_flutter/view/header.dart';
+import 'package:autonomy_flutter/view/predefined_collection/predefined_collection_item.dart';
 import 'package:autonomy_flutter/view/search_bar.dart';
+import 'package:autonomy_flutter/view/title_text.dart';
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -58,11 +63,15 @@ class CollectionProState extends State<CollectionPro>
   List<PredefinedCollectionModel> _listPredefinedCollectionByMedium = [];
   List<CompactedAssetToken> _works = [];
   late bool _isLoaded;
+  late bool _showGetStartedBanner = false;
+  final _configurationService = injector<ConfigurationService>();
+  static const _maxArtistsView = 30;
 
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
     _isLoaded = false;
+    _showGetStartedBanner = _configurationService.getShowAddAddressBanner();
     searchStr = ValueNotifier('');
     searchStr.addListener(() {
       loadCollection();
@@ -156,17 +165,18 @@ class CollectionProState extends State<CollectionPro>
                       )
                       .toList()
                       .filterByName(searchStr.value)
-                    ..sort((a, b) =>
-                        a.name!.toLowerCase().compareTo(b.name!.toLowerCase()));
+                    ..sort((a, b) => a.name.compareSearchKey(b.name));
                   setState(() {
                     _listPredefinedCollectionByArtist =
                         listPredefinedCollectionByArtist;
                   });
                 },
                 builder: (context, identityState) {
-                  final isEmptyView = _isLoaded &&
-                      searchStr.value.isNotEmpty &&
-                      _isEmptyCollection();
+                  final isEmptyView = !_isLoaded ||
+                      (_isEmptyCollection() && searchStr.value.isEmpty);
+                  final isSearchEmptyView = _isLoaded &&
+                      _isEmptyCollection() &&
+                      searchStr.value.isNotEmpty;
                   return CustomScrollView(
                     controller: _scrollController,
                     shrinkWrap: true,
@@ -177,17 +187,18 @@ class CollectionProState extends State<CollectionPro>
                       SliverToBoxAdapter(
                         child: _pageHeader(context),
                       ),
-                      SliverToBoxAdapter(
-                        child: ValueListenableBuilder(
-                          valueListenable: searchStr,
-                          builder: (BuildContext context, String value,
-                                  Widget? child) =>
-                              CollectionSection(
-                            key: _collectionSectionKey,
-                            filterString: value,
+                      if (!isEmptyView)
+                        SliverToBoxAdapter(
+                          child: ValueListenableBuilder(
+                            valueListenable: searchStr,
+                            builder: (BuildContext context, String value,
+                                    Widget? child) =>
+                                CollectionSection(
+                              key: _collectionSectionKey,
+                              filterString: value,
+                            ),
                           ),
                         ),
-                      ),
                       if (isEmptyView) ...[
                         SliverToBoxAdapter(
                           child: Visibility(
@@ -196,6 +207,17 @@ class CollectionProState extends State<CollectionPro>
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 15),
                               child: _emptyView(context),
+                            ),
+                          ),
+                        ),
+                      ] else if (isSearchEmptyView) ...[
+                        SliverToBoxAdapter(
+                          child: Visibility(
+                            visible: isSearchEmptyView,
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 15),
+                              child: _searchEmptyView(context),
                             ),
                           ),
                         ),
@@ -229,8 +251,10 @@ class CollectionProState extends State<CollectionPro>
                         SliverList(
                           delegate: SliverChildBuilderDelegate(
                             _predefinedCollectionByArtistBuilder,
-                            childCount:
-                                _listPredefinedCollectionByArtist.length + 1,
+                            childCount: min(
+                                    _listPredefinedCollectionByArtist.length,
+                                    _maxArtistsView) +
+                                1,
                           ),
                         ),
                         const SliverToBoxAdapter(
@@ -261,7 +285,7 @@ class CollectionProState extends State<CollectionPro>
     return isEmpty;
   }
 
-  Widget _emptyView(BuildContext context) {
+  Widget _searchEmptyView(BuildContext context) {
     final theme = Theme.of(context);
     return Text(
       'no_results'.tr(),
@@ -269,9 +293,61 @@ class CollectionProState extends State<CollectionPro>
     );
   }
 
+  Widget _emptyView(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'see_your_collection'.tr(),
+          style: theme.textTheme.ppMori400White14,
+        ),
+        const SizedBox(height: 15),
+        if (_showGetStartedBanner)
+          GetStartedBanner(
+            onClose: () async {
+              await _hideGetStartedBanner();
+            },
+            title: 'add_collection_from_address'.tr(),
+            onGetStarted: _onGetStarted,
+          )
+      ],
+    );
+  }
+
+  Future<void> _hideGetStartedBanner() async {
+    setState(() {
+      _showGetStartedBanner = false;
+    });
+    await _configurationService.setShowPostcardBanner(false);
+  }
+
+  Future<void> _onGetStarted() async {
+    await Navigator.of(context).pushNamed(AppRouter.walletPage,
+        arguments: const WalletPagePayload(openAddAddress: true));
+  }
+
   Widget _predefinedCollectionByArtistBuilder(BuildContext context, int index) {
     const type = PredefinedCollectionType.artist;
-    return _predefinedCollectionBuilder(context, index, type);
+    final isSearching = searchStr.value.isNotEmpty;
+    final numberOfArtists = _listPredefinedCollectionByArtist.length;
+    final displaySeeAll =
+        !isSearching && index == 0 && numberOfArtists > _maxArtistsView;
+    final Widget? action = displaySeeAll
+        ? GestureDetector(
+            onTap: () async {
+              await Navigator.of(context).pushNamed(AppRouter.artistsListPage,
+                  arguments: ArtistsListPagePayload(
+                      _listPredefinedCollectionByArtist));
+            },
+            child: Text(
+              'see_all'.tr(),
+              style: Theme.of(context).textTheme.ppMori400White14.copyWith(
+                    decoration: TextDecoration.underline,
+                  ),
+            ))
+        : null;
+    return _predefinedCollectionBuilder(context, index, type, action: action);
   }
 
   Widget _predefinedCollectionByMediumBuilder(BuildContext context, int index) {
@@ -286,11 +362,14 @@ class CollectionProState extends State<CollectionPro>
       return Padding(
         padding: padding,
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             HeaderView(title: 'works'.tr(), padding: EdgeInsets.zero),
             const SizedBox(
               height: 30,
             ),
+            if (searchStr.value.isNotEmpty && _works.isEmpty)
+              _searchEmptyView(context),
           ],
         ),
       );
@@ -326,22 +405,25 @@ class CollectionProState extends State<CollectionPro>
   Widget _predefinedCollectionBuilder(
     BuildContext context,
     int index,
-    PredefinedCollectionType type,
-  ) {
+    PredefinedCollectionType type, {
+    Widget? action,
+  }) {
     final sep = addOnlyDivider(color: AppColor.auGreyBackground);
     const padding = EdgeInsets.symmetric(horizontal: 15);
     if (index == 0) {
       return Padding(
         padding: padding,
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _predefinedCollectionHeader(
-              context,
-              type,
-            ),
+            _predefinedCollectionHeader(context, type, action: action),
             const SizedBox(
               height: 30,
             ),
+            if (searchStr.value.isNotEmpty &&
+                _listPredefinedCollectionByArtist.isEmpty &&
+                type == PredefinedCollectionType.artist)
+              _searchEmptyView(context)
           ],
         ),
       );
@@ -351,10 +433,10 @@ class CollectionProState extends State<CollectionPro>
         padding: const EdgeInsets.symmetric(horizontal: 15),
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 15),
-              child: _predefinedCollectionitem(
-                  context, predefinedCollection, type, searchStr.value),
+            PredefinedCollectionItem(
+              predefinedCollection: predefinedCollection,
+              type: type,
+              searchStr: searchStr.value,
             ),
             sep,
           ],
@@ -363,97 +445,16 @@ class CollectionProState extends State<CollectionPro>
     }
   }
 
-  Widget _predefinedCollectionitem(
-      BuildContext context,
-      PredefinedCollectionModel predefinedCollection,
-      PredefinedCollectionType type,
-      String searchStr) {
-    final theme = Theme.of(context);
-    var title = predefinedCollection.name ?? predefinedCollection.id;
-    if (predefinedCollection.name == predefinedCollection.id) {
-      title = title.maskOnly(5);
-    }
-    final titleStyle = theme.textTheme.ppMori400White14;
-    return GestureDetector(
-      onTap: () async {
-        await Navigator.pushNamed(
-          context,
-          AppRouter.predefinedCollectionPage,
-          arguments: PredefinedCollectionScreenPayload(
-            type: type,
-            predefinedCollection: predefinedCollection,
-            filterStr: searchStr,
-          ),
-        );
-      },
-      child: Container(
-        color: Colors.transparent,
-        child: Row(
-          children: [
-            _predefinedCollectionIcon(
-              predefinedCollection,
-              type,
-            ),
-            const SizedBox(width: 33),
-            Expanded(
-              child: Text(
-                title,
-                style: titleStyle,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            Text('${predefinedCollection.total}',
-                style: theme.textTheme.ppMori400Grey14),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _predefinedCollectionIcon(
-      PredefinedCollectionModel predefinedCollection,
-      PredefinedCollectionType type) {
-    switch (type) {
-      case PredefinedCollectionType.medium:
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            color: AppColor.auLightGrey,
-          ),
-          child: SvgPicture.asset(
-            MediumCategoryExt.icon(predefinedCollection.id),
-            width: 22,
-            colorFilter:
-                const ColorFilter.mode(AppColor.primaryBlack, BlendMode.srcIn),
-          ),
-        );
-      case PredefinedCollectionType.artist:
-        final compactedAssetTokens = predefinedCollection.compactedAssetToken;
-        return SizedBox(
-          width: 42,
-          height: 42,
-          child: tokenGalleryThumbnailWidget(context, compactedAssetTokens, 100,
-              usingThumbnailID: false,
-              galleryThumbnailPlaceholder: Container(
-                width: 42,
-                height: 42,
-                color: AppColor.auLightGrey,
-              )),
-        );
-    }
-  }
-
   Widget _predefinedCollectionHeader(
-      BuildContext context, PredefinedCollectionType type) {
+      BuildContext context, PredefinedCollectionType type,
+      {Widget? action}) {
     final title = type == PredefinedCollectionType.medium
         ? 'medium'.tr()
         : 'artists'.tr();
     return HeaderView(
       title: title,
       padding: EdgeInsets.zero,
+      action: action,
     );
   }
 
@@ -466,51 +467,67 @@ class CollectionProState extends State<CollectionPro>
           ? HeaderView(
               padding: EdgeInsets.zero,
               title: 'organize'.tr(),
-              action: GestureDetector(
-                child: SvgPicture.asset(
-                  'assets/images/search.svg',
-                  width: 24,
-                  height: 24,
-                  colorFilter:
-                      const ColorFilter.mode(AppColor.white, BlendMode.srcIn),
-                ),
-                onTap: () {
+              action: IconButton(
+                onPressed: () {
                   setState(() {
                     isShowSearchBar = true;
                   });
                 },
+                constraints: const BoxConstraints(
+                  maxWidth: 44,
+                  maxHeight: 44,
+                  minWidth: 44,
+                  minHeight: 44,
+                ),
+                icon: Padding(
+                  padding: const EdgeInsets.all(0),
+                  child: SvgPicture.asset(
+                    'assets/images/search.svg',
+                    width: 24,
+                    height: 24,
+                    colorFilter:
+                        const ColorFilter.mode(AppColor.white, BlendMode.srcIn),
+                  ),
+                ),
               ),
             )
-          : Align(
-              alignment: Alignment.bottomLeft,
-              child: ActionBar(
-                searchBar: AuSearchBar(
-                  onChanged: (text) {},
-                  onSearch: (text) {
-                    setState(() {
-                      searchStr.value = text;
-                    });
-                  },
-                  onClear: (text) {
-                    setState(() {
-                      searchStr.value = text;
-                    });
-                  },
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Align(
+                  alignment: Alignment.bottomLeft,
+                  child: ActionBar(
+                    searchBar: AuSearchBar(
+                      onChanged: (text) {},
+                      onSearch: (text) {
+                        setState(() {
+                          searchStr.value = text;
+                        });
+                      },
+                      onClear: (text) {
+                        setState(() {
+                          searchStr.value = text;
+                        });
+                      },
+                    ),
+                    onCancel: () {
+                      setState(() {
+                        searchStr.value = '';
+                        isShowSearchBar = false;
+                      });
+                    },
+                  ),
                 ),
-                onCancel: () {
-                  setState(() {
-                    searchStr.value = '';
-                    isShowSearchBar = false;
-                  });
-                },
-              ),
+                const SizedBox(height: 20),
+                if (searchStr.value.isEmpty) TitleText(title: 'organize'.tr()),
+              ],
             ),
     );
   }
 
   Widget _artworkItem(BuildContext context, CompactedAssetToken token) {
     final theme = Theme.of(context);
-    final title = token.title ?? '';
+    final title = token.displayTitle ?? '';
     final artistName = token.artistTitle ?? token.artistID ?? '';
     return GestureDetector(
       onTap: () async {

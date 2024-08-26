@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+// ignore_for_file: avoid_annotating_with_dynamic
+
 import 'dart:core';
 import 'dart:io';
 
@@ -42,9 +44,9 @@ APIErrorCode? getAPIErrorCode(int code) {
 
 Future<File> getLogFile() async {
   final directory = (await getTemporaryDirectory()).path;
-  const fileName = "app.log";
+  const fileName = 'app.log';
 
-  return _createLogFile("$directory/$fileName");
+  return _createLogFile('$directory/$fileName');
 }
 
 Future<File> _createLogFile(canonicalLogFileName) async =>
@@ -61,7 +63,7 @@ class FileLogger {
   static final _lock =
       synchronization.Lock(); // uses the “synchronized” package
   static late File _logFile;
-  static const shrinkSize = 1024 * 1024; // 1MB
+  static const shrinkSize = 1024 * 896; // 1MB characters
 
   static Future initializeLogging() async {
     await shrinkLogFileIfNeeded();
@@ -70,9 +72,10 @@ class FileLogger {
   static Future<File> shrinkLogFileIfNeeded() async {
     _logFile = await getLogFile();
 
-    final current = await _logFile.readAsBytes();
+    final current = await _logFile.readAsString();
     if (current.length > shrinkSize) {
-      _logFile.writeAsBytes(current.sublist(current.length - shrinkSize),
+      await _logFile.writeAsString(
+          current.substring(current.length - shrinkSize),
           flush: true);
     }
 
@@ -80,24 +83,87 @@ class FileLogger {
 
     /// per its documentation, `writeAsString` “Opens the file, writes
     /// the string in the given encoding, and closes the file”
-    _logFile.writeAsString(text, mode: FileMode.append, flush: true);
+    await _logFile.writeAsString(text, mode: FileMode.append, flush: true);
 
     return _logFile;
   }
 
-  static setLogFile(File file) {
+  static void setLogFile(File file) {
     _logFile = file;
   }
 
-  static get logFile => _logFile;
+  static File get logFile => _logFile;
 
   static Future log(LogRecord record) async {
-    final text = '${record.toString()}\n';
+    var text = '$record\n';
+
+    text = _filterLog(text);
+
     debugPrint(text);
     return _lock.synchronized(() async {
-      await _logFile.writeAsString("${record.time}: $text",
+      await _logFile.writeAsString('${record.time}: $text',
           mode: FileMode.append, flush: true);
     });
+  }
+
+  static Future<void> clear() async {
+    await _logFile.writeAsString('');
+  }
+
+  static String _filterLog(String logText) {
+    String filteredLog = logText;
+
+    RegExp combinedRegex = RegExp('("message":".*?")|'
+        '("Authorization: Bearer .*?")|'
+        '("X-Api-Signature: .*?")|'
+        r'(signature: [^,\}]*)|'
+        r'(location: \[.*?,.*?\])|'
+        r'(\\"signature\\":\\".*?\\")|'
+        r'(\\"location\\":\[.*?,.*?\])|'
+        r'(0x[A-Fa-f0-9]{64}[\s\W])|'
+        r'(0x[A-Fa-f0-9]{128,144}[\s\W])|'
+        r'(eyJ[A-Za-z0-9-_]+\.eyJ[A-Za-z0-9-_]+\.[A-Za-z0-9-_.+/]*)'
+        r'(receipt_data: [^,\}]*)|'
+        r'(\\"receipt_data\\":\[.*?,.*?\])|');
+
+    filteredLog = filteredLog.replaceAllMapped(combinedRegex, (match) {
+      if (match[1] != null) {
+        return '"message":"REDACTED_MESSAGE"';
+      }
+      if (match[2] != null) {
+        return '"Authorization: Bearer REDACTED_AUTH_TOKEN"';
+      }
+      if (match[3] != null) {
+        return '"X-Api-Signature: REDACTED_X_API_SIGNATURE"';
+      }
+      if (match[4] != null) {
+        return 'signature: REDACTED_SIGNATURE';
+      }
+      if (match[5] != null) {
+        return 'location: REDACTED_LOCATION';
+      }
+      if (match[6] != null) {
+        return r'\"signature\":\"REDACTED_SIGNATURE\"';
+      }
+      if (match[7] != null) {
+        return r'\"location\":REDACTED_LOCATION';
+      }
+      if (match[8] != null || match[9] != null) {
+        return 'REDACTED_SIGNATURE';
+      }
+      if (match[10] != null) {
+        return 'REDACTED_JWT_TOKEN';
+      }
+      if (match[11] != null) {
+        return 'REDACTED_RECEIPT_DATA';
+      }
+      if (match[12] != null) {
+        return 'REDACTED_RECEIPT_DATA';
+      }
+      return '';
+    });
+
+    return filteredLog;
   }
 }
 
@@ -107,15 +173,26 @@ class SentryBreadcrumbLogger {
       // do not send api breadcrumb here.
       return;
     }
+    if (record.level == Level.FINE ||
+        record.level == Level.FINER ||
+        record.level == Level.FINEST) {
+      return;
+    }
     String? type;
     SentryLevel? level;
     if (record.level == Level.WARNING) {
       type = 'error';
       level = SentryLevel.warning;
     }
-    Sentry.addBreadcrumb(Breadcrumb(
-        message: '[${record.level}] ${record.message}',
-        level: level,
-        type: type));
+    await Sentry.addBreadcrumb(
+      Breadcrumb(
+          message: '[${record.level}] ${record.message}',
+          level: level,
+          type: type),
+    );
+  }
+
+  static Future<void> clear() async {
+    await Sentry.configureScope((scope) => scope.clearBreadcrumbs());
   }
 }

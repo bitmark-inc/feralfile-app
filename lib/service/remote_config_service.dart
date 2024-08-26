@@ -8,6 +8,8 @@ abstract class RemoteConfigService {
   Future<void> loadConfigs();
 
   bool getBool(final ConfigGroup group, final ConfigKey key);
+
+  T getConfig<T>(final ConfigGroup group, final ConfigKey key, T defaultValue);
 }
 
 class RemoteConfigServiceImpl implements RemoteConfigService {
@@ -18,9 +20,10 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
 
   static const Map<String, dynamic> _defaults = <String, dynamic>{
     'merchandise': {
-      'enable': true,
-      'allow_view_only': true,
-      'must_complete': true
+      'enable': false,
+      'allow_view_only': false,
+      'must_complete': true,
+      'postcard_tokenId_regex': r'^[]$'
     },
     'pay_to_mint': {'enable': true, 'allow_view_only': true},
     'view_detail': {
@@ -35,7 +38,47 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
       'chat': true
     },
     'feature': {'download_stamp': true, 'download_postcard': true},
-    'postcard_action': {'wait_confirmed_to_send': false}
+    'postcard_action': {'wait_confirmed_to_send': false},
+    'feralfile_artwork_action': {
+      'allow_download_artwork_contracts': [],
+      'sound_piece_contract_addresses': [],
+      'scrollable_preview_url': [],
+    },
+    'exhibition': {
+      'specified_series_artwork_model_title': {
+        'faa810f7-7b75-4c02-bf8a-b7447a89c921': 'interactive instruction'
+      },
+      'yoko_ono_public': {
+        'owner_data_contract': '0xcE6B8E357aaf9EC3A5ACD2F47364586BCF54Afef',
+        'moma_exhibition_contract':
+            '0xf31725F011cEB81D4cc313349a5942C31ed0AAe5',
+        'public_token_id': '1878818250871676369035922701317177438642275461',
+        'public_version_preview':
+            'previews/d15cc1f3-c2f1-4b9c-837d-7c131583bf40/1710123470/index.html',
+        'public_version_thumbnail':
+            'thumbnails/d15cc1f3-c2f1-4b9c-837d-7c131583bf40/1710123327'
+      },
+      'john_gerrard': {
+        'contract_address': '0x9D57f2e1A8c864009ed0C980E2d31aa5EB42f820',
+        'exhibition_id': '50fb6756-80a9-46e4-b70c-380c32dfcc77',
+      },
+      'crawl': {
+        'exhibition_id': '3c4b0a8b-6d3e-4c32-aaae-c701bb9deca9',
+      },
+      'dont_fake_artwork_series_ids': ['0a954c31-d336-4e37-af0f-ec336c064879'],
+    },
+    'in_app_webview': {
+      'uri_scheme_white_list': ['https'],
+      'allowed_fingerprints': [],
+    },
+    'dApp_urls': {
+      'deny_dApp_list': [],
+      'tezos_nodes': [
+        'https://mainnet.api.tez.ie',
+        'https://rpc.tzbeta.net',
+        'https://mainnet.tezos.marigold.dev'
+      ]
+    }
   };
 
   static Map<String, dynamic>? _configs;
@@ -45,7 +88,7 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
     try {
       final data = await _pubdocAPI.getConfigs();
       _configs = jsonDecode(data) as Map<String, dynamic>;
-      log.info('RemoteConfigService: loadConfigs: $_configs');
+      log.fine('RemoteConfigService: loadConfigs: $_configs');
     } catch (e) {
       log.warning('RemoteConfigService: loadConfigs: $e');
     }
@@ -62,6 +105,24 @@ class RemoteConfigServiceImpl implements RemoteConfigService {
           false;
     }
   }
+
+  @override
+  T getConfig<T>(final ConfigGroup group, final ConfigKey key, T defaultValue) {
+    if (_configs == null) {
+      unawaited(loadConfigs());
+      return _defaults[group.getString]![key.getString] as T ?? defaultValue;
+    } else {
+      final hasKey = (_configs?.keys.contains(group.getString) ?? false) &&
+          (_configs![group.getString] as Map<String, dynamic>)
+              .keys
+              .contains(key.getString);
+      if (!hasKey) {
+        return defaultValue;
+      }
+      final res = _configs![group.getString]?[key.getString] as T;
+      return res;
+    }
+  }
 }
 
 enum ConfigGroup {
@@ -70,6 +131,11 @@ enum ConfigGroup {
   viewDetail,
   feature,
   postcardAction,
+  feralfileArtworkAction,
+  inAppWebView,
+  dAppUrls,
+  exhibition,
+  johnGerrard,
 }
 
 // ConfigGroup getString extension
@@ -86,6 +152,16 @@ extension ConfigGroupExtension on ConfigGroup {
         return 'feature';
       case ConfigGroup.postcardAction:
         return 'postcard_action';
+      case ConfigGroup.feralfileArtworkAction:
+        return 'feralfile_artwork_action';
+      case ConfigGroup.inAppWebView:
+        return 'in_app_webview';
+      case ConfigGroup.dAppUrls:
+        return 'dApp_urls';
+      case ConfigGroup.exhibition:
+        return 'exhibition';
+      case ConfigGroup.johnGerrard:
+        return 'john_gerrard';
     }
   }
 }
@@ -94,6 +170,7 @@ enum ConfigKey {
   enable,
   allowViewOnly,
   mustCompleted,
+  postcardTokenIdRegex,
   actionButton,
   leaderBoard,
   aboutMoma,
@@ -106,6 +183,23 @@ enum ConfigKey {
   downloadPostcard,
   chat,
   waitConfirmedToSend,
+  allowDownloadArtworkContracts,
+  soundPieceContractAddresses,
+  scrollablePreviewUrl,
+  specifiedSeriesArtworkModelTitle,
+  yokoOnoPublic,
+  johnGerrard,
+  crawl,
+  dontFakeArtworkSeriesIds,
+  ongoingExhibitionIDs,
+  yokoOnoPrivateTokenIds,
+  uriSchemeWhiteList,
+  denyDAppList,
+  allowedFingerprints,
+  tezosNodes,
+  seriesIds,
+  assetIds,
+  customNote,
 }
 
 // ConfigKey getString extension
@@ -118,6 +212,8 @@ extension ConfigKeyExtension on ConfigKey {
         return 'allow_view_only';
       case ConfigKey.mustCompleted:
         return 'must_complete';
+      case ConfigKey.postcardTokenIdRegex:
+        return 'postcard_tokenId_regex';
       case ConfigKey.actionButton:
         return 'action_button';
       case ConfigKey.leaderBoard:
@@ -142,6 +238,40 @@ extension ConfigKeyExtension on ConfigKey {
         return 'chat';
       case ConfigKey.waitConfirmedToSend:
         return 'wait_confirmed_to_send';
+      case ConfigKey.allowDownloadArtworkContracts:
+        return 'allow_download_artwork_contracts';
+      case ConfigKey.soundPieceContractAddresses:
+        return 'sound_piece_contract_addresses';
+      case ConfigKey.scrollablePreviewUrl:
+        return 'scrollable_preview_url';
+      case ConfigKey.specifiedSeriesArtworkModelTitle:
+        return 'specified_series_artwork_model_title';
+      case ConfigKey.yokoOnoPublic:
+        return 'yoko_ono_public';
+      case ConfigKey.johnGerrard:
+        return 'john_gerrard';
+      case ConfigKey.crawl:
+        return 'crawl';
+      case ConfigKey.dontFakeArtworkSeriesIds:
+        return 'dont_fake_artwork_series_ids';
+      case ConfigKey.ongoingExhibitionIDs:
+        return 'on_going_exhibition_ids';
+      case ConfigKey.yokoOnoPrivateTokenIds:
+        return 'yoko_ono_private_token_ids';
+      case ConfigKey.uriSchemeWhiteList:
+        return 'uri_scheme_white_list';
+      case ConfigKey.denyDAppList:
+        return 'deny_dApp_list';
+      case ConfigKey.allowedFingerprints:
+        return 'allowed_fingerprints';
+      case ConfigKey.tezosNodes:
+        return 'tezos_nodes';
+      case ConfigKey.seriesIds:
+        return 'series_ids';
+      case ConfigKey.assetIds:
+        return 'asset_ids';
+      case ConfigKey.customNote:
+        return 'custom_notes';
     }
   }
 }

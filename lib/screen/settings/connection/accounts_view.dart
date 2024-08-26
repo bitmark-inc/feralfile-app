@@ -13,15 +13,16 @@ import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/linked_wallet_detail_page.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/util/account_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/wallet_address_ext.dart';
 import 'package:autonomy_flutter/view/account_view.dart';
 import 'package:autonomy_flutter/view/crypto_view.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/cupertino.dart';
@@ -29,6 +30,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:sentry/sentry.dart';
 
 class AccountsView extends StatefulWidget {
   final bool isInSettingsPage;
@@ -51,81 +53,90 @@ class _AccountsViewState extends State<AccountsView> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+  Widget build(BuildContext context) =>
+      BlocConsumer<AccountsBloc, AccountsState>(
+          listener: (context, state) {},
+          builder: (context, state) {
+            final accounts = state.accounts;
+            if (accounts == null) {
+              return const Center(child: CupertinoActivityIndicator());
+            }
+            if (accounts.isEmpty) {
+              return const SizedBox();
+            }
 
-    return BlocConsumer<AccountsBloc, AccountsState>(
-        listener: (context, state) {
-      final accounts = state.accounts;
-      if (accounts == null) {
-        return;
-      }
-    }, builder: (context, state) {
-      final accounts = state.accounts;
-      if (accounts == null) {
-        return const Center(child: CupertinoActivityIndicator());
-      }
-      if (accounts.isEmpty) {
-        return const SizedBox();
-      }
+            if (!widget.isInSettingsPage) {
+              return _noEditAccountsListWidget(accounts);
+            }
+            final primaryAccount = accounts.firstWhereOrNull((element) =>
+                element.walletAddress
+                    ?.isMatchAddressInfo(state.primaryAddressInfo) ??
+                false);
+            if (primaryAccount == null) {
+              unawaited(Sentry.captureException(
+                  Exception('Primary account not found in accounts list')));
+            }
+            final normalAccounts = accounts
+                .where((element) => element.key != primaryAccount?.key)
+                .toList();
+            return ReorderableListView(
+              header: primaryAccount == null
+                  ? const SizedBox()
+                  : _accountCard(context, primaryAccount, isPrimary: true),
+              onReorder: (int oldIndex, int newIndex) {
+                context.read<AccountsBloc>().add(ChangeAccountOrderEvent(
+                    newOrder: newIndex, oldOrder: oldIndex));
+              },
+              children: normalAccounts
+                  .map((account) => _accountCard(context, account))
+                  .toList(),
+            );
+          });
 
-      if (!widget.isInSettingsPage) {
-        return _noEditAccountsListWidget(accounts);
-      }
-      return SlidableAutoCloseBehavior(
-        child: Column(
-          children: [
-            ...accounts.map(
-              (account) => Column(
+  Widget _accountCard(BuildContext context, Account account,
+          {bool isPrimary = false}) =>
+      Column(
+        key: ValueKey(account.key),
+        children: [
+          Padding(
+            padding: padding,
+            child: Slidable(
+              groupTag: 'accountsView',
+              endActionPane: ActionPane(
+                motion: const DrawerMotion(),
+                dragDismissible: false,
+                children: slidableActions(account, isPrimary: isPrimary),
+              ),
+              child: Column(
                 children: [
-                  Padding(
-                    padding: padding,
-                    child: Slidable(
-                      groupTag: 'accountsView',
-                      endActionPane: ActionPane(
-                        motion: const DrawerMotion(),
-                        dragDismissible: false,
-                        children: slidableActions(account),
-                      ),
-                      child: Column(
-                        children: [
-                          if (_editingAccountKey == null ||
-                              _editingAccountKey != account.key) ...[
-                            _viewAccountItem(account),
-                          ] else ...[
-                            _editAccountItem(account),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ),
-                  Divider(
-                      height: 1,
-                      thickness: 1,
-                      color: (_editingAccountKey == null ||
-                              _editingAccountKey != account.key)
-                          ? null
-                          : theme.colorScheme.primary)
+                  if (_editingAccountKey == null ||
+                      _editingAccountKey != account.key) ...[
+                    _viewAccountItem(account, isPrimary: isPrimary),
+                  ] else ...[
+                    _editAccountItem(account, isPrimary: isPrimary),
+                  ],
                 ],
               ),
             ),
-          ],
-        ),
+          ),
+          const Divider(height: 1, thickness: 1, color: AppColor.auLightGrey)
+        ],
       );
-    });
-  }
 
-  List<CustomSlidableAction> slidableActions(Account account) {
+  List<CustomSlidableAction> slidableActions(Account account,
+      {bool isPrimary = false}) {
     final theme = Theme.of(context);
     final isHidden = account.isHidden;
     var actions = [
       CustomSlidableAction(
         backgroundColor: AppColor.secondarySpanishGrey,
         foregroundColor: theme.colorScheme.secondary,
+        padding: EdgeInsets.zero,
         child: Semantics(
           label: '${account.key}_hide',
           child: SvgPicture.asset(
-              isHidden ? 'assets/images/unhide.svg' : 'assets/images/hide.svg'),
+            isHidden ? 'assets/images/unhide.svg' : 'assets/images/hide.svg',
+          ),
         ),
         onPressed: (_) {
           unawaited(account.setViewAccount(!isHidden));
@@ -135,6 +146,7 @@ class _AccountsViewState extends State<AccountsView> {
       CustomSlidableAction(
         backgroundColor: AppColor.auGreyBackground,
         foregroundColor: theme.colorScheme.secondary,
+        padding: EdgeInsets.zero,
         child: Semantics(
             label: '${account.name}_edit',
             child: SvgPicture.asset(
@@ -150,14 +162,19 @@ class _AccountsViewState extends State<AccountsView> {
         },
       ),
       CustomSlidableAction(
-        backgroundColor: Colors.red,
+        backgroundColor: isPrimary ? Colors.red.withOpacity(0.3) : Colors.red,
         foregroundColor: theme.colorScheme.secondary,
-        child: Semantics(
+        padding: EdgeInsets.zero,
+        onPressed: isPrimary
+            ? null
+            : (_) => _showDeleteAccountConfirmation(context, account),
+        child: Opacity(
+          opacity: isPrimary ? 0.3 : 1,
+          child: Semantics(
             label: '${account.name}_delete',
-            child: SvgPicture.asset('assets/images/trash.svg')),
-        onPressed: (_) {
-          _showDeleteAccountConfirmation(context, account);
-        },
+            child: SvgPicture.asset('assets/images/trash.svg'),
+          ),
+        ),
       )
     ];
     return actions;
@@ -184,9 +201,11 @@ class _AccountsViewState extends State<AccountsView> {
     );
   }
 
-  Widget _viewAccountItem(Account account) => accountItem(
+  Widget _viewAccountItem(Account account, {bool isPrimary = false}) =>
+      accountItem(
         context,
         account,
+        isPrimary: isPrimary,
         onPersonaTap: () {
           if (account.persona != null && account.walletAddress != null) {
             unawaited(Navigator.of(context).pushNamed(
@@ -213,7 +232,7 @@ class _AccountsViewState extends State<AccountsView> {
         },
       );
 
-  Widget _editAccountItem(Account account) {
+  Widget _editAccountItem(Account account, {bool isPrimary = false}) {
     final theme = Theme.of(context);
 
     return Padding(
@@ -365,7 +384,5 @@ class _AccountsViewState extends State<AccountsView> {
     if (connection != null) {
       await injector<AccountService>().deleteLinkedAccount(connection);
     }
-
-    unawaited(injector<AutonomyService>().postLinkedAddresses());
   }
 }

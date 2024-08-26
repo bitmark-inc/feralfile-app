@@ -10,10 +10,9 @@ import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
-import 'package:autonomy_flutter/model/ff_series.dart';
+import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
-import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/screen/account/access_method_page.dart';
 import 'package:autonomy_flutter/screen/account/link_manually_page.dart';
 import 'package:autonomy_flutter/screen/account/recovery_phrase_page.dart';
@@ -26,38 +25,33 @@ import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/router/router_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_bloc.dart';
+import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/usdc/usdc_bloc.dart';
 import 'package:autonomy_flutter/screen/bug_bounty_page.dart';
 import 'package:autonomy_flutter/screen/chat/chat_thread_page.dart';
-import 'package:autonomy_flutter/screen/claim/activation/activation_token_detail_page.dart';
-import 'package:autonomy_flutter/screen/claim/activation/claim_activation_page.dart';
-import 'package:autonomy_flutter/screen/claim/activation/preview_activation_claim.dart';
-import 'package:autonomy_flutter/screen/claim/airdrop/claim_airdrop_page.dart';
-import 'package:autonomy_flutter/screen/claim/claim_token_page.dart';
-import 'package:autonomy_flutter/screen/claim/select_account_page.dart';
-import 'package:autonomy_flutter/screen/claim/token_detail_page.dart';
 import 'package:autonomy_flutter/screen/cloud/cloud_android_page.dart';
 import 'package:autonomy_flutter/screen/cloud/cloud_page.dart';
+import 'package:autonomy_flutter/screen/collection_pro/artists_list_page/artists_list_page.dart';
 import 'package:autonomy_flutter/screen/connection/connection_details_page.dart';
 import 'package:autonomy_flutter/screen/connection/persona_connections_page.dart';
 import 'package:autonomy_flutter/screen/customer_support/merchandise_order/merchandise_orders_page.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_customer_page.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_list_page.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
-import 'package:autonomy_flutter/screen/customer_support/tutorial_videos_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
-import 'package:autonomy_flutter/screen/detail/preview/canvas_help_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/keyboard_control_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/touchpad_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview_primer.dart';
 import 'package:autonomy_flutter/screen/detail/royalty/royalty_bloc.dart';
+import 'package:autonomy_flutter/screen/exhibition_custom_note/exhibition_custom_note_page.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
+import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artwork_preview_bloc.dart';
 import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artwork_preview_page.dart';
 import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_bloc.dart';
 import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_page.dart';
@@ -86,7 +80,6 @@ import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_bloc.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_page.dart';
 import 'package:autonomy_flutter/screen/moma_postcard_page/moma_postcard_page.dart';
-import 'package:autonomy_flutter/screen/notification_onboarding_page.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/import_seeds.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/name_address_persona.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/select_addresses.dart';
@@ -95,12 +88,13 @@ import 'package:autonomy_flutter/screen/onboarding/view_address/name_view_only_p
 import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_address.dart';
 import 'package:autonomy_flutter/screen/onboarding/view_address/view_existing_address_bloc.dart';
 import 'package:autonomy_flutter/screen/onboarding_page.dart';
-import 'package:autonomy_flutter/screen/participate_user_test_page.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist.dart';
 import 'package:autonomy_flutter/screen/playlists/add_to_playlist/add_to_playlist.dart';
 import 'package:autonomy_flutter/screen/playlists/edit_playlist/edit_playlist.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
 import 'package:autonomy_flutter/screen/predefined_collection/predefined_collection_screen.dart';
+import 'package:autonomy_flutter/screen/projects/projects_bloc.dart';
+import 'package:autonomy_flutter/screen/projects/projects_page.dart';
 import 'package:autonomy_flutter/screen/release_notes_page.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
@@ -114,7 +108,6 @@ import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/linked_wal
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
 import 'package:autonomy_flutter/screen/settings/data_management/data_management_page.dart';
-import 'package:autonomy_flutter/screen/settings/help_us/help_us_page.dart';
 import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
 import 'package:autonomy_flutter/screen/settings/hidden_artworks/hidden_artworks_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/hidden_artworks/hidden_artworks_page.dart';
@@ -126,96 +119,82 @@ import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart'
 import 'package:autonomy_flutter/screen/tezos_beacon/au_sign_message_page.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_sign_message_page.dart';
-import 'package:autonomy_flutter/screen/unsafe_web_wallet_page.dart';
 import 'package:autonomy_flutter/screen/wallet/wallet_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_bloc.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/v2/wc2_permission_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
-import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/view/transparent_router.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:page_transition/page_transition.dart';
 
+GlobalKey<HomeNavigationPageState> homePageKey = GlobalKey();
+GlobalKey<HomeNavigationPageState> homePageNoTransactionKey = GlobalKey();
+
 class AppRouter {
-  static const createPlayListPage = 'createPlayList';
-  static const viewPlayListPage = 'viewPlayList';
-  static const editPlayListPage = 'editPlayList';
-  static const previewPrimerPage = 'preview_primer';
-  static const onboardingPage = 'onboarding';
-  static const notificationOnboardingPage = 'notification_onboarding';
-  static const nameLinkedAccountPage = 'name_linked_account';
+  static const createPlayListPage = 'create_playlist_page';
+  static const viewPlayListPage = 'view_playlist_page';
+  static const editPlayListPage = 'edit_playlist_page';
+  static const previewPrimerPage = 'preview_primer_page';
+  static const onboardingPage = 'onboarding_page';
+  static const nameLinkedAccountPage = 'name_linked_account_page';
   static const homePage = 'home_page';
-  static const homePageNoTransition = 'home_page_NoTransition';
-  static const artworkPreviewPage = 'artwork_preview';
-  static const artworkDetailsPage = 'artwork_detail';
-  static const claimedPostcardDetailsPage = 'claimed_postcard_detail';
-  static const galleryPage = 'galleryPage';
-  static const settingsPage = 'settings';
-  static const personaConnectionsPage = 'persona_connections';
-  static const connectionDetailsPage = 'connection_details';
-  static const linkedAccountDetailsPage = 'linked_account_details';
-  static const walletDetailsPage = 'wallet_detail';
-  static const linkedWalletDetailsPage = 'linked_wallet_detail';
-  static const scanQRPage = 'qr_scanner';
-  static const globalReceivePage = 'global_receive';
-  static const recoveryPhrasePage = 'recovery_phrase';
-  static const wcConnectPage = 'wc_connect';
+  static const homePageNoTransition = 'home_page_no_transition';
+  static const artworkPreviewPage = 'artwork_preview_page';
+  static const artworkDetailsPage = 'artwork_details_page';
+  static const claimedPostcardDetailsPage = 'claimed_postcard_details_page';
+  static const galleryPage = 'gallery_page';
+  static const settingsPage = 'settings_page';
+  static const personaConnectionsPage = 'persona_connections_page';
+  static const connectionDetailsPage = 'connection_details_page';
+  static const walletDetailsPage = 'wallet_details_page';
+  static const linkedWalletDetailsPage = 'linked_wallet_details_page';
+  static const scanQRPage = 'scan_qr_page';
+  static const globalReceivePage = 'global_receive_page';
+  static const recoveryPhrasePage = 'recovery_phrase_page';
+  static const tbConnectPage = 'tb_connect_page';
   static const cloudPage = 'cloud_page';
   static const cloudAndroidPage = 'cloud_android_page';
   static const linkManually = 'link_manually';
   static const testArtwork = 'test_artwork';
-  static const autonomySecurityPage = 'autonomy_security';
-  static const unsafeWebWalletPage = 'unsafeWebWalletPage';
-  static const releaseNotesPage = 'releaseNotesPage';
-  static const hiddenArtworksPage = 'hidden_artworks';
-  static const supportCustomerPage = 'supportCustomerPage';
-  static const supportListPage = 'supportListPage';
-  static const merchOrdersPage = 'merchOrderDetailPage';
-  static const supportThreadPage = 'supportThreadPage';
-  static const bugBountyPage = 'bugBountyPage';
-  static const participateUserTestPage = 'participateUserTestPage';
+  static const autonomySecurityPage = 'security_page';
+  static const releaseNotesPage = 'release_notes_page';
+  static const hiddenArtworksPage = 'hidden_artworks_page';
+  static const supportCustomerPage = 'support_customer_page';
+  static const supportListPage = 'support_list_page';
+  static const merchOrdersPage = 'merch_orders_page';
+  static const supportThreadPage = 'support_thread_page';
+  static const bugBountyPage = 'bug_bounty_page';
   static const keySyncPage = 'key_sync_page';
   static const githubDocPage = 'github_doc_page';
   static const sendArtworkPage = 'send_artwork_page';
   static const sendArtworkReviewPage = 'send_artwork_review_page';
-  static const claimFeralfileTokenPage = 'claim_feralfile_token_page';
-  static const claimSelectAccountPage = 'claim_select_account_page';
-  static const airdropTokenDetailPage = 'airdrop_token_detail_page';
   static const wc2ConnectPage = 'wc2_connect_page';
   static const wc2PermissionPage = 'wc2_permission_page';
   static const preferencesPage = 'preferences_page';
   static const walletPage = 'wallet_page';
   static const subscriptionPage = 'subscription_page';
   static const dataManagementPage = 'data_management_page';
-  static const helpUsPage = 'help_us_page';
   static const inappWebviewPage = 'inapp_webview_page';
   static const postcardExplain = 'postcard_explain_screen';
   static const designStamp = 'design_stamp_screen';
   static const promptPage = 'prompt_page';
-  static const choosePromptPage = 'choose_prompt_page';
   static const handSignaturePage = 'hand_signature_page';
   static const stampPreview = 'stamp_preview';
   static const claimEmptyPostCard = 'claim_empty_postcard';
   static const payToMintPostcard = 'pay_to_mint_postcard';
   static const postcardSelectAddressScreen = 'postcard_select_address_screen';
   static const receivePostcardPage = 'receive_postcard_page';
-  static const receivePostcardSelectAccountPage =
-      'receive_postcard_select_account_page';
-  static const irlWebView = 'irl_web_claim';
+  static const irlWebView = 'irl_web_view';
   static const irlSignMessage = 'irl_sign_message';
-  static const postcardConfirmingPage = 'postcard_confirming_page';
-  static const canvasHelpPage = 'canvas_help_page';
   static const keyboardControlPage = 'keyboard_control_page';
   static const touchPadPage = 'touch_pad_page';
-  static const claimAirdropPage = 'claim_airdrop_page';
-  static const activationTokenDetailPage = 'activation_token_detail_page';
-  static const claimActivationPage = 'claim_activation_page';
-  static const previewActivationClaimPage = 'preview_activation_claim_page';
   static const postcardLeaderboardPage = 'postcard_leaderboard_page';
   static const postcardLocationExplain = 'postcard_location_explain';
   static const predefinedCollectionPage = 'predefined_collection_page';
@@ -224,18 +203,42 @@ class AppRouter {
   static const ffArtworkPreviewPage = 'ff_artwork_preview_page';
   static const feralFileSeriesPage = 'feral_file_series_page';
   static const momaPostcardPage = 'moma_postcard_page';
+  static const tbSendTransactionPage = 'tb_send_transaction_page';
+  static const viewExistingAddressPage = 'view_existing_address_page';
+  static const sendCryptoPage = 'send_crypto_page';
+  static const sendReviewPage = 'send_review_page';
+  static const importSeedsPage = 'import_seeds_page';
+  static const selectAddressesPage = 'select_addresses_page';
+  static const nameAddressPersonaPage = 'name_address_persona_page';
+  static const addressAliasPage = 'address_alias_page';
+  static const tbSignMessagePage = 'tb_sign_message_page';
+  static const auSignMessagePage = 'au_sign_message_page';
+  static const globalReceiveDetailPage = 'global_receive_detail_page';
+  static const chatThreadPage = 'chat_thread_page';
+  static const accessMethodPage = 'access_method_page';
+  static const wcSignMessagePage = 'wc_sign_message_page';
+  static const wcSendTransactionPage = 'wc_send_transaction_page';
+  static const collectionPage = 'collection_page';
+  static const organizePage = 'organize_page';
+  static const exhibitionsPage = 'exhibitions_page';
+  static const projectsList = 'projects_list';
+  static const addEthereumChainPage = 'add_ethereum_chain_page';
+  static const artistsListPage = 'artists_list_page';
+  static const exhibitionCustomNote = 'exhibition_custom_note';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector(), injector());
     final tezosBloc = TezosBloc(injector(), injector());
-    final usdcBloc = USDCBloc(injector());
+    final usdcBloc = USDCBloc(injector(), injector());
     final accountsBloc = AccountsBloc(injector(), injector());
     final personaBloc = PersonaBloc(
       injector<CloudDatabase>(),
       injector(),
-      injector<AuditService>(),
     );
+    final connectionsBloc = injector<ConnectionsBloc>();
     final identityBloc = IdentityBloc(injector<AppDatabase>(), injector());
+    final canvasDeviceBloc = injector<CanvasDeviceBloc>();
+
     final postcardDetailBloc = PostcardDetailBloc(
       injector(),
       injector(),
@@ -246,15 +249,47 @@ class AppRouter {
       injector(),
       injector(),
     );
+    final projectBloc = ProjectsBloc(
+      injector(),
+      injector(),
+      injector(),
+      injector(),
+      injector(),
+    );
+
+    final subscriptionBloc = injector<SubscriptionBloc>();
+
+    final royaltyBloc = RoyaltyBloc(injector());
 
     switch (settings.name) {
+      case artistsListPage:
+        return PageTransition(
+          type: PageTransitionType.fade,
+          curve: Curves.easeIn,
+          duration: const Duration(milliseconds: 250),
+          settings: settings,
+          child: ArtistsListPage(
+              payload: settings.arguments! as ArtistsListPagePayload),
+        );
+      case projectsList:
+        return PageTransition(
+          type: PageTransitionType.fade,
+          curve: Curves.easeIn,
+          duration: const Duration(milliseconds: 250),
+          settings: settings,
+          child: BlocProvider(
+            create: (_) => projectBloc,
+            child: const ProjectsPage(),
+          ),
+        );
       case viewPlayListPage:
         return CupertinoPageRoute(
           settings: settings,
-          builder: (context) => BlocProvider(
-            create: (_) => CanvasDeviceBloc(
-              injector(),
-            ),
+          builder: (context) => MultiBlocProvider(
+            providers: [
+              BlocProvider.value(value: canvasDeviceBloc),
+              BlocProvider.value(value: subscriptionBloc),
+            ],
             child: ViewPlaylistScreen(
               payload: settings.arguments! as ViewPlaylistScreenPayload,
             ),
@@ -283,11 +318,15 @@ class AppRouter {
                 injector(),
                 injector(),
                 injector(),
-                injector<CloudDatabase>(),
                 injector(),
-                injector<AuditService>(),
+                injector(),
+                injector(),
+                injector(),
                 injector(),
               ),
+            ),
+            BlocProvider(
+              create: (_) => personaBloc,
             ),
           ], child: const OnboardingPage()),
         );
@@ -321,8 +360,11 @@ class AppRouter {
                     BlocProvider(
                       create: (_) => personaBloc,
                     ),
+                    BlocProvider(lazy: false, create: (_) => connectionsBloc),
+                    BlocProvider(create: (_) => canvasDeviceBloc),
                   ],
                   child: HomeNavigationPage(
+                      key: homePageNoTransactionKey,
                       payload: HomeNavigationPagePayload(
                           fromOnboarding: true,
                           startedTab: payload?.startedTab)),
@@ -343,14 +385,21 @@ class AppRouter {
                     BlocProvider(
                       create: (_) => personaBloc,
                     ),
+                    BlocProvider(create: (_) => canvasDeviceBloc),
+
+                    /// The page itself doesn't need to use the bloc.
+                    /// This will create bloc instance to receive and handle
+                    /// event disconnect from dApp
+                    BlocProvider(lazy: false, create: (_) => connectionsBloc),
                   ],
                   child: HomeNavigationPage(
+                    key: homePageKey,
                     payload: HomeNavigationPagePayload(
                         startedTab: payload?.startedTab),
                   ),
                 ));
 
-      case ChatThreadPage.tag:
+      case chatThreadPage:
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) => ChatThreadPage(
@@ -389,7 +438,7 @@ class AppRouter {
           child: PromptPage(payload: settings.arguments! as DesignStampPayload),
         );
 
-      case AccessMethodPage.tag:
+      case accessMethodPage:
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) => const AccessMethodPage(),
@@ -423,13 +472,6 @@ class AppRouter {
           ),
         );
 
-      case notificationOnboardingPage:
-        return CupertinoPageRoute(
-          settings: settings,
-          fullscreenDialog: true,
-          builder: (context) => const NotificationOnboardingPage(),
-        );
-
       case AppRouter.testArtwork:
         return CupertinoPageRoute(
           settings: settings,
@@ -444,7 +486,7 @@ class AppRouter {
                 child: NameViewOnlyAddressPage(
                     connection: settings.arguments! as Connection)));
 
-      case wcConnectPage:
+      case tbConnectPage:
         final argument = settings.arguments;
         if (argument is ConnectionRequest) {
           return CupertinoPageRoute(
@@ -461,19 +503,18 @@ class AppRouter {
         }
         throw Exception('Invalid route: ${settings.name}');
 
-      case WCSignMessagePage.tag:
+      case wcSignMessagePage:
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) => WCSignMessagePage(
               args: settings.arguments! as WCSignMessagePageArgs),
         );
 
-      case WCSendTransactionPage.tag:
+      case wcSendTransactionPage:
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) => BlocProvider(
             create: (_) => WCSendTransactionBloc(
-              injector(),
               injector(),
               injector(),
               injector(),
@@ -482,7 +523,8 @@ class AppRouter {
                 args: settings.arguments! as WCSendTransactionPageArgs),
           ),
         );
-      case ScanQRPage.tag:
+
+      case scanQRPage:
         return PageTransition(
             settings: settings,
             type: PageTransitionType.topToBottom,
@@ -511,12 +553,8 @@ class AppRouter {
                       BlocProvider.value(value: tezosBloc),
                       BlocProvider.value(value: usdcBloc),
                       BlocProvider.value(
-                          value: ConnectionsBloc(
-                        injector<CloudDatabase>(),
-                        injector(),
-                        injector(),
-                        injector(),
-                      ))
+                        value: connectionsBloc,
+                      ),
                     ],
                     child: PersonaConnectionsPage(
                         payload:
@@ -525,13 +563,8 @@ class AppRouter {
       case connectionDetailsPage:
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) => BlocProvider(
-                create: (_) => ConnectionsBloc(
-                      injector<CloudDatabase>(),
-                      injector(),
-                      injector(),
-                      injector(),
-                    ),
+            builder: (context) => BlocProvider.value(
+                value: connectionsBloc,
                 child: ConnectionDetailsPage(
                   connectionItem: settings.arguments! as ConnectionItem,
                 )));
@@ -543,13 +576,7 @@ class AppRouter {
                   providers: [
                     BlocProvider.value(value: accountsBloc),
                     BlocProvider.value(value: usdcBloc),
-                    BlocProvider.value(
-                        value: ConnectionsBloc(
-                      injector<CloudDatabase>(),
-                      injector(),
-                      injector(),
-                      injector(),
-                    )),
+                    BlocProvider.value(value: connectionsBloc),
                     BlocProvider(
                         create: (_) => WalletDetailBloc(
                             injector(), injector(), injector())),
@@ -557,6 +584,7 @@ class AppRouter {
                   child: WalletDetailPage(
                       payload: settings.arguments! as WalletDetailsPayload),
                 ));
+
       case linkedWalletDetailsPage:
         return CupertinoPageRoute(
             settings: settings,
@@ -571,7 +599,7 @@ class AppRouter {
                       payload:
                           settings.arguments! as LinkedWalletDetailsPayload),
                 ));
-      case SendCryptoPage.tag:
+      case sendCryptoPage:
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
@@ -584,7 +612,7 @@ class AppRouter {
                       injector()),
                   child: SendCryptoPage(data: settings.arguments! as SendData),
                 ));
-      case SendReviewPage.tag:
+      case sendReviewPage:
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => SendReviewPage(
@@ -609,9 +637,7 @@ class AppRouter {
                   create: (_) => identityBloc,
                 ),
                 BlocProvider(
-                  create: (_) => CanvasDeviceBloc(
-                    injector(),
-                  ),
+                  create: (_) => canvasDeviceBloc,
                 ),
                 BlocProvider(create: (_) => postcardDetailBloc),
               ],
@@ -620,7 +646,7 @@ class AppRouter {
               ),
             ));
 
-      case ViewExistingAddress.tag:
+      case viewExistingAddressPage:
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
@@ -630,11 +656,11 @@ class AppRouter {
                     payload: settings.arguments! as ViewExistingAddressPayload,
                   ),
                 ));
-      case ImportSeedsPage.tag:
+      case importSeedsPage:
         return CupertinoPageRoute(
             settings: settings, builder: (context) => const ImportSeedsPage());
 
-      case SelectAddressesPage.tag:
+      case selectAddressesPage:
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
@@ -643,14 +669,14 @@ class AppRouter {
                       payload: settings.arguments! as SelectAddressesPayload),
                 ));
 
-      case NameAddressPersona.tag:
+      case nameAddressPersonaPage:
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => NameAddressPersona(
                   payload: settings.arguments! as NameAddressPersonaPayload,
                 ));
 
-      case AddressAlias.tag:
+      case addressAliasPage:
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => BlocProvider(
@@ -682,7 +708,7 @@ class AppRouter {
                 providers: [
                   BlocProvider.value(value: accountsBloc),
                   BlocProvider(create: (_) => identityBloc),
-                  BlocProvider(create: (_) => RoyaltyBloc(injector())),
+                  BlocProvider(create: (_) => royaltyBloc),
                   BlocProvider(
                       create: (_) => ArtworkDetailBloc(
                             injector(),
@@ -691,8 +717,13 @@ class AppRouter {
                             injector(),
                             injector(),
                             injector(),
-                            injector(),
                           )),
+                  BlocProvider(
+                    create: (_) => canvasDeviceBloc,
+                  ),
+                  BlocProvider.value(
+                    value: subscriptionBloc,
+                  ),
                 ],
                 child: ArtworkDetailPage(
                     payload: settings.arguments! as ArtworkDetailPayload)));
@@ -708,25 +739,25 @@ class AppRouter {
                 providers: [
                   BlocProvider.value(value: accountsBloc),
                   BlocProvider(create: (_) => identityBloc),
-                  BlocProvider(create: (_) => RoyaltyBloc(injector())),
+                  BlocProvider(create: (_) => royaltyBloc),
                   BlocProvider(create: (_) => TravelInfoBloc()),
                   BlocProvider(create: (_) => postcardDetailBloc),
                 ],
                 child: ClaimedPostcardDetailPage(
                     key: payload.key, payload: payload)));
-      case TBSignMessagePage.tag:
+      case tbSignMessagePage:
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) =>
               TBSignMessagePage(request: settings.arguments! as BeaconRequest),
         );
-      case AUSignMessagePage.tag:
+      case auSignMessagePage:
         return CupertinoPageRoute(
           settings: settings,
-          builder: (context) =>
-              AUSignMessagePage(request: settings.arguments! as Wc2Request),
+          builder: (context) => AUSignMessagePage(
+              request: settings.arguments! as Wc2RequestPayload),
         );
-      case TBSendTransactionPage.tag:
+      case tbSendTransactionPage:
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) => TBSendTransactionPage(
@@ -737,7 +768,7 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => RecoveryPhrasePage(
-                  words: settings.arguments! as List<String>,
+                  payload: settings.arguments! as RecoveryPhrasePayload,
                 ));
 
       case cloudPage:
@@ -766,7 +797,7 @@ class AppRouter {
                   BlocProvider.value(value: tezosBloc),
                 ], child: const GlobalReceivePage()));
 
-      case GlobalReceiveDetailPage.tag:
+      case globalReceiveDetailPage:
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => GlobalReceiveDetailPage(
@@ -777,11 +808,6 @@ class AppRouter {
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => const AutonomySecurityPage());
-
-      case unsafeWebWalletPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => const UnsafeWebWalletPage());
 
       case releaseNotesPage:
         return PageTransition(
@@ -806,13 +832,6 @@ class AppRouter {
             settings: settings,
             builder: (context) => const MerchandiseOrderPage());
 
-      case TutorialVideo.tag:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => TutorialVideo(
-                  payload: settings.arguments! as TutorialVideosPayload,
-                ));
-
       case supportThreadPage:
         return CupertinoPageRoute(
             settings: settings,
@@ -822,12 +841,6 @@ class AppRouter {
       case bugBountyPage:
         return CupertinoPageRoute(
             settings: settings, builder: (context) => const BugBountyPage());
-
-      case participateUserTestPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => ParticipateUserTestPage(
-                payload: settings.arguments! as UserTestPayload));
 
       case hiddenArtworksPage:
         return CupertinoPageRoute(
@@ -841,6 +854,7 @@ class AppRouter {
                   ],
                   child: const HiddenArtworksPage(),
                 ));
+
       case momaPostcardPage:
         return CupertinoPageRoute(
             settings: settings, builder: (context) => const MoMAPostcardPage());
@@ -854,10 +868,12 @@ class AppRouter {
                       create: (_) => ExhibitionDetailBloc(injector()),
                     ),
                     BlocProvider(
-                      create: (_) => CanvasDeviceBloc(
-                        injector(),
-                      ),
+                      create: (_) => canvasDeviceBloc,
                     ),
+                    BlocProvider.value(
+                      value: subscriptionBloc,
+                    ),
+                    BlocProvider(create: (_) => FFArtworkPreviewBloc())
                   ],
                   child: ExhibitionDetailPage(
                     payload: settings.arguments! as ExhibitionDetailPayload,
@@ -866,9 +882,20 @@ class AppRouter {
       case ffArtworkPreviewPage:
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) => FeralFileArtworkPreviewPage(
-                payload:
-                    settings.arguments! as FeralFileArtworkPreviewPagePayload));
+            builder: (context) => MultiBlocProvider(
+                  providers: [
+                    BlocProvider(
+                      create: (_) => royaltyBloc,
+                    ),
+                    BlocProvider.value(
+                      value: subscriptionBloc,
+                    ),
+                    BlocProvider(create: (_) => FFArtworkPreviewBloc()),
+                  ],
+                  child: FeralFileArtworkPreviewPage(
+                      payload: settings.arguments!
+                          as FeralFileArtworkPreviewPagePayload),
+                ));
 
       case feralFileSeriesPage:
         return CupertinoPageRoute(
@@ -926,35 +953,6 @@ class AppRouter {
                       payload: settings.arguments! as SendArtworkReviewPayload),
                 ));
 
-      case claimFeralfileTokenPage:
-        final payload = settings.arguments! as ClaimTokenPagePayload;
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => ClaimTokenPage(
-                  payload: payload,
-                ));
-
-      case airdropTokenDetailPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => BlocProvider(
-                  create: (_) => RoyaltyBloc(injector()),
-                  child: TokenDetailPage(
-                    series: settings.arguments! as FFSeries,
-                  ),
-                ));
-
-      case claimSelectAccountPage:
-        final payload = settings.arguments! as SelectAddressPagePayload;
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => BlocProvider.value(
-                  value: accountsBloc,
-                  child: SelectAccountPage(
-                    payload: payload,
-                  ),
-                ));
-
       case wc2ConnectPage:
         return CupertinoPageRoute(
           settings: settings,
@@ -988,7 +986,7 @@ class AppRouter {
                       ),
                     ],
                     child: Wc2RequestPage(
-                        request: settings.arguments! as Wc2Request)));
+                        request: settings.arguments! as Wc2RequestPayload)));
 
       case walletPage:
         return CupertinoPageRoute(
@@ -1000,7 +998,9 @@ class AppRouter {
                       create: (_) => personaBloc,
                     ),
                   ],
-                  child: const WalletPage(),
+                  child: WalletPage(
+                    payload: settings.arguments as WalletPagePayload?,
+                  ),
                 ));
       case preferencesPage:
         return CupertinoPageRoute(
@@ -1025,13 +1025,14 @@ class AppRouter {
             builder: (context) => MultiBlocProvider(providers: [
                   BlocProvider(create: (_) => identityBloc),
                 ], child: const DataManagementPage()));
-      case helpUsPage:
-        return CupertinoPageRoute(
-            settings: settings, builder: (context) => const HelpUsPage());
       case inappWebviewPage:
-        return CupertinoPageRoute(
+        return PageTransition(
             settings: settings,
-            builder: (context) => InAppWebViewPage(
+            type: PageTransitionType.rightToLeft,
+            curve: Curves.easeIn,
+            duration: const Duration(milliseconds: 300),
+            reverseDuration: const Duration(milliseconds: 300),
+            child: InAppWebViewPage(
                 payload: settings.arguments! as InAppWebViewPayload));
       case claimEmptyPostCard:
         final claimRequest = settings.arguments! as RequestPostcardResponse;
@@ -1101,10 +1102,6 @@ class AppRouter {
             settings: settings,
             builder: (context) => IRLSignMessageScreen(payload: payload));
 
-      case canvasHelpPage:
-        return CupertinoPageRoute(
-            settings: settings, builder: (context) => const CanvasHelpPage());
-
       case keyboardControlPage:
         return TransparentRoute(
             settings: settings,
@@ -1123,49 +1120,6 @@ class AppRouter {
                 payload: payload,
               );
             });
-      case claimAirdropPage:
-        return CupertinoPageRoute(
-          settings: settings,
-          builder: (context) => BlocProvider.value(
-            value: accountsBloc,
-            child: ClaimAirdropPage(
-              payload: settings.arguments! as ClaimAirdropPagePayload,
-            ),
-          ),
-        );
-
-      case activationTokenDetailPage:
-        return CupertinoPageRoute(
-          settings: settings,
-          builder: (context) => BlocProvider.value(
-            value: accountsBloc,
-            child: ActivationTokenDetailPage(
-              assetToken: settings.arguments! as AssetToken,
-            ),
-          ),
-        );
-
-      case claimActivationPage:
-        return CupertinoPageRoute(
-          settings: settings,
-          builder: (context) => BlocProvider.value(
-            value: accountsBloc,
-            child: ClaimActivationPage(
-              payload: settings.arguments! as ClaimActivationPagePayload,
-            ),
-          ),
-        );
-
-      case previewActivationClaimPage:
-        return CupertinoPageRoute(
-          settings: settings,
-          builder: (context) => BlocProvider.value(
-            value: accountsBloc,
-            child: PreviewActivationTokenPage(
-              assetToken: settings.arguments! as AssetToken,
-            ),
-          ),
-        );
 
       case postcardLeaderboardPage:
         return PageTransition(
@@ -1211,6 +1165,13 @@ class AppRouter {
           settings: settings,
           builder: (context) => AddToCollectionScreen(
             playList: settings.arguments! as PlayListModel,
+          ),
+        );
+
+      case exhibitionCustomNote:
+        return MaterialPageRoute(
+          builder: (context) => ExhibitionCustomNotePage(
+            info: settings.arguments! as CustomExhibitionNote,
           ),
         );
 

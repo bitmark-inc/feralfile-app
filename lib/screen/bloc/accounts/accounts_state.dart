@@ -13,6 +13,19 @@ class ResetEventEvent extends AccountsEvent {}
 
 class GetAccountsEvent extends AccountsEvent {}
 
+class ChangeAccountOrderEvent extends AccountsEvent {
+  final int oldOrder;
+  final int newOrder;
+
+  ChangeAccountOrderEvent({required this.oldOrder, required this.newOrder});
+}
+
+class SaveAccountOrderEvent extends AccountsEvent {
+  final List<Account> accounts;
+
+  SaveAccountOrderEvent({required this.accounts});
+}
+
 class GetCategorizedAccountsEvent extends AccountsEvent {
   final bool includeLinkedAccount;
   final bool getTezos;
@@ -63,32 +76,36 @@ class Account {
   WalletAddress? walletAddress;
   String accountNumber;
   DateTime createdAt;
+  int? accountOrder;
 
-  bool get isTez => blockchain == "Tezos";
+  bool get isTez => blockchain == 'Tezos';
 
-  bool get isEth => blockchain == "Ethereum";
+  bool get isEth => blockchain == 'Ethereum';
 
-  bool get isUsdc => blockchain == "USDC";
+  bool get isUsdc => blockchain == 'USDC';
 
   String get className =>
-      persona != null && walletAddress != null ? "Persona" : "Connection";
+      persona != null && walletAddress != null ? 'Persona' : 'Connection';
 
   bool get isViewOnly => persona == null && walletAddress == null;
 
   Account({
     required this.key,
+    required this.createdAt,
     this.persona,
     this.connections,
     this.blockchain,
     this.walletAddress,
-    this.accountNumber = "",
-    this.name = "",
-    required this.createdAt,
+    this.accountNumber = '',
+    this.name = '',
+    this.accountOrder,
   });
 
   @override
   bool operator ==(covariant Account other) {
-    if (identical(this, other)) return true;
+    if (identical(this, other)) {
+      return true;
+    }
 
     return other.key == key &&
         other.persona == persona &&
@@ -97,48 +114,55 @@ class Account {
         other.blockchain == blockchain &&
         other.walletAddress == walletAddress &&
         other.accountNumber == accountNumber &&
-        other.createdAt == createdAt;
+        other.createdAt == createdAt &&
+        other.accountOrder == accountOrder;
   }
 
   @override
-  int get hashCode {
-    return key.hashCode ^
-        persona.hashCode ^
-        connections.hashCode ^
-        name.hashCode ^
-        blockchain.hashCode ^
-        walletAddress.hashCode ^
-        accountNumber.hashCode ^
-        createdAt.hashCode;
-  }
+  int get hashCode =>
+      key.hashCode ^
+      persona.hashCode ^
+      connections.hashCode ^
+      name.hashCode ^
+      blockchain.hashCode ^
+      walletAddress.hashCode ^
+      accountNumber.hashCode ^
+      createdAt.hashCode ^
+      accountOrder.hashCode;
 }
 
 class AccountsState {
   List<String> addresses;
   List<Account>? accounts;
+  AddressInfo? primaryAddressInfo;
   AccountBlocStateEvent? event;
 
-  AccountsState({this.addresses = const [], this.accounts, this.event});
+  AccountsState({
+    this.addresses = const [],
+    this.accounts,
+    this.event,
+    this.primaryAddressInfo,
+  });
 
   AccountsState copyWith(
-      {List<String>? addresses,
-      List<Account>? accounts,
-      Network? network,
-      AccountBlocStateEvent? event}) {
-    return AccountsState(
-      addresses: addresses ?? this.addresses,
-      accounts: accounts ?? this.accounts,
-      event: event ?? this.event,
-    );
-  }
+          {List<String>? addresses,
+          List<Account>? accounts,
+          AddressInfo? primaryAddressInfo,
+          Network? network,
+          AccountBlocStateEvent? event}) =>
+      AccountsState(
+        addresses: addresses ?? this.addresses,
+        accounts: accounts ?? this.accounts,
+        primaryAddressInfo: primaryAddressInfo ?? this.primaryAddressInfo,
+        event: event ?? this.event,
+      );
 
-  AccountsState setEvent(AccountBlocStateEvent? event) {
-    return AccountsState(
-      addresses: addresses,
-      accounts: accounts,
-      event: event,
-    );
-  }
+  AccountsState setEvent(AccountBlocStateEvent? event) => AccountsState(
+        addresses: addresses,
+        accounts: accounts,
+        primaryAddressInfo: primaryAddressInfo,
+        event: event,
+      );
 }
 
 abstract class AccountBlocStateEvent {}

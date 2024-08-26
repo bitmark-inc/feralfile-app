@@ -65,103 +65,99 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
       appBar: getLightEmptyAppBar(backgroundColor),
       body: RotatedBox(
         quarterTurns: -1,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(0, 15, 0, 15),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Container(
-                  color: Colors.transparent,
-                  child: Stack(
-                    children: [
-                      Positioned.fill(
-                        child: Image.memory(
-                          widget.payload.image,
-                          fit: BoxFit.fitWidth,
-                        ),
-                      ),
-                      Positioned.fill(
-                        child: Container(
-                          color: AppColor.white.withOpacity(0.3),
-                          child: Visibility(
-                            visible: !didDraw,
-                            child: Align(
-                                child: SvgPicture.asset(
-                                    'assets/images/sign_here.svg',
-                                    fit: BoxFit.scaleDown)),
-                          ),
-                        ),
-                      ),
-                      Container(
-                        constraints: const BoxConstraints.expand(),
-                        color: Colors.transparent,
-                        child: HandSignature(
-                          width: 9,
-                          maxWidth: 9,
-                          control: _controller,
-                          onPointerDown: () {
-                            setState(() {
-                              didDraw = true;
-                            });
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              DecoratedBox(
-                decoration: const BoxDecoration(
-                  color: AppColor.auGreyBackground,
-                ),
-                child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Container(
+                color: Colors.transparent,
+                child: Stack(
                   children: [
-                    IconButton(
-                      padding: const EdgeInsets.all(0),
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                      alignment: Alignment.center,
-                      icon: SvgPicture.asset(
-                        'assets/images/icon_back.svg',
-                        colorFilter: const ColorFilter.mode(
-                            AppColor.white, BlendMode.srcIn),
+                    Positioned.fill(
+                      child: Image.memory(
+                        widget.payload.image,
+                        fit: BoxFit.fitWidth,
                       ),
                     ),
-                    Flexible(
-                      child: PostcardButton(
-                        onTap: _handleClearButtonPressed,
-                        enabled: !savingStamp,
-                        text: 'clear'.tr(),
-                        color: AppColor.white,
-                        textColor: AppColor.auQuickSilver,
+                    Positioned.fill(
+                      child: Container(
+                        color: AppColor.white.withOpacity(0.3),
+                        child: Visibility(
+                          visible: !didDraw,
+                          child: Align(
+                              child: SvgPicture.asset(
+                                  'assets/images/sign_here.svg',
+                                  fit: BoxFit.scaleDown)),
+                        ),
                       ),
                     ),
-                    Flexible(
-                      child: PostcardAsyncButton(
-                        onTap: _handleSkipButtonPressed,
-                        enabled: !savingStamp && resizedStamp != null,
-                        text: 'skip'.tr(),
-                        color: AppColor.white,
-                        textColor: AppColor.auQuickSilver,
-                      ),
-                    ),
-                    Flexible(
-                      flex: 3,
-                      child: PostcardAsyncButton(
-                        enabled:
-                            !savingStamp && didDraw && resizedStamp != null,
-                        onTap: _handleSaveButtonPressed,
-                        color: MoMAColors.moMA8,
-                        text: 'continue'.tr(),
+                    Container(
+                      constraints: const BoxConstraints.expand(),
+                      color: Colors.transparent,
+                      child: HandSignature(
+                        width: 9,
+                        maxWidth: 9,
+                        control: _controller,
+                        onPointerDown: () {
+                          setState(() {
+                            didDraw = true;
+                          });
+                        },
                       ),
                     ),
                   ],
                 ),
-              )
-            ],
-          ),
+              ),
+            ),
+            DecoratedBox(
+              decoration: const BoxDecoration(
+                color: AppColor.auGreyBackground,
+              ),
+              child: Row(
+                children: [
+                  IconButton(
+                    padding: const EdgeInsets.all(0),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    alignment: Alignment.center,
+                    icon: SvgPicture.asset(
+                      'assets/images/icon_back.svg',
+                      colorFilter: const ColorFilter.mode(
+                          AppColor.white, BlendMode.srcIn),
+                    ),
+                  ),
+                  Flexible(
+                    child: PostcardButton(
+                      onTap: _handleClearButtonPressed,
+                      enabled: !savingStamp,
+                      text: 'clear'.tr(),
+                      color: AppColor.white,
+                      textColor: AppColor.auQuickSilver,
+                    ),
+                  ),
+                  Flexible(
+                    child: PostcardAsyncButton(
+                      onTap: _handleSkipButtonPressed,
+                      enabled: !savingStamp && resizedStamp != null,
+                      text: 'skip'.tr(),
+                      color: AppColor.white,
+                      textColor: AppColor.auQuickSilver,
+                    ),
+                  ),
+                  Flexible(
+                    flex: 3,
+                    child: PostcardAsyncButton(
+                      enabled: !savingStamp && didDraw && resizedStamp != null,
+                      onTap: _handleSaveButtonPressed,
+                      color: MoMAColors.moMA8,
+                      text: 'continue'.tr(),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          ],
         ),
       ),
     );
@@ -269,7 +265,7 @@ class _HandSignaturePageState extends State<HandSignaturePage> {
               final metadataFile = await _writeMetadata(
                   metadata: metadata, fileName: metadataFilename);
               unawaited(injector<NavigationService>().navigateTo(
-                  StampPreview.tag,
+                  AppRouter.stampPreview,
                   arguments: StampPreviewPayload(
                       imagePath: imageDataFile.path,
                       metadataPath: metadataFile.path,

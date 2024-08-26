@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_blo
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_state.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_view_widget.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -75,13 +76,17 @@ class _ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
 
   @override
   void didPopNext() {
-    _renderingWidget?.didPopNext();
+    if (!CustomRouteObserver.onIgnoreBackLayerPopUp) {
+      _renderingWidget?.didPopNext();
+    }
     super.didPopNext();
   }
 
   @override
   void didPushNext() {
-    unawaited(_renderingWidget?.clearPrevious());
+    if (!CustomRouteObserver.onIgnoreBackLayerPopUp) {
+      unawaited(_renderingWidget?.clearPrevious());
+    }
     super.didPushNext();
   }
 
@@ -106,7 +111,7 @@ class _ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
         builder: (context, state) {
           switch (state.runtimeType) {
             case ArtworkPreviewDetailLoadingState:
-              return const CircularProgressIndicator();
+              return previewPlaceholder();
             case ArtworkPreviewDetailLoadedState:
               final assetToken =
                   (state as ArtworkPreviewDetailLoadedState).assetToken;
@@ -132,7 +137,7 @@ class _ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
                           assetToken,
                           attempt: attempt > 0 ? attempt : null,
                           onLoaded: widget.onLoaded,
-                          onDispose: widget.onLoaded,
+                          onDispose: widget.onDispose,
                           overriddenHtml: state.overriddenHtml,
                           isMute: widget.isMute,
                           focusNode: widget.focusNode,

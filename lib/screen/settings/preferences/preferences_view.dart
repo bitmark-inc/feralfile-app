@@ -12,8 +12,6 @@ import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_toggle.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -64,12 +62,6 @@ class PreferenceView extends StatelessWidget {
                 'notifications'.tr(),
                 'receive_notification'.tr(),
                 state.isNotificationEnabled, (value) {
-              final metricClient = injector<MetricClientService>();
-              unawaited(metricClient.addEvent(MixpanelEvent.enableNotification,
-                  data: {'isEnable': value}));
-              metricClient.mixPanelClient.mixpanel
-                  .getPeople()
-                  .set(MixpanelProp.enableNotification, value);
               final newState = state.copyWith(
                   isNotificationEnabled: value, hasPendingSettings: false);
               final configService = injector<ConfigurationService>();

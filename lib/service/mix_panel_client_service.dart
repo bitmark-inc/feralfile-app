@@ -1,76 +1,89 @@
+// ignore_for_file: avoid_annotating_with_dynamic
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 
 import 'package:autonomy_flutter/common/environment.dart';
-import 'package:autonomy_flutter/database/cloud_database.dart';
-import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
-import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:crypto/crypto.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 import 'package:mixpanel_flutter/mixpanel_flutter.dart';
+import 'package:sentry/sentry.dart';
 
 class MixPanelClientService {
   final AccountService _accountService;
   final ConfigurationService _configurationService;
-  final CloudDatabase _cloudDatabase;
+  final AddressService _addressService;
 
   MixPanelClientService(
-      this._accountService, this._configurationService, this._cloudDatabase);
+      this._accountService, this._configurationService, this._addressService);
 
   late Mixpanel mixpanel;
   late Box configHiveBox;
 
+  void _setFirstAppOpenDate() {
+    // set first app open date
+    // if it's already set, it won't be updated
+    final now = DateTime.now();
+    mixpanel
+        .getPeople()
+        .setOnce(MixpanelProp.firstAppOpenDate, now.toUtc().toIso8601String());
+  }
+
   Future<void> initService() async {
     mixpanel = await Mixpanel.init(Environment.mixpanelKey,
         trackAutomaticEvents: true);
-    await initIfDefaultAccount();
-    mixpanel.setLoggingEnabled(false);
-    mixpanel.setUseIpAddressForGeolocation(true);
-
     mixpanel
-        .getPeople()
-        .set(MixpanelProp.subscription, SubscriptionStatus.free);
-    mixpanel.getPeople().set(MixpanelProp.enableNotification,
-        _configurationService.isNotificationEnabled() ?? false);
-    mixpanel.registerSuperPropertiesOnce({
-      MixpanelProp.client: "Autonomy Wallet",
-    });
+      ..setLoggingEnabled(false)
+      ..setUseIpAddressForGeolocation(true);
+
+    _setFirstAppOpenDate();
     configHiveBox = await Hive.openBox(MIXPANEL_HIVE_BOX);
   }
 
-  Future initIfDefaultAccount() async {
-    final defaultAccount = await _accountService.getCurrentDefaultAccount();
+  Future<String?> getDidKeyHashedUserID() async {
+    final defaultAccount = await _accountService.getDefaultAccount();
+    final defaultDID = await defaultAccount.getAccountDID();
+    return sha256.convert(utf8.encode(defaultDID)).toString();
+  }
 
-    if (defaultAccount == null) {
+  Future<String?> getHashedUserID() async {
+    final primaryAddressInfo = await _addressService.getPrimaryAddressInfo();
+    if (primaryAddressInfo == null) {
+      unawaited(Sentry.captureMessage(
+          '[MixpanelService] Primary address info is null'));
+      return null;
+    }
+    final address = await _addressService.getAddress(info: primaryAddressInfo);
+    return sha256.convert(utf8.encode(address)).toString();
+  }
+
+  Future initIfDefaultAccount() async {
+    final hashedUserID = await getHashedUserID();
+    if (hashedUserID == null) {
       return;
     }
-    final defaultDID = await defaultAccount.getAccountDID();
-    final hashedUserID =
-        '${sha256.convert(utf8.encode(defaultDID)).toString()}_test';
     final distinctId = await mixpanel.getDistinctId();
     if (hashedUserID != distinctId) {
-      mixpanel.alias(hashedUserID, distinctId);
-      final defaultAddress = await defaultAccount.getETHEip55Address();
-      final hashedDefaultAddress =
-          sha256.convert(utf8.encode(defaultAddress)).toString();
-
-      mixpanel.identify(hashedUserID);
-      mixpanel.getPeople().set(MixpanelProp.address, hashedDefaultAddress);
-      mixpanel.getPeople().set(MixpanelProp.didKey, hashedUserID);
+      mixpanel
+        ..alias(hashedUserID, distinctId)
+        ..identify(hashedUserID);
     }
   }
 
   Future reset() async {
     mixpanel.reset();
+    // when user reset, we need to set the first app open date again
+    _setFirstAppOpenDate();
   }
 
-  timerEvent(String name) {
+  void timerEvent(String name) {
     mixpanel.timeEvent(name.snakeToCapital());
   }
 
@@ -80,15 +93,15 @@ class MixPanelClientService {
     Map<String, dynamic> data = const {},
     Map<String, dynamic> hashedData = const {},
   }) async {
-    if (_configurationService.isAnalyticsEnabled() == false) {
+    if (!_configurationService.isAnalyticsEnabled()) {
       return;
     }
 
     // track with Mixpanel
     if (hashedData.isNotEmpty) {
       hashedData = hashedData.map((key, value) {
-        final salt = DateFormat("yyyy-MM-dd").format(DateTime.now()).toString();
-        final valueWithSalt = "$value$salt";
+        final salt = DateFormat('yyyy-MM-dd').format(DateTime.now());
+        final valueWithSalt = '$value$salt';
         return MapEntry(
             key, sha256.convert(utf8.encode(valueWithSalt)).toString());
       });
@@ -107,7 +120,7 @@ class MixPanelClientService {
 
   Future<void> sendData() async {
     try {
-      mixpanel.flush();
+      unawaited(mixpanel.flush());
     } catch (e) {
       log(e.toString());
     }
@@ -121,35 +134,6 @@ class MixPanelClientService {
     mixpanel.getPeople().increment(prop, value);
   }
 
-  void onAddConnection(Connection connection) {
-    if ([
-      ConnectionType.beaconP2PPeer.rawValue,
-      ConnectionType.dappConnect2.rawValue,
-      ConnectionType.walletConnect2.rawValue
-    ].contains(connection.connectionType)) {
-      incrementPropertyLabel(
-          MixpanelProp.connectedToMarket(connection.name), 1);
-    }
-  }
-
-  void onRemoveConnection(Connection connection) {
-    if ([
-      ConnectionType.beaconP2PPeer.rawValue,
-      ConnectionType.dappConnect2.rawValue,
-      ConnectionType.walletConnect2.rawValue
-    ].contains(connection.connectionType)) {
-      incrementPropertyLabel(
-          MixpanelProp.connectedToMarket(connection.name), -1);
-    }
-  }
-
-  Future<void> onRestore() async {
-    final connections = await _cloudDatabase.connectionDao.getConnections();
-    for (var connection in connections) {
-      onAddConnection(connection);
-    }
-  }
-
   Future<void> initConfigIfNeed(Map<String, dynamic> config) async {
     for (var entry in config.entries) {
       if (getConfig(entry.key) == null) {
@@ -158,11 +142,19 @@ class MixPanelClientService {
     }
   }
 
-  dynamic getConfig(String key, {dynamic defaultValue}) {
-    return configHiveBox.get(key, defaultValue: defaultValue);
-  }
+  dynamic getConfig(String key, {dynamic defaultValue}) =>
+      configHiveBox.get(key, defaultValue: defaultValue);
 
   Future<void> setConfig(String key, dynamic value) async {
     await configHiveBox.put(key, value);
+  }
+
+  Future<void> migrateFromDidKeyToPrimaryAddress() async {
+    final didKeyHashedUserID = await getDidKeyHashedUserID();
+    if (didKeyHashedUserID == null) {
+      return;
+    }
+    final distinctId = await mixpanel.getDistinctId();
+    mixpanel.alias(didKeyHashedUserID, distinctId);
   }
 }

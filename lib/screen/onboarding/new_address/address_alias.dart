@@ -13,7 +13,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class AddressAlias extends StatefulWidget {
-  static const String tag = 'address_alias';
   final AddressAliasPayload payload;
 
   const AddressAlias({required this.payload, super.key});
@@ -34,10 +33,8 @@ class _AddressAliasState extends State<AddressAlias> {
     switch (widget.payload.walletType) {
       case WalletType.Ethereum:
         _nameAddress = 'enter_eth_alias'.tr();
-        break;
       case WalletType.Tezos:
         _nameAddress = 'enter_tex_alias'.tr();
-        break;
       default:
         _nameAddress = 'name_address'.tr();
         break;
@@ -65,13 +62,10 @@ class _AddressAliasState extends State<AddressAlias> {
             case ActionState.done:
               await _doneNaming(context);
               isProcessing = false;
-              break;
             case ActionState.loading:
               isProcessing = true;
-              break;
             case ActionState.error:
               isProcessing = false;
-              break;
             default:
               isProcessing = false;
               break;
@@ -110,10 +104,12 @@ class _AddressAliasState extends State<AddressAlias> {
                       onTap: isSavingAliasDisabled
                           ? null
                           : () {
-                              context.read<PersonaBloc>().add(
-                                  CreatePersonaAddressesEvent(
-                                      _nameController.text.trim(),
-                                      widget.payload.walletType));
+                              context
+                                  .read<PersonaBloc>()
+                                  .add(CreatePersonaAddressesEvent(
+                                    widget.payload.walletType,
+                                    name: _nameController.text.trim(),
+                                  ));
                             },
                     ),
                   ),

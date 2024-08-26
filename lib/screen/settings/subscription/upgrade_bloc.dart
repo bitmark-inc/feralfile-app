@@ -6,12 +6,9 @@
 //
 
 import 'package:autonomy_flutter/au_bloc.dart';
-import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 
@@ -25,8 +22,19 @@ class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
     on<UpgradeQueryInfoEvent>((event, emit) async {
       final jwt = _configurationService.getIAPJWT();
       if (jwt != null) {
-        if (jwt.isValid(withSubscription: true)) {
-          emit(UpgradeState(IAPProductStatus.completed, null));
+        final subscriptionStatus = jwt.getSubscriptionStatus();
+        if (subscriptionStatus.isPremium) {
+          if (subscriptionStatus.isTrial) {
+            emit(
+              UpgradeState(
+                IAPProductStatus.trial,
+                null,
+                trialExpiredDate: subscriptionStatus.expireDate,
+              ),
+            );
+          } else {
+            emit(UpgradeState(IAPProductStatus.completed, null));
+          }
         } else {
           final result = await _iapService.renewJWT();
           emit(UpgradeState(
@@ -78,12 +86,10 @@ class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
             _iapService.products.value[productId];
         if (subscriptionProductDetails != null) {
           await _iapService.purchase(subscriptionProductDetails);
-          injector<MetricClientService>().addEvent(MixpanelEvent.subcription,
-              data: {"productId": productId});
           emit(UpgradeState(
               IAPProductStatus.pending, subscriptionProductDetails));
         } else {
-          log.warning("No item to purchase");
+          log.warning('No item to purchase');
         }
       } catch (error) {
         log.warning(error);

@@ -4,7 +4,6 @@ import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 
 class AuSearchBar extends StatefulWidget {
   final Function(String)? onChanged;
@@ -20,7 +19,6 @@ class AuSearchBar extends StatefulWidget {
 class _SearchBarState extends State<AuSearchBar> {
   final _controller = TextEditingController();
   final _focusNode = FocusNode();
-  bool _isSearching = false;
   Timer? _timer;
 
   @override
@@ -43,75 +41,48 @@ class _SearchBarState extends State<AuSearchBar> {
 
     return Container(
       decoration: BoxDecoration(
-        color: AppColor.auLightGrey,
+        color: AppColor.auGreyBackground,
         borderRadius: BorderRadius.circular(5),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 14),
       child: Row(
         children: [
-          SvgPicture.asset(
-            'assets/images/search.svg',
-            width: 14,
-            height: 14,
-            colorFilter: const ColorFilter.mode(
-                AppColor.secondarySpanishGrey, BlendMode.srcIn),
-          ),
-          const SizedBox(width: 10),
           Expanded(
             child: Center(
               child: TextField(
                 controller: _controller,
                 focusNode: _focusNode,
-                style: theme.textTheme.ppMori400Black14,
-                cursorColor: AppColor.primaryBlack,
+                style: theme.textTheme.ppMori400White12,
+                cursorColor: AppColor.white,
                 cursorWidth: 0.5,
                 cursorHeight: 17,
                 decoration: InputDecoration(
                   // contentPadding: const EdgeInsets.only(bottom: 10),
-                  hintText: 'search'.tr(),
-                  hintStyle: theme.textTheme.ppMori400Grey14
-                      .copyWith(color: AppColor.secondarySpanishGrey),
+                  hintText: 'search_by_'.tr(),
+                  hintStyle: theme.textTheme.ppMori400Grey12
+                      .copyWith(color: AppColor.auQuickSilver),
                   border: InputBorder.none,
                 ),
                 onChanged: (value) {
                   widget.onChanged?.call(value);
-                  if (value.isNotEmpty) {
-                    setState(() {
-                      _isSearching = true;
-                    });
-                  } else {
-                    setState(() {
-                      _isSearching = false;
-                    });
-                  }
                   _timer?.cancel();
                   _timer = Timer(const Duration(milliseconds: 300), () {
-                    widget.onSearch?.call(value);
+                    _callOnSearch(value);
                   });
                 },
                 onSubmitted: (value) {
-                  widget.onSearch?.call(value);
+                  _callOnSearch(value);
                 },
               ),
             ),
           ),
-          const SizedBox(width: 10),
-          if (_isSearching)
-            GestureDetector(
-              onTap: () {
-                _controller.clear();
-                widget.onClear?.call('');
-                widget.onChanged?.call('');
-              },
-              child: const Icon(
-                AuIcon.close,
-                size: 14,
-                color: AppColor.primaryBlack,
-              ),
-            ),
         ],
       ),
     );
+  }
+
+  void _callOnSearch(String value) {
+    widget.onSearch?.call(value.trim());
   }
 }
 
@@ -132,25 +103,26 @@ class _ActionBarState extends State<ActionBar> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Expanded(
-          child: widget.searchBar,
-        ),
-        const SizedBox(width: 14),
-        GestureDetector(
-          onTap: () {
-            widget.onCancel?.call();
-          },
-          child: Text(
-            'Cancel',
-            style: theme.textTheme.ppMori400Grey14,
+  Widget build(BuildContext context) => Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Expanded(
+            child: widget.searchBar,
           ),
-        )
-      ],
-    );
-  }
+          IconButton(
+            icon: const Padding(
+              padding: EdgeInsets.all(5),
+              child: Icon(
+                AuIcon.close,
+                size: 18,
+                color: AppColor.white,
+              ),
+            ),
+            constraints: const BoxConstraints(maxWidth: 44, maxHeight: 44),
+            onPressed: () {
+              widget.onCancel?.call();
+            },
+          )
+        ],
+      );
 }

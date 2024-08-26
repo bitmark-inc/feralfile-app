@@ -22,6 +22,7 @@ import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
+import 'package:autonomy_flutter/util/connection_request_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
@@ -31,25 +32,32 @@ import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
-import 'package:autonomy_flutter/view/list_address_account.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_flutter/view/select_account_view.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:walletconnect_flutter_v2/apis/core/verify/models/verify_context.dart';
+import 'package:walletconnect_flutter_v2/apis/sign_api/models/sign_client_models.dart';
 
 /*
  Because WalletConnect & TezosBeacon are using same logic:
- - select persona 
+ - select persona
  - suggest to generate persona
  => use this page for both WalletConnect & TezosBeacon connect
+import 'package:flutter_svg/flutter_svgconnect
 */
-class WCConnectPage extends StatefulWidget {
-  static const String tag = AppRouter.wcConnectPage;
 
+// const scamBtnColor = Color.fromRGBO(255, 71, 71, 1);
+// const warningBtnColor = Color.fromRGBO(255, 128, 10, 1);
+const scamBtnColor = AppColor.feralFileHighlight;
+const warningBtnColor = AppColor.feralFileHighlight;
+
+class WCConnectPage extends StatefulWidget {
   final ConnectionRequest connectionRequest;
 
   const WCConnectPage({
@@ -67,13 +75,15 @@ class _WCConnectPageState extends State<WCConnectPage>
   List<Account>? categorizedAccounts;
   bool createPersona = false;
   final metricClient = injector.get<MetricClientService>();
-  bool isAccountSelected = false;
+  bool isWarningConfirmed = false;
   final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
   late ConnectionRequest connectionRequest;
-  String? ethSelectedAddress;
-  String? tezSelectedAddress;
   final tezosBeaconService = injector<TezosBeaconService>();
   final configurationService = injector<ConfigurationService>();
+
+  late String warningTitle;
+  late String warningContent;
+  late Color warningColor;
 
   bool get _confirmEnable =>
       (categorizedAccounts != null &&
@@ -85,34 +95,18 @@ class _WCConnectPageState extends State<WCConnectPage>
   void initState() {
     super.initState();
     connectionRequest = widget.connectionRequest;
-    callAccountBloc();
     injector<NavigationService>().setIsWCConnectInShow(true);
     memoryValues.deepLink.value = null;
   }
 
   @override
-  void afterFirstLayout(BuildContext context) {
-    metricClient.timerEvent(MixpanelEvent.backConnectMarket);
-  }
+  void afterFirstLayout(BuildContext context) {}
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
 
     routeObserver.subscribe(this, ModalRoute.of(context)!);
-  }
-
-  @override
-  void didPopNext() {
-    super.didPopNext();
-    callAccountBloc();
-  }
-
-  void callAccountBloc() {
-    context.read<AccountsBloc>().add(GetCategorizedAccountsEvent(
-        getTezos: widget.connectionRequest.isBeaconConnect ||
-            widget.connectionRequest.isAutonomyConnect,
-        getEth: !widget.connectionRequest.isBeaconConnect));
   }
 
   @override
@@ -125,11 +119,13 @@ class _WCConnectPageState extends State<WCConnectPage>
     });
   }
 
-  Future<void> _reject() async {
-    // final wc2Proposal = widget.wc2Proposal;
-    // final wcConnectArgs = widget.wcConnectArgs;
-    // final beaconRequest = widget.beaconRequest;
+  void confirmWarning() {
+    setState(() {
+      isWarningConfirmed = true;
+    });
+  }
 
+  Future<void> _reject() async {
     if (connectionRequest.isAutonomyConnect) {
       try {
         await injector<Wc2Service>().rejectSession(
@@ -165,95 +161,85 @@ class _WCConnectPageState extends State<WCConnectPage>
       return;
     }
 
+    dynamic approveResponse;
+
     unawaited(
         UIHelper.showLoadingScreen(context, text: 'connecting_wallet'.tr()));
     late String payloadAddress;
     late CryptoType payloadType;
-    switch (connectionRequest.runtimeType) {
-      case Wc2Proposal:
-        if (connectionRequest.isAutonomyConnect) {
-          final account = await injector<AccountService>().getDefaultAccount();
-          final accountDid = await account.getAccountDID();
-          final walletAddresses = await injector<CloudDatabase>()
-              .addressDao
-              .findByWalletID(account.uuid);
-          final accountNumber =
-              walletAddresses.map((e) => e.address).join('||');
-          await injector<Wc2Service>().approveSession(
-            connectionRequest as Wc2Proposal,
-            account: accountDid.substring('did:key:'.length),
-            connectionKey: account.uuid,
-            accountNumber: accountNumber,
-            isAuConnect: true,
+    try {
+      switch (connectionRequest.runtimeType) {
+        case const (Wc2Proposal):
+          if (connectionRequest.isAutonomyConnect) {
+            final defaultAccount =
+                await injector<AccountService>().getDefaultAccount();
+            final accountDid = await defaultAccount.getAccountDID();
+            final walletAddresses = await injector<CloudDatabase>()
+                .addressDao
+                .findByWalletID(defaultAccount.uuid);
+            final accountNumber =
+                walletAddresses.map((e) => e.address).join('||');
+            approveResponse = await injector<Wc2Service>().approveSession(
+              connectionRequest as Wc2Proposal,
+              accounts: [accountDid.substring('did:key:'.length)],
+              connectionKey: defaultAccount.uuid,
+              accountNumber: accountNumber,
+              isAuConnect: true,
+            );
+            payloadType = CryptoType.ETH;
+            payloadAddress = await defaultAccount.getETHEip55Address(
+                index: selectedPersona!.index);
+          } else {
+            final address = await injector<EthereumService>()
+                .getETHAddress(selectedPersona!.wallet, selectedPersona!.index);
+            approveResponse = await injector<Wc2Service>().approveSession(
+              connectionRequest as Wc2Proposal,
+              accounts: [address],
+              connectionKey: address,
+              accountNumber: address,
+            );
+            payloadType = CryptoType.ETH;
+            payloadAddress = address;
+          }
+
+        case const (BeaconRequest):
+          final wallet = selectedPersona!.wallet;
+          final index = selectedPersona!.index;
+          final publicKey = await wallet.getTezosPublicKey(index: index);
+          final address = wallet.getTezosAddressFromPubKey(publicKey);
+          approveResponse =
+              await injector<TezosBeaconService>().permissionResponse(
+            wallet.uuid,
+            index,
+            (connectionRequest as BeaconRequest).id,
+            publicKey,
+            address,
           );
-          payloadType = CryptoType.ETH;
-          payloadAddress =
-              await account.getETHEip55Address(index: selectedPersona!.index);
-          unawaited(metricClient.addEvent(
-            MixpanelEvent.connectExternal,
-            data: {
-              'method': 'autonomy_connect',
-              'name': connectionRequest.name,
-              'url': connectionRequest.url,
-            },
-          ));
-        } else {
-          final address = await injector<EthereumService>()
-              .getETHAddress(selectedPersona!.wallet, selectedPersona!.index);
-          await injector<Wc2Service>().approveSession(
-            connectionRequest as Wc2Proposal,
-            account: address,
-            connectionKey: address,
-            accountNumber: address,
-          );
-          unawaited(metricClient.addEvent(
-            MixpanelEvent.connectExternal,
-            data: {
-              'method': 'wallet_connect',
-              'name': connectionRequest.name,
-              'url': connectionRequest.url,
-            },
-          ));
-          payloadType = CryptoType.ETH;
           payloadAddress = address;
-        }
-
-        break;
-      case BeaconRequest:
-        final wallet = selectedPersona!.wallet;
-        final index = selectedPersona!.index;
-        final publicKey = await wallet.getTezosPublicKey(index: index);
-        final address = wallet.getTezosAddressFromPubKey(publicKey);
-        await injector<TezosBeaconService>().permissionResponse(
-          wallet.uuid,
-          index,
-          (connectionRequest as BeaconRequest).id,
-          publicKey,
-          address,
-        );
-        payloadAddress = address;
-        payloadType = CryptoType.XTZ;
-        unawaited(metricClient.addEvent(
-          MixpanelEvent.connectExternal,
-          data: {
-            'method': 'tezos_beacon',
-            'name': (connectionRequest as BeaconRequest).appName ?? 'unknown',
-            'url':
-                (connectionRequest as BeaconRequest).sourceAddress ?? 'unknown',
-          },
-        ));
-        break;
-      default:
+          payloadType = CryptoType.XTZ;
+        default:
+      }
+    } catch (e, s) {
+      log.info('[WCConnectPage] Approve error $e $s');
+      unawaited(Sentry.captureException(e, stackTrace: s));
+      if (!mounted) {
+        return;
+      }
+      // Pop Loading screen
+      Navigator.of(context).pop();
+      // Pop connect screen
+      Navigator.of(context).pop();
+      final message = 'connect_to_failed'.tr(namedArgs: {
+        'name': connectionRequest.name ?? 'Secondary Wallet',
+      });
+      await UIHelper.showConnectFailed(context, message: message);
+      return;
     }
-
-    metricClient.incrementPropertyLabel(
-        MixpanelProp.connectedToMarket(connectionRequest.name ?? 'unknown'), 1);
 
     if (!mounted) {
       return;
     }
     UIHelper.hideInfoDialog(context);
-
     if (memoryValues.scopedPersona != null) {
       Navigator.of(context).pop();
       return;
@@ -266,17 +252,18 @@ class _WCConnectPageState extends State<WCConnectPage>
       type: payloadType,
       isBackHome: onBoarding,
     );
-
     unawaited(Navigator.of(context).pushReplacementNamed(
       AppRouter.personaConnectionsPage,
       arguments: payload,
     ));
+    if (approveResponse is ApproveResponse) {
+      injector<Wc2Service>().addApprovedTopic([approveResponse.topic]);
+    }
   }
 
   Future<void> _approveThenNotify({bool onBoarding = false}) async {
     await _approve(onBoarding: onBoarding);
 
-    unawaited(metricClient.addEvent(MixpanelEvent.connectMarketSuccess));
     if (!mounted) {
       return;
     }
@@ -300,20 +287,15 @@ class _WCConnectPageState extends State<WCConnectPage>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final padding = ResponsiveLayout.pageEdgeInsets.copyWith(top: 0, bottom: 0);
-    return WillPopScope(
-      onWillPop: () async {
-        unawaited(metricClient.addEvent(MixpanelEvent.backConnectMarket));
-        unawaited(_reject());
-        return true;
-      },
+    return PopScope(
+      canPop: false,
       child: Scaffold(
         appBar: getBackAppBar(
           context,
           title: 'connect'.tr(),
           onBack: () async {
-            unawaited(metricClient.addEvent(MixpanelEvent.backConnectMarket));
             await _reject();
-            if (!mounted) {
+            if (!context.mounted) {
               return;
             }
             Navigator.pop(context);
@@ -336,117 +318,113 @@ class _WCConnectPageState extends State<WCConnectPage>
                       ),
                       const SizedBox(height: 32),
                       addDivider(height: 52),
-                      Padding(
-                        padding: padding,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'you_about_to_grant'.tr(),
-                              style: theme.textTheme.ppMori400Black16,
-                            ),
-                            const SizedBox(
-                              height: 12,
-                            ),
-                            Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: AppColor.auGrey,
-                                  borderRadius: BorderRadius.circular(5),
+                      const SizedBox(height: 10),
+                      if (connectionRequest.validationState !=
+                              Validation.VALID &&
+                          !isWarningConfirmed)
+                        _suspiciousDappWarning(context)
+                      else ...[
+                        Padding(
+                          padding: padding,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (connectionRequest.validationState !=
+                                  Validation.VALID) ...[
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(15),
+                                  decoration: BoxDecoration(
+                                    color: AppColor.feralFileHighlight,
+                                    borderRadius: BorderRadius.circular(5),
+                                  ),
+                                  child: Text(
+                                    warningTitle,
+                                    style: theme.textTheme.ppMori700Black14,
+                                  ),
                                 ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    ...grantPermissions.map(
-                                      (permission) => Row(
-                                        children: [
-                                          const SizedBox(
-                                            width: 6,
-                                          ),
-                                          Text('•',
-                                              style: theme
-                                                  .textTheme.ppMori400Black14),
-                                          const SizedBox(
-                                            width: 6,
-                                          ),
-                                          Text(permission,
-                                              style: theme
-                                                  .textTheme.ppMori400Black14),
-                                        ],
+                                const SizedBox(
+                                  height: 32,
+                                ),
+                              ],
+                              Text(
+                                'you_about_to_grant'.tr(),
+                                style: theme.textTheme.ppMori400Black16,
+                              ),
+                              const SizedBox(
+                                height: 12,
+                              ),
+                              Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: AppColor.auGrey,
+                                    borderRadius: BorderRadius.circular(5),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      ...grantPermissions.map(
+                                        (permission) => Row(
+                                          children: [
+                                            const SizedBox(
+                                              width: 6,
+                                            ),
+                                            Text('•',
+                                                style: theme.textTheme
+                                                    .ppMori400Black14),
+                                            const SizedBox(
+                                              width: 6,
+                                            ),
+                                            Text(permission,
+                                                style: theme.textTheme
+                                                    .ppMori400Black14),
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                  ],
-                                )),
-                          ],
+                                    ],
+                                  )),
+                            ],
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 40),
-                      BlocConsumer<AccountsBloc, AccountsState>(
-                          listener: (context, state) async {
-                            var stateCategorizedAccounts = state.accounts;
-
-                            if (connectionRequest.isAutonomyConnect) {
-                              final persona = await injector<AccountService>()
-                                  .getOrCreateDefaultPersona();
-                              selectedPersona =
-                                  WalletIndex(persona.wallet(), 0);
-                            }
-                            if (!mounted) {
-                              return;
-                            }
-                            if (stateCategorizedAccounts == null ||
-                                stateCategorizedAccounts.isEmpty) {
-                              setState(() {
-                                createPersona = true;
-                              });
-                              return;
-                            }
-                            categorizedAccounts = stateCategorizedAccounts;
-                            await _autoSelectDefault(categorizedAccounts);
+                        const SizedBox(height: 32),
+                        SelectAccount(
+                          connectionRequest: connectionRequest,
+                          onSelectPersona: (
+                            persona,
+                          ) {
                             if (mounted) {
-                              setState(() {});
+                              setState(() {
+                                selectedPersona = persona;
+                              });
                             }
                           },
-                          builder: (context, state) => _selectAccount(context)),
+                          onCategorizedAccountsChanged: (accounts) {
+                            if (mounted) {
+                              setState(() {
+                                categorizedAccounts = accounts;
+                                createPersona =
+                                    categorizedAccounts?.isEmpty ?? true;
+                              });
+                            }
+                          },
+                        )
+                      ],
                     ],
                   ),
                 ),
               ),
-              _connect(context)
+              if (connectionRequest.validationState != Validation.VALID &&
+                  !isWarningConfirmed)
+                _confirmWarningButton(context)
+              else
+                _connect(context)
             ],
           ),
         ),
       ),
     );
-  }
-
-  Future _autoSelectDefault(List<Account>? categorizedAccounts) async {
-    if (categorizedAccounts == null) {
-      return;
-    }
-    if (categorizedAccounts.length != 1) {
-      return;
-    }
-    final persona = categorizedAccounts.first.persona;
-    if (persona == null) {
-      return;
-    }
-
-    final ethAccounts = categorizedAccounts.where((element) => element.isEth);
-    final xtzAccounts = categorizedAccounts.where((element) => element.isTez);
-
-    if (ethAccounts.length == 1) {
-      ethSelectedAddress = ethAccounts.first.accountNumber;
-      selectedPersona = WalletIndex(persona.wallet(),
-          (await persona.getEthWalletAddresses()).first.index);
-    }
-
-    if (xtzAccounts.length == 1) {
-      tezSelectedAddress = xtzAccounts.first.accountNumber;
-      selectedPersona = WalletIndex(persona.wallet(),
-          (await persona.getTezWalletAddresses()).first.index);
-    }
   }
 
   Widget _appInfo(BuildContext context) {
@@ -469,20 +447,66 @@ class _WCConnectPageState extends State<WCConnectPage>
     return const SizedBox();
   }
 
-  Widget _selectAccount(BuildContext context) {
-    final stateCategorizedAccounts = categorizedAccounts;
-    if (stateCategorizedAccounts == null) {
-      return const SizedBox();
+  Widget _suspiciousDappWarning(BuildContext context) {
+    final theme = Theme.of(context);
+    switch (connectionRequest.validationState) {
+      case Validation.INVALID:
+        warningTitle = 'invalid_dapp_detected_title'.tr();
+        warningContent = 'invalid_dapp_detected_content'.tr();
+        warningColor = scamBtnColor;
+      case Validation.SCAM:
+        warningTitle = 'scam_dapp_detected_title'.tr();
+        warningContent = 'scam_dapp_detected_content'.tr();
+        warningColor = scamBtnColor;
+      case Validation.UNKNOWN:
+        warningTitle = 'unverified_dapp_detected_title'.tr();
+        warningContent = 'unverified_dapp_detected_content'.tr();
+        warningColor = warningBtnColor;
+      default:
     }
-
-    if (stateCategorizedAccounts.isEmpty) {
-      return const SizedBox(); // Expanded(child: _createAccountAndConnect());
-    }
-    if (connectionRequest.isAutonomyConnect) {
-      return const SizedBox();
-    }
-    return _selectPersonaWidget(context, stateCategorizedAccounts);
+    return Padding(
+      padding: padding,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(15),
+        decoration: BoxDecoration(
+          color: warningColor.withAlpha(50),
+          borderRadius: BorderRadius.circular(5),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              warningTitle,
+              style: theme.textTheme.ppMori700Black14,
+            ),
+            const SizedBox(
+              height: 15,
+            ),
+            Text(
+              warningContent,
+              style: theme.textTheme.ppMori400Black14,
+            ),
+          ],
+        ),
+      ),
+    );
   }
+
+  Widget _confirmWarningButton(BuildContext context) => Row(
+        children: [
+          Expanded(
+            child: Padding(
+              padding: padding,
+              child: PrimaryButton(
+                color: warningColor,
+                text: 'continue'.tr(),
+                onTap: confirmWarning,
+              ),
+            ),
+          )
+        ],
+      );
 
   Widget _connect(BuildContext context) {
     if (connectionRequest.isAutonomyConnect) {
@@ -519,8 +543,6 @@ class _WCConnectPageState extends State<WCConnectPage>
                 text: 'h_confirm'.tr(),
                 onTap: selectedPersona != null
                     ? () {
-                        unawaited(
-                            metricClient.addEvent(MixpanelEvent.connectMarket));
                         withDebounce(() => unawaited(_approveThenNotify()));
                       }
                     : null,
@@ -604,48 +626,6 @@ class _WCConnectPageState extends State<WCConnectPage>
     );
   }
 
-  Widget _selectPersonaWidget(BuildContext context, List<Account> accounts) {
-    final theme = Theme.of(context);
-    String select = '';
-    if (widget.connectionRequest.isBeaconConnect) {
-      select = 'select_tezos'.tr(args: ['1']);
-    } else if (widget.connectionRequest.isWalletConnect2) {
-      select = 'select_ethereum'.tr(args: ['1']);
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: padding,
-          child: Text(
-            select,
-            style: theme.textTheme.ppMori400Black16,
-          ),
-        ),
-        const SizedBox(height: 16),
-        ListAccountConnect(
-          accounts: accounts,
-          onSelectEth: (value) {
-            int index = value.walletAddress?.index ?? 0;
-            setState(() {
-              ethSelectedAddress = value.accountNumber;
-              selectedPersona = WalletIndex(value.persona!.wallet(), index);
-            });
-          },
-          onSelectTez: (value) {
-            int index = value.walletAddress?.index ?? 0;
-            setState(() {
-              tezSelectedAddress = value.accountNumber;
-              selectedPersona = WalletIndex(value.persona!.wallet(), index);
-            });
-          },
-          isAutoSelect: accounts.length == 1,
-        ),
-      ],
-    );
-  }
-
   Widget _createAccountAndConnect(BuildContext context) => Padding(
         padding: ResponsiveLayout.pageHorizontalEdgeInsets,
         child: Column(
@@ -656,8 +636,6 @@ class _WCConnectPageState extends State<WCConnectPage>
                   child: PrimaryButton(
                     text: 'h_confirm'.tr(),
                     onTap: () {
-                      unawaited(
-                          metricClient.addEvent(MixpanelEvent.connectMarket));
                       withDebounce(() async => _createAccount(context));
                     },
                   ),

@@ -32,7 +32,7 @@ class KeySyncPage extends StatelessWidget {
 
     return BlocConsumer<KeySyncBloc, KeySyncState>(
       listener: (context, state) async {
-        if (state.isProcessing == false) {
+        if (state.isProcessing == false && !state.isError) {
           Navigator.of(context).pop();
         }
       },
@@ -163,7 +163,9 @@ class KeySyncPage extends StatelessWidget {
                                           ? theme.textTheme.ppMori400Black14
                                           : theme.textTheme.ppMori400Black16)
                                       .copyWith(
-                                          decoration: TextDecoration.underline),
+                                    decoration: TextDecoration.underline,
+                                    decorationColor: AppColor.primaryBlack,
+                                  ),
                                 ),
                               ),
                             ],

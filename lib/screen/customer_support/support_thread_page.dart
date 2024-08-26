@@ -18,18 +18,14 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/customer_support.dart' as app;
 import 'package:autonomy_flutter/model/customer_support.dart';
 import 'package:autonomy_flutter/model/pair.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/claim/airdrop/claim_airdrop_page.dart';
-import 'package:autonomy_flutter/service/airdrop_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
+import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/util/announcement_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
+import 'package:autonomy_flutter/util/jwt.dart';
 import 'package:autonomy_flutter/util/log.dart' as log_util;
-import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -46,20 +42,23 @@ import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:nft_collection/models/asset_token.dart';
 import 'package:uuid/uuid.dart';
 
 abstract class SupportThreadPayload {
   AnnouncementLocal? get announcement;
+  String? get defaultMessage;
 }
 
 class NewIssuePayload extends SupportThreadPayload {
   final String reportIssueType;
   @override
   final AnnouncementLocal? announcement;
+  @override
+  final String? defaultMessage;
 
   NewIssuePayload({
     required this.reportIssueType,
+    this.defaultMessage,
     this.announcement,
   });
 }
@@ -71,10 +70,13 @@ class DetailIssuePayload extends SupportThreadPayload {
   final bool isRated;
   @override
   final AnnouncementLocal? announcement;
+  @override
+  final String? defaultMessage;
 
   DetailIssuePayload(
       {required this.reportIssueType,
       required this.issueID,
+      this.defaultMessage,
       this.status = '',
       this.isRated = false,
       this.announcement});
@@ -85,10 +87,13 @@ class ExceptionErrorPayload extends SupportThreadPayload {
   final String metadata;
   @override
   final AnnouncementLocal? announcement;
+  @override
+  final String? defaultMessage;
 
   ExceptionErrorPayload({
     required this.sentryID,
     required this.metadata,
+    this.defaultMessage,
     this.announcement,
   });
 }
@@ -120,6 +125,7 @@ class _SupportThreadPageState extends State<SupportThreadPage>
   bool _isRated = false;
   bool _isFileAttached = false;
   Pair<String, List<int>>? _debugLog;
+  late TextEditingController _textEditingController;
 
   late Object _forceAccountsViewRedraw;
   var _sendIcon = 'assets/images/sendMessage.svg';
@@ -129,8 +135,9 @@ class _SupportThreadPageState extends State<SupportThreadPage>
   final _askReviewMessengerID = const Uuid().v4();
   final _announcementMessengerID = const Uuid().v4();
   final _customerSupportService = injector<CustomerSupportService>();
-  final _airdropService = injector<AirdropService>();
   final _feralFileService = injector<FeralFileService>();
+
+  String? _userId;
 
   types.TextMessage get _introMessenger => types.TextMessage(
         author: _bitmark,
@@ -152,13 +159,6 @@ class _SupportThreadPageState extends State<SupportThreadPage>
         createdAt: DateTime.now().millisecondsSinceEpoch,
       );
 
-  types.CustomMessage get _askReviewMessenger => types.CustomMessage(
-        author: _bitmark,
-        id: _askReviewMessengerID,
-        metadata: {'status': 'careToShare', 'content': 'care_to_share'.tr()},
-        createdAt: DateTime.now().millisecondsSinceEpoch,
-      );
-
   types.CustomMessage get _announcementMessenger => types.CustomMessage(
         id: _announcementMessengerID,
         author: _bitmark,
@@ -167,6 +167,7 @@ class _SupportThreadPageState extends State<SupportThreadPage>
 
   @override
   void initState() {
+    unawaited(_getUserId());
     unawaited(_fetchCustomerSupportAvailability());
     unawaited(injector<CustomerSupportService>().processMessages());
     injector<CustomerSupportService>()
@@ -179,7 +180,8 @@ class _SupportThreadPageState extends State<SupportThreadPage>
     final payload = widget.payload;
     if (payload is NewIssuePayload) {
       _reportIssueType = payload.reportIssueType;
-      if (_reportIssueType == ReportIssueType.Bug) {
+      if (_reportIssueType == ReportIssueType.Bug &&
+          (payload.defaultMessage?.isEmpty ?? true)) {
         Future.delayed(const Duration(milliseconds: 300), () {
           _askForAttachCrashLog(context, onConfirm: (attachCrashLog) {
             if (attachCrashLog) {
@@ -209,6 +211,9 @@ class _SupportThreadPageState extends State<SupportThreadPage>
       });
     }
 
+    _textEditingController =
+        TextEditingController(text: widget.payload.defaultMessage);
+
     memoryValues.viewingSupportThreadIssueID = _issueID;
     _forceAccountsViewRedraw = Object();
     super.initState();
@@ -220,13 +225,22 @@ class _SupportThreadPageState extends State<SupportThreadPage>
     }
   }
 
+  Future<String> _getUserId() async {
+    if (_userId != null) {
+      return _userId!;
+    }
+    final jwt = await injector<AuthService>().getAuthToken();
+    final data = parseJwt(jwt!.jwtToken);
+    _userId = data['sub'] ?? '';
+    return _userId!;
+  }
+
   @override
   void afterFirstLayout(BuildContext context) {
     final payload = widget.payload;
     if (payload.announcement != null && payload.announcement!.unread) {
       unawaited(_customerSupportService
           .markAnnouncementAsRead(payload.announcement!.announcementContextId));
-      _callMixpanelReadAnnouncementEvent(payload.announcement!);
     }
   }
 
@@ -257,24 +271,13 @@ class _SupportThreadPageState extends State<SupportThreadPage>
     });
   }
 
-  void _callMixpanelReadAnnouncementEvent(AnnouncementLocal announcement) {
-    final metricClient = injector.get<MetricClientService>();
-    unawaited(metricClient.addEvent(
-      MixpanelEvent.readAnnouncement,
-      data: {
-        'id': announcement.announcementContextId,
-        'type': announcement.type,
-        'title': announcement.title,
-      },
-    ));
-  }
-
   @override
   void dispose() {
     _customerSupportService.triggerReloadMessages
         .removeListener(_loadIssueDetails);
     _customerSupportService.customerSupportUpdate
         .removeListener(_loadCustomerSupportUpdates);
+    _textEditingController.dispose();
 
     memoryValues.viewingSupportThreadIssueID = null;
     super.dispose();
@@ -314,44 +317,36 @@ class _SupportThreadPageState extends State<SupportThreadPage>
   Widget build(BuildContext context) {
     List<types.Message> messages = _draftMessages + _messages;
     ////// this convert rating messages to customMessage type, then convert the string messages to rating bars
-    for (int i = 0; i < messages.length; i++) {
-      if (_isRating(messages[i])) {
-        final ratingMessengerID = const Uuid().v4();
-        final ratingMessenger = types.CustomMessage(
-          id: ratingMessengerID,
-          author: _user,
-          metadata: {
-            'status': 'rating',
-            'rating': messages[i].metadata!['rating'],
-          },
-        );
-        messages[i] = ratingMessenger;
+    if (messages.isNotEmpty) {
+      for (int i = 0; i < messages.length; i++) {
+        if (_isRating(messages[i])) {
+          final ratingMessengerID = const Uuid().v4();
+          final ratingMessenger = types.CustomMessage(
+            id: ratingMessengerID,
+            author: _user,
+            metadata: {
+              'status': 'rating',
+              'rating': messages[i].metadata!['rating'],
+            },
+          );
+          messages[i] = ratingMessenger;
+        }
       }
-    }
 
-    if (_status == 'closed' || _status == 'clickToReopen') {
-      final ratingIndex = _firstRatingIndex(messages);
-      messages
-        ..insert(ratingIndex + 1, _resolvedMessenger)
-        ..insert(ratingIndex + 1, _askRatingMessenger);
-      if (ratingIndex > -1 && _status == 'closed') {
-        messages.insert(ratingIndex, _askReviewMessenger);
-      }
-    }
+      messages.removeWhere((element) =>
+          messages.indexOf(element) != 0 && _isRatingMessage(element));
 
-    for (int i = 0; i < messages.length; i++) {
-      if (_isRatingMessage(messages[i])) {
-        if (messages[i + 1] != _askRatingMessenger) {
+      if (_status == 'closed' || _status == 'clickToReopen') {
+        final ratingIndex =
+            messages.indexWhere((element) => _isRatingMessage(element));
+        if (messages[ratingIndex + 1] != _askRatingMessenger) {
           messages
-            ..insert(i + 1, _resolvedMessenger)
-            ..insert(i + 1, _askRatingMessenger);
-        }
-        if (i > 0 && _isCustomerSupportMessage(messages[i - 1])) {
-          messages.insert(i, _askReviewMessenger);
-          i++;
+            ..insert(ratingIndex + 1, _resolvedMessenger)
+            ..insert(ratingIndex + 1, _askRatingMessenger);
         }
       }
     }
+
     if (widget.payload.announcement != null) {
       messages.add(_announcementMessenger);
     } else if (_issueID == null || messages.isNotEmpty) {
@@ -385,55 +380,18 @@ class _SupportThreadPageState extends State<SupportThreadPage>
               }).toList(),
               onSendPressed: _handleSendPressed,
               user: _user,
-              listBottomWidget:
-                  (widget.payload.announcement?.isMemento6 == true)
-                      ? FutureBuilder(
-                          future: _airdropService
-                              // ignore: discarded_futures
-                              .getTokenByContract(momaMementoContractAddresses),
-                          builder: (context, snapshot) {
-                            final token = snapshot.data as AssetToken?;
-                            return Padding(
-                              padding: const EdgeInsets.only(
-                                  left: 18, right: 18, bottom: 15),
-                              child: PrimaryAsyncButton(
-                                text: 'claim_your_gift'.tr(),
-                                enabled: token != null,
-                                onTap: () async {
-                                  if (token == null) {
-                                    return;
-                                  }
-                                  try {
-                                    final response = await _airdropService
-                                        .claimRequestGift(token);
-                                    final series = await _feralFileService
-                                        .getSeries(response.seriesID);
-                                    if (!mounted) {
-                                      return;
-                                    }
-                                    unawaited(Navigator.of(context).pushNamed(
-                                        AppRouter.claimAirdropPage,
-                                        arguments: ClaimAirdropPagePayload(
-                                            claimID: response.claimID,
-                                            series: series,
-                                            shareCode: '')));
-                                  } catch (e) {
-                                    log.info('Claim your gift tap $e');
-                                  }
-                                },
-                              ),
-                            );
-                          })
-                      : null,
               customBottomWidget: !isCustomerSupportAvailable
                   ? const SizedBox()
-                  : !_isRated && _status == 'closed'
-                      ? MyRatingBar(
-                          submit: (String messageType,
-                                  DraftCustomerSupportData data,
-                                  {bool isRating = false}) =>
-                              // ignore: discarded_futures
-                              _submit(messageType, data, isRating: isRating))
+                  : _status == 'closed'
+                      ? _isRated
+                          ? const SizedBox()
+                          : MyRatingBar(
+                              submit: (String messageType,
+                                      DraftCustomerSupportData data,
+                                      {bool isRating = false}) =>
+                                  // ignore: discarded_futures
+                                  _submit(messageType, data,
+                                      isRating: isRating))
                       : Column(
                           children: [
                             if (_isFileAttached) debugLogView(),
@@ -448,18 +406,21 @@ class _SupportThreadPageState extends State<SupportThreadPage>
   }
 
   InputOptions _inputOption() => InputOptions(
-      sendButtonVisibilityMode: SendButtonVisibilityMode.always,
-      onTextChanged: (text) {
-        if (_sendIcon == 'assets/images/sendMessageFilled.svg' &&
-                text.trim() == '' ||
-            _sendIcon == 'assets/images/sendMessage.svg' && text.trim() != '') {
-          setState(() {
-            _sendIcon = text.trim() != ''
-                ? 'assets/images/sendMessageFilled.svg'
-                : 'assets/images/sendMessage.svg';
-          });
-        }
-      });
+        sendButtonVisibilityMode: SendButtonVisibilityMode.always,
+        onTextChanged: (text) {
+          if (_sendIcon == 'assets/images/sendMessageFilled.svg' &&
+                  text.trim() == '' ||
+              _sendIcon == 'assets/images/sendMessage.svg' &&
+                  text.trim() != '') {
+            setState(() {
+              _sendIcon = text.trim() != ''
+                  ? 'assets/images/sendMessageFilled.svg'
+                  : 'assets/images/sendMessage.svg';
+            });
+          }
+        },
+        textEditingController: _textEditingController,
+      );
 
   Widget debugLogView() {
     if (_debugLog == null) {
@@ -516,25 +477,6 @@ class _SupportThreadPageState extends State<SupportThreadPage>
       }
     }
     return false;
-  }
-
-  bool _isCustomerSupportMessage(types.Message message) {
-    if (message is types.TextMessage) {
-      return message.text.contains(RATING_MESSAGE_START);
-    }
-    return false;
-  }
-
-  int _firstRatingIndex(List<types.Message> messages) {
-    for (int i = 0; i < messages.length; i++) {
-      if (_isRatingMessage(messages[i])) {
-        return i;
-      }
-      if (!_isCustomerSupportMessage(messages[i])) {
-        return -1;
-      }
-    }
-    return -1;
   }
 
   Widget _ratingBar(int rating) {
@@ -617,8 +559,10 @@ class _SupportThreadPageState extends State<SupportThreadPage>
                       },
                       child: Text(
                         'retry'.tr(),
-                        style: theme.textTheme.ppMori400Black12
-                            .copyWith(decoration: TextDecoration.underline),
+                        style: theme.textTheme.ppMori400Black12.copyWith(
+                          decoration: TextDecoration.underline,
+                          decorationColor: AppColor.primaryBlack,
+                        ),
                       ),
                     ),
                     Text(
@@ -639,8 +583,10 @@ class _SupportThreadPageState extends State<SupportThreadPage>
                       },
                       child: Text(
                         'delete'.tr(),
-                        style: theme.textTheme.ppMori400Black12
-                            .copyWith(decoration: TextDecoration.underline),
+                        style: theme.textTheme.ppMori400Black12.copyWith(
+                          decoration: TextDecoration.underline,
+                          decorationColor: AppColor.primaryBlack,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 6),
@@ -694,7 +640,7 @@ class _SupportThreadPageState extends State<SupportThreadPage>
             const SizedBox(height: 20),
             TextButton(
               onPressed: () {
-                if (_status == 'close') {
+                if (_status == 'closed') {
                   setState(() {
                     _status = 'clickToReopen';
                   });
@@ -770,10 +716,7 @@ class _SupportThreadPageState extends State<SupportThreadPage>
       return;
     }
     final issueDetails = await _customerSupportService.getDetails(_issueID!);
-    if (widget.payload.announcement != null && issueDetails.issue.unread > 0) {
-      _callMixpanelReadAnnouncementEvent(widget.payload.announcement!);
-    }
-
+    await _getUserId();
     final parsedMessages = (await Future.wait(
             issueDetails.messages.map((e) => _convertChatMessage(e, null))))
         .expand((i) => i)
@@ -852,16 +795,7 @@ class _SupportThreadPageState extends State<SupportThreadPage>
 
       final payload = widget.payload;
       if (payload.announcement != null) {
-        final metricClient = injector.get<MetricClientService>();
         final announcement = payload.announcement!;
-        unawaited(metricClient.addEvent(
-          MixpanelEvent.replyAnnouncement,
-          data: {
-            'id': announcement.announcementContextId,
-            'type': announcement.type,
-            'title': announcement.title,
-          },
-        ));
         data.announcementId = announcement.announcementContextId;
       }
 
@@ -1034,7 +968,9 @@ class _SupportThreadPageState extends State<SupportThreadPage>
     Map<String, dynamic> metadata = {};
     if (message is app.Message) {
       id = tempID ?? '${message.id}';
-      author = message.from.contains('did:key') ? _user : _bitmark;
+      author = (message.from == _userId || message.from.contains('did:key'))
+          ? _user
+          : _bitmark;
       status = types.Status.delivered;
       createdAt = message.timestamp;
       text = message.filteredMessage;

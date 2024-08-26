@@ -1,9 +1,12 @@
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class ExhibitionDetailLastPage extends StatelessWidget {
@@ -69,11 +72,13 @@ class ExhibitionDetailLastPage extends StatelessWidget {
                   },
                   child: SizedBox(
                     width: double.infinity,
-                    child: Image.network(
-                      nextPayload!.exhibitions[nextPayload!.index].coverUrl,
+                    child: CachedNetworkImage(
+                      imageUrl:
+                          nextPayload!.exhibitions[nextPayload!.index].coverUrl,
                       height: 140,
                       alignment: Alignment.topCenter,
                       fit: BoxFit.fitWidth,
+                      cacheManager: injector<CacheManager>(),
                     ),
                   ),
                 )

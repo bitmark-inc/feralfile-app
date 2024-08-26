@@ -9,11 +9,14 @@ import 'dart:io';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/util/eth_utils.dart';
 import 'package:autonomy_flutter/util/fee_util.dart';
 import 'package:autonomy_flutter/util/geolocation.dart';
 import 'package:autonomy_flutter/util/xtz_utils.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -32,20 +35,18 @@ const RATING_MESSAGE_START = '### Customer support rating\n';
 const MUTE_RATING_MESSAGE = 'MUTE_RATING_MESSAGE';
 const STAR_RATING = '###STAR#RATING#';
 const KNOWN_BUGS_LINK = 'https://github.com/orgs/bitmark-inc/projects/16';
-const IRL_DEEPLINK_PREFIX = 'https://autonomy.io/apps/irl/';
+const IRL_DEEPLINK_PREFIXES = [
+  'https://autonomy.io/apps/irl/',
+  'https://app.feralfile.com/apps/irl/'
+];
 const AUTONOMY_CLIENT_GITHUB_LINK =
     'https://github.com/bitmark-inc/autonomy-client';
 const DEEP_LINKS = [
   'autonomy://',
   'https://autonomy.io',
   'https://au.bitmark.com',
-  'https://autonomy-app.app.link',
-  'https://autonomy-app-alternate.app.link',
-  'https://link.autonomy.io',
+  ...Constants.branchDeepLinks,
   'feralfile://',
-  'https://feralfile-app.app.link',
-  'https://feralfile-app-alternate.app.link',
-  'https://app.feralfile.com',
 ];
 const FF_ARTIST_COLLECTOR =
     'https://feralfile.com/docs/artist-collector-rights';
@@ -63,6 +64,8 @@ const MOMA_MEMENTO_EXHIBITION_IDS = [
   '00370334-6151-4c04-b6be-dc09e325d57d',
   '3ee3e8a4-90dd-4843-8ec3-858e6bea1965'
 ];
+
+const cloudFlarePrefix = 'https://imagedelivery.net/';
 
 const POSTCARD_IPFS_PREFIX_TEST = 'https://ipfs.test.bitmark.com/ipfs';
 const POSTCARD_IPFS_PREFIX_PROD = 'https://ipfs.bitmark.com/ipfs';
@@ -129,14 +132,17 @@ List<String> get momaMementoContractAddresses {
   }
 }
 
-const MOMA_MEMENTO_6_CLAIM_ID = 'memento6';
+const artworkDataDivider = Divider(
+  height: 32,
+  color: Color.fromRGBO(255, 255, 255, 0.3),
+  thickness: 1,
+);
 
-const MEMENTO_6_SERIES_ID_MAINNET = '2b75da9b-c605-4842-bf59-8e2e1fe04be6';
-const MEMENTO_6_SERIES_ID_TESTNET = '420f4f8e-f45f-4627-b36c-e9fa5bf6af43';
-
-String get memento6SeriesId => Environment.appTestnetConfig
-    ? MEMENTO_6_SERIES_ID_TESTNET
-    : MEMENTO_6_SERIES_ID_MAINNET;
+const artworkSectionDivider = Divider(
+  height: 32,
+  color: AppColor.white,
+  thickness: 1,
+);
 
 const REMOVE_CUSTOMER_SUPPORT =
     '/bitmark-inc/autonomy-apps/main/customer_support/annoucement_os.md';
@@ -163,9 +169,6 @@ final internetUserGeoLocation =
 const int MAX_STAMP_IN_POSTCARD = 15;
 
 const int STAMP_SIZE = 2160;
-
-const int MAX_ANNOUNCEMENT_SHOW_COUNT = 3;
-const Duration MAX_ANNOUNCEMENT_SHOW_EXPIRED_DURATION = Duration(days: 30);
 
 const String POSTCARD_LOCATION_HIVE_BOX = 'postcard_location_hive_box';
 
@@ -195,12 +198,6 @@ String get usdcContractAddress => Environment.appTestnetConfig
     ? USDC_CONTRACT_ADDRESS_GOERLI
     : USDC_CONTRACT_ADDRESS;
 
-const publicTezosNodes = [
-  'https://mainnet.api.tez.ie',
-  'https://rpc.tzbeta.net',
-  'https://mainnet.tezos.marigold.dev',
-];
-
 const TV_APP_STORE_URL =
     'https://play.google.com/store/apps/details?id=com.bitmark.autonomy_tv';
 
@@ -224,11 +221,22 @@ const int LEADERBOARD_PAGE_SIZE = 50;
 
 const int maxCollectionListSize = 3;
 
+const maxRetryCount = 3;
+
 const double collectionListArtworkAspectRatio = 375 / 210.94;
 const String collectionListArtworkThumbnailVariant = 'thumbnailList';
 
 const String POSTCARD_ONSITE_REQUEST_ID = 'moma-postcard-onsite';
 const String POSTCARD_ONLINE_REQUEST_ID = 'moma-postcard-online';
+
+const String SOURCE_EXHIBITION_ID = 'source';
+const List<String> YOUTUBE_DOMAINS = ['youtube.com', 'youtu.be'];
+const List<String> YOUTUBE_VARIANTS = [
+  'maxresdefault', // Higher quality - May or may not exist
+  'mqdefault', // Lower quality - Guaranteed to exist
+];
+
+const MAGIC_NUMBER = 168;
 
 Future<bool> isAppCenterBuild() async {
   final PackageInfo info = await PackageInfo.fromPlatform();
@@ -492,93 +500,61 @@ class Constants {
     'https://autonomy-app.app.link',
     'https://autonomy-app-alternate.app.link',
     'https://link.autonomy.io',
+    'https://feralfile-app.app.link',
+    'https://feralfile-app-alternate.app.link',
+    'https://feralfile-app.test-app.link',
+    'https://feralfile-app-alternate.test-app.link',
+    'https://app.feralfile.com',
   ];
 }
 
+Map<String, String> specifiedSeriesTitle = {
+  'faa810f7-7b75-4c02-bf8a-b7447a89c921':
+      ExtendedArtworkModel.interactiveInstruction.title,
+};
+
 class MixpanelEvent {
-  static const restoreAccount = 'restore_account';
-  static const cancelContact = 'cancel_contact';
-  static const connectContactSuccess = 'connect_contact_success';
-  static const backConnectMarket = 'back_connect_market';
-  static const connectMarket = 'connect_market';
-  static const connectMarketSuccess = 'connect_market_success';
-  static const backConfirmTransaction = 'back_confirm_transaction';
-  static const confirmTransaction = 'confirm_transaction';
-  static const clickArtist = 'click_artist';
-  static const stayInArtworkDetail = 'stay_in_artwork_detail';
-  static const clickArtworkInfo = 'click_artwork_info';
-  static const acceptOwnership = 'accept_ownership';
-  static const declineOwnership = 'decline_ownership';
-  static const displayUnableLoadIPFS = 'display_unable_load_IPFS';
-  static const clickLoadIPFSAgain = 'click_load_IPFS_again';
-  static const showLoadingArtwork = 'show_loading_artwork';
-  static const seeArtworkFullScreen = 'see_artwork_fullscreen';
-  static const viewArtwork = 'view_artwork';
-  static const deviceBackground = 'device_background';
-  static const signIn = 'Sign In';
-  static const sign = 'Sign';
-  static const purchased = 'Purchased';
-  static const trial = 'Trial';
-  static const hideLinkedAccount = 'hide_linked_account';
-  static const deleteFullAccount = 'delete_full_account';
-  static const deleteLinkedAccount = 'delete_linked_account';
-  static const importFullAccount = 'import_full_account';
-  static const createFullAccount = 'create_full_account';
-  static const connectExternal = 'connect_external';
-  static const subcription = 'Subcription';
-  static const addNFT = 'add_NFT';
-  static const enableNotification = 'enable_notification';
-  static const tabNotification = 'tab_notification';
-  static const createPlaylist = 'create_playlist';
-  static const undoCreatePlaylist = 'undo_create_playlist';
-  static const scanQR = 'scan_qr';
-  static const acceptOwnershipSuccess = 'accept_ownership_success';
-  static const acceptOwnershipFail = 'accept_ownership_fail';
-  static const share = 'share';
-  static const readAnnouncement = 'read_announcement';
-  static const replyAnnouncement = 'reply_announcement';
-  static const receiveAnnouncement = 'receive_announcement';
-  static const viewScreen = 'view_screen';
-  static const endViewScreen = 'end_view_screen';
-  static const showTipcard = 'show_tip_card';
-  static const closeTipcard = 'close_tip_card';
-  static const pressTipcard = 'press_tip_card';
-  static const tapLinkInTipCard = 'tap_link_in_tip_card';
-  static const hideAddresses = 'hide_addresses';
-  static const callIrlFunction = 'call_irl_function';
-  static const numberNft = 'number_nft';
-  static const numberUseAppInAWeek = 'number_use_app_in_a_week';
-  static const postcardStamp = 'postcard_stamp';
-  static const postcardClaimEmpty = 'postcard_claim_empty';
+  static const String visitPage = 'Visit page';
+  static const String viewExhibition = 'View exhibition';
+  static const String viewArtwork = 'View artwork';
 }
 
-class MixpanelEventProp {
-  static const time = 'Time';
-}
+class MixpanelEventProp {}
 
 class MixpanelProp {
-  static const enableNotification = 'enableNotification';
-  static const client = 'client';
-  static const didKey = 'didKey';
-  static const address = 'Address';
-  static const subscription = 'Subscription';
-  static const numberNft = 'Number NFT';
-
-  static String connectedToMarket(String name) => 'Connected to $name';
+  static const platform = 'platform';
+  static const tokenId = 'tokenId';
+  static const artworkId = 'artworkId';
+  static const exhibitionId = 'exhibitionId';
+  static const ownerAddress = 'ownerAddress';
+  static const title = 'title';
+  static const playlistId = 'playlistId';
+  static const address = 'address';
+  static const type = 'type';
+  static const url = 'url';
+  static const message = 'message';
+  static const section = 'section';
+  static const recipientAddress = 'recipientAddress';
+  static const seriesId = 'seriesId';
+  static const method = 'method';
+  static const isOnboarding = 'isOnboarding';
+  static const id = 'id';
+  static const firstAppOpenDate = 'First App Open Date';
 }
 
-class MixpanelConfig {
-  static const countUseAutonomyInWeek = 'countUseAutonomyInWeek';
-  static const weekStartAt = 'weekStartAt';
-  static const numberNfts = 'numberNfts';
+class MixpanelConfig {}
+
+class MixpanelExtendScreen {
+  static const String collection = 'Collection';
+  static const String organization = 'Organization';
+  static const String exhibition = 'Exhibition';
+  static const String showMyCode = 'Show My Code';
 }
 
-class SubscriptionStatus {
-  static const free = 'Free';
-  static const subscried = 'Subscried';
-  static const trial = 'Trial';
-  static const expired = 'Expired';
-}
+const List<String> metricVisitPageIgnoreScreen = [
+  AppRouter.homePage,
+  AppRouter.homePageNoTransition,
+];
 
 class LinkType {
   static const local = 'Local Deep Link';
@@ -607,7 +583,7 @@ class IrlWebviewFunction {
   static String closeWebview = '_closeWebview';
 }
 
-const Duration USE_APP_MIN_DURATION = Duration(seconds: 30);
+const Duration USE_APP_MIN_DURATION = Duration(seconds: 15);
 
 const chatPrivateBannerId = 'chat_private_banner_id';
 final chatPrivateBannerMessage = SystemMessage(

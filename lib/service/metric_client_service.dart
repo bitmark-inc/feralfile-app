@@ -1,93 +1,62 @@
+// ignore_for_file: avoid_annotating_with_dynamic
+
 import 'dart:async';
-import 'dart:developer';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/entity/connection.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/datetime_ext.dart';
+import 'package:autonomy_flutter/util/custom_route_observer.dart';
+import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/route_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:flutter/foundation.dart';
-import 'package:nft_collection/database/dao/token_dao.dart';
+import 'package:flutter/material.dart';
 
 class MetricClientService {
-  late Timer? useAppTimer;
-
   MetricClientService();
 
   final mixPanelClient = injector<MixPanelClientService>();
-  final _tokenDao = injector<TokenDao>();
-  final _accountService = injector<AccountService>();
   bool isFinishInit = false;
+  Timer? _timer;
 
   Future<void> initService() async {
     await mixPanelClient.initService();
-    await initConfigIfNeed({
-      MixpanelConfig.weekStartAt: DateTime.now().startDayOfWeek,
-      MixpanelConfig.countUseAutonomyInWeek: 0
-    });
     isFinishInit = true;
-    await onOpenApp();
-    useAppTimer = Timer(USE_APP_MIN_DURATION, () async {
-      await onUseAppInForeground();
-    });
   }
 
-  Future<void> refreshNumberNfts() async {
-    final previousNumberNfts = getConfig(MixpanelConfig.numberNfts) as int?;
-    final activeAddresses = await _accountService.getShowedAddresses();
-    final tokens = await _tokenDao.findTokenIDsOwnersOwn(activeAddresses);
-    final numberNft = tokens.length;
-    var differece =
-        previousNumberNfts == null ? null : numberNft - previousNumberNfts;
-    if (differece != 0) {
-      setLabel(MixpanelProp.numberNft, numberNft);
-      addEvent(
-        MixpanelEvent.numberNft,
-        data: {
-          'number': numberNft,
-        },
-      );
-      if (differece != null) {
-        addEvent(
-          MixpanelEvent.addNFT,
-          data: {
-            'number': differece,
-          },
-        );
-      }
-      await setConfig(
-        MixpanelConfig.numberNfts,
-        numberNft,
-      );
-    }
+  Future<void> migrateFromDidKeyToPrimaryAddress() async {
+    await mixPanelClient.migrateFromDidKeyToPrimaryAddress();
   }
 
-  Future<void> addEvent(
+  void addEvent(
     String name, {
     String? message,
     Map<String, dynamic> data = const {},
     Map<String, dynamic> hashedData = const {},
-  }) async {
+  }) {
     final configurationService = injector.get<ConfigurationService>();
 
-    if (configurationService.isAnalyticsEnabled() == false) {
+    if (!configurationService.isAnalyticsEnabled()) {
       return;
     }
+    final dataWithExtend = {
+      ...data,
+      'platform': 'Feral File App',
+    };
     if (isFinishInit) {
-      mixPanelClient.trackEvent(
+      unawaited(mixPanelClient.trackEvent(
         name,
         message: message,
-        data: data,
+        data: dataWithExtend,
         hashedData: hashedData,
-      );
-      mixPanelClient.mixpanel.flush();
+      ));
+      unawaited(mixPanelClient.sendData());
     }
   }
 
-  timerEvent(String name) {
+  void timerEvent(String name) {
     if (isFinishInit) {
       mixPanelClient.timerEvent(name.snakeToCapital());
     }
@@ -99,25 +68,21 @@ class MetricClientService {
         await mixPanelClient.sendData();
       }
     } catch (e) {
-      log(e.toString());
+      log.info(e.toString());
     }
   }
 
-  Future<void> trackStartScreen(String? screen) async {
-    if (screen == null) {
-      return;
-    }
-    await addEvent(MixpanelEvent.viewScreen,
-        data: {"screen": screen.snakeToCapital()});
-    await timerEvent(MixpanelEvent.endViewScreen);
+  Future<void> trackStartScreen(Route<dynamic> route) async {
+    timerEvent(MixpanelEvent.visitPage);
   }
 
-  Future<void> trackEndScreen(String? screen) async {
-    if (screen == null) {
+  Future<void> trackEndScreen(Route<dynamic> route) async {
+    if (route.isIgnoreForVisitPageEvent) {
       return;
     }
-    await addEvent(MixpanelEvent.endViewScreen,
-        data: {"screen": screen.snakeToCapital()});
+    final screenName = route.metricTitle;
+    Map<String, dynamic> data = route.metricData..addAll({'title': screenName});
+    addEvent(MixpanelEvent.visitPage, data: data);
   }
 
   void setLabel(String prop, dynamic value) {
@@ -132,59 +97,40 @@ class MetricClientService {
     }
   }
 
-  void onAddConnection(Connection connection) {
-    if (isFinishInit) {
-      mixPanelClient.onAddConnection(connection);
-    }
-  }
-
-  void onRemoveConnection(Connection connection) {
-    if (isFinishInit) {
-      mixPanelClient.onRemoveConnection(connection);
-    }
-  }
-
-  void onRestore() {
-    if (isFinishInit) {
-      mixPanelClient.onRestore();
-    }
-  }
-
   Future<void> initConfigIfNeed(Map<String, dynamic> config) async {
-    mixPanelClient.initConfigIfNeed(config);
+    await mixPanelClient.initConfigIfNeed(config);
   }
 
-  dynamic getConfig(String key, {dynamic defaultValue}) {
-    return mixPanelClient.getConfig(key, defaultValue: defaultValue);
-  }
+  dynamic getConfig(String key, {dynamic defaultValue}) =>
+      mixPanelClient.getConfig(key, defaultValue: defaultValue);
 
   Future<void> setConfig(String key, dynamic value) async {
     await mixPanelClient.setConfig(key, value);
   }
 
-  Future<void> onOpenApp() async {
-    final weekStartAt = getConfig(MixpanelConfig.weekStartAt,
-        defaultValue: DateTime.now().startDayOfWeek) as DateTime;
-    final countUseAutonomyInWeek =
-        getConfig(MixpanelConfig.countUseAutonomyInWeek, defaultValue: 0)
-            as int;
-    final now = DateTime.now();
-    final startDayOfWeek = now.startDayOfWeek;
-    if (!now.isBefore(weekStartAt.add(const Duration(days: 7)))) {
-      addEvent(MixpanelEvent.numberUseAppInAWeek, data: {
-        "number": countUseAutonomyInWeek,
-        MixpanelEventProp.time: weekStartAt,
-      });
-      await setConfig(MixpanelConfig.weekStartAt, startDayOfWeek);
-      await setConfig(MixpanelConfig.countUseAutonomyInWeek, 0);
-    }
+  void onBackground() {
+    _timer?.cancel();
+    const duration = Duration(seconds: 60);
+    _timer = Timer(duration, () {
+      final route = CustomRouteObserver.currentRoute;
+      if (route?.settings.name == AppRouter.homePage) {
+        homePageKey.currentState?.sendVisitPageEvent();
+      } else if (route?.settings.name == AppRouter.homePageNoTransition) {
+        homePageNoTransactionKey.currentState?.sendVisitPageEvent();
+      } else if (route != null) {
+        unawaited(trackEndScreen(route));
+      }
+    });
   }
 
-  Future<void> onUseAppInForeground() async {
-    final countUseAutonomyInWeek =
-        getConfig(MixpanelConfig.countUseAutonomyInWeek, defaultValue: 0)
-            as int;
-    final countUseApp = countUseAutonomyInWeek + 1;
-    await setConfig(MixpanelConfig.countUseAutonomyInWeek, countUseApp);
+  void onForeground() {
+    if (_timer?.isActive ?? false) {
+      _timer?.cancel();
+    } else {
+      final route = CustomRouteObserver.currentRoute;
+      if (route != null) {
+        unawaited(trackStartScreen(route));
+      }
+    }
   }
 }

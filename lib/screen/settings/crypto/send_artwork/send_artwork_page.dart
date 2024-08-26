@@ -38,8 +38,6 @@ import 'package:nft_collection/models/asset_token.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SendArtworkPage extends StatefulWidget {
-  static const String tag = 'send_artwork';
-
   final SendArtworkPayload payload;
 
   const SendArtworkPage({required this.payload, super.key});
@@ -251,10 +249,14 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                                     placeholder: 'paste_or_scan_address'.tr(),
                                     controller: _addressController,
                                     isError: state.isAddressError,
+                                    enableSuggestions: false,
                                     suffix: IconButton(
-                                      icon: Icon(state.isScanQR
-                                          ? AuIcon.scan
-                                          : AuIcon.close),
+                                      icon: Icon(
+                                        state.isScanQR
+                                            ? AuIcon.scan
+                                            : AuIcon.close,
+                                        color: AppColor.secondaryDimGrey,
+                                      ),
                                       onPressed: () async {
                                         if (_addressController
                                             .text.isNotEmpty) {
@@ -265,7 +267,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                                         } else {
                                           dynamic address = await Navigator.of(
                                                   context)
-                                              .pushNamed(ScanQRPage.tag,
+                                              .pushNamed(AppRouter.scanQRPage,
                                                   arguments: asset.blockchain ==
                                                           'ethereum'
                                                       ? ScannerItem.ETH_ADDRESS
@@ -276,7 +278,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                                             address = address.replacePrefix(
                                                 'ethereum:', '');
                                             _addressController.text = address;
-                                            if (!mounted) {
+                                            if (!context.mounted) {
                                               return;
                                             }
                                             context.read<SendArtworkBloc>().add(
@@ -416,8 +418,10 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
           child: Text(
             content,
             style: theme.textTheme.ppMori400Black14.copyWith(
-                decoration:
-                    (onValueTap != null) ? TextDecoration.underline : null),
+              decoration:
+                  (onValueTap != null) ? TextDecoration.underline : null,
+              decorationColor: AppColor.primaryBlack,
+            ),
           ),
         )
       ],
@@ -582,7 +586,7 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
   }
 
   Widget _artworkView(BuildContext context) {
-    final title = widget.payload.asset.title;
+    final title = widget.payload.asset.displayTitle;
     final theme = Theme.of(context);
     final asset = widget.payload.asset;
 

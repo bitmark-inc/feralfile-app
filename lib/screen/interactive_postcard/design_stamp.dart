@@ -20,7 +20,6 @@ import 'package:undo/undo.dart';
 import 'package:widgets_to_image/widgets_to_image.dart';
 
 class DesignStampPage extends StatefulWidget {
-  static const String tag = 'design_stamp_screen';
   final DesignStampPayload payload;
 
   const DesignStampPage({required this.payload, super.key});
@@ -200,7 +199,6 @@ class _DesignStampPageState extends State<DesignStampPage> {
                                               });
                                             }
                                           },
-                                    width: 52,
                                     color: AppColor.white,
                                     borderColor: AppColor.disabledColor,
                                     textColor: AppColor.disabledColor,
@@ -264,7 +262,7 @@ class _DesignStampPageState extends State<DesignStampPage> {
                             const Duration(milliseconds: 200),
                             () async {
                               final bytes = await _controller.capture();
-                              if (!mounted) {
+                              if (!context.mounted) {
                                 return;
                               }
                               await Navigator.of(context).pushNamed(

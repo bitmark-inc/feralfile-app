@@ -1,14 +1,20 @@
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/model/ff_user.dart';
+import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/exhibition_ext.dart';
+import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:collection/collection.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class Exhibition {
   final String id;
   final String title;
   final String slug;
   final DateTime exhibitionStartAt;
+  final int? previewDuration;
 
   final String noteTitle;
   final String noteBrief;
@@ -23,18 +29,21 @@ class Exhibition {
   final List<FFContract>? contracts;
   final FFArtist? partner;
   final String type;
-  final List<ExhibitionEvent>? resources;
+  final List<Post>? posts;
+  final int status;
 
   Exhibition({
     required this.id,
     required this.title,
     required this.slug,
     required this.exhibitionStartAt,
+    required this.previewDuration,
     required this.noteTitle,
     required this.noteBrief,
     required this.note,
     required this.mintBlockchain,
     required this.type,
+    required this.status,
     this.coverURI,
     this.thumbnailCoverURI,
     this.artists,
@@ -42,7 +51,7 @@ class Exhibition {
     this.contracts,
     this.partner,
     this.curator,
-    this.resources,
+    this.posts,
   });
 
   factory Exhibition.fromJson(Map<String, dynamic> json) => Exhibition(
@@ -50,6 +59,7 @@ class Exhibition {
         title: json['title'] as String,
         slug: json['slug'] as String,
         exhibitionStartAt: DateTime.parse(json['exhibitionStartAt'] as String),
+        previewDuration: json['previewDuration'] as int?,
         noteTitle: json['noteTitle'] as String,
         noteBrief: json['noteBrief'] as String,
         note: json['note'] as String,
@@ -64,7 +74,7 @@ class Exhibition {
         contracts: (json['contracts'] as List<dynamic>?)
             ?.map((e) => FFContract.fromJson(e as Map<String, dynamic>))
             .toList(),
-        mintBlockchain: json['mintBlockchain'] as String,
+        mintBlockchain: (json['mintBlockchain'] ?? '') as String,
         partner: json['partner'] == null
             ? null
             : FFArtist.fromJson(json['partner'] as Map<String, dynamic>),
@@ -72,9 +82,10 @@ class Exhibition {
         curator: json['curator'] == null
             ? null
             : FFCurator.fromJson(json['curator'] as Map<String, dynamic>),
-        resources: (json['resources'] as List<dynamic>?)
-            ?.map((e) => ExhibitionEvent.fromJson(e as Map<String, dynamic>))
+        posts: (json['posts'] as List<dynamic>?)
+            ?.map((e) => Post.fromJson(e as Map<String, dynamic>))
             .toList(),
+        status: json['status'] as int,
       );
 
   Map<String, dynamic> toJson() => {
@@ -82,6 +93,7 @@ class Exhibition {
         'title': title,
         'slug': slug,
         'exhibitionStartAt': exhibitionStartAt.toIso8601String(),
+        'previewDuration': previewDuration,
         'noteTitle': noteTitle,
         'noteBrief': noteBrief,
         'note': note,
@@ -94,7 +106,8 @@ class Exhibition {
         'partner': partner?.toJson(),
         'type': type,
         'curator': curator?.toJson(),
-        'resources': resources?.map((e) => e.toJson()).toList(),
+        'posts': posts?.map((e) => e.toJson()).toList(),
+        'status': status,
       };
 
   FFArtist? getArtist(FFSeries? series) {
@@ -104,16 +117,61 @@ class Exhibition {
 
   String getThumbnailURL() =>
       '${Environment.feralFileAssetURL}/$thumbnailCoverURI';
+
+  Exhibition copyWith({
+    String? id,
+    String? title,
+    String? slug,
+    DateTime? exhibitionStartAt,
+    int? previewDuration,
+    String? noteTitle,
+    String? noteBrief,
+    String? note,
+    String? coverURI,
+    String? thumbnailCoverURI,
+    String? mintBlockchain,
+    FFCurator? curator,
+    List<FFArtist>? artists,
+    List<FFSeries>? series,
+    List<FFContract>? contracts,
+    FFArtist? partner,
+    String? type,
+    List<Post>? posts,
+    int? status,
+  }) =>
+      Exhibition(
+        id: id ?? this.id,
+        title: title ?? this.title,
+        slug: slug ?? this.slug,
+        exhibitionStartAt: exhibitionStartAt ?? this.exhibitionStartAt,
+        previewDuration: previewDuration ?? this.previewDuration,
+        noteTitle: noteTitle ?? this.noteTitle,
+        noteBrief: noteBrief ?? this.noteBrief,
+        note: note ?? this.note,
+        coverURI: coverURI ?? this.coverURI,
+        thumbnailCoverURI: thumbnailCoverURI ?? this.thumbnailCoverURI,
+        mintBlockchain: mintBlockchain ?? this.mintBlockchain,
+        curator: curator ?? this.curator,
+        artists: artists ?? this.artists,
+        series: series ?? this.series,
+        contracts: contracts ?? this.contracts,
+        partner: partner ?? this.partner,
+        type: type ?? this.type,
+        posts: posts ?? this.posts,
+        status: status ?? this.status,
+      );
 }
 
 class ExhibitionResponse {
-  final Exhibition result;
+  final Exhibition? result;
 
   ExhibitionResponse(this.result);
 
   factory ExhibitionResponse.fromJson(Map<String, dynamic> json) =>
       ExhibitionResponse(
-        Exhibition.fromJson(json['result'] as Map<String, dynamic>),
+        json['result'] == null
+            ? null
+            : Exhibition.fromJson(json['result'] as Map<String, dynamic>),
       );
 
   Map<String, dynamic> toJson() => {
@@ -138,84 +196,159 @@ class ExhibitionDetail {
   List<Artwork>? artworks;
 
   ExhibitionDetail({required this.exhibition, this.artworks});
+
+  ExhibitionDetail copyWith({
+    Exhibition? exhibition,
+    List<Artwork>? artworks,
+  }) =>
+      ExhibitionDetail(
+        exhibition: exhibition ?? this.exhibition,
+        artworks: artworks ?? this.artworks,
+      );
 }
 
-class ExhibitionEvent {
+class Resource {
   final String id;
-  final String exhibitionID;
+
+  Resource({required this.id});
+}
+
+class Post extends Resource {
   final String type;
+  final String slug;
   final String title;
-  final DateTime? dateTime;
-  final String? description;
-  final Map<String, String>? links;
+  final String content;
+  final int? displayIndex;
+  final String? coverURI;
   final DateTime createdAt;
   final DateTime updatedAt;
-  final MediaUri? mediaUri;
+  final DateTime? dateTime;
+  final String? description;
+  final String? author;
+  final String? exhibitionID;
+  final Exhibition? exhibition;
 
-  ExhibitionEvent({
-    required this.id,
-    required this.exhibitionID,
+  Post({
+    required super.id,
     required this.type,
+    required this.slug,
     required this.title,
+    required this.content,
+    required this.coverURI,
     required this.createdAt,
     required this.updatedAt,
     this.dateTime,
     this.description,
-    this.links,
-    this.mediaUri,
+    this.author,
+    this.displayIndex,
+    this.exhibitionID,
+    this.exhibition,
   });
 
-  factory ExhibitionEvent.fromJson(Map<String, dynamic> json) =>
-      ExhibitionEvent(
+  factory Post.fromJson(Map<String, dynamic> json) => Post(
         id: json['id'],
-        exhibitionID: json['exhibitionID'],
         type: json['type'],
+        slug: json['slug'],
         title: json['title'],
-        dateTime: DateTime.tryParse(json['dateTime'] ?? ''),
-        description: json['description'],
-        links: Map<String, String>.from(json['links'] ?? {}),
+        content: json['content'],
+        coverURI: json['coverURI'],
         createdAt: DateTime.parse(json['createdAt']),
         updatedAt: DateTime.parse(json['updatedAt']),
-        mediaUri: json['mediaUri'] == null
+        dateTime:
+            json['dateTime'] == null ? null : DateTime.parse(json['dateTime']),
+        description: json['description'],
+        author: json['author'],
+        displayIndex: json['displayIndex'],
+        exhibitionID: json['exhibitionID'],
+        exhibition: json['exhibition'] == null
             ? null
-            : MediaUri.fromJson(json['mediaUri'] as Map<String, dynamic>),
+            : Exhibition.fromJson(json['exhibition']),
       );
 
-  // toJson
   Map<String, dynamic> toJson() => {
         'id': id,
-        'exhibitionID': exhibitionID,
         'type': type,
+        'slug': slug,
         'title': title,
-        'dateTime': dateTime?.toIso8601String(),
-        'description': description,
-        'links': links,
+        'content': content,
+        'coverURI': coverURI,
         'createdAt': createdAt.toIso8601String(),
         'updatedAt': updatedAt.toIso8601String(),
-        'mediaUri': mediaUri?.toJson(),
+        'dateTime': dateTime?.toIso8601String(),
+        'description': description,
+        'author': author,
+        'displayIndex': displayIndex,
+        'exhibitionID': exhibitionID,
+        'exhibition': exhibition?.toJson(),
       };
 }
 
-class MediaUri {
-  final String url;
-  final String type;
-  final String? title;
+class CustomExhibitionNote extends Resource {
+  final String title;
+  final String content;
+  final bool? canReadMore;
 
-  MediaUri({
-    required this.url,
-    required this.type,
-    this.title,
-  });
+  CustomExhibitionNote(
+      {required super.id,
+      required this.title,
+      required this.content,
+      this.canReadMore});
 
-  factory MediaUri.fromJson(Map<String, dynamic> json) => MediaUri(
-        url: json['url'],
-        type: json['type'],
+  factory CustomExhibitionNote.fromJson(Map<String, dynamic> json) =>
+      CustomExhibitionNote(
+        id: json['id'],
         title: json['title'],
+        content: json['content'],
+        canReadMore: json['canReadMore'] ?? false,
       );
+}
 
-  Map<String, dynamic> toJson() => {
-        'url': url,
-        'type': type,
-        'title': title,
-      };
+enum MediaType {
+  image,
+  video,
+}
+
+extension PostExt on Post {
+  MediaType? get mediaType {
+    if (coverURI == null) {
+      return null;
+    }
+    final url = Uri.parse(coverURI!);
+    if (YOUTUBE_DOMAINS.any((domain) => url.host.contains(domain))) {
+      return MediaType.video;
+    }
+    return MediaType.image;
+  }
+
+  String get displayType =>
+      type == 'close-up' ? 'close_up'.tr() : type.capitalize();
+
+  List<String> get thumbnailUrls {
+    if (coverURI == null) {
+      return [];
+    }
+    if (mediaType == MediaType.image) {
+      return [getFFUrl(coverURI!)];
+    } else {
+      final List<String> thumbUrls = [];
+      final videoId = Uri.parse(coverURI!).queryParameters['v'];
+      for (var variant in YOUTUBE_VARIANTS) {
+        final url = 'https://img.youtube.com/vi/$videoId/$variant.jpg';
+        thumbUrls.add(url);
+      }
+      return thumbUrls;
+    }
+  }
+
+  String get previewUrl {
+    if (coverURI == null) {
+      return '';
+    }
+    if (mediaType == MediaType.image) {
+      return getFFUrl(coverURI!);
+    } else {
+      final videoId = Uri.parse(coverURI!).queryParameters['v'];
+      return 'https://www.youtube.com/embed/$videoId?autoplay=1&loop=1&controls=0';
+    }
+  }
 }

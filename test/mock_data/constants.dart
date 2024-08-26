@@ -1,16 +1,5 @@
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
 
-const String activationId = 'activationId';
-const String activationIdDioException4xx = 'activationIdDioException4xx';
-const String activationIdDioException5xx = 'activationIdDioException5xx';
-const String activationIdConnectionTimeout = 'activationIdConnectionTimeout';
-const String activationIdReceiveTimeout = 'activationIdReceiveTimeout';
-const String activationIdExceptionOther = 'activationIdExceptionOther';
-
-const String cannotSelfClaim = 'cannot self claim';
-const String invalidClaim = 'invalid claim';
-const String alreadyShare = 'the token is not available for share';
-
 const String id = 'id';
 const String idDioException4xx = 'idDioException4xx';
 const String idDioException5xx = 'idDioException5xx';
