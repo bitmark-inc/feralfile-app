@@ -71,7 +71,6 @@ class _OnboardingPageState extends State<OnboardingPage>
     unawaited(handleBranchLink());
     handleDeepLink();
     handleIrlLink();
-    context.read<UpgradesBloc>().add(UpgradeQueryInfoEvent());
   }
 
   @override
@@ -221,6 +220,8 @@ class _OnboardingPageState extends State<OnboardingPage>
               // hide code show surveys issues/1459
               // await Future.delayed(SHORT_SHOW_DIALOG_DURATION,
               //     () => showSurveysNotification(context));
+              case OnboardingStep.startScreen:
+                context.read<UpgradesBloc>().add(UpgradeQueryInfoEvent());
               default:
                 break;
             }
