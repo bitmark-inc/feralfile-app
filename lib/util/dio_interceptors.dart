@@ -34,10 +34,9 @@ class LoggingInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     final curl = cURLRepresentation(err.requestOptions);
-    final message = err.message;
     apiLog
       ..info('API Request: $curl')
-      ..warning('Respond error: $message');
+      ..warning('Respond error: ${err.response}');
     return handler.next(err);
   }
 
