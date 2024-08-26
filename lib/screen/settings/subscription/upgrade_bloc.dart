@@ -71,11 +71,15 @@ class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
         final subscriptionProductDetails =
             _iapService.products.value[subscriptionId];
         if (subscriptionProductDetails != null) {
-          await _iapService.purchase(subscriptionProductDetails);
-          final index = listSubscriptionDetails.indexWhere((element) =>
-              element.productDetails == subscriptionProductDetails);
-          listSubscriptionDetails[index] = SubscriptionDetails(
-              IAPProductStatus.pending, subscriptionProductDetails);
+          try {
+            await _iapService.purchase(subscriptionProductDetails);
+            final index = listSubscriptionDetails.indexWhere((element) =>
+            element.productDetails == subscriptionProductDetails);
+            listSubscriptionDetails[index] = SubscriptionDetails(
+                IAPProductStatus.pending, subscriptionProductDetails);
+          } catch (error) {
+            log.warning('Trigger purchase error: $error');
+          }
         } else {
           unawaited(Sentry.captureException('No item to purchase'));
           log.warning('No item to purchase');
@@ -89,6 +93,7 @@ class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
   }
 
   void _onNewIAPEventFunc() {
+    log.info('UpgradeBloc: _onNewIAPEventFunc');
     add(UpgradeIAPInfoEvent());
   }
 

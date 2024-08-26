@@ -156,7 +156,7 @@ class _FFCastButtonState extends State<FFCastButton> {
             bloc: _upgradesBloc,
             listener: (context, upgradeState) {
               final status =
-                  upgradeState.subscriptionDetails.firstOrNull?.status;
+                  upgradeState.activeSubscriptionDetails.firstOrNull?.status;
               log.info('Cast button: upgradeState: $status');
               if (status == IAPProductStatus.completed) {
                 Navigator.pop(context);
@@ -179,7 +179,9 @@ class _FFCastButtonState extends State<FFCastButton> {
                     price: price,
                     isProcessing: upgradeState.isProcessing,
                     isEnable: subscriptionDetail != null &&
-                        !upgradeState.isProcessing,
+                        !upgradeState.isProcessing &&
+                        subscriptionDetail.status ==
+                            IAPProductStatus.notPurchased,
                     onTap: (_) {
                       _onPressSubscribe(
                           subscriptionDetails: subscriptionDetail!);
