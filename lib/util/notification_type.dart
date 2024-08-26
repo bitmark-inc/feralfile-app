@@ -151,13 +151,12 @@ class NotificationHandler {
       return;
     }
     // prepare for handling notification
-    final shouldShow = await additionalData.prepareAndDidSuccess();
+    final shouldShow = additionalData.prepareAndDidSuccess();
     if (!shouldShow || !context.mounted) {
       return;
     }
 
-    unawaited(
-        _showNotification(context, id, body, pageController, additionalData));
+    await _showNotification(context, id, body, pageController, additionalData);
   }
 
   Future<void> _showNotification(
