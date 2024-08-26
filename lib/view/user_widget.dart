@@ -83,7 +83,10 @@ class UserProfile extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: UserAvatar(url: user.avatarUrl),
+              child: AspectRatio(
+                child: UserAvatar(url: user.avatarUrl),
+                aspectRatio: 1,
+              ),
             ),
           ],
         ),

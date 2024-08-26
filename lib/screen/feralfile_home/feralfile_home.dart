@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/playlist_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/cast_button.dart';
+import 'package:autonomy_flutter/view/keep_alive_widget.dart';
 import 'package:autonomy_flutter/view/stream_common_widget.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -286,7 +287,8 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
     final tab = FeralfileHomeTab.values[_selectedIndex];
     switch (tab) {
       case FeralfileHomeTab.featured:
-        return _featuredWidget(context, state.featuredArtworks ?? []);
+        return KeepAliveWidget(
+            child: _featuredWidget(context, state.featuredArtworks ?? []));
       case FeralfileHomeTab.artworks:
         return _artworksWidget(context);
       case FeralfileHomeTab.exhibitions:
@@ -304,17 +306,18 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
     final tokenIDs =
         featuredArtworks.map((e) => e.indexerTokenId).whereNotNull().toList();
     return MultiBlocProvider(
-        providers: [
-          BlocProvider<IdentityBloc>(
-            create: (context) => IdentityBloc(injector(), injector()),
-          ),
-        ],
-        child: Expanded(
-          child: FeaturedWorkView(
-            key: _featuredWorkKey,
-            tokenIDs: tokenIDs,
-          ),
-        ));
+      providers: [
+        BlocProvider<IdentityBloc>(
+          create: (context) => IdentityBloc(injector(), injector()),
+        ),
+      ],
+      child: Expanded(
+        child: FeaturedWorkView(
+          key: _featuredWorkKey,
+          tokenIDs: tokenIDs,
+        ),
+      ),
+    );
   }
 
   Widget _artworksWidget(BuildContext context) => Expanded(

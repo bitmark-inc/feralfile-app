@@ -10,9 +10,9 @@ import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/util/feral_file_explore_helper.dart';
 import 'package:autonomy_flutter/util/feralfile_artist_ext.dart';
 import 'package:autonomy_flutter/view/loading.dart';
+import 'package:autonomy_flutter/view/user_widget.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 class ExploreArtistView extends StatefulWidget {
   final String? searchText;
@@ -392,15 +392,7 @@ class _ListUserViewState extends State<ListUserView> {
 
   Widget _artistAvatar(BuildContext context, FFUser user) {
     final avatarUrl = user.avatarUrl;
-    return avatarUrl != null
-        ? Image.network(
-            avatarUrl,
-            fit: BoxFit.fitWidth,
-          )
-        : SvgPicture.asset(
-            'assets/images/default_avatat.svg',
-            fit: BoxFit.fitWidth,
-          );
+    return UserAvatar(url: avatarUrl);
   }
 
   Widget _artistItem(BuildContext context, FFUser user) {
