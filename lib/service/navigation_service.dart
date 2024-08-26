@@ -163,14 +163,6 @@ class NavigationService {
         route.settings.name == AppRouter.homePageNoTransition);
   }
 
-  void restorablePushHomePage() {
-    navigatorKey.currentState?.restorablePushNamedAndRemoveUntil(
-        AppRouter.homePageNoTransition,
-        (route) =>
-            route.settings.name == AppRouter.homePage ||
-            route.settings.name == AppRouter.homePageNoTransition);
-  }
-
   void setIsWCConnectInShow(bool appeared) {
     _isWCConnectInShow = appeared;
   }
@@ -254,6 +246,24 @@ class NavigationService {
         navigatorKey.currentState?.mounted == true) {
       await UIHelper.showInfoDialog(context, 'can_not_connect_to_tv'.tr(),
           'can_not_connect_to_tv_desc'.tr(),
+          onClose: () => UIHelper.hideInfoDialog(context), isDismissible: true);
+    }
+  }
+
+  Future<void> showUnknownLink() async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await UIHelper.showInfoDialog(
+          context, 'unknown_link'.tr(), 'unknown_link_desc'.tr(),
+          onClose: () => UIHelper.hideInfoDialog(context), isDismissible: true);
+    }
+  }
+
+  Future<void> showCannotResolveBranchLink() async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await UIHelper.showInfoDialog(context, 'can_not_resolve_branch_link'.tr(),
+          'can_not_resolve_branch_link_desc'.tr(),
           onClose: () => UIHelper.hideInfoDialog(context), isDismissible: true);
     }
   }

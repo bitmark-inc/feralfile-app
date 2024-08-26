@@ -506,6 +506,54 @@ class Constants {
     'https://feralfile-app-alternate.test-app.link',
     'https://app.feralfile.com',
   ];
+
+  static const wcPrefixes = [
+    'https://au.bitmark.com/apps/wc?uri=',
+    'https://au.bitmark.com/apps/wc/wc?uri=',
+    'https://autonomy.io/apps/wc?uri=',
+    'https://autonomy.io/apps/wc/wc?uri=',
+    'autonomy://wc?uri=',
+    'autonomy-wc://wc?uri=',
+    'https://app.feralfile.com/apps/wc?uri=',
+    'https://app.feralfile.com/apps/wc/wc?uri=',
+    'feralfile://wc?uri=',
+    'feralfile-wc://wc?uri=',
+  ];
+
+  static const tzPrefixes = [
+    'https://au.bitmark.com/apps/tezos?uri=',
+    'https://autonomy.io/apps/tezos?uri=',
+    'https://feralfile.com/apps/tezos?uri=',
+  ];
+
+  static const wcDeeplinkPrefixes = [
+    'wc:',
+    'autonomy-wc:',
+    'feralfile-wc:',
+  ];
+
+  static const tbDeeplinkPrefixes = [
+    'tezos://',
+    'autonomy-tezos://',
+    'feralfile-tezos://',
+  ];
+
+  static const postcardPayToMintPrefixes = [
+    'https://autonomy.io/apps/moma-postcards/purchase',
+  ];
+
+  static const navigationPrefixes = [
+    'feralfile://navigation/',
+  ];
+
+  static const dAppConnectPrefixes = [
+    ...wcPrefixes,
+    ...tzPrefixes,
+    ...wcDeeplinkPrefixes,
+    ...tbDeeplinkPrefixes,
+    ...postcardPayToMintPrefixes,
+    ...navigationPrefixes,
+  ];
 }
 
 Map<String, String> specifiedSeriesTitle = {
