@@ -128,8 +128,11 @@ class FeaauredWorkViewState extends State<FeaauredWorkView> {
                               width: double.infinity,
                               errorWidget: (context, url, error) =>
                                   const Icon(Icons.error),
-                              placeholder: (context, url) =>
-                                  const GalleryThumbnailPlaceholder(),
+                              placeholder: (context, url) => SizedBox(
+                                  height: MediaQuery.of(context).size.width /
+                                      16 *
+                                      9,
+                                  child: const LoadingWidget()),
                             ),
                             _infoHeader(context, token, artistName, false,
                                 context.read<CanvasDeviceBloc>().state),

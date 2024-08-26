@@ -8,6 +8,7 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/feralfile_artist_ext.dart';
 import 'package:autonomy_flutter/view/feralfile_cache_network_image.dart';
+import 'package:autonomy_flutter/view/loading.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/gestures.dart';
@@ -51,13 +52,7 @@ class ExhibitionCard extends StatelessWidget {
                           height: size,
                           width: size,
                           color: Colors.transparent,
-                          child: const Center(
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              backgroundColor: AppColor.auQuickSilver,
-                              strokeWidth: 2,
-                            ),
-                          ),
+                          child: const LoadingWidget(),
                         ),
                       )
                     : FFCacheNetworkImage(
@@ -72,13 +67,7 @@ class ExhibitionCard extends StatelessWidget {
                           height: size,
                           width: size,
                           color: Colors.transparent,
-                          child: const Center(
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              backgroundColor: AppColor.auQuickSilver,
-                              strokeWidth: 2,
-                            ),
-                          ),
+                          child: const LoadingWidget(),
                         ),
                         fit: BoxFit.fitWidth,
                       ),

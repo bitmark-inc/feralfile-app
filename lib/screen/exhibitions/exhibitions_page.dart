@@ -17,6 +17,7 @@ import 'package:autonomy_flutter/util/feralfile_artist_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/header.dart';
+import 'package:autonomy_flutter/view/loading.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -163,13 +164,7 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                         height: estimatedHeight,
                         width: estimatedWidth,
                         color: Colors.transparent,
-                        child: const Center(
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            backgroundColor: AppColor.auQuickSilver,
-                            strokeWidth: 2,
-                          ),
-                        ),
+                        child: const LoadingWidget(),
                       ),
                     )
                   : CachedNetworkImage(
@@ -184,13 +179,7 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
                         height: estimatedHeight,
                         width: estimatedWidth,
                         color: Colors.transparent,
-                        child: const Center(
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            backgroundColor: AppColor.auQuickSilver,
-                            strokeWidth: 2,
-                          ),
-                        ),
+                        child: const LoadingWidget(),
                       ),
                       fit: BoxFit.fitWidth,
                     ),
@@ -292,14 +281,12 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
             BlocBuilder<SubscriptionBloc, SubscriptionState>(
           builder: (context, subscriptionState) {
             if (exhibitionsState.currentPage == 0) {
-              return const SliverToBoxAdapter(
-                child: Center(
-                  child: CircularProgressIndicator(
-                    color: Colors.white,
-                    backgroundColor: AppColor.auQuickSilver,
-                    strokeWidth: 2,
-                  ),
-                ),
+              return SliverToBoxAdapter(
+                child: SizedBox(
+                  height:  MediaQuery.of(context).size.width /
+                      16 *
+                      9,
+                    child: const LoadingWidget()),
               );
             } else {
               final featureExhibition = exhibitionsState.featuredExhibition;

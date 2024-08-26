@@ -19,6 +19,7 @@ import 'package:autonomy_flutter/view/custom_note.dart';
 import 'package:autonomy_flutter/view/exhibition_detail_last_page.dart';
 import 'package:autonomy_flutter/view/exhibition_detail_preview.dart';
 import 'package:autonomy_flutter/view/ff_artwork_preview.dart';
+import 'package:autonomy_flutter/view/loading.dart';
 import 'package:autonomy_flutter/view/note_view.dart';
 import 'package:autonomy_flutter/view/post_view.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -81,9 +82,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
   Widget _body(BuildContext context, ExhibitionDetailState state) {
     final exhibition = state.exhibition;
     if (exhibition == null) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return const LoadingWidget();
     }
 
     final itemCount =

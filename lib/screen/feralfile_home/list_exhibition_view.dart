@@ -284,13 +284,7 @@ class _ListExhibitionViewState extends State<ListExhibitionView> {
                         height: estimatedHeight,
                         width: estimatedWidth,
                         color: Colors.transparent,
-                        child: const Center(
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            backgroundColor: AppColor.auQuickSilver,
-                            strokeWidth: 2,
-                          ),
-                        ),
+                        child: const LoadingWidget(),
                       ),
                     )
                   : FFCacheNetworkImage(
@@ -305,13 +299,7 @@ class _ListExhibitionViewState extends State<ListExhibitionView> {
                         height: estimatedHeight,
                         width: estimatedWidth,
                         color: Colors.transparent,
-                        child: const Center(
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            backgroundColor: AppColor.auQuickSilver,
-                            strokeWidth: 2,
-                          ),
-                        ),
+                        child: const LoadingWidget(),
                       ),
                       fit: BoxFit.fitWidth,
                     ),
