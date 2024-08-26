@@ -118,11 +118,8 @@ class NotificationHandler {
   final MetricClientService _metricClientService =
       injector<MetricClientService>();
 
-  Future<void> handleNotificationClicked(
-      BuildContext context,
-      AdditionalData additionalData,
-      String id,
-      String body,
+  Future<void> handleNotificationClicked(BuildContext context,
+      AdditionalData additionalData, String id, String body,
       {String channel = 'push'}) async {
     log.info('Tap to notification: $body ');
 
