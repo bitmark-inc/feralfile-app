@@ -93,7 +93,8 @@ class MockNavigationService extends _i2.Mock implements _i3.NavigationService {
         returnValue: false,
       ) as bool);
   @override
-  void setGlobalHomeTabController(_i1.PageController? controller) => super.noSuchMethod(
+  void setGlobalHomeTabController(_i1.PageController? controller) =>
+      super.noSuchMethod(
         Invocation.method(
           #setPageController,
           [controller],
