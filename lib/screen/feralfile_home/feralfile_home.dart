@@ -202,9 +202,7 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
                   if (_selectedIndex == FeralfileHomeTab.featured.index &&
                       state.featuredArtworks != null &&
                       state.featuredArtworks!.isNotEmpty)
-                    Expanded(
-                        child:
-                            _castButton(context, state.featuredArtworks ?? [])),
+                    _castButton(context, state.featuredArtworks ?? []),
                 ],
               ),
             ),
@@ -468,7 +466,7 @@ class _ItemExpandedWidgetState extends State<ItemExpandedWidget> {
       color: theme.colorScheme.secondary,
     );
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         _itemWidget(context, widget.items.first),
         const Spacer(),
@@ -491,13 +489,18 @@ class _ItemExpandedWidgetState extends State<ItemExpandedWidget> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        IgnorePointer(
-          child: _itemWidget(context, _selectedItem(), withSubtitle: false),
-        ),
-        const SizedBox(width: 8),
-        Column(
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            widget.iconOnUnExpanded ?? defaultIcon,
+            IgnorePointer(
+              child: _itemWidget(context, _selectedItem(), withSubtitle: false),
+            ),
+            const SizedBox(width: 8),
+            Column(
+              children: [
+                widget.iconOnUnExpanded ?? defaultIcon,
+              ],
+            ),
           ],
         ),
         const Spacer(),
