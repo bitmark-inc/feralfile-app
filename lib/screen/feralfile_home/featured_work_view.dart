@@ -182,6 +182,15 @@ class FeaturedWorkViewState extends State<FeaturedWorkView> {
               childCount: _featureTokens?.length ?? 0,
             )),
           ),
+          // show loading when loading more
+          SliverToBoxAdapter(
+            child: _isLoading && _paging.offset != 0
+                ? Container(
+                    height: 100,
+                    child: const LoadingWidget(),
+                  )
+                : const SizedBox(),
+          ),
           // safe height for bottom
           SliverToBoxAdapter(
             child: Container(
@@ -235,7 +244,9 @@ class FeaturedWorkViewState extends State<FeaturedWorkView> {
     if (_isLoading) {
       return;
     }
-    _isLoading = true;
+    setState(() {
+      _isLoading = true;
+    });
     try {
       final tokenIds = widget.tokenIDs.sublist(
           paging.offset, min(paging.offset + paging.limit, paging.total));
@@ -244,6 +255,10 @@ class FeaturedWorkViewState extends State<FeaturedWorkView> {
         return;
       }
       final tokens = await _getTokens(context, tokenIds);
+      if (!context.mounted) {
+        _isLoading = false;
+        return;
+      }
       setState(() {
         _featureTokens ??= [];
         _featureTokens!.addAll(tokens);
@@ -254,20 +269,33 @@ class FeaturedWorkViewState extends State<FeaturedWorkView> {
 
         log.info('feature tokens: ${_featureTokens!.length}');
       });
+      _isLoading = false;
     } catch (e) {
       log.info('Error while load more featured work: $e');
+      if (context.mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      } else {
+        _isLoading = false;
+      }
     }
-    _isLoading = false;
   }
 
   Future<void> _fetchFeaturedTokens(BuildContext context, Paging paging) async {
     if (_isLoading) {
       return;
     }
-    _isLoading = true;
+    setState(() {
+      _isLoading = true;
+    });
     final tokenIds =
         widget.tokenIDs.sublist(0, min(paging.limit, paging.total));
     final tokens = await _getTokens(context, tokenIds);
+    if (!context.mounted) {
+      _isLoading = false;
+      return;
+    }
     setState(() {
       _featureTokens ??= [];
       _featureTokens!.clear();
@@ -276,9 +304,9 @@ class FeaturedWorkViewState extends State<FeaturedWorkView> {
           offset: paging.offset + tokens.length,
           limit: paging.limit,
           total: paging.total);
+      _isLoading = false;
       log.info('feature tokens: ${_featureTokens!.length}');
     });
-    _isLoading = false;
   }
 
   void _onTapArtwork(BuildContext context, AssetToken token) {

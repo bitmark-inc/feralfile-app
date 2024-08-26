@@ -24,6 +24,7 @@ import 'package:autonomy_flutter/util/collection_ext.dart';
 import 'package:autonomy_flutter/util/predefined_collection_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/galery_thumbnail_item.dart';
 import 'package:autonomy_flutter/view/get_started_banner.dart';
 import 'package:autonomy_flutter/view/header.dart';
@@ -126,148 +127,210 @@ class CollectionProState extends State<CollectionPro>
 
   @override
   Widget build(BuildContext context) {
-    final paddingTop = MediaQuery.of(context).padding.top;
-    return SafeArea(
-      top: false,
-      bottom: false,
-      child: BlocConsumer(
-        bloc: _bloc,
-        listener: (context, state) {
-          if (state is CollectionLoadedState) {
-            fetchIdentities(state);
-            setState(() {
-              _listPredefinedCollectionByMedium =
-                  state.listPredefinedCollectionByMedium ?? [];
-              _works = state.works;
-              _isLoaded = true;
-            });
-          }
+    final paddingTop = MediaQuery.of(context).padding.top + 40;
+    return Scaffold(
+      appBar: getFFAppBar(
+        context,
+        onBack: () {
+          Navigator.pop(context);
         },
-        builder: (context, collectionProState) {
-          if (collectionProState is CollectionLoadedState) {
-            return BlocConsumer<IdentityBloc, IdentityState>(
-                listener: (context, identityState) {
-                  final identityMap = identityState.identityMap
-                    ..removeWhere((key, value) => value.isEmpty);
-                  final listPredefinedCollectionByArtist = (collectionProState
-                              .listPredefinedCollectionByArtist ??
-                          [])
-                      .map(
-                        (e) {
-                          String name = e.name ?? e.id;
-                          if (name == e.id) {
-                            name = name.toIdentityOrMask(identityMap) ??
-                                name.maskOnly(5);
-                          }
-                          e.name = name;
-                          return e;
-                        },
-                      )
-                      .toList()
-                      .filterByName(searchStr.value)
-                    ..sort((a, b) => a.name.compareSearchKey(b.name));
+        centerTitle: false,
+        title: TitleText(title: 'organize'.tr()),
+        action: !isShowSearchBar
+            ? IconButton(
+                onPressed: () {
                   setState(() {
-                    _listPredefinedCollectionByArtist =
-                        listPredefinedCollectionByArtist;
+                    isShowSearchBar = true;
                   });
                 },
-                builder: (context, identityState) {
-                  final isEmptyView = !_isLoaded ||
-                      (_isEmptyCollection() && searchStr.value.isEmpty);
-                  final isSearchEmptyView = _isLoaded &&
-                      _isEmptyCollection() &&
-                      searchStr.value.isNotEmpty;
-                  return CustomScrollView(
-                    controller: _scrollController,
-                    shrinkWrap: true,
-                    slivers: [
-                      SliverToBoxAdapter(
-                        child: SizedBox(height: paddingTop),
-                      ),
-                      SliverToBoxAdapter(
-                        child: _pageHeader(context),
-                      ),
-                      if (!isEmptyView)
-                        SliverToBoxAdapter(
-                          child: ValueListenableBuilder(
-                            valueListenable: searchStr,
-                            builder: (BuildContext context, String value,
-                                    Widget? child) =>
-                                CollectionSection(
-                              key: _collectionSectionKey,
-                              filterString: value,
-                            ),
-                          ),
-                        ),
-                      if (isEmptyView) ...[
-                        SliverToBoxAdapter(
-                          child: Visibility(
-                            visible: isEmptyView,
+                constraints: const BoxConstraints(
+                  maxWidth: 44,
+                  maxHeight: 44,
+                  minWidth: 44,
+                  minHeight: 44,
+                ),
+                icon: Padding(
+                  padding: const EdgeInsets.all(0),
+                  child: SvgPicture.asset(
+                    'assets/images/search.svg',
+                    width: 24,
+                    height: 24,
+                    colorFilter:
+                        const ColorFilter.mode(AppColor.white, BlendMode.srcIn),
+                  ),
+                ),
+              )
+            : const SizedBox(),
+      ),
+      backgroundColor: AppColor.primaryBlack,
+      body: SafeArea(
+        top: false,
+        bottom: false,
+        child: BlocConsumer(
+          bloc: _bloc,
+          listener: (context, state) {
+            if (state is CollectionLoadedState) {
+              fetchIdentities(state);
+              setState(() {
+                _listPredefinedCollectionByMedium =
+                    state.listPredefinedCollectionByMedium ?? [];
+                _works = state.works;
+                _isLoaded = true;
+              });
+            }
+          },
+          builder: (context, collectionProState) {
+            if (collectionProState is CollectionLoadedState) {
+              return BlocConsumer<IdentityBloc, IdentityState>(
+                  listener: (context, identityState) {
+                    final identityMap = identityState.identityMap
+                      ..removeWhere((key, value) => value.isEmpty);
+                    final listPredefinedCollectionByArtist = (collectionProState
+                                .listPredefinedCollectionByArtist ??
+                            [])
+                        .map(
+                          (e) {
+                            String name = e.name ?? e.id;
+                            if (name == e.id) {
+                              name = name.toIdentityOrMask(identityMap) ??
+                                  name.maskOnly(5);
+                            }
+                            e.name = name;
+                            return e;
+                          },
+                        )
+                        .toList()
+                        .filterByName(searchStr.value)
+                      ..sort((a, b) => a.name.compareSearchKey(b.name));
+                    setState(() {
+                      _listPredefinedCollectionByArtist =
+                          listPredefinedCollectionByArtist;
+                    });
+                  },
+                  builder: (context, identityState) {
+                    final isEmptyView = !_isLoaded ||
+                        (_isEmptyCollection() && searchStr.value.isEmpty);
+                    final isSearchEmptyView = _isLoaded &&
+                        _isEmptyCollection() &&
+                        searchStr.value.isNotEmpty;
+                    return CustomScrollView(
+                      controller: _scrollController,
+                      shrinkWrap: true,
+                      slivers: [
+                        if (isShowSearchBar)
+                          SliverToBoxAdapter(
                             child: Padding(
                               padding:
-                                  const EdgeInsets.symmetric(horizontal: 15),
-                              child: _emptyView(context),
+                                  const EdgeInsets.symmetric(horizontal: 8),
+                              child: ActionBar(
+                                searchBar: AuSearchBar(
+                                  onChanged: (text) {},
+                                  onSearch: (text) {
+                                    setState(() {
+                                      searchStr.value = text;
+                                    });
+                                  },
+                                  onClear: (text) {
+                                    setState(() {
+                                      searchStr.value = text;
+                                    });
+                                  },
+                                ),
+                                onCancel: () {
+                                  setState(() {
+                                    searchStr.value = '';
+                                    isShowSearchBar = false;
+                                  });
+                                },
+                              ),
                             ),
                           ),
-                        ),
-                      ] else if (isSearchEmptyView) ...[
                         SliverToBoxAdapter(
-                          child: Visibility(
-                            visible: isSearchEmptyView,
-                            child: Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 15),
-                              child: _searchEmptyView(context),
+                          child: SizedBox(height: paddingTop),
+                        ),
+                        if (!isEmptyView)
+                          SliverToBoxAdapter(
+                            child: ValueListenableBuilder(
+                              valueListenable: searchStr,
+                              builder: (BuildContext context, String value,
+                                      Widget? child) =>
+                                  CollectionSection(
+                                key: _collectionSectionKey,
+                                filterString: value,
+                              ),
                             ),
                           ),
-                        ),
-                      ] else ...[
-                        const SliverToBoxAdapter(
-                          child: SizedBox(height: 60),
-                        ),
-                        if (searchStr.value.isEmpty) ...[
-                          SliverList(
-                            delegate: SliverChildBuilderDelegate(
-                              _predefinedCollectionByMediumBuilder,
-                              childCount:
-                                  _listPredefinedCollectionByMedium.length + 1,
+                        if (isEmptyView) ...[
+                          SliverToBoxAdapter(
+                            child: Visibility(
+                              visible: isEmptyView,
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 8),
+                                child: _emptyView(context),
+                              ),
                             ),
                           ),
+                        ] else if (isSearchEmptyView) ...[
+                          SliverToBoxAdapter(
+                            child: Visibility(
+                              visible: isSearchEmptyView,
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 8),
+                                child: _searchEmptyView(context),
+                              ),
+                            ),
+                          ),
+                        ] else ...[
                           const SliverToBoxAdapter(
                             child: SizedBox(height: 60),
                           ),
-                        ],
-                        if (searchStr.value.isNotEmpty) ...[
+                          if (searchStr.value.isEmpty) ...[
+                            SliverList(
+                              delegate: SliverChildBuilderDelegate(
+                                _predefinedCollectionByMediumBuilder,
+                                childCount:
+                                    _listPredefinedCollectionByMedium.length +
+                                        1,
+                              ),
+                            ),
+                            const SliverToBoxAdapter(
+                              child: SizedBox(height: 60),
+                            ),
+                          ],
+                          if (searchStr.value.isNotEmpty) ...[
+                            SliverList(
+                              delegate: SliverChildBuilderDelegate(
+                                _worksBuilder,
+                                childCount: _works.length + 1,
+                              ),
+                            ),
+                            const SliverToBoxAdapter(
+                              child: SizedBox(height: 60),
+                            ),
+                          ],
                           SliverList(
                             delegate: SliverChildBuilderDelegate(
-                              _worksBuilder,
-                              childCount: _works.length + 1,
+                              _predefinedCollectionByArtistBuilder,
+                              childCount: min(
+                                      _listPredefinedCollectionByArtist.length,
+                                      _maxArtistsView) +
+                                  1,
                             ),
                           ),
                           const SliverToBoxAdapter(
-                            child: SizedBox(height: 60),
+                            child: SizedBox(height: 100),
                           ),
                         ],
-                        SliverList(
-                          delegate: SliverChildBuilderDelegate(
-                            _predefinedCollectionByArtistBuilder,
-                            childCount: min(
-                                    _listPredefinedCollectionByArtist.length,
-                                    _maxArtistsView) +
-                                1,
-                          ),
-                        ),
-                        const SliverToBoxAdapter(
-                          child: SizedBox(height: 100),
-                        ),
                       ],
-                    ],
-                  );
-                },
-                bloc: _identityBloc);
-          }
-          return const Center(child: CircularProgressIndicator());
-        },
+                    );
+                  },
+                  bloc: _identityBloc);
+            }
+            return const Center(child: CircularProgressIndicator());
+          },
+        ),
       ),
     );
   }
@@ -356,7 +419,7 @@ class CollectionProState extends State<CollectionPro>
   }
 
   Widget _worksBuilder(BuildContext context, int index) {
-    const padding = EdgeInsets.symmetric(horizontal: 15);
+    const padding = EdgeInsets.symmetric(horizontal: 8);
     final sep = addDivider(color: AppColor.auLightGrey);
     if (index == 0) {
       return Padding(
@@ -375,7 +438,7 @@ class CollectionProState extends State<CollectionPro>
       );
     } else {
       return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 15),
+        padding: const EdgeInsets.symmetric(horizontal: 8),
         child: Column(
           children: [
             Padding(
@@ -409,7 +472,7 @@ class CollectionProState extends State<CollectionPro>
     Widget? action,
   }) {
     final sep = addOnlyDivider(color: AppColor.auGreyBackground);
-    const padding = EdgeInsets.symmetric(horizontal: 15);
+    const padding = EdgeInsets.symmetric(horizontal: 8);
     if (index == 0) {
       return Padding(
         padding: padding,
@@ -430,7 +493,7 @@ class CollectionProState extends State<CollectionPro>
     } else {
       final predefinedCollection = _getPredefinedCollection(index - 1, type);
       return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 15),
+        padding: const EdgeInsets.symmetric(horizontal: 8),
         child: Column(
           children: [
             PredefinedCollectionItem(
@@ -455,73 +518,6 @@ class CollectionProState extends State<CollectionPro>
       title: title,
       padding: EdgeInsets.zero,
       action: action,
-    );
-  }
-
-  Widget _pageHeader(BuildContext context) {
-    final paddingTop = MediaQuery.of(context).viewPadding.top;
-    return Padding(
-      padding: EdgeInsets.only(top: paddingTop)
-          .add(const EdgeInsets.fromLTRB(12, 33, 12, 42)),
-      child: !isShowSearchBar
-          ? HeaderView(
-              padding: EdgeInsets.zero,
-              title: 'organize'.tr(),
-              action: IconButton(
-                onPressed: () {
-                  setState(() {
-                    isShowSearchBar = true;
-                  });
-                },
-                constraints: const BoxConstraints(
-                  maxWidth: 44,
-                  maxHeight: 44,
-                  minWidth: 44,
-                  minHeight: 44,
-                ),
-                icon: Padding(
-                  padding: const EdgeInsets.all(0),
-                  child: SvgPicture.asset(
-                    'assets/images/search.svg',
-                    width: 24,
-                    height: 24,
-                    colorFilter:
-                        const ColorFilter.mode(AppColor.white, BlendMode.srcIn),
-                  ),
-                ),
-              ),
-            )
-          : Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Align(
-                  alignment: Alignment.bottomLeft,
-                  child: ActionBar(
-                    searchBar: AuSearchBar(
-                      onChanged: (text) {},
-                      onSearch: (text) {
-                        setState(() {
-                          searchStr.value = text;
-                        });
-                      },
-                      onClear: (text) {
-                        setState(() {
-                          searchStr.value = text;
-                        });
-                      },
-                    ),
-                    onCancel: () {
-                      setState(() {
-                        searchStr.value = '';
-                        isShowSearchBar = false;
-                      });
-                    },
-                  ),
-                ),
-                const SizedBox(height: 20),
-                if (searchStr.value.isEmpty) TitleText(title: 'organize'.tr()),
-              ],
-            ),
     );
   }
 

@@ -1251,7 +1251,9 @@ class AppRouter {
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) => MultiBlocProvider(
-            providers: [],
+            providers: [
+              BlocProvider.value(value: subscriptionBloc),
+            ],
             child: CollectionHomePage(),
           ),
         );
@@ -1259,7 +1261,9 @@ class AppRouter {
         return CupertinoPageRoute(
           settings: settings,
           builder: (context) => MultiBlocProvider(
-            providers: [],
+            providers: [
+              BlocProvider.value(value: subscriptionBloc),
+            ],
             child: OrganizeHomePage(),
           ),
         );

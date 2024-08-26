@@ -466,10 +466,15 @@ class _ItemExpandedWidgetState extends State<ItemExpandedWidget> {
       color: theme.colorScheme.secondary,
     );
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         _itemWidget(context, widget.items.first),
         const Spacer(),
-        widget.iconOnExpanded ?? defaultIcon,
+        Column(
+          children: [
+            widget.iconOnExpanded ?? defaultIcon,
+          ],
+        )
       ],
     );
   }
@@ -482,12 +487,22 @@ class _ItemExpandedWidgetState extends State<ItemExpandedWidget> {
       color: theme.colorScheme.secondary,
     );
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        IgnorePointer(
-          child: _itemWidget(context, _selectedItem(), withSubtitle: false),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            IgnorePointer(
+              child: _itemWidget(context, _selectedItem(), withSubtitle: false),
+            ),
+            const SizedBox(width: 8),
+            Column(
+              children: [
+                widget.iconOnUnExpanded ?? defaultIcon,
+              ],
+            ),
+          ],
         ),
-        const SizedBox(width: 8),
-        widget.iconOnUnExpanded ?? defaultIcon,
         const Spacer(),
         ...widget.actions,
       ],

@@ -156,10 +156,7 @@ class NotificationHandler {
     }
     switch (notificationType) {
       case NotificationType.galleryNewNft:
-        Navigator.of(context).popUntil((route) =>
-            route.settings.name == AppRouter.homePage ||
-            route.settings.name == AppRouter.homePageNoTransition);
-        pageController?.jumpToPage(HomeNavigatorTab.collection.index);
+        await _navigationService.popToCollection();
 
       case NotificationType.customerSupportNewMessage:
       case NotificationType.customerSupportCloseIssue:
@@ -185,10 +182,7 @@ class NotificationHandler {
 
       case NotificationType.artworkCreated:
       case NotificationType.artworkReceived:
-        Navigator.of(context).popUntil((route) =>
-            route.settings.name == AppRouter.homePage ||
-            route.settings.name == AppRouter.homePageNoTransition);
-        pageController?.jumpToPage(HomeNavigatorTab.collection.index);
+        await _navigationService.popToCollection();
       case NotificationType.newMessage:
         if (!_remoteConfig.getBool(ConfigGroup.viewDetail, ConfigKey.chat)) {
           return;

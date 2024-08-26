@@ -265,8 +265,6 @@ class MemoryValues {
 enum HomeNavigatorTab {
   daily,
   explore,
-  collection,
-  organization,
   menu;
 
   String get screenName => getPageName(routeName);
@@ -275,10 +273,6 @@ enum HomeNavigatorTab {
     switch (this) {
       case HomeNavigatorTab.daily:
         return AppRouter.dailyWorkPage;
-      case HomeNavigatorTab.collection:
-        return AppRouter.collectionPage;
-      case HomeNavigatorTab.organization:
-        return AppRouter.organizePage;
       case HomeNavigatorTab.explore:
         return AppRouter.explorePage;
       case HomeNavigatorTab.menu:

@@ -167,7 +167,6 @@ class DailyWorkPageState extends State<DailyWorkPage>
   Widget _buildBody() => PageView(
         controller: _pageController,
         scrollDirection: Axis.vertical,
-        physics: const NeverScrollableScrollPhysics(),
         children: [
           KeepAliveWidget(child: _dailyPreview()),
           KeepAliveWidget(child: _dailyDetails(context)),
@@ -286,12 +285,14 @@ class DailyWorkPageState extends State<DailyWorkPage>
                     Expanded(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 20),
-                        child: ArtworkPreviewWidget(
-                          key: _artworkKey,
-                          useIndexer: true,
-                          identity: ArtworkIdentity(
-                            assetToken.id,
-                            assetToken.owner,
+                        child: IgnorePointer(
+                          child: ArtworkPreviewWidget(
+                            key: _artworkKey,
+                            useIndexer: true,
+                            identity: ArtworkIdentity(
+                              assetToken.id,
+                              assetToken.owner,
+                            ),
                           ),
                         ),
                       ),

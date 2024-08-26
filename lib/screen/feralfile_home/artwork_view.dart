@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/util/feralfile_artist_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/series_ext.dart';
+import 'package:autonomy_flutter/view/feralfile_cache_network_image.dart';
 import 'package:autonomy_flutter/view/loading.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -318,8 +319,8 @@ class _SeriesViewState extends State<SeriesView> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Expanded(
-                      child: Image.network(
-                        series.thumbnailUrl ?? '',
+                      child: FFCacheNetworkImage(
+                        imageUrl: series.thumbnailUrl ?? '',
                         fit: BoxFit.fitWidth,
                       ),
                     ),

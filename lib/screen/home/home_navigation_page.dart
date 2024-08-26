@@ -18,8 +18,8 @@ import 'package:autonomy_flutter/screen/dailies_work/dailies_work_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/feralfile_home.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/feralfile_home_bloc.dart';
-import 'package:autonomy_flutter/screen/home/collection_home_page.dart';
-import 'package:autonomy_flutter/screen/home/organize_home_page.dart';
+import 'package:autonomy_flutter/screen/home/home_bloc.dart';
+import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
@@ -29,7 +29,6 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/notification_service.dart' as nc;
-import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
@@ -88,14 +87,11 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   PageController? _pageController;
   late List<Widget> _pages;
   final GlobalKey<DailyWorkPageState> _dailyWorkKey = GlobalKey();
-  final GlobalKey<OrganizeHomePageState> _organizeHomePageKey = GlobalKey();
-  final GlobalKey<CollectionHomePageState> _collectionHomePageKey = GlobalKey();
   final GlobalKey<FeralfileHomePageState> _feralfileHomePageKey = GlobalKey();
   final _configurationService = injector<ConfigurationService>();
   late Timer? _timer;
   final _clientTokenService = injector<ClientTokenService>();
   final _notificationService = injector<nc.NotificationService>();
-  final _playListService = injector<PlaylistService>();
   final _remoteConfig = injector<RemoteConfigService>();
   final _metricClientService = injector<MetricClientService>();
   late HomeNavigatorTab _initialTab;
@@ -129,21 +125,10 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     await _onItemTapped(HomeNavigatorTab.explore.index);
   }
 
-  Future<void> openCollection() async {
-    await _onItemTapped(HomeNavigatorTab.collection.index);
-    _collectionHomePageKey.currentState?.scrollToTop();
-  }
-
   Future<void> _onItemTapped(int index) async {
     if (index < _pages.length) {
       // handle scroll to top when tap on the same tab
       if (_selectedIndex == index) {
-        if (index == HomeNavigatorTab.collection.index) {
-          _collectionHomePageKey.currentState?.scrollToTop();
-        }
-        if (index == HomeNavigatorTab.organization.index) {
-          _organizeHomePageKey.currentState?.scrollToTop();
-        }
         if (index == HomeNavigatorTab.explore.index) {
           _feralfileHomePageKey.currentState?.scrollToTop();
         }
@@ -164,11 +149,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         _selectedIndex = index;
       });
       _pageController?.jumpToPage(_selectedIndex);
-      if (index == HomeNavigatorTab.collection.index ||
-          index == HomeNavigatorTab.organization.index) {
-        unawaited(_clientTokenService.refreshTokens());
-        unawaited(_playListService.refreshPlayLists());
-      }
     }
     // handle hamburger menu
     else {
@@ -201,7 +181,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
           OptionItem(
             title: 'collection'.tr(),
             icon: const Icon(
-              AuIcon.collection,
+              AuIcon.playlists,
             ),
             onTap: () {
               Navigator.of(context).popAndPushNamed(AppRouter.collectionPage);
@@ -211,7 +191,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
           OptionItem(
             title: 'organize'.tr(),
             icon: const Icon(
-              AuIcon.chevron_Sm,
+              AuIcon.drawer,
             ),
             onTap: () {
               Navigator.of(context).popAndPushNamed(AppRouter.organizePage);
@@ -299,7 +279,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
       nftBloc.add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
     }));
     unawaited(_clientTokenService.refreshTokens());
-
+    context.read<HomeBloc>().add(CheckReviewAppEvent());
     _timer = Timer.periodic(const Duration(minutes: 1), (timer) {
       unawaited(_clientTokenService.refreshTokens());
     });
@@ -327,8 +307,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
           child: FeralfileHomePage(
             key: _feralfileHomePageKey,
           )),
-      CollectionHomePage(key: _collectionHomePageKey),
-      OrganizeHomePage(key: _organizeHomePageKey),
     ];
     if (!_configurationService.isReadRemoveSupport()) {
       unawaited(_showRemoveCustomerSupport());
@@ -343,8 +321,10 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     injector<AuditService>().auditFirstLog();
     OneSignal.shared.setNotificationOpenedHandler((openedResult) {
       Future.delayed(const Duration(milliseconds: 500), () {
-        unawaited(NotificationHandler.instance.handleNotificationClicked(
-            context, openedResult.notification, _pageController));
+        if (context.mounted) {
+          unawaited(NotificationHandler.instance.handleNotificationClicked(
+              context, openedResult.notification, _pageController));
+        }
       });
     });
 
@@ -418,28 +398,30 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         final Uri uri = Uri.parse(AUTONOMY_CLIENT_GITHUB_LINK);
         String? gitHubContent = data.data ?? '';
         Future.delayed(const Duration(seconds: 3), () {
-          showInAppNotifications(
-              context, 'au_has_announcement'.tr(), 'remove_customer_support',
-              notificationOpenedHandler: () {
-            UIHelper.showCenterSheet(context,
-                content: Markdown(
-                  key: const Key('remove_customer_support'),
-                  data: gitHubContent,
-                  softLineBreak: true,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  padding: const EdgeInsets.all(0),
-                  styleSheet: markDownAnnouncementStyle(context),
-                ),
-                actionButton: 'follow_github'.tr(),
-                actionButtonOnTap: () =>
-                    launchUrl(uri, mode: LaunchMode.externalApplication),
-                exitButtonOnTap: () {
-                  _configurationService.readRemoveSupport(true);
-                  Navigator.of(context).pop();
-                },
-                exitButton: 'i_understand_'.tr());
-          });
+          if (context.mounted) {
+            showInAppNotifications(
+                context, 'au_has_announcement'.tr(), 'remove_customer_support',
+                notificationOpenedHandler: () {
+              UIHelper.showCenterSheet(context,
+                  content: Markdown(
+                    key: const Key('remove_customer_support'),
+                    data: gitHubContent,
+                    softLineBreak: true,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    padding: const EdgeInsets.all(0),
+                    styleSheet: markDownAnnouncementStyle(context),
+                  ),
+                  actionButton: 'follow_github'.tr(),
+                  actionButtonOnTap: () =>
+                      launchUrl(uri, mode: LaunchMode.externalApplication),
+                  exitButtonOnTap: () {
+                    _configurationService.readRemoveSupport(true);
+                    Navigator.of(context).pop();
+                  },
+                  exitButton: 'i_understand_'.tr());
+            });
+          }
         });
       }
     }
@@ -447,8 +429,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
 
   @override
   void dispose() {
-    _organizeHomePageKey.currentState?.dispose();
-    _collectionHomePageKey.currentState?.dispose();
     _pageController?.dispose();
     WidgetsBinding.instance.removeObserver(this);
     unawaited(_fgbgSubscription?.cancel());
@@ -550,32 +530,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
           colorFilter: unselectedColorFilter,
         ),
         label: 'explore',
-      ),
-      FFNavigationBarItem(
-        icon: SvgPicture.asset(
-          'assets/images/icon_collection.svg',
-          height: iconSize,
-          colorFilter: selectedColorFilter,
-        ),
-        unselectedIcon: SvgPicture.asset(
-          'assets/images/icon_collection.svg',
-          height: iconSize,
-          colorFilter: unselectedColorFilter,
-        ),
-        label: 'collection',
-      ),
-      FFNavigationBarItem(
-        icon: SvgPicture.asset(
-          'assets/images/set_icon.svg',
-          height: iconSize,
-          colorFilter: selectedColorFilter,
-        ),
-        unselectedIcon: SvgPicture.asset(
-          'assets/images/set_icon.svg',
-          height: iconSize,
-          colorFilter: unselectedColorFilter,
-        ),
-        label: 'organize',
       ),
       FFNavigationBarItem(
         icon: ValueListenableBuilder<List<int>?>(
