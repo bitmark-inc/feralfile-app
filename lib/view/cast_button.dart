@@ -154,6 +154,9 @@ class _FFCastButtonState extends State<FFCastButton> {
         value: _upgradesBloc,
         child: BlocConsumer<UpgradesBloc, UpgradeState>(
             bloc: _upgradesBloc,
+            listenWhen: (previous, current) =>
+                !(previous.activeSubscriptionDetails.firstOrNull?.status ==
+                    IAPProductStatus.completed),
             listener: (context, upgradeState) {
               final status =
                   upgradeState.activeSubscriptionDetails.firstOrNull?.status;
