@@ -34,6 +34,7 @@ import 'package:overlay_support/src/overlay_state_finder.dart';
 
 class NavigationService {
   final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+  PageController? _pageController;
 
   static const Key contactingKey = Key('tezos_beacon_contacting');
 
@@ -42,6 +43,12 @@ class NavigationService {
   // ModalRoute(navigatorKey.currentContext) returns nil
   bool _isWCConnectInShow = false;
   final _browser = FeralFileBrowser();
+
+  PageController? get pageController => _pageController;
+
+  void setGlobalHomeTabController(PageController? controller) {
+    _pageController = controller;
+  }
 
   BuildContext get context => navigatorKey.currentContext!;
 
@@ -259,6 +266,51 @@ class NavigationService {
     }
   }
 
+  Future<void> showMembershipGiftCodeEmpty() async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await UIHelper.showInfoDialog(context, 'can_not_get_gift_code'.tr(),
+          'can_not_get_gift_code_desc'.tr(),
+          onClose: () => UIHelper.hideInfoDialog(context), isDismissible: true);
+    }
+  }
+
+  Future<void> showFailToRedeemMembership() async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await UIHelper.showInfoDialog(context, 'fail_to_redeem_membership'.tr(),
+          'fail_to_redeem_membership_desc'.tr(),
+          onClose: () => UIHelper.hideInfoDialog(context), isDismissible: true);
+    }
+  }
+
+  Future<void> showRedeemMembershipCodeUsed() async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await UIHelper.showInfoDialog(context, 'fail_to_redeem_membership'.tr(),
+          'redeem_code_used_desc'.tr(),
+          onClose: () => UIHelper.hideInfoDialog(context), isDismissible: true);
+    }
+  }
+
+  Future<void> showPremiumUserCanNotClaim() async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await UIHelper.showInfoDialog(context, 'fail_to_redeem_membership'.tr(),
+          'premium_user_can_not_claim'.tr(),
+          onClose: () => UIHelper.hideInfoDialog(context), isDismissible: true);
+    }
+  }
+
+  Future<void> showRedeemMembershipSuccess() async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await UIHelper.showInfoDialog(context, 'redeem_membership_success'.tr(),
+          'redeem_membership_success_desc'.tr(),
+          onClose: () => UIHelper.hideInfoDialog(context), isDismissible: true);
+    }
+  }
+
   Future<void> showDeclinedGeolocalization() async {
     if (navigatorKey.currentContext != null &&
         navigatorKey.currentState?.mounted == true) {
@@ -391,7 +443,7 @@ class NavigationService {
     if (alias.contains(',') || alias.isEmpty) {
       return;
     }
-    Navigator.of(navigatorKey.currentContext!).pushNamed(
+    await Navigator.of(navigatorKey.currentContext!).pushNamed(
       AppRouter.userDetailsPage,
       arguments: UserDetailsPagePayload(userId: alias),
     );
@@ -401,7 +453,7 @@ class NavigationService {
     if (alias.contains(',') || alias.isEmpty) {
       return;
     }
-    Navigator.of(navigatorKey.currentContext!).pushNamed(
+    await Navigator.of(navigatorKey.currentContext!).pushNamed(
       AppRouter.userDetailsPage,
       arguments: UserDetailsPagePayload(userId: alias),
     );
@@ -432,8 +484,24 @@ class NavigationService {
     if (pair == null) {
       return;
     }
+    late String route;
+    /// todo: handle more cases
+    switch (pair.first) {
+      case AppRouter.collectionPage:
+        route = AppRouter.homePageNoTransition;
+      default:
+        route = pair.first;
+    }
 
-    unawaited(navigateTo(pair.first, arguments: pair.second));
+    unawaited(navigateTo(route, arguments: pair.second));
+    Future.delayed(const Duration(milliseconds: 300), () {
+      switch (pair.first) {
+        case AppRouter.collectionPage:
+          popToCollection();
+        default:
+          break;
+      }
+    });
   }
 
   Pair<String, dynamic>? _resolvePath(String? path) {

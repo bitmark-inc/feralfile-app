@@ -10,6 +10,7 @@ import 'dart:async';
 import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/model/additional_data/additional_data.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dart';
@@ -21,6 +22,7 @@ import 'package:autonomy_flutter/screen/feralfile_home/feralfile_home_bloc.dart'
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
+import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/chat_service.dart';
@@ -28,6 +30,7 @@ import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/notification_service.dart' as nc;
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
@@ -36,6 +39,7 @@ import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/dio_util.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/notification_type.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -94,6 +98,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   final _notificationService = injector<nc.NotificationService>();
   final _remoteConfig = injector<RemoteConfigService>();
   final _metricClientService = injector<MetricClientService>();
+  final _announcementService = injector<AnnouncementService>();
   late HomeNavigatorTab _initialTab;
   final nftBloc = injector<ClientTokenService>().nftBloc;
 
@@ -261,7 +266,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     // since we moved to use bonsoir service,
     // we don't need to wait for canvas service to init
     injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent(retry: true));
-    unawaited(injector<CustomerSupportService>().getIssuesAndAnnouncement());
+    unawaited(injector<CustomerSupportService>().getIssues());
     _initialTab = widget.payload.startedTab;
     _selectedIndex = _initialTab.index;
     NftCollectionBloc.eventController.stream.listen((event) async {
@@ -311,21 +316,53 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     if (!_configurationService.isReadRemoveSupport()) {
       unawaited(_showRemoveCustomerSupport());
     }
-    OneSignal.shared.setNotificationWillShowInForegroundHandler((event) async {
-      await NotificationHandler.instance.shouldShowNotifications(
-        context,
-        event,
-        _pageController,
-      );
+
+    _triggerShowAnnouncement();
+
+    OneSignal.shared.setNotificationWillShowInForegroundHandler((event) {
+      log.info('Receive notification: ${event.notification.additionalData}');
+      if (event.notification.additionalData == null) {
+        event.complete(null);
+        return;
+      }
+      final additionalData =
+          AdditionalData.fromJson(event.notification.additionalData!);
+      final id = additionalData.announcementContentId ??
+          event.notification.notificationId;
+      final body = event.notification.body;
+
+      /// should complete event after getting all data needed
+      /// and before calling async function
+      event.complete(null);
+      Future.delayed(const Duration(milliseconds: 500), () async {
+        await injector<AnnouncementService>().fetchAnnouncements();
+        if (!mounted) {
+          return;
+        }
+        await NotificationHandler.instance.shouldShowNotifications(
+          context,
+          additionalData,
+          id,
+          body ?? '',
+          _pageController,
+        );
+      });
     });
     injector<AuditService>().auditFirstLog();
-    OneSignal.shared.setNotificationOpenedHandler((openedResult) {
-      Future.delayed(const Duration(milliseconds: 500), () {
-        if (context.mounted) {
-          unawaited(NotificationHandler.instance.handleNotificationClicked(
-              context, openedResult.notification, _pageController));
-        }
-      });
+    OneSignal.shared.setNotificationOpenedHandler((openedResult) async {
+      log.info('Tapped push notification: '
+          '${openedResult.notification.additionalData}');
+      final additionalData =
+          AdditionalData.fromJson(openedResult.notification.additionalData!);
+      final id = additionalData.announcementContentId ??
+          openedResult.notification.notificationId;
+      final body = openedResult.notification.body;
+      await _announcementService.fetchAnnouncements();
+      if (!mounted) {
+        return;
+      }
+      unawaited(NotificationHandler.instance
+          .handleNotificationClicked(context, additionalData, id, body ?? ''));
     });
 
     if (!widget.payload.fromOnboarding) {
@@ -347,13 +384,13 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   }
 
   Future refreshNotification() async {
-    await injector<CustomerSupportService>().getIssuesAndAnnouncement();
+    await injector<CustomerSupportService>().getIssues();
   }
 
   @override
   Future<void> didPopNext() async {
     super.didPopNext();
-    unawaited(injector<CustomerSupportService>().getIssuesAndAnnouncement());
+    unawaited(injector<CustomerSupportService>().getIssues());
     unawaited(_clientTokenService.refreshTokens());
     unawaited(refreshNotification());
     final connectivityResult = await Connectivity().checkConnectivity();
@@ -398,7 +435,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         final Uri uri = Uri.parse(AUTONOMY_CLIENT_GITHUB_LINK);
         String? gitHubContent = data.data ?? '';
         Future.delayed(const Duration(seconds: 3), () {
-          if (context.mounted) {
+          if (mounted) {
             showInAppNotifications(
                 context, 'au_has_announcement'.tr(), 'remove_customer_support',
                 notificationOpenedHandler: () {
@@ -561,12 +598,25 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     );
   }
 
-  PageController _getPageController(int initialIndex) =>
-      PageController(initialPage: initialIndex);
+  PageController _getPageController(int initialIndex) {
+    final pageController = PageController(initialPage: initialIndex);
+    injector<NavigationService>().setGlobalHomeTabController(pageController);
+    return pageController;
+  }
 
   void _handleBackground() {
     unawaited(_cloudBackup());
     _metricClientService.onBackground();
+  }
+
+  void _triggerShowAnnouncement() {
+    unawaited(Future.delayed(const Duration(milliseconds: 1000), () {
+      _announcementService.fetchAnnouncements().then(
+        (_) async {
+          await _announcementService.showOldestAnnouncement();
+        },
+      );
+    }));
   }
 
   Future<void> _handleForeBackground(FGBGType event) async {
@@ -584,8 +634,8 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   Future<void> _handleForeground() async {
     _metricClientService.onForeground();
     injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent(retry: true));
-    await injector<CustomerSupportService>().fetchAnnouncement();
     await _remoteConfig.loadConfigs();
+    _triggerShowAnnouncement();
   }
 
   @override

@@ -17,6 +17,7 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/encrypt_env/secrets.dart';
 import 'package:autonomy_flutter/encrypt_env/secrets.g.dart';
+import 'package:autonomy_flutter/model/announcement/announcement_adapter.dart';
 import 'package:autonomy_flutter/model/eth_pending_tx_amount.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -134,7 +135,8 @@ void _registerHiveAdapter() {
   Hive
     ..registerAdapter(EthereumPendingTxAmountAdapter())
     ..registerAdapter(EthereumPendingTxListAdapter())
-    ..registerAdapter(CanvasDeviceAdapter());
+    ..registerAdapter(CanvasDeviceAdapter())
+    ..registerAdapter(AnnouncementLocalAdapter());
 }
 
 Future<void> _setupApp() async {

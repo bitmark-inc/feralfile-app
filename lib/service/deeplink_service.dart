@@ -31,6 +31,7 @@ import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/dio_exception_ext.dart';
+import 'package:autonomy_flutter/util/gift_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
@@ -535,6 +536,10 @@ class DeeplinkServiceImpl extends DeeplinkService {
                 isDarkStatusBar: false));
           }
         }
+
+      case 'gift_membership':
+        final giftCode = data['gift_code'];
+        await GiftHandler.handleGiftMembership(giftCode);
 
       default:
         memoryValues.branchDeeplinkData.value = null;

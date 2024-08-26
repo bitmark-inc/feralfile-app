@@ -93,6 +93,15 @@ class MockNavigationService extends _i2.Mock implements _i3.NavigationService {
         returnValue: false,
       ) as bool);
   @override
+  void setGlobalHomeTabController(_i1.PageController? controller) =>
+      super.noSuchMethod(
+        Invocation.method(
+          #setPageController,
+          [controller],
+        ),
+        returnValueForMissingStub: null,
+      );
+  @override
   _i4.Future<dynamic>? navigateTo(
     String? routeName, {
     Object? arguments,
@@ -243,9 +252,72 @@ class MockNavigationService extends _i2.Mock implements _i3.NavigationService {
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
   @override
+  _i4.Future<void> showQRExpired() => (super.noSuchMethod(
+        Invocation.method(
+          #showQRExpired,
+          [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
+  _i4.Future<void> addressNotFoundError() => (super.noSuchMethod(
+        Invocation.method(
+          #addressNotFoundError,
+          [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
   _i4.Future<void> showCannotConnectTv() => (super.noSuchMethod(
         Invocation.method(
           #showCannotConnectTv,
+          [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
+  _i4.Future<void> showMembershipGiftCodeEmpty() => (super.noSuchMethod(
+        Invocation.method(
+          #showMembershipGiftCodeEmpty,
+          [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
+  _i4.Future<void> showFailToRedeemMembership() => (super.noSuchMethod(
+        Invocation.method(
+          #showFailToRedeemMembership,
+          [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
+  _i4.Future<void> showRedeemMembershipCodeUsed() => (super.noSuchMethod(
+        Invocation.method(
+          #showRedeemMembershipCodeUsed,
+          [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
+  _i4.Future<void> showPremiumUserCanNotClaim() => (super.noSuchMethod(
+        Invocation.method(
+          #showPremiumUserCanNotClaim,
+          [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
+  _i4.Future<void> showRedeemMembershipSuccess() => (super.noSuchMethod(
+        Invocation.method(
+          #showRedeemMembershipSuccess,
           [],
         ),
         returnValue: _i4.Future<void>.value(),
@@ -283,6 +355,15 @@ class MockNavigationService extends _i2.Mock implements _i3.NavigationService {
         Invocation.method(
           #gotoExhibitionDetailsPage,
           [exhibitionID],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
+  _i4.Future<void> popToCollection() => (super.noSuchMethod(
+        Invocation.method(
+          #popToCollection,
+          [],
         ),
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),
@@ -436,6 +517,15 @@ class MockNavigationService extends _i2.Mock implements _i3.NavigationService {
             post,
             exhibitionID,
           ],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
+  _i4.Future<void> navigatePath(String? path) => (super.noSuchMethod(
+        Invocation.method(
+          #navigatePath,
+          [path],
         ),
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),
