@@ -118,7 +118,7 @@ class ExploreArtistViewState extends State<ExploreArtistView> {
     } else if (_artists!.isEmpty) {
       return _emptyView(context);
     } else {
-      return Expanded(child: _artistView(context, _artists!));
+      return _artistView(context, _artists!);
     }
   }
 
@@ -274,7 +274,7 @@ class ExploreCuratorViewState extends State<ExploreCuratorView> {
     } else if (_curators!.isEmpty) {
       return _emptyView(context);
     } else {
-      return Expanded(child: _curatorView(context, _curators!));
+      return _curatorView(context, _curators!);
     }
   }
 

@@ -112,7 +112,7 @@ class ExploreSeriesViewState extends State<ExploreSeriesView> {
     } else if (_series!.isEmpty) {
       return _emptyView(context);
     } else {
-      return Expanded(child: _seriesView(context, _series!));
+      return _seriesView(context, _series!);
     }
   }
 
@@ -214,7 +214,7 @@ class _SeriesViewState extends State<SeriesView> {
             delegate: SliverChildBuilderDelegate(
               (context, index) {
                 final series = widget.series[index];
-                final boder = Border(
+                final border = Border(
                   top: const BorderSide(
                     color: AppColor.auGreyBackground,
                   ),
@@ -232,7 +232,7 @@ class _SeriesViewState extends State<SeriesView> {
                         )
                       : BorderSide.none,
                 );
-                return _seriesItem(context, series, boder);
+                return _seriesItem(context, series, border);
               },
               childCount: widget.series.length,
             ),

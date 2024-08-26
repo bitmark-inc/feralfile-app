@@ -138,9 +138,9 @@ class FeaturedWorkViewState extends State<FeaturedWorkView> {
                           children: [
                             // FutureBuilder(future: , builder: builder)
                             Builder(builder: (context) {
-                              final thumnailUrl = token.thumbnailURL ?? '';
-                              final width = _imageSize[thumnailUrl]?.width;
-                              final height = _imageSize[thumnailUrl]?.height;
+                              final thumbnailUrl = token.thumbnailURL ?? '';
+                              final width = _imageSize[thumbnailUrl]?.width;
+                              final height = _imageSize[thumbnailUrl]?.height;
                               double? aspectRatio;
                               if (width != null &&
                                   height != null &&
@@ -157,15 +157,16 @@ class FeaturedWorkViewState extends State<FeaturedWorkView> {
                                   width: double.infinity,
                                   errorWidget: (context, url, error) =>
                                       const Icon(Icons.error),
-                                  placeholder: (context, url) =>
-                                      const GalleryThumbnailPlaceholder(),
-                                  imageBuilder: (context, imageProvider) {
-                                    return Image(
-                                      image: imageProvider,
-                                      fit: BoxFit.cover,
-                                      width: double.infinity,
-                                    );
-                                  },
+                                  placeholder: (context, url) => SizedBox(
+                                    height: height,
+                                    child: const LoadingWidget(),
+                                  ),
+                                  imageBuilder: (context, imageProvider) =>
+                                      Image(
+                                    image: imageProvider,
+                                    fit: BoxFit.cover,
+                                    width: double.infinity,
+                                  ),
                                 ),
                               );
                             }),
@@ -222,7 +223,7 @@ class FeaturedWorkViewState extends State<FeaturedWorkView> {
             MapEntry(token.thumbnailURL ?? '', Size(width * 1.0, height * 1.0))
           ]);
         } else {
-          print('Failed to load image at ${token.thumbnailURL}');
+          log.info('Failed to load image at ${token.thumbnailURL}');
         }
       }
     }));
