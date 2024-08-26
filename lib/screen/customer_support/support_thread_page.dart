@@ -10,9 +10,7 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/entity/announcement_local.dart';
 import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/customer_support.dart' as app;
@@ -45,21 +43,17 @@ import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 
 abstract class SupportThreadPayload {
-  AnnouncementLocal? get announcement;
   String? get defaultMessage;
 }
 
 class NewIssuePayload extends SupportThreadPayload {
   final String reportIssueType;
   @override
-  final AnnouncementLocal? announcement;
-  @override
   final String? defaultMessage;
 
   NewIssuePayload({
     required this.reportIssueType,
     this.defaultMessage,
-    this.announcement,
   });
 }
 
@@ -69,24 +63,20 @@ class DetailIssuePayload extends SupportThreadPayload {
   final String status;
   final bool isRated;
   @override
-  final AnnouncementLocal? announcement;
-  @override
   final String? defaultMessage;
 
-  DetailIssuePayload(
-      {required this.reportIssueType,
-      required this.issueID,
-      this.defaultMessage,
-      this.status = '',
-      this.isRated = false,
-      this.announcement});
+  DetailIssuePayload({
+    required this.reportIssueType,
+    required this.issueID,
+    this.defaultMessage,
+    this.status = '',
+    this.isRated = false,
+  });
 }
 
 class ExceptionErrorPayload extends SupportThreadPayload {
   final String sentryID;
   final String metadata;
-  @override
-  final AnnouncementLocal? announcement;
   @override
   final String? defaultMessage;
 
@@ -94,7 +84,6 @@ class ExceptionErrorPayload extends SupportThreadPayload {
     required this.sentryID,
     required this.metadata,
     this.defaultMessage,
-    this.announcement,
   });
 }
 
@@ -110,8 +99,7 @@ class SupportThreadPage extends StatefulWidget {
   State<SupportThreadPage> createState() => _SupportThreadPageState();
 }
 
-class _SupportThreadPageState extends State<SupportThreadPage>
-    with AfterLayoutMixin<SupportThreadPage> {
+class _SupportThreadPageState extends State<SupportThreadPage> {
   String _reportIssueType = '';
   String? _issueID;
 
@@ -157,12 +145,6 @@ class _SupportThreadPageState extends State<SupportThreadPage>
         id: _askRatingMessengerID,
         metadata: {'status': 'rateIssue', 'content': 'rate_issue'.tr()},
         createdAt: DateTime.now().millisecondsSinceEpoch,
-      );
-
-  types.CustomMessage get _announcementMessenger => types.CustomMessage(
-        id: _announcementMessengerID,
-        author: _bitmark,
-        metadata: const {'status': 'announcement'},
       );
 
   @override
@@ -233,15 +215,6 @@ class _SupportThreadPageState extends State<SupportThreadPage>
     final data = parseJwt(jwt!.jwtToken);
     _userId = data['sub'] ?? '';
     return _userId!;
-  }
-
-  @override
-  void afterFirstLayout(BuildContext context) {
-    final payload = widget.payload;
-    if (payload.announcement != null && payload.announcement!.unread) {
-      unawaited(_customerSupportService
-          .markAnnouncementAsRead(payload.announcement!.announcementContextId));
-    }
   }
 
   Future<void> _fetchCustomerSupportAvailability() async {
@@ -347,9 +320,7 @@ class _SupportThreadPageState extends State<SupportThreadPage>
       }
     }
 
-    if (widget.payload.announcement != null) {
-      messages.add(_announcementMessenger);
-    } else if (_issueID == null || messages.isNotEmpty) {
+    if (_issueID == null || messages.isNotEmpty) {
       messages.add(_introMessenger);
     }
 
@@ -681,31 +652,6 @@ class _SupportThreadPageState extends State<SupportThreadPage>
             ),
           ]),
         );
-      case 'announcement':
-        return Container(
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          color: AppColor.feralFileHighlight,
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            if (widget.payload.announcement!.title.isNotEmpty) ...[
-              Text(
-                widget.payload.announcement!.title,
-                textAlign: TextAlign.start,
-                style: ResponsiveLayout.isMobile
-                    ? theme.textTheme.ppMori700Black14
-                    : theme.textTheme.ppMori700Black16,
-              ),
-              const SizedBox(height: 20),
-            ],
-            Text(
-              widget.payload.announcement!.body,
-              textAlign: TextAlign.start,
-              style: ResponsiveLayout.isMobile
-                  ? theme.textTheme.ppMori400Black14
-                  : theme.textTheme.ppMori400Black16,
-            ),
-          ]),
-        );
       default:
         return const SizedBox();
     }
@@ -794,10 +740,6 @@ class _SupportThreadPageState extends State<SupportThreadPage>
       _issueID = 'TEMP-${const Uuid().v4()}';
 
       final payload = widget.payload;
-      if (payload.announcement != null) {
-        final announcement = payload.announcement!;
-        data.announcementId = announcement.announcementContextId;
-      }
 
       if (payload is ExceptionErrorPayload) {
         final sentryID = payload.sentryID;
@@ -868,9 +810,7 @@ class _SupportThreadPageState extends State<SupportThreadPage>
     } else {
       await _submit(
         CSMessageType.PostMessage.rawValue,
-        DraftCustomerSupportData(
-            text: message.text,
-            announcementId: widget.payload.announcement?.announcementContextId),
+        DraftCustomerSupportData(text: message.text),
       );
     }
   }
@@ -890,7 +830,6 @@ class _SupportThreadPageState extends State<SupportThreadPage>
       DraftCustomerSupportData(
         text: message.text,
         attachments: [LocalAttachment(fileName: filename, path: localPath)],
-        announcementId: widget.payload.announcement?.announcementContextId,
       ),
     );
     setState(() {
@@ -950,10 +889,7 @@ class _SupportThreadPageState extends State<SupportThreadPage>
 
     await _submit(
       CSMessageType.PostPhotos.rawValue,
-      DraftCustomerSupportData(
-        attachments: attachments,
-        announcementId: widget.payload.announcement?.announcementContextId,
-      ),
+      DraftCustomerSupportData(attachments: attachments),
     );
   }
 

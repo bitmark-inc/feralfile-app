@@ -10,7 +10,6 @@
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
-import 'package:autonomy_flutter/gateway/announcement_api.dart';
 import 'package:autonomy_flutter/gateway/branch_api.dart';
 import 'package:autonomy_flutter/gateway/chat_api.dart';
 import 'package:autonomy_flutter/gateway/currency_exchange_api.dart';
@@ -38,6 +37,8 @@ import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_bl
 import 'package:autonomy_flutter/screen/predefined_collection/predefined_collection_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
+import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
+import 'package:autonomy_flutter/service/announcement/announcement_store.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
@@ -129,6 +130,7 @@ Future<void> setup() async {
     migrateV16ToV17,
     migrateV17ToV18,
     migrateV18ToV19,
+    migrateV19ToV20,
   ]).build();
 
   final cloudDB = await $FloorCloudDatabase
@@ -278,10 +280,6 @@ Future<void> setup() async {
                   ),
                 ),
                 baseUrl: Environment.customerSupportURL),
-            injector(),
-            mainnetDB.announcementDao,
-            AnnouncementApi(authenticatedDio,
-                baseUrl: Environment.customerSupportURL),
           ));
 
   injector.registerLazySingleton<AuditService>(() => auditService);
@@ -406,4 +404,10 @@ Future<void> setup() async {
       .registerLazySingleton<ExhibitionBloc>(() => ExhibitionBloc(injector()));
   injector.registerLazySingleton<SubscriptionBloc>(
       () => SubscriptionBloc(injector()));
+
+  injector.registerLazySingleton<AnnouncementStore>(() => AnnouncementStore());
+  await injector<AnnouncementStore>().init('');
+
+  injector.registerLazySingleton<AnnouncementService>(
+      () => AnnouncementServiceImpl(injector(), injector(), injector()));
 }

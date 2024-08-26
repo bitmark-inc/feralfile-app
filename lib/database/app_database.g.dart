@@ -65,15 +65,13 @@ class _$AppDatabase extends AppDatabase {
 
   DraftCustomerSupportDao? _draftCustomerSupportDaoInstance;
 
-  AnnouncementLocalDao? _announcementDaoInstance;
-
   Future<sqflite.Database> open(
     String path,
     List<Migration> migrations, [
     Callback? callback,
   ]) async {
     final databaseOptions = sqflite.OpenDatabaseOptions(
-      version: 19,
+      version: 20,
       onConfigure: (database) async {
         await database.execute('PRAGMA foreign_keys = ON');
         await callback?.onConfigure?.call(database);
@@ -92,8 +90,6 @@ class _$AppDatabase extends AppDatabase {
             'CREATE TABLE IF NOT EXISTS `Identity` (`accountNumber` TEXT NOT NULL, `blockchain` TEXT NOT NULL, `name` TEXT NOT NULL, `queriedAt` INTEGER NOT NULL, PRIMARY KEY (`accountNumber`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `DraftCustomerSupport` (`uuid` TEXT NOT NULL, `issueID` TEXT NOT NULL, `type` TEXT NOT NULL, `data` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `reportIssueType` TEXT NOT NULL, `mutedMessages` TEXT NOT NULL, PRIMARY KEY (`uuid`))');
-        await database.execute(
-            'CREATE TABLE IF NOT EXISTS `AnnouncementLocal` (`announcementContextId` TEXT NOT NULL, `title` TEXT NOT NULL, `body` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `announceAt` INTEGER NOT NULL, `type` TEXT NOT NULL, `unread` INTEGER NOT NULL, PRIMARY KEY (`announcementContextId`))');
 
         await callback?.onCreate?.call(database, version);
       },
@@ -110,12 +106,6 @@ class _$AppDatabase extends AppDatabase {
   DraftCustomerSupportDao get draftCustomerSupportDao {
     return _draftCustomerSupportDaoInstance ??=
         _$DraftCustomerSupportDao(database, changeListener);
-  }
-
-  @override
-  AnnouncementLocalDao get announcementDao {
-    return _announcementDaoInstance ??=
-        _$AnnouncementLocalDao(database, changeListener);
   }
 }
 
@@ -327,95 +317,6 @@ class _$DraftCustomerSupportDao extends DraftCustomerSupportDao {
   @override
   Future<void> deleteDraft(DraftCustomerSupport draft) async {
     await _draftCustomerSupportDeletionAdapter.delete(draft);
-  }
-}
-
-class _$AnnouncementLocalDao extends AnnouncementLocalDao {
-  _$AnnouncementLocalDao(
-    this.database,
-    this.changeListener,
-  )   : _queryAdapter = QueryAdapter(database),
-        _announcementLocalInsertionAdapter = InsertionAdapter(
-            database,
-            'AnnouncementLocal',
-            (AnnouncementLocal item) => <String, Object?>{
-                  'announcementContextId': item.announcementContextId,
-                  'title': item.title,
-                  'body': item.body,
-                  'createdAt': item.createdAt,
-                  'announceAt': item.announceAt,
-                  'type': item.type,
-                  'unread': item.unread ? 1 : 0
-                });
-
-  final sqflite.DatabaseExecutor database;
-
-  final StreamController<String> changeListener;
-
-  final QueryAdapter _queryAdapter;
-
-  final InsertionAdapter<AnnouncementLocal> _announcementLocalInsertionAdapter;
-
-  @override
-  Future<List<AnnouncementLocal>> getAnnouncements() async {
-    return _queryAdapter.queryList(
-        'SELECT * FROM AnnouncementLocal ORDER BY announceAt DESC',
-        mapper: (Map<String, Object?> row) => AnnouncementLocal(
-            announcementContextId: row['announcementContextId'] as String,
-            title: row['title'] as String,
-            body: row['body'] as String,
-            createdAt: row['createdAt'] as int,
-            announceAt: row['announceAt'] as int,
-            type: row['type'] as String,
-            unread: (row['unread'] as int) != 0));
-  }
-
-  @override
-  Future<AnnouncementLocal?> getAnnouncement(
-      String announcementContextId) async {
-    return _queryAdapter.query(
-        'SELECT * FROM AnnouncementLocal WHERE announcementContextId = ?1',
-        mapper: (Map<String, Object?> row) => AnnouncementLocal(
-            announcementContextId: row['announcementContextId'] as String,
-            title: row['title'] as String,
-            body: row['body'] as String,
-            createdAt: row['createdAt'] as int,
-            announceAt: row['announceAt'] as int,
-            type: row['type'] as String,
-            unread: (row['unread'] as int) != 0),
-        arguments: [announcementContextId]);
-  }
-
-  @override
-  Future<void> updateRead(
-    String announcementContextId,
-    bool unread,
-  ) async {
-    await _queryAdapter.queryNoReturn(
-        'UPDATE AnnouncementLocal SET unread = ?2 WHERE announcementContextId = ?1',
-        arguments: [announcementContextId, unread ? 1 : 0]);
-  }
-
-  @override
-  Future<List<AnnouncementLocal>> getAnnouncementsBy(
-    String category,
-    String action,
-  ) async {
-    return _queryAdapter.queryList(
-        'SELECT * FROM AnnouncementLocal WHERE category = (?1) AND action = (?2)',
-        mapper: (Map<String, Object?> row) => AnnouncementLocal(announcementContextId: row['announcementContextId'] as String, title: row['title'] as String, body: row['body'] as String, createdAt: row['createdAt'] as int, announceAt: row['announceAt'] as int, type: row['type'] as String, unread: (row['unread'] as int) != 0),
-        arguments: [category, action]);
-  }
-
-  @override
-  Future<void> removeAll() async {
-    await _queryAdapter.queryNoReturn('DELETE FROM AnnouncementLocal');
-  }
-
-  @override
-  Future<void> insertAnnouncement(AnnouncementLocal announcementLocal) async {
-    await _announcementLocalInsertionAdapter.insert(
-        announcementLocal, OnConflictStrategy.ignore);
   }
 }
 

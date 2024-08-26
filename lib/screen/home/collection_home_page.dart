@@ -490,7 +490,7 @@ class CollectionHomePageState extends State<CollectionHomePage>
     unawaited(injector<VersionService>().checkForUpdate());
     // Reload token in Isolate
 
-    unawaited(injector<CustomerSupportService>().getIssuesAndAnnouncement());
+    unawaited(injector<CustomerSupportService>().getIssues());
     unawaited(injector<CustomerSupportService>().processMessages());
   }
 

@@ -7,8 +7,11 @@
 
 import 'dart:io';
 
+import 'package:autonomy_flutter/model/announcement/announcement.dart';
+import 'package:autonomy_flutter/model/announcement/announcement_request.dart';
 import 'package:autonomy_flutter/model/backup_versions.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
+import 'package:autonomy_flutter/model/ok_response.dart';
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 
@@ -64,4 +67,12 @@ abstract class IAPApi {
   @POST('/apis/v1/me/identity-hash')
   Future<OnesignalIdentityHash> generateIdentityHash(
       @Body() Map<String, String> body);
+
+  @GET('/apis/v2/announcements')
+  Future<List<Announcement>> getAnnouncements(@Body() AnnouncementRequest body);
+
+  @POST('/apis/v2/gift-code/{id}/redeem')
+  Future<OkResponse> redeemGiftCode(
+    @Path('id') String id,
+  );
 }

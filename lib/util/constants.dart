@@ -517,6 +517,10 @@ class MixpanelEvent {
   static const String visitPage = 'Visit page';
   static const String viewExhibition = 'View exhibition';
   static const String viewArtwork = 'View artwork';
+  static const String deliveredNotification = 'Delivered notification';
+  static const String tappedNotification = 'Tapped notification';
+  static const String dismissedNotification = 'Dismissed notification';
+  static const String expiredBeforeViewing = 'Expired before viewing';
 }
 
 class MixpanelEventProp {}
@@ -539,6 +543,10 @@ class MixpanelProp {
   static const method = 'method';
   static const isOnboarding = 'isOnboarding';
   static const id = 'id';
+  static const notificationId = 'notification_id';
+  static const content = 'content';
+  static const category = 'category';
+  static const channel = 'channel';
   static const firstAppOpenDate = 'First App Open Date';
 }
 

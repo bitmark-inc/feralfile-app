@@ -74,6 +74,15 @@ class MockMetricClientService extends _i1.Mock
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
   @override
+  _i4.Future<void> migrateFromDidKeyToPrimaryAddress() => (super.noSuchMethod(
+        Invocation.method(
+          #migrateFromDidKeyToPrimaryAddress,
+          [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
   void addEvent(
     String? name, {
     String? message,

@@ -13,6 +13,8 @@ extension DioExceptionExt on DioException {
 
   int get statusCode => response?.statusCode ?? 0;
 
+  int? get ffErrorCode => response?.data['error']['code'] as int?;
+
   // DioExceptionExt for MoMA Postcard
   bool get isPostcardAlreadyStamped =>
       data == PostcardExceptionType.alreadyStamped.errorMessage;

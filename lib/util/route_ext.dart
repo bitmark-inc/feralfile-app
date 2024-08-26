@@ -151,9 +151,7 @@ extension RouteExt on Route {
       case AppRouter.supportThreadPage:
         final payload = settings.arguments! as SupportThreadPayload;
         data = {
-          MixpanelProp.title: payload.announcement?.title,
-          MixpanelProp.type: payload.announcement?.type,
-          MixpanelProp.message: payload.announcement?.body,
+          MixpanelProp.message: payload.defaultMessage,
         };
       case AppRouter.githubDocPage:
         data = {};

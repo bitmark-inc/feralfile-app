@@ -8,7 +8,6 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/entity/announcement_local.dart';
 import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/customer_support.dart';
@@ -64,8 +63,7 @@ class _SupportListPageState extends State<SupportListPage>
   }
 
   Future<void> loadIssues() async {
-    final issues =
-        await injector<CustomerSupportService>().getIssuesAndAnnouncement();
+    final issues = await injector<CustomerSupportService>().getIssues();
     if (mounted) {
       setState(() {
         _issues = issues;
@@ -124,26 +122,6 @@ class _SupportListPageState extends State<SupportListPage>
                         issueID: issue.issueID,
                         status: status,
                         isRated: isRated,
-                        announcement: issue.announcement,
-                      ),
-                    )),
-                  ),
-                );
-
-              case AnnouncementLocal:
-                final issue = chatThread as AnnouncementLocal;
-                bool hasDivider = index < issues.length - 1;
-                return Padding(
-                  padding: EdgeInsets.symmetric(
-                      horizontal: ResponsiveLayout.pageEdgeInsets.left),
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.translucent,
-                    child: _announcementRow(issue, hasDivider),
-                    onTap: () => unawaited(Navigator.of(context).pushNamed(
-                      AppRouter.supportThreadPage,
-                      arguments: NewIssuePayload(
-                        reportIssueType: ReportIssueType.Announcement,
-                        announcement: issue,
                       ),
                     )),
                   ),
@@ -295,63 +273,6 @@ class _SupportListPageState extends State<SupportListPage>
       return 'file_sent'
           .tr(args: [attachmentTitle]); //'File sent: $attachmentTitle';
     }
-  }
-
-  Widget _announcementRow(AnnouncementLocal announcement, bool hasDivider) {
-    final theme = Theme.of(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                Text(
-                  announcement.getListTitle(),
-                  style: theme.textTheme.ppMori400Black16,
-                ),
-                if (announcement.unread) ...[
-                  _unread(),
-                ]
-              ],
-            ),
-            Row(
-              children: [
-                Text(
-                  getVerboseDateTimeRepresentation(
-                      DateTime.fromMillisecondsSinceEpoch(
-                          announcement.createdAt)),
-                  style: theme.textTheme.ppMori400Black14
-                      .copyWith(color: AppColor.auQuickSilver),
-                ),
-                const SizedBox(width: 14),
-                SvgPicture.asset('assets/images/iconForward.svg'),
-              ],
-            ),
-          ],
-        ),
-        const SizedBox(height: 17),
-        Padding(
-          padding: const EdgeInsets.only(right: 14),
-          child: Text(
-            announcement.title.isNotEmpty
-                ? announcement.title
-                : announcement.body,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.ppMori400Black14,
-          ),
-        ),
-        if (hasDivider)
-          addDivider()
-        else
-          const SizedBox(
-            height: 32,
-          ),
-      ],
-    );
   }
 
   Widget _unread() => Row(
