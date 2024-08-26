@@ -190,8 +190,10 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
           // organize
           OptionItem(
             title: 'organize'.tr(),
-            icon: const Icon(
-              AuIcon.drawer,
+            icon: SvgPicture.asset(
+              'assets/images/set_icon.svg',
+              colorFilter:
+                  const ColorFilter.mode(AppColor.white, BlendMode.srcIn),
             ),
             onTap: () {
               Navigator.of(context).popAndPushNamed(AppRouter.organizePage);
