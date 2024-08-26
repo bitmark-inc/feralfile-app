@@ -183,10 +183,16 @@ class AddressService {
   Future<List<WalletAddress>> getAllEthereumAddress() async {
     final addresses =
         await _cloudDB.addressDao.getAddressesByType(CryptoType.ETH.source);
+    addresses.sort((a, b) => a.createdAt.compareTo(b.createdAt));
     final persona = await _cloudDB.personaDao.getPersonas();
-    addresses
-        .removeWhere((address) => !persona.any((p) => p.uuid == address.uuid));
-    return addresses;
+    persona.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+    final sortedAddresses = <WalletAddress>[];
+    for (final p in persona) {
+      final pAddresses = addresses.where((a) => a.uuid == p.uuid).toList()
+      ..sort((a, b) => a.index.compareTo(b.index));
+      sortedAddresses.addAll(pAddresses);
+    }
+    return sortedAddresses;
   }
 
   Future<AddressInfo> pickAddressAsPrimary() async {
