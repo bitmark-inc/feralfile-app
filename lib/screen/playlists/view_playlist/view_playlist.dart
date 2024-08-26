@@ -284,7 +284,6 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
 
   @override
   Widget build(BuildContext context) {
-    Theme.of(context);
     return BlocConsumer<ViewPlaylistBloc, ViewPlaylistState>(
       bloc: bloc,
       listener: (context, state) {},

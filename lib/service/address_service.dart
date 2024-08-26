@@ -12,7 +12,6 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/wallet_address.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/util/feral_file_explore_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/primary_address_channel.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
@@ -199,38 +198,4 @@ class AddressService {
     final numberNft = response['total'];
     return numberNft;
   }
-}
-
-class ExploreStatisticsData {
-  final int exhibition;
-  final int artwork;
-  final int artist;
-  final int curator;
-
-  ExploreStatisticsData({
-    required this.exhibition,
-    required this.artwork,
-    required this.artist,
-    required this.curator,
-  });
-
-  factory ExploreStatisticsData.fromJson(Map<String, dynamic> json) {
-    return ExploreStatisticsData(
-      exhibition: json['exhibition'] as int,
-      artwork: json['artwork'] as int,
-      artist: json['artist'] as int,
-      curator: json['curator'] as int,
-    );
-  }
-}
-
-extension ExploreStatisticsDataExt on ExploreStatisticsData {
-  int get totalExhibition => exhibition + 1; // +1 for source exhibition
-
-  int get totalArtwork => artwork;
-
-  int get totalArtist => artist;
-
-  int get totalCurator =>
-      curator - FeralFileExploreHelper.ignoreCuratorIds.length;
 }

@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/ff_list_response.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
@@ -18,37 +20,50 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:http/http.dart' as http;
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:nft_collection/services/tokens_service.dart';
 
-class FeaauredWorkView extends StatefulWidget {
+class FeaturedWorkView extends StatefulWidget {
   final List<String> tokenIDs;
 
-  const FeaauredWorkView({required this.tokenIDs, super.key});
+  const FeaturedWorkView({required this.tokenIDs, super.key});
 
   @override
-  State<FeaauredWorkView> createState() => FeaauredWorkViewState();
+  State<FeaturedWorkView> createState() => FeaturedWorkViewState();
 }
 
-class FeaauredWorkViewState extends State<FeaauredWorkView> {
+class FeaturedWorkViewState extends State<FeaturedWorkView> {
   List<AssetToken>? _featureTokens;
+  final Map<String, Size> _imageSize = {};
   late CanvasDeviceBloc _canvasDeviceBloc;
   final _canvasClientServiceV2 = injector<CanvasClientServiceV2>();
   late ScrollController _scrollController;
+  late Paging _paging;
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
     _scrollController = ScrollController();
     _canvasDeviceBloc = injector<CanvasDeviceBloc>();
-    unawaited(_fetchFeaturedTokens(context));
+    _paging = Paging(offset: 0, limit: 5, total: widget.tokenIDs.length);
+    unawaited(_fetchFeaturedTokens(context, _paging));
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels + 100 >
+          _scrollController.position.maxScrollExtent) {
+        unawaited(_loadMoreFeaturedTokens(context, _paging));
+      }
+    });
   }
 
   @override
-  void didUpdateWidget(covariant FeaauredWorkView oldWidget) {
+  void didUpdateWidget(covariant FeaturedWorkView oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.tokenIDs != widget.tokenIDs) {
-      unawaited(_fetchFeaturedTokens(context));
+      _paging = Paging(offset: 0, limit: 5, total: widget.tokenIDs.length);
+      _isLoading = false;
+      unawaited(_fetchFeaturedTokens(context, _paging));
     }
   }
 
@@ -121,19 +136,39 @@ class FeaauredWorkViewState extends State<FeaauredWorkView> {
                         color: Colors.transparent,
                         child: Column(
                           children: [
-                            CachedNetworkImage(
-                              imageUrl: token.thumbnailURL ?? '',
-                              cacheManager: injector<CacheManager>(),
-                              fit: BoxFit.cover,
-                              width: double.infinity,
-                              errorWidget: (context, url, error) =>
-                                  const Icon(Icons.error),
-                              placeholder: (context, url) => SizedBox(
-                                  height: MediaQuery.of(context).size.width /
-                                      16 *
-                                      9,
-                                  child: const LoadingWidget()),
-                            ),
+                            // FutureBuilder(future: , builder: builder)
+                            Builder(builder: (context) {
+                              final thumnailUrl = token.thumbnailURL ?? '';
+                              final width = _imageSize[thumnailUrl]?.width;
+                              final height = _imageSize[thumnailUrl]?.height;
+                              double? aspectRatio;
+                              if (width != null &&
+                                  height != null &&
+                                  height != 0) {
+                                aspectRatio = width / height;
+                              }
+                              return AspectRatio(
+                                aspectRatio: aspectRatio ?? 1.0,
+                                // Provide a default aspect ratio if null
+                                child: CachedNetworkImage(
+                                  imageUrl: token.thumbnailURL ?? '',
+                                  cacheManager: injector<CacheManager>(),
+                                  fit: BoxFit.cover,
+                                  width: double.infinity,
+                                  errorWidget: (context, url, error) =>
+                                      const Icon(Icons.error),
+                                  placeholder: (context, url) =>
+                                      const GalleryThumbnailPlaceholder(),
+                                  imageBuilder: (context, imageProvider) {
+                                    return Image(
+                                      image: imageProvider,
+                                      fit: BoxFit.cover,
+                                      width: double.infinity,
+                                    );
+                                  },
+                                ),
+                              );
+                            }),
                             _infoHeader(context, token, artistName, false,
                                 context.read<CanvasDeviceBloc>().state),
                           ],
@@ -157,10 +192,11 @@ class FeaauredWorkViewState extends State<FeaauredWorkView> {
     }
   }
 
-  Future<void> _fetchFeaturedTokens(BuildContext context) async {
+  Future<List<AssetToken>> _getTokens(
+      BuildContext context, List<String> tokenIds) async {
     final bloc = context.read<IdentityBloc>();
-    final tokens =
-        await injector<TokensService>().fetchManualTokens(widget.tokenIDs);
+
+    final tokens = await injector<TokensService>().fetchManualTokens(tokenIds);
     final addresses = <String>[];
     for (final token in tokens) {
       addresses
@@ -168,12 +204,80 @@ class FeaauredWorkViewState extends State<FeaauredWorkView> {
         ..add(token.artistName ?? '');
     }
     bloc.add(GetIdentityEvent(addresses));
+    await Future.wait(tokens.map((token) async {
+      final uri = Uri.tryParse(token.thumbnailURL ?? '');
+      if (uri != null) {
+        final response = await http.get(uri);
+
+        if (response.statusCode == 200) {
+          final bytes = response.bodyBytes;
+
+          // Decode the image
+          final image = await decodeImageFromList(bytes);
+
+          // Get width and height
+          final width = image.width;
+          final height = image.height;
+          _imageSize.addEntries([
+            MapEntry(token.thumbnailURL ?? '', Size(width * 1.0, height * 1.0))
+          ]);
+        } else {
+          print('Failed to load image at ${token.thumbnailURL}');
+        }
+      }
+    }));
+    return tokens;
+  }
+
+  Future<void> _loadMoreFeaturedTokens(
+      BuildContext context, Paging paging) async {
+    if (_isLoading) {
+      return;
+    }
+    _isLoading = true;
+    try {
+      final tokenIds = widget.tokenIDs.sublist(
+          paging.offset, min(paging.offset + paging.limit, paging.total));
+      if (tokenIds.isEmpty) {
+        _isLoading = false;
+        return;
+      }
+      final tokens = await _getTokens(context, tokenIds);
+      setState(() {
+        _featureTokens ??= [];
+        _featureTokens!.addAll(tokens);
+        _paging = Paging(
+            offset: paging.offset + tokens.length,
+            limit: paging.limit,
+            total: paging.total);
+
+        log.info('feature tokens: ${_featureTokens!.length}');
+      });
+    } catch (e) {
+      log.info('Error while load more featured work: $e');
+    }
+    _isLoading = false;
+  }
+
+  Future<void> _fetchFeaturedTokens(BuildContext context, Paging paging) async {
+    if (_isLoading) {
+      return;
+    }
+    _isLoading = true;
+    final tokenIds =
+        widget.tokenIDs.sublist(0, min(paging.limit, paging.total));
+    final tokens = await _getTokens(context, tokenIds);
     setState(() {
       _featureTokens ??= [];
       _featureTokens!.clear();
       _featureTokens!.addAll(tokens);
+      _paging = Paging(
+          offset: paging.offset + tokens.length,
+          limit: paging.limit,
+          total: paging.total);
       log.info('feature tokens: ${_featureTokens!.length}');
     });
+    _isLoading = false;
   }
 
   void _onTapArtwork(BuildContext context, AssetToken token) {

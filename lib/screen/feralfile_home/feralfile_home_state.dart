@@ -1,5 +1,5 @@
+import 'package:autonomy_flutter/model/explore_statistics_data.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
-import 'package:autonomy_flutter/service/address_service.dart';
 
 class FeralfileHomeBlocState {
   final ExploreStatisticsData? exploreStatisticsData;

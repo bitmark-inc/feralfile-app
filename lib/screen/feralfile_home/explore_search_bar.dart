@@ -50,7 +50,6 @@ class _ExploreBarState extends State<ExploreBar> {
 
   @override
   Widget build(BuildContext context) {
-    Theme.of(context);
     final canCancel = _searchText != null && _searchText!.isNotEmpty;
     return Column(
       children: [

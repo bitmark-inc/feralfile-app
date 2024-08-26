@@ -183,7 +183,7 @@ class FilterExpanandedItemState extends State<FilterExpanandedItem> {
               visible: _isExpanded,
               child: Column(
                 children: [
-                  Container(
+                  SizedBox(
                     width: 45,
                     child: addDivider(),
                   ),

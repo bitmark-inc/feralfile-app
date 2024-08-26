@@ -197,6 +197,26 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
               Navigator.of(context).popAndPushNamed(AppRouter.projectsList);
             },
           ),
+          // collection
+          OptionItem(
+            title: 'collection'.tr(),
+            icon: const Icon(
+              AuIcon.collection,
+            ),
+            onTap: () {
+              Navigator.of(context).popAndPushNamed(AppRouter.collectionPage);
+            },
+          ),
+          // organize
+          OptionItem(
+            title: 'organize'.tr(),
+            icon: const Icon(
+              AuIcon.chevron_Sm,
+            ),
+            onTap: () {
+              Navigator.of(context).popAndPushNamed(AppRouter.organizePage);
+            },
+          ),
           OptionItem(
             title: 'scan'.tr(),
             icon: const Icon(

@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/util/url_hepler.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/loading.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
+import 'package:autonomy_flutter/view/user_widget.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
@@ -76,15 +77,10 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
 
   Widget _avatar(BuildContext context, FFUser user) {
     final avatarUrl = user.avatarUrl;
-    return avatarUrl != null
-        ? Image.network(
-            avatarUrl,
-            fit: BoxFit.fill,
-          )
-        : AspectRatio(
-            aspectRatio: 1,
-            child: SvgPicture.asset('assets/images/default_avatat.svg'),
-          );
+    return AspectRatio(
+      aspectRatio: 1,
+      child: UserAvatar(url: avatarUrl),
+    );
   }
 
   Widget _content(BuildContext context, UserDetailsState state) {

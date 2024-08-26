@@ -1,4 +1,5 @@
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/explore_statistics_data.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
@@ -10,12 +11,12 @@ import 'package:autonomy_flutter/screen/feralfile_home/feralfile_home_state.dart
 import 'package:autonomy_flutter/screen/feralfile_home/filter_bar.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/list_artist_view.dart';
 import 'package:autonomy_flutter/screen/feralfile_home/list_exhibition_view.dart';
-import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/playlist_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/cast_button.dart';
+import 'package:autonomy_flutter/view/keep_alive_widget.dart';
 import 'package:autonomy_flutter/view/stream_common_widget.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -114,7 +115,7 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
     with AutomaticKeepAliveClientMixin {
   late int _selectedIndex;
   late CanvasDeviceBloc _canvasDeviceBloc;
-  final _featuredWorkKey = GlobalKey<FeaauredWorkViewState>();
+  final _featuredWorkKey = GlobalKey<FeaturedWorkViewState>();
   final _artworkViewKey = GlobalKey<ExploreSeriesViewState>();
   final _exhibitionViewKey = GlobalKey<ExploreExhibitionState>();
   final _artistViewKey = GlobalKey<ExploreArtistViewState>();
@@ -186,7 +187,7 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
           BlocBuilder<FeralfileHomeBloc, FeralfileHomeBlocState>(
             builder: (context, state) => Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: ItemExpanedWidget(
+              child: ItemExpandedWidget(
                 items: _getItemList(state),
                 selectedIndex: _selectedIndex,
                 iconOnExpanded: RotatedBox(
@@ -286,7 +287,8 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
     final tab = FeralfileHomeTab.values[_selectedIndex];
     switch (tab) {
       case FeralfileHomeTab.featured:
-        return _featuredWidget(context, state.featuredArtworks ?? []);
+        return KeepAliveWidget(
+            child: _featuredWidget(context, state.featuredArtworks ?? []));
       case FeralfileHomeTab.artworks:
         return _artworksWidget(context);
       case FeralfileHomeTab.exhibitions:
@@ -304,17 +306,18 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
     final tokenIDs =
         featuredArtworks.map((e) => e.indexerTokenId).whereNotNull().toList();
     return MultiBlocProvider(
-        providers: [
-          BlocProvider<IdentityBloc>(
-            create: (context) => IdentityBloc(injector(), injector()),
-          ),
-        ],
-        child: Expanded(
-          child: FeaauredWorkView(
-            key: _featuredWorkKey,
-            tokenIDs: tokenIDs,
-          ),
-        ));
+      providers: [
+        BlocProvider<IdentityBloc>(
+          create: (context) => IdentityBloc(injector(), injector()),
+        ),
+      ],
+      child: Expanded(
+        child: FeaturedWorkView(
+          key: _featuredWorkKey,
+          tokenIDs: tokenIDs,
+        ),
+      ),
+    );
   }
 
   Widget _artworksWidget(BuildContext context) => Expanded(
@@ -394,7 +397,7 @@ class Item {
   });
 }
 
-class ItemExpanedWidget extends StatefulWidget {
+class ItemExpandedWidget extends StatefulWidget {
   final Widget? iconOnExpanded;
   final Widget? iconOnUnExpanded;
   final List<Item> items;
@@ -403,7 +406,7 @@ class ItemExpanedWidget extends StatefulWidget {
   // actions on unexpanded
   final List<Widget> actions;
 
-  const ItemExpanedWidget({
+  const ItemExpandedWidget({
     required this.items,
     required this.selectedIndex,
     super.key,
@@ -413,10 +416,10 @@ class ItemExpanedWidget extends StatefulWidget {
   });
 
   @override
-  State<ItemExpanedWidget> createState() => _ItemExpanedWidgetState();
+  State<ItemExpandedWidget> createState() => _ItemExpandedWidgetState();
 }
 
-class _ItemExpanedWidgetState extends State<ItemExpanedWidget> {
+class _ItemExpandedWidgetState extends State<ItemExpandedWidget> {
   bool _isExpanded = false;
   late int _selectedIndex;
 

@@ -247,10 +247,7 @@ class ScanQRPageState extends State<ScanQRPage>
   @override
   void didPopNext() {
     super.didPopNext();
-    // for global camera, it's already handled in HomeNavigationPage.didPopNext
-    if (!_isGlobal) {
-      unawaited(resumeCamera());
-    }
+    unawaited(resumeCamera());
     if (Platform.isIOS) {
       unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.leanBack));
     }

@@ -118,7 +118,7 @@ class ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
   }
 
   void resume() {
-    unawaited(_renderingWidget?.pause());
+    unawaited(_renderingWidget?.resume());
   }
 
   @override

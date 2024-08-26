@@ -33,7 +33,7 @@ class ProjectsBloc extends AuBloc<ProjectsEvent, ProjectsState> {
       try {
         firstUserMoMAPostCard = await _getFirstUserMoMAPostCard();
         final showYokoOno = await _doUserHaveYokoOnoRecord();
-        if (showYokoOno || true) {
+        if (showYokoOno) {
           final config = _remoteConfigService.getConfig<Map<String, dynamic>>(
               ConfigGroup.exhibition, ConfigKey.yokoOnoPublic, {});
           yokoOnoRecordArtwork = await _feralfileService.getArtwork(

@@ -4,6 +4,7 @@ import 'package:autonomy_flutter/model/ff_user.dart';
 import 'package:autonomy_flutter/screen/artist_details/artist_details_page.dart';
 import 'package:autonomy_flutter/util/feralfile_artist_ext.dart';
 import 'package:autonomy_flutter/util/url_hepler.dart';
+import 'package:autonomy_flutter/view/feralfile_cache_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
@@ -12,18 +13,34 @@ import 'package:url_launcher/url_launcher.dart';
 
 class UserAvatar extends StatelessWidget {
   final String? url;
+  final double? width;
+  final double? height;
 
   const UserAvatar({
     required this.url,
+    this.width,
+    this.height,
     super.key,
   });
 
   Widget _avatar(BuildContext context) {
     final avatarUrl = url;
     return avatarUrl != null
-        ? Image.network(
-            avatarUrl,
+        ? FFCacheNetworkImage(
+            imageUrl: avatarUrl,
             fit: BoxFit.fill,
+            placeholder: (context, url) => Container(
+              height: height,
+              width: width,
+              color: Colors.transparent,
+              child: const Center(
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  backgroundColor: AppColor.auQuickSilver,
+                  strokeWidth: 2,
+                ),
+              ),
+            ),
           )
         : AspectRatio(
             aspectRatio: 1,
@@ -66,7 +83,10 @@ class UserProfile extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: UserAvatar(url: user.avatarUrl),
+              child: AspectRatio(
+                child: UserAvatar(url: user.avatarUrl),
+                aspectRatio: 1,
+              ),
             ),
           ],
         ),

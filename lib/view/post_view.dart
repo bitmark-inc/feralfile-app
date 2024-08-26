@@ -1,6 +1,8 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/view/artwork_common_widget.dart';
+import 'package:autonomy_flutter/view/feralfile_cache_network_image.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -129,36 +131,18 @@ class PostThumbnail extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    return Image.network(
-      post.thumbnailUrls[index],
-      fit: BoxFit.fitWidth,
-      errorBuilder: (context, error, stackTrace) {
-        if (index >= post.thumbnailUrls.length) {
-          return SvgPicture.asset('assets/images/default_avatat.svg');
-        }
-        return PostThumbnail(
-          post: post,
-          index: index + 1,
-        );
-      },
-    );
-    return CachedNetworkImage(
-      imageUrl: post.thumbnailUrls[index],
-      fit: BoxFit.fitWidth,
-      cacheManager: injector<CacheManager>(),
-      placeholder: (context, url) {
-        return SvgPicture.asset('assets/images/default_avatat.svg');
-      },
-      errorWidget: (context, url, error) {
-        if (index >= post.thumbnailUrls.length) {
-          return SvgPicture.asset('assets/images/default_avatat.svg');
-        }
-        return PostThumbnail(
-          post: post,
-          index: index + 1,
-        );
-      },
-    );
-  }
+  Widget build(BuildContext context) => FFCacheNetworkImage(
+        imageUrl: post.thumbnailUrls[index],
+        fit: BoxFit.fitWidth,
+        placeholder: (context, url) => const GalleryThumbnailPlaceholder(),
+        errorWidget: (context, error, stackTrace) {
+          if (index >= post.thumbnailUrls.length) {
+            return SvgPicture.asset('assets/images/default_avatat.svg');
+          }
+          return PostThumbnail(
+            post: post,
+            index: index + 1,
+          );
+        },
+      );
 }

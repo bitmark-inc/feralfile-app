@@ -73,7 +73,9 @@ class _ArtistWorksPageState extends State<ArtistWorksPage> {
     );
   }
 
-  Widget _loadingView(BuildContext context) => const LoadingWidget();
+  Widget _loadingView(BuildContext context) => const Center(
+        child: LoadingWidget(),
+      );
 
   Widget _emptyView(BuildContext context) {
     final theme = Theme.of(context);
@@ -88,7 +90,7 @@ class _ArtistWorksPageState extends State<ArtistWorksPage> {
   Widget _buildBody(BuildContext context) {
     final seriesList = _seriesList;
     if (seriesList == null) {
-      return const SizedBox();// _loadingView(context);
+      return _loadingView(context);
     }
     if (seriesList.isEmpty) {
       return _emptyView(context);

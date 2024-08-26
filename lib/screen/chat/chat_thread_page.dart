@@ -21,6 +21,7 @@ import 'package:autonomy_flutter/util/distance_formater.dart';
 import 'package:autonomy_flutter/util/message_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/loading.dart';
 import 'package:autonomy_flutter/view/postcard_chat.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -585,6 +586,9 @@ class UserAvatar extends StatelessWidget {
         imageUrl: url,
         errorWidget: (context, url, error) =>
             SvgPicture.asset('assets/images/default_avatar.svg'),
+        placeholder: (context, url) {
+          return LoadingWidget();
+        },
       ));
 }
 
