@@ -289,10 +289,7 @@ class NavigationService {
 
   Future<void> popToCollection() async {
     popUntilHome();
-    await Future.delayed(const Duration(seconds: 1), () async {
-      await (homePageKey.currentState ?? homePageNoTransactionKey.currentState)
-          ?.openCollection();
-    });
+    await injector<NavigationService>().openCollection();
   }
 
   Future<void> gotoArtworkDetailsPage(String indexID) async {
@@ -416,6 +413,10 @@ class NavigationService {
     }
     final url = FeralFileHelper.getExhibitionNoteUrl(exhibitionSlug);
     await _browser.openUrl(url);
+  }
+
+  Future<void> openCollection() async {
+    await navigateTo(AppRouter.collectionPage);
   }
 
   Future<void> openFeralFilePostPage(Post post, String exhibitionID) async {

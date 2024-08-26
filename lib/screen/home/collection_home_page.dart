@@ -14,8 +14,6 @@ import 'package:autonomy_flutter/model/blockchain.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
-import 'package:autonomy_flutter/screen/home/home_bloc.dart';
-import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
@@ -35,8 +33,8 @@ import 'package:autonomy_flutter/util/token_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/get_started_banner.dart';
-import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
+import 'package:autonomy_flutter/view/title_text.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -81,7 +79,6 @@ class CollectionHomePageState extends State<CollectionHomePage>
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
     _controller = ScrollController()..addListener(_scrollListenerToLoadMore);
     unawaited(_configurationService.setAutoShowPostcard(true));
-    context.read<HomeBloc>().add(CheckReviewAppEvent());
   }
 
   void _scrollListenerToLoadMore() {
@@ -204,21 +201,20 @@ class CollectionHomePageState extends State<CollectionHomePage>
     return PrimaryScrollController(
       controller: _controller,
       child: Scaffold(
-        appBar: getDarkEmptyAppBar(Colors.transparent),
+        appBar: getFFAppBar(
+          context,
+          onBack: () {
+            Navigator.pop(context);
+          },
+          title: TitleText(
+            title: 'collection'.tr(),
+          ),
+          centerTitle: false,
+        ),
         extendBody: true,
-        extendBodyBehindAppBar: true,
+        // extendBodyBehindAppBar: true,
         backgroundColor: AppColor.primaryBlack,
         body: contentWidget,
-      ),
-    );
-  }
-
-  Widget _header(BuildContext context) {
-    final paddingTop = MediaQuery.of(context).viewPadding.top;
-    return Padding(
-      padding: EdgeInsets.only(top: paddingTop),
-      child: HeaderView(
-        title: 'collection'.tr(),
       ),
     );
   }
@@ -227,9 +223,8 @@ class CollectionHomePageState extends State<CollectionHomePage>
           child: Column(
         children: [
           SizedBox(
-            height: MediaQuery.of(context).padding.top,
+            height: MediaQuery.of(context).padding.top + 40,
           ),
-          _header(context),
           loadingIndicator(valueColor: AppColor.white),
         ],
       ));
@@ -240,9 +235,8 @@ class CollectionHomePageState extends State<CollectionHomePage>
       padding: ResponsiveLayout.getPadding.copyWith(left: 0, right: 0),
       children: [
         SizedBox(
-          height: MediaQuery.of(context).padding.top,
+          height: MediaQuery.of(context).padding.top + 40,
         ),
-        _header(context),
         if (_showPostcardBanner)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 15),
@@ -292,9 +286,6 @@ class CollectionHomePageState extends State<CollectionHomePage>
         child: SizedBox(
           height: MediaQuery.of(context).padding.top,
         ),
-      ),
-      SliverToBoxAdapter(
-        child: _header(context),
       ),
       if (tokens.length <= maxCollectionListSize) ...[
         const SliverToBoxAdapter(
