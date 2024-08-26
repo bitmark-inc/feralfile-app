@@ -33,7 +33,6 @@ import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/util/dio_exception_ext.dart';
 import 'package:autonomy_flutter/util/gift_handler.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/stream_device_view.dart';
 import 'package:collection/collection.dart';
@@ -135,41 +134,22 @@ class DeeplinkServiceImpl extends DeeplinkService {
       }
       unawaited(_deepLinkHandleClock('Handle Deep Link Time Out', link));
       _deepLinkHandlingMap[link] = true;
-      await _handleLocalDeeplink(link) ||
-          await _handleDappConnectDeeplink(link) ||
-          await _handleBranchDeeplink(link) ||
+      final handlerType = DeepLinkHandlerType.fromString(link);
+      switch (handlerType) {
+        case DeepLinkHandlerType.branch:
+          await _handleBranchDeeplink(link);
+        case DeepLinkHandlerType.dAppConnect:
+          await _handleDappConnectDeeplink(link);
+        case DeepLinkHandlerType.irl:
           await _handleIRL(link);
+        case DeepLinkHandlerType.unknown:
+          unawaited(_navigationService.showUnknownLink());
+      }
       _deepLinkHandlingMap.remove(link);
       handlingDeepLink = null;
       memoryValues.irlLink.value = null;
       onFinished?.call();
     });
-  }
-
-  Future<bool> _handleLocalDeeplink(String link) async {
-    log.info('[DeeplinkService] _handleLocalDeeplink');
-    const deeplink = 'autonomy://';
-
-    if (link.startsWith(deeplink)) {
-      final data = link.replacePrefix(deeplink, '');
-      if (!_configurationService.isDoneOnboarding()) {
-        // Local deeplink should only available after onboarding.
-        return false;
-      }
-
-      switch (data) {
-        case 'home':
-          _navigationService.restorablePushHomePage();
-        case 'support':
-          unawaited(
-              _navigationService.navigateTo(AppRouter.supportCustomerPage));
-        default:
-          return false;
-      }
-      return true;
-    }
-
-    return false;
   }
 
   Future<bool> _handleDappConnectDeeplink(String link) async {
@@ -367,6 +347,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
         await handleBranchDeeplinkData(response['data']);
       } catch (e) {
         log.info('[DeeplinkService] _handleBranchDeeplink error $e');
+        await _navigationService.showCannotResolveBranchLink();
       }
       return true;
     }
@@ -634,4 +615,29 @@ Otp? _getOtpFromBranchData(Map<dynamic, dynamic> json) {
 class SharedPostcardStatus {
   static String available = 'available';
   static String claimed = 'claimed';
+}
+
+enum DeepLinkHandlerType {
+  branch,
+  dAppConnect,
+  irl,
+  unknown,
+  ;
+
+  static DeepLinkHandlerType fromString(String value) {
+    if (Constants.dAppConnectPrefixes
+        .any((prefix) => value.startsWith(prefix))) {
+      return DeepLinkHandlerType.dAppConnect;
+    }
+
+    if (IRL_DEEPLINK_PREFIXES.any((prefix) => value.startsWith(prefix))) {
+      return DeepLinkHandlerType.irl;
+    }
+
+    if (Constants.branchDeepLinks.any((prefix) => value.startsWith(prefix))) {
+      return DeepLinkHandlerType.branch;
+    }
+
+    return DeepLinkHandlerType.unknown;
+  }
 }
