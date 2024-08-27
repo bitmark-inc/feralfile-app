@@ -136,6 +136,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
       unawaited(_deepLinkHandleClock('Handle Deep Link Time Out', link));
       _deepLinkHandlingMap[link] = true;
       final handlerType = DeepLinkHandlerType.fromString(link);
+      log.info('[DeeplinkService] handlerType $handlerType');
       switch (handlerType) {
         case DeepLinkHandlerType.branch:
           await _handleBranchDeeplink(link);
