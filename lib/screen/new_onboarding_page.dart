@@ -223,6 +223,7 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
     }
     if (subscriptionDetails.status == IAPProductStatus.completed) {
       nameContinue(context);
+      return;
     }
     final ids = [subscriptionDetails.productDetails.id];
     log.info('Cast button: upgrade purchase: ${ids.first}');
