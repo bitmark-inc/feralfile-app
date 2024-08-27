@@ -561,12 +561,12 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
       ),
       FFNavigationBarItem(
         icon: SvgPicture.asset(
-          'assets/images/controller_icon.svg',
+          'assets/images/set_icon.svg',
           height: iconSize,
           colorFilter: selectedColorFilter,
         ),
         unselectedIcon: SvgPicture.asset(
-          'assets/images/controller_icon.svg',
+          'assets/images/set_icon.svg',
           height: iconSize,
           colorFilter: unselectedColorFilter,
         ),
