@@ -256,8 +256,14 @@ Future<void> setup() async {
   injector.registerLazySingleton<IAPService>(
       () => IAPServiceImpl(injector(), injector()));
 
-  injector.registerLazySingleton(() =>
-      TvCastApi(tvCastDio(dioOptions), baseUrl: Environment.tvCastApiUrl));
+  injector.registerLazySingleton(() => TvCastApi(
+      tvCastDio(
+        dioOptions.copyWith(
+          receiveTimeout: Duration(seconds: 10),
+          connectTimeout: Duration(seconds: 10),
+        ),
+      ),
+      baseUrl: Environment.tvCastApiUrl));
   injector.registerLazySingleton(() => Wc2Service(
         injector(),
         injector(),
