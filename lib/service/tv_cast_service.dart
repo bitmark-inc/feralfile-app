@@ -1,8 +1,19 @@
+import 'dart:async';
+
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/tv_cast_api.dart';
+import 'package:autonomy_flutter/model/ff_account.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/dio_exception_ext.dart';
+import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:dio/dio.dart';
 import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
+import 'package:sentry/sentry_io.dart';
 
 abstract class TvCastService {
-  Future<CheckDeviceStatusReply> status(CheckDeviceStatusRequest request);
+  Future<CheckDeviceStatusReply> status(CheckDeviceStatusRequest request,
+      {bool shouldShowError = true});
 
   Future<ConnectReplyV2> connect(ConnectRequestV2 request);
 
@@ -48,22 +59,51 @@ class TvCastServiceImpl implements TvCastService {
 
   TvCastServiceImpl(this._api, this._device);
 
-  Future<dynamic> _cast(Map<String, dynamic> body) async {
-    final result = await _api.request(
-      locationId: _device.locationId,
-      topicId: _device.topicId,
-      body: body,
-    );
-    return result['message'];
+  void _handleError(Object error) {
+    final context = injector<NavigationService>().context;
+    unawaited(Sentry.captureException(error));
+    if (error is DioException) {
+      if (error.error is FeralfileError) {
+        unawaited(UIHelper.showTVConnectError(
+            context, error.error! as FeralfileError));
+      } else if (error.isBranchError) {
+        final feralfileError = error.branchError;
+        unawaited(UIHelper.showTVConnectError(context, feralfileError));
+      }
+    } else {
+      unawaited(UIHelper.showTVConnectError(
+          context,
+          FeralfileError(
+              StatusCode.badRequest.value, 'Unknown error: $error')));
+    }
+  }
+
+  Future<dynamic> _cast(Map<String, dynamic> body,
+      {bool shouldShowError = true}) async {
+    try {
+      final result = await _api.request(
+        locationId: _device.locationId,
+        topicId: _device.topicId,
+        body: body,
+      );
+      return result['message'];
+    } catch (e) {
+      unawaited(Sentry.captureException(e));
+      if (shouldShowError) {
+        _handleError(e);
+      }
+      rethrow;
+    }
   }
 
   Map<String, dynamic> _getBody(Request request) =>
       RequestBody(request).toJson();
 
   @override
-  Future<CheckDeviceStatusReply> status(
-      CheckDeviceStatusRequest request) async {
-    final result = await _cast(_getBody(request));
+  Future<CheckDeviceStatusReply> status(CheckDeviceStatusRequest request,
+      {bool shouldShowError = true}) async {
+    final result =
+        await _cast(_getBody(request), shouldShowError: shouldShowError);
     return CheckDeviceStatusReply.fromJson(result);
   }
 
@@ -157,7 +197,6 @@ class TvCastServiceImpl implements TvCastService {
       final result = await _cast(body);
       return CastDailyWorkReply.fromJson(result);
     } catch (e) {
-      print(e);
       rethrow;
     }
   }

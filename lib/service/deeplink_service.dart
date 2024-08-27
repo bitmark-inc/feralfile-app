@@ -344,8 +344,9 @@ class DeeplinkServiceImpl extends DeeplinkService {
     final callingBranchDeepLinkPrefix = Constants.branchDeepLinks
         .firstWhereOrNull((prefix) => link.startsWith(prefix));
     if (callingBranchDeepLinkPrefix != null) {
-      final response = await _branchApi.getParams(Environment.branchKey, link);
       try {
+        final response =
+            await _branchApi.getParams(Environment.branchKey, link);
         await handleBranchDeeplinkData(response['data']);
       } catch (e) {
         log.info('[DeeplinkService] _handleBranchDeeplink error $e');
