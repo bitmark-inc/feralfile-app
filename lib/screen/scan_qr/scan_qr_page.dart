@@ -169,6 +169,7 @@ class ScanQRPageState extends State<ScanQRPage>
         bottom: false,
         child: Scaffold(
           extendBodyBehindAppBar: true,
+          backgroundColor: AppColor.primaryBlack,
           appBar: _tabController.index == QRScanTab.scan.index
               ? getDarkEmptyAppBar(Colors.transparent)
               : getLightEmptyAppBar(),
@@ -205,29 +206,30 @@ class ScanQRPageState extends State<ScanQRPage>
             title: 'scan'.tr(),
             action: Row(
               children: [
-                _isGlobal
-                    ? GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            unawaited(pauseCamera());
-                            _tabController.animateTo(QRScanTab.showMyCode.index,
-                                duration: const Duration(milliseconds: 300));
-                          });
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 10,
-                          ),
-                          child: Text(
-                            'show_my_code'.tr(),
-                            style: theme.textTheme.ppMori400White14.copyWith(
-                              decoration: TextDecoration.underline,
-                              decorationColor: AppColor.white,
-                            ),
-                          ),
+                if (_isGlobal)
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        unawaited(pauseCamera());
+                        _tabController.animateTo(QRScanTab.showMyCode.index,
+                            duration: const Duration(milliseconds: 300));
+                      });
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 10,
+                      ),
+                      child: Text(
+                        'show_my_code'.tr(),
+                        style: theme.textTheme.ppMori400White14.copyWith(
+                          decoration: TextDecoration.underline,
+                          decorationColor: AppColor.white,
                         ),
-                      )
-                    : SizedBox(),
+                      ),
+                    ),
+                  )
+                else
+                  const SizedBox(),
                 const SizedBox(width: 20),
                 IconButton(
                     onPressed: () {

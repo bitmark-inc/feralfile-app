@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:autonomy_flutter/model/ff_user.dart';
 import 'package:autonomy_flutter/screen/artist_details/artist_details_page.dart';
 import 'package:autonomy_flutter/util/feralfile_artist_ext.dart';
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/url_hepler.dart';
 import 'package:autonomy_flutter/view/feralfile_cache_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -33,12 +34,8 @@ class UserAvatar extends StatelessWidget {
               height: height,
               width: width,
               color: Colors.transparent,
-              child: const Center(
-                child: CircularProgressIndicator(
-                  color: Colors.white,
-                  backgroundColor: AppColor.auQuickSilver,
-                  strokeWidth: 2,
-                ),
+              child: Center(
+                child: loadingIndicatorLight(),
               ),
             ),
           )

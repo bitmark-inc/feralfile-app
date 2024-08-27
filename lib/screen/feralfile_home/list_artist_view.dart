@@ -400,32 +400,15 @@ class _ListUserViewState extends State<ListUserView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-                child: AspectRatio(
-                    aspectRatio: 1, child: _artistAvatar(context, user))),
-          ],
-        ),
+        AspectRatio(aspectRatio: 1, child: _artistAvatar(context, user)),
         const SizedBox(height: 14),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-                child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  user.displayAlias,
-                  style: theme.textTheme.ppMori400White12,
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 2,
-                ),
-              ],
+        Expanded(
+            child: Text(
+              user.displayAlias,
+              style: theme.textTheme.ppMori400White12,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 2,
             )),
-          ],
-        ),
       ],
     );
   }
