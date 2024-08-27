@@ -162,6 +162,7 @@ class _FFCastButtonState extends State<FFCastButton> {
                   upgradeState.activeSubscriptionDetails.firstOrNull?.status;
               log.info('Cast button: upgradeState: $status');
               if (status == IAPProductStatus.completed) {
+                injector<SubscriptionBloc>().add(GetSubscriptionEvent());
                 Navigator.pop(context);
               }
             },
