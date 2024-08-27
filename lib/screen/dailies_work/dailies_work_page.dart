@@ -26,6 +26,7 @@ import 'package:autonomy_flutter/view/daily_progress_bar.dart';
 import 'package:autonomy_flutter/view/exhibition_item.dart';
 import 'package:autonomy_flutter/view/important_note_view.dart';
 import 'package:autonomy_flutter/view/keep_alive_widget.dart';
+import 'package:autonomy_flutter/view/loading.dart';
 import 'package:autonomy_flutter/view/user_widget.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -164,17 +165,21 @@ class DailyWorkPageState extends State<DailyWorkPage>
     );
   }
 
-  Widget _buildBody() => PageView(
-        controller: _pageController,
-        scrollDirection: Axis.vertical,
-        children: [
-          KeepAliveWidget(child: _dailyPreview()),
-          KeepAliveWidget(child: _dailyDetails(context)),
-        ],
-        onPageChanged: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
+  Widget _buildBody() => BlocBuilder<DailyWorkBloc, DailiesWorkState>(
+        builder: (context, state) {
+          return PageView(
+            controller: _pageController,
+            scrollDirection: Axis.vertical,
+            children: [
+              KeepAliveWidget(child: _dailyPreview()),
+              KeepAliveWidget(child: _dailyDetails(context)),
+            ],
+            onPageChanged: (index) {
+              setState(() {
+                _currentIndex = index;
+              });
+            },
+          );
         },
       );
 
@@ -278,7 +283,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
               builder: (context, state) {
                 final assetToken = state.assetTokens.firstOrNull;
                 if (assetToken == null) {
-                  return loadingIndicator();
+                  return LoadingWidget();
                 }
                 return Column(
                   children: [
