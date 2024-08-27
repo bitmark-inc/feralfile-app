@@ -24,6 +24,7 @@ class MembershipCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final featureTextStyle = theme.textTheme.ppMori400Black14;
     return DecoratedBox(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
@@ -60,9 +61,20 @@ class MembershipCard extends StatelessWidget {
                 children: [
                   ...type.features.map((feature) => Padding(
                         padding: const EdgeInsets.only(left: 10),
-                        child: Text(
-                          feature,
-                          style: theme.textTheme.ppMori400Black14,
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '• ',
+                              style: featureTextStyle,
+                            ),
+                            Expanded(
+                              child: Text(
+                                feature,
+                                style: featureTextStyle,
+                              ),
+                            ),
+                          ],
                         ),
                       )),
                   const SizedBox(height: 10),
