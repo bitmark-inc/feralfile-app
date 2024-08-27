@@ -70,6 +70,12 @@ Future<void> doneOnboarding(BuildContext context) async {
 }
 
 void nameContinue(BuildContext context) {
+  final configurationService = injector<ConfigurationService>();
+  final isDoneNewOnboarding = configurationService.isDoneNewOnboarding();
+  if (!isDoneNewOnboarding) {
+    injector<ConfigurationService>().setDoneNewOnboarding(true);
+    unawaited(doneOnboarding(context));
+  }
   if (injector<ConfigurationService>().isDoneOnboarding()) {
     Navigator.of(context).popUntil((route) =>
         route.settings.name == AppRouter.tbConnectPage ||

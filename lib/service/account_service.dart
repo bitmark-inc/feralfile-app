@@ -114,7 +114,7 @@ abstract class AccountService {
 
   Future<void> updateAddressPersona(WalletAddress walletAddress);
 
-  Future<void> restoreIfNeeded({bool isCreateNew = true});
+  Future<void> restoreIfNeeded();
 
   Future<List<Connection>> getAllViewOnlyAddresses();
 }
@@ -723,7 +723,7 @@ class AccountServiceImpl extends AccountService {
   }
 
   @override
-  Future<void> restoreIfNeeded({bool isCreateNew = true}) async {
+  Future<void> restoreIfNeeded() async {
     final iapService = injector<IAPService>();
     final auditService = injector<AuditService>();
     final migrationUtil = MigrationUtil(_configurationService, _cloudDB, this,
@@ -783,17 +783,21 @@ class AccountServiceImpl extends AccountService {
         await _addressService.registerPrimaryAddress(
             info: primaryAddressInfo, withDidKey: true);
       }
-    } else if (isCreateNew) {
+    } else {
       // for new user, create default persona
       final persona = await createPersona(isDefault: true);
       await persona.insertNextAddress(WalletType.Tezos);
       await persona.insertNextAddress(WalletType.Ethereum);
+      await _configurationService.setDoneOnboarding(true);
       unawaited(injector<MetricClientService>()
           .mixPanelClient
           .initIfDefaultAccount());
-      unawaited(injector<NavigationService>()
-          .navigateTo(AppRouter.homePageNoTransition));
-      unawaited(_configurationService.setDoneOnboarding(true));
+      final didShowNewOnboarding = _configurationService.isDoneNewOnboarding();
+      if (didShowNewOnboarding) {
+        unawaited(injector<NavigationService>()
+            .navigateTo(AppRouter.homePageNoTransition));
+      } else {
+      }
     }
   }
 

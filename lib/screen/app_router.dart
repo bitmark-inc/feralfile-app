@@ -340,12 +340,6 @@ class AppRouter {
                 injector(),
               ),
             ),
-            BlocProvider(
-              create: (_) => personaBloc,
-            ),
-            BlocProvider(
-              create: (_) => UpgradesBloc(injector(), injector()),
-            )
           ], child: const OnboardingPage()),
         );
 
@@ -1254,7 +1248,7 @@ class AppRouter {
             providers: [
               BlocProvider.value(value: subscriptionBloc),
             ],
-            child: CollectionHomePage(),
+            child: const CollectionHomePage(),
           ),
         );
       case organizePage:
@@ -1264,7 +1258,7 @@ class AppRouter {
             providers: [
               BlocProvider.value(value: subscriptionBloc),
             ],
-            child: OrganizeHomePage(),
+            child: const OrganizeHomePage(),
           ),
         );
 

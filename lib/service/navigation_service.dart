@@ -336,12 +336,7 @@ class NavigationService {
     if (navigatorKey.currentContext != null &&
         navigatorKey.currentState?.mounted == true) {
       final price = subscriptionDetails.price;
-      final expiredDate = subscriptionDetails.purchaseDetails?.transactionDate;
-      final renewDate = expiredDate != null
-          ? DateFormat('dd-MM-yyyy').format(
-              DateTime.fromMillisecondsSinceEpoch(int.parse(expiredDate))
-                  .add(const Duration(days: 365)))
-          : null;
+      final renewDate = subscriptionDetails.renewDate;
       await UIHelper.showDialog(
         context,
         'see_more_art_now'.tr(),
