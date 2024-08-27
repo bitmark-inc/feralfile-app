@@ -40,6 +40,7 @@ import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/cast_button.dart';
+import 'package:autonomy_flutter/view/loading.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/stream_common_widget.dart';
@@ -289,7 +290,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       context.read<IdentityBloc>().add(GetIdentityEvent(identitiesList));
     }, builder: (context, state) {
       if (state.assetToken == null) {
-        return const SizedBox();
+        return const LoadingWidget();
       }
       final identityState = context.watch<IdentityBloc>().state;
       final asset = state.assetToken!;
@@ -730,7 +731,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               await browser.openUrl(asset.secondaryMarketURL);
             },
           ),
-        if (!widget.payload.useIndexer)
+        if (!widget.payload.isLocalToken)
           OptionItem(
             title: isHidden ? 'unhide_aw'.tr() : 'hide_aw'.tr(),
             icon: SvgPicture.asset('assets/images/hide_artwork_white.svg'),
@@ -805,7 +806,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
             },
           ),
         ],
-        if (!widget.payload.useIndexer)
+        if (!widget.payload.isLocalToken)
           OptionItem(
             title: 'refresh_metadata'.tr(),
             icon: SvgPicture.asset(
@@ -871,6 +872,8 @@ class ArtworkDetailPayload {
   final PlayListModel? playlist;
   final String? twitterCaption;
   final bool useIndexer; // set true when navigate from discover/gallery page
+  final bool
+      isLocalToken; // if local token, it can be hidden and refresh metadata
 
   ArtworkDetailPayload(
     this.identities,
@@ -878,21 +881,25 @@ class ArtworkDetailPayload {
     this.twitterCaption,
     this.playlist,
     this.useIndexer = false,
+    this.isLocalToken = true,
     this.key,
   });
 
-  ArtworkDetailPayload copyWith(
-          {List<ArtworkIdentity>? ids,
-          int? currentIndex,
-          PlayListModel? playlist,
-          String? twitterCaption,
-          bool? useIndexer}) =>
+  ArtworkDetailPayload copyWith({
+    List<ArtworkIdentity>? ids,
+    int? currentIndex,
+    PlayListModel? playlist,
+    String? twitterCaption,
+    bool? useIndexer,
+    bool? isLocalToken,
+  }) =>
       ArtworkDetailPayload(
         ids ?? identities,
         currentIndex ?? this.currentIndex,
         twitterCaption: twitterCaption ?? this.twitterCaption,
         playlist: playlist ?? this.playlist,
         useIndexer: useIndexer ?? this.useIndexer,
+        isLocalToken: isLocalToken ?? this.isLocalToken,
       );
 }
 
