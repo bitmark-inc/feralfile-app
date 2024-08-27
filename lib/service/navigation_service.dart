@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
+import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/feral_file_custom_tab.dart';
@@ -24,7 +25,9 @@ import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/subscription_detail_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/view/membership_card.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
@@ -328,6 +331,45 @@ class NavigationService {
     }
   }
 
+  Future<void> showSeeMoreArtNow(
+      SubscriptionDetails subscriptionDetails) async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      final price = subscriptionDetails.price;
+      final expiredDate = subscriptionDetails.purchaseDetails?.transactionDate;
+      final renewDate = expiredDate != null
+          ? DateFormat('dd-MM-yyyy').format(
+              DateTime.fromMillisecondsSinceEpoch(int.parse(expiredDate))
+                  .add(const Duration(days: 365)))
+          : null;
+      await UIHelper.showDialog(
+        context,
+        'see_more_art_now'.tr(),
+        withCloseIcon: true,
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'see_more_art_now_desc'.tr(),
+              style: Theme.of(context).textTheme.ppMori400White14,
+            ),
+            const SizedBox(height: 20),
+            MembershipCard(
+              type: MembershipCardType.premium,
+              price: price,
+              isProcessing: false,
+              isEnable: false,
+              onTap: (_) {},
+              isCompleted: true,
+              renewDate: renewDate,
+            ),
+          ],
+        ),
+        isDismissible: true,
+      );
+    }
+  }
+
   Future<void> openPostcardReceivedPage(
       {required AssetToken asset, required String shareCode}) async {
     if (navigatorKey.currentState?.mounted == true &&
@@ -495,6 +537,7 @@ class NavigationService {
       return;
     }
     late String route;
+
     /// todo: handle more cases
     switch (pair.first) {
       case AppRouter.collectionPage:

@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -10,6 +11,8 @@ class MembershipCard extends StatelessWidget {
   final bool isEnable;
   final Function(MembershipCardType type) onTap;
   final String? buttonText;
+  final bool isCompleted;
+  final String? renewDate;
 
   const MembershipCard({
     required this.type,
@@ -18,6 +21,8 @@ class MembershipCard extends StatelessWidget {
     required this.isEnable,
     required this.onTap,
     this.buttonText,
+    this.isCompleted = false,
+    this.renewDate,
     super.key,
   });
 
@@ -25,6 +30,7 @@ class MembershipCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final featureTextStyle = theme.textTheme.ppMori400Black14;
+    final activeTextStyle = theme.textTheme.ppMori400Black12;
     return DecoratedBox(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
@@ -78,13 +84,35 @@ class MembershipCard extends StatelessWidget {
                         ),
                       )),
                   const SizedBox(height: 10),
-                  PrimaryButton(
-                    text: buttonText ?? 'select'.tr(),
-                    isProcessing: isProcessing,
-                    enabled: !isProcessing && isEnable,
-                    onTap: () => onTap(type),
-                    color: AppColor.feralFileLightBlue,
-                  )
+                  if (isCompleted)
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        dotIcon(color: AppColor.feralFileHighlight),
+                        const SizedBox(width: 10),
+                        Text(
+                          'active'.tr(),
+                          style: activeTextStyle,
+                        ),
+                        const Spacer(),
+                        if (renewDate != null) ...[
+                          Text(
+                            'renews_'.tr(
+                              args: [renewDate!],
+                            ),
+                            style: activeTextStyle,
+                          ),
+                        ]
+                      ],
+                    )
+                  else
+                    PrimaryButton(
+                      text: buttonText ?? 'select'.tr(),
+                      isProcessing: isProcessing,
+                      enabled: !isProcessing && isEnable,
+                      onTap: () => onTap(type),
+                      color: AppColor.feralFileLightBlue,
+                    )
                 ],
               ),
             ),

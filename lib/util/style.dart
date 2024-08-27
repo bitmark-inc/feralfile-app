@@ -601,9 +601,11 @@ Widget closeIcon({Color color = Colors.black}) => SvgPicture.asset(
       height: 32,
     );
 
-Widget redDotIcon({Color color = Colors.red}) => Container(
-      width: 10,
-      height: 10,
+Widget redDotIcon() => dotIcon(color: Colors.red);
+
+Widget dotIcon({required Color color, double size = 10}) => Container(
+      width: size,
+      height: size,
       decoration: BoxDecoration(
         color: color,
         shape: BoxShape.circle,
@@ -612,7 +614,6 @@ Widget redDotIcon({Color color = Colors.red}) => Container(
 
 Widget iconWithRedDot(
         {required Widget icon,
-        Color color = Colors.red,
         EdgeInsetsGeometry? padding,
         bool withReddot = true}) =>
     withReddot
@@ -623,7 +624,7 @@ Widget iconWithRedDot(
                 padding: padding ?? const EdgeInsets.only(right: 5),
                 child: icon,
               ),
-              redDotIcon(color: color),
+              redDotIcon(),
             ],
           )
         : icon;
