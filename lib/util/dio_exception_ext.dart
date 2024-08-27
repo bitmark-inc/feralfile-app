@@ -1,3 +1,4 @@
+import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:dio/dio.dart';
 
@@ -39,6 +40,11 @@ extension DioExceptionExt on DioException {
   bool get isClaimPassLimit =>
       statusCode == AirdropExceptionType.claimPassLimit.statusCode &&
       dataMessage == AirdropExceptionType.claimPassLimit.errorMessage;
+
+  bool get isBranchError => requestOptions.baseUrl.contains('branch.io');
+
+  FeralfileError get branchError =>
+      FeralfileError(StatusCode.badRequest.value, 'Branch.io error');
 }
 
 enum PostcardExceptionType {

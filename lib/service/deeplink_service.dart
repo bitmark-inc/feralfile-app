@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/branch_api.dart';
 import 'package:autonomy_flutter/main.dart';
+import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/otp.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
@@ -362,11 +363,31 @@ class DeeplinkServiceImpl extends DeeplinkService {
     final callingBranchDeepLinkPrefix = Constants.branchDeepLinks
         .firstWhereOrNull((prefix) => link.startsWith(prefix));
     if (callingBranchDeepLinkPrefix != null) {
-      final response = await _branchApi.getParams(Environment.branchKey, link);
       try {
+        final response =
+            await _branchApi.getParams(Environment.branchKey, link);
         await handleBranchDeeplinkData(response['data']);
       } catch (e) {
         log.info('[DeeplinkService] _handleBranchDeeplink error $e');
+        unawaited(Sentry.captureException(e));
+        if (e is DioException) {
+          if (e.error is FeralfileError) {
+            unawaited(UIHelper.showTVConnectError(
+                injector<NavigationService>().context, e as FeralfileError));
+          } else if (e.isBranchError) {
+            final error = FeralfileError(e.statusCode, 'Branch.io error');
+            unawaited(UIHelper.showTVConnectError(
+                injector<NavigationService>().context, error));
+          } else {
+            // final error = FeralfileError(e.statusCode, e.dataMessage);
+            // unawaited(UIHelper.showTVConnectError(
+            //     injector<NavigationService>().context, error));
+          }
+        } else {
+          // unawaited(UIHelper.showTVConnectError(
+          //     injector<NavigationService>().context,
+          //     FeralfileError(0, 'Unknown error: $e')));
+        }
       }
       return true;
     }

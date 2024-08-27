@@ -52,12 +52,6 @@ class CanvasDeviceDisconnectEvent extends CanvasDeviceEvent {
   CanvasDeviceDisconnectEvent(this.devices, {this.callRPC = true});
 }
 
-class CanvasDeviceOnRPCErrorEvent extends CanvasDeviceEvent {
-  final CanvasDevice device;
-
-  CanvasDeviceOnRPCErrorEvent(this.device);
-}
-
 class CanvasDeviceCastListArtworkEvent extends CanvasDeviceEvent {
   final CanvasDevice device;
   final List<PlayArtworkV2> artwork;
@@ -249,8 +243,6 @@ EventTransformer<Event> debounceSequential<Event>(Duration duration) =>
 
 class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
   final CanvasClientServiceV2 _canvasClientServiceV2;
-
-  final Map<String, int> _deviceRetryCount = {};
 
   // constructor
   CanvasDeviceBloc(this._canvasClientServiceV2)
