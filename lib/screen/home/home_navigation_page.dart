@@ -271,6 +271,11 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     // since we moved to use bonsoir service,
     // we don't need to wait for canvas service to init
 
+    Future.delayed(const Duration(seconds: 1), () {
+      injector<DeeplinkService>()
+        ..activateBranchDataListener()
+        ..activateDeepLinkListener();
+    });
     injector<DeeplinkService>()
       ..activateBranchDataListener()
       ..activateDeepLinkListener();

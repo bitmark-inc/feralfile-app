@@ -76,8 +76,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
     this._postcardService,
     this._remoteConfigService,
   ) {
-    _branchDataStream =
-        _branchDataStreamController.stream;
+    _branchDataStream = _branchDataStreamController.stream;
     _linkStream = _deepLinkStreamController.stream;
   }
 
@@ -132,7 +131,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
   @override
   void handleDeeplink(
     String? link, {
-    Duration delay = const Duration(seconds: 2),
+    Duration delay = Duration.zero,
     Function? onFinished,
   }) {
     // return for case when FeralFile pass empty deeplink to return Autonomy
