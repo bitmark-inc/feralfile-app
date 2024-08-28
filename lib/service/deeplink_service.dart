@@ -75,16 +75,19 @@ class DeeplinkServiceImpl extends DeeplinkService {
     this._branchApi,
     this._postcardService,
     this._remoteConfigService,
-  );
+  ) {
+    _branchDataStream =
+        _branchDataStreamController.stream;
+    _linkStream = _deepLinkStreamController.stream;
+  }
 
   final StreamController<Map<dynamic, dynamic>> _branchDataStreamController =
-      StreamController<Map<dynamic, dynamic>>.broadcast();
+      StreamController<Map<dynamic, dynamic>>();
   final StreamController<String> _deepLinkStreamController =
-      StreamController<String>.broadcast();
+      StreamController<String>();
 
-  late final Stream<Map<dynamic, dynamic>> _branchDataStream =
-      _branchDataStreamController.stream;
-  late final Stream<String> _linkStream = _deepLinkStreamController.stream;
+  late final Stream<Map<dynamic, dynamic>> _branchDataStream;
+  late final Stream<String> _linkStream;
 
   @override
   Future setup() async {
@@ -123,7 +126,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
   @override
   void activateDeepLinkListener() {
-    _linkStream.listen(_handleDappConnectDeeplink);
+    _linkStream.listen(handleDeeplink);
   }
 
   @override
