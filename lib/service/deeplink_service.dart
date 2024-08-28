@@ -120,11 +120,17 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
   @override
   void activateBranchDataListener() {
+    if (_branchDataStreamController.hasListener) {
+      return;
+    }
     _branchDataStream.listen(handleBranchDeeplinkData);
   }
 
   @override
   void activateDeepLinkListener() {
+    if (_deepLinkStreamController.hasListener) {
+      return;
+    }
     _linkStream.listen(handleDeeplink);
   }
 

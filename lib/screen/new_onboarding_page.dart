@@ -178,7 +178,9 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
                       type: MembershipCardType.premium,
                       price: _getPremiumPrice(subscriptionDetails),
                       isProcessing: _selectedMembershipCardType ==
-                          MembershipCardType.premium,
+                          MembershipCardType.premium &&
+                          subscriptionDetails?.status ==
+                              IAPProductStatus.pending,
                       isEnable: true,
                       onTap: (type) async {
                         _selectMembershipType(type);
