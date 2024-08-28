@@ -96,7 +96,6 @@ class _WCConnectPageState extends State<WCConnectPage>
     super.initState();
     connectionRequest = widget.connectionRequest;
     injector<NavigationService>().setIsWCConnectInShow(true);
-    memoryValues.deepLink.value = null;
   }
 
   @override

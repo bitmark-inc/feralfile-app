@@ -89,6 +89,7 @@ import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_bloc.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_page.dart';
 import 'package:autonomy_flutter/screen/moma_postcard_page/moma_postcard_page.dart';
+import 'package:autonomy_flutter/screen/new_onboarding_page.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/import_seeds.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/name_address_persona.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/select_addresses.dart';
@@ -152,6 +153,7 @@ class AppRouter {
   static const editPlayListPage = 'edit_playlist_page';
   static const previewPrimerPage = 'preview_primer_page';
   static const onboardingPage = 'onboarding_page';
+  static const newOnboardingPage = 'new_onboarding_page';
   static const nameLinkedAccountPage = 'name_linked_account_page';
   static const homePage = 'home_page';
   static const homePageNoTransition = 'home_page_no_transition';
@@ -340,7 +342,20 @@ class AppRouter {
                 injector(),
               ),
             ),
-          ], child: const NewOnboardingPage()),
+          ], child: const OnboardingPage()),
+        );
+
+      case newOnboardingPage:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) => MultiBlocProvider(
+              providers: [
+                BlocProvider(
+                    create: (_) => UpgradesBloc(injector(), injector())),
+              ],
+              child: NewOnboardingPage(
+                payload: settings.arguments! as NewOnboardingPagePayload,
+              )),
         );
 
       case previewPrimerPage:

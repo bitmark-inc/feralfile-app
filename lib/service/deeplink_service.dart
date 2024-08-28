@@ -12,17 +12,14 @@ import 'dart:async';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/branch_api.dart';
-import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/otp.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
@@ -64,9 +61,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
   final PostcardService _postcardService;
   final RemoteConfigService _remoteConfigService;
 
-  String? currentExhibitionId;
-  String? handlingDeepLink;
-
   final Map<String, bool> _deepLinkHandlingMap = {};
 
   DeeplinkServiceImpl(
@@ -79,7 +73,10 @@ class DeeplinkServiceImpl extends DeeplinkService {
     this._remoteConfigService,
   );
 
-  final metricClient = injector<MetricClientService>();
+  static final StreamController<Map<dynamic, dynamic>>
+      _branchDataStreamController = StreamController<Map<dynamic, dynamic>>();
+  static final StreamController<String> _deepLinkStreamController =
+      StreamController<String>();
 
   @override
   Future setup() async {
@@ -91,10 +88,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
       if (data['+clicked_branch_link'] == true &&
           _deepLinkHandlingMap[data['~referring_link']] == null) {
         _deepLinkHandlingMap[data['~referring_link']] = true;
-        unawaited(_deepLinkHandleClock(
-            'Handle Branch Deep Link Data Time Out', data['source']));
-        await handleBranchDeeplinkData(data);
-        handlingDeepLink = null;
+
+        _branchDataStreamController.add(data);
       }
     }, onError: (error, stacktrace) {
       Sentry.captureException(error, stackTrace: stacktrace);
@@ -103,7 +98,9 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
     try {
       final initialLink = await getInitialLink();
-      handleDeeplink(initialLink);
+      if (initialLink != null) {
+        _deepLinkStreamController.add(initialLink);
+      }
 
       linkStream.listen(handleDeeplink);
     } on PlatformException {
@@ -133,7 +130,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
       if (_deepLinkHandlingMap[link] != null) {
         return;
       }
-      unawaited(_deepLinkHandleClock('Handle Deep Link Time Out', link));
       _deepLinkHandlingMap[link] = true;
       final handlerType = DeepLinkHandlerType.fromString(link);
       log.info('[DeeplinkService] handlerType $handlerType');
@@ -148,8 +144,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
           unawaited(_navigationService.showUnknownLink());
       }
       _deepLinkHandlingMap.remove(link);
-      handlingDeepLink = null;
-      memoryValues.irlLink.value = null;
       onFinished?.call();
     });
   }
@@ -195,10 +189,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
     final navigationPrefixes = [
       'feralfile://navigation/',
     ];
-    if (!_configurationService.isDoneOnboarding()) {
-      memoryValues.deepLink.value = link;
-    }
-    // Check Universal Link
 
     final callingWCPrefix =
         wcPrefixes.firstWhereOrNull((prefix) => link.startsWith(prefix));
@@ -250,7 +240,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
       await _navigationService.navigatePath(navigationPath);
       return true;
     }
-    memoryValues.deepLink.value = null;
     return false;
   }
 
@@ -306,7 +295,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
   Future<bool> _handleIRL(String link) async {
     log.info('[DeeplinkService] _handleIRL');
-    memoryValues.irlLink.value = link;
     final irlPrefix = IRL_DEEPLINK_PREFIXES
         .firstWhereOrNull((element) => link.startsWith(element));
     if (irlPrefix != null) {
@@ -335,8 +323,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
   Future<bool> _handleBranchDeeplink(String link) async {
     log.info('[DeeplinkService] _handleBranchDeeplink');
-    //star
-    memoryValues.branchDeeplinkData.value = null;
     final callingBranchDeepLinkPrefix = Constants.branchDeepLinks
         .firstWhereOrNull((prefix) => link.startsWith(prefix));
     if (callingBranchDeepLinkPrefix != null) {
@@ -355,11 +341,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
   @override
   Future<void> handleBranchDeeplinkData(Map<dynamic, dynamic> data) async {
-    final doneOnboarding = _configurationService.isDoneOnboarding();
-    if (!doneOnboarding) {
-      memoryValues.branchDeeplinkData.value = data;
-      return;
-    }
     final navigatePath = data['navigation_route'];
     if (navigatePath != null) {
       await _navigationService.navigatePath(navigatePath);
@@ -408,7 +389,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
         if (url != null) {
           log.info('[DeeplinkService] _handleIRL $url');
           await _handleIRL(url);
-          memoryValues.irlLink.value = null;
         }
 
       case 'moma_postcard_purchase':
@@ -528,21 +508,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
         await GiftHandler.handleGiftMembership(giftCode);
 
       default:
-        memoryValues.branchDeeplinkData.value = null;
     }
     _deepLinkHandlingMap.remove(data['~referring_link']);
-  }
-
-  Future<void> _deepLinkHandleClock(String message, String param,
-      {Duration duration = const Duration(seconds: 2)}) async {
-    handlingDeepLink = message;
-    Future.delayed(duration, () {
-      if (handlingDeepLink != null) {
-        Sentry.captureMessage(message,
-            level: SentryLevel.warning, params: [param]);
-      }
-      handlingDeepLink = null;
-    });
   }
 
   Future<void> _handlePostcardDeeplink(String shareCode) async {
