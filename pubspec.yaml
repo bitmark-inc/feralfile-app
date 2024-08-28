@@ -152,7 +152,7 @@ dependencies:
   flutter_inappwebview: ^6.0.0
   html: ^0.15.1
   video_player: ^2.8.6
-  walletconnect_flutter_v2: ^2.2.0
+  walletconnect_flutter_v2: ^2.1.11
   awesome_notifications: ^0.8.3
   shimmer: ^3.0.0
   graphql_flutter:
@@ -170,6 +170,7 @@ dependencies:
 dependency_overrides:
   intl: 0.18.0
   archive: ^3.6.1
+  package_info_plus: ^6.0.0
 
 dev_dependencies:
   flutter_lints: null
