@@ -47,6 +47,7 @@ class _OnboardingPageState extends State<OnboardingPage>
 
   final metricClient = injector.get<MetricClientService>();
   final deepLinkService = injector.get<DeeplinkService>();
+  bool _skipMembership = false;
 
   final _onboardingLogo = Semantics(
     label: 'onboarding_logo',
@@ -175,6 +176,9 @@ class _OnboardingPageState extends State<OnboardingPage>
           setState(() {
             fromBranchLink = true;
           });
+          if (data['source'] == 'gift_membership') {
+            _skipMembership = true;
+          }
 
           await injector<AccountService>().restoreIfNeeded();
           deepLinkService.handleBranchDeeplinkData(data);
@@ -200,13 +204,19 @@ class _OnboardingPageState extends State<OnboardingPage>
           listener: (context, state) async {
             final isSubscribed = await injector<IAPService>()
                 .isSubscribed(includeInhouse: false);
+            if (isSubscribed) {
+              _skipMembership = true;
+            }
+            if (_skipMembership) {
+              if (context.mounted) {
+                unawaited(Navigator.of(context)
+                    .pushReplacementNamed(AppRouter.homePageNoTransition));
+                return;
+              }
+            }
             switch (state.onboardingStep) {
               case OnboardingStep.dashboard:
-
-                /// skip membership screen if user is already subscribed
-                /// or done new onboarding
-                if (injector<ConfigurationService>().isDoneNewOnboarding() ||
-                    isSubscribed) {
+                if (injector<ConfigurationService>().isDoneNewOnboarding()) {
                   if (context.mounted) {
                     unawaited(Navigator.of(context)
                         .pushReplacementNamed(AppRouter.homePageNoTransition));
@@ -224,6 +234,8 @@ class _OnboardingPageState extends State<OnboardingPage>
             if (state.onboardingStep != OnboardingStep.dashboard) {
               await injector<VersionService>().checkForUpdate();
             }
+
+
           },
           builder: (context, state) {
             if (state.isLoading) {
