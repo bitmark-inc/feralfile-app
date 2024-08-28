@@ -154,7 +154,7 @@ class FeaturedWorkViewState extends State<FeaturedWorkView> {
                                   null;
                           return Visibility(
                             visible:
-                                (isPlaylistCasting && _shouldShowControllerBar),
+                                isPlaylistCasting && _shouldShowControllerBar,
                             child: Padding(
                               padding: const EdgeInsets.all(15),
                               child: PlaylistControl(
@@ -186,7 +186,6 @@ class FeaturedWorkViewState extends State<FeaturedWorkView> {
                                   color: Colors.transparent,
                                   child: Column(
                                     children: [
-                                      // FutureBuilder(future: , builder: builder)
                                       Builder(builder: (context) {
                                         final thumbnailUrl =
                                             token.thumbnailURL ?? '';
@@ -202,7 +201,8 @@ class FeaturedWorkViewState extends State<FeaturedWorkView> {
                                         }
                                         return AspectRatio(
                                           aspectRatio: aspectRatio ?? 1.0,
-                                          // Provide a default aspect ratio if null
+                                          // Provide a default aspect
+                                          // ratio if null
                                           child: CachedNetworkImage(
                                             imageUrl: token.thumbnailURL ?? '',
                                             cacheManager:
@@ -248,9 +248,9 @@ class FeaturedWorkViewState extends State<FeaturedWorkView> {
                     // show loading when loading more
                     SliverToBoxAdapter(
                       child: _isLoading && _paging.offset != 0
-                          ? Container(
+                          ? const SizedBox(
                               height: 100,
-                              child: const LoadingWidget(),
+                              child: LoadingWidget(),
                             )
                           : const SizedBox(),
                     ),
