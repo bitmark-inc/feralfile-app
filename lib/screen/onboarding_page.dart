@@ -202,8 +202,9 @@ class _OnboardingPageState extends State<OnboardingPage>
                 .isSubscribed(includeInhouse: false);
             switch (state.onboardingStep) {
               case OnboardingStep.dashboard:
+
                 /// skip membership screen if user is already subscribed
-              /// or done new onboarding
+                /// or done new onboarding
                 if (injector<ConfigurationService>().isDoneNewOnboarding() ||
                     isSubscribed) {
                   if (context.mounted) {
