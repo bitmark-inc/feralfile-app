@@ -89,7 +89,7 @@ abstract class IAPService {
 
   Future<bool> renewJWT();
 
-  Future<bool> isSubscribed();
+  Future<bool> isSubscribed({bool includeInhouse = true});
 
   PurchaseDetails? getPurchaseDetails(String productId);
 }
@@ -325,10 +325,10 @@ class IAPServiceImpl implements IAPService {
   }
 
   @override
-  Future<bool> isSubscribed() async {
+  Future<bool> isSubscribed({bool includeInhouse = true}) async {
     final jwt = _configurationService.getIAPJWT();
     return (jwt != null && jwt.isValid(withSubscription: true)) ||
-        await isAppCenterBuild();
+        (includeInhouse && await isAppCenterBuild());
   }
 
   Future _cleanupPendingTransactions() async {

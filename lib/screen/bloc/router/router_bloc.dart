@@ -201,7 +201,7 @@ class RouterBloc extends AuBloc<RouterEvent, RouterState> {
         unawaited(injector<MetricClientService>()
             .mixPanelClient
             .initIfDefaultAccount());
-        emit(RouterState(onboardingStep: OnboardingStep.dashboard));
+        emit(RouterState(onboardingStep: OnboardingStep.startScreen));
       } catch (e, stacktrace) {
         await Sentry.captureException(e, stackTrace: stacktrace);
         rethrow;

@@ -446,17 +446,19 @@ class DeeplinkServiceImpl extends DeeplinkService {
           }
           break;
         }
-        if (isSuccessful) {
-          await UIHelper.showFlexibleDialog(
-              _navigationService.context,
-              BlocProvider.value(
-                value: injector<CanvasDeviceBloc>(),
-                child: const StreamDeviceView(),
-              ),
-              isDismissible: true,
-              autoDismissAfter: 3);
-        } else {
-          await _navigationService.showCannotConnectTv();
+        if (_configurationService.isDoneNewOnboarding()) {
+          if (isSuccessful) {
+            await UIHelper.showFlexibleDialog(
+                _navigationService.context,
+                BlocProvider.value(
+                  value: injector<CanvasDeviceBloc>(),
+                  child: const StreamDeviceView(),
+                ),
+                isDismissible: true,
+                autoDismissAfter: 3);
+          } else {
+            await _navigationService.showCannotConnectTv();
+          }
         }
 
       case 'InstantPurchase':

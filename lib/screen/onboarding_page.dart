@@ -12,25 +12,20 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/router/router_bloc.dart';
+import 'package:autonomy_flutter/screen/new_onboarding_page.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
-import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/product_details_ext.dart';
-import 'package:autonomy_flutter/util/subscription_detail_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
-import 'package:autonomy_flutter/view/membership_card.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:card_swiper/card_swiper.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
@@ -52,10 +47,7 @@ class _OnboardingPageState extends State<OnboardingPage>
 
   final metricClient = injector.get<MetricClientService>();
   final deepLinkService = injector.get<DeeplinkService>();
-  late final UpgradesBloc _upgradeBloc;
-
-  late SwiperController _swiperController;
-  MembershipCardType? _selectedMembershipCardType;
+  bool _skipMembership = false;
 
   final _onboardingLogo = Semantics(
     label: 'onboarding_logo',
@@ -69,8 +61,6 @@ class _OnboardingPageState extends State<OnboardingPage>
   @override
   void initState() {
     super.initState();
-    _swiperController = SwiperController();
-    _upgradeBloc = context.read<UpgradesBloc>();
     unawaited(handleBranchLink());
     handleDeepLink();
     handleIrlLink();
@@ -186,6 +176,9 @@ class _OnboardingPageState extends State<OnboardingPage>
           setState(() {
             fromBranchLink = true;
           });
+          if (data['source'] == 'gift_membership') {
+            _skipMembership = true;
+          }
 
           await injector<AccountService>().restoreIfNeeded();
           deepLinkService.handleBranchDeeplinkData(data);
@@ -209,22 +202,31 @@ class _OnboardingPageState extends State<OnboardingPage>
         backgroundColor: AppColor.primaryBlack,
         body: BlocConsumer<RouterBloc, RouterState>(
           listener: (context, state) async {
-            switch (state.onboardingStep) {
-              case OnboardingStep.dashboard:
+            final isSubscribed = await injector<IAPService>()
+                .isSubscribed(includeInhouse: false);
+            if (isSubscribed) {
+              _skipMembership = true;
+            }
+            if (_skipMembership) {
+              if (context.mounted) {
                 unawaited(Navigator.of(context)
                     .pushReplacementNamed(AppRouter.homePageNoTransition));
+                return;
+              }
+            }
+            switch (state.onboardingStep) {
+              case OnboardingStep.dashboard:
+                if (injector<ConfigurationService>().isDoneNewOnboarding()) {
+                  if (context.mounted) {
+                    unawaited(Navigator.of(context)
+                        .pushReplacementNamed(AppRouter.homePageNoTransition));
+                  }
+                }
                 try {
                   await injector<SettingsDataService>().restoreSettingsData();
-                } catch (_) {
-                  // just ignore this so that user can go through onboarding
-                }
-                // await askForNotification();
+                } catch (_) {}
                 await injector<VersionService>().checkForUpdate();
-              // hide code show surveys issues/1459
-              // await Future.delayed(SHORT_SHOW_DIALOG_DURATION,
-              //     () => showSurveysNotification(context));
               case OnboardingStep.startScreen:
-                _upgradeBloc.add(UpgradeQueryInfoEvent());
               default:
                 break;
             }
@@ -232,14 +234,21 @@ class _OnboardingPageState extends State<OnboardingPage>
             if (state.onboardingStep != OnboardingStep.dashboard) {
               await injector<VersionService>().checkForUpdate();
             }
+
+
           },
           builder: (context, state) {
             if (state.isLoading) {
               return loadingScreen(theme, 'restoring_autonomy'.tr());
             }
-            if (state.onboardingStep == OnboardingStep.startScreen) {
-              return Container(
-                  color: AppColor.primaryBlack, child: _swiper(context));
+            if (state.onboardingStep == OnboardingStep.startScreen ||
+                state.onboardingStep == OnboardingStep.dashboard) {
+              return MultiBlocProvider(providers: [
+                BlocProvider<PersonaBloc>.value(
+                    value: PersonaBloc(injector(), injector())),
+                BlocProvider<UpgradesBloc>.value(
+                    value: UpgradesBloc(injector(), injector())),
+              ], child: const NewOnboardingPage());
             }
 
             final button = ((fromBranchLink ||
@@ -285,227 +294,5 @@ class _OnboardingPageState extends State<OnboardingPage>
             );
           },
         ));
-  }
-
-  Widget _onboardingItemWidget(BuildContext context,
-      {required String title, required String desc, required Widget subDesc}) {
-    final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 15),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                height: 44,
-              ),
-              Text(
-                title,
-                style: theme.textTheme.ppMori700White24,
-              ),
-              Container(
-                height: 30,
-              ),
-              Text(
-                desc,
-                style: theme.textTheme.ppMori400White14,
-              ),
-            ],
-          ),
-        ),
-        const Spacer(),
-        SizedBox(height: 514, child: subDesc),
-      ],
-    );
-  }
-
-  Widget _onboardingItemImage(BuildContext context,
-          {required String title,
-          required String desc,
-          required String image}) =>
-      _onboardingItemWidget(context,
-          title: title,
-          desc: desc,
-          subDesc: SizedBox(
-            width: double.infinity,
-            child: Image.asset(
-              image,
-              fit: BoxFit.fitWidth,
-            ),
-          ));
-
-  Widget _membershipCards(BuildContext context) => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 15),
-        child: BlocConsumer<UpgradesBloc, UpgradeState>(
-            bloc: _upgradeBloc,
-            listenWhen: (previous, current) =>
-                previous.activeSubscriptionDetails.firstOrNull?.status !=
-                current.activeSubscriptionDetails.firstOrNull?.status,
-            listener: (context, subscriptionState) async {
-              final subscriptionDetail =
-                  subscriptionState.activeSubscriptionDetails.firstOrNull;
-              final status = subscriptionDetail?.status;
-              log.info('Onboarding: upgradeState: $status');
-              switch (status) {
-                case IAPProductStatus.completed:
-                  await injector<NavigationService>()
-                      .showSeeMoreArtNow(subscriptionDetail!);
-                  if (!context.mounted) {
-                    return;
-                  }
-                  nameContinue(context);
-                default:
-                  break;
-              }
-            },
-            builder: (context, subscriptionState) {
-              final subscriptionDetails =
-                  subscriptionState.activeSubscriptionDetails.firstOrNull;
-              return BlocConsumer<PersonaBloc, PersonaState>(
-                  listener: (context, personaState) async {
-                    switch (personaState.createAccountState) {
-                      case ActionState.done:
-                        switch (_selectedMembershipCardType) {
-                          case MembershipCardType.essential:
-                            nameContinue(context);
-                          case MembershipCardType.premium:
-                            _upgradePurchase(subscriptionDetails);
-                          default:
-                            break;
-                        }
-                      case ActionState.error:
-                        setState(() {
-                          _selectedMembershipCardType = null;
-                        });
-                      default:
-                        break;
-                    }
-                  },
-                  builder: (context, personaState) => Column(
-                        children: [
-                          MembershipCard(
-                              type: MembershipCardType.essential,
-                              price: _getEssentialPrice(subscriptionDetails),
-                              isProcessing: personaState.createAccountState ==
-                                      ActionState.loading &&
-                                  _selectedMembershipCardType ==
-                                      MembershipCardType.essential,
-                              isEnable: personaState.createAccountState !=
-                                  ActionState.loading,
-                              onTap: (type) {
-                                _selectMembershipType(type);
-                                if (personaState.createAccountState !=
-                                    ActionState.done) {
-                                  _createAccount();
-                                } else {
-                                  nameContinue(context);
-                                }
-                              }),
-                          const SizedBox(height: 15),
-                          MembershipCard(
-                              type: MembershipCardType.premium,
-                              price: _getPremiumPrice(subscriptionDetails),
-                              isProcessing: personaState.createAccountState ==
-                                      ActionState.loading &&
-                                  _selectedMembershipCardType ==
-                                      MembershipCardType.premium,
-                              isEnable: personaState.createAccountState !=
-                                  ActionState.loading,
-                              onTap: (type) async {
-                                _selectMembershipType(type);
-                                if (personaState.createAccountState !=
-                                    ActionState.done) {
-                                  _createAccount();
-                                } else {
-                                  _upgradePurchase(subscriptionDetails);
-                                }
-                              }),
-                        ],
-                      ));
-            }),
-      );
-
-  String _getEssentialPrice(SubscriptionDetails? subscriptionDetails) {
-    if (subscriptionDetails == null) {
-      return r'$0/year';
-    }
-    return '${subscriptionDetails.productDetails.currencySymbol}0/${subscriptionDetails.productDetails.period.name}';
-  }
-
-  String _getPremiumPrice(SubscriptionDetails? subscriptionDetails) {
-    if (subscriptionDetails == null) {
-      return r'$200/year';
-    }
-    return subscriptionDetails.price;
-  }
-
-  void _selectMembershipType(MembershipCardType type) {
-    _selectedMembershipCardType = type;
-  }
-
-  void _createAccount() {
-    context
-        .read<PersonaBloc>()
-        .add(CreatePersonaAddressesEvent(WalletType.Autonomy));
-  }
-
-  void _upgradePurchase(SubscriptionDetails? subscriptionDetails) {
-    if (subscriptionDetails == null ||
-        subscriptionDetails.status == IAPProductStatus.completed) {
-      return;
-    }
-    final ids = [subscriptionDetails.productDetails.id];
-    log.info('Cast button: upgrade purchase: ${ids.first}');
-    _upgradeBloc.add(UpgradePurchaseEvent(ids));
-  }
-
-  Widget _swiper(BuildContext context) {
-    final pages = [
-      _onboardingItemImage(
-        context,
-        title: 'live_with_art'.tr(),
-        desc: 'live_with_art_desc'.tr(),
-        image: 'assets/images/onboarding_1.png',
-      ),
-      _onboardingItemImage(
-        context,
-        title: 'new_art_everyday'.tr(),
-        desc: 'new_art_everyday_desc'.tr(),
-        image: 'assets/images/onboarding_2.png',
-      ),
-      _onboardingItemWidget(
-        context,
-        title: 'membership'.tr(),
-        desc: 'membership_desc'.tr(),
-        subDesc: _membershipCards(context),
-      ),
-    ];
-
-    return Stack(
-      children: [
-        Swiper(
-          itemCount: pages.length,
-          itemBuilder: (context, index) {
-            final page = pages[index];
-            return page;
-          },
-          pagination: const SwiperPagination(
-            margin: EdgeInsets.only(bottom: 40),
-            builder: DotSwiperPaginationBuilder(
-              color: Colors.grey,
-              activeColor: AppColor.white,
-            ),
-          ),
-          control: const SwiperControl(
-              color: Colors.transparent,
-              disableColor: Colors.transparent,
-              size: 0),
-          loop: false,
-          controller: _swiperController,
-        ),
-      ],
-    );
   }
 }
