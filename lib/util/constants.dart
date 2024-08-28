@@ -243,11 +243,6 @@ Future<bool> isAppCenterBuild() async {
   return info.packageName.contains('inhouse');
 }
 
-Future<bool> logoState() async {
-  final isAppCenter = await isAppCenterBuild();
-  return isAppCenter;
-}
-
 Future<String> getDemoAccount() async =>
     await isAppCenterBuild() ? 'demo' : 'tv';
 

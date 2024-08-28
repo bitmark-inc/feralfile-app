@@ -17,6 +17,7 @@ import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart'
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
+import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
@@ -197,11 +198,18 @@ class _OnboardingPageState extends State<OnboardingPage>
         backgroundColor: AppColor.primaryBlack,
         body: BlocConsumer<RouterBloc, RouterState>(
           listener: (context, state) async {
+            final isSubscribed = await injector<IAPService>()
+                .isSubscribed(includeInhouse: false);
             switch (state.onboardingStep) {
               case OnboardingStep.dashboard:
-                if (injector<ConfigurationService>().isDoneNewOnboarding()) {
-                  unawaited(Navigator.of(context)
-                      .pushReplacementNamed(AppRouter.homePageNoTransition));
+                /// skip membership screen if user is already subscribed
+              /// or done new onboarding
+                if (injector<ConfigurationService>().isDoneNewOnboarding() ||
+                    isSubscribed) {
+                  if (context.mounted) {
+                    unawaited(Navigator.of(context)
+                        .pushReplacementNamed(AppRouter.homePageNoTransition));
+                  }
                 }
                 try {
                   await injector<SettingsDataService>().restoreSettingsData();
