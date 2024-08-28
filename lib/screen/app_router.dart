@@ -255,6 +255,7 @@ class AppRouter {
     final connectionsBloc = injector<ConnectionsBloc>();
     final identityBloc = IdentityBloc(injector<AppDatabase>(), injector());
     final canvasDeviceBloc = injector<CanvasDeviceBloc>();
+    final upgradeBloc = injector<UpgradesBloc>();
 
     final postcardDetailBloc = PostcardDetailBloc(
       injector(),
@@ -350,8 +351,7 @@ class AppRouter {
           settings: settings,
           builder: (context) => MultiBlocProvider(
               providers: [
-                BlocProvider(
-                    create: (_) => UpgradesBloc(injector(), injector())),
+                BlocProvider(create: (_) => upgradeBloc),
               ],
               child: NewOnboardingPage(
                 payload: settings.arguments! as NewOnboardingPagePayload,
@@ -1052,7 +1052,7 @@ class AppRouter {
             settings: settings,
             builder: (context) => MultiBlocProvider(providers: [
                   BlocProvider(
-                    create: (_) => UpgradesBloc(injector(), injector()),
+                    create: (_) => upgradeBloc,
                   ),
                 ], child: SubscriptionPage(payload: payload)));
       case dataManagementPage:

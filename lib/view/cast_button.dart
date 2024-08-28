@@ -41,7 +41,7 @@ class FFCastButton extends StatefulWidget {
 class _FFCastButtonState extends State<FFCastButton> {
   late CanvasDeviceBloc _canvasDeviceBloc;
   final keyboardManagerKey = GlobalKey<KeyboardManagerWidgetState>();
-  final _upgradesBloc = UpgradesBloc(injector(), injector());
+  final _upgradesBloc = injector.get<UpgradesBloc>();
 
   @override
   void initState() {
