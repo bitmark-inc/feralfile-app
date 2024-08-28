@@ -1,10 +1,11 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/product_details_ext.dart';
 import 'package:autonomy_flutter/util/subscription_detail_ext.dart';
@@ -17,6 +18,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:video_player/video_player.dart';
 
 class NewOnboardingPage extends StatefulWidget {
   const NewOnboardingPage({super.key});
@@ -32,6 +34,11 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
   MembershipCardType? _selectedMembershipCardType;
   late final bool _isDoneOnboarding;
 
+  final VideoPlayerController _controller1 =
+      VideoPlayerController.asset('assets/videos/onboarding_1.mov');
+  final VideoPlayerController _controller2 =
+      VideoPlayerController.asset('assets/videos/onboarding_2.mov');
+
   @override
   void initState() {
     super.initState();
@@ -39,6 +46,32 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
     _upgradeBloc = context.read<UpgradesBloc>();
     _upgradeBloc.add(UpgradeQueryInfoEvent());
     _isDoneOnboarding = injector<ConfigurationService>().isDoneOnboarding();
+    unawaited(_initPlayer(_controller1, shouldPlay: true));
+    unawaited(_initPlayer(_controller2, shouldPlay: false));
+  }
+
+  @override
+  void dispose() {
+    unawaited(_controller1.dispose());
+    unawaited(_controller2.dispose());
+    super.dispose();
+  }
+
+  Future<void> _initPlayer(VideoPlayerController controller,
+      {required bool shouldPlay}) async {
+    if (controller.value.isInitialized) {
+      if (shouldPlay) {
+        await controller.play();
+      }
+      return;
+    }
+    await controller.initialize().then((_) {
+      controller.setLooping(true);
+      setState(() {});
+      if (shouldPlay) {
+        controller.play();
+      }
+    });
   }
 
   @override
@@ -82,19 +115,20 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
     );
   }
 
-  Widget _onboardingItemImage(BuildContext context,
+  Widget _onboardingItemVideo(BuildContext context,
           {required String title,
           required String desc,
-          required String image}) =>
+          required VideoPlayerController controller}) =>
       _onboardingItemWidget(context,
           title: title,
           desc: desc,
           subDesc: SizedBox(
             width: double.infinity,
-            child: Image.asset(
-              image,
-              fit: BoxFit.fitWidth,
-            ),
+            child: controller.value.isInitialized
+                ? AspectRatio(
+                    aspectRatio: controller.value.aspectRatio,
+                    child: VideoPlayer(controller))
+                : Container(),
           ));
 
   Widget _membershipCards(BuildContext context) => Padding(
@@ -111,12 +145,10 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
               log.info('Onboarding: upgradeState: $status');
               switch (status) {
                 case IAPProductStatus.completed:
-                  await injector<NavigationService>()
-                      .showSeeMoreArtNow(subscriptionDetail!);
-                  if (!context.mounted) {
-                    return;
-                  }
                   nameContinue(context);
+                  Future.delayed(const Duration(seconds: 2), () {
+                    UIHelper.showUpgradedNotification();
+                  });
                 default:
                   break;
               }
@@ -232,17 +264,17 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
 
   Widget _swiper(BuildContext context) {
     final pages = [
-      _onboardingItemImage(
+      _onboardingItemVideo(
         context,
         title: 'live_with_art'.tr(),
         desc: 'live_with_art_desc'.tr(),
-        image: 'assets/images/onboarding_1.png',
+        controller: _controller1,
       ),
-      _onboardingItemImage(
+      _onboardingItemVideo(
         context,
         title: 'new_art_everyday'.tr(),
         desc: 'new_art_everyday_desc'.tr(),
-        image: 'assets/images/onboarding_2.png',
+        controller: _controller2,
       ),
       _onboardingItemWidget(
         context,
@@ -259,6 +291,18 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
           itemBuilder: (context, index) {
             final page = pages[index];
             return page;
+          },
+          onIndexChanged: (index) {
+            if (index == 0) {
+              _controller1.play();
+              _controller2.pause();
+            } else if (index == 1) {
+              _controller1.pause();
+              _controller2.play();
+            } else {
+              _controller1.pause();
+              _controller2.pause();
+            }
           },
           pagination: const SwiperPagination(
             margin: EdgeInsets.only(bottom: 40),

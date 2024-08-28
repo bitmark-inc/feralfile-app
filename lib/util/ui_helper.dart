@@ -25,6 +25,7 @@ import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/distance_formater.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
+import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/moma_style_color.dart';
 import 'package:autonomy_flutter/util/notification_util.dart';
@@ -1241,9 +1242,9 @@ class UIHelper {
                     );
                   },
                   itemCount: options.length,
-                  separatorBuilder: (context, index) => Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 13),
-                    child: const Divider(
+                  separatorBuilder: (context, index) => const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 13),
+                    child: Divider(
                       height: 1,
                       color: AppColor.primaryBlack,
                       thickness: 1,
@@ -1810,6 +1811,17 @@ class UIHelper {
     final description = '${error.code}: ${error.message}';
     await showInfoDialog(context, 'tv_connection_issue'.tr(), description,
         onClose: () {}, isDismissible: true);
+  }
+
+  static void showUpgradedNotification() {
+    final currentContext = injector<NavigationService>().context;
+    if (!currentContext.mounted) {
+      return;
+    }
+    showInAppNotifications(currentContext, 'upgraded_notification_body'.tr(),
+        'subscription_upgraded', notificationOpenedHandler: () {
+      Navigator.of(currentContext).pushNamed(AppRouter.subscriptionPage);
+    });
   }
 }
 
