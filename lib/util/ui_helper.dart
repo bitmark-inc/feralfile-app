@@ -14,6 +14,7 @@ import 'dart:convert';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
+import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -1803,6 +1804,13 @@ class UIHelper {
           {required String message}) async =>
       await showErrorDialog(
           context, 'connect_failed'.tr(), message, 'close'.tr());
+
+  static Future<void> showTVConnectError(
+      BuildContext context, FeralfileError error) async {
+    final description = '${error.code}: ${error.message}';
+    await showInfoDialog(context, 'tv_connection_issue'.tr(), description,
+        onClose: () {}, isDismissible: true);
+  }
 }
 
 Widget loadingScreen(ThemeData theme, String text) => Scaffold(

@@ -10,7 +10,6 @@ import 'dart:async';
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/util/cast_request_ext.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/device_status_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:collection/collection.dart';
@@ -50,12 +49,6 @@ class CanvasDeviceDisconnectEvent extends CanvasDeviceEvent {
   final bool callRPC;
 
   CanvasDeviceDisconnectEvent(this.devices, {this.callRPC = true});
-}
-
-class CanvasDeviceOnRPCErrorEvent extends CanvasDeviceEvent {
-  final CanvasDevice device;
-
-  CanvasDeviceOnRPCErrorEvent(this.device);
 }
 
 class CanvasDeviceCastListArtworkEvent extends CanvasDeviceEvent {
@@ -250,8 +243,6 @@ EventTransformer<Event> debounceSequential<Event>(Duration duration) =>
 class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
   final CanvasClientServiceV2 _canvasClientServiceV2;
 
-  final Map<String, int> _deviceRetryCount = {};
-
   // constructor
   CanvasDeviceBloc(this._canvasClientServiceV2)
       : super(CanvasDeviceState(devices: [])) {
@@ -317,26 +308,6 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
         }
       });
       emit(state.copyWith(controllingDeviceStatus: {}));
-    });
-
-    on<CanvasDeviceOnRPCErrorEvent>((event, emit) async {
-      final controllingDevice = event.device;
-      final numberOfRetry = _deviceRetryCount[controllingDevice.deviceId] ?? 0;
-      log.info('CanvasDeviceBloc: retry connect to device: $numberOfRetry');
-      if (numberOfRetry < maxRetryCount) {
-        await Future.delayed(const Duration(milliseconds: 500));
-        _deviceRetryCount[controllingDevice.deviceId] = numberOfRetry + 1;
-        final isSuccess =
-            await _canvasClientServiceV2.connectToDevice(controllingDevice);
-        log.info('CanvasDeviceBloc: retry connect to device: $isSuccess');
-        if (isSuccess) {
-          _deviceRetryCount.remove(controllingDevice.deviceId);
-        } else {
-          add(CanvasDeviceDisconnectEvent([controllingDevice]));
-        }
-      } else {
-        add(CanvasDeviceDisconnectEvent([controllingDevice]));
-      }
     });
 
     on<CanvasDeviceCastListArtworkEvent>((event, emit) async {
