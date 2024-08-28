@@ -44,7 +44,7 @@ class _ListPostViewState extends State<ListPostView> {
             padding: EdgeInsets.only(
               top: widget.padding.top,
             ),
-            child: SizedBox(),
+            child: const SizedBox(),
           ),
         ),
         SliverList(
@@ -74,7 +74,7 @@ class _ListPostViewState extends State<ListPostView> {
             padding: EdgeInsets.only(
               bottom: widget.padding.bottom,
             ),
-            child: SizedBox(),
+            child: const SizedBox(),
           ),
         ),
       ],
@@ -164,6 +164,7 @@ class _ListPostViewState extends State<ListPostView> {
   }
 
   void _gotoPostDetail(BuildContext context, Post post, String exhibitionID) {
-    injector<NavigationService>().openFeralFilePostPage(post, exhibitionID);
+    unawaited(injector<NavigationService>()
+        .openFeralFilePostPage(post, exhibitionID));
   }
 }

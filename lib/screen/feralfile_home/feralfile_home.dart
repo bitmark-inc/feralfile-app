@@ -466,7 +466,6 @@ class _ItemExpandedWidgetState extends State<ItemExpandedWidget> {
       color: theme.colorScheme.secondary,
     );
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         _itemWidget(context, widget.items.first),
         const Spacer(),
@@ -490,7 +489,6 @@ class _ItemExpandedWidgetState extends State<ItemExpandedWidget> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             IgnorePointer(
               child: _itemWidget(context, _selectedItem(), withSubtitle: false),

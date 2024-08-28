@@ -259,8 +259,8 @@ Future<void> setup() async {
   injector.registerLazySingleton(() => TvCastApi(
       tvCastDio(
         dioOptions.copyWith(
-          receiveTimeout: Duration(seconds: 10),
-          connectTimeout: Duration(seconds: 10),
+          receiveTimeout: const Duration(seconds: 10),
+          connectTimeout: const Duration(seconds: 10),
         ),
       ),
       baseUrl: Environment.tvCastApiUrl));

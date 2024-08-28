@@ -63,12 +63,11 @@ class DailyWorkPageState extends State<DailyWorkPage>
   void initState() {
     super.initState();
     context.read<DailyWorkBloc>().add(GetDailyAssetTokenEvent());
-    const initialIndex = 0;
-    _pageController = PageController(initialPage: initialIndex);
+    _pageController = PageController();
     _pageController!.addListener(() {
       _pageControllerListenser();
     });
-    _currentIndex = initialIndex;
+    _currentIndex = _pageController!.initialPage;
     _scrollController = ScrollController();
   }
 
@@ -166,21 +165,19 @@ class DailyWorkPageState extends State<DailyWorkPage>
   }
 
   Widget _buildBody() => BlocBuilder<DailyWorkBloc, DailiesWorkState>(
-        builder: (context, state) {
-          return PageView(
-            controller: _pageController,
-            scrollDirection: Axis.vertical,
-            children: [
-              KeepAliveWidget(child: _dailyPreview()),
-              KeepAliveWidget(child: _dailyDetails(context)),
-            ],
-            onPageChanged: (index) {
-              setState(() {
-                _currentIndex = index;
-              });
-            },
-          );
-        },
+        builder: (context, state) => PageView(
+          controller: _pageController,
+          scrollDirection: Axis.vertical,
+          children: [
+            KeepAliveWidget(child: _dailyPreview()),
+            KeepAliveWidget(child: _dailyDetails(context)),
+          ],
+          onPageChanged: (index) {
+            setState(() {
+              _currentIndex = index;
+            });
+          },
+        ),
       );
 
   Widget _header(BuildContext context) => Row(
@@ -196,9 +193,9 @@ class DailyWorkPageState extends State<DailyWorkPage>
           FFCastButton(
             displayKey: CastDailyWorkRequest.displayKey,
             onDeviceSelected: (device) {
-              final canvasDeviceBloc = context.read<CanvasDeviceBloc>();
-              canvasDeviceBloc.add(CanvasDeviceCastDailyWorkEvent(
-                  device, CastDailyWorkRequest()));
+              context.read<CanvasDeviceBloc>().add(
+                  CanvasDeviceCastDailyWorkEvent(
+                      device, CastDailyWorkRequest()));
             },
             text: 'display'.tr(),
             shouldCheckSubscription: false,
@@ -284,7 +281,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
               builder: (context, state) {
                 final assetToken = state.assetTokens.firstOrNull;
                 if (assetToken == null) {
-                  return LoadingWidget();
+                  return const LoadingWidget();
                 }
                 return Column(
                   children: [
@@ -336,7 +333,6 @@ class DailyWorkPageState extends State<DailyWorkPage>
             assetToken.artistID ??
             '';
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Expanded(
           child: ArtworkDetailsHeader(
@@ -540,15 +536,15 @@ class DailyWorkPageState extends State<DailyWorkPage>
     }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: mediumDesc.map((desc) {
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 4),
-          child: Text(
-            desc,
-            style: theme.textTheme.ppMori400White14,
-          ),
-        );
-      }).toList(),
+      children: mediumDesc
+          .map((desc) => Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Text(
+                  desc,
+                  style: theme.textTheme.ppMori400White14,
+                ),
+              ))
+          .toList(),
     );
   }
 
