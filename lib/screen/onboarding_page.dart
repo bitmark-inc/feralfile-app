@@ -17,7 +17,6 @@ import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart'
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
-import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
@@ -45,9 +44,10 @@ class _OnboardingPageState extends State<OnboardingPage>
   bool fromDeeplink = false;
   bool fromIrlLink = false;
 
+  bool isAccountCreated = false;
+
   final metricClient = injector.get<MetricClientService>();
   final deepLinkService = injector.get<DeeplinkService>();
-  bool _skipMembership = false;
 
   final _onboardingLogo = Semantics(
     label: 'onboarding_logo',
@@ -61,6 +61,7 @@ class _OnboardingPageState extends State<OnboardingPage>
   @override
   void initState() {
     super.initState();
+    createAccountOrRestoreIfNeeded();
     unawaited(handleBranchLink());
     handleDeepLink();
     handleIrlLink();
@@ -71,6 +72,24 @@ class _OnboardingPageState extends State<OnboardingPage>
     super.didChangeDependencies();
     log.info('DefineViewRoutingEvent');
     context.read<RouterBloc>().add(DefineViewRoutingEvent());
+  }
+
+  void goToTargetScreen(BuildContext context) {
+    final configService = injector<ConfigurationService>();
+
+    Navigator.of(context).pushReplacementNamed(AppRouter.onboardingPage);
+
+    if (configService.isDoneNewOnboarding()) {
+      Navigator.of(context)
+          .pushReplacementNamed(AppRouter.homePageNoTransition);
+    }
+  }
+
+  Future<void> createAccountOrRestoreIfNeeded() async {
+    await injector<AccountService>().restoreIfNeeded();
+    setState(() {
+      isAccountCreated = true;
+    });
   }
 
   void handleDeepLink() {
@@ -105,7 +124,6 @@ class _OnboardingPageState extends State<OnboardingPage>
     });
   }
 
-  // make a function to handle irlLink like deepLink
   void handleIrlLink() {
     setState(() {
       fromIrlLink = true;
@@ -176,11 +194,7 @@ class _OnboardingPageState extends State<OnboardingPage>
           setState(() {
             fromBranchLink = true;
           });
-          if (data['source'] == 'gift_membership') {
-            _skipMembership = true;
-          }
 
-          await injector<AccountService>().restoreIfNeeded();
           deepLinkService.handleBranchDeeplinkData(data);
           updateDeepLinkState();
         }
@@ -192,107 +206,92 @@ class _OnboardingPageState extends State<OnboardingPage>
     });
   }
 
-  // @override
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Scaffold(
-        appBar: getDarkEmptyAppBar(Colors.transparent),
-        backgroundColor: AppColor.primaryBlack,
-        body: BlocConsumer<RouterBloc, RouterState>(
-          listener: (context, state) async {
-            final isSubscribed = await injector<IAPService>()
-                .isSubscribed(includeInhouse: false);
-            if (isSubscribed) {
-              _skipMembership = true;
-            }
-            if (_skipMembership) {
-              if (context.mounted) {
+      appBar: getDarkEmptyAppBar(Colors.transparent),
+      backgroundColor: AppColor.primaryBlack,
+      body: BlocConsumer<RouterBloc, RouterState>(
+        listener: (context, state) async {
+          switch (state.onboardingStep) {
+            case OnboardingStep.dashboard:
+              if (injector<ConfigurationService>().isDoneNewOnboarding()) {
                 unawaited(Navigator.of(context)
                     .pushReplacementNamed(AppRouter.homePageNoTransition));
-                return;
               }
-            }
-            switch (state.onboardingStep) {
-              case OnboardingStep.dashboard:
-                if (injector<ConfigurationService>().isDoneNewOnboarding()) {
-                  if (context.mounted) {
-                    unawaited(Navigator.of(context)
-                        .pushReplacementNamed(AppRouter.homePageNoTransition));
-                  }
-                }
-                try {
-                  await injector<SettingsDataService>().restoreSettingsData();
-                } catch (_) {}
-                await injector<VersionService>().checkForUpdate();
-              case OnboardingStep.startScreen:
-              default:
-                break;
-            }
-
-            if (state.onboardingStep != OnboardingStep.dashboard) {
+              try {
+                await injector<SettingsDataService>().restoreSettingsData();
+              } catch (_) {}
               await injector<VersionService>().checkForUpdate();
-            }
+              break;
+            case OnboardingStep.startScreen:
+            default:
+              break;
+          }
 
+          if (state.onboardingStep != OnboardingStep.dashboard) {
+            await injector<VersionService>().checkForUpdate();
+          }
+        },
+        builder: (context, state) {
+          if (state.isLoading) {
+            return loadingScreen(theme, 'restoring_autonomy'.tr());
+          }
+          if (state.onboardingStep == OnboardingStep.startScreen ||
+              state.onboardingStep == OnboardingStep.dashboard) {
+            return MultiBlocProvider(providers: [
+              BlocProvider<PersonaBloc>.value(
+                  value: PersonaBloc(injector(), injector())),
+              BlocProvider<UpgradesBloc>.value(
+                  value: UpgradesBloc(injector(), injector())),
+            ], child: const NewOnboardingPage());
+          }
 
-          },
-          builder: (context, state) {
-            if (state.isLoading) {
-              return loadingScreen(theme, 'restoring_autonomy'.tr());
-            }
-            if (state.onboardingStep == OnboardingStep.startScreen ||
-                state.onboardingStep == OnboardingStep.dashboard) {
-              return MultiBlocProvider(providers: [
-                BlocProvider<PersonaBloc>.value(
-                    value: PersonaBloc(injector(), injector())),
-                BlocProvider<UpgradesBloc>.value(
-                    value: UpgradesBloc(injector(), injector())),
-              ], child: const NewOnboardingPage());
-            }
+          final button = ((fromBranchLink ||
+                      fromDeeplink ||
+                      fromIrlLink ||
+                      (state.onboardingStep == OnboardingStep.undefined)) &&
+                  (state.onboardingStep != OnboardingStep.restore))
+              ? PrimaryButton(
+                  text: 'h_loading...'.tr(),
+                  isProcessing: true,
+                  enabled: false,
+                  disabledColor: AppColor.auGreyBackground,
+                  textColor: AppColor.white,
+                  indicatorColor: AppColor.white,
+                )
+              : (state.onboardingStep == OnboardingStep.restore)
+                  ? PrimaryButton(
+                      text: 'restoring'.tr(),
+                      isProcessing: true,
+                      enabled: false,
+                      disabledColor: AppColor.auGreyBackground,
+                      textColor: AppColor.white,
+                      indicatorColor: AppColor.white,
+                    )
+                  : null;
 
-            final button = ((fromBranchLink ||
-                        fromDeeplink ||
-                        fromIrlLink ||
-                        (state.onboardingStep == OnboardingStep.undefined)) &&
-                    (state.onboardingStep != OnboardingStep.restore))
-                ? PrimaryButton(
-                    text: 'h_loading...'.tr(),
-                    isProcessing: true,
-                    enabled: false,
-                    disabledColor: AppColor.auGreyBackground,
-                    textColor: AppColor.white,
-                    indicatorColor: AppColor.white,
-                  )
-                : (state.onboardingStep == OnboardingStep.restore)
-                    ? PrimaryButton(
-                        text: 'restoring'.tr(),
-                        isProcessing: true,
-                        enabled: false,
-                        disabledColor: AppColor.auGreyBackground,
-                        textColor: AppColor.white,
-                        indicatorColor: AppColor.white,
-                      )
-                    : null;
-
-            return Padding(
-              padding: ResponsiveLayout.pageHorizontalEdgeInsets
-                  .copyWith(bottom: 40),
-              child: Stack(
-                children: [
-                  _onboardingLogo,
-                  Positioned.fill(
-                    child: Column(
-                      children: [
-                        const Spacer(),
-                        button ?? const SizedBox(),
-                      ],
-                    ),
+          return Padding(
+            padding:
+                ResponsiveLayout.pageHorizontalEdgeInsets.copyWith(bottom: 40),
+            child: Stack(
+              children: [
+                _onboardingLogo,
+                Positioned.fill(
+                  child: Column(
+                    children: [
+                      const Spacer(),
+                      button ?? const SizedBox(),
+                    ],
                   ),
-                ],
-              ),
-            );
-          },
-        ));
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
   }
 }

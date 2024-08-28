@@ -340,7 +340,7 @@ class AppRouter {
                 injector(),
               ),
             ),
-          ], child: const OnboardingPage()),
+          ], child: const NewOnboardingPage()),
         );
 
       case previewPrimerPage:

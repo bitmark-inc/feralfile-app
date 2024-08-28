@@ -197,7 +197,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
     ];
     if (!_configurationService.isDoneOnboarding()) {
       memoryValues.deepLink.value = link;
-      await injector<AccountService>().restoreIfNeeded();
     }
     // Check Universal Link
 
@@ -308,9 +307,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
   Future<bool> _handleIRL(String link) async {
     log.info('[DeeplinkService] _handleIRL');
     memoryValues.irlLink.value = link;
-    if (!_configurationService.isDoneOnboarding()) {
-      await injector<AccountService>().restoreIfNeeded();
-    }
     final irlPrefix = IRL_DEEPLINK_PREFIXES
         .firstWhereOrNull((element) => link.startsWith(element));
     if (irlPrefix != null) {
