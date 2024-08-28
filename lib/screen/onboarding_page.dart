@@ -33,7 +33,6 @@ class OnboardingPage extends StatefulWidget {
 
 class _OnboardingPageState extends State<OnboardingPage>
     with TickerProviderStateMixin {
-
   final metricClient = injector.get<MetricClientService>();
   final deepLinkService = injector.get<DeeplinkService>();
 
@@ -58,19 +57,22 @@ class _OnboardingPageState extends State<OnboardingPage>
     log.info('DefineViewRoutingEvent');
   }
 
-  Future<void> goToTargetScreen(BuildContext context) async {
+  Future<void> _goToTargetScreen(BuildContext context) async {
     final configService = injector<ConfigurationService>();
     final isSubscribed = await injector<IAPService>().isSubscribed();
-    final shouldShowPurchasePremium = !isSubscribed;
-    DeeplinkService;
-    unawaited(Navigator.of(context).pushReplacementNamed(
-        AppRouter.newOnboardingPage,
-        arguments: NewOnboardingPagePayload(
-            shouldShowPurchasePremium: shouldShowPurchasePremium)));
+    if (!context.mounted) {
+      return;
+    }
 
     if (configService.isDoneNewOnboarding()) {
-      unawaited(Navigator.of(context)
-          .pushReplacementNamed(AppRouter.homePageNoTransition));
+      await Navigator.of(context)
+          .pushReplacementNamed(AppRouter.homePageNoTransition);
+    } else {
+      final shouldShowPurchasePremium = !isSubscribed;
+      await Navigator.of(context).pushReplacementNamed(
+          AppRouter.newOnboardingPage,
+          arguments: NewOnboardingPagePayload(
+              shouldShowPurchasePremium: shouldShowPurchasePremium));
     }
   }
 
@@ -79,7 +81,7 @@ class _OnboardingPageState extends State<OnboardingPage>
     if (!mounted) {
       return;
     }
-    goToTargetScreen(context);
+    await _goToTargetScreen(context);
   }
 
   @override

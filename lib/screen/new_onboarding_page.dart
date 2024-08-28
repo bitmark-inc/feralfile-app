@@ -1,7 +1,10 @@
 import 'dart:async';
 
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/product_details_ext.dart';
@@ -141,7 +144,7 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
               log.info('Onboarding: upgradeState: $status');
               switch (status) {
                 case IAPProductStatus.completed:
-                  nameContinue(context);
+                  _goToHomePage(context);
                   Future.delayed(const Duration(seconds: 2), () {
                     UIHelper.showUpgradedNotification();
                   });
@@ -167,7 +170,7 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
                       isEnable: true,
                       onTap: (type) {
                         _selectMembershipType(type);
-                        nameContinue(context);
+                        _goToHomePage(context);
                       },
                     ),
                   const SizedBox(height: 15),
@@ -209,7 +212,7 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
       return;
     }
     if (subscriptionDetails.status == IAPProductStatus.completed) {
-      nameContinue(context);
+      _goToHomePage(context);
       return;
     }
     final ids = [subscriptionDetails.productDetails.id];
@@ -275,6 +278,12 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
         ),
       ],
     );
+  }
+
+  void _goToHomePage(BuildContext context) {
+    unawaited(injector<ConfigurationService>().setDoneNewOnboarding(true));
+    unawaited(Navigator.of(context)
+        .pushReplacementNamed(AppRouter.homePageNoTransition));
   }
 }
 

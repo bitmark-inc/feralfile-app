@@ -50,6 +50,10 @@ abstract class DeeplinkService {
   void handleBranchDeeplinkData(Map<dynamic, dynamic> data);
 
   Future<void> openClaimEmptyPostcard(String id, {String? otp});
+
+  void activateBranchDataListener();
+
+  void activateDeepLinkListener();
 }
 
 class DeeplinkServiceImpl extends DeeplinkService {
@@ -73,10 +77,14 @@ class DeeplinkServiceImpl extends DeeplinkService {
     this._remoteConfigService,
   );
 
-  static final StreamController<Map<dynamic, dynamic>>
-      _branchDataStreamController = StreamController<Map<dynamic, dynamic>>();
-  static final StreamController<String> _deepLinkStreamController =
-      StreamController<String>();
+  final StreamController<Map<dynamic, dynamic>> _branchDataStreamController =
+      StreamController<Map<dynamic, dynamic>>.broadcast();
+  final StreamController<String> _deepLinkStreamController =
+      StreamController<String>.broadcast();
+
+  late final Stream<Map<dynamic, dynamic>> _branchDataStream =
+      _branchDataStreamController.stream;
+  late final Stream<String> _linkStream = _deepLinkStreamController.stream;
 
   @override
   Future setup() async {
@@ -106,6 +114,16 @@ class DeeplinkServiceImpl extends DeeplinkService {
     } on PlatformException {
       //Ignore
     }
+  }
+
+  @override
+  void activateBranchDataListener() {
+    _branchDataStream.listen(handleBranchDeeplinkData);
+  }
+
+  @override
+  void activateDeepLinkListener() {
+    _linkStream.listen(_handleDappConnectDeeplink);
   }
 
   @override
@@ -422,19 +440,17 @@ class DeeplinkServiceImpl extends DeeplinkService {
           }
           break;
         }
-        if (_configurationService.isDoneNewOnboarding()) {
-          if (isSuccessful) {
-            await UIHelper.showFlexibleDialog(
-                _navigationService.context,
-                BlocProvider.value(
-                  value: injector<CanvasDeviceBloc>(),
-                  child: const StreamDeviceView(),
-                ),
-                isDismissible: true,
-                autoDismissAfter: 3);
-          } else {
-            await _navigationService.showCannotConnectTv();
-          }
+        if (isSuccessful) {
+          await UIHelper.showFlexibleDialog(
+              _navigationService.context,
+              BlocProvider.value(
+                value: injector<CanvasDeviceBloc>(),
+                child: const StreamDeviceView(),
+              ),
+              isDismissible: true,
+              autoDismissAfter: 3);
+        } else {
+          await _navigationService.showCannotConnectTv();
         }
 
       case 'InstantPurchase':

@@ -29,6 +29,7 @@ import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
+import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/notification_service.dart' as nc;
@@ -269,6 +270,10 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     super.initState();
     // since we moved to use bonsoir service,
     // we don't need to wait for canvas service to init
+
+    injector<DeeplinkService>()
+      ..activateBranchDataListener()
+      ..activateDeepLinkListener();
     injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent(retry: true));
     unawaited(injector<CustomerSupportService>().getIssues());
     _initialTab = widget.payload.startedTab;
