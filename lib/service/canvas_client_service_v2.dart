@@ -70,6 +70,7 @@ class CanvasClientServiceV2 {
     final deviceStatus = await _getDeviceStatus(device);
     if (deviceStatus != null) {
       await _db.save(device, device.deviceId);
+      unawaited(connectToDevice(device));
       log.info('CanvasClientService: Added device to db ${device.name}');
       return deviceStatus;
     }
