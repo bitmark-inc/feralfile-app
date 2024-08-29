@@ -13,6 +13,7 @@ class MembershipCard extends StatelessWidget {
   final String? buttonText;
   final bool isCompleted;
   final String? renewDate;
+  final Function()? onContinue;
 
   const MembershipCard({
     required this.type,
@@ -23,6 +24,7 @@ class MembershipCard extends StatelessWidget {
     this.buttonText,
     this.isCompleted = false,
     this.renewDate,
+    this.onContinue,
     super.key,
   });
 
@@ -85,24 +87,37 @@ class MembershipCard extends StatelessWidget {
                       )),
                   const SizedBox(height: 10),
                   if (isCompleted)
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        dotIcon(color: AppColor.feralFileHighlight),
-                        const SizedBox(width: 10),
-                        Text(
-                          'active'.tr(),
-                          style: activeTextStyle,
-                        ),
-                        const Spacer(),
-                        if (renewDate != null) ...[
-                          Text(
-                            'renews_'.tr(
-                              args: [renewDate!],
-                            ),
-                            style: activeTextStyle,
+                        if (onContinue != null) ...[
+                          PrimaryButton(
+                            text: 'continue'.tr(),
+                            onTap: onContinue,
+                            color: AppColor.feralFileHighlight,
                           ),
-                        ]
+                          const SizedBox(height: 10),
+                        ],
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            dotIcon(color: AppColor.feralFileHighlight),
+                            const SizedBox(width: 10),
+                            Text(
+                              'active'.tr(),
+                              style: activeTextStyle,
+                            ),
+                            const Spacer(),
+                            if (renewDate != null) ...[
+                              Text(
+                                'renews_'.tr(
+                                  args: [renewDate!],
+                                ),
+                                style: activeTextStyle,
+                              ),
+                            ]
+                          ],
+                        ),
                       ],
                     )
                   else

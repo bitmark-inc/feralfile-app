@@ -156,6 +156,9 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
                   subscriptionState.activeSubscriptionDetails.firstOrNull;
               final isSubscribed =
                   subscriptionDetails?.status == IAPProductStatus.completed;
+              final renewDate = subscriptionDetails?.renewDate;
+              log.info('Onboarding: isSubscribed: $isSubscribed, '
+                  'renewDate: $renewDate');
               return Column(
                 children: [
                   if (!isSubscribed)
@@ -174,17 +177,24 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
                     ),
                   const SizedBox(height: 15),
                   MembershipCard(
-                      type: MembershipCardType.premium,
-                      price: _getPremiumPrice(subscriptionDetails),
-                      isProcessing: _selectedMembershipCardType ==
-                          MembershipCardType.premium &&
-                          subscriptionDetails?.status ==
-                              IAPProductStatus.pending,
-                      isEnable: true,
-                      onTap: (type) async {
-                        _selectMembershipType(type);
-                        _upgradePurchase(subscriptionDetails);
-                      }),
+                    type: MembershipCardType.premium,
+                    price: _getPremiumPrice(subscriptionDetails),
+                    isProcessing: _selectedMembershipCardType ==
+                            MembershipCardType.premium &&
+                        subscriptionDetails?.status == IAPProductStatus.pending,
+                    isEnable: true,
+                    onTap: (type) async {
+                      _selectMembershipType(type);
+                      _upgradePurchase(subscriptionDetails);
+                    },
+                    onContinue: isSubscribed
+                        ? () {
+                            _goToHomePage(context);
+                          }
+                        : null,
+                    isCompleted: isSubscribed,
+                    renewDate: renewDate,
+                  ),
                 ],
               );
             }),
