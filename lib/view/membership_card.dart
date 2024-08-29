@@ -94,17 +94,16 @@ class MembershipCard extends StatelessWidget {
                           PrimaryButton(
                             text: 'continue'.tr(),
                             onTap: onContinue,
-                            color: AppColor.feralFileHighlight,
+                            color: AppColor.feralFileLightBlue,
                           ),
                           const SizedBox(height: 10),
                         ],
                         Row(
-                          crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            dotIcon(color: AppColor.feralFileHighlight),
+                            dotIcon(color: AppColor.feralFileLightBlue),
                             const SizedBox(width: 10),
                             Text(
-                              'active'.tr(),
+                              'premium'.tr(),
                               style: activeTextStyle,
                             ),
                             const Spacer(),
