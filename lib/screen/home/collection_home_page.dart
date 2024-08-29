@@ -24,6 +24,7 @@ import 'package:autonomy_flutter/service/locale_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
+import 'package:autonomy_flutter/shared.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';

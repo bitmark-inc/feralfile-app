@@ -36,6 +36,7 @@ import 'package:autonomy_flutter/service/notification_service.dart' as nc;
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
+import 'package:autonomy_flutter/shared.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/dio_util.dart';

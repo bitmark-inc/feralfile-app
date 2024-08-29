@@ -3,10 +3,10 @@ import 'dart:io';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/gateway/chat_api.dart';
-import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/chat_message.dart' as app;
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/service/chat_auth_service.dart';
+import 'package:autonomy_flutter/shared.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/wallet_ext.dart';
 import 'package:crypto/crypto.dart';
@@ -125,7 +125,6 @@ class ChatServiceImpl implements ChatService {
               } catch (e) {
                 log.info('[CHAT] NEW_MESSAGE error: $e');
               }
-              break;
             case 'RESP':
               if (response.payload['ok'] != null &&
                   response.payload['ok'].toString() == '1') {
@@ -160,7 +159,6 @@ class ChatServiceImpl implements ChatService {
                   log.info('[CHAT page] RESP error: $e');
                 }
               }
-              break;
             default:
               break;
           }

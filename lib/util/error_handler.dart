@@ -8,11 +8,11 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
 import 'package:autonomy_flutter/screen/report/sentry_report.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/shared.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/custom_exception.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -217,27 +217,22 @@ void showErrorDiablog(
   switch (event.state) {
     case ErrorItemState.close:
       defaultButton = 'close'.tr();
-      break;
 
     case ErrorItemState.getReport:
       defaultButton = 'get_support'.tr();
       cancelButton = 'continue'.tr();
-      break;
 
     case ErrorItemState.tryAgain:
       defaultButton = 'try_again'.tr();
       cancelButton = cancelAction != null ? 'close'.tr() : null;
-      break;
 
     case ErrorItemState.camera:
       defaultButton = 'open_settings'.tr();
       defaultAction = () async => await openAppSettings();
-      break;
 
     case ErrorItemState.seeAccount:
       defaultButton = 'see_account'.tr();
       cancelButton = 'close'.tr();
-      break;
 
     default:
       break;

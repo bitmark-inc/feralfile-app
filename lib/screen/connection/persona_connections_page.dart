@@ -20,6 +20,7 @@ import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
+import 'package:autonomy_flutter/shared.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -63,17 +64,14 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
         context
             .read<EthereumBloc>()
             .add(GetEthereumBalanceWithUUIDEvent(personUUID));
-        break;
       case CryptoType.XTZ:
         context.read<TezosBloc>().add(GetTezosBalanceWithUUIDEvent(personUUID));
         context.read<TezosBloc>().add(GetTezosAddressEvent(personUUID));
-        break;
       case CryptoType.USDC:
         context.read<USDCBloc>().add(GetAddressEvent(personUUID, index));
         context
             .read<USDCBloc>()
             .add(GetUSDCBalanceWithUUIDEvent(personUUID, index));
-        break;
       case CryptoType.UNKNOWN:
         // do nothing
         break;
@@ -109,11 +107,9 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
       case CryptoType.ETH:
         context.read<ConnectionsBloc>().add(GetETHConnectionsEvent(
             personUUID, widget.payload.index, widget.payload.address));
-        break;
       case CryptoType.XTZ:
         context.read<ConnectionsBloc>().add(GetXTZConnectionsEvent(
             personUUID, widget.payload.index, widget.payload.address));
-        break;
       default:
         // do nothing
         break;
@@ -293,10 +289,8 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
               switch (widget.payload.type) {
                 case CryptoType.ETH:
                   scanItem = ScannerItem.WALLET_CONNECT;
-                  break;
                 case CryptoType.XTZ:
                   scanItem = ScannerItem.BEACON_CONNECT;
-                  break;
                 default:
                   break;
               }

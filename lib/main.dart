@@ -36,7 +36,6 @@ import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/route_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart';
@@ -229,53 +228,9 @@ class AutonomyApp extends StatelessWidget {
 final RouteObserver<ModalRoute<void>> routeObserver =
     CustomRouteObserver<ModalRoute<void>>();
 
-var memoryValues = MemoryValues();
-
-class MemoryValues {
-  String? scopedPersona;
-  String? viewingSupportThreadIssueID;
-  DateTime? inForegroundAt;
-  String? currentGroupChatId;
-  bool isForeground = true;
-
-  MemoryValues({
-    this.scopedPersona,
-    this.viewingSupportThreadIssueID,
-    this.inForegroundAt,
-  });
-
-  MemoryValues copyWith({
-    String? scopedPersona,
-  }) =>
-      MemoryValues(
-        scopedPersona: scopedPersona ?? this.scopedPersona,
-      );
-}
-
-enum HomeNavigatorTab {
-  daily,
-  explore,
-  menu;
-
-  String get screenName => getPageName(routeName);
-
-  String get routeName {
-    switch (this) {
-      case HomeNavigatorTab.daily:
-        return AppRouter.dailyWorkPage;
-      case HomeNavigatorTab.explore:
-        return AppRouter.explorePage;
-      case HomeNavigatorTab.menu:
-        return 'Menu';
-    }
-  }
-}
-
 @pragma('vm:entry-point')
 void downloadCallback(String id, int status, int progress) {
   final SendPort? send =
       IsolateNameServer.lookupPortByName('downloader_send_port');
   send?.send([id, status, progress]);
 }
-
-void imageError(Object exception, StackTrace? stackTrace) {}

@@ -12,7 +12,6 @@ import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
-import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/customer_support.dart' as app;
 import 'package:autonomy_flutter/model/customer_support.dart';
 import 'package:autonomy_flutter/model/pair.dart';
@@ -20,6 +19,7 @@ import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
+import 'package:autonomy_flutter/shared.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/jwt.dart';

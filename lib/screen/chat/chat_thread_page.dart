@@ -5,13 +5,13 @@ import 'dart:ui' as ui;
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/chat_api.dart';
-import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/chat_message.dart' as app;
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/chat/chat_bloc.dart';
 import 'package:autonomy_flutter/screen/chat/chat_state.dart';
 import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/shared.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/chat_alias_ext.dart';
 import 'package:autonomy_flutter/util/chat_messsage_ext.dart';
