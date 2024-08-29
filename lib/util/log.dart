@@ -115,8 +115,7 @@ class FileLogger {
         r'(0x[A-Fa-f0-9]{64}[\s\W])|'
         r'(0x[A-Fa-f0-9]{128,144}[\s\W])|'
         r'(eyJ[A-Za-z0-9-_]+\.eyJ[A-Za-z0-9-_]+\.[A-Za-z0-9-_.+/]*)'
-        r'(receipt: [^,\}]*)|'
-        r'(\\"receipt\\":\[.*?,.*?\])|');
+        r'(\\"receipt\\":\{[^{}]*\})');
 
     filteredLog = filteredLog.replaceAllMapped(combinedRegex, (match) {
       if (match[1] != null) {
@@ -147,10 +146,7 @@ class FileLogger {
         return 'REDACTED_JWT_TOKEN';
       }
       if (match[11] != null) {
-        return 'REDACTED_RECEIPT';
-      }
-      if (match[12] != null) {
-        return 'REDACTED_RECEIPT';
+        return r'\"receipt\": REDACTED_RECEIPT';
       }
       return '';
     });
