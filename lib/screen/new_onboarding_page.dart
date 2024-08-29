@@ -211,6 +211,7 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
 
   void _upgradePurchase(SubscriptionDetails? subscriptionDetails) {
     if (subscriptionDetails == null) {
+      log.info('Onboarding: upgrade purchase subscriptionDetails is null');
       return;
     }
     if (subscriptionDetails.status == IAPProductStatus.completed) {
@@ -218,7 +219,7 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
       return;
     }
     final ids = [subscriptionDetails.productDetails.id];
-    log.info('Cast button: upgrade purchase: ${ids.first}');
+    log.info('Onboarding: upgrade purchase: ${ids.first}');
     _upgradeBloc.add(UpgradePurchaseEvent(ids));
   }
 
