@@ -1818,10 +1818,11 @@ class UIHelper {
     if (!currentContext.mounted) {
       return;
     }
-    showInAppNotifications(currentContext, 'upgraded_notification_body'.tr(),
-        'subscription_upgraded', notificationOpenedHandler: () {
-      Navigator.of(currentContext).pushNamed(AppRouter.subscriptionPage);
-    });
+    showInAppNotifications(
+      currentContext,
+      'upgraded_notification_body'.tr(),
+      'subscription_upgraded',
+    );
   }
 }
 
