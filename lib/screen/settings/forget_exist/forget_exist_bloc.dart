@@ -90,11 +90,7 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
       unawaited(injector<CacheManager>().emptyCache());
       unawaited(DefaultCacheManager().emptyCache());
       unawaited(injector<MetricClientService>().mixPanelClient.reset());
-      memoryValues = MemoryValues(
-        branchDeeplinkData: ValueNotifier(null),
-        deepLink: ValueNotifier(null),
-        irlLink: ValueNotifier(null),
-      );
+      memoryValues = MemoryValues();
 
       emit(ForgetExistState(state.isChecked, false));
     });

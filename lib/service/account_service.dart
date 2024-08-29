@@ -739,8 +739,6 @@ class AccountServiceImpl extends AccountService {
     if (_configurationService.isDoneOnboarding()) {
       return;
     }
-
-    final didShowNewOnboarding = _configurationService.isDoneNewOnboarding();
     // for user who did not onboarded before
     if (hasPersona) {
       unawaited(_configurationService.setOldUser());
@@ -757,11 +755,6 @@ class AccountServiceImpl extends AccountService {
         unawaited(injector<MetricClientService>()
             .mixPanelClient
             .initIfDefaultAccount());
-        if (didShowNewOnboarding) {
-          unawaited(injector<NavigationService>()
-              .navigateTo(AppRouter.homePageNoTransition));
-          unawaited(_configurationService.setDoneOnboarding(true));
-        }
       }
 
       // make sure has addresses
@@ -796,10 +789,6 @@ class AccountServiceImpl extends AccountService {
       unawaited(injector<MetricClientService>()
           .mixPanelClient
           .initIfDefaultAccount());
-      if (didShowNewOnboarding) {
-        unawaited(injector<NavigationService>()
-            .navigateTo(AppRouter.homePageNoTransition));
-      }
     }
   }
 
