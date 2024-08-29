@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
@@ -235,9 +237,10 @@ extension ArtworkExt on Artwork {
         (e) => e.blockchainType == chain,
       );
       if (contract == null) {
-        Sentry.captureMessage(
-          'ArtworkExt: get indexerTokenId failed, contract is null for chain: $chain, artworkID: $id',
-        );
+        unawaited(Sentry.captureMessage(
+          'ArtworkExt: get indexerTokenId failed,'
+          ' contract is null for chain: $chain, artworkID: $id',
+        ));
         return null;
       }
       final chainPrefix = chain == 'tezos' ? 'tez' : 'eth';
@@ -251,7 +254,7 @@ extension ArtworkExt on Artwork {
         return swap!.indexerId;
       } else {
         // if artwork was not burned, it's bitmark token
-        final chanPrefix = 'bmk';
+        const chanPrefix = 'bmk';
         final contract = series!.exhibition!.contracts!.firstWhereOrNull(
           (e) => e.blockchainType == chain,
         );
@@ -259,10 +262,12 @@ extension ArtworkExt on Artwork {
         return '$chanPrefix-$contractAddress-$id';
       }
     } else {
-      Sentry.captureMessage(
-        'ArtworkExt: get indexerTokenId failed, unknown chain: $chain, artworkID: $id',
-      );
+      unawaited(Sentry.captureMessage(
+        'ArtworkExt: get indexerTokenId failed, '
+        'unknown chain: $chain, artworkID: $id',
+      ));
     }
+    return null;
   }
 }
 

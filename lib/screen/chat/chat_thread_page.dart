@@ -32,6 +32,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:flutter_chat_ui/flutter_chat_ui.dart';
+
 //ignore: implementation_imports
 import 'package:flutter_chat_ui/src/models/date_header.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -206,10 +207,8 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
             _messages[index] = _messages[index].copyWith(
                 status: types.Status.sent,
                 createdAt: DateTime.now().millisecondsSinceEpoch);
-            break;
           case ChatService.ERROR:
             _messages.removeAt(index);
-            break;
           default:
             break;
         }
@@ -586,9 +585,7 @@ class UserAvatar extends StatelessWidget {
         imageUrl: url,
         errorWidget: (context, url, error) =>
             SvgPicture.asset('assets/images/default_avatar.svg'),
-        placeholder: (context, url) {
-          return LoadingWidget();
-        },
+        placeholder: (context, url) => const LoadingWidget(),
       ));
 }
 

@@ -74,7 +74,7 @@ class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
           try {
             await _iapService.purchase(subscriptionProductDetails);
             final index = listSubscriptionDetails.indexWhere((element) =>
-            element.productDetails == subscriptionProductDetails);
+                element.productDetails == subscriptionProductDetails);
             listSubscriptionDetails[index] = SubscriptionDetails(
                 IAPProductStatus.pending, subscriptionProductDetails);
           } catch (error) {
