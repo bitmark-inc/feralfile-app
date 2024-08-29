@@ -433,19 +433,41 @@ class DeeplinkServiceImpl extends DeeplinkService {
         });
         final device = CanvasDevice.fromJson(payload);
         final canvasClient = injector<CanvasClientServiceV2>();
-        final result = await canvasClient.addQrDevice(device);
-        final isSuccessful = result != null;
-        if (!_navigationService.context.mounted) {
-          return;
-        }
-        if (CustomRouteObserver.currentRoute?.settings.name ==
-            AppRouter.scanQRPage) {
-          /// in case scan when open scanQRPage,
-          /// scan with navigation home page does not go to this flow
-          _navigationService.goBack(result: result);
-          if (!isSuccessful) {
-            await _navigationService.showCannotConnectTv();
-          } else {
+        try {
+          final result = await canvasClient.addQrDevice(device);
+          final isSuccessful = result != null;
+          if (!_navigationService.context.mounted) {
+            return;
+          }
+          if (CustomRouteObserver.currentRoute?.settings.name ==
+              AppRouter.scanQRPage) {
+            /// in case scan when open scanQRPage,
+            /// scan with navigation home page does not go to this flow
+            _navigationService.goBack(result: result);
+            if (!isSuccessful) {
+              await _navigationService.showCannotConnectTv();
+            } else {
+              showInfoNotification(
+                const Key('connected_to_canvas'),
+                'connected_to_display'.tr(),
+                addOnTextSpan: [
+                  TextSpan(
+                    text: device.name,
+                    style: Theme.of(_navigationService.context)
+                        .textTheme
+                        .ppMori400FFYellow14
+                        .copyWith(color: AppColor.feralFileLightBlue),
+                  )
+                ],
+                frontWidget: SvgPicture.asset(
+                  'assets/images/checkbox_icon.svg',
+                  width: 24,
+                ),
+              );
+            }
+            break;
+          }
+          if (isSuccessful) {
             showInfoNotification(
               const Key('connected_to_canvas'),
               'connected_to_display'.tr(),
@@ -463,29 +485,11 @@ class DeeplinkServiceImpl extends DeeplinkService {
                 width: 24,
               ),
             );
+          } else {
+            await _navigationService.showCannotConnectTv();
           }
-          break;
-        }
-        if (isSuccessful) {
-          showInfoNotification(
-            const Key('connected_to_canvas'),
-            'connected_to_display'.tr(),
-            addOnTextSpan: [
-              TextSpan(
-                text: device.name,
-                style: Theme.of(_navigationService.context)
-                    .textTheme
-                    .ppMori400FFYellow14
-                    .copyWith(color: AppColor.feralFileLightBlue),
-              )
-            ],
-            frontWidget: SvgPicture.asset(
-              'assets/images/checkbox_icon.svg',
-              width: 24,
-            ),
-          );
-        } else {
-          await _navigationService.showCannotConnectTv();
+        } catch (e) {
+          log.info('[DeeplinkService] feralfile_display error $e');
         }
 
       case 'InstantPurchase':
