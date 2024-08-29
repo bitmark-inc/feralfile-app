@@ -55,7 +55,7 @@ extension DailiesTokenExtension on DailyToken {
   }
 
   String get indexId {
-    final swap = this.artwork?.swap;
+    final swap = artwork?.swap;
     if (swap != null) {
       return _convertToIndexId(
           swap.blockchainType, swap.contractAddress, swap.token!);
@@ -65,7 +65,7 @@ extension DailiesTokenExtension on DailyToken {
   }
 
   String get artworkId {
-    final swap = this.artwork?.swap;
+    final swap = artwork?.swap;
     if (swap != null) {
       return swap.token!;
     } else {

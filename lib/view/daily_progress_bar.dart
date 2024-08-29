@@ -7,10 +7,10 @@ class ProgressBar extends StatefulWidget {
   const ProgressBar({required this.progress, super.key});
 
   @override
-  _BarState createState() => _BarState();
+  State<ProgressBar> createState() => ProgressBarState();
 }
 
-class _BarState extends State<ProgressBar> {
+class ProgressBarState extends State<ProgressBar> {
   late double _progress;
 
   @override
@@ -20,14 +20,12 @@ class _BarState extends State<ProgressBar> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 1,
-      child: LinearProgressIndicator(
-        value: _progress,
-        backgroundColor: AppColor.greyMedium,
-        valueColor: AlwaysStoppedAnimation<Color>(AppColor.white),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => SizedBox(
+        height: 1,
+        child: LinearProgressIndicator(
+          value: _progress,
+          backgroundColor: AppColor.greyMedium,
+          valueColor: const AlwaysStoppedAnimation<Color>(AppColor.white),
+        ),
+      );
 }

@@ -283,9 +283,7 @@ class ExhibitionsPageState extends State<ExhibitionsPage> with RouteAware {
             if (exhibitionsState.currentPage == 0) {
               return SliverToBoxAdapter(
                 child: SizedBox(
-                  height:  MediaQuery.of(context).size.width /
-                      16 *
-                      9,
+                    height: MediaQuery.of(context).size.width / 16 * 9,
                     child: const LoadingWidget()),
               );
             } else {
