@@ -167,7 +167,7 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
                   const SizedBox(height: 30),
                 ],
               ] else ...[
-                const SizedBox(height: 40),
+                const SizedBox(height: 20),
                 _instructionDetailWidget(context),
               ],
               const SizedBox(height: 10),

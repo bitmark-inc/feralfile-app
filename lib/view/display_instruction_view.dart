@@ -271,7 +271,7 @@ class HowToDisplayOnBrowser extends StatelessWidget {
                         ),
                       ),
                       const TextSpan(
-                        text: " on your TV's web browser.",
+                        text: " on TV's web browser.",
                       ),
                     ],
                   ),

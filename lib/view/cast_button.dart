@@ -173,30 +173,22 @@ class _FFCastButtonState extends State<FFCastButton> {
               final subscriptionDetail =
                   upgradeState.activeSubscriptionDetails.firstOrNull;
               final price = subscriptionDetail?.price ?? r'$200/year';
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'you_need_to_subscribe'.tr(),
-                    style: Theme.of(context).textTheme.ppMori400White14,
-                  ),
-                  const SizedBox(height: 20),
-                  MembershipCard(
-                    type: MembershipCardType.premium,
-                    price: price,
-                    isProcessing: upgradeState.isProcessing,
-                    isEnable: subscriptionDetail != null,
-                    onTap: (_) {
-                      _onPressSubscribe(
-                          subscriptionDetails: subscriptionDetail!);
-                    },
-                    buttonText: 'upgrade'.tr(),
-                  ),
-                ],
+              return MembershipCard(
+                type: MembershipCardType.premium,
+                price: price,
+                isProcessing: upgradeState.isProcessing,
+                isEnable: subscriptionDetail != null,
+                onTap: (_) {
+                  _onPressSubscribe(subscriptionDetails: subscriptionDetail!);
+                },
+                buttonText: 'upgrade'.tr(),
               );
             }),
       ),
       isDismissible: true,
+      withCloseIcon: true,
+      spacing: 20,
+      padding: const EdgeInsets.fromLTRB(14, 20, 14, 40),
     );
   }
 

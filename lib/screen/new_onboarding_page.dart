@@ -95,14 +95,18 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
               ),
               Text(
                 title,
-                style: theme.textTheme.ppMori700White24,
+                style: theme.textTheme.ppMori700Black36.copyWith(
+                  color: AppColor.white,
+                ),
               ),
               Container(
                 height: 30,
               ),
               Text(
                 desc,
-                style: theme.textTheme.ppMori400White14,
+                style: theme.textTheme.ppMori700White18.copyWith(
+                  fontWeight: FontWeight.w400,
+                ),
               ),
             ],
           ),

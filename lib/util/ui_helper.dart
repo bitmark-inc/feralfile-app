@@ -107,6 +107,7 @@ class UIHelper {
     EdgeInsets? padding,
     EdgeInsets? paddingTitle,
     bool withCloseIcon = false,
+    double spacing = 40,
   }) async {
     log.info('[UIHelper] showDialog: $title');
     currentDialogTitle = title;
@@ -174,7 +175,7 @@ class UIHelper {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 40),
+                  SizedBox(height: spacing),
                   content,
                 ],
               ),
