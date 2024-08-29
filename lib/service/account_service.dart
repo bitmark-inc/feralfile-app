@@ -15,7 +15,6 @@ import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/database/entity/wallet_address.dart';
 import 'package:autonomy_flutter/model/p2p_peer.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_state.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
@@ -23,7 +22,6 @@ import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/util/android_backup_channel.dart';
@@ -790,6 +788,7 @@ class AccountServiceImpl extends AccountService {
           .mixPanelClient
           .initIfDefaultAccount());
     }
+    unawaited(iapService.restore());
   }
 
   @override
