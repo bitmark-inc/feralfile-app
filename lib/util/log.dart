@@ -114,7 +114,7 @@ class FileLogger {
         r'(\\"location\\":\[.*?,.*?\])|'
         r'(0x[A-Fa-f0-9]{64}[\s\W])|'
         r'(0x[A-Fa-f0-9]{128,144}[\s\W])|'
-        r'(eyJ[A-Za-z0-9-_]+\.eyJ[A-Za-z0-9-_]+\.[A-Za-z0-9-_.+/]*)'
+        r'(eyJ[A-Za-z0-9-_]+\.eyJ[A-Za-z0-9-_]+\.[A-Za-z0-9-_.+/]*)|'
         r'(\\"receipt\\":\{[^{}]*\})');
 
     filteredLog = filteredLog.replaceAllMapped(combinedRegex, (match) {
