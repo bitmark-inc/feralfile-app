@@ -183,7 +183,6 @@ class _FFCastButtonState extends State<FFCastButton> {
                     price: price,
                     isProcessing: upgradeState.isProcessing,
                     isEnable: subscriptionDetail != null &&
-                        !upgradeState.isProcessing &&
                         subscriptionDetail.status ==
                             IAPProductStatus.notPurchased,
                     onTap: (_) {
