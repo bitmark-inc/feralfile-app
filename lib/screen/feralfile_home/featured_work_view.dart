@@ -153,8 +153,8 @@ class FeaturedWorkViewState extends State<FeaturedWorkView> {
                                       displayKey ?? '') !=
                                   null;
                           return Visibility(
-                            visible:
-                                isPlaylistCasting && _shouldShowControllerBar,
+                            visible: (isPlaylistCasting &&
+                                !_shouldShowControllerBar),
                             child: Padding(
                               padding: const EdgeInsets.all(15),
                               child: PlaylistControl(

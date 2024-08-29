@@ -331,8 +331,20 @@ class ScannerInstruction {
           final context =
               injector<NavigationService>().navigatorKey.currentContext!;
           UIHelper.showDialog(
-              context, 'display'.tr(), const DisplayInstructionView(),
-              isDismissible: true, withCloseIcon: true);
+              context,
+              'display_art'.tr(),
+              Column(
+                children: [
+                  DisplayInstructionView(
+                    onScanQRTap: () {
+                      Navigator.pop(context);
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                ],
+              ),
+              isDismissible: true,
+              withCloseIcon: true);
         },
         constraints: const BoxConstraints(
           maxWidth: 44,
@@ -374,11 +386,7 @@ class QRScanViewState extends State<QRScanView>
   @override
   void initState() {
     super.initState();
-    _shouldPop = !(widget.scannerItem == ScannerItem.GLOBAL ||
-
-        /// handle canvas deeplink will pop the screen,
-        /// therefore no need to pop here
-        widget.scannerItem == ScannerItem.CANVAS);
+    _shouldPop = true;
     unawaited(_checkPermission());
   }
 
