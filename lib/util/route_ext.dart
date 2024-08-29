@@ -429,7 +429,6 @@ final screenNameMap = {
   AppRouter.wc2PermissionPage: 'WC2 Permission',
   AppRouter.preferencesPage: 'Preferences',
   AppRouter.walletPage: 'Wallet',
-  AppRouter.subscriptionPage: 'Subscription',
   AppRouter.dataManagementPage: 'Data Management',
   AppRouter.inappWebviewPage: 'Inapp Webview',
   AppRouter.postcardExplain: 'Postcard Explain',

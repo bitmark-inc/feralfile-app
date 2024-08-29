@@ -123,7 +123,6 @@ import 'package:autonomy_flutter/screen/settings/hidden_artworks/hidden_artworks
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_page.dart';
 import 'package:autonomy_flutter/screen/settings/settings_page.dart';
-import 'package:autonomy_flutter/screen/settings/subscription/subscription_page.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/au_sign_message_page.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.dart';
@@ -189,7 +188,6 @@ class AppRouter {
   static const wc2PermissionPage = 'wc2_permission_page';
   static const preferencesPage = 'preferences_page';
   static const walletPage = 'wallet_page';
-  static const subscriptionPage = 'subscription_page';
   static const dataManagementPage = 'data_management_page';
   static const inappWebviewPage = 'inapp_webview_page';
   static const postcardExplain = 'postcard_explain_screen';
@@ -1032,15 +1030,6 @@ class AppRouter {
                   ),
                   BlocProvider.value(value: accountsBloc),
                 ], child: const PreferencePage()));
-      case subscriptionPage:
-        final payload = settings.arguments as SubscriptionPagePayload?;
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => MultiBlocProvider(providers: [
-                  BlocProvider(
-                    create: (_) => upgradeBloc,
-                  ),
-                ], child: SubscriptionPage(payload: payload)));
       case dataManagementPage:
         return CupertinoPageRoute(
             settings: settings,
