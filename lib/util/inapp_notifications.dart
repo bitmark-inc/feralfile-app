@@ -47,10 +47,11 @@ Widget _inAppNotificationToast(BuildContext context, String body, String key,
       key: Key(key),
       notificationOpenedHandler: notificationOpenedHandler,
       addOnTextSpan: [
-        TextSpan(
-          text: ' ${'tap_to_view'.tr()}',
-          style: Theme.of(context).textTheme.ppMori400FFYellow14,
-        )
+        if (notificationOpenedHandler != null)
+          TextSpan(
+            text: ' ${'tap_to_view'.tr()}',
+            style: Theme.of(context).textTheme.ppMori400FFYellow14,
+          )
       ],
     );
 
