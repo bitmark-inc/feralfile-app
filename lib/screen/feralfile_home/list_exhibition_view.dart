@@ -69,11 +69,11 @@ class ExploreExhibitionState extends State<ExploreExhibition> {
   }
 
   void scrollToTop() {
-    _scrollController.animateTo(
+    unawaited(_scrollController.animateTo(
       0,
       duration: const Duration(milliseconds: 500),
       curve: Curves.easeInOut,
-    );
+    ));
   }
 
   Widget _loadingView(BuildContext context) => const Padding(
@@ -152,23 +152,6 @@ class ExploreExhibitionState extends State<ExploreExhibition> {
       _exhibitions = exhibitionsWithSource;
     });
     return exhibitionsWithSource;
-  }
-
-  Future<void> _loadMoreExhibitions(BuildContext context,
-      {int offset = 0, int pageSize = 20}) async {
-    final sortBy = widget.sortBy;
-    final exhibitions = await injector<FeralFileService>().getAllExhibitions(
-      keywork: widget.searchText ?? '',
-      offset: offset,
-      limit: pageSize,
-      sortBy: sortBy.queryParam,
-      sortOrder: sortBy.sortOrder.queryParam,
-      filters: widget.filters,
-    );
-    setState(() {
-      _exhibitions ??= [];
-      _exhibitions?.addAll(exhibitions);
-    });
   }
 }
 

@@ -464,26 +464,28 @@ class DeeplinkServiceImpl extends DeeplinkService {
           }
           break;
         }
-        if (isSuccessful) {
-          showInfoNotification(
-            const Key('connected_to_canvas'),
-            'connected_to_display'.tr(),
-            addOnTextSpan: [
-              TextSpan(
-                text: device.name,
-                style: Theme.of(_navigationService.context)
-                    .textTheme
-                    .ppMori400FFYellow14
-                    .copyWith(color: AppColor.feralFileLightBlue),
-              )
-            ],
-            frontWidget: SvgPicture.asset(
-              'assets/images/checkbox_icon.svg',
-              width: 24,
-            ),
-          );
-        } else {
-          await _navigationService.showCannotConnectTv();
+        if (_configurationService.isDoneNewOnboarding()) {
+          if (isSuccessful) {
+            showInfoNotification(
+              const Key('connected_to_canvas'),
+              'connected_to_display'.tr(),
+              addOnTextSpan: [
+                TextSpan(
+                  text: device.name,
+                  style: Theme.of(_navigationService.context)
+                      .textTheme
+                      .ppMori400FFYellow14
+                      .copyWith(color: AppColor.feralFileLightBlue),
+                )
+              ],
+              frontWidget: SvgPicture.asset(
+                'assets/images/checkbox_icon.svg',
+                width: 24,
+              ),
+            );
+          } else {
+            await _navigationService.showCannotConnectTv();
+          }
         }
 
       case 'InstantPurchase':

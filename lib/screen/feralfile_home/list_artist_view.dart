@@ -404,11 +404,11 @@ class _ListUserViewState extends State<ListUserView> {
         const SizedBox(height: 14),
         Expanded(
             child: Text(
-              user.displayAlias,
-              style: theme.textTheme.ppMori400White12,
-              overflow: TextOverflow.ellipsis,
-              maxLines: 2,
-            )),
+          user.displayAlias,
+          style: theme.textTheme.ppMori400White12,
+          overflow: TextOverflow.ellipsis,
+          maxLines: 2,
+        )),
       ],
     );
   }
