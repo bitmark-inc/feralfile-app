@@ -203,6 +203,9 @@ class CanvasClientServiceV2 {
 
   List<CanvasDevice> _findRawDevices() {
     final devices = _db.getAll();
+    // for (var device in devices) {
+    //   _db.delete(device.deviceId);
+    // }
     return devices;
   }
 

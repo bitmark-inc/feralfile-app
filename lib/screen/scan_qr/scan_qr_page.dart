@@ -62,14 +62,20 @@ enum QRScanTab {
   String get screenName => getPageName(routerName);
 }
 
-class ScanQRPage extends StatefulWidget {
+class ScanQRPagePayload {
   final ScannerItem scannerItem;
   final Function? onHandleFinished;
 
-  const ScanQRPage(
-      {super.key,
-      this.scannerItem = ScannerItem.GLOBAL,
-      this.onHandleFinished});
+  const ScanQRPagePayload({
+    required this.scannerItem,
+    this.onHandleFinished,
+  });
+}
+
+class ScanQRPage extends StatefulWidget {
+  final ScanQRPagePayload payload;
+
+  const ScanQRPage({required this.payload, super.key});
 
   @override
   State<ScanQRPage> createState() => ScanQRPageState();
@@ -88,7 +94,7 @@ class ScanQRPageState extends State<ScanQRPage>
   @override
   void initState() {
     super.initState();
-    _isGlobal = (widget.scannerItem == ScannerItem.GLOBAL);
+    _isGlobal = (widget.payload.scannerItem == ScannerItem.GLOBAL);
     //There is a conflict with lib qr_code_scanner on Android.
     if (Platform.isIOS) {
       unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.leanBack));
@@ -101,8 +107,8 @@ class ScanQRPageState extends State<ScanQRPage>
     _pages = [
       QRScanView(
         key: _qrScanViewKey,
-        scannerItem: widget.scannerItem,
-        onHandleFinished: widget.onHandleFinished,
+        scannerItem: widget.payload.scannerItem,
+        onHandleFinished: widget.payload.onHandleFinished,
       ),
       MultiBlocProvider(
         providers: [
@@ -687,21 +693,21 @@ class QRScanViewState extends State<QRScanView>
         injector<DeeplinkService>().handleDeeplink(
           code,
           delay: const Duration(seconds: 1),
-          onFinished: () {
+          onFinished: (dynamic object) {
             if (mounted) {
               setState(() {
                 _isLoading = false;
               });
               unawaited(resumeCamera());
             }
-            widget.onHandleFinished?.call();
+            widget.onHandleFinished?.call(object);
           },
         );
         return;
       } else {
         switch (widget.scannerItem) {
           case ScannerItem.CANVAS:
-
+          // dont need to do anything here, it has been processed in the branch deeplink
           /// handled with deeplink
           case ScannerItem.WALLET_CONNECT:
             if (code.startsWith('wc:')) {

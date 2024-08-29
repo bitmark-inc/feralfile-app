@@ -215,7 +215,8 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
             ),
             onTap: () {
               Navigator.of(context).popAndPushNamed(AppRouter.scanQRPage,
-                  arguments: ScannerItem.GLOBAL);
+                  arguments:
+                      ScanQRPagePayload(scannerItem: ScannerItem.GLOBAL));
             },
           ),
           OptionItem(

@@ -138,7 +138,6 @@ class _FFCastButtonState extends State<FFCastButton> {
           displayKey: displayKey,
           onDeviceSelected: (canvasDevice) {
             widget.onDeviceSelected?.call(canvasDevice);
-            Navigator.pop(context);
           },
         ),
       ),

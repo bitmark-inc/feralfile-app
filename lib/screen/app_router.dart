@@ -544,12 +544,15 @@ class AppRouter {
         );
 
       case scanQRPage:
+        final payload = settings.arguments as ScanQRPagePayload;
         return PageTransition(
             settings: settings,
             type: PageTransitionType.topToBottom,
             curve: Curves.easeIn,
             duration: const Duration(milliseconds: 250),
-            child: ScanQRPage(scannerItem: settings.arguments! as ScannerItem));
+            child: ScanQRPage(
+              payload: payload,
+            ));
 
       case settingsPage:
         return CupertinoPageRoute(

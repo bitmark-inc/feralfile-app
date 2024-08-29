@@ -295,8 +295,8 @@ class _PersonaConnectionsPageState extends State<PersonaConnectionsPage>
                   break;
               }
 
-              unawaited(Navigator.of(context)
-                  .pushNamed(AppRouter.scanQRPage, arguments: scanItem));
+              unawaited(Navigator.of(context).pushNamed(AppRouter.scanQRPage,
+                  arguments: ScanQRPagePayload(scannerItem: scanItem)));
             }),
       ),
       addOnlyDivider(),

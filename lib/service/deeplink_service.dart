@@ -161,7 +161,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
       log.info('[DeeplinkService] handlerType $handlerType');
       switch (handlerType) {
         case DeepLinkHandlerType.branch:
-          await _handleBranchDeeplink(link);
+          await _handleBranchDeeplink(link, onFinish: onFinished);
         case DeepLinkHandlerType.dAppConnect:
           await _handleDappConnectDeeplink(link);
         case DeepLinkHandlerType.irl:
@@ -170,7 +170,9 @@ class DeeplinkServiceImpl extends DeeplinkService {
           unawaited(_navigationService.showUnknownLink());
       }
       _deepLinkHandlingMap.remove(link);
-      onFinished?.call();
+      if (handlerType != DeepLinkHandlerType.branch) {
+        onFinished?.call();
+      }
     });
   }
 
@@ -347,7 +349,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
     return false;
   }
 
-  Future<bool> _handleBranchDeeplink(String link) async {
+  Future<bool> _handleBranchDeeplink(String link, {Function? onFinish}) async {
     log.info('[DeeplinkService] _handleBranchDeeplink');
     final callingBranchDeepLinkPrefix = Constants.branchDeepLinks
         .firstWhereOrNull((prefix) => link.startsWith(prefix));
@@ -355,7 +357,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
       try {
         final response =
             await _branchApi.getParams(Environment.branchKey, link);
-        await handleBranchDeeplinkData(response['data']);
+        await handleBranchDeeplinkData(response['data'], onFinish: onFinish);
       } catch (e) {
         log.info('[DeeplinkService] _handleBranchDeeplink error $e');
         await _navigationService.showCannotResolveBranchLink();
@@ -365,8 +367,13 @@ class DeeplinkServiceImpl extends DeeplinkService {
     return false;
   }
 
+  // TODO: handle onFinish is only for feralfile_display.
+  // Please handle for other cases if needed
   @override
-  Future<void> handleBranchDeeplinkData(Map<dynamic, dynamic> data) async {
+  Future<void> handleBranchDeeplinkData(
+    Map<dynamic, dynamic> data, {
+    Function? onFinish,
+  }) async {
     final navigatePath = data['navigation_route'];
     if (navigatePath != null) {
       await _navigationService.navigatePath(navigatePath);
@@ -436,6 +443,9 @@ class DeeplinkServiceImpl extends DeeplinkService {
         try {
           final result = await canvasClient.addQrDevice(device);
           final isSuccessful = result != null;
+          if (isSuccessful) {
+            onFinish?.call(device);
+          }
           if (!_navigationService.context.mounted) {
             return;
           }

@@ -118,6 +118,7 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
                                   log.info(
                                       'device selected: ${device.deviceId}');
                                   widget.onDeviceSelected?.call(device);
+                                  Navigator.pop(context);
                                 }),
                             backgroundColor: connectedDevice == null
                                 ? AppColor.white
@@ -185,8 +186,18 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
 
   Future<void> _scanToAddMore() async {
     injector<NavigationService>().hideInfoDialog();
-    final device = await injector<NavigationService>()
-        .navigateTo(AppRouter.scanQRPage, arguments: ScannerItem.CANVAS);
+    final device =
+        await injector<NavigationService>().navigateTo(AppRouter.scanQRPage,
+            arguments: ScanQRPagePayload(
+                scannerItem: ScannerItem.CANVAS,
+                onHandleFinished: (device) {
+                  if (device is CanvasDevice) {
+                    widget.onDeviceSelected?.call(device);
+                    injector
+                        .get<CanvasDeviceBloc>()
+                        .add(CanvasDeviceGetDevicesEvent());
+                  }
+                }));
     log.info('device selected: $device');
     if (device != null) {
       injector.get<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent());
