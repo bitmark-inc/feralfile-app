@@ -6,101 +6,28 @@
 //
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
-import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
-import 'package:autonomy_flutter/model/ff_account.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
-import 'package:autonomy_flutter/service/backup_service.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/iap_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/migration/migration_data.dart';
-import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:flutter/services.dart';
 import 'package:nft_collection/services/address_service.dart' as ads;
-import 'package:package_info_plus/package_info_plus.dart';
 
 class MigrationUtil {
   static const MethodChannel _channel = MethodChannel('migration_util');
-  final ConfigurationService _configurationService;
   final CloudDatabase _cloudDB;
-  final AccountService _accountService;
-  final IAPService _iapService;
   final AuditService _auditService;
-  final BackupService _backupService;
   final ads.AddressService _collectionAddressService =
       injector<ads.AddressService>();
   final AddressService _addressService = injector<AddressService>();
   final int requiredAndroidMigrationVersion = 95;
 
-  MigrationUtil(this._configurationService, this._cloudDB, this._accountService,
-      this._iapService, this._auditService, this._backupService);
-
-  Future<void> migrateIfNeeded() async {
-    if (Platform.isIOS) {
-      await _migrationIOS();
-    } else {
-      await _migrationAndroid();
-    }
-
-    if ((await _cloudDB.personaDao.getDefaultPersonas()).isNotEmpty) {
-      unawaited(_iapService.restore());
-    }
-    await _migrateViewOnlyAddresses();
-    log.info('[migration] finished');
-  }
-
-  Future<void> _migrateViewOnlyAddresses() async {
-    if (_configurationService.getDidMigrateAddress()) {
-      return;
-    }
-
-    final manualConnections = await _cloudDB.connectionDao
-        .getConnectionsByType(ConnectionType.manuallyAddress.rawValue);
-    final needChecksumConnections = manualConnections
-        .where((element) => element.key != _tryChecksum(element.key))
-        .toList();
-
-    if (needChecksumConnections.isNotEmpty) {
-      final addressService = injector<ads.AddressService>();
-      final checksumConnections = needChecksumConnections.map((e) {
-        final checksumAddress = _tryChecksum(e.key);
-        return e.copyWith(key: checksumAddress, accountNumber: checksumAddress);
-      }).toList();
-      final personaAddresses =
-          (await _cloudDB.addressDao.getAddressesByType(CryptoType.ETH.source))
-              .map((e) => e.address);
-      final connectionAddresses = manualConnections.map((e) => e.key);
-      checksumConnections.removeWhere((element) =>
-          personaAddresses.contains(element.key) ||
-          connectionAddresses.contains(element.key));
-      await _cloudDB.connectionDao.deleteConnections(needChecksumConnections);
-      await addressService
-          .deleteAddresses(needChecksumConnections.map((e) => e.key).toList());
-      await _cloudDB.connectionDao.insertConnections(checksumConnections);
-      await addressService
-          .addAddresses(checksumConnections.map((e) => e.key).toList());
-    }
-
-    await _configurationService.setDidMigrateAddress(true);
-  }
-
-  String _tryChecksum(String address) {
-    try {
-      return address.getETHEip55Address();
-    } catch (_) {
-      return address;
-    }
-  }
+  MigrationUtil(this._cloudDB, this._auditService);
 
   Future<void> migrationFromKeychain() async {
     if (!Platform.isIOS) {
@@ -167,103 +94,6 @@ class MigrationUtil {
       return deviceId ?? await getDeviceID();
     } else {
       return await getDeviceID();
-    }
-  }
-
-  Future _migrationIOS() async {
-    log.info('[_migrationIOS] start');
-    final String jsonString =
-        await _channel.invokeMethod('getiOSMigrationData', {});
-    if (jsonString.isEmpty) {
-      return;
-    }
-
-    log.info('[_migrationIOS] get jsonString $jsonString');
-
-    final jsonData = json.decode(jsonString);
-    final migrationData = MigrationData.fromJson(jsonData);
-
-    for (var mPersona in migrationData.personas) {
-      final uuid = mPersona.uuid.toLowerCase();
-      final existingPersona = await _cloudDB.personaDao.findById(uuid);
-      if (existingPersona == null) {
-        final wallet = Persona.newPersona(uuid: uuid).wallet();
-        final address = await wallet.getETHEip55Address();
-
-        if (address.isEmpty) {
-          continue;
-        }
-        final name = await wallet.getName();
-
-        final persona =
-            Persona(uuid: uuid, name: name, createdAt: mPersona.createdAt);
-
-        await _cloudDB.personaDao.insertPersona(persona);
-        await _auditService.auditPersonaAction(
-            '[_migrationData] insert', persona);
-      }
-    }
-
-    //Cleanup deleted or broken personas
-    final currentPersonas = await _cloudDB.personaDao.getPersonas();
-    for (final persona in currentPersonas) {
-      if (!(await persona.wallet().isWalletCreated())) {
-        await _cloudDB.personaDao.deletePersona(persona);
-        final addresses =
-            await _cloudDB.addressDao.getAddressesByPersona(persona.uuid);
-        await _collectionAddressService
-            .deleteAddresses(addresses.map((e) => e.address).toList());
-        await _cloudDB.addressDao.deleteAddressesByPersona(persona.uuid);
-      }
-    }
-    final List<FFAccount> ffAccounts = [
-      ...migrationData.ffTokenConnections.map((e) => e.ffAccount),
-      ...migrationData.ffWeb3Connections.map((e) => e.ffAccount)
-    ];
-    final List<Connection> connections = [];
-    for (var account in ffAccounts) {
-      final ethConnection =
-          Connection.getManuallyAddress(account.ethereumAddress);
-      final tezosConnection =
-          Connection.getManuallyAddress(account.tezosAddress);
-      ethConnection != null ? connections.add(ethConnection) : null;
-      tezosConnection != null ? connections.add(tezosConnection) : null;
-    }
-
-    for (var con in migrationData.walletBeaconConnections) {
-      final address = con.tezosWalletConnection.address;
-      connections.add(Connection(
-          key: address,
-          name: con.name,
-          data: '',
-          connectionType: ConnectionType.manuallyAddress.rawValue,
-          accountNumber: address,
-          createdAt: DateTime.now()));
-    }
-
-    await _cloudDB.connectionDao.insertConnections(connections);
-
-    await _channel.invokeMethod('cleariOSMigrationData', {});
-    log.info('[_migrationIOS] Done');
-  }
-
-  Future _migrationAndroid() async {
-    final previousBuildNumber = _configurationService.getPreviousBuildNumber();
-    final packageInfo = await PackageInfo.fromPlatform();
-    await _configurationService.setPreviousBuildNumber(packageInfo.buildNumber);
-    if (previousBuildNumber == null) {
-      return;
-    }
-    final previousBuildNumberInt = int.tryParse(previousBuildNumber);
-    if (previousBuildNumberInt == null) {
-      return;
-    }
-
-    if (previousBuildNumberInt < requiredAndroidMigrationVersion) {
-      final packageInfo = await PackageInfo.fromPlatform();
-      await _configurationService
-          .setPreviousBuildNumber(packageInfo.buildNumber);
-      await _accountService.androidBackupKeys();
     }
   }
 }

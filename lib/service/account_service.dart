@@ -245,9 +245,7 @@ class AccountServiceImpl extends AccountService {
     var personas = await _cloudDB.personaDao.getDefaultPersonas();
 
     if (personas.isEmpty) {
-      await MigrationUtil(_configurationService, _cloudDB, this, injector(),
-              _auditService, _backupService)
-          .migrationFromKeychain();
+      await MigrationUtil(injector(), _auditService).migrationFromKeychain();
       await androidRestoreKeys();
 
       await Future.delayed(const Duration(seconds: 1));
@@ -724,8 +722,7 @@ class AccountServiceImpl extends AccountService {
   Future<void> restoreIfNeeded() async {
     final iapService = injector<IAPService>();
     final auditService = injector<AuditService>();
-    final migrationUtil = MigrationUtil(_configurationService, _cloudDB, this,
-        iapService, auditService, _backupService);
+    final migrationUtil = MigrationUtil(_cloudDB, auditService);
     await androidRestoreKeys();
     await migrationUtil.migrationFromKeychain();
     final personas = await _cloudDB.personaDao.getPersonas();
