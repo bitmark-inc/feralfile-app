@@ -41,7 +41,7 @@ class FFCastButton extends StatefulWidget {
 class _FFCastButtonState extends State<FFCastButton> {
   late CanvasDeviceBloc _canvasDeviceBloc;
   final keyboardManagerKey = GlobalKey<KeyboardManagerWidgetState>();
-  final _upgradesBloc = UpgradesBloc(injector(), injector());
+  final _upgradesBloc = injector.get<UpgradesBloc>();
 
   @override
   void initState() {
@@ -182,10 +182,7 @@ class _FFCastButtonState extends State<FFCastButton> {
                     type: MembershipCardType.premium,
                     price: price,
                     isProcessing: upgradeState.isProcessing,
-                    isEnable: subscriptionDetail != null &&
-                        !upgradeState.isProcessing &&
-                        subscriptionDetail.status ==
-                            IAPProductStatus.notPurchased,
+                    isEnable: subscriptionDetail != null,
                     onTap: (_) {
                       _onPressSubscribe(
                           subscriptionDetails: subscriptionDetail!);

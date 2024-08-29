@@ -229,25 +229,16 @@ class AutonomyApp extends StatelessWidget {
 final RouteObserver<ModalRoute<void>> routeObserver =
     CustomRouteObserver<ModalRoute<void>>();
 
-var memoryValues = MemoryValues(
-    branchDeeplinkData: ValueNotifier(null),
-    deepLink: ValueNotifier(null),
-    irlLink: ValueNotifier(null));
+var memoryValues = MemoryValues();
 
 class MemoryValues {
   String? scopedPersona;
   String? viewingSupportThreadIssueID;
   DateTime? inForegroundAt;
-  ValueNotifier<Map<dynamic, dynamic>?> branchDeeplinkData;
-  ValueNotifier<String?> deepLink;
-  ValueNotifier<String?> irlLink;
   String? currentGroupChatId;
   bool isForeground = true;
 
   MemoryValues({
-    required this.branchDeeplinkData,
-    required this.deepLink,
-    required this.irlLink,
     this.scopedPersona,
     this.viewingSupportThreadIssueID,
     this.inForegroundAt,
@@ -258,9 +249,6 @@ class MemoryValues {
   }) =>
       MemoryValues(
         scopedPersona: scopedPersona ?? this.scopedPersona,
-        branchDeeplinkData: branchDeeplinkData,
-        deepLink: deepLink,
-        irlLink: irlLink,
       );
 }
 

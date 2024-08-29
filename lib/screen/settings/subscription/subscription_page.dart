@@ -38,6 +38,7 @@ class SubscriptionPage extends StatefulWidget {
 class _SubscriptionPageState extends State<SubscriptionPage>
     with AfterLayoutMixin {
   final int initialIndex = 0;
+  final _upgradesBloc = injector.get<UpgradesBloc>();
 
   @override
   void afterFirstLayout(BuildContext context) {
@@ -47,7 +48,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
 
   @override
   Widget build(BuildContext context) {
-    context.read<UpgradesBloc>().add(UpgradeQueryInfoEvent());
+    _upgradesBloc.add(UpgradeQueryInfoEvent());
 
     return PopScope(
       canPop: false,
@@ -65,6 +66,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
         ),
         body: SafeArea(
           child: BlocBuilder<UpgradesBloc, UpgradeState>(
+            bloc: _upgradesBloc,
               builder: (context, state) {
             final subscriptionDetails = state.activeSubscriptionDetails;
             return Swiper(
