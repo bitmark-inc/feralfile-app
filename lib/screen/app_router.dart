@@ -28,7 +28,6 @@ import 'package:autonomy_flutter/screen/bloc/connections/connections_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/ethereum/ethereum_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
-import 'package:autonomy_flutter/screen/bloc/router/router_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
@@ -330,20 +329,7 @@ class AppRouter {
       case onboardingPage:
         return CupertinoPageRoute(
           settings: settings,
-          builder: (context) => MultiBlocProvider(providers: [
-            BlocProvider(
-              create: (_) => RouterBloc(
-                injector(),
-                injector(),
-                injector(),
-                injector(),
-                injector(),
-                injector(),
-                injector(),
-                injector(),
-              ),
-            ),
-          ], child: const OnboardingPage()),
+          builder: (context) => const OnboardingPage(),
         );
 
       case newOnboardingPage:
