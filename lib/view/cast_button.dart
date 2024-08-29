@@ -164,6 +164,9 @@ class _FFCastButtonState extends State<FFCastButton> {
               if (status == IAPProductStatus.completed) {
                 injector<SubscriptionBloc>().add(GetSubscriptionEvent());
                 Navigator.pop(context);
+                Future.delayed(const Duration(milliseconds: 300), () {
+                  UIHelper.showUpgradedNotification();
+                });
               }
             },
             builder: (context, upgradeState) {
