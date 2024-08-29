@@ -70,7 +70,7 @@ class CanvasClientServiceV2 {
 
   Future<Pair<CanvasDevice, CheckDeviceStatusReply>?> addQrDevice(
       CanvasDevice device) async {
-    final deviceStatus = await _getDeviceStatus(device, shouldShowError: false);
+    final deviceStatus = await _getDeviceStatus(device);
     if (deviceStatus != null) {
       await _db.save(device, device.deviceId);
       unawaited(connectToDevice(device));
@@ -235,14 +235,9 @@ class CanvasClientServiceV2 {
   Future<Pair<CanvasDevice, CheckDeviceStatusReply>?> _getDeviceStatus(
       CanvasDevice device,
       {bool shouldShowError = true}) async {
-    try {
-      final status = await _getDeviceCastingStatus(device,
-          shouldShowError: shouldShowError);
-      return Pair(device, status);
-    } catch (e) {
-      log.info('CanvasClientService: _getDeviceStatus error: $e');
-      return null;
-    }
+    final status =
+        await _getDeviceCastingStatus(device, shouldShowError: shouldShowError);
+    return Pair(device, status);
   }
 
   Future<void> sendKeyBoard(List<CanvasDevice> devices, int code) async {
