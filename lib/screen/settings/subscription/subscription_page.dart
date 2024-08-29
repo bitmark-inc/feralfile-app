@@ -66,26 +66,26 @@ class _SubscriptionPageState extends State<SubscriptionPage>
         ),
         body: SafeArea(
           child: BlocBuilder<UpgradesBloc, UpgradeState>(
-            bloc: _upgradesBloc,
+              bloc: _upgradesBloc,
               builder: (context, state) {
-            final subscriptionDetails = state.activeSubscriptionDetails;
-            return Swiper(
-              itemCount: subscriptionDetails.length,
-              onIndexChanged: (index) {},
-              index: initialIndex,
-              loop: false,
-              itemBuilder: (context, index) =>
-                  _subcribeView(context, subscriptionDetails[index]),
-              pagination: subscriptionDetails.length > 1
-                  ? const SwiperPagination(
-                      builder: DotSwiperPaginationBuilder(
-                          color: AppColor.auLightGrey,
-                          activeColor: MomaPallet.lightYellow),
-                    )
-                  : null,
-              controller: SwiperController(),
-            );
-          }),
+                final subscriptionDetails = state.activeSubscriptionDetails;
+                return Swiper(
+                  itemCount: subscriptionDetails.length,
+                  onIndexChanged: (index) {},
+                  index: initialIndex,
+                  loop: false,
+                  itemBuilder: (context, index) =>
+                      _subcribeView(context, subscriptionDetails[index]),
+                  pagination: subscriptionDetails.length > 1
+                      ? const SwiperPagination(
+                          builder: DotSwiperPaginationBuilder(
+                              color: AppColor.auLightGrey,
+                              activeColor: MomaPallet.lightYellow),
+                        )
+                      : null,
+                  controller: SwiperController(),
+                );
+              }),
         ),
       ),
     );

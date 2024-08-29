@@ -156,7 +156,7 @@ class HowToDisplayOnTV extends StatelessWidget {
                   text: TextSpan(
                     style: theme.textTheme.ppMori400Black14,
                     children: [
-                      TextSpan(
+                      const TextSpan(
                         text: 'Step 2: ',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
