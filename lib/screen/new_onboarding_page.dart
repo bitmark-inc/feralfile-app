@@ -29,7 +29,7 @@ class NewOnboardingPage extends StatefulWidget {
 }
 
 class _NewOnboardingPageState extends State<NewOnboardingPage> {
-  late final UpgradesBloc _upgradeBloc;
+  late final UpgradesBloc _upgradeBloc = injector<UpgradesBloc>();
 
   late SwiperController _swiperController;
   MembershipCardType? _selectedMembershipCardType;
@@ -43,7 +43,6 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
   void initState() {
     super.initState();
     _swiperController = SwiperController();
-    _upgradeBloc = context.read<UpgradesBloc>();
     _upgradeBloc.add(UpgradeQueryInfoEvent());
     unawaited(_initPlayer(_controller1, shouldPlay: true));
     unawaited(_initPlayer(_controller2, shouldPlay: false));
