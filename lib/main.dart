@@ -161,6 +161,8 @@ Future<void> _setupApp() async {
   await injector<ConfigurationService>().setPremium(isPremium);
   await JohnGerrardHelper.updateJohnGerrardLatestRevealIndex();
   DailiesHelper.updateDailies([]);
+  // since we postpone handling deeplink until home, we don't need to delay this
+  await injector<DeeplinkService>().setup();
 
   runApp(
     EasyLocalization(
@@ -176,11 +178,6 @@ Future<void> _setupApp() async {
   Sentry.configureScope((scope) async {
     final deviceID = await getDeviceID();
     scope.setUser(SentryUser(id: deviceID));
-  });
-
-  //safe delay to wait for onboarding finished
-  Future.delayed(const Duration(seconds: 2), () async {
-    injector<DeeplinkService>().setup();
   });
 }
 
