@@ -203,15 +203,7 @@ abstract class ConfigurationService {
 
   ValueNotifier<bool> get showingNotification;
 
-  ValueNotifier<bool> get showProTip;
-
-  ValueNotifier<bool> get showTvAppTip;
-
   ValueNotifier<bool> get showCreatePlaylistTip;
-
-  ValueNotifier<bool> get showLinkOrImportTip;
-
-  ValueNotifier<bool> get showBackupSettingTip;
 
   List<SharedPostcard> getSharedPostcard();
 
