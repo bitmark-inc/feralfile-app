@@ -9,7 +9,7 @@ class MembershipCard extends StatelessWidget {
   final String price;
   final bool isProcessing;
   final bool isEnable;
-  final Function(MembershipCardType type) onTap;
+  final Function(MembershipCardType type)? onTap;
   final String? buttonText;
   final bool isCompleted;
   final String? renewDate;
@@ -20,7 +20,7 @@ class MembershipCard extends StatelessWidget {
     required this.price,
     required this.isProcessing,
     required this.isEnable,
-    required this.onTap,
+    this.onTap,
     this.buttonText,
     this.isCompleted = false,
     this.renewDate,
@@ -119,12 +119,12 @@ class MembershipCard extends StatelessWidget {
                         ),
                       ],
                     )
-                  else
+                  else if (onTap != null)
                     PrimaryButton(
                       text: buttonText ?? 'select'.tr(),
                       isProcessing: isProcessing,
                       enabled: !isProcessing && isEnable,
-                      onTap: () => onTap(type),
+                      onTap: () => onTap!(type),
                       color: AppColor.feralFileLightBlue,
                     )
                 ],
