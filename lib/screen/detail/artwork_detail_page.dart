@@ -15,7 +15,6 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/sent_artwork.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/artist_details/artist_details_page.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
@@ -23,6 +22,7 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/keyboard_control_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
+import 'package:autonomy_flutter/screen/gallery/gallery_page.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -504,12 +504,14 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
             child: ArtworkDetailsHeader(
               title: asset.displayTitle ?? '',
               subTitle: subTitle,
-              onSubTitleTap: asset.artistID != null && asset.isFeralfile
-                  ? () => unawaited(Navigator.of(context).pushNamed(
-                        AppRouter.userDetailsPage,
-                        arguments:
-                            UserDetailsPagePayload(userId: asset.artistID!),
-                      ))
+              onSubTitleTap: asset.artistID != null
+                  ? () => unawaited(
+                      Navigator.of(context).pushNamed(AppRouter.galleryPage,
+                          arguments: GalleryPagePayload(
+                            address: asset.artistID!,
+                            artistName: artistName!,
+                            artistURL: asset.artistURL,
+                          )))
                   : null,
             ),
           ),

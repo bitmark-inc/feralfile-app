@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
+import 'package:autonomy_flutter/screen/gallery/gallery_page.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -337,12 +338,14 @@ class DailyWorkPageState extends State<DailyWorkPage>
           child: ArtworkDetailsHeader(
             title: assetToken.displayTitle ?? '',
             subTitle: artistName,
-            onSubTitleTap: assetToken.artistID != null && assetToken.isFeralfile
-                ? () => unawaited(Navigator.of(context).pushNamed(
-                      AppRouter.userDetailsPage,
-                      arguments:
-                          UserDetailsPagePayload(userId: assetToken.artistID!),
-                    ))
+            onSubTitleTap: assetToken.artistID != null
+                ? () => unawaited(
+                    Navigator.of(context).pushNamed(AppRouter.galleryPage,
+                        arguments: GalleryPagePayload(
+                          address: assetToken.artistID!,
+                          artistName: artistName,
+                          artistURL: assetToken.artistURL,
+                        )))
                 : null,
           ),
         ),
