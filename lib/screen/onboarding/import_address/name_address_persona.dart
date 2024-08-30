@@ -74,6 +74,7 @@ class _NameAddressPersonaState extends State<NameAddressPersona> {
                         await accountService.updateAddressPersona(
                             walletAddress.copyWith(name: name));
                       });
+                      // ignore: use_build_context_synchronously
                       await doneNaming(context);
                     },
                   ),
