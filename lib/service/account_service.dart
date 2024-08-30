@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_state.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
+import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
@@ -732,6 +733,8 @@ class AccountServiceImpl extends AccountService {
       await _configurationService.setDoneOnboarding(hasPersona);
     }
     if (_configurationService.isDoneOnboarding()) {
+      // dont need to force update, because
+      await injector<AuthService>().getAuthToken();
       return;
     }
     // for user who did not onboarded before
@@ -785,6 +788,7 @@ class AccountServiceImpl extends AccountService {
           .mixPanelClient
           .initIfDefaultAccount());
     }
+
     unawaited(iapService.restore());
   }
 

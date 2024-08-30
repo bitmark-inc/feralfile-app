@@ -11,9 +11,11 @@ class MembershipCard extends StatelessWidget {
   final bool isEnable;
   final Function(MembershipCardType type)? onTap;
   final String? buttonText;
+  final Widget Function(BuildContext context)? buttonBuilder;
   final bool isCompleted;
   final String? renewDate;
   final Function()? onContinue;
+  final bool canAutoRenew;
 
   const MembershipCard({
     required this.type,
@@ -22,9 +24,11 @@ class MembershipCard extends StatelessWidget {
     required this.isEnable,
     this.onTap,
     this.buttonText,
+    this.buttonBuilder,
     this.isCompleted = false,
     this.renewDate,
     this.onContinue,
+    this.canAutoRenew = false,
     super.key,
   });
 
@@ -86,7 +90,9 @@ class MembershipCard extends StatelessWidget {
                         ),
                       )),
                   const SizedBox(height: 10),
-                  if (isCompleted)
+                  if (buttonBuilder != null)
+                    buttonBuilder!.call(context)
+                  else if (isCompleted)
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -110,7 +116,7 @@ class MembershipCard extends StatelessWidget {
                             if (renewDate != null) ...[
                               Text(
                                 'renews_'.tr(
-                                  args: [renewDate!],
+                                  namedArgs: {'date': renewDate!},
                                 ),
                                 style: activeTextStyle,
                               ),
@@ -126,7 +132,14 @@ class MembershipCard extends StatelessWidget {
                       enabled: !isProcessing && isEnable,
                       onTap: () => onTap!(type),
                       color: AppColor.feralFileLightBlue,
-                    )
+                    ),
+                  if (canAutoRenew) ...[
+                    const SizedBox(height: 10),
+                    Text(
+                      'auto_renews_unless_cancelled'.tr(),
+                      style: activeTextStyle,
+                    ),
+                  ],
                 ],
               ),
             ),

@@ -21,7 +21,7 @@ class UpgradePurchaseEvent extends UpgradeEvent {
 }
 
 class SubscriptionDetails {
-  final IAPProductStatus status;
+  IAPProductStatus status;
   final ProductDetails productDetails;
   final DateTime? trialExpiredDate;
   final PurchaseDetails? purchaseDetails;
