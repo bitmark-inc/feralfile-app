@@ -386,9 +386,9 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
         final newStatus = state.canvasDeviceStatus;
         newStatus[device.deviceId] = status;
         final displayKey = CastDailyWorkRequest.displayKey;
+        await state.updateOnCast(device: device, displayKey: displayKey);
         emit(
           state
-              .updateOnCast(device: device, displayKey: displayKey)
               .replaceDeviceState(
                   device: device,
                   deviceState: currentDeviceState.copyWith(isPlaying: true))
