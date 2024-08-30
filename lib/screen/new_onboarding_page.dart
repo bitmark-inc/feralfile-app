@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
@@ -173,8 +174,13 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
                   log.info('Onboarding: isSubscribed: $isSubscribed, '
                       'renewDate: $renewDate,'
                       'shouldShowReceivedPremium: $shouldShowReceivedPremium');
+                  final didUserBuy = subscriptionState.membershipSource ==
+                          MembershipSource.purchase ||
+                      subscriptionState.membershipSource ==
+                          MembershipSource.preset;
                   if (shouldShowReceivedPremium) {
-                    return _receivedPremiumCard(context, subscriptionDetails);
+                    return _receivedPremiumCard(
+                        context, subscriptionDetails, didUserBuy);
                   }
 
                   return _onboardingItemWidget(
@@ -222,10 +228,17 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
       );
 
   Widget _receivedPremiumCard(
-          BuildContext context, SubscriptionDetails? subscriptionDetails) =>
+    BuildContext context,
+    SubscriptionDetails? subscriptionDetails,
+    bool didUserBuy,
+  ) =>
       _onboardingItemWidget(context,
-          title: 'you_received_premium'.tr(),
-          desc: 'you_received_premium_desc'.tr(),
+          title: didUserBuy
+              ? 'thank_for_being_pro'.tr()
+              : 'you_received_premium'.tr(),
+          desc: didUserBuy
+              ? 'thank_for_being_pro_desc'.tr()
+              : 'you_received_premium_desc'.tr(),
           subDescFixedSized: false,
           subDesc: Padding(
             padding: const EdgeInsets.only(top: 30),

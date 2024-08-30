@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 
@@ -33,9 +34,13 @@ class SubscriptionDetails {
 class UpgradeState {
   List<SubscriptionDetails> subscriptionDetails;
   bool isProcessing;
+  final MembershipSource? membershipSource;
 
-  UpgradeState(
-      {this.subscriptionDetails = const [], this.isProcessing = false});
+  UpgradeState({
+    this.subscriptionDetails = const [],
+    this.isProcessing = false,
+    this.membershipSource,
+  });
 
   List<SubscriptionDetails> get activeSubscriptionDetails {
     final activeSubscriptionDetails = <SubscriptionDetails>[];
