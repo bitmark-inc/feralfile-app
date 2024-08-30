@@ -544,7 +544,7 @@ class AppRouter {
         );
 
       case scanQRPage:
-        final payload = settings.arguments as ScanQRPagePayload;
+        final payload = settings.arguments! as ScanQRPagePayload;
         return PageTransition(
             settings: settings,
             type: PageTransitionType.topToBottom,
