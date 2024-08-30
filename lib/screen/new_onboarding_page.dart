@@ -21,9 +21,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:video_player/video_player.dart';
 
 class NewOnboardingPage extends StatefulWidget {
-  final NewOnboardingPagePayload payload;
-
-  const NewOnboardingPage({required this.payload, super.key});
+  const NewOnboardingPage({super.key});
 
   @override
   State<NewOnboardingPage> createState() => _NewOnboardingPageState();
@@ -345,12 +343,4 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
     unawaited(Navigator.of(context)
         .pushReplacementNamed(AppRouter.homePageNoTransition));
   }
-}
-
-class NewOnboardingPagePayload {
-  final bool shouldShowPurchasePremium;
-
-  NewOnboardingPagePayload({
-    required this.shouldShowPurchasePremium,
-  });
 }
