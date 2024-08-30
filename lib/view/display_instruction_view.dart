@@ -128,7 +128,7 @@ class HowToDisplayOnTV extends StatelessWidget {
                         ),
                       ),
                       const TextSpan(
-                        text: 'Search for ',
+                        text: 'Search ',
                       ),
                       WidgetSpan(
                         baseline: TextBaseline.alphabetic,
@@ -146,7 +146,8 @@ class HowToDisplayOnTV extends StatelessWidget {
                         ),
                       ),
                       const TextSpan(
-                        text: ' on your TV, install and open the app.',
+                        text:
+                            ' in Google Play Store on your TV, install and open the app.',
                       ),
                     ],
                   ),
