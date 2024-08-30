@@ -1,16 +1,19 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/product_details_ext.dart';
 import 'package:autonomy_flutter/util/subscription_detail_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/membership_card.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:card_swiper/card_swiper.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -19,9 +22,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:video_player/video_player.dart';
 
 class NewOnboardingPage extends StatefulWidget {
-  final NewOnboardingPagePayload payload;
-
-  const NewOnboardingPage({required this.payload, super.key});
+  const NewOnboardingPage({super.key});
 
   @override
   State<NewOnboardingPage> createState() => _NewOnboardingPageState();
@@ -78,40 +79,46 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
         body: Container(color: AppColor.primaryBlack, child: _swiper(context)),
       );
 
-  Widget _onboardingItemWidget(BuildContext context,
-      {required String title, required String desc, required Widget subDesc}) {
+  Widget _onboardingItemWidget(
+    BuildContext context, {
+    required String title,
+    required String desc,
+    required Widget subDesc,
+    bool subDescFixedSized = true,
+  }) {
     final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 15),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                height: 44,
-              ),
-              Text(
-                title,
-                style: theme.textTheme.ppMori700Black36.copyWith(
-                  color: AppColor.white,
-                ),
-              ),
-              Container(
-                height: 30,
-              ),
-              Text(
-                desc,
-                style: theme.textTheme.ppMori700White18.copyWith(
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-            ],
+        Container(
+          height: 59,
+        ),
+        Text(
+          title,
+          style: theme.textTheme.ppMori700Black36.copyWith(
+            color: AppColor.white,
           ),
         ),
-        const Spacer(),
-        SizedBox(height: 514, child: subDesc),
+        Container(
+          height: 30,
+        ),
+        Text(
+          desc,
+          style: theme.textTheme.ppMori700White18.copyWith(
+            fontWeight: FontWeight.w400,
+          ),
+        ),
+        if (subDescFixedSized) ...[
+          const Spacer(),
+          SizedBox(
+            height: 514,
+            child: subDesc,
+          )
+        ] else ...[
+          Expanded(
+            child: subDesc,
+          )
+        ],
       ],
     );
   }
@@ -134,71 +141,128 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
 
   Widget _membershipCards(BuildContext context) => Padding(
         padding: const EdgeInsets.symmetric(horizontal: 15),
-        child: BlocConsumer<UpgradesBloc, UpgradeState>(
-            bloc: _upgradeBloc,
-            listenWhen: (previous, current) =>
-                previous.activeSubscriptionDetails.firstOrNull?.status !=
-                current.activeSubscriptionDetails.firstOrNull?.status,
-            listener: (context, subscriptionState) async {
-              final subscriptionDetail =
-                  subscriptionState.activeSubscriptionDetails.firstOrNull;
-              final status = subscriptionDetail?.status;
-              log.info('Onboarding: upgradeState: $status');
-              switch (status) {
-                case IAPProductStatus.completed:
-                  _goToHomePage(context);
-                default:
-                  break;
-              }
-            },
-            builder: (context, subscriptionState) {
-              final subscriptionDetails =
-                  subscriptionState.activeSubscriptionDetails.firstOrNull;
-              final isSubscribed =
-                  subscriptionDetails?.status == IAPProductStatus.completed;
-              final renewDate = subscriptionDetails?.renewDate;
-              log.info('Onboarding: isSubscribed: $isSubscribed, '
-                  'renewDate: $renewDate');
-              return Column(
-                children: [
-                  if (!isSubscribed)
-                    MembershipCard(
-                      type: MembershipCardType.essential,
-                      price: _getEssentialPrice(subscriptionDetails),
-                      isProcessing: _selectedMembershipCardType ==
-                              MembershipCardType.essential &&
-                          subscriptionDetails?.status ==
-                              IAPProductStatus.pending,
-                      isEnable: true,
-                      onTap: (type) {
-                        _selectMembershipType(type);
-                        _goToHomePage(context);
-                      },
+        child: ValueListenableBuilder<bool?>(
+          builder: (context, value, child) {
+            final didOpenWithGiftMembership = value;
+            return BlocConsumer<UpgradesBloc, UpgradeState>(
+                bloc: _upgradeBloc,
+                listenWhen: (previous, current) =>
+                    previous.activeSubscriptionDetails.firstOrNull?.status !=
+                    current.activeSubscriptionDetails.firstOrNull?.status,
+                listener: (context, subscriptionState) async {
+                  final subscriptionDetail =
+                      subscriptionState.activeSubscriptionDetails.firstOrNull;
+                  final status = subscriptionDetail?.status;
+                  log.info('Onboarding: upgradeState: $status');
+                  switch (status) {
+                    case IAPProductStatus.completed:
+                      _goToHomePage(context);
+                    default:
+                      break;
+                  }
+                },
+                builder: (context, subscriptionState) {
+                  final subscriptionDetails =
+                      subscriptionState.activeSubscriptionDetails.firstOrNull;
+                  final isSubscribed =
+                      subscriptionDetails?.status == IAPProductStatus.completed;
+                  final renewDate = subscriptionDetails?.renewDate;
+
+                  final shouldShowReceivedPremium =
+                      didOpenWithGiftMembership == true ||
+                          (isSubscribed && _selectedMembershipCardType == null);
+                  log.info('Onboarding: isSubscribed: $isSubscribed, '
+                      'renewDate: $renewDate,'
+                      'shouldShowReceivedPremium: $shouldShowReceivedPremium');
+                  final didUserBuy = subscriptionState.membershipSource ==
+                          MembershipSource.purchase ||
+                      subscriptionState.membershipSource ==
+                          MembershipSource.preset;
+                  if (shouldShowReceivedPremium) {
+                    return _receivedPremiumCard(
+                        context, subscriptionDetails, didUserBuy);
+                  }
+
+                  return _onboardingItemWidget(
+                    context,
+                    title: 'membership'.tr(),
+                    desc: 'membership_desc'.tr(),
+                    subDesc: Column(
+                      children: [
+                        if (!isSubscribed)
+                          MembershipCard(
+                            type: MembershipCardType.essential,
+                            price: _getEssentialPrice(subscriptionDetails),
+                            isProcessing: _selectedMembershipCardType ==
+                                    MembershipCardType.essential &&
+                                subscriptionDetails?.status ==
+                                    IAPProductStatus.pending,
+                            isEnable: true,
+                            onTap: (type) {
+                              _selectMembershipType(type);
+                              _goToHomePage(context);
+                            },
+                          ),
+                        const SizedBox(height: 15),
+                        MembershipCard(
+                          type: MembershipCardType.premium,
+                          price: _getPremiumPrice(subscriptionDetails),
+                          isProcessing: _selectedMembershipCardType ==
+                                  MembershipCardType.premium &&
+                              subscriptionDetails?.status ==
+                                  IAPProductStatus.pending,
+                          isEnable: true,
+                          onTap: (type) async {
+                            _selectMembershipType(type);
+                            _upgradePurchase(subscriptionDetails);
+                          },
+                        ),
+                      ],
                     ),
-                  const SizedBox(height: 15),
-                  MembershipCard(
-                    type: MembershipCardType.premium,
-                    price: _getPremiumPrice(subscriptionDetails),
-                    isProcessing: _selectedMembershipCardType ==
-                            MembershipCardType.premium &&
-                        subscriptionDetails?.status == IAPProductStatus.pending,
-                    isEnable: true,
-                    onTap: (type) async {
-                      _selectMembershipType(type);
-                      _upgradePurchase(subscriptionDetails);
-                    },
-                    onContinue: isSubscribed
-                        ? () {
-                            _goToHomePage(context);
-                          }
-                        : null,
-                    isCompleted: isSubscribed,
-                    renewDate: renewDate,
-                  ),
-                ],
-              );
-            }),
+                  );
+                });
+          },
+          valueListenable:
+              injector<DeeplinkService>().didOpenWithGiftMembership,
+        ),
       );
+
+  Widget _receivedPremiumCard(
+    BuildContext context,
+    SubscriptionDetails? subscriptionDetails,
+    bool didUserBuy,
+  ) =>
+      _onboardingItemWidget(context,
+          title: didUserBuy
+              ? 'thank_for_being_pro'.tr()
+              : 'you_received_premium'.tr(),
+          desc: didUserBuy
+              ? 'thank_for_being_pro_desc'.tr()
+              : 'you_received_premium_desc'.tr(),
+          subDescFixedSized: false,
+          subDesc: Padding(
+            padding: const EdgeInsets.only(top: 30),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                MembershipCard(
+                  type: MembershipCardType.premium,
+                  price: _getPremiumPrice(subscriptionDetails),
+                  isProcessing: false,
+                  isEnable: false,
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 40),
+                  child: PrimaryButton(
+                    text: 'continue'.tr(),
+                    onTap: () {
+                      _goToHomePage(context);
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ));
 
   String _getEssentialPrice(SubscriptionDetails? subscriptionDetails) {
     if (subscriptionDetails == null) {
@@ -209,7 +273,7 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
 
   String _getPremiumPrice(SubscriptionDetails? subscriptionDetails) {
     if (subscriptionDetails == null) {
-      return r'$200/year';
+      return r'$230/year';
     }
     return subscriptionDetails.price;
   }
@@ -246,12 +310,7 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
         desc: 'new_art_everyday_desc'.tr(),
         controller: _controller2,
       ),
-      _onboardingItemWidget(
-        context,
-        title: 'membership'.tr(),
-        desc: 'membership_desc'.tr(),
-        subDesc: _membershipCards(context),
-      ),
+      _membershipCards(context),
     ];
 
     return Stack(
@@ -275,7 +334,7 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
             }
           },
           pagination: const SwiperPagination(
-            margin: EdgeInsets.only(bottom: 40),
+            margin: EdgeInsets.only(bottom: 20),
             builder: DotSwiperPaginationBuilder(
               color: Colors.grey,
               activeColor: AppColor.white,
@@ -297,12 +356,4 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
     unawaited(Navigator.of(context)
         .pushReplacementNamed(AppRouter.homePageNoTransition));
   }
-}
-
-class NewOnboardingPagePayload {
-  final bool shouldShowPurchasePremium;
-
-  NewOnboardingPagePayload({
-    required this.shouldShowPurchasePremium,
-  });
 }

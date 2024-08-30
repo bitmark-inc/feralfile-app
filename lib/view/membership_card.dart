@@ -125,12 +125,12 @@ class MembershipCard extends StatelessWidget {
                         ),
                       ],
                     )
-                  else
+                  else if (onTap != null)
                     PrimaryButton(
                       text: buttonText ?? 'select'.tr(),
                       isProcessing: isProcessing,
                       enabled: !isProcessing && isEnable,
-                      onTap: () => onTap?.call(type),
+                      onTap: () => onTap!(type),
                       color: AppColor.feralFileLightBlue,
                     ),
                   if (canAutoRenew) ...[

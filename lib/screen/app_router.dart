@@ -335,13 +335,9 @@ class AppRouter {
       case newOnboardingPage:
         return CupertinoPageRoute(
           settings: settings,
-          builder: (context) => MultiBlocProvider(
-              providers: [
-                BlocProvider(create: (_) => upgradeBloc),
-              ],
-              child: NewOnboardingPage(
-                payload: settings.arguments! as NewOnboardingPagePayload,
-              )),
+          builder: (context) => MultiBlocProvider(providers: [
+            BlocProvider(create: (_) => upgradeBloc),
+          ], child: const NewOnboardingPage()),
         );
 
       case previewPrimerPage:

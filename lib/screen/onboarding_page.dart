@@ -9,11 +9,9 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/new_onboarding_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
-import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -59,7 +57,6 @@ class _OnboardingPageState extends State<OnboardingPage>
 
   Future<void> _goToTargetScreen(BuildContext context) async {
     final configService = injector<ConfigurationService>();
-    final isSubscribed = await injector<IAPService>().isSubscribed();
     if (!context.mounted) {
       return;
     }
@@ -68,11 +65,9 @@ class _OnboardingPageState extends State<OnboardingPage>
       await Navigator.of(context)
           .pushReplacementNamed(AppRouter.homePageNoTransition);
     } else {
-      final shouldShowPurchasePremium = !isSubscribed;
       await Navigator.of(context).pushReplacementNamed(
-          AppRouter.newOnboardingPage,
-          arguments: NewOnboardingPagePayload(
-              shouldShowPurchasePremium: shouldShowPurchasePremium));
+        AppRouter.newOnboardingPage,
+      );
     }
   }
 
