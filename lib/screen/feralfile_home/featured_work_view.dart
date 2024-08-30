@@ -5,10 +5,10 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_list_response.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/artist_details/artist_details_page.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
-import 'package:autonomy_flutter/screen/gallery/gallery_page.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -433,14 +433,12 @@ class FeaturedWorkViewState extends State<FeaturedWorkView> {
               title: asset.displayTitle ?? '',
               onTitleTap: () => _onTapArtwork(context, asset),
               subTitle: subTitle,
-              onSubTitleTap: asset.artistID != null
-                  ? () => unawaited(
-                      Navigator.of(context).pushNamed(AppRouter.galleryPage,
-                          arguments: GalleryPagePayload(
-                            address: asset.artistID!,
-                            artistName: artistName!,
-                            artistURL: asset.artistURL,
-                          )))
+              onSubTitleTap: asset.artistID != null && asset.isFeralfile
+                  ? () => unawaited(Navigator.of(context).pushNamed(
+                        AppRouter.userDetailsPage,
+                        arguments:
+                            UserDetailsPagePayload(userId: asset.artistID!),
+                      ))
                   : null,
             ),
           ),
