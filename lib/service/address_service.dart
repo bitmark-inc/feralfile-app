@@ -189,7 +189,7 @@ class AddressService {
     final sortedAddresses = <WalletAddress>[];
     for (final p in persona) {
       final pAddresses = addresses.where((a) => a.uuid == p.uuid).toList()
-      ..sort((a, b) => a.index.compareTo(b.index));
+        ..sort((a, b) => a.index.compareTo(b.index));
       sortedAddresses.addAll(pAddresses);
     }
     return sortedAddresses;
