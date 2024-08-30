@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/util/au_icons.dart';
+import 'package:autonomy_flutter/util/debouce_util.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
@@ -9,22 +10,29 @@ class AuSearchBar extends StatefulWidget {
   final Function(String)? onChanged;
   final Function(String)? onSearch;
   final Function(String)? onClear;
+  final TextEditingController? controller;
 
-  const AuSearchBar({super.key, this.onChanged, this.onSearch, this.onClear});
+  const AuSearchBar(
+      {super.key,
+      this.onChanged,
+      this.onSearch,
+      this.onClear,
+      this.controller});
 
   @override
   State<AuSearchBar> createState() => _SearchBarState();
 }
 
 class _SearchBarState extends State<AuSearchBar> {
-  final _controller = TextEditingController();
+  late TextEditingController _controller;
   final _focusNode = FocusNode();
   Timer? _timer;
 
   @override
   void initState() {
     super.initState();
-    _focusNode.requestFocus();
+    _controller = widget.controller ?? TextEditingController();
+    // _focusNode.requestFocus();
   }
 
   @override
@@ -62,6 +70,7 @@ class _SearchBarState extends State<AuSearchBar> {
                   hintStyle: theme.textTheme.ppMori400Grey12
                       .copyWith(color: AppColor.auQuickSilver),
                   border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 10),
                 ),
                 onChanged: (value) {
                   widget.onChanged?.call(value);
@@ -82,7 +91,9 @@ class _SearchBarState extends State<AuSearchBar> {
   }
 
   void _callOnSearch(String value) {
-    widget.onSearch?.call(value.trim());
+    withDebounce(() {
+      widget.onSearch?.call(value.trim());
+    }, key: 'searchBarKey', debounceTime: 1000);
   }
 }
 
@@ -109,20 +120,21 @@ class _ActionBarState extends State<ActionBar> {
           Expanded(
             child: widget.searchBar,
           ),
-          IconButton(
-            icon: const Padding(
-              padding: EdgeInsets.all(5),
-              child: Icon(
-                AuIcon.close,
-                size: 18,
-                color: AppColor.white,
+          if (widget.onCancel != null)
+            IconButton(
+              icon: const Padding(
+                padding: EdgeInsets.all(5),
+                child: Icon(
+                  AuIcon.close,
+                  size: 18,
+                  color: AppColor.white,
+                ),
               ),
-            ),
-            constraints: const BoxConstraints(maxWidth: 44, maxHeight: 44),
-            onPressed: () {
-              widget.onCancel?.call();
-            },
-          )
+              constraints: const BoxConstraints(maxWidth: 44, maxHeight: 44),
+              onPressed: () {
+                widget.onCancel?.call();
+              },
+            )
         ],
       );
 }

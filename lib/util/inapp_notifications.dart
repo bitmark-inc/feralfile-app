@@ -5,31 +5,38 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
+
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/additional_data/additional_data.dart';
+import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
-import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:overlay_support/overlay_support.dart';
+
 // ignore: implementation_imports
 import 'package:overlay_support/src/overlay_state_finder.dart';
 
-Widget _notificationToast(BuildContext context, OSNotification notification,
-        {Function(OSNotification notification)? notificationOpenedHandler}) =>
+Widget _notificationToast(BuildContext context, String id,
+        {Function? handler, String? body}) =>
     _SimpleNotificationToast(
-      notification: notification.body ?? '',
-      key: Key(notification.notificationId),
+      notification: body ?? '',
+      key: Key(id),
       notificationOpenedHandler: () {
-        if (notificationOpenedHandler != null) {
-          notificationOpenedHandler(notification);
-        }
+        handler?.call();
       },
       addOnTextSpan: [
-        TextSpan(
-          text: ' ${'tap_to_view'.tr()}',
-          style: Theme.of(context).textTheme.ppMori400FFYellow14,
-        )
+        if (handler != null)
+          TextSpan(
+            text: ' ${'tap_to_view'.tr()}',
+            style: Theme.of(context).textTheme.ppMori400FFYellow14,
+          )
       ],
     );
 
@@ -40,10 +47,11 @@ Widget _inAppNotificationToast(BuildContext context, String body, String key,
       key: Key(key),
       notificationOpenedHandler: notificationOpenedHandler,
       addOnTextSpan: [
-        TextSpan(
-          text: ' ${'tap_to_view'.tr()}',
-          style: Theme.of(context).textTheme.ppMori400FFYellow14,
-        )
+        if (notificationOpenedHandler != null)
+          TextSpan(
+            text: ' ${'tap_to_view'.tr()}',
+            style: Theme.of(context).textTheme.ppMori400FFYellow14,
+          )
       ],
     );
 
@@ -176,18 +184,65 @@ class _NotificationToastWithLink extends StatelessWidget {
   }
 }
 
-void showNotifications(BuildContext context, OSNotification notification,
-    {Function(OSNotification notification)? notificationOpenedHandler}) {
-  showSimpleNotification(
-    _notificationToast(context, notification,
-        notificationOpenedHandler: notificationOpenedHandler),
+Future<void> showNotifications(
+  BuildContext context,
+  String id, {
+  Function? handler,
+  Function? callBackOnDismiss,
+  String? body,
+  AdditionalData? additionalData,
+}) async {
+  final configurationService = injector<ConfigurationService>();
+  if (configurationService.showingNotification.value) {
+    return;
+  }
+
+  bool didTap = false;
+
+  /// mixpanel tracking: delivered notification
+  final metricClientService = injector<MetricClientService>()
+    ..addEvent(
+      MixpanelEvent.deliveredNotification,
+      data: {
+        MixpanelProp.notificationId: id,
+        MixpanelProp.channel: 'in-app',
+        MixpanelProp.type: additionalData?.notificationType.toString()
+      },
+    );
+  configurationService.showingNotification.value = true;
+  final notification = showSimpleNotification(
+    _notificationToast(context, id, handler: () async {
+      /// this is how to detect user tap on notification
+      /// this must put before handler?.call() to make sure it's called first
+      didTap = true;
+
+      handler?.call();
+    }, body: body),
     background: Colors.transparent,
-    duration: const Duration(seconds: 3),
     elevation: 0,
-    key: Key(notification.notificationId),
+    duration: const Duration(days: 1),
+    key: Key(id),
     slideDismissDirection: DismissDirection.up,
   );
   Vibrate.feedback(FeedbackType.warning);
+  await notification.dismissed;
+  await injector<AnnouncementService>().markAsRead(id);
+  configurationService.showingNotification.value = false;
+  if (!didTap) {
+    metricClientService.addEvent(
+      MixpanelEvent.dismissedNotification,
+      data: {
+        MixpanelProp.notificationId: id,
+        MixpanelProp.channel: 'in-app',
+        MixpanelProp.type: additionalData?.notificationType.toString()
+      },
+    );
+  }
+
+  /// always show next announcement in queue, event user tap to see it
+  Future.delayed(const Duration(milliseconds: 100), () {
+    callBackOnDismiss?.call();
+  });
 }
 
 void showInAppNotifications(BuildContext context, String body, String key,

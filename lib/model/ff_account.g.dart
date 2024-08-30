@@ -53,7 +53,7 @@ Map<String, dynamic> _$FFContractToJson(FFContract instance) =>
 
 FeralfileError _$FeralfileErrorFromJson(Map<String, dynamic> json) =>
     FeralfileError(
-      json['code'] as int,
+      (json['code'] ?? json['id']) as int,
       json['message'] as String,
     );
 

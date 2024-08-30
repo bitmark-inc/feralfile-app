@@ -46,6 +46,9 @@ extension FFSeriesExt on FFSeries {
       metadata != null && metadata!['mediumDescription'] != null
           ? (metadata!['mediumDescription'] as List<dynamic>).join('\n')
           : null;
+
+  String? get thumbnailUrl =>
+      thumbnailURI == null ? null : getFFUrl(thumbnailURI!);
 }
 
 extension FFSeriesListExt on List<FFSeries> {

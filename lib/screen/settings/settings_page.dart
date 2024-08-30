@@ -181,15 +181,6 @@ class _SettingsPageState extends State<SettingsPage>
                     ),
                     addOnlyDivider(),
                     _settingItem(
-                      title: 'autonomy_pro'.tr(),
-                      icon: const Icon(AuIcon.add),
-                      onTap: () async {
-                        await Navigator.of(context)
-                            .pushNamed(AppRouter.subscriptionPage);
-                      },
-                    ),
-                    addOnlyDivider(),
-                    _settingItem(
                       title: 'data_management'.tr(),
                       icon: const Icon(AuIcon.data_management),
                       onTap: () async {

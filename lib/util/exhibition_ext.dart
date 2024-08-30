@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
@@ -13,6 +15,7 @@ import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
 import 'package:autonomy_flutter/util/series_ext.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:collection/collection.dart';
+import 'package:sentry/sentry.dart';
 
 extension ExhibitionExt on Exhibition {
   String get coverUrl => '${Environment.feralFileAssetURL}/$coverURI';
@@ -227,25 +230,44 @@ extension ArtworkExt on Artwork {
   }
 
   String? get indexerTokenId {
-    if (series?.exhibition?.contracts == null) {
-      return null;
-    }
-    var chain = series!.exhibition!.mintBlockchain;
+    var chain = series!.exhibition!.mintBlockchain.toLowerCase();
+    // normal case: tezos or ethereum chain
+    if (['tezos', 'ethereum'].contains(chain)) {
+      final contract = series!.exhibition!.contracts!.firstWhereOrNull(
+        (e) => e.blockchainType == chain,
+      );
+      if (contract == null) {
+        unawaited(Sentry.captureMessage(
+          'ArtworkExt: get indexerTokenId failed,'
+          ' contract is null for chain: $chain, artworkID: $id',
+        ));
+        return null;
+      }
+      final chainPrefix = chain == 'tezos' ? 'tez' : 'eth';
+      final contractAddress = contract.address;
+      return '$chainPrefix-$contractAddress-$id';
+    } else
+    // special case: bitmark chain
     if (chain == 'bitmark') {
-      chain = series!.metadata?['targetMigrationBlockchain'];
+      // if artwork was burned, get indexerTokenId from swap
+      if (swap != null) {
+        return swap!.indexerId;
+      } else {
+        // if artwork was not burned, it's bitmark token
+        const chanPrefix = 'bmk';
+        final contract = series!.exhibition!.contracts!.firstWhereOrNull(
+          (e) => e.blockchainType == chain,
+        );
+        final contractAddress = contract?.address ?? '';
+        return '$chanPrefix-$contractAddress-$id';
+      }
+    } else {
+      unawaited(Sentry.captureMessage(
+        'ArtworkExt: get indexerTokenId failed, '
+        'unknown chain: $chain, artworkID: $id',
+      ));
     }
-
-    final contract = series!.exhibition!.contracts?.firstWhereOrNull(
-      (e) => e.blockchainType == chain,
-    );
-
-    if (contract == null) {
-      return null;
-    }
-
-    final chainPrefix = chain == 'tezos' ? 'tez' : 'eth';
-    final contractAddress = contract.address;
-    return '$chainPrefix-$contractAddress-$id';
+    return null;
   }
 }
 
@@ -280,6 +302,15 @@ extension FFContractExt on FFContract {
         return 'https://tzkt.io/$address';
     }
     return null;
+  }
+}
+
+extension ArtworkSwapxt on ArtworkSwap {
+  String get indexerId {
+    final chain = blockchainType == 'ethereum' ? 'eth' : 'tez';
+    // we should use token instead of artworkID.
+    // the artworkId is the id of burned artwork.
+    return '$chain-$contractAddress-$token';
   }
 }
 

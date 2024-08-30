@@ -7,16 +7,16 @@ import 'dart:async' as _i7;
 
 import 'package:autonomy_flutter/database/entity/connection.dart' as _i5;
 import 'package:autonomy_flutter/database/entity/persona.dart' as _i3;
-import 'package:autonomy_flutter/database/entity/wallet_address.dart' as _i12;
+import 'package:autonomy_flutter/database/entity/wallet_address.dart' as _i8;
 import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_state.dart'
-    as _i11;
+    as _i12;
 import 'package:autonomy_flutter/service/account_service.dart' as _i6;
-import 'package:autonomy_flutter/util/constants.dart' as _i9;
+import 'package:autonomy_flutter/util/constants.dart' as _i10;
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart' as _i4;
-import 'package:autonomy_flutter/util/wallet_utils.dart' as _i8;
+import 'package:autonomy_flutter/util/wallet_utils.dart' as _i9;
 import 'package:libauk_dart/libauk_dart.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:nft_collection/models/models.dart' as _i10;
+import 'package:nft_collection/models/models.dart' as _i11;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -80,6 +80,28 @@ class MockAccountService extends _i1.Mock implements _i6.AccountService {
   }
 
   @override
+  _i7.Future<List<_i8.WalletAddress>> deriveAddressFromFirstPersona(
+          _i9.WalletType? walletType) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #deriveAddressFromFirstPersona,
+          [walletType],
+        ),
+        returnValue:
+            _i7.Future<List<_i8.WalletAddress>>.value(<_i8.WalletAddress>[]),
+      ) as _i7.Future<List<_i8.WalletAddress>>);
+  @override
+  _i7.Future<List<_i8.WalletAddress>> getWalletsAddress(
+          _i10.CryptoType? cryptoType) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getWalletsAddress,
+          [cryptoType],
+        ),
+        returnValue:
+            _i7.Future<List<_i8.WalletAddress>>.value(<_i8.WalletAddress>[]),
+      ) as _i7.Future<List<_i8.WalletAddress>>);
+  @override
   _i7.Future<_i2.WalletStorage> getDefaultAccount() => (super.noSuchMethod(
         Invocation.method(
           #getDefaultAccount,
@@ -107,15 +129,6 @@ class MockAccountService extends _i1.Mock implements _i6.AccountService {
           ),
         )),
       ) as _i7.Future<_i3.Persona>);
-  @override
-  _i7.Future<_i2.WalletStorage?> getCurrentDefaultAccount() =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #getCurrentDefaultAccount,
-          [],
-        ),
-        returnValue: _i7.Future<_i2.WalletStorage?>.value(),
-      ) as _i7.Future<_i2.WalletStorage?>);
   @override
   _i7.Future<_i4.WalletIndex> getAccountByAddress({
     required String? chain,
@@ -186,6 +199,23 @@ class MockAccountService extends _i1.Mock implements _i6.AccountService {
         returnValue: _i7.Future<dynamic>.value(),
       ) as _i7.Future<dynamic>);
   @override
+  _i7.Future<_i3.Persona> getPersona({required String? uuid}) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getPersona,
+          [],
+          {#uuid: uuid},
+        ),
+        returnValue: _i7.Future<_i3.Persona>.value(_FakePersona_1(
+          this,
+          Invocation.method(
+            #getPersona,
+            [],
+            {#uuid: uuid},
+          ),
+        )),
+      ) as _i7.Future<_i3.Persona>);
+  @override
   _i7.Future<_i3.Persona> createPersona({
     String? name = r'',
     String? passphrase = r'',
@@ -218,7 +248,7 @@ class MockAccountService extends _i1.Mock implements _i6.AccountService {
   _i7.Future<_i3.Persona> importPersona(
     String? words,
     String? passphrase, {
-    _i8.WalletType? walletType = _i8.WalletType.Autonomy,
+    _i9.WalletType? walletType = _i9.WalletType.Autonomy,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -268,7 +298,7 @@ class MockAccountService extends _i1.Mock implements _i6.AccountService {
   @override
   _i7.Future<_i5.Connection> linkManuallyAddress(
     String? address,
-    _i9.CryptoType? cryptoType, {
+    _i10.CryptoType? cryptoType, {
     String? name,
   }) =>
       (super.noSuchMethod(
@@ -381,15 +411,15 @@ class MockAccountService extends _i1.Mock implements _i6.AccountService {
         returnValue: _i7.Future<List<String>>.value(<String>[]),
       ) as _i7.Future<List<String>>);
   @override
-  _i7.Future<List<_i10.AddressIndex>> getHiddenAddressIndexes() =>
+  _i7.Future<List<_i11.AddressIndex>> getHiddenAddressIndexes() =>
       (super.noSuchMethod(
         Invocation.method(
           #getHiddenAddressIndexes,
           [],
         ),
         returnValue:
-            _i7.Future<List<_i10.AddressIndex>>.value(<_i10.AddressIndex>[]),
-      ) as _i7.Future<List<_i10.AddressIndex>>);
+            _i7.Future<List<_i11.AddressIndex>>.value(<_i11.AddressIndex>[]),
+      ) as _i7.Future<List<_i11.AddressIndex>>);
   @override
   _i7.Future<List<String>> getShowedAddresses() => (super.noSuchMethod(
         Invocation.method(
@@ -401,7 +431,7 @@ class MockAccountService extends _i1.Mock implements _i6.AccountService {
   @override
   _i7.Future<bool> addAddressPersona(
     _i3.Persona? newPersona,
-    List<_i11.AddressInfo>? addresses,
+    List<_i12.AddressInfo>? addresses,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -416,7 +446,7 @@ class MockAccountService extends _i1.Mock implements _i6.AccountService {
   @override
   _i7.Future<void> deleteAddressPersona(
     _i3.Persona? persona,
-    _i12.WalletAddress? walletAddress,
+    _i8.WalletAddress? walletAddress,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -430,16 +460,16 @@ class MockAccountService extends _i1.Mock implements _i6.AccountService {
         returnValueForMissingStub: _i7.Future<void>.value(),
       ) as _i7.Future<void>);
   @override
-  _i7.Future<_i12.WalletAddress?> getAddressPersona(String? address) =>
+  _i7.Future<_i8.WalletAddress?> getAddressPersona(String? address) =>
       (super.noSuchMethod(
         Invocation.method(
           #getAddressPersona,
           [address],
         ),
-        returnValue: _i7.Future<_i12.WalletAddress?>.value(),
-      ) as _i7.Future<_i12.WalletAddress?>);
+        returnValue: _i7.Future<_i8.WalletAddress?>.value(),
+      ) as _i7.Future<_i8.WalletAddress?>);
   @override
-  _i7.Future<void> updateAddressPersona(_i12.WalletAddress? walletAddress) =>
+  _i7.Future<void> updateAddressPersona(_i8.WalletAddress? walletAddress) =>
       (super.noSuchMethod(
         Invocation.method(
           #updateAddressPersona,

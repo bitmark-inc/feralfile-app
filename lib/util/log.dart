@@ -10,7 +10,6 @@
 import 'dart:core';
 import 'dart:io';
 
-import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 import 'package:path_provider/path_provider.dart';
@@ -51,13 +50,6 @@ Future<File> getLogFile() async {
 
 Future<File> _createLogFile(canonicalLogFileName) async =>
     File(canonicalLogFileName).create(recursive: true);
-
-int? decodeErrorResponse(dynamic e) {
-  if (e is DioException && e.type == DioExceptionType.badResponse) {
-    return e.response?.data['error']['code'] as int;
-  }
-  return null;
-}
 
 class FileLogger {
   static final _lock =
@@ -122,7 +114,8 @@ class FileLogger {
         r'(\\"location\\":\[.*?,.*?\])|'
         r'(0x[A-Fa-f0-9]{64}[\s\W])|'
         r'(0x[A-Fa-f0-9]{128,144}[\s\W])|'
-        r'(eyJ[A-Za-z0-9-_]+\.eyJ[A-Za-z0-9-_]+\.[A-Za-z0-9-_.+/]*)');
+        r'(eyJ[A-Za-z0-9-_]+\.eyJ[A-Za-z0-9-_]+\.[A-Za-z0-9-_.+/]*)|'
+        r'(\\"receipt\\":\{[^{}]*\})');
 
     filteredLog = filteredLog.replaceAllMapped(combinedRegex, (match) {
       if (match[1] != null) {
@@ -151,6 +144,9 @@ class FileLogger {
       }
       if (match[10] != null) {
         return 'REDACTED_JWT_TOKEN';
+      }
+      if (match[11] != null) {
+        return r'\"receipt\": REDACTED_RECEIPT';
       }
       return '';
     });

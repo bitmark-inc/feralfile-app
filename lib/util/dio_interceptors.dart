@@ -34,10 +34,9 @@ class LoggingInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     final curl = cURLRepresentation(err.requestOptions);
-    final message = err.message;
     apiLog
       ..info('API Request: $curl')
-      ..warning('Respond error: $message');
+      ..warning('Respond error: ${err.response}');
     return handler.next(err);
   }
 
@@ -285,5 +284,19 @@ class TVKeyInterceptor extends Interceptor {
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     options.headers['API-KEY'] = tvKey;
     handler.next(options);
+  }
+
+  @override
+  void onError(DioException err, ErrorInterceptorHandler handler) {
+    DioException exp = err;
+    try {
+      final errorBody = err.response?.data as Map<String, dynamic>;
+      exp = err.copyWith(error: FeralfileError.fromJson(errorBody['error']));
+    } catch (e) {
+      log.info(
+          '[FeralfileAuthInterceptor] Can not parse . ${err.response?.data}');
+    } finally {
+      handler.next(exp);
+    }
   }
 }

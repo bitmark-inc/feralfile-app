@@ -243,11 +243,6 @@ Future<bool> isAppCenterBuild() async {
   return info.packageName.contains('inhouse');
 }
 
-Future<bool> logoState() async {
-  final isAppCenter = await isAppCenterBuild();
-  return isAppCenter;
-}
-
 Future<String> getDemoAccount() async =>
     await isAppCenterBuild() ? 'demo' : 'tv';
 
@@ -506,6 +501,54 @@ class Constants {
     'https://feralfile-app-alternate.test-app.link',
     'https://app.feralfile.com',
   ];
+
+  static const wcPrefixes = [
+    'https://au.bitmark.com/apps/wc?uri=',
+    'https://au.bitmark.com/apps/wc/wc?uri=',
+    'https://autonomy.io/apps/wc?uri=',
+    'https://autonomy.io/apps/wc/wc?uri=',
+    'autonomy://wc?uri=',
+    'autonomy-wc://wc?uri=',
+    'https://app.feralfile.com/apps/wc?uri=',
+    'https://app.feralfile.com/apps/wc/wc?uri=',
+    'feralfile://wc?uri=',
+    'feralfile-wc://wc?uri=',
+  ];
+
+  static const tzPrefixes = [
+    'https://au.bitmark.com/apps/tezos?uri=',
+    'https://autonomy.io/apps/tezos?uri=',
+    'https://feralfile.com/apps/tezos?uri=',
+  ];
+
+  static const wcDeeplinkPrefixes = [
+    'wc:',
+    'autonomy-wc:',
+    'feralfile-wc:',
+  ];
+
+  static const tbDeeplinkPrefixes = [
+    'tezos://',
+    'autonomy-tezos://',
+    'feralfile-tezos://',
+  ];
+
+  static const postcardPayToMintPrefixes = [
+    'https://autonomy.io/apps/moma-postcards/purchase',
+  ];
+
+  static const navigationPrefixes = [
+    'feralfile://navigation/',
+  ];
+
+  static const dAppConnectPrefixes = [
+    ...wcPrefixes,
+    ...tzPrefixes,
+    ...wcDeeplinkPrefixes,
+    ...tbDeeplinkPrefixes,
+    ...postcardPayToMintPrefixes,
+    ...navigationPrefixes,
+  ];
 }
 
 Map<String, String> specifiedSeriesTitle = {
@@ -517,6 +560,10 @@ class MixpanelEvent {
   static const String visitPage = 'Visit page';
   static const String viewExhibition = 'View exhibition';
   static const String viewArtwork = 'View artwork';
+  static const String deliveredNotification = 'Delivered notification';
+  static const String tappedNotification = 'Tapped notification';
+  static const String dismissedNotification = 'Dismissed notification';
+  static const String expiredBeforeViewing = 'Expired before viewing';
 }
 
 class MixpanelEventProp {}
@@ -539,6 +586,10 @@ class MixpanelProp {
   static const method = 'method';
   static const isOnboarding = 'isOnboarding';
   static const id = 'id';
+  static const notificationId = 'notification_id';
+  static const content = 'content';
+  static const category = 'category';
+  static const channel = 'channel';
   static const firstAppOpenDate = 'First App Open Date';
 }
 

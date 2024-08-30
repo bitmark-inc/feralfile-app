@@ -6,7 +6,10 @@ import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/artist_details/artist_details_page.dart';
 import 'package:autonomy_flutter/screen/detail/royalty/royalty_bloc.dart';
+import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -1172,12 +1175,20 @@ Widget artworkDetailsMetadataSection(
             title: 'artist'.tr(),
             value: artistName,
             onTap: () async {
-              final uri = Uri.parse(
-                  assetToken.artistURL?.split(' & ').firstOrNull ?? '');
-              await launchUrl(uri, mode: LaunchMode.externalApplication);
+              if (!assetToken.isFeralfile) {
+                final uri = Uri.parse(
+                    assetToken.artistURL?.split(' & ').firstOrNull ?? '');
+                await launchUrl(uri, mode: LaunchMode.externalApplication);
+              } else {
+                final artist = await injector<FeralFileService>()
+                    .getUser(assetToken.artistID!);
+                unawaited(Navigator.of(context).pushNamed(
+                    AppRouter.userDetailsPage,
+                    arguments: UserDetailsPagePayload(userId: artist.id)));
+              }
             },
             forceSafariVC: true,
-          ),
+          )
         ],
         if (!assetToken.fungible)
           Column(
@@ -1208,7 +1219,17 @@ Widget artworkDetailsMetadataSection(
                     MetaDataItem(
                       title: 'exhibition'.tr(),
                       value: snapshot.data!.title,
-                      tapLink: feralFileExhibitionUrl(snapshot.data!.slug),
+                      onTap: () {
+                        unawaited(
+                          Navigator.of(context).pushNamed(
+                            AppRouter.exhibitionDetailPage,
+                            arguments: ExhibitionDetailPayload(
+                              exhibitions: [snapshot.data!],
+                              index: 0,
+                            ),
+                          ),
+                        );
+                      },
                       forceSafariVC: true,
                     ),
                     divider,
@@ -1826,7 +1847,7 @@ class _ArtworkRightsViewState extends State<ArtworkRightsView> {
       BlocBuilder<RoyaltyBloc, RoyaltyState>(builder: (context, state) {
         final data = state.markdownData?.replaceAll('.**', '**');
         return SectionExpandedWidget(
-          header: 'rights'.tr(),
+          header: 'collector_rights'.tr(),
           padding: const EdgeInsets.only(bottom: 23),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

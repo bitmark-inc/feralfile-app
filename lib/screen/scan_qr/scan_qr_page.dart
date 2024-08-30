@@ -62,14 +62,20 @@ enum QRScanTab {
   String get screenName => getPageName(routerName);
 }
 
-class ScanQRPage extends StatefulWidget {
+class ScanQRPagePayload {
   final ScannerItem scannerItem;
   final Function? onHandleFinished;
 
-  const ScanQRPage(
-      {super.key,
-      this.scannerItem = ScannerItem.GLOBAL,
-      this.onHandleFinished});
+  const ScanQRPagePayload({
+    required this.scannerItem,
+    this.onHandleFinished,
+  });
+}
+
+class ScanQRPage extends StatefulWidget {
+  final ScanQRPagePayload payload;
+
+  const ScanQRPage({required this.payload, super.key});
 
   @override
   State<ScanQRPage> createState() => ScanQRPageState();
@@ -88,7 +94,7 @@ class ScanQRPageState extends State<ScanQRPage>
   @override
   void initState() {
     super.initState();
-    _isGlobal = (widget.scannerItem == ScannerItem.GLOBAL);
+    _isGlobal = (widget.payload.scannerItem == ScannerItem.GLOBAL);
     //There is a conflict with lib qr_code_scanner on Android.
     if (Platform.isIOS) {
       unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.leanBack));
@@ -101,8 +107,8 @@ class ScanQRPageState extends State<ScanQRPage>
     _pages = [
       QRScanView(
         key: _qrScanViewKey,
-        scannerItem: widget.scannerItem,
-        onHandleFinished: widget.onHandleFinished,
+        scannerItem: widget.payload.scannerItem,
+        onHandleFinished: widget.payload.onHandleFinished,
       ),
       MultiBlocProvider(
         providers: [
@@ -169,6 +175,7 @@ class ScanQRPageState extends State<ScanQRPage>
         bottom: false,
         child: Scaffold(
           extendBodyBehindAppBar: true,
+          backgroundColor: AppColor.primaryBlack,
           appBar: _tabController.index == QRScanTab.scan.index
               ? getDarkEmptyAppBar(Colors.transparent)
               : getLightEmptyAppBar(),
@@ -203,8 +210,10 @@ class ScanQRPageState extends State<ScanQRPage>
           padding: EdgeInsets.only(top: MediaQuery.of(context).viewPadding.top),
           child: HeaderView(
             title: 'scan'.tr(),
-            action: _isGlobal
-                ? GestureDetector(
+            action: Row(
+              children: [
+                if (_isGlobal)
+                  GestureDetector(
                     onTap: () {
                       setState(() {
                         unawaited(pauseCamera());
@@ -225,15 +234,18 @@ class ScanQRPageState extends State<ScanQRPage>
                       ),
                     ),
                   )
-                : IconButton(
+                else
+                  const SizedBox(),
+                const SizedBox(width: 20),
+                IconButton(
                     onPressed: () {
-                      if (!_isGlobal) {
-                        Navigator.pop(context);
-                      }
+                      Navigator.pop(context);
                     },
                     icon: closeIcon(
                       color: AppColor.white,
                     )),
+              ],
+            ),
           ),
         ),
       ],
@@ -243,10 +255,7 @@ class ScanQRPageState extends State<ScanQRPage>
   @override
   void didPopNext() {
     super.didPopNext();
-    // for global camera, it's already handled in HomeNavigationPage.didPopNext
-    if (!_isGlobal) {
-      unawaited(resumeCamera());
-    }
+    unawaited(resumeCamera());
     if (Platform.isIOS) {
       unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.leanBack));
     }
@@ -328,8 +337,20 @@ class ScannerInstruction {
           final context =
               injector<NavigationService>().navigatorKey.currentContext!;
           UIHelper.showDialog(
-              context, 'display'.tr(), const DisplayInstructionView(),
-              isDismissible: true, withCloseIcon: true);
+              context,
+              'display_art'.tr(),
+              Column(
+                children: [
+                  DisplayInstructionView(
+                    onScanQRTap: () {
+                      Navigator.pop(context);
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                ],
+              ),
+              isDismissible: true,
+              withCloseIcon: true);
         },
         constraints: const BoxConstraints(
           maxWidth: 44,
@@ -371,11 +392,7 @@ class QRScanViewState extends State<QRScanView>
   @override
   void initState() {
     super.initState();
-    _shouldPop = !(widget.scannerItem == ScannerItem.GLOBAL ||
-
-        /// handle canvas deeplink will pop the screen,
-        /// therefore no need to pop here
-        widget.scannerItem == ScannerItem.CANVAS);
+    _shouldPop = true;
     unawaited(_checkPermission());
   }
 
@@ -676,21 +693,21 @@ class QRScanViewState extends State<QRScanView>
         injector<DeeplinkService>().handleDeeplink(
           code,
           delay: const Duration(seconds: 1),
-          onFinished: () {
+          onFinished: (dynamic object) {
             if (mounted) {
               setState(() {
                 _isLoading = false;
               });
               unawaited(resumeCamera());
             }
-            widget.onHandleFinished?.call();
+            widget.onHandleFinished?.call(object);
           },
         );
         return;
       } else {
         switch (widget.scannerItem) {
           case ScannerItem.CANVAS:
-
+          // dont need to do anything here, it has been processed in the branch deeplink
           /// handled with deeplink
           case ScannerItem.WALLET_CONNECT:
             if (code.startsWith('wc:')) {
