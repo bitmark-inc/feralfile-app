@@ -7,9 +7,11 @@
 
 import 'dart:async';
 
+import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/tv_cast_api.dart';
 import 'package:autonomy_flutter/model/canvas_device_store.dart';
 import 'package:autonomy_flutter/model/pair.dart';
+import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/device_info_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tv_cast_service.dart';
@@ -44,11 +46,12 @@ class CanvasClientServiceV2 {
           CanvasDevice device) async =>
       _getDeviceCastingStatus(device);
 
-  Future<CheckDeviceStatusReply> _getDeviceCastingStatus(
-      CanvasDevice device) async {
+  Future<CheckDeviceStatusReply> _getDeviceCastingStatus(CanvasDevice device,
+      {bool shouldShowError = true}) async {
     final stub = _getStub(device);
     final request = CheckDeviceStatusRequest();
-    final response = await stub.status(request);
+    final response =
+        await stub.status(request, shouldShowError: shouldShowError);
     log.info(
         'CanvasClientService2 status: ${response.connectedDevice?.deviceId}');
     return response;
@@ -70,23 +73,27 @@ class CanvasClientServiceV2 {
     final deviceStatus = await _getDeviceStatus(device);
     if (deviceStatus != null) {
       await _db.save(device, device.deviceId);
+      unawaited(connectToDevice(device));
       log.info('CanvasClientService: Added device to db ${device.name}');
       return deviceStatus;
     }
     return null;
   }
 
-  Future<ConnectReplyV2> connect(CanvasDevice device) async {
+  Future<ConnectReplyV2> _connect(CanvasDevice device) async {
     final stub = _getStub(device);
     final deviceInfo = clientDeviceInfo;
-    final request = ConnectRequestV2(clientDevice: deviceInfo);
+    final primaryAddress = await injector<AddressService>().getPrimaryAddress();
+
+    final request = ConnectRequestV2(
+        clientDevice: deviceInfo, primaryAddress: primaryAddress ?? '');
     final response = await stub.connect(request);
     return response;
   }
 
   Future<bool> connectToDevice(CanvasDevice device) async {
     try {
-      final response = await connect(device);
+      final response = await _connect(device);
       return response.ok;
     } catch (e) {
       log.info('CanvasClientService: connectToDevice error: $e');
@@ -175,6 +182,17 @@ class CanvasClientServiceV2 {
     return response.ok;
   }
 
+  Future<bool> castDailyWork(
+      CanvasDevice device, CastDailyWorkRequest castRequest) async {
+    final canConnect = await connectToDevice(device);
+    if (!canConnect) {
+      return false;
+    }
+    final stub = _getStub(device);
+    final response = await stub.castDailyWork(castRequest);
+    return response.ok;
+  }
+
   Future<UpdateDurationReply> updateDuration(
       CanvasDevice device, List<PlayArtworkV2> artworks) async {
     final stub = _getStub(device);
@@ -203,7 +221,7 @@ class CanvasClientServiceV2 {
     final List<Pair<CanvasDevice, CheckDeviceStatusReply>> statuses = [];
     await Future.wait(devices.map((device) async {
       try {
-        final status = await _getDeviceStatus(device);
+        final status = await _getDeviceStatus(device, shouldShowError: false);
         if (status != null) {
           statuses.add(status);
         }
@@ -215,14 +233,11 @@ class CanvasClientServiceV2 {
   }
 
   Future<Pair<CanvasDevice, CheckDeviceStatusReply>?> _getDeviceStatus(
-      CanvasDevice device) async {
-    try {
-      final status = await _getDeviceCastingStatus(device);
-      return Pair(device, status);
-    } catch (e) {
-      log.info('CanvasClientService: _getDeviceStatus error: $e');
-      return null;
-    }
+      CanvasDevice device,
+      {bool shouldShowError = true}) async {
+    final status =
+        await _getDeviceCastingStatus(device, shouldShowError: shouldShowError);
+    return Pair(device, status);
   }
 
   Future<void> sendKeyBoard(List<CanvasDevice> devices, int code) async {

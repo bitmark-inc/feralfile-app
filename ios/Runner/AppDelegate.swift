@@ -19,7 +19,7 @@ import IOSSecuritySuite
 import Sentry
 import Logging
 
-@UIApplicationMain
+@main
 @objc class AppDelegate: FlutterAppDelegate {
     
     var cancelBag = Set<AnyCancellable>()

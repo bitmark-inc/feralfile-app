@@ -5,13 +5,13 @@ import 'dart:ui' as ui;
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/chat_api.dart';
-import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/chat_message.dart' as app;
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/chat/chat_bloc.dart';
 import 'package:autonomy_flutter/screen/chat/chat_state.dart';
 import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/shared.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/chat_alias_ext.dart';
 import 'package:autonomy_flutter/util/chat_messsage_ext.dart';
@@ -21,6 +21,7 @@ import 'package:autonomy_flutter/util/distance_formater.dart';
 import 'package:autonomy_flutter/util/message_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/loading.dart';
 import 'package:autonomy_flutter/view/postcard_chat.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -31,6 +32,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:flutter_chat_ui/flutter_chat_ui.dart';
+
 //ignore: implementation_imports
 import 'package:flutter_chat_ui/src/models/date_header.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -205,10 +207,8 @@ class _ChatThreadPageState extends State<ChatThreadPage> {
             _messages[index] = _messages[index].copyWith(
                 status: types.Status.sent,
                 createdAt: DateTime.now().millisecondsSinceEpoch);
-            break;
           case ChatService.ERROR:
             _messages.removeAt(index);
-            break;
           default:
             break;
         }
@@ -585,6 +585,7 @@ class UserAvatar extends StatelessWidget {
         imageUrl: url,
         errorWidget: (context, url, error) =>
             SvgPicture.asset('assets/images/default_avatar.svg'),
+        placeholder: (context, url) => const LoadingWidget(),
       ));
 }
 

@@ -4,8 +4,6 @@ import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/pair.dart';
-import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
-import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_state.dart';
@@ -21,6 +19,7 @@ import 'package:autonomy_flutter/view/custom_note.dart';
 import 'package:autonomy_flutter/view/exhibition_detail_last_page.dart';
 import 'package:autonomy_flutter/view/exhibition_detail_preview.dart';
 import 'package:autonomy_flutter/view/ff_artwork_preview.dart';
+import 'package:autonomy_flutter/view/loading.dart';
 import 'package:autonomy_flutter/view/note_view.dart';
 import 'package:autonomy_flutter/view/post_view.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -83,9 +82,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
   Widget _body(BuildContext context, ExhibitionDetailState state) {
     final exhibition = state.exhibition;
     if (exhibition == null) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return const LoadingWidget();
     }
 
     final itemCount =
@@ -240,21 +237,15 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
         buildContext,
         onBack: () => Navigator.pop(buildContext),
         action: exhibition != null
-            ? BlocBuilder<SubscriptionBloc, SubscriptionState>(
-                builder: (context, subscriptionState) {
-                if (subscriptionState.isSubscribed) {
-                  return FFCastButton(
-                    displayKey: exhibition.id,
-                    onDeviceSelected: (device) async {
-                      final request = _getCastExhibitionRequest(exhibition);
-                      _canvasDeviceBloc.add(
-                        CanvasDeviceCastExhibitionEvent(device, request),
-                      );
-                    },
+            ? FFCastButton(
+                displayKey: exhibition.id,
+                onDeviceSelected: (device) async {
+                  final request = _getCastExhibitionRequest(exhibition);
+                  _canvasDeviceBloc.add(
+                    CanvasDeviceCastExhibitionEvent(device, request),
                   );
-                }
-                return const SizedBox();
-              })
+                },
+              )
             : null,
       );
 

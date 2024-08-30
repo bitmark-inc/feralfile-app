@@ -5,23 +5,23 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
+
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 
 class CarouselWithIndicator extends StatefulWidget {
   final List<Widget> items;
 
-  const CarouselWithIndicator({super.key, required this.items});
+  const CarouselWithIndicator({required this.items, super.key});
 
   @override
-  State<StatefulWidget> createState() {
-    return _CarouselWithIndicatorState();
-  }
+  State<StatefulWidget> createState() => _CarouselWithIndicatorState();
 }
 
 class _CarouselWithIndicatorState extends State<CarouselWithIndicator> {
   int _current = 0;
-  final CarouselController _controller = CarouselController();
+  final CarouselSliderController _controller = CarouselSliderController();
 
   @override
   Widget build(BuildContext context) {
@@ -48,28 +48,30 @@ class _CarouselWithIndicatorState extends State<CarouselWithIndicator> {
               _current = index;
             });
           },
-          viewportFraction: 1.0,
+          viewportFraction: 1,
         ),
       ),
       Row(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: widget.items.asMap().entries.map((entry) {
-          return GestureDetector(
-            onTap: () => _controller.animateToPage(entry.key),
-            child: Container(
-              width: 12.0,
-              height: 12.0,
-              margin:
-                  const EdgeInsets.symmetric(vertical: 4.0, horizontal: 4.0),
-              decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: (Theme.of(context).brightness == Brightness.dark
-                          ? Colors.white
-                          : Colors.black)
-                      .withOpacity(_current == entry.key ? 0.9 : 0.4)),
-            ),
-          );
-        }).toList(),
+        children: widget.items
+            .asMap()
+            .entries
+            .map((entry) => GestureDetector(
+                  onTap: () => unawaited(_controller.animateToPage(entry.key)),
+                  child: Container(
+                    width: 12,
+                    height: 12,
+                    margin:
+                        const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+                    decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: (Theme.of(context).brightness == Brightness.dark
+                                ? Colors.white
+                                : Colors.black)
+                            .withOpacity(_current == entry.key ? 0.9 : 0.4)),
+                  ),
+                ))
+            .toList(),
       ),
     ]);
   }

@@ -3,6 +3,10 @@ import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/artist_details/artist_details_page.dart';
+import 'package:autonomy_flutter/screen/artist_details/artist_exhibitions_page.dart';
+import 'package:autonomy_flutter/screen/artist_details/artist_posts_page.dart';
+import 'package:autonomy_flutter/screen/artist_details/artist_works_page.dart';
 import 'package:autonomy_flutter/screen/bloc/connections/connections_bloc.dart';
 import 'package:autonomy_flutter/screen/chat/chat_thread_page.dart';
 import 'package:autonomy_flutter/screen/cloud/cloud_android_page.dart';
@@ -117,9 +121,9 @@ extension RouteExt on Route {
           MixpanelProp.address: payload.connection.name
         };
       case AppRouter.scanQRPage:
-        final payload = settings.arguments! as ScannerItem;
+        final payload = settings.arguments! as ScanQRPagePayload;
         data = {
-          MixpanelProp.type: payload.name,
+          MixpanelProp.type: payload.scannerItem.name,
         };
       case AppRouter.globalReceivePage:
         final payload = settings.arguments! as GlobalReceivePayload;
@@ -151,9 +155,7 @@ extension RouteExt on Route {
       case AppRouter.supportThreadPage:
         final payload = settings.arguments! as SupportThreadPayload;
         data = {
-          MixpanelProp.title: payload.announcement?.title,
-          MixpanelProp.type: payload.announcement?.type,
-          MixpanelProp.message: payload.announcement?.body,
+          MixpanelProp.message: payload.defaultMessage,
         };
       case AppRouter.githubDocPage:
         data = {};
@@ -352,6 +354,36 @@ extension RouteExt on Route {
         data = {
           MixpanelProp.exhibitionId: payload.id,
         };
+      case AppRouter.dailyWorkPage:
+        data = {};
+      case AppRouter.userDetailsPage:
+        final payload = settings.arguments! as UserDetailsPagePayload;
+        data = {
+          MixpanelProp.id: payload.userId,
+        };
+      case AppRouter.artistExhibitionsPage:
+        final payload = settings.arguments! as ArtistExhibitionsPagePayload;
+        data = {
+          MixpanelProp.id: payload.user.id,
+          MixpanelProp.title: payload.user.alias,
+          MixpanelProp.address: payload.user.accountNumber,
+        };
+
+      case AppRouter.artistWorksPage:
+        final payload = settings.arguments! as ArtistWorksPagePayload;
+        data = {
+          MixpanelProp.id: payload.user.id,
+          MixpanelProp.title: payload.user.alias,
+          MixpanelProp.address: payload.user.accountNumber,
+        };
+
+      case AppRouter.artistPostsPage:
+        final payload = settings.arguments! as ArtistPostsPagePayload;
+        data = {
+          MixpanelProp.id: payload.user.id,
+          MixpanelProp.title: payload.user.alias,
+          MixpanelProp.address: payload.user.accountNumber,
+        };
       default:
         break;
     }
@@ -363,7 +395,8 @@ final screenNameMap = {
   AppRouter.createPlayListPage: 'Create Playlist',
   AppRouter.viewPlayListPage: 'View Playlist',
   AppRouter.editPlayListPage: 'Edit Playlist',
-  AppRouter.onboardingPage: 'Onboarding',
+  AppRouter.onboardingPage: 'Root',
+  AppRouter.newOnboardingPage: 'Onboarding',
   AppRouter.artworkPreviewPage: 'Artwork Preview',
   AppRouter.artworkDetailsPage: 'Artwork Detail',
   AppRouter.claimedPostcardDetailsPage: 'Postcard Detail',
@@ -396,7 +429,6 @@ final screenNameMap = {
   AppRouter.wc2PermissionPage: 'WC2 Permission',
   AppRouter.preferencesPage: 'Preferences',
   AppRouter.walletPage: 'Wallet',
-  AppRouter.subscriptionPage: 'Subscription',
   AppRouter.dataManagementPage: 'Data Management',
   AppRouter.inappWebviewPage: 'Inapp Webview',
   AppRouter.postcardExplain: 'Postcard Explain',
@@ -440,6 +472,11 @@ final screenNameMap = {
   AppRouter.projectsList: 'Projects',
   AppRouter.artistsListPage: 'Artists list',
   AppRouter.exhibitionCustomNote: 'Exhibition Custom Note',
+  AppRouter.dailyWorkPage: 'Daily Work',
+  AppRouter.userDetailsPage: 'Artist Details',
+  AppRouter.artistExhibitionsPage: 'Artist Exhibitions',
+  AppRouter.artistWorksPage: 'Artist Works',
+  AppRouter.artistPostsPage: 'Artist Posts',
 };
 
 String getPageName(String routeName) {

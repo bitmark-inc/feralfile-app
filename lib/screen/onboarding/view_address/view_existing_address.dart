@@ -92,9 +92,13 @@ class _ViewExistingAddressState extends State<ViewExistingAddress> {
                               _bloc.add(AddressChangeEvent(''));
                               return;
                             }
-                            dynamic address = await Navigator.of(context)
-                                .pushNamed(AppRouter.scanQRPage,
-                                    arguments: ScannerItem.ETH_ADDRESS);
+                            dynamic address =
+                                await Navigator.of(context).pushNamed(
+                              AppRouter.scanQRPage,
+                              arguments: const ScanQRPagePayload(
+                                scannerItem: ScannerItem.ETH_ADDRESS,
+                              ),
+                            );
                             if (address != null && address is String) {
                               address = address.replacePrefix('ethereum:', '');
                               _controller.text = address;

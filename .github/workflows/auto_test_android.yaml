@@ -8,7 +8,7 @@ on:
 #        - update_autotest
 jobs:
   build:
-    runs-on: [self-hosted, macOS]
+    runs-on: [ self-hosted, macOS ]
     steps:
       # Checkout code and get packages.
       - name: Checkout code
@@ -16,7 +16,7 @@ jobs:
       # Set build number
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.22.1"
+          flutter-version: "3.24.0"
           channel: stable
       - name: Set env
         run: |

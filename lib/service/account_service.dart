@@ -15,16 +15,13 @@ import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/database/entity/wallet_address.dart';
 import 'package:autonomy_flutter/model/p2p_peer.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_state.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
-import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/util/android_backup_channel.dart';
@@ -115,7 +112,7 @@ abstract class AccountService {
 
   Future<void> updateAddressPersona(WalletAddress walletAddress);
 
-  Future<void> restoreIfNeeded({bool isCreateNew = true});
+  Future<void> restoreIfNeeded();
 
   Future<List<Connection>> getAllViewOnlyAddresses();
 }
@@ -126,7 +123,6 @@ class AccountServiceImpl extends AccountService {
   final ConfigurationService _configurationService;
   final AndroidBackupChannel _backupChannel = AndroidBackupChannel();
   final AuditService _auditService;
-  final AutonomyService _autonomyService;
   final BackupService _backupService;
   final nft.AddressService _nftCollectionAddressService;
   final AddressService _addressService;
@@ -137,7 +133,6 @@ class AccountServiceImpl extends AccountService {
     this._tezosBeaconService,
     this._configurationService,
     this._auditService,
-    this._autonomyService,
     this._backupService,
     this._nftCollectionAddressService,
     this._addressService,
@@ -156,7 +151,6 @@ class AccountServiceImpl extends AccountService {
     await _cloudDB.personaDao.insertPersona(persona);
     await androidBackupKeys();
     await _auditService.auditPersonaAction('create', persona);
-    unawaited(_autonomyService.postLinkedAddresses());
     log.fine('[AccountService] Created persona ${persona.uuid}}');
     if (isDefault) {
       await _addressService.registerPrimaryAddress(
@@ -251,9 +245,7 @@ class AccountServiceImpl extends AccountService {
     var personas = await _cloudDB.personaDao.getDefaultPersonas();
 
     if (personas.isEmpty) {
-      await MigrationUtil(_configurationService, _cloudDB, this, injector(),
-              _auditService, _backupService)
-          .migrationFromKeychain();
+      await MigrationUtil(injector(), _auditService).migrationFromKeychain();
       await androidRestoreKeys();
 
       await Future.delayed(const Duration(seconds: 1));
@@ -370,7 +362,6 @@ class AccountServiceImpl extends AccountService {
 
     await _cloudDB.connectionDao.insertConnection(connection);
     await _nftCollectionAddressService.addAddresses([checkSumAddress]);
-    unawaited(_autonomyService.postLinkedAddresses());
     final allAddresses = await _addressService.getAllAddress();
     if (allAddresses.isEmpty) {
       // for case when import view-only address,
@@ -728,11 +719,10 @@ class AccountServiceImpl extends AccountService {
   }
 
   @override
-  Future<void> restoreIfNeeded({bool isCreateNew = true}) async {
+  Future<void> restoreIfNeeded() async {
     final iapService = injector<IAPService>();
     final auditService = injector<AuditService>();
-    final migrationUtil = MigrationUtil(_configurationService, _cloudDB, this,
-        iapService, auditService, _backupService);
+    final migrationUtil = MigrationUtil(_cloudDB, auditService);
     await androidRestoreKeys();
     await migrationUtil.migrationFromKeychain();
     final personas = await _cloudDB.personaDao.getPersonas();
@@ -760,9 +750,6 @@ class AccountServiceImpl extends AccountService {
         unawaited(injector<MetricClientService>()
             .mixPanelClient
             .initIfDefaultAccount());
-        unawaited(injector<NavigationService>()
-            .navigateTo(AppRouter.homePageNoTransition));
-        unawaited(_configurationService.setDoneOnboarding(true));
       }
 
       // make sure has addresses
@@ -788,18 +775,17 @@ class AccountServiceImpl extends AccountService {
         await _addressService.registerPrimaryAddress(
             info: primaryAddressInfo, withDidKey: true);
       }
-    } else if (isCreateNew) {
+    } else {
       // for new user, create default persona
       final persona = await createPersona(isDefault: true);
       await persona.insertNextAddress(WalletType.Tezos);
       await persona.insertNextAddress(WalletType.Ethereum);
+      await _configurationService.setDoneOnboarding(true);
       unawaited(injector<MetricClientService>()
           .mixPanelClient
           .initIfDefaultAccount());
-      unawaited(injector<NavigationService>()
-          .navigateTo(AppRouter.homePageNoTransition));
-      unawaited(_configurationService.setDoneOnboarding(true));
     }
+    unawaited(iapService.restore());
   }
 
   @override

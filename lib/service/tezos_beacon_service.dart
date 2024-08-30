@@ -12,7 +12,6 @@ import 'dart:io';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
-import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/connection_supports.dart';
 import 'package:autonomy_flutter/model/p2p_peer.dart';
@@ -107,9 +106,6 @@ class TezosBeaconService implements BeaconHandler {
         await Future.delayed(const Duration(seconds: 1));
       }
     } while (retryCount < maxRetries);
-    if (retryCount >= maxRetries) {
-      memoryValues.deepLink.value = null;
-    }
   }
 
   Future removePeer(P2PPeer peer) async {

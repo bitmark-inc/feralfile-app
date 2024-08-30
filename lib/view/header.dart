@@ -26,7 +26,7 @@ class HeaderView extends StatelessWidget {
   Widget build(BuildContext context) => Align(
         alignment: Alignment.centerLeft,
         child: Container(
-          padding: padding ?? const EdgeInsets.fromLTRB(12, 33, 12, 42),
+          padding: padding ?? const EdgeInsets.fromLTRB(8, 32, 8, 42),
           child: Column(
             children: [
               Row(

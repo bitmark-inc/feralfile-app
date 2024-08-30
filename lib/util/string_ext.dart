@@ -151,6 +151,8 @@ extension StringExtension on String {
 
   String get hexToDecimal => BigInt.parse(this, radix: 16).toString();
 
+  bool get isDecimal => RegExp(r'^[0-9]+$').hasMatch(this);
+
   bool get isHex {
     String hexString = this;
     if (hexString.startsWith('0x')) {

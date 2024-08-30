@@ -30,7 +30,7 @@ on:
         description: Using testnet (Default staging)
 jobs:
   build:
-    runs-on: [self-hosted, macOS, macm2, android]
+    runs-on: [ self-hosted, macOS, macm2, android ]
     steps:
       - name: Extract Build number for Testnet
         id: extract-version-testnet
@@ -57,7 +57,7 @@ jobs:
           java-version: "17"
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.22.1"
+          flutter-version: "3.24.0"
           channel: stable
       - name: Set env
         run: |

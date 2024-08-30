@@ -13,19 +13,20 @@ import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
-import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/settings/forget_exist/forget_exist_state.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
+import 'package:autonomy_flutter/service/announcement/announcement_store.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
-import 'package:autonomy_flutter/service/autonomy_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/hive_store_service.dart';
 import 'package:autonomy_flutter/service/keychain_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/shared.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration/migration_util.dart';
 import 'package:autonomy_flutter/util/notification_util.dart';
-import 'package:flutter/material.dart';
+import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:nft_collection/database/nft_collection_database.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -33,7 +34,6 @@ import 'package:package_info_plus/package_info_plus.dart';
 class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
   final AuthService _authService;
   final AccountService _accountService;
-  final AutonomyService _autonomyService;
   final IAPApi _iapApi;
   final CloudDatabase _cloudDatabase;
   final AppDatabase _appDatabase;
@@ -44,7 +44,6 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
   ForgetExistBloc(
     this._authService,
     this._accountService,
-    this._autonomyService,
     this._iapApi,
     this._cloudDatabase,
     this._appDatabase,
@@ -61,12 +60,15 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
 
       unawaited(_addressService.clearPrimaryAddress());
       unawaited(deregisterPushNotification());
-      await _autonomyService.clearLinkedAddresses();
       PackageInfo packageInfo = await PackageInfo.fromPlatform();
       String? deviceId = await MigrationUtil.getBackupDeviceID();
       final requester = '${deviceId}_${packageInfo.packageName}';
-      await _iapApi.deleteAllProfiles(requester);
-      await _iapApi.deleteUserData();
+      try {
+        await _iapApi.deleteAllProfiles(requester);
+        await _iapApi.deleteUserData();
+      } catch (e) {
+        log.info('Error when delete all profiles: $e');
+      }
 
       final List<Persona> personas =
           await _cloudDatabase.personaDao.getPersonas();
@@ -82,6 +84,8 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
       await DefaultCacheManager().emptyCache();
       await injector<KeychainService>().clearKeychainItems();
       await injector<AccountService>().deleteAllKeys();
+      await injector<HiveStoreObjectService<CanvasDevice>>().clear();
+      await injector<AnnouncementStore>().clear();
 
       await FileLogger.clear();
       await SentryBreadcrumbLogger.clear();
@@ -90,11 +94,7 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
       unawaited(injector<CacheManager>().emptyCache());
       unawaited(DefaultCacheManager().emptyCache());
       unawaited(injector<MetricClientService>().mixPanelClient.reset());
-      memoryValues = MemoryValues(
-        branchDeeplinkData: ValueNotifier(null),
-        deepLink: ValueNotifier(null),
-        irlLink: ValueNotifier(null),
-      );
+      memoryValues = MemoryValues();
 
       emit(ForgetExistState(state.isChecked, false));
     });

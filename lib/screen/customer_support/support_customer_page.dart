@@ -43,12 +43,6 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
     super.initState();
     unawaited(_fetchCustomerSupportAvailability());
     unawaited(injector<CustomerSupportService>().getIssues());
-    unawaited(fetchAnnouncements());
-  }
-
-  Future<void> fetchAnnouncements() async {
-    await injector<CustomerSupportService>().fetchAnnouncement();
-    await injector<CustomerSupportService>().getIssuesAndAnnouncement();
   }
 
   Future<void> _fetchCustomerSupportAvailability() async {
@@ -67,7 +61,7 @@ class _SupportCustomerPageState extends State<SupportCustomerPage>
 
   @override
   void didPopNext() {
-    unawaited(injector<CustomerSupportService>().getIssuesAndAnnouncement());
+    unawaited(injector<CustomerSupportService>().getIssues());
     super.didPopNext();
   }
 

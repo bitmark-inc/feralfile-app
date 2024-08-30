@@ -65,9 +65,6 @@ class PreferenceView extends StatelessWidget {
               final newState = state.copyWith(
                   isNotificationEnabled: value, hasPendingSettings: false);
               final configService = injector<ConfigurationService>();
-              if (value) {
-                configService.showNotifTip.value = false;
-              }
               unawaited(configService.setPendingSettings(false));
               context
                   .read<PreferencesBloc>()

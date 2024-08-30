@@ -4,9 +4,9 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/display_instruction_view.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/stream_common_widget.dart';
@@ -64,22 +64,26 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
               Row(
                 children: [
                   Expanded(
-                    child: RichText(
-                      text: TextSpan(
-                        children: <TextSpan>[
-                          TextSpan(
-                            text: 'display'.tr(),
-                            style: theme.textTheme.ppMori700White24,
-                          ),
-                          if (connectedDevice != null)
-                            TextSpan(
-                              text: ' ${connectedDevice.name}',
-                              style: theme.textTheme.ppMori400White24,
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
+                      child: (connectedDevice != null)
+                          ? RichText(
+                              text: TextSpan(
+                                style: theme.textTheme.ppMori700White24,
+                                children: <TextSpan>[
+                                  TextSpan(
+                                    text: 'display'.tr(),
+                                  ),
+                                  TextSpan(
+                                    text: ' ${connectedDevice.name}',
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.w400),
+                                  )
+                                ],
+                              ),
+                            )
+                          : Text(
+                              'display_art'.tr(),
+                              style: theme.textTheme.ppMori700White24,
+                            )),
                   IconButton(
                     onPressed: () => Navigator.pop(context),
                     icon: Padding(
@@ -114,6 +118,7 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
                                   log.info(
                                       'device selected: ${device.deviceId}');
                                   widget.onDeviceSelected?.call(device);
+                                  Navigator.pop(context);
                                 }),
                             backgroundColor: connectedDevice == null
                                 ? AppColor.white
@@ -162,9 +167,10 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
                   ),
                   const SizedBox(height: 30),
                 ],
-                _instructionView(context),
-              ] else
+              ] else ...[
+                const SizedBox(height: 20),
                 _instructionDetailWidget(context),
+              ],
               const SizedBox(height: 10),
             ],
           ),
@@ -175,30 +181,34 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
 
   Widget _instructionDetailWidget(BuildContext context) =>
       DisplayInstructionView(
-        onScanQRTap: () async {
-          await _scanToAddMore(context);
-        },
+        onScanQRTap: _scanToAddMore,
       );
 
-  Widget _instructionView(BuildContext context) => SectionExpandedWidget(
-        header: 'instructions'.tr(),
-        child: _instructionDetailWidget(context),
-      );
+  Future<void> _scanToAddMore() async {
+    injector<NavigationService>().hideInfoDialog();
+    final device =
+        await injector<NavigationService>().navigateTo(AppRouter.scanQRPage,
+            arguments: ScanQRPagePayload(
+                scannerItem: ScannerItem.CANVAS,
+                onHandleFinished: (device) {
+                  if (device is CanvasDevice) {
+                    widget.onDeviceSelected?.call(device);
+                    injector
+                        .get<CanvasDeviceBloc>()
+                        .add(CanvasDeviceGetDevicesEvent());
+                  }
+                }));
+    log.info('device selected: $device');
+    if (device != null) {
+      injector.get<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent());
+    }
+  }
 
   void onRotate(BuildContext context) {
     final lastSelectedCanvasDevice = _canvasDeviceBloc.state
         .lastSelectedActiveDeviceForKey(widget.displayKey!);
     if (lastSelectedCanvasDevice != null) {
       _canvasDeviceBloc.add(CanvasDeviceRotateEvent(lastSelectedCanvasDevice));
-    }
-  }
-
-  Future<void> _scanToAddMore(BuildContext context) async {
-    final device = await Navigator.of(context)
-        .pushNamed(AppRouter.scanQRPage, arguments: ScannerItem.CANVAS);
-    log.info('device selected: $device');
-    if (device != null) {
-      _canvasDeviceBloc.add(CanvasDeviceGetDevicesEvent());
     }
   }
 

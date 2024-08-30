@@ -21,7 +21,6 @@ Issue _$IssueFromJson(Map<String, dynamic> json) => Issue(
           ? null
           : Message.fromJson(json['first_message'] as Map<String, dynamic>),
       rating: json['rating'] as int,
-      announcementID: json['announcement_context_id'] as String?,
     );
 
 Map<String, dynamic> _$IssueToJson(Issue instance) => <String, dynamic>{
@@ -35,7 +34,6 @@ Map<String, dynamic> _$IssueToJson(Issue instance) => <String, dynamic>{
       'rating': instance.rating,
       'last_message': instance.lastMessage,
       'first_message': instance.firstMessage,
-      'announcement_context_id': instance.announcementID,
     };
 
 SendAttachment _$SendAttachmentFromJson(Map<String, dynamic> json) =>
