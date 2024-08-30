@@ -3,13 +3,11 @@ import 'dart:math';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_list_response.dart';
-import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/gallery/gallery_page.dart';
-import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/playlist_ext.dart';
@@ -17,6 +15,7 @@ import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/loading.dart';
 import 'package:autonomy_flutter/view/stream_common_widget.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -38,7 +37,6 @@ class FeaturedWorkViewState extends State<FeaturedWorkView> {
   List<AssetToken>? _featureTokens;
   final Map<String, Size> _imageSize = {};
   late CanvasDeviceBloc _canvasDeviceBloc;
-  final _canvasClientServiceV2 = injector<CanvasClientServiceV2>();
   late ScrollController _scrollController;
   late Paging _paging;
   bool _isLoading = false;
@@ -383,9 +381,6 @@ class FeaturedWorkViewState extends State<FeaturedWorkView> {
   }
 
   void _gotoArtworkDetails(BuildContext context, AssetToken token) {
-    final playlist = PlayListModel(
-      tokenIDs: widget.tokenIDs,
-    );
     unawaited(Navigator.of(context).pushNamed(
       AppRouter.artworkDetailsPage,
       arguments: ArtworkDetailPayload(
@@ -396,7 +391,6 @@ class FeaturedWorkViewState extends State<FeaturedWorkView> {
           ),
         ],
         0,
-        playlist: playlist,
         isLocalToken: false,
       ),
     ));
@@ -412,8 +406,13 @@ class FeaturedWorkViewState extends State<FeaturedWorkView> {
     final lastSelectedCanvasDevice =
         _canvasDeviceBloc.state.lastSelectedActiveDeviceForKey(displayKey);
     if (lastSelectedCanvasDevice != null) {
-      return _canvasClientServiceV2.moveToArtwork(lastSelectedCanvasDevice,
-          artworkId: assetToken.id);
+      final artwork = PlayArtworkV2(
+        token: CastAssetToken(id: assetToken.id),
+        duration: 0,
+      );
+      _canvasDeviceBloc.add(CanvasDeviceCastListArtworkEvent(
+          lastSelectedCanvasDevice, [artwork]));
+      return Future.value(true);
     }
     return Future.value(false);
   }
