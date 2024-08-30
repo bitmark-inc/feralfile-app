@@ -13,6 +13,8 @@ abstract class HiveStoreObjectService<T> {
   T? get(String objId);
 
   List<T> getAll();
+
+  Future<void> clear();
 }
 
 class HiveStoreObjectServiceImpl<T> implements HiveStoreObjectService<T> {
@@ -46,5 +48,11 @@ class HiveStoreObjectServiceImpl<T> implements HiveStoreObjectService<T> {
     } catch (e) {
       log.info('Hive error saving object to Hive: $e');
     }
+  }
+
+  @override
+  Future<void> clear() async {
+    await _box.clear();
+    log.info('Hive cleared ${_box.name}');
   }
 }
