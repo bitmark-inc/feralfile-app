@@ -87,42 +87,47 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
     bool subDescFixedSized = true,
   }) {
     final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 15),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            height: 59,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 15),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                height: 59,
+              ),
+              Text(
+                title,
+                style: theme.textTheme.ppMori700Black36.copyWith(
+                  color: AppColor.white,
+                ),
+              ),
+              Container(
+                height: 30,
+              ),
+              Text(
+                desc,
+                style: theme.textTheme.ppMori700White18.copyWith(
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+            ],
           ),
-          Text(
-            title,
-            style: theme.textTheme.ppMori700Black36.copyWith(
-              color: AppColor.white,
-            ),
-          ),
-          Container(
-            height: 30,
-          ),
-          Text(
-            desc,
-            style: theme.textTheme.ppMori700White18.copyWith(
-              fontWeight: FontWeight.w400,
-            ),
-          ),
-          if (subDescFixedSized) ...[
-            const Spacer(),
-            SizedBox(
-              height: 514,
-              child: subDesc,
-            )
-          ] else ...[
-            Expanded(
-              child: subDesc,
-            )
-          ],
+        ),
+        if (subDescFixedSized) ...[
+          const Spacer(),
+          SizedBox(
+            height: 514,
+            child: subDesc,
+          )
+        ] else ...[
+          Expanded(
+            child: subDesc,
+          )
         ],
-      ),
+      ],
     );
   }
 
@@ -242,7 +247,7 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
               : 'you_received_premium_desc'.tr(),
           subDescFixedSized: false,
           subDesc: Padding(
-            padding: const EdgeInsets.only(top: 30),
+            padding: const EdgeInsets.only(top: 30, right: 15, left: 15),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
