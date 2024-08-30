@@ -173,7 +173,8 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
                           (isSubscribed && _selectedMembershipCardType == null);
                   log.info('Onboarding: isSubscribed: $isSubscribed, '
                       'renewDate: $renewDate,'
-                      'shouldShowReceivedPremium: $shouldShowReceivedPremium');
+                      'shouldShowReceivedPremium: $shouldShowReceivedPremium'
+                      'source: ${subscriptionState.membershipSource}');
                   final didUserBuy = subscriptionState.membershipSource ==
                           MembershipSource.purchase ||
                       subscriptionState.membershipSource ==
