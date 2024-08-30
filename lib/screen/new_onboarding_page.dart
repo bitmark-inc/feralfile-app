@@ -87,39 +87,42 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
     bool subDescFixedSized = true,
   }) {
     final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          height: 59,
-        ),
-        Text(
-          title,
-          style: theme.textTheme.ppMori700Black36.copyWith(
-            color: AppColor.white,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 15),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            height: 59,
           ),
-        ),
-        Container(
-          height: 30,
-        ),
-        Text(
-          desc,
-          style: theme.textTheme.ppMori700White18.copyWith(
-            fontWeight: FontWeight.w400,
+          Text(
+            title,
+            style: theme.textTheme.ppMori700Black36.copyWith(
+              color: AppColor.white,
+            ),
           ),
-        ),
-        if (subDescFixedSized) ...[
-          const Spacer(),
-          SizedBox(
-            height: 514,
-            child: subDesc,
-          )
-        ] else ...[
-          Expanded(
-            child: subDesc,
-          )
+          Container(
+            height: 30,
+          ),
+          Text(
+            desc,
+            style: theme.textTheme.ppMori700White18.copyWith(
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+          if (subDescFixedSized) ...[
+            const Spacer(),
+            SizedBox(
+              height: 514,
+              child: subDesc,
+            )
+          ] else ...[
+            Expanded(
+              child: subDesc,
+            )
+          ],
         ],
-      ],
+      ),
     );
   }
 
@@ -139,93 +142,90 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
                 : Container(),
           ));
 
-  Widget _membershipCards(BuildContext context) => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 15),
-        child: ValueListenableBuilder<bool?>(
-          builder: (context, value, child) {
-            final didOpenWithGiftMembership = value;
-            return BlocConsumer<UpgradesBloc, UpgradeState>(
-                bloc: _upgradeBloc,
-                listenWhen: (previous, current) =>
-                    previous.activeSubscriptionDetails.firstOrNull?.status !=
-                    current.activeSubscriptionDetails.firstOrNull?.status,
-                listener: (context, subscriptionState) async {
-                  final subscriptionDetail =
-                      subscriptionState.activeSubscriptionDetails.firstOrNull;
-                  final status = subscriptionDetail?.status;
-                  log.info('Onboarding: upgradeState: $status');
-                  switch (status) {
-                    case IAPProductStatus.completed:
-                      _goToHomePage(context);
-                    default:
-                      break;
-                  }
-                },
-                builder: (context, subscriptionState) {
-                  final subscriptionDetails =
-                      subscriptionState.activeSubscriptionDetails.firstOrNull;
-                  final isSubscribed =
-                      subscriptionDetails?.status == IAPProductStatus.completed;
-                  final renewDate = subscriptionDetails?.renewDate;
+  Widget _membershipCards(BuildContext context) =>
+      ValueListenableBuilder<bool?>(
+        builder: (context, value, child) {
+          final didOpenWithGiftMembership = value;
+          return BlocConsumer<UpgradesBloc, UpgradeState>(
+              bloc: _upgradeBloc,
+              listenWhen: (previous, current) =>
+                  previous.activeSubscriptionDetails.firstOrNull?.status !=
+                  current.activeSubscriptionDetails.firstOrNull?.status,
+              listener: (context, subscriptionState) async {
+                final subscriptionDetail =
+                    subscriptionState.activeSubscriptionDetails.firstOrNull;
+                final status = subscriptionDetail?.status;
+                log.info('Onboarding: upgradeState: $status');
+                switch (status) {
+                  case IAPProductStatus.completed:
+                    _goToHomePage(context);
+                  default:
+                    break;
+                }
+              },
+              builder: (context, subscriptionState) {
+                final subscriptionDetails =
+                    subscriptionState.activeSubscriptionDetails.firstOrNull;
+                final isSubscribed =
+                    subscriptionDetails?.status == IAPProductStatus.completed;
+                final renewDate = subscriptionDetails?.renewDate;
 
-                  final shouldShowReceivedPremium =
-                      didOpenWithGiftMembership == true ||
-                          (isSubscribed && _selectedMembershipCardType == null);
-                  log.info('Onboarding: isSubscribed: $isSubscribed, '
-                      'renewDate: $renewDate,'
-                      'shouldShowReceivedPremium: $shouldShowReceivedPremium'
-                      'source: ${subscriptionState.membershipSource}');
-                  final didUserBuy = subscriptionState.membershipSource ==
-                          MembershipSource.purchase ||
-                      subscriptionState.membershipSource ==
-                          MembershipSource.preset;
-                  if (shouldShowReceivedPremium) {
-                    return _receivedPremiumCard(
-                        context, subscriptionDetails, didUserBuy);
-                  }
+                final shouldShowReceivedPremium =
+                    didOpenWithGiftMembership == true ||
+                        (isSubscribed && _selectedMembershipCardType == null);
+                log.info('Onboarding: isSubscribed: $isSubscribed, '
+                    'renewDate: $renewDate,'
+                    'shouldShowReceivedPremium: $shouldShowReceivedPremium'
+                    'source: ${subscriptionState.membershipSource}');
+                final didUserBuy = subscriptionState.membershipSource ==
+                        MembershipSource.purchase ||
+                    subscriptionState.membershipSource ==
+                        MembershipSource.preset;
+                if (shouldShowReceivedPremium) {
+                  return _receivedPremiumCard(
+                      context, subscriptionDetails, didUserBuy);
+                }
 
-                  return _onboardingItemWidget(
-                    context,
-                    title: 'membership'.tr(),
-                    desc: 'membership_desc'.tr(),
-                    subDesc: Column(
-                      children: [
-                        if (!isSubscribed)
-                          MembershipCard(
-                            type: MembershipCardType.essential,
-                            price: _getEssentialPrice(subscriptionDetails),
-                            isProcessing: _selectedMembershipCardType ==
-                                    MembershipCardType.essential &&
-                                subscriptionDetails?.status ==
-                                    IAPProductStatus.pending,
-                            isEnable: true,
-                            onTap: (type) {
-                              _selectMembershipType(type);
-                              _goToHomePage(context);
-                            },
-                          ),
-                        const SizedBox(height: 15),
+                return _onboardingItemWidget(
+                  context,
+                  title: 'membership'.tr(),
+                  desc: 'membership_desc'.tr(),
+                  subDesc: Column(
+                    children: [
+                      if (!isSubscribed)
                         MembershipCard(
-                          type: MembershipCardType.premium,
-                          price: _getPremiumPrice(subscriptionDetails),
+                          type: MembershipCardType.essential,
+                          price: _getEssentialPrice(subscriptionDetails),
                           isProcessing: _selectedMembershipCardType ==
-                                  MembershipCardType.premium &&
+                                  MembershipCardType.essential &&
                               subscriptionDetails?.status ==
                                   IAPProductStatus.pending,
                           isEnable: true,
-                          onTap: (type) async {
+                          onTap: (type) {
                             _selectMembershipType(type);
-                            _upgradePurchase(subscriptionDetails);
+                            _goToHomePage(context);
                           },
                         ),
-                      ],
-                    ),
-                  );
-                });
-          },
-          valueListenable:
-              injector<DeeplinkService>().didOpenWithGiftMembership,
-        ),
+                      const SizedBox(height: 15),
+                      MembershipCard(
+                        type: MembershipCardType.premium,
+                        price: _getPremiumPrice(subscriptionDetails),
+                        isProcessing: _selectedMembershipCardType ==
+                                MembershipCardType.premium &&
+                            subscriptionDetails?.status ==
+                                IAPProductStatus.pending,
+                        isEnable: true,
+                        onTap: (type) async {
+                          _selectMembershipType(type);
+                          _upgradePurchase(subscriptionDetails);
+                        },
+                      ),
+                    ],
+                  ),
+                );
+              });
+        },
+        valueListenable: injector<DeeplinkService>().didOpenWithGiftMembership,
       );
 
   Widget _receivedPremiumCard(
