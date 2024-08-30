@@ -116,7 +116,7 @@ class MembershipCard extends StatelessWidget {
                             if (renewDate != null) ...[
                               Text(
                                 'renews_'.tr(
-                                  args: [renewDate!],
+                                  namedArgs: {'date': renewDate!},
                                 ),
                                 style: activeTextStyle,
                               ),
