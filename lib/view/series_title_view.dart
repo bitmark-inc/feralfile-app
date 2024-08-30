@@ -1,5 +1,7 @@
 import 'package:autonomy_flutter/model/ff_series.dart';
 import 'package:autonomy_flutter/model/ff_user.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/artist_details/artist_details_page.dart';
 import 'package:autonomy_flutter/util/feralfile_artist_ext.dart';
 import 'package:autonomy_flutter/util/series_ext.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
@@ -19,9 +21,15 @@ class SeriesTitleView extends StatelessWidget {
     return Column(
       crossAxisAlignment: crossAxisAlignment ?? CrossAxisAlignment.start,
       children: [
-        Text(
-          artist?.displayAlias ?? '',
-          style: theme.textTheme.ppMori400White14,
+        GestureDetector(
+          child: Text(
+            artist?.displayAlias ?? '',
+            style: theme.textTheme.ppMori400White14,
+          ),
+          onTap: () async => Navigator.of(context).pushNamed(
+            AppRouter.userDetailsPage,
+            arguments: UserDetailsPagePayload(userId: series.artistID),
+          ),
         ),
         const SizedBox(height: 3),
         Text(
