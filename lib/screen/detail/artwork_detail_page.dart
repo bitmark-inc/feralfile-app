@@ -659,11 +659,10 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     final ownerWallet = owner?.first;
     final addressIndex = owner?.second;
     final irlUrl = asset.irlTapLink;
-    final showKeyboard = (_isOpenedWithWebview(asset) ||
-            canvasDeviceState
-                    .lastSelectedActiveDeviceForKey(_getDisplayKey(asset)) !=
-                null) &&
-        !asset.isPostcard;
+    final showKeyboard = _isOpenedWithWebview(asset) && !asset.isPostcard;
+    final castingDevice =
+        canvasDeviceState.lastSelectedActiveDeviceForKey(_getDisplayKey(asset));
+    final isCasting = castingDevice != null;
     if (!context.mounted) {
       return;
     }
@@ -679,7 +678,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               Navigator.of(context).pop();
               _setFullScreen();
             }),
-        if (showKeyboard)
+        if (showKeyboard && !isCasting)
           OptionItem(
             title: 'interact'.tr(),
             icon: SvgPicture.asset('assets/images/keyboard_icon.svg'),
