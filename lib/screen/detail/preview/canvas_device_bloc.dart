@@ -505,4 +505,10 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
       } catch (_) {}
     });
   }
+
+  void clear() {
+    state.devices.clear();
+    state.canvasDeviceStatus.clear();
+    state.lastSelectedActiveDeviceMap.clear();
+  }
 }
