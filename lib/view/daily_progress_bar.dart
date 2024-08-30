@@ -20,6 +20,14 @@ class ProgressBarState extends State<ProgressBar> {
   }
 
   @override
+  void didUpdateWidget(ProgressBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    setState(() {
+      _progress = widget.progress;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) => SizedBox(
         height: 1,
         child: LinearProgressIndicator(
