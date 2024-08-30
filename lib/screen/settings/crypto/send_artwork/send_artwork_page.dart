@@ -265,14 +265,17 @@ class _SendArtworkPageState extends State<SendArtworkPage> {
                                               AddressChangedEvent('', index));
                                           _initialChangeAddress = true;
                                         } else {
-                                          dynamic address = await Navigator.of(
-                                                  context)
-                                              .pushNamed(AppRouter.scanQRPage,
-                                                  arguments: asset.blockchain ==
-                                                          'ethereum'
+                                          dynamic address =
+                                              await Navigator.of(context)
+                                                  .pushNamed(
+                                            AppRouter.scanQRPage,
+                                            arguments: ScanQRPagePayload(
+                                              scannerItem:
+                                                  asset.blockchain == 'ethereum'
                                                       ? ScannerItem.ETH_ADDRESS
-                                                      : ScannerItem
-                                                          .XTZ_ADDRESS);
+                                                      : ScannerItem.XTZ_ADDRESS,
+                                            ),
+                                          );
                                           if (address != null &&
                                               address is String) {
                                             address = address.replacePrefix(

@@ -343,8 +343,14 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
         break;
     }
 
-    unawaited(Navigator.of(context)
-        .popAndPushNamed(AppRouter.scanQRPage, arguments: scanItem));
+    unawaited(
+      Navigator.of(context).popAndPushNamed(
+        AppRouter.scanQRPage,
+        arguments: ScanQRPagePayload(
+          scannerItem: scanItem,
+        ),
+      ),
+    );
   }
 
   void _onRenameTap() {

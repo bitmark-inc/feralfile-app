@@ -121,9 +121,9 @@ extension RouteExt on Route {
           MixpanelProp.address: payload.connection.name
         };
       case AppRouter.scanQRPage:
-        final payload = settings.arguments! as ScannerItem;
+        final payload = settings.arguments! as ScanQRPagePayload;
         data = {
-          MixpanelProp.type: payload.name,
+          MixpanelProp.type: payload.scannerItem.name,
         };
       case AppRouter.globalReceivePage:
         final payload = settings.arguments! as GlobalReceivePayload;
