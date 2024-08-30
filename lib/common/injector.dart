@@ -206,7 +206,7 @@ Future<void> setup() async {
       () => PrimaryAddressChannel());
 
   injector.registerLazySingleton<AddressService>(
-      () => AddressService(injector(), cloudDB, injector()));
+      () => AddressService(injector(), cloudDB));
 
   injector.registerLazySingleton<KeychainService>(() => KeychainService());
 

@@ -20,6 +20,7 @@ import 'package:autonomy_flutter/encrypt_env/secrets.g.dart';
 import 'package:autonomy_flutter/model/announcement/announcement_adapter.dart';
 import 'package:autonomy_flutter/model/eth_pending_tx_amount.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/device_info_service.dart';
@@ -144,7 +145,7 @@ Future<void> _setupApp() async {
   await DeviceInfo.instance.init();
 
   await injector<DeviceInfoService>().init();
-
+  await injector<AddressService>().migrateToEthereumAddress();
   final metricClient = injector.get<MetricClientService>();
   await metricClient.initService();
   await injector<RemoteConfigService>().loadConfigs();

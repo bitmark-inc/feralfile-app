@@ -12,24 +12,37 @@ import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/wallet_address.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/primary_address_channel.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:libauk_dart/libauk_dart.dart';
-import 'package:nft_collection/data/api/indexer_api.dart';
 import 'package:tezart/src/crypto/crypto.dart' as crypto;
 
 class AddressService {
   final PrimaryAddressChannel _primaryAddressChannel;
   final CloudDatabase _cloudDB;
-  final IndexerApi _indexerApi;
 
-  AddressService(this._primaryAddressChannel, this._cloudDB, this._indexerApi);
+  AddressService(this._primaryAddressChannel, this._cloudDB);
 
   Future<AddressInfo?> getPrimaryAddressInfo() async {
     final addressInfo = await _primaryAddressChannel.getPrimaryAddress();
     log.info('[AddressService] Primary address info: ${addressInfo?.toJson()}');
+    return addressInfo;
+  }
+
+  Future<AddressInfo?> migrateToEthereumAddress() async {
+    final currentPrimaryAddress = await getPrimaryAddressInfo();
+    if (currentPrimaryAddress == null || currentPrimaryAddress.isEthereum) {
+      return null;
+    }
+    final allEthAddresses = await getAllEthereumAddress();
+    if (allEthAddresses.isEmpty) {
+      await deriveAddressesFromAllPersona();
+    }
+    final addressInfo = await pickAddressAsPrimary();
+    await registerPrimaryAddress(info: addressInfo);
     return addressInfo;
   }
 
@@ -167,35 +180,30 @@ class AddressService {
     return addresses;
   }
 
+  Future<List<WalletAddress>> getAllEthereumAddress() async {
+    final addresses =
+        await _cloudDB.addressDao.getAddressesByType(CryptoType.ETH.source);
+    addresses.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+    final persona = await _cloudDB.personaDao.getPersonas();
+    persona.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+    final sortedAddresses = <WalletAddress>[];
+    for (final p in persona) {
+      final pAddresses = addresses.where((a) => a.uuid == p.uuid).toList()
+        ..sort((a, b) => a.index.compareTo(b.index));
+      sortedAddresses.addAll(pAddresses);
+    }
+    return sortedAddresses;
+  }
+
   Future<AddressInfo> pickAddressAsPrimary() async {
-    final allAddress = await getAllAddress();
-    if (allAddress.isEmpty) {
+    final ethAddresses = await getAllEthereumAddress();
+    if (ethAddresses.isEmpty) {
       throw UnsupportedError('No address found');
     }
-    final selectedAddress = await pickMostNftAddress(allAddress);
+    final selectedAddress = ethAddresses.first;
     return AddressInfo(
         uuid: selectedAddress.uuid,
         index: selectedAddress.index,
         chain: selectedAddress.cryptoType.toLowerCase());
-  }
-
-  Future<WalletAddress> pickMostNftAddress(
-      List<WalletAddress> addresses) async {
-    WalletAddress? selectedAddress;
-    int maxNumberNft = -1;
-    for (final address in addresses) {
-      final numberNft = await getNumberNft(address.address);
-      if (numberNft > maxNumberNft) {
-        maxNumberNft = numberNft;
-        selectedAddress = address;
-      }
-    }
-    return selectedAddress!;
-  }
-
-  Future<int> getNumberNft(String address) async {
-    final response = await _indexerApi.numberNft(address);
-    final numberNft = response['total'];
-    return numberNft;
   }
 }
