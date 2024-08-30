@@ -64,7 +64,7 @@ class AddressService {
       {required AddressInfo info, bool withDidKey = false}) async {
     await injector<AuthService>().registerPrimaryAddress(
         primaryAddressInfo: info, withDidKey: withDidKey);
-    final res = setPrimaryAddressInfo(info: info);
+    final res = await setPrimaryAddressInfo(info: info);
     if (withDidKey) {
       await injector<MetricClientService>().migrateFromDidKeyToPrimaryAddress();
     }

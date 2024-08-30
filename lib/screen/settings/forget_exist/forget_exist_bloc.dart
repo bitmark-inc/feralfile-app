@@ -20,6 +20,7 @@ import 'package:autonomy_flutter/service/announcement/announcement_store.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/hive_store_service.dart';
+import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/keychain_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/shared.dart';
@@ -86,6 +87,7 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
       await injector<AccountService>().deleteAllKeys();
       await injector<HiveStoreObjectService<CanvasDevice>>().clear();
       await injector<AnnouncementStore>().clear();
+      injector<IAPService>().clearReceipt();
 
       await FileLogger.clear();
       await SentryBreadcrumbLogger.clear();
