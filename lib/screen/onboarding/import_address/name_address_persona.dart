@@ -21,13 +21,6 @@ class NameAddressPersona extends StatefulWidget {
 
 class _NameAddressPersonaState extends State<NameAddressPersona> {
   final TextEditingController _nameController = TextEditingController();
-  bool isSavingAliasDisabled = true;
-
-  void saveAliasButtonChangedState() {
-    setState(() {
-      isSavingAliasDisabled = !isSavingAliasDisabled;
-    });
-  }
 
   @override
   void dispose() {
@@ -54,43 +47,35 @@ class _NameAddressPersonaState extends State<NameAddressPersona> {
             ),
             const SizedBox(height: 10),
             AuTextField(
-                labelSemantics: 'enter_alias_full',
-                title: '',
-                placeholder: 'enter_address'.tr(),
-                controller: _nameController,
-                onChanged: (valueChanged) {
-                  if (_nameController.text.trim().isEmpty !=
-                      isSavingAliasDisabled) {
-                    saveAliasButtonChangedState();
-                  }
-                }),
+              labelSemantics: 'enter_alias_full',
+              title: '',
+              placeholder: 'enter_address'.tr(),
+              controller: _nameController,
+            ),
             const Spacer(),
             Row(
               children: [
                 Expanded(
                   child: PrimaryAsyncButton(
                     text: 'continue'.tr(),
-                    onTap: isSavingAliasDisabled
-                        ? null
-                        : () async {
-                            final accountService = injector<AccountService>();
-                            final listAddressInfo =
-                                widget.payload.listAddressInfo;
-                            final name = _nameController.text.trim();
+                    onTap: () async {
+                      final accountService = injector<AccountService>();
+                      final listAddressInfo = widget.payload.listAddressInfo;
+                      final name = _nameController.text.trim();
 
-                            // update name
-                            await Future.forEach(listAddressInfo,
-                                (AddressInfo addressInfo) async {
-                              final walletAddress = await accountService
-                                  .getAddressPersona(addressInfo.address);
-                              if (walletAddress == null) {
-                                return;
-                              }
-                              await accountService.updateAddressPersona(
-                                  walletAddress.copyWith(name: name));
-                            });
-                            await doneNaming(context);
-                          },
+                      // update name
+                      await Future.forEach(listAddressInfo,
+                          (AddressInfo addressInfo) async {
+                        final walletAddress = await accountService
+                            .getAddressPersona(addressInfo.address);
+                        if (walletAddress == null) {
+                          return;
+                        }
+                        await accountService.updateAddressPersona(
+                            walletAddress.copyWith(name: name));
+                      });
+                      await doneNaming(context);
+                    },
                   ),
                 ),
               ],
