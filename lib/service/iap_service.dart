@@ -101,13 +101,14 @@ class IAPServiceImpl implements IAPService {
   final InAppPurchase _inAppPurchase = InAppPurchase.instance;
   late StreamSubscription<List<PurchaseDetails>> _subscription;
 
+  final List<PurchaseDetails> _purchases = <PurchaseDetails>[];
+
   @override
   ValueNotifier<Map<String, ProductDetails>> products = ValueNotifier({});
   @override
   ValueNotifier<Map<String, IAPProductStatus>> purchases = ValueNotifier({});
   @override
   ValueNotifier<Map<String, DateTime>> trialExpireDates = ValueNotifier({});
-  final List<PurchaseDetails> _purchases = <PurchaseDetails>[];
 
   IAPServiceImpl(this._configurationService, this._authService) {
     unawaited(setup());
@@ -282,8 +283,10 @@ class IAPServiceImpl implements IAPService {
             if (status.isTrial) {
               purchases.value[purchaseDetails.productID] =
                   IAPProductStatus.trial;
-              trialExpireDates.value[purchaseDetails.productID] =
-                  status.expireDate;
+              if (status.expireDate != null) {
+                trialExpireDates.value[purchaseDetails.productID] =
+                    status.expireDate!;
+              }
             } else {
               purchases.value[purchaseDetails.productID] =
                   IAPProductStatus.completed;

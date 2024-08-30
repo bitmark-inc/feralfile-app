@@ -86,27 +86,64 @@ class JWT {
     final membershipType =
         MembershipType.fromString(claim['membership'] as String);
     final isTrial = (claim['trial'] as bool?) == true;
-    final exp = (claim['exp'] ?? 0) as int;
+    final exp = (claim['membershipExpiry'] ?? 0) as int;
+    final source =
+        MembershipSource.fromString((claim['source'] ?? '') as String);
     final expDate = DateTime.fromMillisecondsSinceEpoch(exp * 1000);
     return SubscriptionStatus(
-        membership: membershipType, isTrial: isTrial, expireDate: expDate);
+        membership: membershipType,
+        isTrial: isTrial,
+        expireDate: expDate,
+        source: source);
   }
 
   @override
   String toString() => jwtToken;
 }
 
+enum MembershipSource {
+  purchase,
+  giftCode,
+  preset;
+
+  String get name {
+    switch (this) {
+      case MembershipSource.purchase:
+        return 'purchase';
+      case MembershipSource.giftCode:
+        return 'gift_code';
+      case MembershipSource.preset:
+        return 'preset';
+    }
+  }
+
+  static MembershipSource fromString(String name) {
+    switch (name) {
+      case 'purchase':
+        return MembershipSource.purchase;
+      case 'gift_code':
+        return MembershipSource.giftCode;
+      case 'preset':
+        return MembershipSource.preset;
+      default:
+        return MembershipSource.purchase;
+    }
+  }
+}
+
 class SubscriptionStatus {
   final MembershipType membership;
   final bool isTrial;
-  final DateTime expireDate;
+  final MembershipSource source;
+  final DateTime? expireDate;
 
   SubscriptionStatus(
       {required this.membership,
       required this.isTrial,
-      required this.expireDate});
+      required this.source,
+      this.expireDate});
 
-  bool _isExpired() => expireDate.isBefore(DateTime.now());
+  bool _isExpired() => expireDate?.isBefore(DateTime.now()) ?? true;
 
   bool get isPremium => membership == MembershipType.premium && !_isExpired();
 
