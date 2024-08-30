@@ -186,28 +186,30 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
               Navigator.of(context).popAndPushNamed(AppRouter.projectsList);
             },
           ),
-          // collection
-          OptionItem(
-            title: 'collection'.tr(),
-            icon: const Icon(
-              AuIcon.playlists,
+          if (nftBloc.state.tokens.isNotEmpty) ...[
+            // collection
+            OptionItem(
+              title: 'collection'.tr(),
+              icon: const Icon(
+                AuIcon.playlists,
+              ),
+              onTap: () {
+                Navigator.of(context).popAndPushNamed(AppRouter.collectionPage);
+              },
             ),
-            onTap: () {
-              Navigator.of(context).popAndPushNamed(AppRouter.collectionPage);
-            },
-          ),
-          // organize
-          OptionItem(
-            title: 'organize'.tr(),
-            icon: SvgPicture.asset(
-              'assets/images/set_icon.svg',
-              colorFilter:
-                  const ColorFilter.mode(AppColor.white, BlendMode.srcIn),
+            // organize
+            OptionItem(
+              title: 'organize'.tr(),
+              icon: SvgPicture.asset(
+                'assets/images/set_icon.svg',
+                colorFilter:
+                    const ColorFilter.mode(AppColor.white, BlendMode.srcIn),
+              ),
+              onTap: () {
+                Navigator.of(context).popAndPushNamed(AppRouter.organizePage);
+              },
             ),
-            onTap: () {
-              Navigator.of(context).popAndPushNamed(AppRouter.organizePage);
-            },
-          ),
+          ],
           OptionItem(
             title: 'scan'.tr(),
             icon: const Icon(
