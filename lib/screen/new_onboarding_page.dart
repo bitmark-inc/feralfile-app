@@ -9,7 +9,6 @@ import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/product_details_ext.dart';
 import 'package:autonomy_flutter/util/subscription_detail_ext.dart';
-import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/membership_card.dart';
 import 'package:card_swiper/card_swiper.dart';
@@ -148,9 +147,6 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
               switch (status) {
                 case IAPProductStatus.completed:
                   _goToHomePage(context);
-                  Future.delayed(const Duration(seconds: 2), () {
-                    UIHelper.showUpgradedNotification();
-                  });
                 default:
                   break;
               }
