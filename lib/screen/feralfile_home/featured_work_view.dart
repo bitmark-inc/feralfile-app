@@ -17,6 +17,7 @@ import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/loading.dart';
 import 'package:autonomy_flutter/view/stream_common_widget.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -50,6 +51,7 @@ class FeaturedWorkViewState extends State<FeaturedWorkView> {
     _scrollController = ScrollController();
     _canvasDeviceBloc = injector<CanvasDeviceBloc>();
     _paging = Paging(offset: 0, limit: 5, total: widget.tokenIDs.length);
+    log.info('paging initState: ${_paging.offset}');
     unawaited(_fetchFeaturedTokens(context, _paging));
     _scrollController.addListener(() {
       if (_scrollController.position.pixels + 100 >
@@ -62,7 +64,7 @@ class FeaturedWorkViewState extends State<FeaturedWorkView> {
   @override
   void didUpdateWidget(covariant FeaturedWorkView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.tokenIDs != widget.tokenIDs) {
+    if (!listEquals(oldWidget.tokenIDs, widget.tokenIDs)) {
       _paging = Paging(offset: 0, limit: 5, total: widget.tokenIDs.length);
       _isLoading = false;
       unawaited(_fetchFeaturedTokens(context, _paging));
