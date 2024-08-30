@@ -137,7 +137,8 @@ class DailyWorkPageState extends State<DailyWorkPage>
 
   void updateProgressStatus() {
     _progressTimer?.cancel();
-    _progressTimer = Timer(const Duration(seconds: 5), () {
+    // Update After Each 5 Minutes
+    _progressTimer = Timer(const Duration(seconds: 300), () {
       setState(() {
         _remainingDuration = _calcRemainingDuration;
       });
