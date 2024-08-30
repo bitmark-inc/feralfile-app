@@ -1,4 +1,6 @@
 import 'package:autonomy_flutter/model/ff_artwork.dart';
+import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/artist_details/artist_details_page.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/feralfile_artist_ext.dart';
 import 'package:autonomy_flutter/util/series_ext.dart';
@@ -24,9 +26,15 @@ class ArtworkTitleView extends StatelessWidget {
     return Column(
       crossAxisAlignment: crossAxisAlignment ?? CrossAxisAlignment.start,
       children: [
-        Text(
-          artwork.series!.artist?.displayAlias ?? '',
-          style: theme.textTheme.ppMori400White14,
+        GestureDetector(
+          child: Text(
+            artwork.series!.artist?.displayAlias ?? '',
+            style: theme.textTheme.ppMori400White14,
+          ),
+          onTap: () async => Navigator.of(context).pushNamed(
+            AppRouter.userDetailsPage,
+            arguments: UserDetailsPagePayload(userId: artwork.series!.artistID),
+          ),
         ),
         const SizedBox(height: 3),
         Text(
