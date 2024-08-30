@@ -328,8 +328,8 @@ class _FeralFileArtworkPreviewPageState
         canvasDeviceState.canvasDeviceStatus[castingDevice?.deviceId];
     final isCastingThisArtwork =
         castingDevice != null && status?.catalogId == artwork.id;
-    final showKeyboard = renderingType == RenderingType.webview ||
-        isCastingThisArtwork; // show keyboard for webview
+    final showKeyboard =
+        renderingType == RenderingType.webview; // show keyboard for webview
     if (!context.mounted) {
       return;
     }
@@ -344,7 +344,7 @@ class _FeralFileArtworkPreviewPageState
               Navigator.of(context).pop();
               _setFullScreen();
             }),
-        if (showKeyboard)
+        if (showKeyboard && !isCastingThisArtwork)
           OptionItem(
             title: 'interact'.tr(),
             icon: SvgPicture.asset('assets/images/keyboard_icon.svg'),
