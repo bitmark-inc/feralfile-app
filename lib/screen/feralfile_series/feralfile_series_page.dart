@@ -55,7 +55,7 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
           offset: pageKey,
           // ignore: avoid_redundant_argument_values
           limit: _pageSize);
-      final isLastPage = !newItems.paging.shouldLoadMore;
+      final isLastPage = !(newItems.paging?.shouldLoadMore ?? false);
       if (isLastPage) {
         _pagingController.appendLastPage(newItems.result);
       } else {
@@ -132,8 +132,8 @@ class _FeralFileSeriesPageState extends State<FeralFileSeriesPage> {
             builderDelegate: PagedChildBuilderDelegate<Artwork>(
               itemBuilder: (context, artwork, index) => FFArtworkThumbnailView(
                 artwork: artwork,
-                cacheWidth: cacheWidth,
-                cacheHeight: cacheHeight,
+                // cacheWidth: cacheWidth,
+                // cacheHeight: cacheHeight,
                 onTap: () async {
                   final displayKey = series.displayKey;
                   final lastSelectedCanvasDevice = _canvasDeviceBloc.state

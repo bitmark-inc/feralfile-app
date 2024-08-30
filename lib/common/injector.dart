@@ -28,6 +28,7 @@ import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
 import 'package:autonomy_flutter/screen/chat/chat_bloc.dart';
 import 'package:autonomy_flutter/screen/collection_pro/collection_pro_bloc.dart';
+import 'package:autonomy_flutter/screen/dailies_work/dailies_work_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibitions/exhibitions_bloc.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/claim_empty_postcard/claim_empty_postcard_bloc.dart';
@@ -35,6 +36,7 @@ import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playl
 import 'package:autonomy_flutter/screen/playlists/edit_playlist/edit_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/predefined_collection/predefined_collection_bloc.dart';
+import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
@@ -255,8 +257,14 @@ Future<void> setup() async {
   injector.registerLazySingleton<IAPService>(
       () => IAPServiceImpl(injector(), injector()));
 
-  injector.registerLazySingleton(() =>
-      TvCastApi(tvCastDio(dioOptions), baseUrl: Environment.tvCastApiUrl));
+  injector.registerLazySingleton(() => TvCastApi(
+      tvCastDio(
+        dioOptions.copyWith(
+          receiveTimeout: const Duration(seconds: 10),
+          connectTimeout: const Duration(seconds: 10),
+        ),
+      ),
+      baseUrl: Environment.tvCastApiUrl));
   injector.registerLazySingleton(() => Wc2Service(
         injector(),
         injector(),
@@ -400,14 +408,18 @@ Future<void> setup() async {
       ));
   injector.registerLazySingleton<CanvasDeviceBloc>(
       () => CanvasDeviceBloc(injector()));
-  injector
-      .registerLazySingleton<ExhibitionBloc>(() => ExhibitionBloc(injector()));
+  injector.registerFactory<ExhibitionBloc>(() => ExhibitionBloc(injector()));
   injector.registerLazySingleton<SubscriptionBloc>(
       () => SubscriptionBloc(injector()));
+  injector.registerLazySingleton<DailyWorkBloc>(
+      () => DailyWorkBloc(injector(), injector()));
 
   injector.registerLazySingleton<AnnouncementStore>(() => AnnouncementStore());
   await injector<AnnouncementStore>().init('');
 
   injector.registerLazySingleton<AnnouncementService>(
       () => AnnouncementServiceImpl(injector(), injector(), injector()));
+
+  injector.registerLazySingleton<UpgradesBloc>(
+      () => UpgradesBloc(injector(), injector()));
 }

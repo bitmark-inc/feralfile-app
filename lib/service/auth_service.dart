@@ -60,15 +60,8 @@ class AuthService {
       'signature': signature,
     };
 
-    late String? savedReceiptData;
     if (receiptData != null) {
-      savedReceiptData = receiptData;
-    } else {
-      savedReceiptData = _configurationService.getIAPReceipt();
-    }
-
-    // add the receipt data if available
-    if (savedReceiptData != null) {
+      // add the receipt data if available
       final String platform;
       if (Platform.isIOS) {
         platform = 'apple';
@@ -76,7 +69,7 @@ class AuthService {
         platform = 'google';
       }
       payload.addAll({
-        'receipt': {'platform': platform, 'receipt_data': savedReceiptData}
+        'receipt': {'platform': platform, 'receipt_data': receiptData}
       });
     }
 

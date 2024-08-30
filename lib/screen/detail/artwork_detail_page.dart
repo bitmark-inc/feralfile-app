@@ -17,8 +17,6 @@ import 'package:autonomy_flutter/model/sent_artwork.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
-import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
-import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_state.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
@@ -42,6 +40,7 @@ import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/cast_button.dart';
+import 'package:autonomy_flutter/view/loading.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/stream_common_widget.dart';
@@ -291,7 +290,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
       context.read<IdentityBloc>().add(GetIdentityEvent(identitiesList));
     }, builder: (context, state) {
       if (state.assetToken == null) {
-        return const SizedBox();
+        return const LoadingWidget();
       }
       final identityState = context.watch<IdentityBloc>().state;
       final asset = state.assetToken!;
@@ -337,45 +336,39 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                           centerTitle: false,
                           backgroundColor: Colors.transparent,
                           actions: [
-                            BlocBuilder<SubscriptionBloc, SubscriptionState>(
-                                builder: (context, subscriptionState) {
-                              if (subscriptionState.isSubscribed) {
-                                return FFCastButton(
-                                  displayKey: _getDisplayKey(asset),
-                                  onDeviceSelected: (device) {
-                                    if (widget.payload.playlist == null) {
-                                      final artwork = PlayArtworkV2(
-                                        token: CastAssetToken(id: asset.id),
-                                        duration: 0,
-                                      );
-                                      _canvasDeviceBloc.add(
-                                          CanvasDeviceCastListArtworkEvent(
-                                              device, [artwork]));
-                                    } else {
-                                      final playlist = widget.payload.playlist!;
-                                      final listTokenIds = playlist.tokenIDs;
-                                      if (listTokenIds == null) {
-                                        log.info('Playlist tokenIds is null');
-                                        return;
-                                      }
+                            FFCastButton(
+                              displayKey: _getDisplayKey(asset),
+                              onDeviceSelected: (device) {
+                                if (widget.payload.playlist == null) {
+                                  final artwork = PlayArtworkV2(
+                                    token: CastAssetToken(id: asset.id),
+                                    duration: 0,
+                                  );
+                                  _canvasDeviceBloc.add(
+                                      CanvasDeviceCastListArtworkEvent(
+                                          device, [artwork]));
+                                } else {
+                                  final playlist = widget.payload.playlist!;
+                                  final listTokenIds = playlist.tokenIDs;
+                                  if (listTokenIds == null) {
+                                    log.info('Playlist tokenIds is null');
+                                    return;
+                                  }
 
-                                      final duration = speedValues
-                                          .values.first.inMilliseconds;
-                                      final listPlayArtwork = listTokenIds
-                                          .rotateListByItem(asset.id)
-                                          .map((e) => PlayArtworkV2(
-                                              token: CastAssetToken(id: e),
-                                              duration: duration))
-                                          .toList();
-                                      _canvasDeviceBloc.add(
-                                          CanvasDeviceChangeControlDeviceEvent(
-                                              device, listPlayArtwork));
-                                    }
-                                  },
-                                );
-                              }
-                              return const SizedBox();
-                            }),
+                                  final duration =
+                                      speedValues.values.first.inMilliseconds;
+                                  final listPlayArtwork = listTokenIds
+                                      .rotateListByItem(asset.id)
+                                      .map((e) => PlayArtworkV2(
+                                          token: CastAssetToken(id: e),
+                                          duration: duration))
+                                      .toList();
+                                  _canvasDeviceBloc.add(
+                                      CanvasDeviceChangeControlDeviceEvent(
+                                          device, listPlayArtwork));
+                                }
+                              },
+                            ),
                           ],
                         ),
                       ),
@@ -523,28 +516,27 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
             ),
           ),
           _artworkInfoIcon(),
-          if (!widget.payload.useIndexer)
-            Semantics(
-              label: 'artworkDotIcon',
-              child: Padding(
-                padding: const EdgeInsets.only(left: 5),
-                child: IconButton(
-                  onPressed: () async => _showArtworkOptionsDialog(
-                      context, asset, isViewOnly, canvasState),
-                  constraints: const BoxConstraints(
-                    maxWidth: 44,
-                    maxHeight: 44,
-                    minWidth: 44,
-                    minHeight: 44,
-                  ),
-                  icon: SvgPicture.asset(
-                    'assets/images/more_circle.svg',
-                    width: 22,
-                    height: 22,
-                  ),
+          Semantics(
+            label: 'artworkDotIcon',
+            child: Padding(
+              padding: const EdgeInsets.only(left: 5),
+              child: IconButton(
+                onPressed: () async => _showArtworkOptionsDialog(
+                    context, asset, isViewOnly, canvasState),
+                constraints: const BoxConstraints(
+                  maxWidth: 44,
+                  maxHeight: 44,
+                  minWidth: 44,
+                  minHeight: 44,
+                ),
+                icon: SvgPicture.asset(
+                  'assets/images/more_circle.svg',
+                  width: 22,
+                  height: 22,
                 ),
               ),
             ),
+          ),
         ],
       ),
     );
@@ -739,27 +731,28 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               await browser.openUrl(asset.secondaryMarketURL);
             },
           ),
-        OptionItem(
-          title: isHidden ? 'unhide_aw'.tr() : 'hide_aw'.tr(),
-          icon: SvgPicture.asset('assets/images/hide_artwork_white.svg'),
-          onTap: () async {
-            await injector<ConfigurationService>()
-                .updateTempStorageHiddenTokenIDs([asset.id], !isHidden);
-            unawaited(injector<SettingsDataService>().backup());
+        if (!widget.payload.isLocalToken)
+          OptionItem(
+            title: isHidden ? 'unhide_aw'.tr() : 'hide_aw'.tr(),
+            icon: SvgPicture.asset('assets/images/hide_artwork_white.svg'),
+            onTap: () async {
+              await injector<ConfigurationService>()
+                  .updateTempStorageHiddenTokenIDs([asset.id], !isHidden);
+              unawaited(injector<SettingsDataService>().backup());
 
-            if (!context.mounted) {
-              return;
-            }
-            NftCollectionBloc.eventController.add(ReloadEvent());
-            Navigator.of(context).pop();
-            unawaited(UIHelper.showHideArtworkResultDialog(context, !isHidden,
-                onOK: () {
-              Navigator.of(context).popUntil((route) =>
-                  route.settings.name == AppRouter.homePage ||
-                  route.settings.name == AppRouter.homePageNoTransition);
-            }));
-          },
-        ),
+              if (!context.mounted) {
+                return;
+              }
+              NftCollectionBloc.eventController.add(ReloadEvent());
+              Navigator.of(context).pop();
+              unawaited(UIHelper.showHideArtworkResultDialog(context, !isHidden,
+                  onOK: () {
+                Navigator.of(context).popUntil((route) =>
+                    route.settings.name == AppRouter.homePage ||
+                    route.settings.name == AppRouter.homePageNoTransition);
+              }));
+            },
+          ),
         if (ownerWallet != null && asset.isTransferable) ...[
           OptionItem(
             title: 'send_artwork'.tr(),
@@ -813,24 +806,25 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
             },
           ),
         ],
-        OptionItem(
-          title: 'refresh_metadata'.tr(),
-          icon: SvgPicture.asset(
-            'assets/images/refresh_metadata_white.svg',
-            width: 20,
-            height: 20,
+        if (!widget.payload.isLocalToken)
+          OptionItem(
+            title: 'refresh_metadata'.tr(),
+            icon: SvgPicture.asset(
+              'assets/images/refresh_metadata_white.svg',
+              width: 20,
+              height: 20,
+            ),
+            onTap: () async {
+              await injector<TokensService>().fetchManualTokens([asset.id]);
+              if (!context.mounted) {
+                return;
+              }
+              Navigator.of(context).pop();
+              await Navigator.of(context).pushReplacementNamed(
+                  AppRouter.artworkDetailsPage,
+                  arguments: widget.payload.copyWith());
+            },
           ),
-          onTap: () async {
-            await injector<TokensService>().fetchManualTokens([asset.id]);
-            if (!context.mounted) {
-              return;
-            }
-            Navigator.of(context).pop();
-            await Navigator.of(context).pushReplacementNamed(
-                AppRouter.artworkDetailsPage,
-                arguments: widget.payload.copyWith());
-          },
-        ),
         OptionItem.emptyOptionItem,
       ],
     ));
@@ -878,6 +872,8 @@ class ArtworkDetailPayload {
   final PlayListModel? playlist;
   final String? twitterCaption;
   final bool useIndexer; // set true when navigate from discover/gallery page
+  final bool
+      isLocalToken; // if local token, it can be hidden and refresh metadata
 
   ArtworkDetailPayload(
     this.identities,
@@ -885,21 +881,25 @@ class ArtworkDetailPayload {
     this.twitterCaption,
     this.playlist,
     this.useIndexer = false,
+    this.isLocalToken = true,
     this.key,
   });
 
-  ArtworkDetailPayload copyWith(
-          {List<ArtworkIdentity>? ids,
-          int? currentIndex,
-          PlayListModel? playlist,
-          String? twitterCaption,
-          bool? useIndexer}) =>
+  ArtworkDetailPayload copyWith({
+    List<ArtworkIdentity>? ids,
+    int? currentIndex,
+    PlayListModel? playlist,
+    String? twitterCaption,
+    bool? useIndexer,
+    bool? isLocalToken,
+  }) =>
       ArtworkDetailPayload(
         ids ?? identities,
         currentIndex ?? this.currentIndex,
         twitterCaption: twitterCaption ?? this.twitterCaption,
         playlist: playlist ?? this.playlist,
         useIndexer: useIndexer ?? this.useIndexer,
+        isLocalToken: isLocalToken ?? this.isLocalToken,
       );
 }
 

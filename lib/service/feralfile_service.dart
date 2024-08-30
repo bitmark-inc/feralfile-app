@@ -11,13 +11,18 @@ import 'dart:math';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/gateway/feralfile_api.dart';
 import 'package:autonomy_flutter/gateway/source_exhibition_api.dart';
+import 'package:autonomy_flutter/model/dailies.dart';
+import 'package:autonomy_flutter/model/explore_statistics_data.dart';
 import 'package:autonomy_flutter/model/ff_account.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/ff_list_response.dart';
 import 'package:autonomy_flutter/model/ff_series.dart';
+import 'package:autonomy_flutter/model/ff_user.dart';
+import 'package:autonomy_flutter/screen/feralfile_home/filter_bar.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/crawl_helper.dart';
+import 'package:autonomy_flutter/util/dailies_helper.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/feral_file_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -146,6 +151,9 @@ abstract class FeralFileService {
     String sortOrder = 'DESC',
     int limit = 8,
     int offset = 0,
+    String keywork = '',
+    List<String> relatedAccountIDs = const [],
+    Map<FilterType, FilterValue> filters = const {},
   });
 
   Future<Exhibition> getSourceExhibition();
@@ -165,6 +173,54 @@ abstract class FeralFileService {
   Future<Artwork?> getFirstViewableArtwork(String seriesId);
 
   Future<Artwork> getArtwork(String artworkId);
+
+  Future<DailyToken?> getCurrentDailiesToken();
+
+  Future<DailyToken?> getNextDailiesToken();
+
+  Future<FeralFileListResponse<FFSeries>> exploreArtworks({
+    String? sortBy,
+    String? sortOrder,
+    String keyword = '',
+    int limit = 300,
+    int offset = 0,
+    bool includeArtist = true,
+    bool includeExhibition = true,
+    bool includeFirstArtwork = true,
+    bool onlyViewable = true,
+    List<String> artistIds = const [],
+    bool includeUniqeFilePath = true,
+    Map<FilterType, FilterValue> filters = const {},
+  });
+
+  Future<FeralFileListResponse<FFArtist>> exploreArtists(
+      {int limit = 20,
+      int offset = 0,
+      String keywork = '',
+      String orderBy = 'relevance',
+      String sortOrder = 'DESC'});
+
+  Future<FeralFileListResponse<FFCurator>> exploreCurators(
+      {int limit = 20,
+      int offset = 0,
+      String keywork = '',
+      String orderBy = 'relevance',
+      String sortOrder = 'DESC'});
+
+  Future<FFUserDetails> getUser(String artistID);
+
+  Future<List<Post>> getPosts({
+    String sortBy = 'dateTime',
+    String sortOrder = '',
+    List<String> types = const [],
+    List<String> relatedAccountIds = const [],
+    bool includeExhibition = true,
+  });
+
+  Future<ExploreStatisticsData> getExploreStatistics({
+    bool unique = true,
+    bool excludedFF = true,
+  });
 }
 
 class FeralFileServiceImpl extends FeralFileService {
@@ -255,7 +311,7 @@ class FeralFileServiceImpl extends FeralFileService {
   @override
   Future<Exhibition?> getExhibitionFromTokenID(String artworkID) async {
     final artwork = await _feralFileApi.getArtworks(artworkID);
-    return artwork.result.series?.exhibition;
+    return getExhibition(artwork.result.series?.exhibitionID ?? '');
   }
 
   @override
@@ -264,9 +320,21 @@ class FeralFileServiceImpl extends FeralFileService {
     String sortOrder = 'DESC',
     int limit = 8,
     int offset = 0,
+    String keywork = '',
+    List<String> relatedAccountIDs = const [],
+    Map<FilterType, FilterValue> filters = const {},
   }) async {
+    final customParams =
+        filters.map((key, value) => MapEntry(key.queryParam, value.queryParam));
     final exhibitions = await _feralFileApi.getAllExhibitions(
-        sortBy: sortBy, sortOrder: sortOrder, limit: limit, offset: offset);
+      sortBy: sortBy,
+      sortOrder: sortOrder,
+      limit: limit,
+      offset: offset,
+      keyword: keywork,
+      relatedAccountIDs: relatedAccountIDs,
+      customQueryParam: customParams,
+    );
     final listExhibition = exhibitions.result;
     log
       ..info('[FeralFileService] Get all exhibitions: ${listExhibition.length}')
@@ -533,6 +601,24 @@ class FeralFileServiceImpl extends FeralFileService {
     return response.result;
   }
 
+  @override
+  Future<List<Post>> getPosts({
+    String sortBy = 'dateTime',
+    String sortOrder = 'DESC',
+    List<String> types = const [],
+    List<String> relatedAccountIds = const [],
+    bool includeExhibition = true,
+  }) async {
+    final response = await _feralFileApi.getPosts(
+      sortBy: sortBy,
+      sortOrder: sortOrder,
+      types: types,
+      relatedAccountIDs: relatedAccountIds,
+      includeExhibition: includeExhibition,
+    );
+    return response.result;
+  }
+
   // Source Exhibition
   @override
   Future<Exhibition> getSourceExhibition() async {
@@ -662,5 +748,125 @@ class FeralFileServiceImpl extends FeralFileService {
         series,
         null,
         null);
+  }
+
+  Future<List<DailyToken>> _fetchDailiesTokens({int limit = 2}) async {
+    final resp = await _feralFileApi.getDailiesToken(limit: limit);
+    final dailiesTokens = resp.result;
+
+    DailiesHelper.updateDailies(dailiesTokens);
+    return dailiesTokens;
+  }
+
+  @override
+  Future<DailyToken?> getCurrentDailiesToken() async {
+    // call nextDailies to make daily tokens up to date
+    DailiesHelper.nextDailies;
+
+    DailyToken? currentDailiesToken = DailiesHelper.currentDailies;
+    if (currentDailiesToken == null) {
+      await _fetchDailiesTokens();
+      currentDailiesToken = DailiesHelper.currentDailies;
+    }
+    return currentDailiesToken;
+  }
+
+  @override
+  Future<DailyToken?> getNextDailiesToken() async {
+    DailyToken? currentDailiesToken = DailiesHelper.nextDailies;
+    if (currentDailiesToken == null) {
+      await _fetchDailiesTokens();
+      currentDailiesToken = DailiesHelper.currentDailies;
+    }
+    return currentDailiesToken;
+  }
+
+  @override
+  Future<FeralFileListResponse<FFSeries>> exploreArtworks({
+    String? sortBy,
+    String? sortOrder,
+    String keyword = '',
+    int limit = 300,
+    int offset = 0,
+    bool includeArtist = true,
+    bool includeExhibition = true,
+    bool includeFirstArtwork = true,
+    bool onlyViewable = true,
+    List<String> artistIds = const [],
+    bool includeUniqeFilePath = true,
+    Map<FilterType, FilterValue> filters = const {},
+  }) async {
+    final Map<String, String> customParams = {};
+    for (final entry in filters.entries) {
+      final key = entry.key;
+      final value = entry.value;
+      customParams.addAll({key.queryParam: value.queryParam});
+    }
+    final res = await _feralFileApi.exploreArtwork(
+      sortBy: sortBy,
+      sortOrder: sortOrder,
+      keyword: keyword,
+      limit: limit,
+      offset: offset,
+      includeArtist: includeArtist,
+      includeExhibition: includeExhibition,
+      includeFirstArtwork: includeFirstArtwork,
+      onlyViewable: onlyViewable,
+      artistIDs: artistIds,
+      includeUniqueFilePath: includeUniqeFilePath,
+      customQueryParam: customParams,
+    );
+    log.info('[FeralFileService] Explore artworks with keyword: $keyword');
+    return res;
+  }
+
+  @override
+  Future<FeralFileListResponse<FFArtist>> exploreArtists(
+      {int limit = 20,
+      int offset = 0,
+      String keywork = '',
+      String orderBy = 'relevance',
+      String sortOrder = 'DESC'}) async {
+    final res = await _feralFileApi.getArtists(
+        limit: limit,
+        offset: offset,
+        keyword: keywork,
+        sortOrder: sortOrder,
+        sortBy: orderBy);
+    return res;
+  }
+
+  @override
+  Future<FeralFileListResponse<FFCurator>> exploreCurators(
+      {int limit = 20,
+      int offset = 0,
+      String keywork = '',
+      String orderBy = 'relevance',
+      String sortOrder = 'DESC'}) async {
+    final res = await _feralFileApi.getCurators(
+        limit: limit,
+        offset: offset,
+        keyword: keywork,
+        sortOrder: sortOrder,
+        sortBy: orderBy);
+    return res;
+  }
+
+  @override
+  Future<FFUserDetails> getUser(String artistID) async {
+    final res = await _feralFileApi.getUser(accountId: artistID);
+    return res.result;
+  }
+
+  @override
+  Future<ExploreStatisticsData> getExploreStatistics({
+    bool unique = true,
+    bool excludedFF = true,
+  }) async {
+    final res = await _feralFileApi.getExploreStatistics(
+      unique: unique,
+      excludedFF: excludedFF,
+    );
+    return res;
   }
 }

@@ -22,6 +22,7 @@ import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
+import 'package:autonomy_flutter/shared.dart';
 import 'package:autonomy_flutter/util/connection_request_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/debouce_util.dart';
@@ -96,7 +97,6 @@ class _WCConnectPageState extends State<WCConnectPage>
     super.initState();
     connectionRequest = widget.connectionRequest;
     injector<NavigationService>().setIsWCConnectInShow(true);
-    memoryValues.deepLink.value = null;
   }
 
   @override

@@ -11,17 +11,16 @@ import 'package:after_layout/after_layout.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/additional_data/additional_data.dart';
-import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dart';
+import 'package:autonomy_flutter/screen/dailies_work/dailies_work_bloc.dart';
+import 'package:autonomy_flutter/screen/dailies_work/dailies_work_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
-import 'package:autonomy_flutter/screen/exhibitions/exhibitions_bloc.dart';
-import 'package:autonomy_flutter/screen/exhibitions/exhibitions_page.dart';
-import 'package:autonomy_flutter/screen/exhibitions/exhibitions_state.dart';
-import 'package:autonomy_flutter/screen/home/collection_home_page.dart';
-import 'package:autonomy_flutter/screen/home/organize_home_page.dart';
-import 'package:autonomy_flutter/screen/playlists/view_playlist/view_playlist.dart';
+import 'package:autonomy_flutter/screen/feralfile_home/feralfile_home.dart';
+import 'package:autonomy_flutter/screen/feralfile_home/feralfile_home_bloc.dart';
+import 'package:autonomy_flutter/screen/home/home_bloc.dart';
+import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
@@ -30,18 +29,17 @@ import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
-import 'package:autonomy_flutter/service/feralfile_service.dart';
+import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/notification_service.dart' as nc;
-import 'package:autonomy_flutter/service/playlist_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
+import 'package:autonomy_flutter/shared.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/dio_util.dart';
-import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/notification_type.dart';
@@ -71,7 +69,7 @@ class HomeNavigationPagePayload {
   const HomeNavigationPagePayload(
       {bool? fromOnboarding, HomeNavigatorTab? startedTab})
       : fromOnboarding = fromOnboarding ?? false,
-        startedTab = startedTab ?? HomeNavigatorTab.exhibition;
+        startedTab = startedTab ?? HomeNavigatorTab.daily;
 }
 
 class HomeNavigationPage extends StatefulWidget {
@@ -94,15 +92,12 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   late int _selectedIndex;
   PageController? _pageController;
   late List<Widget> _pages;
-  final GlobalKey<OrganizeHomePageState> _organizeHomePageKey = GlobalKey();
-  final GlobalKey<CollectionHomePageState> _collectionHomePageKey = GlobalKey();
-  final GlobalKey<ExhibitionsPageState> _exhibitionsPageKey = GlobalKey();
-  final GlobalKey<ScanQRPageState> _scanQRPageKey = GlobalKey();
+  final GlobalKey<DailyWorkPageState> _dailyWorkKey = GlobalKey();
+  final GlobalKey<FeralfileHomePageState> _feralfileHomePageKey = GlobalKey();
   final _configurationService = injector<ConfigurationService>();
   late Timer? _timer;
   final _clientTokenService = injector<ClientTokenService>();
   final _notificationService = injector<nc.NotificationService>();
-  final _playListService = injector<PlaylistService>();
   final _remoteConfig = injector<RemoteConfigService>();
   final _metricClientService = injector<MetricClientService>();
   final _announcementService = injector<AnnouncementService>();
@@ -119,12 +114,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
 
   void sendVisitPageEvent() {
     if (_selectedIndex != HomeNavigatorTab.menu.index) {
-      final title = (_selectedIndex == HomeNavigatorTab.scanQr.index)
-          ? QRScanTab
-              .values[_scanQRPageKey.currentState?.tabController.index ??
-                  QRScanTab.scan.index]
-              .screenName
-          : HomeNavigatorTab.values[_selectedIndex].screenName;
+      final title = HomeNavigatorTab.values[_selectedIndex].screenName;
       _metricClientService
         ..addEvent(
           MixpanelEvent.visitPage,
@@ -139,51 +129,38 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   }
 
   Future<void> openExhibition(String exhibitionId) async {
-    await _onItemTapped(HomeNavigatorTab.exhibition.index);
-    // delay to ensure the page is loaded
-    Future.delayed(const Duration(milliseconds: 1000), () {
-      _exhibitionsPageKey.currentState?.setAutoOpenExhibition(exhibitionId);
-    });
-  }
-
-  Future<void> openCollection() async {
-    await _onItemTapped(HomeNavigatorTab.collection.index);
-    _collectionHomePageKey.currentState?.scrollToTop();
+    await _onItemTapped(HomeNavigatorTab.explore.index);
   }
 
   Future<void> _onItemTapped(int index) async {
     if (index < _pages.length) {
+      // handle scroll to top when tap on the same tab
       if (_selectedIndex == index) {
-        if (index == HomeNavigatorTab.collection.index) {
-          _collectionHomePageKey.currentState?.scrollToTop();
+        if (index == HomeNavigatorTab.explore.index) {
+          _feralfileHomePageKey.currentState?.scrollToTop();
+        } else if (index == HomeNavigatorTab.daily.index) {
+          _dailyWorkKey.currentState?.scrollToTop();
         }
-        if (index == HomeNavigatorTab.organization.index) {
-          _organizeHomePageKey.currentState?.scrollToTop();
-        }
-        if (index == HomeNavigatorTab.exhibition.index) {
-          _exhibitionsPageKey.currentState?.scrollToTop();
-        }
-      } else {
-        if (index == HomeNavigatorTab.scanQr.index) {
-          await _scanQRPageKey.currentState?.resumeCamera();
+      }
+      // when user change tap
+      else {
+        // if tap on daily, resume daily work,
+        // otherwise pause daily work
+        if (index == HomeNavigatorTab.daily.index) {
+          _dailyWorkKey.currentState?.resumeDailyWork();
         } else {
-          await _scanQRPageKey.currentState?.pauseCamera();
+          _dailyWorkKey.currentState?.pauseDailyWork();
         }
+
         sendVisitPageEvent();
       }
       setState(() {
         _selectedIndex = index;
       });
       _pageController?.jumpToPage(_selectedIndex);
-      if (index == HomeNavigatorTab.collection.index ||
-          index == HomeNavigatorTab.organization.index) {
-        unawaited(_clientTokenService.refreshTokens());
-        unawaited(_playListService.refreshPlayLists());
-      }
-      if (index == HomeNavigatorTab.exhibition.index) {
-        _exhibitionsPageKey.currentState?.refreshExhibitions();
-      }
-    } else {
+    }
+    // handle hamburger menu
+    else {
       final currentIndex = _selectedIndex;
       _metricClientService.addEvent(
         MixpanelEvent.visitPage,
@@ -199,41 +176,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         context,
         options: [
           OptionItem(
-            title: 'featured_works'.tr(),
-            icon: const Icon(AuIcon.discover),
-            onTap: () async {
-              final artworks =
-                  await injector<FeralFileService>().getFeaturedArtworks();
-              if (!mounted) {
-                return;
-              }
-              final tokenIds = artworks.map((e) => e.indexerTokenId).toList()
-                ..removeWhere((element) => element == null);
-
-              log.info('Featured artworks: '
-                  '${tokenIds.length}/${artworks.length} token');
-
-              if (tokenIds.isEmpty) {
-                await UIHelper.showInfoDialog(
-                    context,
-                    'featured_works_empty'.tr(),
-                    'Sorry for the inconvenience. Please try again later.',
-                    isDismissible: true);
-                return;
-              }
-              unawaited(Navigator.popAndPushNamed(
-                context,
-                AppRouter.viewPlayListPage,
-                arguments: ViewPlaylistScreenPayload(
-                  playListModel: PlayListModel(
-                      name: 'featured'.tr(),
-                      tokenIDs: tokenIds.map((e) => e!).toList()),
-                  collectionType: CollectionType.featured,
-                ),
-              ));
-            },
-          ),
-          OptionItem(
             title: 'rnd'.tr(),
             icon: SvgPicture.asset(
               'assets/images/icon_3d.svg',
@@ -242,6 +184,39 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
             ),
             onTap: () {
               Navigator.of(context).popAndPushNamed(AppRouter.projectsList);
+            },
+          ),
+          // collection
+          OptionItem(
+            title: 'collection'.tr(),
+            icon: const Icon(
+              AuIcon.playlists,
+            ),
+            onTap: () {
+              Navigator.of(context).popAndPushNamed(AppRouter.collectionPage);
+            },
+          ),
+          // organize
+          OptionItem(
+            title: 'organize'.tr(),
+            icon: SvgPicture.asset(
+              'assets/images/set_icon.svg',
+              colorFilter:
+                  const ColorFilter.mode(AppColor.white, BlendMode.srcIn),
+            ),
+            onTap: () {
+              Navigator.of(context).popAndPushNamed(AppRouter.organizePage);
+            },
+          ),
+          OptionItem(
+            title: 'scan'.tr(),
+            icon: const Icon(
+              AuIcon.scan,
+            ),
+            onTap: () {
+              Navigator.of(context).popAndPushNamed(AppRouter.scanQRPage,
+                  arguments:
+                      ScanQRPagePayload(scannerItem: ScannerItem.GLOBAL));
             },
           ),
           OptionItem(
@@ -288,9 +263,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         setState(() {
           _selectedIndex = currentIndex;
         });
-        if (_selectedIndex == HomeNavigatorTab.scanQr.index) {
-          await _scanQRPageKey.currentState?.resumeCamera();
-        }
       }
     }
   }
@@ -300,6 +272,15 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     super.initState();
     // since we moved to use bonsoir service,
     // we don't need to wait for canvas service to init
+
+    Future.delayed(const Duration(seconds: 1), () {
+      injector<DeeplinkService>()
+        ..activateBranchDataListener()
+        ..activateDeepLinkListener();
+    });
+    injector<DeeplinkService>()
+      ..activateBranchDataListener()
+      ..activateDeepLinkListener();
     injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent(retry: true));
     unawaited(injector<CustomerSupportService>().getIssues());
     _initialTab = widget.payload.startedTab;
@@ -319,32 +300,34 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
       nftBloc.add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
     }));
     unawaited(_clientTokenService.refreshTokens());
-
+    context.read<HomeBloc>().add(CheckReviewAppEvent());
     _timer = Timer.periodic(const Duration(minutes: 1), (timer) {
       unawaited(_clientTokenService.refreshTokens());
     });
 
     _pages = <Widget>[
-      CollectionHomePage(key: _collectionHomePageKey),
-      OrganizeHomePage(key: _organizeHomePageKey),
+      MultiBlocProvider(
+          providers: [
+            BlocProvider(
+              create: (_) => DailyWorkBloc(injector(), injector()),
+            ),
+            BlocProvider.value(value: injector<CanvasDeviceBloc>()),
+          ],
+          child: DailyWorkPage(
+            key: _dailyWorkKey,
+          )),
       MultiBlocProvider(
           providers: [
             BlocProvider.value(
-              value: injector<ExhibitionBloc>()..add(GetAllExhibitionsEvent()),
+              value: FeralfileHomeBloc(injector()),
             ),
             BlocProvider.value(
               value: injector<SubscriptionBloc>()..add(GetSubscriptionEvent()),
             ),
           ],
-          child: ExhibitionsPage(
-            key: _exhibitionsPageKey,
+          child: FeralfileHomePage(
+            key: _feralfileHomePageKey,
           )),
-      ScanQRPage(
-        key: _scanQRPageKey,
-        onHandleFinished: () async {
-          await _onItemTapped(_initialTab.index);
-        },
-      )
     ];
     if (!_configurationService.isReadRemoveSupport()) {
       unawaited(_showRemoveCustomerSupport());
@@ -424,9 +407,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   Future<void> didPopNext() async {
     super.didPopNext();
     unawaited(injector<CustomerSupportService>().getIssues());
-    if (_selectedIndex == HomeNavigatorTab.scanQr.index) {
-      await _scanQRPageKey.currentState?.resumeCamera();
-    }
     unawaited(_clientTokenService.refreshTokens());
     unawaited(refreshNotification());
     final connectivityResult = await Connectivity().checkConnectivity();
@@ -471,28 +451,30 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         final Uri uri = Uri.parse(AUTONOMY_CLIENT_GITHUB_LINK);
         String? gitHubContent = data.data ?? '';
         Future.delayed(const Duration(seconds: 3), () {
-          showInAppNotifications(
-              context, 'au_has_announcement'.tr(), 'remove_customer_support',
-              notificationOpenedHandler: () {
-            UIHelper.showCenterSheet(context,
-                content: Markdown(
-                  key: const Key('remove_customer_support'),
-                  data: gitHubContent,
-                  softLineBreak: true,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  padding: const EdgeInsets.all(0),
-                  styleSheet: markDownAnnouncementStyle(context),
-                ),
-                actionButton: 'follow_github'.tr(),
-                actionButtonOnTap: () =>
-                    launchUrl(uri, mode: LaunchMode.externalApplication),
-                exitButtonOnTap: () {
-                  _configurationService.readRemoveSupport(true);
-                  Navigator.of(context).pop();
-                },
-                exitButton: 'i_understand_'.tr());
-          });
+          if (mounted) {
+            showInAppNotifications(
+                context, 'au_has_announcement'.tr(), 'remove_customer_support',
+                notificationOpenedHandler: () {
+              UIHelper.showCenterSheet(context,
+                  content: Markdown(
+                    key: const Key('remove_customer_support'),
+                    data: gitHubContent,
+                    softLineBreak: true,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    padding: const EdgeInsets.all(0),
+                    styleSheet: markDownAnnouncementStyle(context),
+                  ),
+                  actionButton: 'follow_github'.tr(),
+                  actionButtonOnTap: () =>
+                      launchUrl(uri, mode: LaunchMode.externalApplication),
+                  exitButtonOnTap: () {
+                    _configurationService.readRemoveSupport(true);
+                    Navigator.of(context).pop();
+                  },
+                  exitButton: 'i_understand_'.tr());
+            });
+          }
         });
       }
     }
@@ -524,11 +506,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
                   setState(() {
                     _initialTab = widget.payload.startedTab;
                   });
-                } else {
-                  setState(() {
-                    _initialTab = HomeNavigatorTab.collection;
-                  });
-                }
+                } else {}
               },
               buildWhen: (previous, current) {
                 final shouldRebuild = _pageController == null;
@@ -582,16 +560,16 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     final bottomItems = [
       FFNavigationBarItem(
         icon: SvgPicture.asset(
-          'assets/images/icon_collection.svg',
+          'assets/images/discover.svg',
           height: iconSize,
           colorFilter: selectedColorFilter,
         ),
         unselectedIcon: SvgPicture.asset(
-          'assets/images/icon_collection.svg',
+          'assets/images/discover.svg',
           height: iconSize,
           colorFilter: unselectedColorFilter,
         ),
-        label: 'collection',
+        label: 'dailies',
       ),
       FFNavigationBarItem(
         icon: SvgPicture.asset(
@@ -604,33 +582,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
           height: iconSize,
           colorFilter: unselectedColorFilter,
         ),
-        label: 'organize',
-      ),
-      FFNavigationBarItem(
-        icon: SvgPicture.asset(
-          'assets/images/controller_icon.svg',
-          height: iconSize,
-          colorFilter: selectedColorFilter,
-        ),
-        unselectedIcon: SvgPicture.asset(
-          'assets/images/controller_icon.svg',
-          height: iconSize,
-          colorFilter: unselectedColorFilter,
-        ),
-        label: 'exhibitions',
-      ),
-      FFNavigationBarItem(
-        icon: SvgPicture.asset(
-          'assets/images/icon_scan.svg',
-          height: iconSize,
-          colorFilter: selectedColorFilter,
-        ),
-        unselectedIcon: SvgPicture.asset(
-          'assets/images/icon_scan.svg',
-          height: iconSize,
-          colorFilter: unselectedColorFilter,
-        ),
-        label: 'scan',
+        label: 'explore',
       ),
       FFNavigationBarItem(
         icon: ValueListenableBuilder<List<int>?>(

@@ -44,10 +44,10 @@ class ArtworkPreviewWidget extends StatefulWidget {
   });
 
   @override
-  State<ArtworkPreviewWidget> createState() => _ArtworkPreviewWidgetState();
+  State<ArtworkPreviewWidget> createState() => ArtworkPreviewWidgetState();
 }
 
-class _ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
+class ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
     with WidgetsBindingObserver, RouteAware {
   final bloc =
       ArtworkPreviewDetailBloc(injector(), injector(), injector(), injector());
@@ -60,6 +60,15 @@ class _ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
         useIndexer: widget.useIndexer));
     WidgetsBinding.instance.addObserver(this);
     super.initState();
+  }
+
+  @override
+  void didUpdateWidget(covariant ArtworkPreviewWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.identity != widget.identity) {
+      bloc.add(ArtworkPreviewDetailGetAssetTokenEvent(widget.identity,
+          useIndexer: widget.useIndexer));
+    }
   }
 
   @override
@@ -102,6 +111,14 @@ class _ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
       // ignore: cast_nullable_to_non_nullable
       (_renderingWidget as WebviewNFTRenderingWidget).updateWebviewSize();
     }
+  }
+
+  void pause() {
+    unawaited(_renderingWidget?.resume());
+  }
+
+  void resume() {
+    unawaited(_renderingWidget?.resume());
   }
 
   @override

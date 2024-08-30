@@ -13,8 +13,6 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/blockchain.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/collection_pro/collection_pro_screen.dart';
-import 'package:autonomy_flutter/screen/home/home_bloc.dart';
-import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/postcard_detail_page.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
@@ -75,8 +73,6 @@ class OrganizeHomePageState extends State<OrganizeHomePage>
         _clientTokenService.refreshTokens(syncAddresses: true).then((value) {
       nftBloc.add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
     }));
-
-    context.read<HomeBloc>().add(CheckReviewAppEvent());
 
     unawaited(injector<IAPService>().setup());
   }

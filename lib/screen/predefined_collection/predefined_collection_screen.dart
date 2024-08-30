@@ -52,6 +52,7 @@ class _PredefinedCollectionScreenState
 
   @override
   Widget build(BuildContext context) => Scaffold(
+        backgroundColor: AppColor.primaryBlack,
         body: BlocConsumer<PredefinedCollectionBloc, PredefinedCollectionState>(
           bloc: _bloc,
           builder: (context, state) {

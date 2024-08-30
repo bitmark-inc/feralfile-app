@@ -285,4 +285,18 @@ class TVKeyInterceptor extends Interceptor {
     options.headers['API-KEY'] = tvKey;
     handler.next(options);
   }
+
+  @override
+  void onError(DioException err, ErrorInterceptorHandler handler) {
+    DioException exp = err;
+    try {
+      final errorBody = err.response?.data as Map<String, dynamic>;
+      exp = err.copyWith(error: FeralfileError.fromJson(errorBody['error']));
+    } catch (e) {
+      log.info(
+          '[FeralfileAuthInterceptor] Can not parse . ${err.response?.data}');
+    } finally {
+      handler.next(exp);
+    }
+  }
 }

@@ -8,14 +8,15 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/artist_details/artist_details_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
+import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/feral_file_custom_tab.dart';
@@ -24,7 +25,9 @@ import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
+import 'package:autonomy_flutter/util/subscription_detail_ext.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/view/membership_card.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
@@ -171,14 +174,6 @@ class NavigationService {
         route.settings.name == AppRouter.homePageNoTransition);
   }
 
-  void restorablePushHomePage() {
-    navigatorKey.currentState?.restorablePushNamedAndRemoveUntil(
-        AppRouter.homePageNoTransition,
-        (route) =>
-            route.settings.name == AppRouter.homePage ||
-            route.settings.name == AppRouter.homePageNoTransition);
-  }
-
   void setIsWCConnectInShow(bool appeared) {
     _isWCConnectInShow = appeared;
   }
@@ -266,6 +261,24 @@ class NavigationService {
     }
   }
 
+  Future<void> showUnknownLink() async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await UIHelper.showInfoDialog(
+          context, 'unknown_link'.tr(), 'unknown_link_desc'.tr(),
+          onClose: () => UIHelper.hideInfoDialog(context), isDismissible: true);
+    }
+  }
+
+  Future<void> showCannotResolveBranchLink() async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      await UIHelper.showInfoDialog(context, 'can_not_resolve_branch_link'.tr(),
+          'can_not_resolve_branch_link_desc'.tr(),
+          onClose: () => UIHelper.hideInfoDialog(context), isDismissible: true);
+    }
+  }
+
   Future<void> showMembershipGiftCodeEmpty() async {
     if (navigatorKey.currentContext != null &&
         navigatorKey.currentState?.mounted == true) {
@@ -318,6 +331,40 @@ class NavigationService {
     }
   }
 
+  Future<void> showSeeMoreArtNow(
+      SubscriptionDetails subscriptionDetails) async {
+    if (navigatorKey.currentContext != null &&
+        navigatorKey.currentState?.mounted == true) {
+      final price = subscriptionDetails.price;
+      final renewDate = subscriptionDetails.renewDate;
+      await UIHelper.showDialog(
+        context,
+        'see_more_art_now'.tr(),
+        withCloseIcon: true,
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'see_more_art_now_desc'.tr(),
+              style: Theme.of(context).textTheme.ppMori400White14,
+            ),
+            const SizedBox(height: 20),
+            MembershipCard(
+              type: MembershipCardType.premium,
+              price: price,
+              isProcessing: false,
+              isEnable: false,
+              onTap: (_) {},
+              isCompleted: true,
+              renewDate: renewDate,
+            ),
+          ],
+        ),
+        isDismissible: true,
+      );
+    }
+  }
+
   Future<void> openPostcardReceivedPage(
       {required AssetToken asset, required String shareCode}) async {
     if (navigatorKey.currentState?.mounted == true &&
@@ -341,10 +388,7 @@ class NavigationService {
 
   Future<void> popToCollection() async {
     popUntilHome();
-    await Future.delayed(const Duration(seconds: 1), () async {
-      await (homePageKey.currentState ?? homePageNoTransactionKey.currentState)
-          ?.openCollection();
-    });
+    await injector<NavigationService>().openCollection();
   }
 
   Future<void> gotoArtworkDetailsPage(String indexID) async {
@@ -446,16 +490,20 @@ class NavigationService {
     if (alias.contains(',') || alias.isEmpty) {
       return;
     }
-    final url = FeralFileHelper.getArtistUrl(alias);
-    await _browser.openUrl(url);
+    await Navigator.of(navigatorKey.currentContext!).pushNamed(
+      AppRouter.userDetailsPage,
+      arguments: UserDetailsPagePayload(userId: alias),
+    );
   }
 
   Future<void> openFeralFileCuratorPage(String alias) async {
     if (alias.contains(',') || alias.isEmpty) {
       return;
     }
-    final url = FeralFileHelper.getCuratorUrl(alias);
-    await _browser.openUrl(url);
+    await Navigator.of(navigatorKey.currentContext!).pushNamed(
+      AppRouter.userDetailsPage,
+      arguments: UserDetailsPagePayload(userId: alias),
+    );
   }
 
   Future<void> openFeralFileExhibitionNotePage(String exhibitionSlug) async {
@@ -464,6 +512,10 @@ class NavigationService {
     }
     final url = FeralFileHelper.getExhibitionNoteUrl(exhibitionSlug);
     await _browser.openUrl(url);
+  }
+
+  Future<void> openCollection() async {
+    await navigateTo(AppRouter.collectionPage);
   }
 
   Future<void> openFeralFilePostPage(Post post, String exhibitionID) async {
@@ -480,11 +532,10 @@ class NavigationService {
       return;
     }
     late String route;
+
+    /// todo: handle more cases
     switch (pair.first) {
       case AppRouter.collectionPage:
-      case AppRouter.organizePage:
-      case AppRouter.exhibitionsPage:
-      case AppRouter.scanQRPage:
         route = AppRouter.homePageNoTransition;
       default:
         route = pair.first;
@@ -494,21 +545,11 @@ class NavigationService {
     Future.delayed(const Duration(milliseconds: 300), () {
       switch (pair.first) {
         case AppRouter.collectionPage:
-          _navigateHomeTab(HomeNavigatorTab.collection.index);
-        case AppRouter.organizePage:
-          _navigateHomeTab(HomeNavigatorTab.organization.index);
-        case AppRouter.exhibitionsPage:
-          _navigateHomeTab(HomeNavigatorTab.exhibition.index);
-        case AppRouter.scanQRPage:
-          _navigateHomeTab(HomeNavigatorTab.scanQr.index);
+          popToCollection();
         default:
           break;
       }
     });
-  }
-
-  void _navigateHomeTab(int index) {
-    _pageController?.jumpToPage(index);
   }
 
   Pair<String, dynamic>? _resolvePath(String? path) {

@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/additional_data/additional_data.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
@@ -25,9 +24,7 @@ class ViewCollection extends AdditionalData {
         route.settings.name == AppRouter.homePage ||
         route.settings.name == AppRouter.homePageNoTransition);
     Future.delayed(const Duration(milliseconds: 300), () {
-      injector<NavigationService>()
-          .pageController
-          ?.jumpToPage(HomeNavigatorTab.collection.index);
+      injector<NavigationService>().popToCollection();
     });
   }
 

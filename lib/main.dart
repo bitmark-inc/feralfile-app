@@ -31,11 +31,11 @@ import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/au_file_service.dart';
 import 'package:autonomy_flutter/util/canvas_device_adapter.dart';
 import 'package:autonomy_flutter/util/custom_route_observer.dart';
+import 'package:autonomy_flutter/util/dailies_helper.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/route_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart';
@@ -160,6 +160,7 @@ Future<void> _setupApp() async {
   final isPremium = await injector.get<IAPService>().isSubscribed();
   await injector<ConfigurationService>().setPremium(isPremium);
   await JohnGerrardHelper.updateJohnGerrardLatestRevealIndex();
+  DailiesHelper.updateDailies([]);
 
   runApp(
     EasyLocalization(
@@ -227,71 +228,9 @@ class AutonomyApp extends StatelessWidget {
 final RouteObserver<ModalRoute<void>> routeObserver =
     CustomRouteObserver<ModalRoute<void>>();
 
-var memoryValues = MemoryValues(
-    branchDeeplinkData: ValueNotifier(null),
-    deepLink: ValueNotifier(null),
-    irlLink: ValueNotifier(null));
-
-class MemoryValues {
-  String? scopedPersona;
-  String? viewingSupportThreadIssueID;
-  DateTime? inForegroundAt;
-  ValueNotifier<Map<dynamic, dynamic>?> branchDeeplinkData;
-  ValueNotifier<String?> deepLink;
-  ValueNotifier<String?> irlLink;
-  String? currentGroupChatId;
-  bool isForeground = true;
-
-  MemoryValues({
-    required this.branchDeeplinkData,
-    required this.deepLink,
-    required this.irlLink,
-    this.scopedPersona,
-    this.viewingSupportThreadIssueID,
-    this.inForegroundAt,
-  });
-
-  MemoryValues copyWith({
-    String? scopedPersona,
-  }) =>
-      MemoryValues(
-        scopedPersona: scopedPersona ?? this.scopedPersona,
-        branchDeeplinkData: branchDeeplinkData,
-        deepLink: deepLink,
-        irlLink: irlLink,
-      );
-}
-
-enum HomeNavigatorTab {
-  collection,
-  organization,
-  exhibition,
-  scanQr,
-  menu;
-
-  String get screenName => getPageName(routeName);
-
-  String get routeName {
-    switch (this) {
-      case HomeNavigatorTab.collection:
-        return AppRouter.collectionPage;
-      case HomeNavigatorTab.organization:
-        return AppRouter.organizePage;
-      case HomeNavigatorTab.exhibition:
-        return AppRouter.exhibitionsPage;
-      case HomeNavigatorTab.scanQr:
-        return AppRouter.scanQRPage;
-      case HomeNavigatorTab.menu:
-        return 'Menu';
-    }
-  }
-}
-
 @pragma('vm:entry-point')
 void downloadCallback(String id, int status, int progress) {
   final SendPort? send =
       IsolateNameServer.lookupPortByName('downloader_send_port');
   send?.send([id, status, progress]);
 }
-
-void imageError(Object exception, StackTrace? stackTrace) {}

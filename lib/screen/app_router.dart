@@ -17,13 +17,17 @@ import 'package:autonomy_flutter/screen/account/access_method_page.dart';
 import 'package:autonomy_flutter/screen/account/link_manually_page.dart';
 import 'package:autonomy_flutter/screen/account/recovery_phrase_page.dart';
 import 'package:autonomy_flutter/screen/account/test_artwork_screen.dart';
+import 'package:autonomy_flutter/screen/artist_details/artist_details_bloc.dart';
+import 'package:autonomy_flutter/screen/artist_details/artist_details_page.dart';
+import 'package:autonomy_flutter/screen/artist_details/artist_exhibitions_page.dart';
+import 'package:autonomy_flutter/screen/artist_details/artist_posts_page.dart';
+import 'package:autonomy_flutter/screen/artist_details/artist_works_page.dart';
 import 'package:autonomy_flutter/screen/autonomy_security_page.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/connections/connections_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/ethereum/ethereum_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
-import 'package:autonomy_flutter/screen/bloc/router/router_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
@@ -39,6 +43,8 @@ import 'package:autonomy_flutter/screen/customer_support/merchandise_order/merch
 import 'package:autonomy_flutter/screen/customer_support/support_customer_page.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_list_page.dart';
 import 'package:autonomy_flutter/screen/customer_support/support_thread_page.dart';
+import 'package:autonomy_flutter/screen/dailies_work/dailies_work_bloc.dart';
+import 'package:autonomy_flutter/screen/dailies_work/dailies_work_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/artwork_preview_bloc.dart';
@@ -60,8 +66,10 @@ import 'package:autonomy_flutter/screen/gallery/gallery_page.dart';
 import 'package:autonomy_flutter/screen/github_doc.dart';
 import 'package:autonomy_flutter/screen/global_receive/receive_detail_page.dart';
 import 'package:autonomy_flutter/screen/global_receive/receive_page.dart';
+import 'package:autonomy_flutter/screen/home/collection_home_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_navigation_page.dart';
+import 'package:autonomy_flutter/screen/home/organize_home_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/claim_empty_postcard/claim_empty_postcard_screen.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/claim_empty_postcard/pay_to_mint_postcard_screen.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
@@ -80,6 +88,7 @@ import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_bloc.dart';
 import 'package:autonomy_flutter/screen/migration/key_sync_page.dart';
 import 'package:autonomy_flutter/screen/moma_postcard_page/moma_postcard_page.dart';
+import 'package:autonomy_flutter/screen/new_onboarding_page.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/import_seeds.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/name_address_persona.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/select_addresses.dart';
@@ -114,7 +123,6 @@ import 'package:autonomy_flutter/screen/settings/hidden_artworks/hidden_artworks
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_page.dart';
 import 'package:autonomy_flutter/screen/settings/settings_page.dart';
-import 'package:autonomy_flutter/screen/settings/subscription/subscription_page.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/au_sign_message_page.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.dart';
@@ -143,6 +151,7 @@ class AppRouter {
   static const editPlayListPage = 'edit_playlist_page';
   static const previewPrimerPage = 'preview_primer_page';
   static const onboardingPage = 'onboarding_page';
+  static const newOnboardingPage = 'new_onboarding_page';
   static const nameLinkedAccountPage = 'name_linked_account_page';
   static const homePage = 'home_page';
   static const homePageNoTransition = 'home_page_no_transition';
@@ -179,7 +188,6 @@ class AppRouter {
   static const wc2PermissionPage = 'wc2_permission_page';
   static const preferencesPage = 'preferences_page';
   static const walletPage = 'wallet_page';
-  static const subscriptionPage = 'subscription_page';
   static const dataManagementPage = 'data_management_page';
   static const inappWebviewPage = 'inapp_webview_page';
   static const postcardExplain = 'postcard_explain_screen';
@@ -221,10 +229,16 @@ class AppRouter {
   static const collectionPage = 'collection_page';
   static const organizePage = 'organize_page';
   static const exhibitionsPage = 'exhibitions_page';
+  static const explorePage = 'explore_page';
   static const projectsList = 'projects_list';
   static const addEthereumChainPage = 'add_ethereum_chain_page';
   static const artistsListPage = 'artists_list_page';
   static const exhibitionCustomNote = 'exhibition_custom_note';
+  static const dailyWorkPage = 'daily_work_page';
+  static const userDetailsPage = 'artist_details_page';
+  static const artistWorksPage = 'artist_works_page';
+  static const artistExhibitionsPage = 'artist_exhibitions_page';
+  static const artistPostsPage = 'artist_posts_page';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector(), injector());
@@ -238,6 +252,7 @@ class AppRouter {
     final connectionsBloc = injector<ConnectionsBloc>();
     final identityBloc = IdentityBloc(injector<AppDatabase>(), injector());
     final canvasDeviceBloc = injector<CanvasDeviceBloc>();
+    final upgradeBloc = injector<UpgradesBloc>();
 
     final postcardDetailBloc = PostcardDetailBloc(
       injector(),
@@ -312,23 +327,19 @@ class AppRouter {
       case onboardingPage:
         return CupertinoPageRoute(
           settings: settings,
-          builder: (context) => MultiBlocProvider(providers: [
-            BlocProvider(
-              create: (_) => RouterBloc(
-                injector(),
-                injector(),
-                injector(),
-                injector(),
-                injector(),
-                injector(),
-                injector(),
-                injector(),
-              ),
-            ),
-            BlocProvider(
-              create: (_) => personaBloc,
-            ),
-          ], child: const OnboardingPage()),
+          builder: (context) => const OnboardingPage(),
+        );
+
+      case newOnboardingPage:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) => MultiBlocProvider(
+              providers: [
+                BlocProvider(create: (_) => upgradeBloc),
+              ],
+              child: NewOnboardingPage(
+                payload: settings.arguments! as NewOnboardingPagePayload,
+              )),
         );
 
       case previewPrimerPage:
@@ -357,6 +368,10 @@ class AppRouter {
                               injector(),
                             )),
                     BlocProvider(create: (_) => identityBloc),
+                    BlocProvider.value(value: royaltyBloc),
+                    BlocProvider.value(
+                      value: subscriptionBloc,
+                    ),
                     BlocProvider(
                       create: (_) => personaBloc,
                     ),
@@ -382,6 +397,10 @@ class AppRouter {
                               injector(),
                             )),
                     BlocProvider(create: (_) => identityBloc),
+                    BlocProvider.value(value: royaltyBloc),
+                    BlocProvider.value(
+                      value: subscriptionBloc,
+                    ),
                     BlocProvider(
                       create: (_) => personaBloc,
                     ),
@@ -525,12 +544,15 @@ class AppRouter {
         );
 
       case scanQRPage:
+        final payload = settings.arguments! as ScanQRPagePayload;
         return PageTransition(
             settings: settings,
             type: PageTransitionType.topToBottom,
             curve: Curves.easeIn,
             duration: const Duration(milliseconds: 250),
-            child: ScanQRPage(scannerItem: settings.arguments! as ScannerItem));
+            child: ScanQRPage(
+              payload: payload,
+            ));
 
       case settingsPage:
         return CupertinoPageRoute(
@@ -1011,14 +1033,6 @@ class AppRouter {
                   ),
                   BlocProvider.value(value: accountsBloc),
                 ], child: const PreferencePage()));
-      case subscriptionPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => MultiBlocProvider(providers: [
-                  BlocProvider(
-                    create: (_) => UpgradesBloc(injector(), injector()),
-                  ),
-                ], child: const SubscriptionPage()));
       case dataManagementPage:
         return CupertinoPageRoute(
             settings: settings,
@@ -1172,6 +1186,72 @@ class AppRouter {
         return MaterialPageRoute(
           builder: (context) => ExhibitionCustomNotePage(
             info: settings.arguments! as CustomExhibitionNote,
+          ),
+        );
+
+      case dailyWorkPage:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) => MultiBlocProvider(providers: [
+            BlocProvider(
+              create: (_) => DailyWorkBloc(injector(), injector()),
+            ),
+            BlocProvider.value(value: canvasDeviceBloc),
+          ], child: const DailyWorkPage()),
+        );
+
+      case userDetailsPage:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) => MultiBlocProvider(
+              providers: [
+                BlocProvider(create: (_) => UserDetailsBloc()),
+              ],
+              child: UserDetailsPage(
+                payload: settings.arguments! as UserDetailsPagePayload,
+              )),
+        );
+      case artistWorksPage:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) => ArtistWorksPage(
+            payload: settings.arguments! as ArtistWorksPagePayload,
+          ),
+        );
+
+      case artistExhibitionsPage:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) => ArtistExhibitionsPage(
+            payload: settings.arguments! as ArtistExhibitionsPagePayload,
+          ),
+        );
+
+      case artistPostsPage:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) => ArtistPostsPage(
+            payload: settings.arguments! as ArtistPostsPagePayload,
+          ),
+        );
+      case collectionPage:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) => MultiBlocProvider(
+            providers: [
+              BlocProvider.value(value: subscriptionBloc),
+            ],
+            child: const CollectionHomePage(),
+          ),
+        );
+      case organizePage:
+        return CupertinoPageRoute(
+          settings: settings,
+          builder: (context) => MultiBlocProvider(
+            providers: [
+              BlocProvider.value(value: subscriptionBloc),
+            ],
+            child: const OrganizeHomePage(),
           ),
         );
 

@@ -331,7 +331,7 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
           '_signMessage',
           JSResult.error(
             '''
-            Wallet not found. Chain ${argument.chain}, 
+            Wallet not found. Chain ${argument.chain},
             address: ${argument.sourceAddress}
             ''',
           ),
@@ -394,7 +394,7 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
           '_sendTransaction',
           JSResult.error(
             '''
-            Wallet not found. Chain ${argument.chain}, 
+            Wallet not found. Chain ${argument.chain},
             address: ${argument.sourceAddress}
             ''',
           ),
