@@ -163,7 +163,11 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
                 log.info('Onboarding: upgradeState: $status');
                 switch (status) {
                   case IAPProductStatus.completed:
-                    _goToHomePage(context);
+                    // this is for the case when user buy membership
+                    // on onboarding screen
+                    if (_selectedMembershipCardType != null) {
+                      _goToHomePage(context);
+                    }
                   default:
                     break;
                 }
