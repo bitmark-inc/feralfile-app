@@ -82,7 +82,6 @@ abstract class IAPService {
   late ValueNotifier<Map<String, ProductDetails>> products;
   late ValueNotifier<Map<String, IAPProductStatus>> purchases;
   late ValueNotifier<Map<String, DateTime>> trialExpireDates;
-  late ValueNotifier<bool> isWaitingForRestored;
 
   Future<void> setup();
 
@@ -114,8 +113,6 @@ class IAPServiceImpl implements IAPService {
   ValueNotifier<Map<String, IAPProductStatus>> purchases = ValueNotifier({});
   @override
   ValueNotifier<Map<String, DateTime>> trialExpireDates = ValueNotifier({});
-  @override
-  ValueNotifier<bool> isWaitingForRestored = ValueNotifier(false);
 
   IAPServiceImpl(this._configurationService, this._authService) {
     unawaited(setup());
@@ -232,21 +229,7 @@ class IAPServiceImpl implements IAPService {
     if (!(await _inAppPurchase.isAvailable()) || await isAppCenterBuild()) {
       return;
     }
-    isWaitingForRestored
-      ..value = true
-      ..addListener(() {
-        log.info('[IAPService] mark as restore finished');
-        if (!isWaitingForRestored.value) {
-          injector<UpgradesBloc>().add(UpgradeQueryInfoEvent());
-          isWaitingForRestored.removeListener(() {});
-        }
-      });
-    try {
-      await _inAppPurchase.restorePurchases();
-    } catch (error) {
-      log.warning('[IAPService] error when restoring purchases', error);
-      isWaitingForRestored.value = false;
-    }
+    await _inAppPurchase.restorePurchases();
   }
 
   Future<JWT?> _verifyPurchase(String receiptData) async {
@@ -346,7 +329,6 @@ class IAPServiceImpl implements IAPService {
 
     purchaseDetailsList.forEach((PurchaseDetails purchaseDetails) async {
       await _onPurchaseUpdated(purchaseDetails);
-      isWaitingForRestored.value = false;
     });
   }
 

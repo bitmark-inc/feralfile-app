@@ -47,7 +47,7 @@ class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
           ));
         } else {
           // if no JWT, query IAP info
-          //_onNewIAPEventFunc();
+          _onNewIAPEventFunc();
         }
       } catch (error) {
         log.info('UpgradeQueryInfoEvent error');
