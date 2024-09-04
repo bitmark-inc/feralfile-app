@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/model/play_control_model.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
@@ -199,18 +198,6 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
     );
   }
 
-  void _onShufferTap(PlayListModel? playList) {
-    final playControlModel = playList?.playControlModel ?? PlayControlModel();
-    playControlModel.isShuffle = !playControlModel.isShuffle;
-    bloc.add(UpdatePlayControl(playControlModel: playControlModel));
-  }
-
-  void _onTimerTap(PlayListModel? playList) {
-    final playControlModel = playList?.playControlModel ?? PlayControlModel();
-    bloc.add(
-        UpdatePlayControl(playControlModel: playControlModel.onChangeTime()));
-  }
-
   Widget _appBarTitle(BuildContext context, PlayListModel playList) {
     final theme = Theme.of(context);
     return Row(
@@ -283,74 +270,72 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
       ];
 
   @override
-  Widget build(BuildContext context) {
-    return BlocConsumer<ViewPlaylistBloc, ViewPlaylistState>(
-      bloc: bloc,
-      listener: (context, state) {},
-      builder: (context, state) {
-        if (state.playListModel == null) {
-          return const SizedBox();
-        }
+  Widget build(BuildContext context) =>
+      BlocConsumer<ViewPlaylistBloc, ViewPlaylistState>(
+        bloc: bloc,
+        listener: (context, state) {},
+        builder: (context, state) {
+          if (state.playListModel == null) {
+            return const SizedBox();
+          }
 
-        final PlayListModel playList = state.playListModel!;
-        return Scaffold(
-          backgroundColor: AppColor.primaryBlack,
-          appBar: getPlaylistAppBar(
-            context,
-            title: _appBarTitle(context, playList),
-            actions: _appBarAction(context, playList),
-          ),
-          body: BlocBuilder<NftCollectionBloc, NftCollectionBlocState>(
-            bloc: nftBloc,
-            builder: (context, nftState) => Column(
-              children: [
-                BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
-                  bloc: _canvasDeviceBloc,
-                  builder: (context, canvasDeviceState) {
-                    final displayKey = _getDisplayKey(playList);
-                    final isPlaylistCasting = canvasDeviceState
-                            .lastSelectedActiveDeviceForKey(displayKey ?? '') !=
-                        null;
-                    if (isPlaylistCasting) {
-                      return Padding(
-                        padding: const EdgeInsets.all(15),
-                        child: PlaylistControl(
-                          displayKey: displayKey!,
-                        ),
-                      );
-                    } else {
-                      return const SizedBox();
-                    }
-                  },
-                ),
-                Expanded(
-                  child: NftCollectionGrid(
-                    state: nftState.state,
-                    tokens: _setupPlayList(
-                      tokens: widget.payload.collectionType ==
-                              CollectionType.featured
-                          ? _featureTokens
-                          : nftState.tokens.items,
-                      selectedTokens: playList.tokenIDs,
-                    ),
-                    customGalleryViewBuilder: (context, tokens) =>
-                        _assetsWidget(
-                      context,
-                      tokens,
-                      accountIdentities: accountIdentities,
-                      playlist: playList,
-                      onShuffleTap: () => _onShufferTap(playList),
-                      onTimerTap: () => _onTimerTap(playList),
+          final PlayListModel playList = state.playListModel!;
+          return Scaffold(
+            backgroundColor: AppColor.primaryBlack,
+            appBar: getPlaylistAppBar(
+              context,
+              title: _appBarTitle(context, playList),
+              actions: _appBarAction(context, playList),
+            ),
+            body: BlocBuilder<NftCollectionBloc, NftCollectionBlocState>(
+              bloc: nftBloc,
+              builder: (context, nftState) => Column(
+                children: [
+                  BlocBuilder<CanvasDeviceBloc, CanvasDeviceState>(
+                    bloc: _canvasDeviceBloc,
+                    builder: (context, canvasDeviceState) {
+                      final displayKey = _getDisplayKey(playList);
+                      final isPlaylistCasting =
+                          canvasDeviceState.lastSelectedActiveDeviceForKey(
+                                  displayKey ?? '') !=
+                              null;
+                      if (isPlaylistCasting) {
+                        return Padding(
+                          padding: const EdgeInsets.all(15),
+                          child: PlaylistControl(
+                            displayKey: displayKey!,
+                          ),
+                        );
+                      } else {
+                        return const SizedBox();
+                      }
+                    },
+                  ),
+                  Expanded(
+                    child: NftCollectionGrid(
+                      state: nftState.state,
+                      tokens: _setupPlayList(
+                        tokens: widget.payload.collectionType ==
+                                CollectionType.featured
+                            ? _featureTokens
+                            : nftState.tokens.items,
+                        selectedTokens: playList.tokenIDs,
+                      ),
+                      customGalleryViewBuilder: (context, tokens) =>
+                          _assetsWidget(
+                        context,
+                        tokens,
+                        accountIdentities: accountIdentities,
+                        playlist: playList,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        );
-      },
-    );
-  }
+          );
+        },
+      );
 
   String? _getDisplayKey(PlayListModel playList) => playList.displayKey;
 
@@ -375,8 +360,6 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
     List<CompactedAssetToken> tokens, {
     required List<ArtworkIdentity> accountIdentities,
     required PlayListModel playlist,
-    Function()? onShuffleTap,
-    Function()? onTimerTap,
   }) {
     int cellPerRow =
         ResponsiveLayout.isMobile ? cellPerRowPhone : cellPerRowTablet;
