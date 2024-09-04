@@ -73,22 +73,6 @@ class MockConfigurationService extends _i1.Mock
         ),
       ) as _i2.ValueNotifier<bool>);
   @override
-  _i2.ValueNotifier<bool> get showProTip => (super.noSuchMethod(
-        Invocation.getter(#showProTip),
-        returnValue: _FakeValueNotifier_0<bool>(
-          this,
-          Invocation.getter(#showProTip),
-        ),
-      ) as _i2.ValueNotifier<bool>);
-  @override
-  _i2.ValueNotifier<bool> get showTvAppTip => (super.noSuchMethod(
-        Invocation.getter(#showTvAppTip),
-        returnValue: _FakeValueNotifier_0<bool>(
-          this,
-          Invocation.getter(#showTvAppTip),
-        ),
-      ) as _i2.ValueNotifier<bool>);
-  @override
   _i2.ValueNotifier<bool> get showCreatePlaylistTip => (super.noSuchMethod(
         Invocation.getter(#showCreatePlaylistTip),
         returnValue: _FakeValueNotifier_0<bool>(
@@ -97,21 +81,22 @@ class MockConfigurationService extends _i1.Mock
         ),
       ) as _i2.ValueNotifier<bool>);
   @override
-  _i2.ValueNotifier<bool> get showLinkOrImportTip => (super.noSuchMethod(
-        Invocation.getter(#showLinkOrImportTip),
-        returnValue: _FakeValueNotifier_0<bool>(
-          this,
-          Invocation.getter(#showLinkOrImportTip),
+  bool isDoneNewOnboarding() => (super.noSuchMethod(
+        Invocation.method(
+          #isDoneNewOnboarding,
+          [],
         ),
-      ) as _i2.ValueNotifier<bool>);
+        returnValue: false,
+      ) as bool);
   @override
-  _i2.ValueNotifier<bool> get showBackupSettingTip => (super.noSuchMethod(
-        Invocation.getter(#showBackupSettingTip),
-        returnValue: _FakeValueNotifier_0<bool>(
-          this,
-          Invocation.getter(#showBackupSettingTip),
+  _i5.Future<void> setDoneNewOnboarding(bool? value) => (super.noSuchMethod(
+        Invocation.method(
+          #setDoneNewOnboarding,
+          [value],
         ),
-      ) as _i2.ValueNotifier<bool>);
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
   @override
   _i5.Future<void> setLastPullAnnouncementTime(int? lastPullTime) =>
       (super.noSuchMethod(
