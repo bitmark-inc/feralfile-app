@@ -59,7 +59,10 @@ class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
     on<UpgradeIAPInfoEvent>((event, emit) async {
       // get list of subscription details from IAP service
       final subscriptionDetals = listSubscriptionDetails;
-      emit(UpgradeState(subscriptionDetails: subscriptionDetals));
+      emit(UpgradeState(
+        subscriptionDetails: subscriptionDetals,
+        membershipSource: state.membershipSource,
+      ));
     });
 
 // Purchase event
@@ -86,7 +89,10 @@ class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
           log.warning('No item to purchase');
         }
       }
-      emit(UpgradeState(subscriptionDetails: listSubscriptionDetails));
+      emit(UpgradeState(
+        subscriptionDetails: listSubscriptionDetails,
+        membershipSource: state.membershipSource,
+      ));
     });
 
     _iapService.purchases.addListener(_onNewIAPEventFunc);
