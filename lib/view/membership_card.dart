@@ -138,6 +138,7 @@ class MembershipCard extends StatelessWidget {
                     Text(
                       'auto_renews_unless_cancelled'.tr(),
                       style: activeTextStyle,
+                      textAlign: TextAlign.center,
                     ),
                   ],
                 ],

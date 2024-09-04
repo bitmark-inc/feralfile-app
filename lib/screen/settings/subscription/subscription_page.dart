@@ -40,13 +40,6 @@ class _SubscriptionPageState extends State<SubscriptionPage>
     with AfterLayoutMixin {
   final int initialIndex = 0;
   final _upgradesBloc = injector.get<UpgradesBloc>();
-  late bool _isUpgrading;
-
-  @override
-  void initState() {
-    super.initState();
-    _isUpgrading = false;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,7 +50,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
       child: Scaffold(
         appBar: getBackAppBar(
           context,
-          title: 'go_premium'.tr(),
+          title: 'membership'.tr(),
           onBack: () {
             if (widget.payload?.onBack != null) {
               widget.payload?.onBack?.call();
@@ -66,32 +59,30 @@ class _SubscriptionPageState extends State<SubscriptionPage>
             }
           },
         ),
-        body: SafeArea(
-          child: BlocBuilder<UpgradesBloc, UpgradeState>(
-              bloc: _upgradesBloc,
-              builder: (context, state) {
-                final subscriptionDetails = state.activeSubscriptionDetails;
-                final subscriptionStatus = injector<ConfigurationService>()
-                    .getIAPJWT()
-                    ?.getSubscriptionStatus();
-                return Swiper(
-                  itemCount: subscriptionDetails.length,
-                  onIndexChanged: (index) {},
-                  index: initialIndex,
-                  loop: false,
-                  itemBuilder: (context, index) => _subcribeView(
-                      context, subscriptionDetails[index], subscriptionStatus),
-                  pagination: subscriptionDetails.length > 1
-                      ? const SwiperPagination(
-                          builder: DotSwiperPaginationBuilder(
-                              color: AppColor.auLightGrey,
-                              activeColor: MomaPallet.lightYellow),
-                        )
-                      : null,
-                  controller: SwiperController(),
-                );
-              }),
-        ),
+        body: BlocBuilder<UpgradesBloc, UpgradeState>(
+            bloc: _upgradesBloc,
+            builder: (context, state) {
+              final subscriptionDetails = state.activeSubscriptionDetails;
+              final subscriptionStatus = injector<ConfigurationService>()
+                  .getIAPJWT()
+                  ?.getSubscriptionStatus();
+              return Swiper(
+                itemCount: subscriptionDetails.length,
+                onIndexChanged: (index) {},
+                index: initialIndex,
+                loop: false,
+                itemBuilder: (context, index) => _subcribeView(
+                    context, subscriptionDetails[index], subscriptionStatus),
+                pagination: subscriptionDetails.length > 1
+                    ? const SwiperPagination(
+                        builder: DotSwiperPaginationBuilder(
+                            color: AppColor.auLightGrey,
+                            activeColor: MomaPallet.lightYellow),
+                      )
+                    : null,
+                controller: SwiperController(),
+              );
+            }),
       ),
     );
   }
@@ -171,15 +162,18 @@ class _SubscriptionPageState extends State<SubscriptionPage>
       case IAPProductStatus.trial:
       // we dont support trial now
       case IAPProductStatus.loading:
-      case IAPProductStatus.pending:
         return Container(
-          height: 80,
+          height: 500,
           alignment: Alignment.topCenter,
-          child: const LoadingWidget(),
+          child: const LoadingWidget(
+            backgroundColor: Colors.transparent,
+          ),
         );
       case IAPProductStatus.expired:
       // expired membership: user has membership but it's expired
       // in this case, the UI is the same as free user
+      case IAPProductStatus.pending:
+      // pending membership: user is purchasing membership
       case IAPProductStatus.notPurchased:
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -311,20 +305,17 @@ class _SubscriptionPageState extends State<SubscriptionPage>
 
       case IAPProductStatus.trial:
       case IAPProductStatus.loading:
-      case IAPProductStatus.pending:
         return const SizedBox();
       case IAPProductStatus.expired:
+      case IAPProductStatus.pending:
       case IAPProductStatus.notPurchased:
         // when user is essentially a free user
         return MembershipCard(
           type: MembershipCardType.premium,
           price: subscriptionDetails.price,
-          isProcessing: _isUpgrading,
+          isProcessing: subscriptionDetails.status == IAPProductStatus.pending,
           isEnable: true,
           onTap: (_) {
-            setState(() {
-              _isUpgrading = true;
-            });
             _onPressSubscribe(context,
                 subscriptionDetails: subscriptionDetails);
           },
