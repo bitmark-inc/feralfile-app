@@ -43,6 +43,7 @@ class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
           // after updating purchase status, emit new state
           emit(UpgradeState(
             subscriptionDetails: listSubscriptionDetails,
+            membershipSource: subscriptionStatus.source,
           ));
         } else {
           // if no JWT, query IAP info

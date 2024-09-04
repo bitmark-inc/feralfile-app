@@ -16,6 +16,8 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_state.dart';
+import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
+import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -92,6 +94,8 @@ abstract class IAPService {
   Future<bool> isSubscribed({bool includeInhouse = true});
 
   PurchaseDetails? getPurchaseDetails(String productId);
+
+  void clearReceipt();
 }
 
 class IAPServiceImpl implements IAPService {
@@ -101,13 +105,14 @@ class IAPServiceImpl implements IAPService {
   final InAppPurchase _inAppPurchase = InAppPurchase.instance;
   late StreamSubscription<List<PurchaseDetails>> _subscription;
 
+  final List<PurchaseDetails> _purchases = <PurchaseDetails>[];
+
   @override
   ValueNotifier<Map<String, ProductDetails>> products = ValueNotifier({});
   @override
   ValueNotifier<Map<String, IAPProductStatus>> purchases = ValueNotifier({});
   @override
   ValueNotifier<Map<String, DateTime>> trialExpireDates = ValueNotifier({});
-  final List<PurchaseDetails> _purchases = <PurchaseDetails>[];
 
   IAPServiceImpl(this._configurationService, this._authService) {
     unawaited(setup());
@@ -282,8 +287,10 @@ class IAPServiceImpl implements IAPService {
             if (status.isTrial) {
               purchases.value[purchaseDetails.productID] =
                   IAPProductStatus.trial;
-              trialExpireDates.value[purchaseDetails.productID] =
-                  status.expireDate;
+              if (status.expireDate != null) {
+                trialExpireDates.value[purchaseDetails.productID] =
+                    status.expireDate!;
+              }
             } else {
               purchases.value[purchaseDetails.productID] =
                   IAPProductStatus.completed;
@@ -309,6 +316,7 @@ class IAPServiceImpl implements IAPService {
     }
     purchases.notifyListeners();
     injector<SubscriptionBloc>().add(GetSubscriptionEvent());
+    injector<UpgradesBloc>().add(UpgradeQueryInfoEvent());
   }
 
   void _listenToPurchaseUpdated(List<PurchaseDetails> purchaseDetailsList) {
@@ -352,6 +360,11 @@ class IAPServiceImpl implements IAPService {
   @override
   PurchaseDetails? getPurchaseDetails(String productId) =>
       _purchases.firstWhereOrNull((element) => element.productID == productId);
+
+  @override
+  void clearReceipt() {
+    _receiptData = null;
+  }
 }
 
 class PaymentQueueDelegate implements SKPaymentQueueDelegateWrapper {

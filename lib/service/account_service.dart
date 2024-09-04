@@ -18,6 +18,7 @@ import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_state.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/audit_service.dart';
+import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
@@ -362,7 +363,11 @@ class AccountServiceImpl extends AccountService {
 
     await _cloudDB.connectionDao.insertConnection(connection);
     await _nftCollectionAddressService.addAddresses([checkSumAddress]);
-    final allAddresses = await _addressService.getAllAddress();
+
+    /// to do:
+    /// after apply new onboarding, we disable view-only address at onboarding,
+    /// therefore, we do not need to register primary address here
+    final allAddresses = await _addressService.getAllEthereumAddress();
     if (allAddresses.isEmpty) {
       // for case when import view-only address,
       // the default account is not exist,
@@ -732,6 +737,8 @@ class AccountServiceImpl extends AccountService {
       await _configurationService.setDoneOnboarding(hasPersona);
     }
     if (_configurationService.isDoneOnboarding()) {
+      // dont need to force update, because
+      await injector<AuthService>().getAuthToken();
       return;
     }
     // for user who did not onboarded before
@@ -755,7 +762,7 @@ class AccountServiceImpl extends AccountService {
       // make sure has addresses
       // case 1: user has no backup,
       // case 2: user has backup but no addresses
-      final addresses = await _addressService.getAllAddress();
+      final addresses = await _addressService.getAllEthereumAddress();
       if (addresses.isEmpty) {
         // if user has no backup, derive addresses from keychain
         await _addressService.deriveAddressesFromAllPersona();
@@ -785,6 +792,7 @@ class AccountServiceImpl extends AccountService {
           .mixPanelClient
           .initIfDefaultAccount());
     }
+
     unawaited(iapService.restore());
   }
 

@@ -4,10 +4,10 @@ import 'dart:math';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_list_response.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
+import 'package:autonomy_flutter/screen/artist_details/artist_details_page.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
-import 'package:autonomy_flutter/screen/gallery/gallery_page.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/playlist_ext.dart';
@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/view/loading.dart';
 import 'package:autonomy_flutter/view/stream_common_widget.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -48,6 +49,7 @@ class FeaturedWorkViewState extends State<FeaturedWorkView> {
     _scrollController = ScrollController();
     _canvasDeviceBloc = injector<CanvasDeviceBloc>();
     _paging = Paging(offset: 0, limit: 5, total: widget.tokenIDs.length);
+    log.info('paging initState: ${_paging.offset}');
     unawaited(_fetchFeaturedTokens(context, _paging));
     _scrollController.addListener(() {
       if (_scrollController.position.pixels + 100 >
@@ -60,7 +62,7 @@ class FeaturedWorkViewState extends State<FeaturedWorkView> {
   @override
   void didUpdateWidget(covariant FeaturedWorkView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.tokenIDs != widget.tokenIDs) {
+    if (!listEquals(oldWidget.tokenIDs, widget.tokenIDs)) {
       _paging = Paging(offset: 0, limit: 5, total: widget.tokenIDs.length);
       _isLoading = false;
       unawaited(_fetchFeaturedTokens(context, _paging));
@@ -432,14 +434,12 @@ class FeaturedWorkViewState extends State<FeaturedWorkView> {
               title: asset.displayTitle ?? '',
               onTitleTap: () => _onTapArtwork(context, asset),
               subTitle: subTitle,
-              onSubTitleTap: asset.artistID != null
-                  ? () => unawaited(
-                      Navigator.of(context).pushNamed(AppRouter.galleryPage,
-                          arguments: GalleryPagePayload(
-                            address: asset.artistID!,
-                            artistName: artistName!,
-                            artistURL: asset.artistURL,
-                          )))
+              onSubTitleTap: asset.artistID != null && asset.isFeralfile
+                  ? () => unawaited(Navigator.of(context).pushNamed(
+                        AppRouter.userDetailsPage,
+                        arguments:
+                            UserDetailsPagePayload(userId: asset.artistID!),
+                      ))
                   : null,
             ),
           ),

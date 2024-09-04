@@ -111,7 +111,7 @@ class _CloudAndroidPageState extends State<CloudAndroidPage>
                   children: [
                     addTitleSpace(),
                     Text(
-                      'autonomy_will_auto_bk'.tr(),
+                      'autonomy_will_auto_bk_android'.tr(),
                       style: theme.textTheme.ppMori400Black14,
                     ),
                     const SizedBox(height: 15),
