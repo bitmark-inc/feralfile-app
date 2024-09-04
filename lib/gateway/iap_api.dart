@@ -39,12 +39,6 @@ abstract class IAPApi {
     @Part(name: 'data') File data,
   );
 
-  @GET('/apis/v1/premium/profile-data/versions')
-  Future<BackupVersions> getProfileVersions(
-    @Header('requester') String requester,
-    @Query('filename') String filename,
-  );
-
   @GET('/apis/v1/premium/profile-data')
   Future<dynamic> getProfileData(
     @Header('requester') String requester,

@@ -171,6 +171,7 @@ dependency_overrides:
   intl: 0.18.0
   archive: ^3.6.1
   package_info_plus: ^6.0.0
+  frontend_server_client: ^4.0.0
 
 dev_dependencies:
   flutter_lints: null

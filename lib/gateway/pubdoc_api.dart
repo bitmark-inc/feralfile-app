@@ -33,9 +33,6 @@ abstract class PubdocAPI {
 
   @GET('/configs/postcard/postcard_configs.json')
   Future<String> getConfigs();
-
-  @GET('/configs/user_test.json')
-  Future<String> getUserTestConfigs();
 }
 
 extension PubdocAPIHelpers on PubdocAPI {
@@ -46,17 +43,17 @@ extension PubdocAPIHelpers on PubdocAPI {
 
   Future<List<PlayListModel>> getDemoAccountFromGithub() async {
     final value = await getDemoAccount();
-    final list = (jsonDecode(value) as List?)?.map((element) {
-      return PlayListModel.fromJson(element);
-    }).toList();
+    final list = (jsonDecode(value) as List?)
+        ?.map((element) => PlayListModel.fromJson(element))
+        .toList();
     return list ?? [];
   }
 
   Future<List<SuggestedArtist>> getSuggestedArtistsFromGithub() async {
     final value = await getSuggestedArtists();
-    final list = (jsonDecode(value) as List<dynamic>?)?.map((element) {
-      return SuggestedArtist.fromJson(element);
-    }).toList();
+    final list = (jsonDecode(value) as List<dynamic>?)
+        ?.map((element) => SuggestedArtist.fromJson(element))
+        .toList();
     return list ?? [];
   }
 }

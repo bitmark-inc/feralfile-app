@@ -15,17 +15,6 @@ part 'tzkt_api.g.dart';
 abstract class TZKTApi {
   factory TZKTApi(Dio dio, {String baseUrl}) = _TZKTApi;
 
-  @GET("/v1/accounts/{address}/operations")
-  Future<List<TZKTOperation>> getOperations(
-    @Path("address") String address, {
-    @Query("type") String type = "transaction",
-    @Query("quote") String quote = "usd",
-    @Query("sort") int sort = 1,
-    @Query("limit") int limit = 100,
-    @Query("lastId") int? lastId,
-    @Query("initiator.ne") String? initiator,
-  });
-
   @GET("/v1/tokens/transfers")
   Future<List<TZKTTokenTransfer>> getTokenTransfer({
     @Query("anyof.from.to") String? anyOf,
