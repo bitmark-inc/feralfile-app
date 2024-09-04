@@ -12,6 +12,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/product_details_ext.dart';
 import 'package:autonomy_flutter/util/subscription_detail_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/loading.dart';
 import 'package:autonomy_flutter/view/membership_card.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:card_swiper/card_swiper.dart';
@@ -29,7 +30,7 @@ class NewOnboardingPage extends StatefulWidget {
 }
 
 class _NewOnboardingPageState extends State<NewOnboardingPage> {
-  late final UpgradesBloc _upgradeBloc = injector<UpgradesBloc>();
+  final UpgradesBloc _upgradeBloc = injector<UpgradesBloc>();
 
   late SwiperController _swiperController;
   MembershipCardType? _selectedMembershipCardType;
@@ -180,16 +181,23 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
                 final renewDate = subscriptionDetails?.renewDate;
 
                 final shouldShowReceivedPremium =
-                    didOpenWithGiftMembership == true ||
+                    (didOpenWithGiftMembership == true) ||
                         (isSubscribed && _selectedMembershipCardType == null);
-                log.info('Onboarding: isSubscribed: $isSubscribed, '
-                    'renewDate: $renewDate,'
-                    'shouldShowReceivedPremium: $shouldShowReceivedPremium'
-                    'source: ${subscriptionState.membershipSource}');
-                final didUserBuy = subscriptionState.membershipSource ==
-                        MembershipSource.purchase ||
-                    subscriptionState.membershipSource ==
-                        MembershipSource.preset;
+                log
+                  ..info('Onboarding: isSubscribed: $isSubscribed, '
+                      'renewDate: $renewDate,'
+                      'shouldShowReceivedPremium: $shouldShowReceivedPremium'
+                      'source: ${subscriptionState.membershipSource}')
+                  ..info(injector<IAPService>().isWaitingForRestored.value);
+
+                if (injector<IAPService>().isWaitingForRestored.value) {
+                  return const LoadingWidget();
+                }
+
+                final didUserBuy = (subscriptionState.membershipSource ==
+                        MembershipSource.purchase) ||
+                    (subscriptionState.membershipSource ==
+                        MembershipSource.preset);
                 if (shouldShowReceivedPremium) {
                   return _receivedPremiumCard(
                       context, subscriptionDetails, didUserBuy);

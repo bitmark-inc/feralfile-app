@@ -42,6 +42,17 @@ class UpgradeState {
     this.membershipSource,
   });
 
+  UpgradeState copyWith({
+    List<SubscriptionDetails>? subscriptionDetails,
+    bool? isProcessing,
+    MembershipSource? membershipSource,
+  }) =>
+      UpgradeState(
+        subscriptionDetails: subscriptionDetails ?? this.subscriptionDetails,
+        isProcessing: isProcessing ?? false,
+        membershipSource: membershipSource ?? this.membershipSource,
+      );
+
   List<SubscriptionDetails> get activeSubscriptionDetails {
     final activeSubscriptionDetails = <SubscriptionDetails>[];
     for (final subscriptionDetail in subscriptionDetails) {
