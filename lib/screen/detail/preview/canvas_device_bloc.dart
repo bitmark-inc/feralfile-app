@@ -8,6 +8,7 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/au_bloc.dart';
+import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
 import 'package:autonomy_flutter/util/cast_request_ext.dart';
 import 'package:autonomy_flutter/util/device_status_ext.dart';
@@ -25,6 +26,12 @@ class CanvasDeviceGetDevicesEvent extends CanvasDeviceEvent {
   final bool retry;
 
   CanvasDeviceGetDevicesEvent({this.retry = false});
+}
+
+class AppendDeviceEvent extends CanvasDeviceEvent {
+  final Pair<CanvasDevice, CheckDeviceStatusReply> device;
+
+  AppendDeviceEvent(this.device);
 }
 
 class CanvasDeviceAppendDeviceEvent extends CanvasDeviceEvent {
@@ -271,6 +278,20 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
       },
       transformer: debounceSequential(const Duration(seconds: 5)),
     );
+
+    on<AppendDeviceEvent>((event, emit) async {
+      final List<DeviceState> devicesState = [...state.devices]
+        ..removeWhere(
+            (element) => element.device.deviceId == event.device.first.deviceId)
+        ..add(DeviceState(device: event.device.first));
+
+      final controllingDeviceStatus = [event.device].controllingDevices;
+      final newState = state.copyWith(
+        devices: devicesState,
+        controllingDeviceStatus: controllingDeviceStatus,
+      );
+      emit(newState);
+    });
 
     on<CanvasDeviceAppendDeviceEvent>((event, emit) async {
       final newState = state.copyWith(

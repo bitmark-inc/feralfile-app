@@ -201,6 +201,7 @@ class _StreamDeviceViewState extends State<StreamDeviceView> {
     log.info('device selected: $device');
     if (device != null) {
       injector.get<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent());
+      injector.get<CanvasDeviceBloc>().add(AppendDeviceEvent(device));
     }
   }
 
