@@ -19,14 +19,10 @@ part 'iap_api.g.dart';
 
 @RestApi(baseUrl: '')
 abstract class IAPApi {
-  static const authenticationPath = '/apis/v1/auth';
   static const addressAuthenticationPath = '/apis/v2/addresses/auth';
   static const registerPrimaryAddressPath = '/apis/v2/addresses/primary';
 
   factory IAPApi(Dio dio, {String baseUrl}) = _IAPApi;
-
-  @POST(authenticationPath)
-  Future<JWT> auth(@Body() Map<String, dynamic> body);
 
   @POST(addressAuthenticationPath)
   Future<JWT> authAddress(@Body() Map<String, dynamic> body);
