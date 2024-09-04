@@ -8,7 +8,6 @@ import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist_bloc.dart';
 import 'package:autonomy_flutter/screen/playlists/add_new_playlist/add_new_playlist_state.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
-import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
@@ -62,11 +61,7 @@ class _AddToCollectionScreenState extends State<AddToCollectionScreen>
   }
 
   @override
-  void afterFirstLayout(BuildContext context) {
-    unawaited(
-        injector<ConfigurationService>().setAlreadyShowCreatePlaylistTip(true));
-    injector<ConfigurationService>().showCreatePlaylistTip.value = false;
-  }
+  void afterFirstLayout(BuildContext context) {}
 
   void _scrollListenerToLoadMore() {
     if (_controller.position.pixels + 100 >=
@@ -174,7 +169,7 @@ class _AddToCollectionScreenState extends State<AddToCollectionScreen>
                 (element) => state.selectedIDs?.contains(element.id) ?? false)
             .length;
         return Scaffold(
-          backgroundColor: theme.colorScheme.background,
+          backgroundColor: theme.colorScheme.surface,
           appBar: getPlaylistAppBar(
             context,
             title: Column(

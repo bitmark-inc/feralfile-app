@@ -398,7 +398,7 @@ class NavigationService {
         .findAllAssetTokensByTokenIDs([indexID]);
     final owner = tokens.first.owner;
     final artworkDetailPayload =
-        ArtworkDetailPayload([ArtworkIdentity(indexID, owner)], 0);
+        ArtworkDetailPayload(ArtworkIdentity(indexID, owner));
     if (context.mounted) {
       unawaited(Navigator.of(context).pushNamed(AppRouter.artworkDetailsPage,
           arguments: artworkDetailPayload));

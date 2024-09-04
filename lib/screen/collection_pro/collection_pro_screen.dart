@@ -531,10 +531,7 @@ class CollectionProState extends State<CollectionPro>
           context,
           AppRouter.artworkDetailsPage,
           arguments: ArtworkDetailPayload(
-            [
-              ArtworkIdentity(token.id, token.owner),
-            ],
-            0,
+            ArtworkIdentity(token.id, token.owner),
           ),
         );
       },
@@ -549,10 +546,7 @@ class CollectionProState extends State<CollectionPro>
                   context,
                   AppRouter.artworkDetailsPage,
                   arguments: ArtworkDetailPayload(
-                    [
-                      ArtworkIdentity(token.id, token.owner),
-                    ],
-                    0,
+                    ArtworkIdentity(token.id, token.owner),
                   ),
                 );
               },

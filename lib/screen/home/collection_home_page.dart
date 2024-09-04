@@ -138,7 +138,7 @@ class CollectionHomePageState extends State<CollectionHomePage>
           .toList();
       if (config.isAutoShowPostcard()) {
         log.info('Auto show minted postcard');
-        final payload = PostcardDetailPagePayload(tokenMints, 0);
+        final payload = PostcardDetailPagePayload(tokenMints.first);
         unawaited(Navigator.of(context).pushNamed(
           AppRouter.claimedPostcardDetailsPage,
           arguments: payload,
@@ -432,8 +432,8 @@ class CollectionHomePageState extends State<CollectionHomePage>
             .toList()
             .indexOf(asset);
         final payload = asset.isPostcard
-            ? PostcardDetailPagePayload(accountIdentities, index)
-            : ArtworkDetailPayload(accountIdentities, index);
+            ? PostcardDetailPagePayload(accountIdentities[index])
+            : ArtworkDetailPayload(accountIdentities[index]);
 
         final pageName = asset.isPostcard
             ? AppRouter.claimedPostcardDetailsPage

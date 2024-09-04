@@ -386,13 +386,10 @@ class FeaturedWorkViewState extends State<FeaturedWorkView> {
     unawaited(Navigator.of(context).pushNamed(
       AppRouter.artworkDetailsPage,
       arguments: ArtworkDetailPayload(
-        [
-          ArtworkIdentity(
-            token.id,
-            token.owner,
-          ),
-        ],
-        0,
+        ArtworkIdentity(
+          token.id,
+          token.owner,
+        ),
         isLocalToken: false,
       ),
     ));

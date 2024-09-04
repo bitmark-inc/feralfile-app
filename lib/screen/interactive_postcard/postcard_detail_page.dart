@@ -32,7 +32,6 @@ import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_state.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_page.dart';
-import 'package:autonomy_flutter/screen/settings/help_us/inapp_webview.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -77,8 +76,7 @@ class PostcardDetailPagePayload extends ArtworkDetailPayload {
   final bool isFromLeaderboard;
 
   PostcardDetailPagePayload(
-    super.identities,
-    super.currentIndex, {
+    super.identity, {
     super.key,
     super.playlist,
     super.twitterCaption,
@@ -129,8 +127,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
     isAutoStampIfNeed = true;
     super.initState();
     context.read<PostcardDetailBloc>().add(
-          PostcardDetailGetInfoEvent(
-              widget.payload.identities[widget.payload.currentIndex],
+          PostcardDetailGetInfoEvent(widget.payload.identity,
               useIndexer: widget.payload.useIndexer ||
                   widget.payload.isFromLeaderboard),
         );
@@ -142,8 +139,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   @override
   void afterFirstLayout(BuildContext context) {
     _metricClientService.addEvent(MixpanelEvent.visitPage, data: {
-      MixpanelProp.tokenId:
-          widget.payload.identities[widget.payload.currentIndex],
+      MixpanelProp.tokenId: widget.payload.identity,
     });
   }
 
@@ -400,7 +396,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           isAutoStampIfNeed = false;
           unawaited(
               retryStampPostcardIfNeed(context, assetToken).then((final value) {
-            if (mounted && value == false) {
+            if (context.mounted && value == false) {
               UIHelper.showPostcardStampFailed(context);
             }
           }));
@@ -648,7 +644,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   void _refreshPostcard() {
     log.info('Refresh postcard');
     context.read<PostcardDetailBloc>().add(PostcardDetailGetInfoEvent(
-          widget.payload.identities[widget.payload.currentIndex],
+          widget.payload.identity,
           useIndexer: true,
         ));
   }

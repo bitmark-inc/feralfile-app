@@ -411,13 +411,11 @@ class _ViewPlaylistScreenState extends State<ViewPlaylistScreen> {
 
                         final payload = asset.isPostcard
                             ? PostcardDetailPagePayload(
-                                accountIdentities,
-                                index,
+                                accountIdentities[index],
                                 playlist: playlist,
                               )
                             : ArtworkDetailPayload(
-                                accountIdentities,
-                                index,
+                                accountIdentities[index],
                                 playlist: playlist,
                               );
                         final pageName = asset.isPostcard
