@@ -485,55 +485,6 @@ class RetryCubit extends Cubit<int> {
   }
 }
 
-class PreviewUnSupportedTokenWidget extends StatelessWidget {
-  final AssetToken token;
-
-  const PreviewUnSupportedTokenWidget({required this.token, super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final size = MediaQuery.of(context).size;
-    return Container(
-      width: size.width,
-      height: size.width,
-      padding: const EdgeInsets.all(10),
-      color: AppColor.auGreyBackground,
-      child: Stack(
-        children: [
-          Center(
-            child: SvgPicture.asset(
-              'assets/images/unsupported_token.svg',
-              width: 40,
-            ),
-          ),
-          Align(
-            alignment: AlignmentDirectional.bottomStart,
-            child: Row(
-              children: [
-                Text(
-                  'unsupported_token'.tr(),
-                  style: theme.textTheme.ppMori700QuickSilver8
-                      .copyWith(fontSize: 12),
-                ),
-                const Spacer(),
-                GestureDetector(
-                  onTap: () {},
-                  child: Text(
-                    'hide_from_collection'.tr(),
-                    style: theme.textTheme.ppMori400Black12
-                        .copyWith(color: AppColor.feralFileHighlight),
-                  ),
-                )
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class BrokenTokenWidget extends StatefulWidget {
   final AssetToken token;
 
@@ -587,50 +538,6 @@ class _BrokenTokenWidgetState extends State<BrokenTokenWidget>
                         .copyWith(color: AppColor.feralFileHighlight),
                   ),
                 )
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class CurrentlyCastingArtwork extends StatefulWidget {
-  const CurrentlyCastingArtwork({super.key});
-
-  @override
-  State<CurrentlyCastingArtwork> createState() =>
-      _CurrentlyCastingArtworkState();
-}
-
-class _CurrentlyCastingArtworkState extends State<CurrentlyCastingArtwork> {
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final size = MediaQuery.of(context).size;
-    return Container(
-      width: size.width,
-      height: size.width,
-      padding: const EdgeInsets.all(10),
-      color: AppColor.auGreyBackground,
-      child: Stack(
-        children: [
-          Center(
-            child: SvgPicture.asset(
-              'assets/images/ipfs_error_icon.svg',
-              width: 40,
-            ),
-          ),
-          Align(
-            alignment: AlignmentDirectional.bottomStart,
-            child: Row(
-              children: [
-                Text(
-                  'currently_casting'.tr(),
-                  style: theme.textTheme.ppMori700QuickSilver8
-                      .copyWith(fontSize: 12),
-                ),
               ],
             ),
           ),
@@ -1634,43 +1541,6 @@ class ProvenanceItem extends StatelessWidget {
               ),
             ],
           ),
-        ),
-      ],
-    );
-  }
-}
-
-class HeaderData extends StatelessWidget {
-  final String text;
-
-  const HeaderData({required this.text, super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Divider(
-          color: theme.colorScheme.secondary,
-          thickness: 1,
-        ),
-        Row(
-          children: [
-            Text(
-              text,
-              style: theme.textTheme.ppMori400White14,
-            ),
-            const Spacer(),
-            RotatedBox(
-              quarterTurns: 1,
-              child: Icon(
-                AuIcon.chevron_Sm,
-                size: 12,
-                color: theme.colorScheme.secondary,
-              ),
-            )
-          ],
         ),
       ],
     );

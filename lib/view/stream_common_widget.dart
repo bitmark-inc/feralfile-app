@@ -16,10 +16,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:rxdart/rxdart.dart';
 
 final speedValues = {
-  // '5sec': const Duration(seconds: 5),
-  // '10sec': const Duration(seconds: 10),
-  // '15sec': const Duration(seconds: 15),
-  // '30sec': const Duration(seconds: 30),
   '1min': const Duration(minutes: 1),
   '2min': const Duration(minutes: 2),
   '5min': const Duration(minutes: 5),
@@ -191,7 +187,6 @@ class _PlaylistControlState extends State<PlaylistControl> {
       );
 
   Widget _buildPlayControls(BuildContext context, CanvasDeviceState state) {
-    final isCasting = _controllingDevice != null;
     final isPlaying = state.devices
             .firstWhereOrNull(
                 (e) => e.device.deviceId == _controllingDevice?.deviceId)
@@ -276,7 +271,6 @@ class _PlaylistControlState extends State<PlaylistControl> {
 
   void onPauseOrResume(BuildContext context) {
     // final _canvasDeviceBloc = context.read<CanvasDeviceBloc>();
-    final isCasting = _controllingDevice != null;
     final isPlaying = _canvasDeviceBloc.state.devices
             .firstWhereOrNull(
                 (e) => e.device.deviceId == _controllingDevice?.deviceId)

@@ -11,9 +11,9 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
-import 'package:autonomy_flutter/view/au_filled_button.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
+import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -100,10 +100,10 @@ class _LinkManuallyPageState extends State<LinkManuallyPage> {
             Row(
               children: [
                 Expanded(
-                  child: AuFilledButton(
+                  child: PrimaryButton(
                     text: "link".tr(),
                     enabled: _linkEnabled,
-                    onPress: () => _link(),
+                    onTap: () => _link(),
                   ),
                 ),
               ],
