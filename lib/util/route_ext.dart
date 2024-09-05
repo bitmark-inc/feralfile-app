@@ -418,7 +418,6 @@ final screenNameMap = {
   AppRouter.merchOrdersPage: 'Merch Orders',
   AppRouter.supportThreadPage: 'Support Thread',
   AppRouter.bugBountyPage: 'Bug Bounty',
-  AppRouter.keySyncPage: 'Key Sync',
   AppRouter.githubDocPage: 'Github Doc',
   AppRouter.sendArtworkPage: 'Send Artwork',
   AppRouter.sendArtworkReviewPage: 'Send Artwork Review',

@@ -84,8 +84,6 @@ import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart'
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_bloc.dart';
 import 'package:autonomy_flutter/screen/irl_screen/sign_message_screen.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
-import 'package:autonomy_flutter/screen/migration/key_sync_bloc.dart';
-import 'package:autonomy_flutter/screen/migration/key_sync_page.dart';
 import 'package:autonomy_flutter/screen/moma_postcard_page/moma_postcard_page.dart';
 import 'package:autonomy_flutter/screen/new_onboarding_page.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/import_seeds.dart';
@@ -180,7 +178,6 @@ class AppRouter {
   static const merchOrdersPage = 'merch_orders_page';
   static const supportThreadPage = 'support_thread_page';
   static const bugBountyPage = 'bug_bounty_page';
-  static const keySyncPage = 'key_sync_page';
   static const githubDocPage = 'github_doc_page';
   static const sendArtworkPage = 'send_artwork_page';
   static const sendArtworkReviewPage = 'send_artwork_review_page';
@@ -923,14 +920,6 @@ class AppRouter {
             settings: settings,
             builder: (context) => GithubDocPage(
                 payload: settings.arguments! as Map<String, String>));
-
-      case keySyncPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => BlocProvider(
-                  create: (_) => KeySyncBloc(injector(), injector()),
-                  child: const KeySyncPage(),
-                ));
 
       case sendArtworkPage:
         return CupertinoPageRoute(
