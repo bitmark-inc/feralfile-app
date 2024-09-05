@@ -121,6 +121,14 @@ class ArtworkPreviewWidgetState extends State<ArtworkPreviewWidget>
     unawaited(_renderingWidget?.resume());
   }
 
+  void mute() {
+    unawaited(_renderingWidget?.mute());
+  }
+
+  void unmute() {
+    unawaited(_renderingWidget?.unmute());
+  }
+
   @override
   Widget build(BuildContext context) =>
       BlocBuilder<ArtworkPreviewDetailBloc, ArtworkPreviewDetailState>(
