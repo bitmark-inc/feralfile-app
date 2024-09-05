@@ -17,7 +17,6 @@ import 'package:autonomy_flutter/model/p2p_peer.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_state.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
-import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -123,7 +122,6 @@ class AccountServiceImpl extends AccountService {
   final TezosBeaconService _tezosBeaconService;
   final ConfigurationService _configurationService;
   final AndroidBackupChannel _backupChannel = AndroidBackupChannel();
-  final AuditService _auditService;
   final BackupService _backupService;
   final nft.AddressService _nftCollectionAddressService;
   final AddressService _addressService;
@@ -133,7 +131,6 @@ class AccountServiceImpl extends AccountService {
     this._cloudDB,
     this._tezosBeaconService,
     this._configurationService,
-    this._auditService,
     this._backupService,
     this._nftCollectionAddressService,
     this._addressService,
@@ -151,7 +148,6 @@ class AccountServiceImpl extends AccountService {
         uuid: uuid, defaultAccount: isDefault ? 1 : null, name: name);
     await _cloudDB.personaDao.insertPersona(persona);
     await androidBackupKeys();
-    await _auditService.auditPersonaAction('create', persona);
     log.fine('[AccountService] Created persona ${persona.uuid}}');
     if (isDefault) {
       await _addressService.registerPrimaryAddress(
@@ -191,7 +187,6 @@ class AccountServiceImpl extends AccountService {
     final persona = Persona.newPersona(uuid: uuid);
     await _cloudDB.personaDao.insertPersona(persona);
     await androidBackupKeys();
-    await _auditService.auditPersonaAction('import', persona);
     log.fine('[AccountService] imported persona ${persona.uuid}');
     return persona;
   }
@@ -246,7 +241,7 @@ class AccountServiceImpl extends AccountService {
     var personas = await _cloudDB.personaDao.getDefaultPersonas();
 
     if (personas.isEmpty) {
-      await MigrationUtil(injector(), _auditService).migrationFromKeychain();
+      await MigrationUtil(injector()).migrationFromKeychain();
       await androidRestoreKeys();
 
       await Future.delayed(const Duration(seconds: 1));
@@ -289,7 +284,6 @@ class AccountServiceImpl extends AccountService {
   Future deletePersona(Persona persona) async {
     log.fine('[AccountService] deletePersona start - ${persona.uuid}');
     await _cloudDB.personaDao.deletePersona(persona);
-    await _auditService.auditPersonaAction('delete', persona);
 
     await androidBackupKeys();
     await LibAukDart.getWallet(persona.uuid).removeKeys();
@@ -471,8 +465,6 @@ class AccountServiceImpl extends AccountService {
             defaultAccount: defaultAccount,
           );
           await _cloudDB.personaDao.insertPersona(persona);
-          await _auditService.auditPersonaAction(
-              '[androidRestoreKeys] insert', persona);
         }
       }
 
@@ -726,8 +718,7 @@ class AccountServiceImpl extends AccountService {
   @override
   Future<void> restoreIfNeeded() async {
     final iapService = injector<IAPService>();
-    final auditService = injector<AuditService>();
-    final migrationUtil = MigrationUtil(_cloudDB, auditService);
+    final migrationUtil = MigrationUtil(_cloudDB);
     await androidRestoreKeys();
     await migrationUtil.migrationFromKeychain();
     final personas = await _cloudDB.personaDao.getPersonas();

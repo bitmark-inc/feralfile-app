@@ -12,7 +12,6 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
-import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/services.dart';
@@ -21,13 +20,12 @@ import 'package:nft_collection/services/address_service.dart' as ads;
 class MigrationUtil {
   static const MethodChannel _channel = MethodChannel('migration_util');
   final CloudDatabase _cloudDB;
-  final AuditService _auditService;
   final ads.AddressService _collectionAddressService =
       injector<ads.AddressService>();
   final AddressService _addressService = injector<AddressService>();
   final int requiredAndroidMigrationVersion = 95;
 
-  MigrationUtil(this._cloudDB, this._auditService);
+  MigrationUtil(this._cloudDB);
 
   Future<void> migrationFromKeychain() async {
     if (!Platform.isIOS) {
@@ -68,8 +66,6 @@ class MigrationUtil {
             defaultAccount: defaultAccount);
 
         await _cloudDB.personaDao.insertPersona(persona);
-        await _auditService.auditPersonaAction(
-            '[_migrationkeychain] insert', persona);
       }
     }
 

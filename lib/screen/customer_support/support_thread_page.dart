@@ -15,7 +15,6 @@ import 'package:autonomy_flutter/database/entity/draft_customer_support.dart';
 import 'package:autonomy_flutter/model/customer_support.dart' as app;
 import 'package:autonomy_flutter/model/customer_support.dart';
 import 'package:autonomy_flutter/model/pair.dart';
-import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
@@ -231,8 +230,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     const fileMaxSize = 1024 * 1024;
     final file = await log_util.getLogFile();
     final bytes = await file.readAsBytes();
-    final auditBytes = await injector<AuditService>().export();
-    var combinedBytes = bytes + auditBytes;
+    var combinedBytes = bytes;
     if (combinedBytes.length > fileMaxSize) {
       combinedBytes = combinedBytes.sublist(combinedBytes.length - fileMaxSize);
     }

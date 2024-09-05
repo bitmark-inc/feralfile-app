@@ -8,10 +8,8 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/database/dao/address_dao.dart';
-import 'package:autonomy_flutter/database/dao/audit_dao.dart';
 import 'package:autonomy_flutter/database/dao/connection_dao.dart';
 import 'package:autonomy_flutter/database/dao/persona_dao.dart';
-import 'package:autonomy_flutter/database/entity/audit.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/database/entity/wallet_address.dart';
@@ -25,20 +23,17 @@ part 'cloud_database.g.dart'; // the generated code will be there
 //ignore_for_file: lines_longer_than_80_chars
 
 @TypeConverters([DateTimeConverter])
-@Database(version: 9, entities: [Persona, Connection, Audit, WalletAddress])
+@Database(version: 9, entities: [Persona, Connection, WalletAddress])
 abstract class CloudDatabase extends FloorDatabase {
   PersonaDao get personaDao;
 
   ConnectionDao get connectionDao;
-
-  AuditDao get auditDao;
 
   WalletAddressDao get addressDao;
 
   Future<dynamic> removeAll() async {
     await personaDao.removeAll();
     await connectionDao.removeAll();
-    await auditDao.removeAll();
     await addressDao.removeAll();
   }
 
@@ -48,9 +43,6 @@ abstract class CloudDatabase extends FloorDatabase {
     });
     await source.connectionDao.getConnections().then((connections) async {
       await connectionDao.insertConnections(connections);
-    });
-    await source.auditDao.getAudits().then((audits) async {
-      await auditDao.insertAudits(audits);
     });
     await source.addressDao.getAllAddresses().then((addresses) async {
       await addressDao.insertAddresses(addresses);
@@ -234,6 +226,10 @@ final migrateCloudV8ToV9 = Migration(8, 9, (database) async {
   log.info('Migrated Cloud database from version 8 to 9');
 });
 
+final migrateCloudV9ToV10 = Migration(9, 10, (database) async {
+  await database.execute('DROP TABLE IF EXISTS Audit;');
+});
+
 final cloudDatabaseMigrations = [
   migrateCloudV1ToV2,
   migrateCloudV2ToV3,
@@ -243,4 +239,5 @@ final cloudDatabaseMigrations = [
   migrateCloudV6ToV7,
   migrateCloudV7ToV8,
   migrateCloudV8ToV9,
+  migrateCloudV9ToV10,
 ];
