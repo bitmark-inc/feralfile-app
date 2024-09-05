@@ -65,7 +65,6 @@ import 'package:autonomy_flutter/screen/gallery/gallery_bloc.dart';
 import 'package:autonomy_flutter/screen/gallery/gallery_page.dart';
 import 'package:autonomy_flutter/screen/github_doc.dart';
 import 'package:autonomy_flutter/screen/global_receive/receive_detail_page.dart';
-import 'package:autonomy_flutter/screen/global_receive/receive_page.dart';
 import 'package:autonomy_flutter/screen/home/collection_home_page.dart';
 import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_navigation_page.dart';
@@ -804,18 +803,6 @@ class AppRouter {
             builder: (context) => CloudAndroidPage(
                   payload: settings.arguments! as CloudAndroidPagePayload,
                 ));
-
-      case globalReceivePage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => MultiBlocProvider(providers: [
-                  BlocProvider.value(value: accountsBloc),
-                  BlocProvider(
-                    create: (_) => personaBloc,
-                  ),
-                  BlocProvider.value(value: ethereumBloc),
-                  BlocProvider.value(value: tezosBloc),
-                ], child: const GlobalReceivePage()));
 
       case globalReceiveDetailPage:
         return CupertinoPageRoute(
