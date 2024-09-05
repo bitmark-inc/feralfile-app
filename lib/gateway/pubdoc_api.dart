@@ -8,7 +8,6 @@
 import 'dart:convert';
 
 import 'package:autonomy_flutter/model/play_list_model.dart';
-import 'package:autonomy_flutter/model/suggested_artist.dart';
 import 'package:autonomy_flutter/model/version_info.dart';
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
@@ -45,14 +44,6 @@ extension PubdocAPIHelpers on PubdocAPI {
     final value = await getDemoAccount();
     final list = (jsonDecode(value) as List?)
         ?.map((element) => PlayListModel.fromJson(element))
-        .toList();
-    return list ?? [];
-  }
-
-  Future<List<SuggestedArtist>> getSuggestedArtistsFromGithub() async {
-    final value = await getSuggestedArtists();
-    final list = (jsonDecode(value) as List<dynamic>?)
-        ?.map((element) => SuggestedArtist.fromJson(element))
         .toList();
     return list ?? [];
   }
