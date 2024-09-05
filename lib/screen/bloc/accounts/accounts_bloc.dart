@@ -17,6 +17,7 @@ import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/primary_address_channel.dart';
 import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:collection/collection.dart';
@@ -37,6 +38,13 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
     on<GetAccountsEvent>((event, emit) async {
       final connectionsFuture =
           _cloudDB.connectionDao.getUpdatedLinkedAccounts();
+      log.info('[Accounts Bloc] GetAccountsEvent: Fetching accounts');
+      try {
+        await injector<AddressService>().deriveAddressesFromAllPersona();
+      } catch (e) {
+        log.info('[Accounts Bloc] GetAccountsEvent: error $e');
+        unawaited(Sentry.captureException(e));
+      }
       final addresses = await _cloudDB.addressDao.getAllAddresses();
 
       List<Account> accounts = await getAccountPersona(addresses);

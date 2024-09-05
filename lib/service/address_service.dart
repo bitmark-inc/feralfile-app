@@ -48,11 +48,50 @@ class AddressService {
 
   Future<void> deriveAddressesFromAllPersona() async {
     final personas = await _cloudDB.personaDao.getPersonas();
+    log.info('[AddressService] Derive addresses from all personas');
     for (final persona in personas) {
+      log.info(
+          '[AddressService] Derive addresses for persona: ${persona.uuid}');
       await Future.wait([
-        persona.insertAddressAtIndex(walletType: WalletType.Ethereum, index: 0),
-        persona.insertAddressAtIndex(walletType: WalletType.Tezos, index: 0),
+        persona.insertAddressAtIndex(
+            walletType: WalletType.Ethereum,
+            index: 0,
+            name: '${persona.uuid}_0'),
+        persona.insertAddressAtIndex(
+            walletType: WalletType.Ethereum,
+            index: 1,
+            name: '${persona.uuid}_1'),
+        persona.insertAddressAtIndex(
+            walletType: WalletType.Ethereum,
+            index: 2,
+            name: '${persona.uuid}_2'),
+        persona.insertAddressAtIndex(
+            walletType: WalletType.Ethereum,
+            index: 3,
+            name: '${persona.uuid}_3'),
+        persona.insertAddressAtIndex(
+            walletType: WalletType.Ethereum,
+            index: 4,
+            name: '${persona.uuid}_4'),
+        persona.insertAddressAtIndex(
+            walletType: WalletType.Ethereum,
+            index: 5,
+            name: '${persona.uuid}_5'),
+        persona.insertAddressAtIndex(
+            walletType: WalletType.Tezos, index: 0, name: '${persona.uuid}_0'),
+        persona.insertAddressAtIndex(
+            walletType: WalletType.Tezos, index: 1, name: '${persona.uuid}_1'),
+        persona.insertAddressAtIndex(
+            walletType: WalletType.Tezos, index: 2, name: '${persona.uuid}_2'),
+        persona.insertAddressAtIndex(
+            walletType: WalletType.Tezos, index: 3, name: '${persona.uuid}_3'),
+        persona.insertAddressAtIndex(
+            walletType: WalletType.Tezos, index: 4, name: '${persona.uuid}_4'),
+        persona.insertAddressAtIndex(
+            walletType: WalletType.Tezos, index: 5, name: '${persona.uuid}_5'),
       ]);
+      log.info(
+          '[AddressService] Addresses derived for persona: ${persona.uuid}');
     }
   }
 
