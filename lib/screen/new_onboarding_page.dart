@@ -256,9 +256,9 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                MembershipCard(
+                const MembershipCard(
                   type: MembershipCardType.premium,
-                  price: _getPremiumPrice(subscriptionDetails),
+                  price: '',
                   isProcessing: false,
                   isEnable: false,
                 ),

@@ -212,7 +212,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
           case MembershipSource.purchase:
             return MembershipCard(
               type: MembershipCardType.premium,
-              price: subscriptionDetails.price,
+              price: '',
               isProcessing: false,
               isEnable: true,
               canAutoRenew: true,
@@ -255,7 +255,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
           case MembershipSource.giftCode:
             return MembershipCard(
               type: MembershipCardType.premium,
-              price: subscriptionDetails.price,
+              price: '',
               isProcessing: false,
               isEnable: true,
               buttonBuilder: (context) => Container(
