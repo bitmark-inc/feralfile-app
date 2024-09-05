@@ -1,0 +1,114 @@
+import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/service/auth_service.dart';
+import 'package:autonomy_flutter/util/log.dart';
+import 'package:graphql_flutter/graphql_flutter.dart';
+
+class AccountSettingsClient {
+  AccountSettingsClient(this._baseUrl);
+
+  final String _baseUrl;
+
+  GraphQLClient get client {
+    final httpLink = HttpLink('$_baseUrl/v2/graphql');
+    final authLink = AuthLink(getToken: _getToken);
+    final link = authLink.concat(httpLink);
+
+    return GraphQLClient(
+      cache: GraphQLCache(dataIdFromObject: (data) => null),
+      link: link,
+    );
+  }
+
+  Future<dynamic> query({
+    required Map<String, dynamic> vars,
+  }) async {
+    final data = await _query(doc: _queryDoc, vars: vars);
+    log.info('AccountSettingsClient: query $data');
+    return data?['keys']?['values'];
+  }
+
+  Future<dynamic> _query({
+    required String doc,
+    required Map<String, dynamic> vars,
+  }) async {
+    try {
+      final options = QueryOptions(
+        document: gql(doc),
+        variables: vars,
+      );
+
+      final result = await client.query(options);
+      return result.data;
+    } catch (e) {
+      log.info('AccountSettingsClient: query error $e');
+      return null;
+    }
+  }
+
+  Future<dynamic> _mutate({
+    required String doc,
+    required Map<String, dynamic> vars,
+  }) async {
+    try {
+      final options = MutationOptions(
+        document: gql(doc),
+        variables: vars,
+      );
+
+      final result = await client.mutate(options);
+      return result.data;
+    } catch (e) {
+      log.info('AccountSettingsClient: mutate error $e');
+      return null;
+    }
+  }
+
+  Future<bool> write({
+    required List<Map<String, String>> data,
+  }) async {
+    final resultData = await _mutate(doc: _writeDoc, vars: {'data': data});
+    log.info('AccountSettingsClient: write $data');
+    return resultData?['write']?['ok'] ?? false;
+  }
+
+  Future<bool> delete({
+    required Map<String, dynamic> vars,
+  }) async {
+    final data = await _mutate(doc: _deleteDoc, vars: vars);
+    log.info('AccountSettingsClient: delete $data');
+    return data?['delete']?['ok'] ?? false;
+  }
+
+  Future<String> _getToken() async {
+    final jwt = await injector<AuthService>().getAuthToken();
+    return 'Bearer ${jwt ?? ''}';
+  }
+
+  static const String _queryDoc = r'''
+    query ($search: String, $keys: [String!]!, $cursor: String) {
+      keys(search: $search, keys: $keys, cursor: $cursor) {
+        values {
+          key
+          value
+        }
+        cursor
+      }
+    }
+  ''';
+  static const String _writeDoc = r'''
+    mutation ($data: [KeyValue!]!) {
+      write(data: $data) {
+        ok
+      }
+    }
+  ''';
+  static const String _deleteDoc = r'''
+    mutation ($search: String, $keys: [String!]!) {
+      keys(search: $search, keys: $keys, cursor: $cursor) {
+        delete(data: $data) {
+          ok
+        }
+      }
+    }
+  ''';
+}
