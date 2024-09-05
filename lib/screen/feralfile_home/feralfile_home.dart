@@ -120,8 +120,7 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
   final _exhibitionViewKey = GlobalKey<ExploreExhibitionState>();
   final _artistViewKey = GlobalKey<ExploreArtistViewState>();
   final _curatorViewKey = GlobalKey<ExploreCuratorViewState>();
-  final GlobalKey<_ItemExpandedWidgetState> _itemExpandedKey =
-      GlobalKey();
+  final GlobalKey<_ItemExpandedWidgetState> _itemExpandedKey = GlobalKey();
 
   @override
   void initState() {
@@ -221,10 +220,14 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
   }
 
   void jumpToTab(FeralfileHomeTab tab) {
+    _selectTab(tab);
+    _itemExpandedKey.currentState?.selectItem(tab.index);
+  }
+
+  void _selectTab(FeralfileHomeTab tab) {
     setState(() {
       _selectedIndex = tab.index;
     });
-    _itemExpandedKey.currentState?.selectItem(tab.index);
   }
 
   List<Item> _getItemList(FeralfileHomeBlocState state) {
@@ -237,7 +240,7 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
             ? numberFormater.format(state.featuredArtworks!.length)
             : '-',
         onSelected: () {
-          jumpToTab(FeralfileHomeTab.featured);
+          _selectTab(FeralfileHomeTab.featured);
         },
       ),
       Item(
@@ -247,7 +250,7 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
             ? numberFormater.format(state.exploreStatisticsData!.totalArtwork)
             : '-',
         onSelected: () {
-          jumpToTab(FeralfileHomeTab.artworks);
+          _selectTab(FeralfileHomeTab.artworks);
         },
       ),
       Item(
@@ -258,7 +261,7 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
                 .format(state.exploreStatisticsData!.totalExhibition)
             : '-',
         onSelected: () {
-          jumpToTab(FeralfileHomeTab.exhibitions);
+          _selectTab(FeralfileHomeTab.exhibitions);
         },
       ),
       Item(
@@ -268,7 +271,7 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
               ? numberFormater.format(state.exploreStatisticsData!.totalArtist)
               : '-',
           onSelected: () {
-            jumpToTab(FeralfileHomeTab.artists);
+            _selectTab(FeralfileHomeTab.artists);
           }),
       Item(
         id: FeralfileHomeTab.curators.index.toString(),
@@ -277,7 +280,7 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
             ? numberFormater.format(state.exploreStatisticsData!.totalCurator)
             : '-',
         onSelected: () {
-          jumpToTab(FeralfileHomeTab.curators);
+          _selectTab(FeralfileHomeTab.curators);
         },
       ),
     ];

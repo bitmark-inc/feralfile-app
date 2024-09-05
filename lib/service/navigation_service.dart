@@ -581,8 +581,6 @@ class NavigationService {
     });
     await Future.delayed(const Duration(milliseconds: 300), () {
       if (exploreTab != null) {
-        print('homePageKey: $feralFileHomeKey');
-        print('exploreTab: $exploreTab');
         feralFileHomeKey.currentState?.jumpToTab(exploreTab);
       }
     });
