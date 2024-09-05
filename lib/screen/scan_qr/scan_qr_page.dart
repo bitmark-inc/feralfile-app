@@ -72,46 +72,15 @@ class ScanQRPage extends StatefulWidget {
 
 class ScanQRPageState extends State<ScanQRPage>
     with RouteAware, TickerProviderStateMixin {
-  late TabController _tabController;
-  late bool _isGlobal;
   final GlobalKey<QRScanViewState> _qrScanViewKey = GlobalKey();
-  final _metricClientService = injector<MetricClientService>();
-  late List<Widget> _pages;
-
-  TabController get tabController => _tabController;
 
   @override
   void initState() {
     super.initState();
-    _isGlobal = (widget.payload.scannerItem == ScannerItem.GLOBAL);
     //There is a conflict with lib qr_code_scanner on Android.
     if (Platform.isIOS) {
       unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.leanBack));
     }
-    _tabController = TabController(length: _isGlobal ? 2 : 1, vsync: this);
-    _tabController.addListener(() {
-      setState(() {});
-      _addMetricListener(_tabController);
-    });
-    _pages = [
-      QRScanView(
-        key: _qrScanViewKey,
-        scannerItem: widget.payload.scannerItem,
-        onHandleFinished: widget.payload.onHandleFinished,
-      ),
-    ];
-  }
-
-  void _addMetricListener(TabController controller) {
-    if (controller.indexIsChanging) {
-      return;
-    }
-    _metricClientService
-      ..addEvent(MixpanelEvent.visitPage, data: {
-        MixpanelProp.title:
-            QRScanTab.values[controller.previousIndex].screenName,
-      })
-      ..timerEvent(MixpanelEvent.visitPage);
   }
 
   Future<void> pauseCamera() async {
@@ -120,9 +89,7 @@ class ScanQRPageState extends State<ScanQRPage>
   }
 
   Future<void> resumeCamera() async {
-    if (_tabController.index == QRScanTab.scan.index) {
-      await _qrScanViewKey.currentState?.resumeCamera();
-    }
+    await _qrScanViewKey.currentState?.resumeCamera();
   }
 
   @override
@@ -138,14 +105,11 @@ class ScanQRPageState extends State<ScanQRPage>
         child: Scaffold(
           extendBodyBehindAppBar: true,
           backgroundColor: AppColor.primaryBlack,
-          appBar: _tabController.index == QRScanTab.scan.index
-              ? getDarkEmptyAppBar(Colors.transparent)
-              : getLightEmptyAppBar(),
+          appBar: getDarkEmptyAppBar(Colors.transparent),
           body: Stack(
             children: <Widget>[
               _content(context),
-              if (_tabController.index == QRScanTab.scan.index)
-                _header(context),
+              _header(context),
             ],
           ),
         ),
@@ -154,10 +118,10 @@ class ScanQRPageState extends State<ScanQRPage>
   Widget _content(BuildContext context) => Column(
         children: [
           Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              physics: const NeverScrollableScrollPhysics(),
-              children: _pages.sublist(0, _tabController.length),
+            child: QRScanView(
+              key: _qrScanViewKey,
+              scannerItem: widget.payload.scannerItem,
+              onHandleFinished: widget.payload.onHandleFinished,
             ),
           ),
         ],
