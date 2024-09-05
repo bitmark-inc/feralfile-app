@@ -736,6 +736,8 @@ class AccountServiceImpl extends AccountService {
     if (!hasPersona) {
       await _configurationService.setDoneOnboarding(hasPersona);
     }
+    // For test only
+    await _addressService.deriveAddressesFromAllPersona();
     if (_configurationService.isDoneOnboarding()) {
       // dont need to force update, because
       await injector<AuthService>().getAuthToken();
