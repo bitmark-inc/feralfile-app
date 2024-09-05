@@ -29,7 +29,7 @@ class NewOnboardingPage extends StatefulWidget {
 }
 
 class _NewOnboardingPageState extends State<NewOnboardingPage> {
-  late final UpgradesBloc _upgradeBloc = injector<UpgradesBloc>();
+  final UpgradesBloc _upgradeBloc = injector<UpgradesBloc>();
 
   late SwiperController _swiperController;
   MembershipCardType? _selectedMembershipCardType;
@@ -180,16 +180,17 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
                 final renewDate = subscriptionDetails?.renewDate;
 
                 final shouldShowReceivedPremium =
-                    didOpenWithGiftMembership == true ||
+                    (didOpenWithGiftMembership == true) ||
                         (isSubscribed && _selectedMembershipCardType == null);
                 log.info('Onboarding: isSubscribed: $isSubscribed, '
                     'renewDate: $renewDate,'
                     'shouldShowReceivedPremium: $shouldShowReceivedPremium'
                     'source: ${subscriptionState.membershipSource}');
-                final didUserBuy = subscriptionState.membershipSource ==
-                        MembershipSource.purchase ||
-                    subscriptionState.membershipSource ==
-                        MembershipSource.preset;
+
+                final didUserBuy = (subscriptionState.membershipSource ==
+                        MembershipSource.purchase) ||
+                    (subscriptionState.membershipSource ==
+                        MembershipSource.preset);
                 if (shouldShowReceivedPremium) {
                   return _receivedPremiumCard(
                       context, subscriptionDetails, didUserBuy);
