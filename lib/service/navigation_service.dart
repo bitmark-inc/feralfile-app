@@ -13,10 +13,12 @@ import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/artist_details/artist_details_page.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
+import 'package:autonomy_flutter/screen/feralfile_home/feralfile_home.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/send_receive_postcard/receive_postcard_page.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
+import 'package:autonomy_flutter/shared.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
 import 'package:autonomy_flutter/util/feral_file_custom_tab.dart';
@@ -532,22 +534,56 @@ class NavigationService {
       return;
     }
     late String route;
+    HomeNavigatorTab? homeNavigationTab;
+    FeralfileHomeTab? exploreTab;
 
-    /// todo: handle more cases
     switch (pair.first) {
-      case AppRouter.collectionPage:
+      case AppRouter.dailyWorkPage:
         route = AppRouter.homePageNoTransition;
+        homeNavigationTab = HomeNavigatorTab.daily;
+      case AppRouter.featuredPage:
+        route = AppRouter.homePageNoTransition;
+        homeNavigationTab = HomeNavigatorTab.explore;
+        exploreTab = FeralfileHomeTab.featured;
+      case AppRouter.artworksPage:
+        route = AppRouter.homePageNoTransition;
+        homeNavigationTab = HomeNavigatorTab.explore;
+        exploreTab = FeralfileHomeTab.artworks;
+      case AppRouter.exhibitionsPage:
+        route = AppRouter.homePageNoTransition;
+        homeNavigationTab = HomeNavigatorTab.explore;
+        exploreTab = FeralfileHomeTab.exhibitions;
+      case AppRouter.artistsPage:
+        route = AppRouter.homePageNoTransition;
+        homeNavigationTab = HomeNavigatorTab.explore;
+        exploreTab = FeralfileHomeTab.artists;
+      case AppRouter.curatorsPage:
+        route = AppRouter.homePageNoTransition;
+        homeNavigationTab = HomeNavigatorTab.explore;
+        exploreTab = FeralfileHomeTab.curators;
+      case AppRouter.rAndDPage:
+        route = AppRouter.homePageNoTransition;
+        homeNavigationTab = HomeNavigatorTab.explore;
+        exploreTab = FeralfileHomeTab.rAndD;
       default:
         route = pair.first;
+        unawaited(navigateTo(route, arguments: pair.second));
+        return;
     }
 
-    unawaited(navigateTo(route, arguments: pair.second));
-    Future.delayed(const Duration(milliseconds: 300), () {
-      switch (pair.first) {
-        case AppRouter.collectionPage:
-          popToCollection();
-        default:
-          break;
+    popUntilHome();
+
+    await Future.delayed(const Duration(milliseconds: 300), () {
+      if (homeNavigationTab != null) {
+        (homePageKey.currentState ?? homePageNoTransactionKey.currentState)
+            ?.onItemTapped(homeNavigationTab.index);
+      }
+    });
+    await Future.delayed(const Duration(milliseconds: 300), () {
+      if (exploreTab != null) {
+        print('homePageKey: $feralFileHomeKey');
+        print('exploreTab: $exploreTab');
+        feralFileHomeKey.currentState?.jumpToTab(exploreTab);
       }
     });
   }
