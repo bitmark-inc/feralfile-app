@@ -189,8 +189,3 @@ class Environment {
 
   static String get tvKey => cachedSecretEnv['TV_API_KEY'] ?? '';
 }
-
-class Secret {
-  static String get ffAuthorizationPrefix =>
-      dotenv.env['FERAL_FILE_AUTHORIZATION_PREFIX'] ?? '';
-}
