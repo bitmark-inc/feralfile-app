@@ -70,8 +70,12 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                 onIndexChanged: (index) {},
                 index: initialIndex,
                 loop: false,
-                itemBuilder: (context, index) => _subcribeView(
-                    context, subscriptionDetails[index], subscriptionStatus),
+                itemBuilder: (context, index) => _subscribeView(
+                  context,
+                  subscriptionDetails[index],
+                  subscriptionStatus,
+                  state.isProcessing,
+                ),
                 pagination: subscriptionDetails.length > 1
                     ? const SwiperPagination(
                         builder: DotSwiperPaginationBuilder(
@@ -86,10 +90,12 @@ class _SubscriptionPageState extends State<SubscriptionPage>
     );
   }
 
-  Widget _subcribeView(
-          BuildContext context,
-          SubscriptionDetails subscriptionDetails,
-          SubscriptionStatus? subscriptionStatus) =>
+  Widget _subscribeView(
+    BuildContext context,
+    SubscriptionDetails subscriptionDetails,
+    SubscriptionStatus? subscriptionStatus,
+    bool? isProcessing,
+  ) =>
       Container(
         color: AppColor.auGreyBackground,
         padding: const EdgeInsets.all(3),
@@ -110,7 +116,11 @@ class _SubscriptionPageState extends State<SubscriptionPage>
               padding:
                   ResponsiveLayout.pageHorizontalEdgeInsetsWithSubmitButton,
               child: _actionSection(
-                  context, subscriptionDetails, subscriptionStatus),
+                context,
+                subscriptionDetails,
+                subscriptionStatus,
+                isProcessing,
+              ),
             ),
           ],
         ),
@@ -201,6 +211,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
     BuildContext context,
     SubscriptionDetails subscriptionDetails,
     SubscriptionStatus? subscriptionStatus,
+    bool? isProcessing,
   ) {
     final theme = Theme.of(context);
     final dateFormater = DateFormat('dd/MM/yyyy');
@@ -305,7 +316,8 @@ class _SubscriptionPageState extends State<SubscriptionPage>
         return MembershipCard(
           type: MembershipCardType.premium,
           price: subscriptionDetails.price,
-          isProcessing: subscriptionDetails.status == IAPProductStatus.pending,
+          isProcessing: isProcessing == true ||
+              subscriptionDetails.status == IAPProductStatus.pending,
           isEnable: true,
           onTap: (_) {
             _onPressSubscribe(context,
