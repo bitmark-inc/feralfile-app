@@ -10,13 +10,16 @@ import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
-import 'package:autonomy_flutter/model/jwt.dart'; // import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_state.dart';
+import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/util/dio_exception_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/notification_util.dart';
 import 'package:autonomy_flutter/util/primary_address_channel.dart';
+import 'package:dio/dio.dart';
+import 'package:libauk_dart/libauk_dart.dart';
 
 class AuthService {
   final IAPApi _authApi;
@@ -72,18 +75,40 @@ class AuthService {
       });
     }
 
-    var newJwt = await _authApi.authAddress(payload);
+    var newJwt = await _getAuthAddress(
+      payload,
+      primaryAddress: primaryAddressInfo,
+    );
     _jwt = newJwt;
 
     if (newJwt.isValid(withSubscription: true)) {
+      log.info('jwt with valid subscription');
       unawaited(_configurationService
           .setIAPReceipt(receiptData ?? _configurationService.getIAPReceipt()));
       unawaited(_configurationService.setIAPJWT(newJwt));
     } else {
+      log.info('jwt with invalid subscription');
       unawaited(_configurationService.setIAPReceipt(null));
       unawaited(_configurationService.setIAPJWT(null));
     }
     return newJwt;
+  }
+
+  Future<JWT> _getAuthAddress(Map<String, dynamic> payload,
+      {AddressInfo? primaryAddress}) async {
+    try {
+      var newJwt = await _authApi.authAddress(payload);
+      return newJwt;
+    } on DioException catch (e) {
+      if (e.ffErrorCode == 998 && primaryAddress != null) {
+        log.warning('Primary address not registered, retrying');
+        await injector<AddressService>()
+            .registerPrimaryAddress(info: primaryAddress);
+        return await _authApi.authAddress(payload);
+      } else {
+        rethrow;
+      }
+    }
   }
 
   Future<JWT?> getAuthToken({

@@ -69,10 +69,12 @@ class AccountSettingsDBImpl implements AccountSettingsDB {
     final settingsFullKeys = settings
         .map((e) => {'key': getFullKey(e['key']!), 'value': e['value']!})
         .toList();
-    for (var element in settingsFullKeys) {
-      _caches[element['key']!] = element['value']!;
+    final isSuccess = await _client.write(data: settingsFullKeys);
+    if (isSuccess) {
+      for (var element in settingsFullKeys) {
+        _caches[element['key']!] = element['value']!;
+      }
     }
-    await _client.write(data: settingsFullKeys);
   }
 
   @override
@@ -81,8 +83,10 @@ class AccountSettingsDBImpl implements AccountSettingsDB {
       return;
     }
     final fullKeys = keys.map(getFullKey).toList();
-    _caches.removeWhere((key, value) => fullKeys.contains(key));
-    await _client.delete(vars: {'keys': fullKeys});
+    final isSuccess = await _client.delete(vars: {'keys': fullKeys});
+    if (!isSuccess) {
+      _caches.removeWhere((key, value) => fullKeys.contains(key));
+    }
   }
 
   @override

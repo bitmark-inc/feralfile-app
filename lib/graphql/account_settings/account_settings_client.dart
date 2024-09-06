@@ -23,9 +23,14 @@ class AccountSettingsClient {
     required Map<String, dynamic> vars,
   }) async {
     final data = await _query(doc: _queryDoc, vars: vars);
-    log.info('AccountSettingsClient: query $data');
     final values = data?['keys']?['values'];
-    return List<Map<String, String>>.from(values ?? []);
+    log.info('AccountSettingsClient: query $values');
+    final rawResult = List<Map<String, dynamic>>.from(values ?? []);
+    return rawResult
+        .where((element) => element['value'] != null)
+        .map((e) => {'key': e['key'], 'value': e['value'].toString()}
+            as Map<String, String>)
+        .toList();
   }
 
   Future<dynamic> _query({
