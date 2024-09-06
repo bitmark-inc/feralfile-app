@@ -10,6 +10,7 @@ import 'dart:async';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/tv_cast_api.dart';
 import 'package:autonomy_flutter/model/pair.dart';
+import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/device_info_service.dart';
 import 'package:autonomy_flutter/service/hive_store_service.dart';
@@ -75,6 +76,7 @@ class CanvasClientServiceV2 {
       await _db.save(device, device.deviceId);
       unawaited(connectToDevice(device));
       log.info('CanvasClientService: Added device to db ${device.name}');
+      injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent());
       return deviceStatus;
     }
     return null;
