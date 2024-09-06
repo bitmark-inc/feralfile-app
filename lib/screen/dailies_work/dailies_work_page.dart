@@ -116,10 +116,20 @@ class DailyWorkPageState extends State<DailyWorkPage>
 
   void pauseDailyWork() {
     _artworkKey.currentState?.pause();
+    muteDailyWork();
   }
 
   void resumeDailyWork() {
     _artworkKey.currentState?.resume();
+    unmuteDailyWork();
+  }
+
+  void muteDailyWork() {
+    _artworkKey.currentState?.mute();
+  }
+
+  void unmuteDailyWork() {
+    _artworkKey.currentState?.unmute();
   }
 
   void scrollToTop() {
@@ -582,9 +592,10 @@ class DailyWorkPageState extends State<DailyWorkPage>
           exhibition: exhibition,
         ),
         const SizedBox(height: 48),
-        Text(
+        HtmlWidget(
           exhibition.noteBrief,
-          style: theme.textTheme.ppMori400White14,
+          customStylesBuilder: auHtmlStyle,
+          textStyle: theme.textTheme.ppMori400White14,
         ),
         const SizedBox(height: 16),
         Text(
