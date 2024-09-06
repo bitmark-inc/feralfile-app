@@ -23,12 +23,12 @@ class Exhibition {
   final String? coverURI;
   final String? thumbnailCoverURI;
   final String mintBlockchain;
-  final FFCurator? curator;
-  final List<FFCurator>? curators;
-  final List<FFArtist>? artists;
+  final FFUser? curator;
+  final List<FFUser>? curators;
+  final List<FFUser>? artists;
   final List<FFSeries>? series;
   final List<FFContract>? contracts;
-  final FFArtist? partner;
+  final FFUser? partner;
   final String type;
   final List<Post>? posts;
   final int status;
@@ -68,10 +68,10 @@ class Exhibition {
         coverURI: json['coverURI'] as String?,
         thumbnailCoverURI: json['thumbnailCoverURI'] as String?,
         curators: (json['curators'] as List<dynamic>?)
-            ?.map((e) => FFCurator.fromJson(e as Map<String, dynamic>))
+            ?.map((e) => FFUser.fromJson(e as Map<String, dynamic>))
             .toList(),
         artists: (json['artists'] as List<dynamic>?)
-            ?.map((e) => FFArtist.fromJson(e as Map<String, dynamic>))
+            ?.map((e) => FFUser.fromJson(e as Map<String, dynamic>))
             .toList(),
         series: (json['series'] as List<dynamic>?)
             ?.map((e) => FFSeries.fromJson(e as Map<String, dynamic>))
@@ -82,11 +82,11 @@ class Exhibition {
         mintBlockchain: (json['mintBlockchain'] ?? '') as String,
         partner: json['partner'] == null
             ? null
-            : FFArtist.fromJson(json['partner'] as Map<String, dynamic>),
+            : FFUser.fromJson(json['partner'] as Map<String, dynamic>),
         type: json['type'] as String,
         curator: json['curator'] == null
             ? null
-            : FFCurator.fromJson(json['curator'] as Map<String, dynamic>),
+            : FFUser.fromJson(json['curator'] as Map<String, dynamic>),
         posts: (json['posts'] as List<dynamic>?)
             ?.map((e) => Post.fromJson(e as Map<String, dynamic>))
             .toList(),
@@ -116,7 +116,7 @@ class Exhibition {
         'status': status,
       };
 
-  FFArtist? getArtist(FFSeries? series) {
+  FFUser? getArtist(FFSeries? series) {
     final artistId = series?.artistID;
     return artists?.firstWhereOrNull((artist) => artist.id == artistId);
   }
@@ -136,12 +136,12 @@ class Exhibition {
     String? coverURI,
     String? thumbnailCoverURI,
     String? mintBlockchain,
-    FFCurator? curator,
-    List<FFCurator>? curators,
-    List<FFArtist>? artists,
+    FFUser? curator,
+    List<FFUser>? curators,
+    List<FFUser>? artists,
     List<FFSeries>? series,
     List<FFContract>? contracts,
-    FFArtist? partner,
+    FFUser? partner,
     String? type,
     List<Post>? posts,
     int? status,

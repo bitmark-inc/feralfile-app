@@ -18,7 +18,7 @@ class FFSeries {
   final int? displayIndex;
   final int? featuringIndex;
   final FFSeriesSettings? settings;
-  final FFArtist? artist;
+  final FFUser? artist;
   final Exhibition? exhibition;
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -82,7 +82,7 @@ class FFSeries {
                 json['settings'] as Map<String, dynamic>),
         json['artist'] == null
             ? null
-            : FFArtist.fromJson(json['artist'] as Map<String, dynamic>),
+            : FFUser.fromJson(json['artist'] as Map<String, dynamic>),
         json['exhibition'] == null
             ? null
             : Exhibition.fromJson(json['exhibition'] as Map<String, dynamic>),
@@ -159,7 +159,7 @@ class FFSeries {
     int? displayIndex,
     int? featuringIndex,
     FFSeriesSettings? settings,
-    FFArtist? artist,
+    FFUser? artist,
     Exhibition? exhibition,
     DateTime? createdAt,
     DateTime? mintedAt,

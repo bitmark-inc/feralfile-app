@@ -12,7 +12,7 @@ class SeriesTitleView extends StatelessWidget {
       {required this.series, super.key, this.crossAxisAlignment, this.artist});
 
   final FFSeries series;
-  final FFArtist? artist;
+  final FFUser? artist;
   final CrossAxisAlignment? crossAxisAlignment;
 
   @override
