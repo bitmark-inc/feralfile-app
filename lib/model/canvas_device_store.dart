@@ -13,7 +13,11 @@ class CanvasDeviceStore extends HiveStoreObjectServiceImpl<CanvasDevice> {
   @override
   Future<void> delete(String objId) async {
     await super.delete(objId);
-    await injector.get<SelectedCanvasDeviceStore>().delete(objId);
+    injector.get<SelectedCanvasDeviceStore>().getMap().forEach((key, value) {
+      if (value.deviceId == objId) {
+        injector.get<SelectedCanvasDeviceStore>().delete(key);
+      }
+    });
   }
 }
 
