@@ -452,7 +452,12 @@ class _ItemExpandedWidgetState extends State<ItemExpandedWidget> {
             ),
             // Expanded items
             if (_isExpanded) ...[
-              for (var item in widget.items.skip(1)) _itemWidget(context, item),
+              for (var item in widget.items.skip(1))
+                _itemWidget(
+                  context,
+                  item,
+                  withSubtitle: false,
+                ),
             ]
           ],
         ),
@@ -467,7 +472,7 @@ class _ItemExpandedWidgetState extends State<ItemExpandedWidget> {
     );
     return Row(
       children: [
-        _itemWidget(context, widget.items.first),
+        _itemWidget(context, widget.items.first, withSubtitle: false),
         const Spacer(),
         Column(
           children: [
