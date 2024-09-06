@@ -248,12 +248,8 @@ class IAPServiceImpl implements IAPService {
   Future<void> _onPurchaseUpdated(PurchaseDetails purchaseDetails) async {
     log.info('[IAPService] purchase: ${purchaseDetails.productID},'
         ' status: ${purchaseDetails.status.name}');
-
-    if (purchaseDetails.pendingCompletePurchase) {
-      await _inAppPurchase.completePurchase(purchaseDetails);
-    }
-
     if (inactiveIds().contains(purchaseDetails.productID)) {
+      await _completePurchase(purchaseDetails);
       return;
     }
 
@@ -273,6 +269,7 @@ class IAPServiceImpl implements IAPService {
             purchaseDetails.verificationData.serverVerificationData;
         if (_receiptData == receiptData) {
           // Prevent duplicated events.
+          await _completePurchase(purchaseDetails);
           return;
         }
         _receiptData = receiptData;
@@ -314,13 +311,21 @@ class IAPServiceImpl implements IAPService {
           unawaited(_configurationService.setIAPReceipt(null));
           unawaited(_cleanupPendingTransactions());
           purchases.notifyListeners();
+          await _completePurchase(purchaseDetails);
           return;
         }
       }
     }
     purchases.notifyListeners();
+    await _completePurchase(purchaseDetails);
     injector<SubscriptionBloc>().add(GetSubscriptionEvent());
     injector<UpgradesBloc>().add(UpgradeQueryInfoEvent());
+  }
+
+  Future<void> _completePurchase(PurchaseDetails purchaseDetails) async {
+    if (purchaseDetails.pendingCompletePurchase) {
+      await _inAppPurchase.completePurchase(purchaseDetails);
+    }
   }
 
   void _listenToPurchaseUpdated(List<PurchaseDetails> purchaseDetailsList) {
