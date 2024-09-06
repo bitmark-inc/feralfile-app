@@ -25,4 +25,16 @@ class SelectedCanvasDeviceStore
   Future<void> init(String key) async {
     await super.init(_key);
   }
+
+  @override
+  Future<void> save(CanvasDevice obj, String objId) async {
+    final currentDeviceIds = injector
+        .get<CanvasDeviceStore>()
+        .getAll()
+        .map((e) => e.deviceId)
+        .toList();
+    if (currentDeviceIds.contains(obj.deviceId)) {
+      await super.save(obj, objId);
+    }
+  }
 }
