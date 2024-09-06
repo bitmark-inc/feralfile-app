@@ -253,6 +253,10 @@ class IAPServiceImpl implements IAPService {
       await _inAppPurchase.completePurchase(purchaseDetails);
     }
 
+    if (inactiveIds().contains(purchaseDetails.productID)) {
+      return;
+    }
+
     if (purchaseDetails.status == PurchaseStatus.pending) {
       purchases.value[purchaseDetails.productID] = IAPProductStatus.pending;
     } else if (purchaseDetails.status == PurchaseStatus.canceled) {
