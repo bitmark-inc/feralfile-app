@@ -7,6 +7,7 @@
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
@@ -81,5 +82,13 @@ bool isInAWeekOffset(DateTime datetime) {
 extension DateTimeExt on DateTime {
   DateTime get startDayOfWeek {
     return DateTime.utc(year, month, day - weekday + 1);
+  }
+
+  bool isMembershipLifetime() {
+    final defaultTime = DateTime.utc(2100, 1, 1);
+    final configTime = injector<RemoteConfigService>().getConfig<String>(
+        ConfigGroup.membership, ConfigKey.lifetime, defaultTime.toString());
+    final lifetime = DateTime.parse(configTime);
+    return isAtSameMomentAs(lifetime);
   }
 }
