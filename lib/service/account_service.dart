@@ -739,6 +739,9 @@ class AccountServiceImpl extends AccountService {
     if (_configurationService.isDoneOnboarding()) {
       // dont need to force update, because
       await injector<AuthService>().getAuthToken();
+      if (_configurationService.isDoneNewOnboarding()) {
+        await iapService.restore();
+      }
       return;
     }
     // for user who did not onboarded before
