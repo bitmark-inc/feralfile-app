@@ -10,6 +10,7 @@ import 'dart:convert';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/wallet_address.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
@@ -26,8 +27,11 @@ class AddressService {
 
   AddressService(this._primaryAddressChannel, this._cloudDB);
 
+  AddressInfo? _primaryAddressInfo;
+
   Future<AddressInfo?> getPrimaryAddressInfo() async {
-    final addressInfo = await _primaryAddressChannel.getPrimaryAddress();
+    final addressInfo =
+        _primaryAddressInfo ?? await _primaryAddressChannel.getPrimaryAddress();
     log.info('[AddressService] Primary address info: ${addressInfo?.toJson()}');
     return addressInfo;
   }
@@ -39,32 +43,14 @@ class AddressService {
     }
     final allEthAddresses = await getAllEthereumAddress();
     if (allEthAddresses.isEmpty) {
-      await deriveAddressesFromAllPersona();
+      await injector<AccountService>().insertAddressAtIndexAndUuid(
+          currentPrimaryAddress.uuid,
+          index: 0,
+          walletType: WalletType.Ethereum);
     }
     final addressInfo = await pickAddressAsPrimary();
     await registerPrimaryAddress(info: addressInfo);
     return addressInfo;
-  }
-
-  Future<void> deriveAddressesFromAllPersona() async {
-    final personas = await _cloudDB.personaDao.getPersonas();
-    for (final persona in personas) {
-      await Future.wait([
-        persona.insertAddressAtIndex(walletType: WalletType.Ethereum, index: 0),
-        persona.insertAddressAtIndex(walletType: WalletType.Tezos, index: 0),
-      ]);
-    }
-  }
-
-  Future<void> derivePrimaryAddress() async {
-    final primaryAddressInfo = await getPrimaryAddressInfo();
-    if (primaryAddressInfo == null) {
-      return;
-    }
-    final persona = await _cloudDB.personaDao.findById(primaryAddressInfo.uuid);
-    await persona?.insertAddressAtIndex(
-        walletType: primaryAddressInfo.walletType,
-        index: primaryAddressInfo.index);
   }
 
   Future<bool> setPrimaryAddressInfo({required AddressInfo info}) async {
@@ -174,9 +160,6 @@ class AddressService {
 
   Future<List<WalletAddress>> getAllAddress() async {
     final addresses = await _cloudDB.addressDao.getAllAddresses();
-    final persona = await _cloudDB.personaDao.getPersonas();
-    addresses
-        .removeWhere((address) => !persona.any((p) => p.uuid == address.uuid));
     return addresses;
   }
 
@@ -184,15 +167,7 @@ class AddressService {
     final addresses =
         await _cloudDB.addressDao.getAddressesByType(CryptoType.ETH.source);
     addresses.sort((a, b) => a.createdAt.compareTo(b.createdAt));
-    final persona = await _cloudDB.personaDao.getPersonas();
-    persona.sort((a, b) => a.createdAt.compareTo(b.createdAt));
-    final sortedAddresses = <WalletAddress>[];
-    for (final p in persona) {
-      final pAddresses = addresses.where((a) => a.uuid == p.uuid).toList()
-        ..sort((a, b) => a.index.compareTo(b.index));
-      sortedAddresses.addAll(pAddresses);
-    }
-    return sortedAddresses;
+    return addresses;
   }
 
   Future<AddressInfo> pickAddressAsPrimary() async {

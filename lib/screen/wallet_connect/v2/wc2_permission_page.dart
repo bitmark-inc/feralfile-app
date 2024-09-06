@@ -11,7 +11,6 @@ import 'dart:convert';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
-import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
@@ -47,8 +46,6 @@ class Wc2RequestPage extends StatefulWidget {
 
 class _Wc2RequestPageState extends State<Wc2RequestPage>
     with RouteAware, WidgetsBindingObserver {
-  Persona? selectedPersona;
-  List<Persona>? personas;
 
   bool get _isAccountSelected =>
       selectedAddresses.values.every((element) => element != null);

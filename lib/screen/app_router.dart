@@ -7,7 +7,6 @@
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
-import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
@@ -27,7 +26,6 @@ import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/connections/connections_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/ethereum/ethereum_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
-import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
@@ -241,12 +239,9 @@ class AppRouter {
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector(), injector());
     final tezosBloc = TezosBloc(injector(), injector());
-    final usdcBloc = USDCBloc(injector(), injector());
+    final usdcBloc = USDCBloc(injector());
     final accountsBloc = AccountsBloc(injector(), injector());
-    final personaBloc = PersonaBloc(
-      injector<CloudDatabase>(),
-      injector(),
-    );
+
     final connectionsBloc = injector<ConnectionsBloc>();
     final identityBloc = IdentityBloc(injector<AppDatabase>(), injector());
     final canvasDeviceBloc = injector<CanvasDeviceBloc>();
@@ -366,9 +361,6 @@ class AppRouter {
                     BlocProvider.value(
                       value: subscriptionBloc,
                     ),
-                    BlocProvider(
-                      create: (_) => personaBloc,
-                    ),
                     BlocProvider(lazy: false, create: (_) => connectionsBloc),
                     BlocProvider(create: (_) => canvasDeviceBloc),
                   ],
@@ -394,9 +386,6 @@ class AppRouter {
                     BlocProvider.value(value: royaltyBloc),
                     BlocProvider.value(
                       value: subscriptionBloc,
-                    ),
-                    BlocProvider(
-                      create: (_) => personaBloc,
                     ),
                     BlocProvider(create: (_) => canvasDeviceBloc),
 
@@ -553,7 +542,6 @@ class AppRouter {
             settings: settings,
             builder: (context) => MultiBlocProvider(providers: [
                   BlocProvider.value(value: accountsBloc),
-                  BlocProvider(create: (_) => personaBloc),
                   BlocProvider.value(value: ethereumBloc),
                   BlocProvider.value(value: tezosBloc),
                   BlocProvider(create: (_) => identityBloc),
@@ -695,11 +683,8 @@ class AppRouter {
       case addressAliasPage:
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) => BlocProvider(
-                  create: (_) => personaBloc,
-                  child: AddressAlias(
-                      payload: settings.arguments! as AddressAliasPayload),
-                ));
+            builder: (context) => AddressAlias(
+                payload: settings.arguments! as AddressAliasPayload));
 
       case galleryPage:
         return CupertinoPageRoute(
@@ -955,9 +940,6 @@ class AppRouter {
           builder: (context) => MultiBlocProvider(
             providers: [
               BlocProvider.value(value: accountsBloc),
-              BlocProvider(
-                create: (_) => personaBloc,
-              ),
             ],
             child: WCConnectPage(
               connectionRequest: settings.arguments! as Wc2Proposal,
@@ -977,9 +959,6 @@ class AppRouter {
             builder: (context) => MultiBlocProvider(
                     providers: [
                       BlocProvider.value(value: accountsBloc),
-                      BlocProvider(
-                        create: (_) => personaBloc,
-                      ),
                     ],
                     child: Wc2RequestPage(
                         request: settings.arguments! as Wc2RequestPayload)));
@@ -990,9 +969,6 @@ class AppRouter {
             builder: (context) => MultiBlocProvider(
                   providers: [
                     BlocProvider.value(value: accountsBloc),
-                    BlocProvider(
-                      create: (_) => personaBloc,
-                    ),
                   ],
                   child: WalletPage(
                     payload: settings.arguments as WalletPagePayload?,

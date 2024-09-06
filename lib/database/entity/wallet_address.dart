@@ -1,4 +1,3 @@
-import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:floor/floor.dart';
 import 'package:nft_collection/models/address_index.dart';
 
@@ -6,11 +5,6 @@ import 'package:nft_collection/models/address_index.dart';
 class WalletAddress {
   @primaryKey
   final String address;
-  @ForeignKey(
-      childColumns: ['uuid'],
-      parentColumns: ['uuid'],
-      entity: Persona,
-      onDelete: ForeignKeyAction.cascade)
   final String uuid;
   final int index;
   final String cryptoType;

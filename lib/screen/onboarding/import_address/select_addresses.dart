@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/entity/persona.dart';
+import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_state.dart';
@@ -21,6 +21,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:libauk_dart/libauk_dart.dart';
 
 class SelectAddressesPage extends StatefulWidget {
   final SelectAddressesPayload payload;
@@ -54,9 +55,11 @@ class _SelectAddressesPageState extends State<SelectAddressesPage> {
   }
 
   Future<void> fetchImportedAddresses() async {
-    final importedAddresses = await widget.payload.persona.getAddresses();
+    final importedAddresses = await injector<CloudDatabase>()
+        .addressDao
+        .getAddressesByPersona(widget.payload.wallet.uuid);
     setState(() {
-      _importedAddresses.addAll(importedAddresses);
+      _importedAddresses.addAll(importedAddresses.map((e) => e.address));
     });
   }
 
@@ -174,7 +177,7 @@ class _SelectAddressesPageState extends State<SelectAddressesPage> {
                       enabled: _selectedAddresses.isNotEmpty,
                       onTap: () async {
                         await injector<AccountService>().addAddressPersona(
-                            widget.payload.persona, _selectedAddresses);
+                            widget.payload.wallet.uuid, _selectedAddresses);
                         if (!context.mounted) {
                           return;
                         }
@@ -265,7 +268,7 @@ class _SelectAddressesPageState extends State<SelectAddressesPage> {
   }
 
   void _callBloc() {
-    final wallet = widget.payload.persona.wallet();
+    final wallet = widget.payload.wallet;
     context
         .read<ScanWalletBloc>()
         .add(ScanEthereumWalletEvent(wallet: wallet, startIndex: index));
@@ -278,7 +281,7 @@ class _SelectAddressesPageState extends State<SelectAddressesPage> {
 }
 
 class SelectAddressesPayload {
-  final Persona persona;
+  final WalletStorage wallet;
 
-  SelectAddressesPayload({required this.persona});
+  SelectAddressesPayload({required this.wallet});
 }

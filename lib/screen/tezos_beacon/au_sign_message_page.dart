@@ -64,18 +64,20 @@ class _AUSignMessagePageState extends State<AUSignMessagePage> {
         if (walletAddress != null) {
           currentWallet = LibAukDart.getWallet(walletAddress.uuid);
         }
-        break;
       case Wc2Chain.autonomy:
-        final personas =
-            await injector<CloudDatabase>().personaDao.getPersonas();
-        for (final persona in personas) {
-          final addressDID = await persona.wallet().getAccountDID();
+        final addresses =
+            await injector<CloudDatabase>().addressDao.getAllAddresses();
+        if (addresses.isEmpty) {
+          break;
+        }
+        for (final walletAddress in addresses) {
+          final wallet = LibAukDart.getWallet(walletAddress.uuid);
+          final addressDID = await wallet.getAccountDID();
           if (addressDID == address) {
-            currentWallet = persona.wallet();
+            currentWallet = wallet;
             break;
           }
         }
-        break;
     }
 
     if (currentWallet == null) {

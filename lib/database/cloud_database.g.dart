@@ -61,8 +61,6 @@ class _$CloudDatabase extends CloudDatabase {
     changeListener = listener ?? StreamController<String>.broadcast();
   }
 
-  PersonaDao? _personaDaoInstance;
-
   ConnectionDao? _connectionDaoInstance;
 
   WalletAddressDao? _addressDaoInstance;
@@ -89,8 +87,6 @@ class _$CloudDatabase extends CloudDatabase {
       },
       onCreate: (database, version) async {
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `Persona` (`uuid` TEXT NOT NULL, `name` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `defaultAccount` INTEGER, `ethereumIndex` INTEGER NOT NULL, `tezosIndex` INTEGER NOT NULL, `ethereumIndexes` TEXT, `tezosIndexes` TEXT, PRIMARY KEY (`uuid`))');
-        await database.execute(
             'CREATE TABLE IF NOT EXISTS `Connection` (`key` TEXT NOT NULL, `name` TEXT NOT NULL, `data` TEXT NOT NULL, `connectionType` TEXT NOT NULL, `accountNumber` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `accountOrder` INTEGER, PRIMARY KEY (`key`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `WalletAddress` (`address` TEXT NOT NULL, `uuid` TEXT NOT NULL, `index` INTEGER NOT NULL, `cryptoType` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `isHidden` INTEGER NOT NULL, `name` TEXT, `accountOrder` INTEGER, PRIMARY KEY (`address`))');
@@ -102,11 +98,6 @@ class _$CloudDatabase extends CloudDatabase {
   }
 
   @override
-  PersonaDao get personaDao {
-    return _personaDaoInstance ??= _$PersonaDao(database, changeListener);
-  }
-
-  @override
   ConnectionDao get connectionDao {
     return _connectionDaoInstance ??= _$ConnectionDao(database, changeListener);
   }
@@ -114,142 +105,6 @@ class _$CloudDatabase extends CloudDatabase {
   @override
   WalletAddressDao get addressDao {
     return _addressDaoInstance ??= _$WalletAddressDao(database, changeListener);
-  }
-}
-
-class _$PersonaDao extends PersonaDao {
-  _$PersonaDao(
-    this.database,
-    this.changeListener,
-  )   : _queryAdapter = QueryAdapter(database),
-        _personaInsertionAdapter = InsertionAdapter(
-            database,
-            'Persona',
-            (Persona item) => <String, Object?>{
-                  'uuid': item.uuid,
-                  'name': item.name,
-                  'createdAt': _dateTimeConverter.encode(item.createdAt),
-                  'defaultAccount': item.defaultAccount,
-                  'ethereumIndex': item.ethereumIndex,
-                  'tezosIndex': item.tezosIndex,
-                  'ethereumIndexes': item.ethereumIndexes,
-                  'tezosIndexes': item.tezosIndexes
-                }),
-        _personaUpdateAdapter = UpdateAdapter(
-            database,
-            'Persona',
-            ['uuid'],
-            (Persona item) => <String, Object?>{
-                  'uuid': item.uuid,
-                  'name': item.name,
-                  'createdAt': _dateTimeConverter.encode(item.createdAt),
-                  'defaultAccount': item.defaultAccount,
-                  'ethereumIndex': item.ethereumIndex,
-                  'tezosIndex': item.tezosIndex,
-                  'ethereumIndexes': item.ethereumIndexes,
-                  'tezosIndexes': item.tezosIndexes
-                }),
-        _personaDeletionAdapter = DeletionAdapter(
-            database,
-            'Persona',
-            ['uuid'],
-            (Persona item) => <String, Object?>{
-                  'uuid': item.uuid,
-                  'name': item.name,
-                  'createdAt': _dateTimeConverter.encode(item.createdAt),
-                  'defaultAccount': item.defaultAccount,
-                  'ethereumIndex': item.ethereumIndex,
-                  'tezosIndex': item.tezosIndex,
-                  'ethereumIndexes': item.ethereumIndexes,
-                  'tezosIndexes': item.tezosIndexes
-                });
-
-  final sqflite.DatabaseExecutor database;
-
-  final StreamController<String> changeListener;
-
-  final QueryAdapter _queryAdapter;
-
-  final InsertionAdapter<Persona> _personaInsertionAdapter;
-
-  final UpdateAdapter<Persona> _personaUpdateAdapter;
-
-  final DeletionAdapter<Persona> _personaDeletionAdapter;
-
-  @override
-  Future<List<Persona>> getPersonas() async {
-    return _queryAdapter.queryList('SELECT * FROM Persona',
-        mapper: (Map<String, Object?> row) => Persona(
-            uuid: row['uuid'] as String,
-            name: row['name'] as String,
-            createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
-            defaultAccount: row['defaultAccount'] as int?,
-            ethereumIndex: row['ethereumIndex'] as int,
-            tezosIndex: row['tezosIndex'] as int,
-            ethereumIndexes: row['ethereumIndexes'] as String?,
-            tezosIndexes: row['tezosIndexes'] as String?));
-  }
-
-  @override
-  Future<List<Persona>> getDefaultPersonas() async {
-    return _queryAdapter.queryList(
-        'SELECT * FROM Persona WHERE defaultAccount=1',
-        mapper: (Map<String, Object?> row) => Persona(
-            uuid: row['uuid'] as String,
-            name: row['name'] as String,
-            createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
-            defaultAccount: row['defaultAccount'] as int?,
-            ethereumIndex: row['ethereumIndex'] as int,
-            tezosIndex: row['tezosIndex'] as int,
-            ethereumIndexes: row['ethereumIndexes'] as String?,
-            tezosIndexes: row['tezosIndexes'] as String?));
-  }
-
-  @override
-  Future<int?> getPersonasCount() async {
-    return _queryAdapter.query('SELECT COUNT(*) FROM Persona',
-        mapper: (Map<String, Object?> row) => row.values.first as int);
-  }
-
-  @override
-  Future<Persona?> findById(String uuid) async {
-    return _queryAdapter.query('SELECT * FROM Persona WHERE uuid = ?1',
-        mapper: (Map<String, Object?> row) => Persona(
-            uuid: row['uuid'] as String,
-            name: row['name'] as String,
-            createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
-            defaultAccount: row['defaultAccount'] as int?,
-            ethereumIndex: row['ethereumIndex'] as int,
-            tezosIndex: row['tezosIndex'] as int,
-            ethereumIndexes: row['ethereumIndexes'] as String?,
-            tezosIndexes: row['tezosIndexes'] as String?),
-        arguments: [uuid]);
-  }
-
-  @override
-  Future<void> removeAll() async {
-    await _queryAdapter.queryNoReturn('DELETE FROM Persona');
-  }
-
-  @override
-  Future<void> insertPersona(Persona persona) async {
-    await _personaInsertionAdapter.insert(persona, OnConflictStrategy.replace);
-  }
-
-  @override
-  Future<void> insertPersonas(List<Persona> personas) async {
-    await _personaInsertionAdapter.insertList(
-        personas, OnConflictStrategy.replace);
-  }
-
-  @override
-  Future<void> updatePersona(Persona persona) async {
-    await _personaUpdateAdapter.update(persona, OnConflictStrategy.abort);
-  }
-
-  @override
-  Future<void> deletePersona(Persona persona) async {
-    await _personaDeletionAdapter.delete(persona);
   }
 }
 

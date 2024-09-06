@@ -30,6 +30,7 @@ import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
+import 'package:autonomy_flutter/util/wallet_address_ext.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -648,18 +649,17 @@ class _WCConnectPageState extends State<WCConnectPage>
 
   Future _createAccount(BuildContext context) async {
     unawaited(UIHelper.showLoadingScreen(context, text: 'connecting'.tr()));
-    final persona =
-        await injector<AccountService>().getOrCreateDefaultPersona();
-    await persona.insertNextAddress(connectionRequest.isBeaconConnect
-        ? WalletType.Tezos
-        : WalletType.Ethereum);
+    final walletAddresses = await injector<AccountService>().insertNextAddress(
+        connectionRequest.isBeaconConnect
+            ? WalletType.Tezos
+            : WalletType.Ethereum);
     unawaited(configurationService.setDoneOnboarding(true));
     unawaited(metricClient.mixPanelClient.initIfDefaultAccount());
     if (!mounted) {
       return;
     }
     setState(() {
-      selectedPersona = WalletIndex(persona.wallet(), 0);
+      selectedPersona = WalletIndex(walletAddresses.first.wallet, 0);
     });
     unawaited(_approveThenNotify(onBoarding: true));
   }
