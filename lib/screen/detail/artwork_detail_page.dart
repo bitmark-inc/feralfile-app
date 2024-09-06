@@ -114,8 +114,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
     _infoShrink();
     _bloc = context.read<ArtworkDetailBloc>();
     _canvasDeviceBloc = injector.get<CanvasDeviceBloc>();
-    _bloc.add(ArtworkDetailGetInfoEvent(
-        widget.payload.identities[widget.payload.currentIndex],
+    _bloc.add(ArtworkDetailGetInfoEvent(widget.payload.identity,
         useIndexer: widget.payload.useIndexer));
     context.read<AccountsBloc>().add(FetchAllAddressesEvent());
     context.read<AccountsBloc>().add(GetAccountsEvent());
@@ -379,8 +378,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                   Expanded(
                     child: ArtworkPreviewWidget(
                       useIndexer: widget.payload.useIndexer,
-                      identity: widget
-                          .payload.identities[widget.payload.currentIndex],
+                      identity: widget.payload.identity,
                       onLoaded: _onLoaded,
                     ),
                   ),
@@ -864,8 +862,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
 
 class ArtworkDetailPayload {
   final Key? key;
-  final List<ArtworkIdentity> identities;
-  final int currentIndex;
+  final ArtworkIdentity identity;
   final PlayListModel? playlist;
   final String? twitterCaption;
   final bool useIndexer; // set true when navigate from discover/gallery page
@@ -873,8 +870,7 @@ class ArtworkDetailPayload {
       isLocalToken; // if local token, it can be hidden and refresh metadata
 
   ArtworkDetailPayload(
-    this.identities,
-    this.currentIndex, {
+    this.identity, {
     this.twitterCaption,
     this.playlist,
     this.useIndexer = false,
@@ -883,16 +879,14 @@ class ArtworkDetailPayload {
   });
 
   ArtworkDetailPayload copyWith({
-    List<ArtworkIdentity>? ids,
-    int? currentIndex,
+    ArtworkIdentity? identity,
     PlayListModel? playlist,
     String? twitterCaption,
     bool? useIndexer,
     bool? isLocalToken,
   }) =>
       ArtworkDetailPayload(
-        ids ?? identities,
-        currentIndex ?? this.currentIndex,
+        identity ?? this.identity,
         twitterCaption: twitterCaption ?? this.twitterCaption,
         playlist: playlist ?? this.playlist,
         useIndexer: useIndexer ?? this.useIndexer,

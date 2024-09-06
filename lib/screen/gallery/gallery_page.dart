@@ -162,7 +162,7 @@ class _GalleryPageState extends State<GalleryPage> {
                     return;
                   }
                   final payload = ArtworkDetailPayload(
-                      [ArtworkIdentity(token.id, token.owner)], 0,
+                      ArtworkIdentity(token.id, token.owner),
                       useIndexer: true);
                   unawaited(Navigator.of(context).pushNamed(
                       AppRouter.artworkDetailsPage,

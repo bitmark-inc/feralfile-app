@@ -9,15 +9,8 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart'
-    as accounts;
-import 'package:autonomy_flutter/screen/bloc/ethereum/ethereum_bloc.dart';
-import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
-import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
-import 'package:autonomy_flutter/screen/global_receive/receive_page.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
@@ -38,7 +31,6 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
@@ -47,15 +39,12 @@ import 'package:qr_code_scanner/qr_code_scanner.dart';
 
 enum QRScanTab {
   scan,
-  showMyCode,
   ;
 
   String get routerName {
     switch (this) {
       case scan:
         return AppRouter.scanQRPage;
-      case showMyCode:
-        return AppRouter.globalReceivePage;
     }
   }
 
@@ -83,73 +72,15 @@ class ScanQRPage extends StatefulWidget {
 
 class ScanQRPageState extends State<ScanQRPage>
     with RouteAware, TickerProviderStateMixin {
-  late TabController _tabController;
-  late bool _isGlobal;
   final GlobalKey<QRScanViewState> _qrScanViewKey = GlobalKey();
-  final _metricClientService = injector<MetricClientService>();
-  late List<Widget> _pages;
-
-  TabController get tabController => _tabController;
 
   @override
   void initState() {
     super.initState();
-    _isGlobal = (widget.payload.scannerItem == ScannerItem.GLOBAL);
     //There is a conflict with lib qr_code_scanner on Android.
     if (Platform.isIOS) {
       unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.leanBack));
     }
-    _tabController = TabController(length: _isGlobal ? 2 : 1, vsync: this);
-    _tabController.addListener(() {
-      setState(() {});
-      _addMetricListener(_tabController);
-    });
-    _pages = [
-      QRScanView(
-        key: _qrScanViewKey,
-        scannerItem: widget.payload.scannerItem,
-        onHandleFinished: widget.payload.onHandleFinished,
-      ),
-      MultiBlocProvider(
-        providers: [
-          BlocProvider(
-              create: (_) => accounts.AccountsBloc(injector(), injector())),
-          BlocProvider(
-            create: (_) => PersonaBloc(
-              injector<CloudDatabase>(),
-              injector(),
-            ),
-          ),
-          BlocProvider(create: (_) => EthereumBloc(injector(), injector())),
-          BlocProvider(
-            create: (_) => TezosBloc(injector(), injector()),
-          ),
-        ],
-        child: GlobalReceivePage(
-          onClose: () {
-            setState(
-              () {
-                _tabController.animateTo(QRScanTab.scan.index,
-                    duration: const Duration(milliseconds: 300));
-                unawaited(resumeCamera());
-              },
-            );
-          },
-        ),
-      ),
-    ];
-  }
-
-  void _addMetricListener(TabController controller) {
-    if (controller.indexIsChanging) {
-      return;
-    }
-    _metricClientService
-      ..addEvent(MixpanelEvent.visitPage, data: {
-        MixpanelProp.title:
-            QRScanTab.values[controller.previousIndex].screenName,
-      })
-      ..timerEvent(MixpanelEvent.visitPage);
   }
 
   Future<void> pauseCamera() async {
@@ -158,9 +89,7 @@ class ScanQRPageState extends State<ScanQRPage>
   }
 
   Future<void> resumeCamera() async {
-    if (_tabController.index == QRScanTab.scan.index) {
-      await _qrScanViewKey.currentState?.resumeCamera();
-    }
+    await _qrScanViewKey.currentState?.resumeCamera();
   }
 
   @override
@@ -176,14 +105,11 @@ class ScanQRPageState extends State<ScanQRPage>
         child: Scaffold(
           extendBodyBehindAppBar: true,
           backgroundColor: AppColor.primaryBlack,
-          appBar: _tabController.index == QRScanTab.scan.index
-              ? getDarkEmptyAppBar(Colors.transparent)
-              : getLightEmptyAppBar(),
+          appBar: getDarkEmptyAppBar(Colors.transparent),
           body: Stack(
             children: <Widget>[
               _content(context),
-              if (_tabController.index == QRScanTab.scan.index)
-                _header(context),
+              _header(context),
             ],
           ),
         ),
@@ -192,17 +118,17 @@ class ScanQRPageState extends State<ScanQRPage>
   Widget _content(BuildContext context) => Column(
         children: [
           Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              physics: const NeverScrollableScrollPhysics(),
-              children: _pages.sublist(0, _tabController.length),
+            child: QRScanView(
+              key: _qrScanViewKey,
+              scannerItem: widget.payload.scannerItem,
+              onHandleFinished: widget.payload.onHandleFinished,
             ),
           ),
         ],
       );
 
   Widget _header(BuildContext context) {
-    final theme = Theme.of(context);
+    Theme.of(context);
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -212,31 +138,6 @@ class ScanQRPageState extends State<ScanQRPage>
             title: 'scan'.tr(),
             action: Row(
               children: [
-                if (_isGlobal)
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        unawaited(pauseCamera());
-                        _tabController.animateTo(QRScanTab.showMyCode.index,
-                            duration: const Duration(milliseconds: 300));
-                      });
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 10,
-                      ),
-                      child: Text(
-                        'show_my_code'.tr(),
-                        style: theme.textTheme.ppMori400White14.copyWith(
-                          decoration: TextDecoration.underline,
-                          decorationColor: AppColor.white,
-                        ),
-                      ),
-                    ),
-                  )
-                else
-                  const SizedBox(),
-                const SizedBox(width: 20),
                 IconButton(
                     onPressed: () {
                       Navigator.pop(context);
@@ -707,7 +608,8 @@ class QRScanViewState extends State<QRScanView>
       } else {
         switch (widget.scannerItem) {
           case ScannerItem.CANVAS:
-          // dont need to do anything here, it has been processed in the branch deeplink
+          // dont need to do anything here,
+          // it has been processed in the branch deeplink
           /// handled with deeplink
           case ScannerItem.WALLET_CONNECT:
             if (code.startsWith('wc:')) {

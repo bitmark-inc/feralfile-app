@@ -110,7 +110,7 @@ class OrganizeHomePageState extends State<OrganizeHomePage>
           .toList();
       if (config.isAutoShowPostcard()) {
         log.info('Auto show minted postcard');
-        final payload = PostcardDetailPagePayload(tokenMints, 0);
+        final payload = PostcardDetailPagePayload(tokenMints.first);
         unawaited(Navigator.of(context).pushNamed(
           AppRouter.claimedPostcardDetailsPage,
           arguments: payload,

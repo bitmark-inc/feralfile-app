@@ -9,54 +9,19 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/pair.dart';
-import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
-import 'package:autonomy_flutter/screen/global_receive/receive_detail_page.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/account_ext.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/ether_amount_ext.dart';
 import 'package:autonomy_flutter/util/int_ext.dart';
-import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/crypto_view.dart';
-import 'package:autonomy_flutter/view/responsive.dart';
-import 'package:autonomy_flutter/view/tappable_forward_row.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nft_collection/database/dao/dao.dart';
-
-Widget accountWithConnectionItem(
-    BuildContext context, Account categorizedAccounts) {
-  final a = categorizedAccounts;
-  switch (categorizedAccounts.className) {
-    case 'Persona':
-    case 'Connection':
-      return Column(
-        children: [
-          _blockchainAddressView(
-            context,
-            GlobalReceivePayload(
-                address: a.accountNumber,
-                blockchain: a.blockchain!,
-                account: a),
-            onTap: () => unawaited(Navigator.of(context).pushNamed(
-                AppRouter.globalReceiveDetailPage,
-                arguments: GlobalReceivePayload(
-                    address: a.accountNumber,
-                    blockchain: a.blockchain!,
-                    account: a))),
-          ),
-          addOnlyDivider(color: AppColor.auLightGrey),
-        ],
-      );
-
-    default:
-      return const SizedBox();
-  }
-}
 
 Widget accountItem(BuildContext context, Account account,
     {bool isPrimary = false,
@@ -173,53 +138,6 @@ Future<Pair<String, String>?> getAddressBalance(
     case CryptoType.USDC:
     case CryptoType.UNKNOWN:
       return Pair('', '');
-  }
-}
-
-Widget _blockchainAddressView(
-  BuildContext context,
-  GlobalReceivePayload receiver, {
-  Function()? onTap,
-}) {
-  final theme = Theme.of(context);
-  return Container(
-    padding: ResponsiveLayout.pageHorizontalEdgeInsets,
-    child: TappableForwardRowWithContent(
-      leftWidget: Row(
-        children: [
-          _blockchainLogo(receiver.blockchain),
-          const SizedBox(width: 10),
-          Text(
-            receiver.account.name,
-            style: theme.textTheme.ppMori700Black14,
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
-      onTap: onTap,
-      bottomWidget: Text(
-        receiver.address,
-        style: theme.textTheme.ibmBlackNormal14,
-      ),
-    ),
-  );
-}
-
-Widget _blockchainLogo(String? blockchain) {
-  switch (blockchain) {
-    case 'Bitmark':
-      return SvgPicture.asset('assets/images/iconBitmark.svg');
-    case 'Ethereum':
-    case 'walletConnect':
-    case 'walletBrowserConnect':
-      return SvgPicture.asset(
-        'assets/images/ether.svg',
-      );
-    case 'Tezos':
-    case 'walletBeacon':
-      return SvgPicture.asset('assets/images/tez.svg');
-    default:
-      return const SizedBox();
   }
 }
 

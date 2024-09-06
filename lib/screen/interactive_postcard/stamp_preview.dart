@@ -122,7 +122,7 @@ class _StampPreviewState extends State<StampPreview> with AfterLayoutMixin {
     }
     unawaited(Navigator.of(context).pushNamed(
       AppRouter.claimedPostcardDetailsPage,
-      arguments: PostcardDetailPagePayload([widget.payload.asset.identity], 0),
+      arguments: PostcardDetailPagePayload(widget.payload.asset.identity),
     ));
     unawaited(_configurationService.setAutoShowPostcard(true));
   }

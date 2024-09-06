@@ -268,4 +268,13 @@ class MockAssetTokenDao extends _i1.Mock implements _i4.AssetTokenDao {
         ),
         returnValue: _i3.Future<List<String>>.value(<String>[]),
       ) as _i3.Future<List<String>>);
+  @override
+  _i3.Future<Map<String, int>> countAssetTokensByOwner(List<String>? owners) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #countAssetTokensByOwner,
+          [owners],
+        ),
+        returnValue: _i3.Future<Map<String, int>>.value(<String, int>{}),
+      ) as _i3.Future<Map<String, int>>);
 }

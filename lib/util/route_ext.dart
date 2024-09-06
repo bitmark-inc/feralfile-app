@@ -73,23 +73,20 @@ extension RouteExt on Route {
       case AppRouter.artworkPreviewPage:
         final payload = settings.arguments! as ArtworkDetailPayload;
         data = {
-          MixpanelProp.tokenId: payload.identities[payload.currentIndex].id,
-          MixpanelProp.ownerAddress:
-              payload.identities[payload.currentIndex].owner,
+          MixpanelProp.tokenId: payload.identity.id,
+          MixpanelProp.ownerAddress: payload.identity.owner,
         };
       case AppRouter.artworkDetailsPage:
         final payload = settings.arguments! as ArtworkDetailPayload;
         data = {
-          MixpanelProp.tokenId: payload.identities[payload.currentIndex].id,
-          MixpanelProp.ownerAddress:
-              payload.identities[payload.currentIndex].owner,
+          MixpanelProp.tokenId: payload.identity.id,
+          MixpanelProp.ownerAddress: payload.identity.owner,
         };
       case AppRouter.claimedPostcardDetailsPage:
         final payload = settings.arguments! as PostcardDetailPagePayload;
         data = {
-          MixpanelProp.tokenId: payload.identities[payload.currentIndex].id,
-          MixpanelProp.ownerAddress:
-              payload.identities[payload.currentIndex].owner,
+          MixpanelProp.tokenId: payload.identity.id,
+          MixpanelProp.ownerAddress: payload.identity.owner,
         };
       case AppRouter.galleryPage:
         final payload = settings.arguments! as GalleryPagePayload;

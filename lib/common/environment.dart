@@ -101,8 +101,6 @@ class Environment {
 
   static String get autonomyAuthURL => dotenv.env['AUTONOMY_AUTH_URL'] ?? '';
 
-  static String get feedURL => dotenv.env['FEED_URL'] ?? '';
-
   static String get customerSupportURL =>
       dotenv.env['CUSTOMER_SUPPORT_URL'] ?? '';
 
@@ -188,9 +186,4 @@ class Environment {
   static String get onesignalAppID => cachedSecretEnv['ONESIGNAL_APP_ID'] ?? '';
 
   static String get tvKey => cachedSecretEnv['TV_API_KEY'] ?? '';
-}
-
-class Secret {
-  static String get ffAuthorizationPrefix =>
-      dotenv.env['FERAL_FILE_AUTHORIZATION_PREFIX'] ?? '';
 }

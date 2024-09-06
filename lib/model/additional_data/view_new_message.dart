@@ -46,9 +46,8 @@ class ViewNewMessage extends AdditionalData {
       return;
     }
     final GlobalKey<ClaimedPostcardDetailPageState> key = GlobalKey();
-    final postcardDetailPayload = PostcardDetailPagePayload(
-        [ArtworkIdentity(groupId, owner)], 0,
-        key: key);
+    final postcardDetailPayload =
+        PostcardDetailPagePayload(ArtworkIdentity(groupId, owner), key: key);
     if (!context.mounted) {
       return;
     }

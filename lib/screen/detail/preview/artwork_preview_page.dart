@@ -44,7 +44,6 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
         AfterLayoutMixin<ArtworkPreviewPage>,
         RouteAware,
         WidgetsBindingObserver {
-  late PageController controller;
   late ArtworkPreviewBloc _bloc;
 
   ShakeDetector? _detector;
@@ -52,7 +51,7 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
 
   INFTRenderingWidget? _renderingWidget;
 
-  List<ArtworkIdentity> _tokens = [];
+  late ArtworkIdentity _token;
   late int initialPage;
 
   final metricClient = injector.get<MetricClientService>();
@@ -60,14 +59,10 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
   @override
   void initState() {
     super.initState();
-    _tokens = List.from(widget.payload.identities);
-    final initialTokenID = _tokens[widget.payload.currentIndex];
-    initialPage = _tokens.indexOf(initialTokenID);
+    _token = widget.payload.identity;
 
-    controller = PageController(initialPage: initialPage);
     _bloc = context.read<ArtworkPreviewBloc>();
-    final currentIdentity = _tokens[initialPage];
-    _bloc.add(ArtworkPreviewGetAssetTokenEvent(currentIdentity,
+    _bloc.add(ArtworkPreviewGetAssetTokenEvent(_token,
         useIndexer: widget.payload.useIndexer));
     unawaited(_setFullScreen());
   }
@@ -168,24 +163,17 @@ class _ArtworkPreviewPageState extends State<ArtworkPreviewPage>
             child: Column(
               children: [
                 Expanded(
-                  child: PageView.builder(
-                    physics: const NeverScrollableScrollPhysics(),
-                    onPageChanged: (value) {
-                      final currentId = _tokens[value];
-                      _bloc.add(ArtworkPreviewGetAssetTokenEvent(currentId,
-                          useIndexer: widget.payload.useIndexer));
-                    },
-                    controller: controller,
-                    itemCount: _tokens.length,
-                    itemBuilder: (context, index) {
-                      if (_tokens[index].id.isPostcardId) {
+                  child: Builder(
+                    builder: (context) {
+                      final identity = _token;
+                      if (identity.id.isPostcardId) {
                         return PostcardPreviewWidget(
-                          identity: _tokens[index],
+                          identity: identity,
                           useIndexer: widget.payload.useIndexer,
                         );
                       }
                       return ArtworkPreviewWidget(
-                        identity: _tokens[index],
+                        identity: identity,
                         onLoaded: (
                             {InAppWebViewController? webViewController,
                             int? time}) {},

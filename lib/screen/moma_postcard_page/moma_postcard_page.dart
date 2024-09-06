@@ -171,8 +171,8 @@ class _MoMAPostcardPageState extends State<MoMAPostcardPage> {
                     .toList()
                     .indexOf(asset);
                 final payload = asset.isPostcard
-                    ? PostcardDetailPagePayload(accountIdentities, index)
-                    : ArtworkDetailPayload(accountIdentities, index);
+                    ? PostcardDetailPagePayload(accountIdentities[index])
+                    : ArtworkDetailPayload(accountIdentities[index]);
 
                 final pageName = asset.isPostcard
                     ? AppRouter.claimedPostcardDetailsPage
