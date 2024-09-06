@@ -34,12 +34,6 @@ class AppendDeviceEvent extends CanvasDeviceEvent {
   AppendDeviceEvent(this.device);
 }
 
-class CanvasDeviceAppendDeviceEvent extends CanvasDeviceEvent {
-  final CanvasDevice device;
-
-  CanvasDeviceAppendDeviceEvent(this.device);
-}
-
 class CanvasDeviceRotateEvent extends CanvasDeviceEvent {
   final CanvasDevice device;
   final bool clockwise;
@@ -290,15 +284,6 @@ class CanvasDeviceBloc extends AuBloc<CanvasDeviceEvent, CanvasDeviceState> {
         devices: devicesState,
         controllingDeviceStatus: controllingDeviceStatus,
       );
-      emit(newState);
-    });
-
-    on<CanvasDeviceAppendDeviceEvent>((event, emit) async {
-      final newState = state.copyWith(
-          devices: state.devices
-            ..removeWhere(
-                (element) => element.device.deviceId == event.device.deviceId)
-            ..add(DeviceState(device: event.device)));
       emit(newState);
     });
 
