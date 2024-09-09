@@ -51,10 +51,17 @@ jobs:
           jq 'keys' $FILE_PATH | tr -d '[],"' | tr -s ' ' '\n' | while read -r key; do
             # Debug: Output the key being checked
             echo "Checking key: $key"
-            # Search for the key usage
-            if grep -r "'$key'.tr()" ./lib/**/*.dart; then
-              echo "| $key | Used |" >> $GITHUB_STEP_SUMMARY
+            # Escape special characters in the key
+            escaped_key=$(printf '%s\n' "$key" | sed -e 's/[^^]/[&]/g; s/\^/\\^/g')
+
+            # Search for the key usage, prevent exit on failure with "|| true"
+            if grep -r "'$escaped_key'.tr()" ./lib/**/*.dart || true; then
+              if grep -q "'$escaped_key'.tr()" ./lib/**/*.dart; then
+                echo "| $key | Used |" >> $GITHUB_STEP_SUMMARY
+              else
+                echo "| $key | Unused |" >> $GITHUB_STEP_SUMMARY
+              fi
             else
-              echo "| $key | Unused |" >> $GITHUB_STEP_SUMMARY
+              echo "Error checking key: $key" >> $GITHUB_STEP_SUMMARY
             fi
           done
