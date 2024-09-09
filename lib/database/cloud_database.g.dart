@@ -192,20 +192,6 @@ class _$ConnectionDao extends ConnectionDao {
   }
 
   @override
-  Future<List<Connection>> getRelatedPersonaConnections() async {
-    return _queryAdapter.queryList(
-        'SELECT * FROM Connection WHERE connectionType IN (\"dappConnect\", \"dappConnect2\", \"beaconP2PPeer\")',
-        mapper: (Map<String, Object?> row) => Connection(
-            key: row['key'] as String,
-            name: row['name'] as String,
-            data: row['data'] as String,
-            connectionType: row['connectionType'] as String,
-            accountNumber: row['accountNumber'] as String,
-            createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
-            accountOrder: row['accountOrder'] as int?));
-  }
-
-  @override
   Future<List<Connection>> getWc2Connections() async {
     return _queryAdapter.queryList(
         'SELECT * FROM Connection WHERE connectionType IN (\"dappConnect2\", \"walletConnect2\")',
@@ -244,30 +230,6 @@ class _$ConnectionDao extends ConnectionDao {
   }
 
   @override
-  Future<void> setConnectionOrder(
-    String accountNumber,
-    int accountOrder,
-  ) async {
-    await _queryAdapter.queryNoReturn(
-        'UPDATE Connection SET accountOrder = ?2 WHERE accountNumber = ?1',
-        arguments: [accountNumber, accountOrder]);
-  }
-
-  @override
-  Future<Connection?> findById(String key) async {
-    return _queryAdapter.query('SELECT * FROM Connection WHERE key = ?1',
-        mapper: (Map<String, Object?> row) => Connection(
-            key: row['key'] as String,
-            name: row['name'] as String,
-            data: row['data'] as String,
-            connectionType: row['connectionType'] as String,
-            accountNumber: row['accountNumber'] as String,
-            createdAt: _dateTimeConverter.decode(row['createdAt'] as int),
-            accountOrder: row['accountOrder'] as int?),
-        arguments: [key]);
-  }
-
-  @override
   Future<void> removeAll() async {
     await _queryAdapter.queryNoReturn('DELETE FROM Connection');
   }
@@ -277,13 +239,6 @@ class _$ConnectionDao extends ConnectionDao {
     await _queryAdapter.queryNoReturn(
         'DELETE FROM Connection WHERE `key` LIKE ?1',
         arguments: [topic]);
-  }
-
-  @override
-  Future<void> deleteConnectionsByAccountNumber(String accountNumber) async {
-    await _queryAdapter.queryNoReturn(
-        'DELETE FROM Connection WHERE accountNumber = ?1 COLLATE NOCASE',
-        arguments: [accountNumber]);
   }
 
   @override
@@ -488,16 +443,6 @@ class _$WalletAddressDao extends WalletAddressDao {
   }
 
   @override
-  Future<void> setAddressOrder(
-    String address,
-    int accountOrder,
-  ) async {
-    await _queryAdapter.queryNoReturn(
-        'UPDATE WalletAddress SET accountOrder = ?2 WHERE address = ?1',
-        arguments: [address, accountOrder]);
-  }
-
-  @override
   Future<void> removeAll() async {
     await _queryAdapter.queryNoReturn('DELETE FROM WalletAddress');
   }
@@ -523,12 +468,6 @@ class _$WalletAddressDao extends WalletAddressDao {
             name: row['name'] as String?,
             accountOrder: row['accountOrder'] as int?),
         arguments: [uuid]);
-  }
-
-  @override
-  Future<void> insertAddress(WalletAddress address) async {
-    await _walletAddressInsertionAdapter.insert(
-        address, OnConflictStrategy.replace);
   }
 
   @override

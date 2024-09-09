@@ -38,10 +38,6 @@ abstract class ConnectionDao {
   }
 
   @Query('SELECT * FROM Connection WHERE connectionType IN '
-      '("dappConnect", "dappConnect2", "beaconP2PPeer")')
-  Future<List<Connection>> getRelatedPersonaConnections();
-
-  @Query('SELECT * FROM Connection WHERE connectionType IN '
       '("dappConnect2", "walletConnect2")')
   Future<List<Connection>> getWc2Connections();
 
@@ -53,19 +49,11 @@ abstract class ConnectionDao {
       'COLLATE NOCASE')
   Future<List<Connection>> getConnectionsByAccountNumber(String accountNumber);
 
-  // update order query
-  @Query(
-      'UPDATE Connection SET accountOrder = :accountOrder WHERE accountNumber = :accountNumber')
-  Future<void> setConnectionOrder(String accountNumber, int accountOrder);
-
   @Insert(onConflict: OnConflictStrategy.replace)
   Future<void> insertConnection(Connection connection);
 
   @Insert(onConflict: OnConflictStrategy.replace)
   Future<void> insertConnections(List<Connection> connections);
-
-  @Query('SELECT * FROM Connection WHERE key = :key')
-  Future<Connection?> findById(String key);
 
   @Query('DELETE FROM Connection')
   Future<void> removeAll();
@@ -78,10 +66,6 @@ abstract class ConnectionDao {
 
   @Query('DELETE FROM Connection WHERE `key` LIKE :topic')
   Future<void> deleteConnectionsByTopic(String topic);
-
-  @Query('DELETE FROM Connection WHERE accountNumber = :accountNumber '
-      'COLLATE NOCASE')
-  Future<void> deleteConnectionsByAccountNumber(String accountNumber);
 
   @Query('DELETE FROM Connection WHERE connectionType = :type')
   Future<void> deleteConnectionsByType(String type);
