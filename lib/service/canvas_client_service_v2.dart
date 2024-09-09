@@ -13,6 +13,7 @@ import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/device_info_service.dart';
 import 'package:autonomy_flutter/service/hive_store_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tv_cast_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -80,6 +81,11 @@ class CanvasClientServiceV2 {
     return null;
   }
 
+  Future<void> _mergeUser(String oldUserId) async {
+    final metricClientService = injector<MetricClientService>();
+    await metricClientService.mergeUser(oldUserId);
+  }
+
   Future<ConnectReplyV2> _connect(CanvasDevice device) async {
     final stub = _getStub(device);
     final deviceInfo = clientDeviceInfo;
@@ -88,6 +94,7 @@ class CanvasClientServiceV2 {
     final request = ConnectRequestV2(
         clientDevice: deviceInfo, primaryAddress: primaryAddress ?? '');
     final response = await stub.connect(request);
+    await _mergeUser(deviceInfo.deviceId);
     return response;
   }
 

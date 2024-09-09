@@ -173,6 +173,7 @@ Future<void> setup() async {
   authenticatedDio.interceptors.add(AutonomyAuthInterceptor());
   authenticatedDio.interceptors.add(LoggingInterceptor());
   authenticatedDio.interceptors.add(ConnectingExceptionInterceptor());
+  authenticatedDio.interceptors.add(MetricsInterceptor());
   (authenticatedDio.transformer as SyncTransformer).jsonDecodeCallback =
       parseJson;
   authenticatedDio.addSentry();

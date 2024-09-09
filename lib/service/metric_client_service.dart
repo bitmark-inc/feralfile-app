@@ -3,6 +3,7 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 
 class MetricClientService {
@@ -36,6 +37,13 @@ class MetricClientService {
   void timerEvent(String name) {
     if (isFinishInit) {
       // time event here
+    }
+  }
+
+  Future<void> mergeUser(String oldUserId) async {
+    if (isFinishInit) {
+      // new userId will include in jwt token
+      await injector<IAPApi>().updateMetrics(oldUserId);
     }
   }
 
