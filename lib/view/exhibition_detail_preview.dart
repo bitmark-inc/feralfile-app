@@ -14,6 +14,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ExhibitionPreview extends StatelessWidget {
   ExhibitionPreview({required this.exhibition, super.key});
@@ -46,18 +47,51 @@ class ExhibitionPreview extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 20),
           ),
           if (exhibition.curator != null) ...[
-            Text('curator'.tr(), style: subTextStyle),
-            const SizedBox(height: 3),
-            GestureDetector(
-              child: Text(
-                exhibition.curator!.displayAlias,
-                style: artistTextStyle.copyWith(),
+            if (exhibition.id == SOURCE_EXHIBITION_ID &&
+                exhibition.curators != null) ...[
+              Text('curators'.tr(), style: subTextStyle),
+              const SizedBox(height: 3),
+              RichText(
+                text: TextSpan(
+                  children: exhibition.curators!
+                      .map(
+                        (curator) => TextSpan(
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () async {
+                              if (curator.slug != null) {
+                                await _navigationService
+                                    .openFeralFileCuratorPage(curator.slug!);
+                              } else {
+                                await launchUrl(Uri.parse(curator.website!));
+                              }
+                            },
+                          text: curator.displayAlias,
+                          style: artistTextStyle,
+                        ),
+                      )
+                      .toList(),
+                ),
               ),
-              onTap: () async {
-                await _navigationService
-                    .openFeralFileCuratorPage(exhibition.curator!.alias);
-              },
-            ),
+            ] else ...[
+              Text('curator'.tr(), style: subTextStyle),
+              const SizedBox(height: 3),
+              GestureDetector(
+                child: Text(
+                  exhibition.curator!.displayAlias,
+                  style: artistTextStyle.copyWith(
+                    decoration: exhibition.curator!.slug != null
+                        ? TextDecoration.underline
+                        : TextDecoration.none,
+                  ),
+                ),
+                onTap: () async {
+                  if (exhibition.curator!.slug != null) {
+                    await _navigationService
+                        .openFeralFileCuratorPage(exhibition.curator!.slug!);
+                  }
+                },
+              ),
+            ]
           ],
           const SizedBox(height: 10),
           Text(
@@ -73,11 +107,17 @@ class ExhibitionPreview extends StatelessWidget {
                     final isLast = exhibition.artists!.last == e;
                     return [
                       TextSpan(
-                          style: artistTextStyle,
+                          style: artistTextStyle.copyWith(
+                            decoration: e.slug != null
+                                ? TextDecoration.underline
+                                : TextDecoration.none,
+                          ),
                           recognizer: TapGestureRecognizer()
                             ..onTap = () async {
-                              await _navigationService
-                                  .openFeralFileArtistPage(e.alias);
+                              if (e.slug != null) {
+                                await _navigationService
+                                    .openFeralFileArtistPage(e.slug!);
+                              }
                             },
                           text: e.displayAlias),
                       if (!isLast)

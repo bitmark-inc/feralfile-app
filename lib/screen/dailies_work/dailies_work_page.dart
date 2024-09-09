@@ -6,7 +6,6 @@ import 'package:autonomy_flutter/model/dailies.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/ff_user.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/artist_details/artist_details_page.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_bloc.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_state.dart';
@@ -15,6 +14,7 @@ import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -356,11 +356,8 @@ class DailyWorkPageState extends State<DailyWorkPage>
             title: assetToken.displayTitle ?? '',
             subTitle: artistName,
             onSubTitleTap: assetToken.artistID != null && assetToken.isFeralfile
-                ? () => unawaited(Navigator.of(context).pushNamed(
-                      AppRouter.userDetailsPage,
-                      arguments:
-                          UserDetailsPagePayload(userId: assetToken.artistID!),
-                    ))
+                ? () => unawaited(injector<NavigationService>()
+                    .openFeralFileArtistPage(assetToken.artistID!))
                 : null,
           ),
         ),
@@ -460,10 +457,8 @@ class DailyWorkPageState extends State<DailyWorkPage>
                 SliverToBoxAdapter(
                   child: GestureDetector(
                       onTap: () {
-                        unawaited(Navigator.of(context).pushNamed(
-                            AppRouter.userDetailsPage,
-                            arguments: UserDetailsPagePayload(
-                                userId: state.currentArtist!.id)));
+                        unawaited(injector<NavigationService>()
+                            .openFeralFileArtistPage(state.currentArtist!.id));
                       },
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),

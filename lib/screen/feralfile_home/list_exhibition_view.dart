@@ -21,6 +21,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ExploreExhibition extends StatefulWidget {
   final String? searchText;
@@ -315,17 +316,22 @@ class _ListExhibitionViewState extends State<ListExhibitionView> {
                               children: [
                                 TextSpan(text: 'works_by'.tr()),
                                 TextSpan(
-                                    recognizer: TapGestureRecognizer()
-                                      ..onTap = () async {
+                                  recognizer: TapGestureRecognizer()
+                                    ..onTap = () async {
+                                      if (exhibition.artists![0].slug != null) {
                                         await _navigationService
                                             .openFeralFileArtistPage(
-                                          exhibition.artists![0].alias,
-                                        );
-                                      },
-                                    text: exhibition.artists![0].displayAlias,
-                                    style: const TextStyle(
-                                      decoration: TextDecoration.underline,
-                                    )),
+                                                exhibition.artists![0].slug!);
+                                      }
+                                    },
+                                  text: exhibition.artists![0].displayAlias,
+                                  style: TextStyle(
+                                    decoration:
+                                        exhibition.artists![0].slug != null
+                                            ? TextDecoration.underline
+                                            : TextDecoration.none,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -337,18 +343,45 @@ class _ListExhibitionViewState extends State<ListExhibitionView> {
                                   decorationColor: AppColor.disabledColor),
                               children: [
                                 TextSpan(text: 'curated_by'.tr()),
-                                TextSpan(
-                                  recognizer: TapGestureRecognizer()
-                                    ..onTap = () async {
-                                      await _navigationService
-                                          .openFeralFileCuratorPage(
-                                              exhibition.curator!.alias);
-                                    },
-                                  text: exhibition.curator!.displayAlias,
-                                  style: const TextStyle(
-                                    decoration: TextDecoration.underline,
+                                if (exhibition.id == SOURCE_EXHIBITION_ID &&
+                                    exhibition.curators != null)
+                                  ...exhibition.curators!.map(
+                                    (curator) => TextSpan(
+                                      recognizer: TapGestureRecognizer()
+                                        ..onTap = () async {
+                                          if (curator.slug != null) {
+                                            await _navigationService
+                                                .openFeralFileCuratorPage(
+                                                    curator.slug!);
+                                          } else {
+                                            await launchUrl(
+                                                Uri.parse(curator.website!));
+                                          }
+                                        },
+                                      text: curator.displayAlias,
+                                      style: const TextStyle(
+                                        decoration: TextDecoration.underline,
+                                      ),
+                                    ),
+                                  )
+                                else
+                                  TextSpan(
+                                    recognizer: TapGestureRecognizer()
+                                      ..onTap = () async {
+                                        if (exhibition.curator!.slug != null) {
+                                          await _navigationService
+                                              .openFeralFileCuratorPage(
+                                                  exhibition.curator!.slug!);
+                                        }
+                                      },
+                                    text: exhibition.curator!.displayAlias,
+                                    style: TextStyle(
+                                      decoration:
+                                          exhibition.curator!.slug != null
+                                              ? TextDecoration.underline
+                                              : TextDecoration.none,
+                                    ),
                                   ),
-                                ),
                               ],
                             ),
                           ),

@@ -100,17 +100,23 @@ class ExhibitionCard extends StatelessWidget {
                               children: [
                                 TextSpan(text: 'works_by'.tr()),
                                 TextSpan(
-                                    recognizer: TapGestureRecognizer()
-                                      ..onTap = () async {
+                                  recognizer: TapGestureRecognizer()
+                                    ..onTap = () async {
+                                      if (exhibition.artists![0].slug != null) {
                                         await injector<NavigationService>()
                                             .openFeralFileArtistPage(
-                                          exhibition.artists![0].alias,
+                                          exhibition.artists![0].slug!,
                                         );
-                                      },
-                                    text: exhibition.artists![0].displayAlias,
-                                    style: const TextStyle(
-                                      decoration: TextDecoration.underline,
-                                    )),
+                                      }
+                                    },
+                                  text: exhibition.artists![0].displayAlias,
+                                  style: TextStyle(
+                                    decoration:
+                                        exhibition.artists![0].slug != null
+                                            ? TextDecoration.underline
+                                            : TextDecoration.none,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -125,13 +131,17 @@ class ExhibitionCard extends StatelessWidget {
                                 TextSpan(
                                   recognizer: TapGestureRecognizer()
                                     ..onTap = () async {
-                                      await injector<NavigationService>()
-                                          .openFeralFileCuratorPage(
-                                              exhibition.curator!.alias);
+                                      if (exhibition.curator!.slug != null) {
+                                        await injector<NavigationService>()
+                                            .openFeralFileCuratorPage(
+                                                exhibition.curator!.slug!);
+                                      }
                                     },
                                   text: exhibition.curator!.displayAlias,
-                                  style: const TextStyle(
-                                    decoration: TextDecoration.underline,
+                                  style: TextStyle(
+                                    decoration: exhibition.curator!.slug != null
+                                        ? TextDecoration.underline
+                                        : TextDecoration.none,
                                   ),
                                 ),
                               ],
