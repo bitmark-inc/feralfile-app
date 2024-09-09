@@ -29,10 +29,10 @@ jobs:
       - name: Install jq for JSON processing
         run: sudo apt-get install jq
 
-      - name: Extract and remove unused localization keys
+      - name: Extract and check localization keys
         run: |
           # Initialize the markdown summary with the header for the table
-          echo "## Unused Localization Keys" >> $GITHUB_STEP_SUMMARY
+          echo "## Localization Keys Usage for Locale: ${{ github.event.inputs.locale }}" >> $GITHUB_STEP_SUMMARY
           echo "| Localization Key | Status |" >> $GITHUB_STEP_SUMMARY
           echo "| ---------------- | ------ |" >> $GITHUB_STEP_SUMMARY
 
@@ -46,35 +46,11 @@ jobs:
             exit 1
           fi
 
-          # Variable to track if any keys are unused
-          UNUSED_KEYS=0
-
           # Extract keys from the specified locale JSON file and check if they are used in .dart files in lib/
-          TEMP_FILE=$(mktemp)  # Temp file for modified JSON
           jq 'keys' $FILE_PATH | tr -d '[],"' | tr -s ' ' '\n' | while read -r key; do
-            if ! grep -r "$key.tr()" ./lib/**/*.dart; then
-              echo "| $key | Not Used |" >> $GITHUB_STEP_SUMMARY
-              # Remove the unused key from the JSON file
-              jq "del(.\"$key\")" $FILE_PATH > "$TEMP_FILE" && mv "$TEMP_FILE" $FILE_PATH
-              UNUSED_KEYS=1
+            if grep -r "'$key'.tr()" ./lib/**/*.dart; then
+              echo "| $key | Used |" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "| $key | Unused |" >> $GITHUB_STEP_SUMMARY
             fi
           done
-
-          # Commit and create a PR if there are unused keys
-          if [ "$UNUSED_KEYS" -eq 1 ]; then
-            git config --global user.name "github-actions[bot]"
-            git config --global user.email "github-actions[bot]@users.noreply.github.com"
-            git checkout -b remove-unused-localization-keys-$LOCALE
-
-            # Add and commit the changes
-            git add $FILE_PATH
-            git commit -m "Remove unused localization keys for locale $LOCALE"
-
-            # Push the branch
-            git push origin remove-unused-localization-keys-$LOCALE
-
-            # Create a pull request using GitHub CLI
-            gh pr create --title "Remove unused localization keys for locale $LOCALE" --body "This PR removes unused localization keys detected in the Flutter source code for locale $LOCALE."
-          else
-            echo "No unused localization keys found for locale $LOCALE." >> $GITHUB_STEP_SUMMARY
-          fi
