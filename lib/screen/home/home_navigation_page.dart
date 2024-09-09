@@ -624,7 +624,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
 
   void _handleBackground() {
     unawaited(_cloudBackup());
-    _metricClientService.onBackground();
   }
 
   void _triggerShowAnnouncement() {
@@ -650,7 +649,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   }
 
   Future<void> _handleForeground() async {
-    _metricClientService.onForeground();
     injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent(retry: true));
     await _remoteConfig.loadConfigs();
     _triggerShowAnnouncement();

@@ -63,7 +63,6 @@ import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/keychain_service.dart';
 import 'package:autonomy_flutter/service/merchandise_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/network_issue_manager.dart';
 import 'package:autonomy_flutter/service/network_service.dart';
@@ -188,8 +187,6 @@ Future<void> setup() async {
   injector.registerLazySingleton(() => http.Client());
   injector
       .registerLazySingleton<MetricClientService>(() => MetricClientService());
-  injector.registerLazySingleton<MixPanelClientService>(
-      () => MixPanelClientService(injector(), injector(), injector()));
   injector.registerLazySingleton<CacheManager>(() => AUImageCacheManage());
   injector.registerLazySingleton<AccountService>(() => AccountServiceImpl(
         cloudDB,

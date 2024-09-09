@@ -485,7 +485,6 @@ class CollectionHomePageState extends State<CollectionHomePage>
   }
 
   void _handleBackground() {
-    unawaited(_metricClient.sendAndClearMetrics());
     unawaited(FileLogger.shrinkLogFileIfNeeded());
   }
 

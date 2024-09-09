@@ -49,9 +49,6 @@ class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
             subscriptionDetails: listSubscriptionDetails,
             membershipSource: subscriptionStatus.source,
           ));
-          _metricClientService.setMembershipPlan(
-              membership: listSubscriptionDetails.getMembershipType(),
-              source: subscriptionStatus.source);
         } else {
           // if no JWT, query IAP info
           _onNewIAPEventFunc();
@@ -70,11 +67,6 @@ class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
         subscriptionDetails: subscriptionDetals,
         membershipSource: state.membershipSource,
       ));
-
-      _metricClientService.setMembershipPlan(
-        membership: subscriptionDetals.getMembershipType(),
-        source: state.membershipSource,
-      );
     });
 
 // Purchase event
@@ -105,9 +97,6 @@ class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
         subscriptionDetails: listSubscriptionDetails,
         membershipSource: state.membershipSource,
       ));
-      _metricClientService.setMembershipPlan(
-          membership: listSubscriptionDetails.getMembershipType(),
-          source: state.membershipSource);
     });
 
     _iapService.purchases.addListener(_onNewIAPEventFunc);
