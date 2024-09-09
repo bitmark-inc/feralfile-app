@@ -35,7 +35,6 @@ import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwor
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/postcard_service.dart';
 import 'package:autonomy_flutter/service/remote_config_service.dart';
@@ -114,7 +113,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   final _postcardService = injector<PostcardService>();
   final _remoteConfig = injector<RemoteConfigService>();
   Prompt? _prompt;
-  final _metricClientService = injector<MetricClientService>();
   final _browser = FeralFileBrowser();
 
   @override
@@ -137,11 +135,7 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
   }
 
   @override
-  void afterFirstLayout(BuildContext context) {
-    _metricClientService.addEvent(MixpanelEvent.visitPage, data: {
-      MixpanelProp.tokenId: widget.payload.identity,
-    });
-  }
+  void afterFirstLayout(BuildContext context) {}
 
   Future<void> _showSharingExpired(BuildContext context) async {
     await UIHelper.showPostcardDrawerAction(context, options: [
@@ -365,10 +359,6 @@ class ClaimedPostcardDetailPageState extends State<ClaimedPostcardDetailPage>
           !isNotOwner &&
           current.isViewOnly == false) {
         unawaited(_youDidIt(context, current.assetToken!));
-      }
-      if (previous.assetToken != current.assetToken &&
-          current.assetToken != null) {
-        unawaited(current.assetToken?.sendViewArtworkEvent());
       }
       return true;
     }, listener: (context, state) async {

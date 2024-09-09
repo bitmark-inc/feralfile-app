@@ -3,9 +3,7 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 
 class MetricClientService {
   MetricClientService();
@@ -14,16 +12,6 @@ class MetricClientService {
 
   Future<void> initService() async {
     isFinishInit = true;
-  }
-
-  void setMembershipPlan({
-    required MembershipType membership,
-    MembershipSource? source,
-  }) {
-    setLabel(MixpanelProp.membership, membership.mixpanelName);
-    if (source != null) {
-      setLabel(MixpanelProp.membershipSource, source.mixpanelName);
-    }
   }
 
   void addEvent(
