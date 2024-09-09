@@ -17,7 +17,6 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
 import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artwork_preview_page.dart';
 import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_page.dart';
-import 'package:autonomy_flutter/screen/gallery/gallery_page.dart';
 import 'package:autonomy_flutter/screen/global_receive/receive_detail_page.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/design_stamp.dart';
 import 'package:autonomy_flutter/screen/interactive_postcard/hand_signature_page.dart';
@@ -87,11 +86,6 @@ extension RouteExt on Route {
         data = {
           MixpanelProp.tokenId: payload.identity.id,
           MixpanelProp.ownerAddress: payload.identity.owner,
-        };
-      case AppRouter.galleryPage:
-        final payload = settings.arguments! as GalleryPagePayload;
-        data = {
-          MixpanelProp.address: payload.address,
         };
       case AppRouter.personaConnectionsPage:
         final payload = settings.arguments! as PersonaConnectionsPayload;

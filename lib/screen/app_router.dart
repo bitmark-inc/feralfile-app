@@ -61,8 +61,6 @@ import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artw
 import 'package:autonomy_flutter/screen/feralfile_artwork_preview/feralfile_artwork_preview_page.dart';
 import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_bloc.dart';
 import 'package:autonomy_flutter/screen/feralfile_series/feralfile_series_page.dart';
-import 'package:autonomy_flutter/screen/gallery/gallery_bloc.dart';
-import 'package:autonomy_flutter/screen/gallery/gallery_page.dart';
 import 'package:autonomy_flutter/screen/github_doc.dart';
 import 'package:autonomy_flutter/screen/global_receive/receive_detail_page.dart';
 import 'package:autonomy_flutter/screen/home/collection_home_page.dart';
@@ -84,8 +82,6 @@ import 'package:autonomy_flutter/screen/interactive_postcard/stamp_preview.dart'
 import 'package:autonomy_flutter/screen/interactive_postcard/travel_info/travel_info_bloc.dart';
 import 'package:autonomy_flutter/screen/irl_screen/sign_message_screen.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
-import 'package:autonomy_flutter/screen/migration/key_sync_bloc.dart';
-import 'package:autonomy_flutter/screen/migration/key_sync_page.dart';
 import 'package:autonomy_flutter/screen/moma_postcard_page/moma_postcard_page.dart';
 import 'package:autonomy_flutter/screen/new_onboarding_page.dart';
 import 'package:autonomy_flutter/screen/onboarding/import_address/import_seeds.dart';
@@ -704,19 +700,6 @@ class AppRouter {
                       payload: settings.arguments! as AddressAliasPayload),
                 ));
 
-      case galleryPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => MultiBlocProvider(
-                    providers: [
-                      BlocProvider(
-                          create: (_) => GalleryBloc(injector(), injector())),
-                      BlocProvider(create: (_) => identityBloc),
-                    ],
-                    child: GalleryPage(
-                      payload: settings.arguments! as GalleryPagePayload,
-                    )));
-
       case artworkDetailsPage:
         return PageTransition(
             type: PageTransitionType.fade,
@@ -923,14 +906,6 @@ class AppRouter {
             settings: settings,
             builder: (context) => GithubDocPage(
                 payload: settings.arguments! as Map<String, String>));
-
-      case keySyncPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => BlocProvider(
-                  create: (_) => KeySyncBloc(injector(), injector()),
-                  child: const KeySyncPage(),
-                ));
 
       case sendArtworkPage:
         return CupertinoPageRoute(
