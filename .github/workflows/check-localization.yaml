@@ -48,7 +48,8 @@ jobs:
 
           # Extract keys from the specified locale JSON file and check if they are used in .dart files in lib/
           jq 'keys' $FILE_PATH | tr -d '[],"' | tr -s ' ' '\n' | while read -r key; do
-            if grep -r "'$key'.tr()" ./lib/**/*.dart; then
+            # Search for different variations of the key usage in .dart files
+            if grep -q -r -E "(\"'$key'\"|'$key')\.tr\(\)" ./lib/**/*.dart; then
               echo "| $key | Used |" >> $GITHUB_STEP_SUMMARY
             else
               echo "| $key | Unused |" >> $GITHUB_STEP_SUMMARY
