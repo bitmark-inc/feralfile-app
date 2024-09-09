@@ -213,68 +213,73 @@ class _ImportSeedsPageState extends State<ImportSeedsPage> {
     NumberFormat formatter = NumberFormat('00');
     final controller = _mnemonicControllers[index];
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Row(
-        children: [
-          Container(
-            width: 32,
-            alignment: Alignment.centerRight,
-            child: Text(formatter.format(index + 1),
-                style: theme.textTheme.ppMori400Grey14),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: TextField(
-              enableSuggestions: false,
-              focusNode: _focusNodes[index],
-              autocorrect: false,
-              obscureText: _obscureText,
-              controller: controller,
-              decoration: InputDecoration(
-                contentPadding: const EdgeInsets.fromLTRB(0, 3, 0, 0),
-                isDense: true,
-                border: InputBorder.none,
-                hintStyle: ResponsiveLayout.isMobile
-                    ? theme.textTheme.ppMori400Black14
-                        .copyWith(color: AppColor.auQuickSilver)
-                    : theme.textTheme.ppMori400Black16
-                        .copyWith(color: AppColor.auQuickSilver, fontSize: 20),
-              ),
-              onSubmitted: (value) {
-                if (index < _maxWords) {
-                  FocusScope.of(context).requestFocus(_focusNodes[index + 1]);
-                }
-              },
-              style: theme.textTheme.ppMori400Black14
-                  .copyWith(color: _isError ? AppColor.red : null),
-              onChanged: (value) {
-                if (value.contains(' ')) {
-                  final words = value.split(' ');
-                  if (words.last.isEmpty) {
-                    words.removeLast();
-                  }
-                  final wordsLeft = _maxWords - index;
-                  final wordsToInsertNum = min(wordsLeft, words.length);
-                  for (var i = 0; i < wordsToInsertNum; i++) {
-                    if (i != wordsToInsertNum || words[i].isNotEmpty) {
-                      _mnemonicControllers[index + i].text = words[i];
-                    }
-                  }
-                  FocusScope.of(context)
-                      .requestFocus(_focusNodes[index + wordsToInsertNum]);
-                }
-
-                final numberOfWords = _getMnemonic().split(' ').length;
-                setState(() {
-                  _isSubmissionEnabled =
-                      [12, 15, 18, 21, 24].contains(numberOfWords);
-                  _isError = false;
-                });
-              },
+    return GestureDetector(
+      onTap: () {
+        _focusNodes[index].requestFocus();
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        child: Row(
+          children: [
+            Container(
+              width: 32,
+              alignment: Alignment.centerRight,
+              child: Text(formatter.format(index + 1),
+                  style: theme.textTheme.ppMori400Grey14),
             ),
-          ),
-        ],
+            const SizedBox(width: 16),
+            Expanded(
+              child: TextField(
+                enableSuggestions: false,
+                focusNode: _focusNodes[index],
+                autocorrect: false,
+                obscureText: _obscureText,
+                controller: controller,
+                decoration: InputDecoration(
+                  contentPadding: const EdgeInsets.fromLTRB(0, 3, 0, 0),
+                  isDense: true,
+                  border: InputBorder.none,
+                  hintStyle: ResponsiveLayout.isMobile
+                      ? theme.textTheme.ppMori400Black14
+                          .copyWith(color: AppColor.auQuickSilver)
+                      : theme.textTheme.ppMori400Black16.copyWith(
+                          color: AppColor.auQuickSilver, fontSize: 20),
+                ),
+                onSubmitted: (value) {
+                  if (index < _maxWords) {
+                    FocusScope.of(context).requestFocus(_focusNodes[index + 1]);
+                  }
+                },
+                style: theme.textTheme.ppMori400Black14
+                    .copyWith(color: _isError ? AppColor.red : null),
+                onChanged: (value) {
+                  if (value.contains(' ')) {
+                    final words = value.split(' ');
+                    if (words.last.isEmpty) {
+                      words.removeLast();
+                    }
+                    final wordsLeft = _maxWords - index;
+                    final wordsToInsertNum = min(wordsLeft, words.length);
+                    for (var i = 0; i < wordsToInsertNum; i++) {
+                      if (i != wordsToInsertNum || words[i].isNotEmpty) {
+                        _mnemonicControllers[index + i].text = words[i];
+                      }
+                    }
+                    FocusScope.of(context)
+                        .requestFocus(_focusNodes[index + wordsToInsertNum]);
+                  }
+
+                  final numberOfWords = _getMnemonic().split(' ').length;
+                  setState(() {
+                    _isSubmissionEnabled =
+                        [12, 15, 18, 21, 24].contains(numberOfWords);
+                    _isError = false;
+                  });
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
