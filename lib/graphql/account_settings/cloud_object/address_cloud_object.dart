@@ -1,7 +1,7 @@
 import 'package:autonomy_flutter/database/dao/address_dao.dart';
 import 'package:autonomy_flutter/database/entity/wallet_address.dart';
 
-class WalletAddressDaoImpl implements WalletAddressDao {
+class WalletAddressCloudObjectImpl implements WalletAddressDao {
   @override
   Future<void> deleteAddress(WalletAddress address) {
     // TODO: implement deleteAddress
