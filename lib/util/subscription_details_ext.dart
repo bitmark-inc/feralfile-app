@@ -1,4 +1,3 @@
-import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 
@@ -18,12 +17,5 @@ extension ListSubscriptionDetails on List<SubscriptionDetails> {
       }
     }
     return activeSubscriptionDetails;
-  }
-
-  MembershipType getMembershipType() {
-    if (activeSubscriptionDetails.isNotEmpty) {
-      return MembershipType.premium;
-    }
-    return MembershipType.free;
   }
 }
