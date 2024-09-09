@@ -15,7 +15,6 @@ enum ConnectionType {
   beaconP2PPeer, // Autonomy connect to TZ Dapp
   manuallyAddress,
   manuallyIndexerTokenID,
-  walletConnect2, // Autonomy connect
   dappConnect2,
 }
 
@@ -85,8 +84,7 @@ class Connection {
   }
 
   String? get wc2ConnectedSession {
-    if (connectionType != ConnectionType.walletConnect2.rawValue &&
-        connectionType != ConnectionType.dappConnect2.rawValue) {
+    if (connectionType != ConnectionType.dappConnect2.rawValue) {
       return null;
     }
     return data;

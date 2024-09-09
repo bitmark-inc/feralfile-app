@@ -268,7 +268,7 @@ class Wc2Service {
 
   Future cleanup() async {
     final connections = await _cloudDB.connectionDao
-        .getConnectionsByType(ConnectionType.walletConnect2.rawValue);
+        .getConnectionsByType(ConnectionType.dappConnect2.rawValue);
 
     // retains connections under 7 days old and limit to 5 connections.
     while (connections.length > 5 &&
@@ -287,11 +287,12 @@ class Wc2Service {
      */
   }
 
-  Future approveSession(Wc2Proposal proposal,
-      {required List<String> accounts,
-      required String connectionKey,
-      required String accountNumber,
-      bool isAuConnect = false}) async {
+  Future approveSession(
+    Wc2Proposal proposal, {
+    required List<String> accounts,
+    required String connectionKey,
+    required String accountNumber,
+  }) async {
     final Map<String, RequiredNamespace> mergedNamespaces =
         _mergeRequiredNameSpaces(
       proposal.requiredNamespaces,
@@ -313,9 +314,7 @@ class Wc2Service {
       key: '$connectionKey:$topic',
       name: proposal.proposer.name,
       data: json.encode(proposal.proposer),
-      connectionType: isAuConnect
-          ? ConnectionType.walletConnect2.rawValue
-          : ConnectionType.dappConnect2.rawValue,
+      connectionType: ConnectionType.dappConnect2.rawValue,
       accountNumber: accountNumber,
       createdAt: DateTime.now(),
     );
