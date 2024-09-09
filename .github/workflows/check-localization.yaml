@@ -21,13 +21,14 @@ jobs:
       - name: Submoudles update
         run: git -c submodule.auto-test.update=none submodule update --init --recursive
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '14'
-
       - name: Install jq for JSON processing
         run: sudo apt-get install jq
+
+      - name: Debug - List all files in lib/
+        run: |
+          # List all dart files in the lib/ directory for debugging
+          echo "Listing all .dart files in the lib/ directory:"
+          find ./lib -name "*.dart"
 
       - name: Extract and check localization keys
         run: |
@@ -48,8 +49,10 @@ jobs:
 
           # Extract keys from the specified locale JSON file and check if they are used in .dart files in lib/
           jq 'keys' $FILE_PATH | tr -d '[],"' | tr -s ' ' '\n' | while read -r key; do
-            # Search for different variations of the key usage in .dart files
-            if grep -q -r -E "(\"'$key'\"|'$key')\.tr\(\)" ./lib/**/*.dart; then
+            # Debug: Output the key being checked
+            echo "Checking key: $key"
+            # Search for the key usage
+            if grep -r "'$key'.tr()" ./lib/**/*.dart; then
               echo "| $key | Used |" >> $GITHUB_STEP_SUMMARY
             else
               echo "| $key | Unused |" >> $GITHUB_STEP_SUMMARY
