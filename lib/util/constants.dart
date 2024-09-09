@@ -591,6 +591,8 @@ class MixpanelProp {
   static const category = 'category';
   static const channel = 'channel';
   static const firstAppOpenDate = 'First App Open Date';
+  static const membership = 'Membership';
+  static const membershipSource = 'Membership source';
 }
 
 class MixpanelConfig {}
@@ -633,8 +635,6 @@ class KeyChain {
 class IrlWebviewFunction {
   static String closeWebview = '_closeWebview';
 }
-
-const Duration USE_APP_MIN_DURATION = Duration(seconds: 15);
 
 const chatPrivateBannerId = 'chat_private_banner_id';
 final chatPrivateBannerMessage = SystemMessage(

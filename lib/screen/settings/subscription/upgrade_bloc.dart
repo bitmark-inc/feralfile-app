@@ -11,15 +11,19 @@ import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/subscription_details_ext.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:sentry/sentry.dart';
 
 class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
   final IAPService _iapService;
   final ConfigurationService _configurationService;
+  final MetricClientService _metricClientService;
 
-  UpgradesBloc(this._iapService, this._configurationService)
+  UpgradesBloc(
+      this._iapService, this._configurationService, this._metricClientService)
       : super(UpgradeState(subscriptionDetails: [])) {
     // Query IAP info initially
     on<UpgradeQueryInfoEvent>((event, emit) async {
@@ -45,6 +49,9 @@ class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
             subscriptionDetails: listSubscriptionDetails,
             membershipSource: subscriptionStatus.source,
           ));
+          _metricClientService.setMembershipPlan(
+              membership: listSubscriptionDetails.getMembershipType(),
+              source: subscriptionStatus.source);
         } else {
           // if no JWT, query IAP info
           _onNewIAPEventFunc();
@@ -63,6 +70,11 @@ class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
         subscriptionDetails: subscriptionDetals,
         membershipSource: state.membershipSource,
       ));
+
+      _metricClientService.setMembershipPlan(
+        membership: subscriptionDetals.getMembershipType(),
+        source: state.membershipSource,
+      );
     });
 
 // Purchase event
@@ -93,6 +105,9 @@ class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
         subscriptionDetails: listSubscriptionDetails,
         membershipSource: state.membershipSource,
       ));
+      _metricClientService.setMembershipPlan(
+          membership: listSubscriptionDetails.getMembershipType(),
+          source: state.membershipSource);
     });
 
     _iapService.purchases.addListener(_onNewIAPEventFunc);

@@ -3,6 +3,7 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
@@ -28,6 +29,16 @@ class MetricClientService {
 
   Future<void> migrateFromDidKeyToPrimaryAddress() async {
     await mixPanelClient.migrateFromDidKeyToPrimaryAddress();
+  }
+
+  void setMembershipPlan({
+    required MembershipType membership,
+    MembershipSource? source,
+  }) {
+    setLabel(MixpanelProp.membership, membership.mixpanelName);
+    if (source != null) {
+      setLabel(MixpanelProp.membershipSource, source.mixpanelName);
+    }
   }
 
   void addEvent(

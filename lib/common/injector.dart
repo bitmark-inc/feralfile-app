@@ -419,5 +419,5 @@ Future<void> setup() async {
       () => AnnouncementServiceImpl(injector(), injector(), injector()));
 
   injector.registerLazySingleton<UpgradesBloc>(
-      () => UpgradesBloc(injector(), injector()));
+      () => UpgradesBloc(injector(), injector(), injector()));
 }
