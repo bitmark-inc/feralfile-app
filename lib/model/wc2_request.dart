@@ -174,7 +174,6 @@ class Wc2ChainResult {
 
 @JsonSerializable()
 class Wc2Chain {
-  static const autonomy = 'autonomy';
   static const ethereum = 'eip155';
   static const tezos = 'tezos';
 

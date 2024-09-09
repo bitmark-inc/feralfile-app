@@ -34,8 +34,7 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
     });
 
     on<GetAccountsEvent>((event, emit) async {
-      final connectionsFuture =
-          _cloudDB.connectionDao.getUpdatedLinkedAccounts();
+      final connectionsFuture = _cloudDB.connectionDao.getLinkedAccounts();
       final addresses = await _cloudDB.addressDao.getAllAddresses();
 
       List<Account> accounts = await getAccountPersona(addresses);

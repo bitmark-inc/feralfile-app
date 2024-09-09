@@ -45,8 +45,7 @@ class _SelectAccountState extends State<SelectAccount> with RouteAware {
 
   void callAccountBloc() {
     context.read<AccountsBloc>().add(GetCategorizedAccountsEvent(
-        getTezos: widget.connectionRequest.isBeaconConnect ||
-            widget.connectionRequest.isAutonomyConnect,
+        getTezos: widget.connectionRequest.isBeaconConnect,
         getEth: !widget.connectionRequest.isBeaconConnect));
   }
 
@@ -55,16 +54,6 @@ class _SelectAccountState extends State<SelectAccount> with RouteAware {
       BlocConsumer<AccountsBloc, AccountsState>(
         listener: (context, state) async {
           var stateCategorizedAccounts = state.accounts;
-
-          if (connectionRequest.isAutonomyConnect &&
-              stateCategorizedAccounts?.isNotEmpty == true) {
-            selectedWallet =
-                WalletIndex(stateCategorizedAccounts!.first.wallet!, 0);
-            widget.onSelectPersona?.call(selectedWallet);
-          }
-          if (!mounted) {
-            return;
-          }
           categorizedAccounts = stateCategorizedAccounts;
           widget.onCategorizedAccountsChanged?.call(categorizedAccounts!);
           if (categorizedAccounts?.isEmpty ?? true) {
@@ -117,9 +106,6 @@ class _SelectAccountState extends State<SelectAccount> with RouteAware {
 
     if (stateCategorizedAccounts.isEmpty) {
       return const SizedBox(); // Expanded(child: _createAccountAndConnect());
-    }
-    if (connectionRequest.isAutonomyConnect) {
-      return const SizedBox();
     }
     return _selectPersonaWidget(context, stateCategorizedAccounts);
   }

@@ -214,15 +214,6 @@ class AccountServiceImpl extends AccountService {
           return WalletIndex(
               WalletStorage(walletAddress.uuid), walletAddress.index);
         }
-      case Wc2Chain.autonomy:
-        var addresses = await _cloudDB.addressDao.getAllAddresses();
-        addresses.unique((element) => element.uuid);
-        for (WalletAddress a in addresses) {
-          final wallet = a.wallet;
-          if (await wallet.getAccountDID() == address) {
-            return WalletIndex(wallet, -1);
-          }
-        }
     }
     throw AccountException(
       message: 'Wallet not found. Chain $chain, address: $address',
@@ -507,8 +498,7 @@ class AccountServiceImpl extends AccountService {
     final addressPersona = await _cloudDB.addressDao.getAllAddresses();
     addresses.addAll(addressPersona.map((e) => e.address));
 
-    final linkedAccounts =
-        await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
+    final linkedAccounts = await _cloudDB.connectionDao.getLinkedAccounts();
 
     addresses.addAll(linkedAccounts.expand((e) => e.accountNumbers));
     if (logHiddenAddress) {
@@ -537,8 +527,7 @@ class AccountServiceImpl extends AccountService {
     final addresses = walletAddresses.map((e) => e.address).toList();
 
     if (withViewOnly) {
-      final connections =
-          await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
+      final connections = await _cloudDB.connectionDao.getLinkedAccounts();
       for (var connection in connections) {
         if (connection.accountNumber.isEmpty) {
           continue;
@@ -566,8 +555,7 @@ class AccountServiceImpl extends AccountService {
         await _cloudDB.addressDao.findAddressesWithHiddenStatus(false);
     addresses.addAll(walletAddress.map((e) => e.address).toList());
 
-    final linkedAccounts =
-        await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
+    final linkedAccounts = await _cloudDB.connectionDao.getLinkedAccounts();
     final hiddenLinkedAccounts =
         _configurationService.getLinkedAccountsHiddenInGallery();
 
@@ -634,8 +622,7 @@ class AccountServiceImpl extends AccountService {
     hiddenAddresses
         .addAll(hiddenWalletAddresses.map((e) => e.addressIndex).toList());
 
-    final linkedAccounts =
-        await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
+    final linkedAccounts = await _cloudDB.connectionDao.getLinkedAccounts();
     final hiddenLinkedAccounts =
         _configurationService.getLinkedAccountsHiddenInGallery();
 
@@ -711,7 +698,7 @@ class AccountServiceImpl extends AccountService {
       if (backupVersion.isNotEmpty) {
         // if user has backup, restore from cloud
         unawaited(_backupService.restoreCloudDatabase());
-        await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
+        await _cloudDB.connectionDao.getLinkedAccounts();
         unawaited(injector<MetricClientService>()
             .mixPanelClient
             .initIfDefaultAccount());

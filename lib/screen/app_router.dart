@@ -120,17 +120,14 @@ import 'package:autonomy_flutter/screen/settings/preferences/preferences_page.da
 import 'package:autonomy_flutter/screen/settings/settings_page.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/subscription_page.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
-import 'package:autonomy_flutter/screen/tezos_beacon/au_sign_message_page.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_sign_message_page.dart';
 import 'package:autonomy_flutter/screen/wallet/wallet_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_bloc.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
-import 'package:autonomy_flutter/screen/wallet_connect/v2/wc2_permission_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/view/transparent_router.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -180,7 +177,6 @@ class AppRouter {
   static const sendArtworkPage = 'send_artwork_page';
   static const sendArtworkReviewPage = 'send_artwork_review_page';
   static const wc2ConnectPage = 'wc2_connect_page';
-  static const wc2PermissionPage = 'wc2_permission_page';
   static const preferencesPage = 'preferences_page';
   static const walletPage = 'wallet_page';
   static const subscriptionPage = 'subscription_page';
@@ -216,7 +212,6 @@ class AppRouter {
   static const nameAddressPersonaPage = 'name_address_persona_page';
   static const addressAliasPage = 'address_alias_page';
   static const tbSignMessagePage = 'tb_sign_message_page';
-  static const auSignMessagePage = 'au_sign_message_page';
   static const globalReceiveDetailPage = 'global_receive_detail_page';
   static const chatThreadPage = 'chat_thread_page';
   static const accessMethodPage = 'access_method_page';
@@ -752,12 +747,6 @@ class AppRouter {
           builder: (context) =>
               TBSignMessagePage(request: settings.arguments! as BeaconRequest),
         );
-      case auSignMessagePage:
-        return CupertinoPageRoute(
-          settings: settings,
-          builder: (context) => AUSignMessagePage(
-              request: settings.arguments! as Wc2RequestPayload),
-        );
       case tbSendTransactionPage:
         return CupertinoPageRoute(
           settings: settings,
@@ -952,16 +941,6 @@ class AppRouter {
             settings: settings,
             builder: (context) =>
                 LinkManuallyPage(type: settings.arguments! as String));
-
-      case wc2PermissionPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => MultiBlocProvider(
-                    providers: [
-                      BlocProvider.value(value: accountsBloc),
-                    ],
-                    child: Wc2RequestPage(
-                        request: settings.arguments! as Wc2RequestPayload)));
 
       case walletPage:
         return CupertinoPageRoute(

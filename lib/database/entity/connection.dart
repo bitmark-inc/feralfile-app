@@ -8,8 +8,6 @@
 import 'dart:convert';
 
 import 'package:autonomy_flutter/model/connection_supports.dart';
-import 'package:autonomy_flutter/util/constants.dart';
-import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
 import 'package:floor/floor.dart';
 import 'package:nft_collection/models/address_index.dart';
 
@@ -124,27 +122,6 @@ class Connection {
         other.connectionType == connectionType &&
         other.accountNumber == accountNumber &&
         other.createdAt == createdAt;
-  }
-
-  static Connection? getManuallyAddress(String? address) {
-    if (address == null) {
-      return null;
-    }
-    String checkAddress = address;
-    final cryptoType = CryptoType.fromAddress(address);
-    if (cryptoType == CryptoType.ETH) {
-      checkAddress = address.getETHEip55Address();
-    }
-    if (cryptoType == CryptoType.UNKNOWN) {
-      return null;
-    }
-    return Connection(
-        key: checkAddress,
-        name: cryptoType.source,
-        data: '',
-        connectionType: ConnectionType.manuallyAddress.rawValue,
-        accountNumber: checkAddress,
-        createdAt: DateTime.now());
   }
 
   @override
