@@ -10,6 +10,7 @@ import 'dart:convert';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/wallet_address.dart';
+import 'package:autonomy_flutter/graphql/account_settings/cloud_object.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
@@ -24,8 +25,9 @@ import 'package:tezart/src/crypto/crypto.dart' as crypto;
 class AddressService {
   final PrimaryAddressChannel _primaryAddressChannel;
   final CloudDatabase _cloudDB;
+  final CloudObjects _cloudObject;
 
-  AddressService(this._primaryAddressChannel, this._cloudDB);
+  AddressService(this._primaryAddressChannel, this._cloudDB, this._cloudObject);
 
   AddressInfo? _primaryAddressInfo;
 
@@ -159,13 +161,13 @@ class AddressService {
       'feralfile-account: {"requester":"$address","timestamp":"$timestamp"}';
 
   Future<List<WalletAddress>> getAllAddress() async {
-    final addresses = await _cloudDB.addressDao.getAllAddresses();
+    final addresses = await _cloudObject.addressObject.getAllAddresses();
     return addresses;
   }
 
   Future<List<WalletAddress>> getAllEthereumAddress() async {
-    final addresses =
-        await _cloudDB.addressDao.getAddressesByType(CryptoType.ETH.source);
+    final addresses = await _cloudObject.addressObject
+        .getAddressesByType(CryptoType.ETH.source);
     addresses.sort((a, b) => a.createdAt.compareTo(b.createdAt));
     return addresses;
   }

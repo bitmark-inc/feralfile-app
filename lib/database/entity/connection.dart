@@ -7,6 +7,7 @@
 
 import 'dart:convert';
 
+import 'package:autonomy_flutter/graphql/account_settings/setting_object.dart';
 import 'package:autonomy_flutter/model/connection_supports.dart';
 import 'package:floor/floor.dart';
 import 'package:nft_collection/models/address_index.dart';
@@ -23,7 +24,8 @@ extension RawValue on ConnectionType {
 }
 
 @entity
-class Connection {
+class Connection implements SettingObject {
+  @override
   @primaryKey
   String key;
   String name;
@@ -130,4 +132,34 @@ class Connection {
       connectionType.hashCode ^
       accountNumber.hashCode ^
       createdAt.hashCode;
+
+  // fromJson, toJson methods
+  factory Connection.fromJson(Map<String, dynamic> json) => Connection(
+        key: json['key'] as String,
+        name: json['name'] as String,
+        data: json['data'] as String,
+        connectionType: json['connectionType'] as String,
+        accountNumber: json['accountNumber'] as String,
+        createdAt: DateTime.parse(json['createdAt'] as String),
+        accountOrder: json['accountOrder'] as int?,
+      );
+
+  Map<String, dynamic> toJson() => {
+        'key': key,
+        'name': name,
+        'data': data,
+        'connectionType': connectionType,
+        'accountNumber': accountNumber,
+        'createdAt': createdAt.toIso8601String(),
+        'accountOrder': accountOrder,
+      };
+
+  @override
+  Map<String, String> get toKeyValue => {
+        'key': key,
+        'value': value,
+      };
+
+  @override
+  String get value => jsonEncode(toJson());
 }

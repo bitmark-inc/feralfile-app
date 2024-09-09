@@ -23,6 +23,8 @@ import 'package:autonomy_flutter/gateway/pubdoc_api.dart';
 import 'package:autonomy_flutter/gateway/source_exhibition_api.dart';
 import 'package:autonomy_flutter/gateway/tv_cast_api.dart';
 import 'package:autonomy_flutter/gateway/tzkt_api.dart';
+import 'package:autonomy_flutter/graphql/account_settings/account_settings_client.dart';
+import 'package:autonomy_flutter/graphql/account_settings/cloud_object.dart';
 import 'package:autonomy_flutter/screen/bloc/connections/connections_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
@@ -190,7 +192,7 @@ Future<void> setup() async {
       () => MixPanelClientService(injector(), injector(), injector()));
   injector.registerLazySingleton<CacheManager>(() => AUImageCacheManage());
   injector.registerLazySingleton<AccountService>(() => AccountServiceImpl(
-        cloudDB,
+        injector(),
         injector(),
         injector(),
         injector(),
@@ -202,7 +204,7 @@ Future<void> setup() async {
       () => PrimaryAddressChannel());
 
   injector.registerLazySingleton<AddressService>(
-      () => AddressService(injector(), cloudDB));
+      () => AddressService(injector(), cloudDB, injector()));
 
   injector.registerLazySingleton<KeychainService>(() => KeychainService());
 
@@ -244,7 +246,6 @@ Future<void> setup() async {
 
   injector
       .registerLazySingleton<SettingsDataService>(() => SettingsDataServiceImpl(
-            injector(),
             injector(),
             injector(),
             injector(),
@@ -396,7 +397,7 @@ Future<void> setup() async {
   injector.registerFactory<AuChatBloc>(() => AuChatBloc(injector()));
 
   injector.registerLazySingleton<ConnectionsBloc>(() => ConnectionsBloc(
-        injector<CloudDatabase>(),
+        injector(),
         injector(),
         injector(),
       ));
@@ -415,4 +416,9 @@ Future<void> setup() async {
 
   injector.registerLazySingleton<UpgradesBloc>(
       () => UpgradesBloc(injector(), injector()));
+
+  injector.registerLazySingleton<AccountSettingsClient>(
+      () => AccountSettingsClient(Environment.accountSettingUrl));
+
+  injector.registerLazySingleton<CloudObjects>(() => CloudObjects());
 }

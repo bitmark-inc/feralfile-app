@@ -6,8 +6,8 @@
 //
 
 import 'package:autonomy_flutter/au_bloc.dart';
-import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/wallet_address.dart';
+import 'package:autonomy_flutter/graphql/account_settings/cloud_object.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 
@@ -15,13 +15,16 @@ part 'tezos_state.dart';
 
 class TezosBloc extends AuBloc<TezosEvent, TezosState> {
   final TezosService _tezosService;
-  final CloudDatabase _cloudDB;
+  final CloudObjects _cloudObject;
 
-  TezosBloc(this._tezosService, this._cloudDB) : super(TezosState(null, {})) {
+  TezosBloc(this._tezosService, this._cloudObject)
+      : super(TezosState(null, {})) {
     on<GetTezosAddressEvent>((event, emit) async {
-      if (state.personaAddresses?[event.uuid] != null) return;
+      if (state.personaAddresses?[event.uuid] != null) {
+        return;
+      }
 
-      final walletAddresses = await _cloudDB.addressDao
+      final walletAddresses = await _cloudObject.addressObject
           .getAddresses(event.uuid, CryptoType.XTZ.source);
       var personaAddresses = state.personaAddresses ?? {};
       personaAddresses[event.uuid] = walletAddresses;
@@ -39,7 +42,7 @@ class TezosBloc extends AuBloc<TezosEvent, TezosState> {
     });
 
     on<GetTezosBalanceWithUUIDEvent>((event, emit) async {
-      final walletAddresses = await _cloudDB.addressDao
+      final walletAddresses = await _cloudObject.addressObject
           .getAddresses(event.uuid, CryptoType.XTZ.source);
       if (walletAddresses.isEmpty) {
         emit(state.copyWith(personaAddresses: {}));

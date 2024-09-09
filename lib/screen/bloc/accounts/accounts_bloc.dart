@@ -9,9 +9,9 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/wallet_address.dart';
+import 'package:autonomy_flutter/graphql/account_settings/cloud_object.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
@@ -25,21 +25,23 @@ import 'package:sentry/sentry.dart';
 part 'accounts_state.dart';
 
 class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
-  final CloudDatabase _cloudDB;
   final AccountService _accountService;
+  final CloudObjects _cloudObject;
 
-  AccountsBloc(this._cloudDB, this._accountService) : super(AccountsState()) {
+  AccountsBloc(this._accountService, this._cloudObject)
+      : super(AccountsState()) {
     on<ResetEventEvent>((event, emit) async {
       emit(state.setEvent(null));
     });
 
     on<GetAccountsEvent>((event, emit) async {
-      final connectionsFuture = _cloudDB.connectionDao.getLinkedAccounts();
-      final addresses = await _cloudDB.addressDao.getAllAddresses();
+      final connectionsFuture =
+          _cloudObject.connectionObject.getLinkedAccounts();
+      final addresses = _cloudObject.addressObject.getAllAddresses();
 
       List<Account> accounts = await getAccountPersona(addresses);
 
-      final connections = await connectionsFuture;
+      final connections = connectionsFuture;
       for (var connection in connections) {
         if (accounts
             .map((e) => e.accountNumber)
@@ -89,24 +91,25 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
 
     on<SaveAccountOrderEvent>((event, emit) async {
       final accounts = event.accounts;
-      await _cloudDB.database.database.transaction((tx) async {
-        final batch = tx.batch();
-        for (int i = 0; i < accounts.length; i++) {
-          final account = accounts[i];
-          if (account.walletAddress != null) {
-            batch.update('WalletAddress', {'accountOrder': i},
-                where: 'address = ?', whereArgs: [account.key]);
-          } else {
-            batch.update('Connection', {'accountOrder': i},
-                where: 'accountNumber = ?', whereArgs: [account.accountNumber]);
-          }
+      final List<WalletAddress> walletAddresses = [];
+      final List<Connection> connections = [];
+      for (int i = 0; i < accounts.length; i++) {
+        final account = accounts[i];
+        if (account.walletAddress != null) {
+          final walletAddress = account.walletAddress!;
+          walletAddresses.add(walletAddress.copyWith(accountOrder: i));
+        } else {
+          final connection = account.connections!.first..accountOrder = i;
+          connections.add(connection);
         }
-        await batch.commit();
-      });
+      }
+      await _cloudObject.addressObject.updateAddresses(walletAddresses);
+
+      await _cloudObject.connectionObject.writeConnections(connections);
     });
 
     on<GetAccountsIRLEvent>((event, emit) async {
-      final addresses = await _cloudDB.addressDao.getAllAddresses();
+      final addresses = _cloudObject.addressObject.getAllAddresses();
 
       List<Account> accounts = await getAccountPersona(addresses);
 
@@ -120,12 +123,12 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
           WalletType.getWallet(eth: event.getEth, tezos: event.getTezos);
       switch (type) {
         case WalletType.Autonomy:
-          addresses = await _cloudDB.addressDao.getAllAddresses();
+          addresses = _cloudObject.addressObject.getAllAddresses();
         case WalletType.Ethereum:
-          addresses = await _cloudDB.addressDao
+          addresses = _cloudObject.addressObject
               .getAddressesByType(CryptoType.ETH.source);
         case WalletType.Tezos:
-          addresses = await _cloudDB.addressDao
+          addresses = _cloudObject.addressObject
               .getAddressesByType(CryptoType.XTZ.source);
         default:
           addresses = [];
@@ -148,7 +151,7 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
       }
       List<Account> viewOnlyAccounts = [];
       if (event.includeLinkedAccount) {
-        final connections = await _accountService.getAllViewOnlyAddresses();
+        final connections = _accountService.getAllViewOnlyAddresses();
         final categorizedConnection = [];
         if (event.getTezos) {
           final tezosConnections = connections.where((connection) {
@@ -183,7 +186,7 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
     on<NameLinkedAccountEvent>((event, emit) async {
       final connection = event.connection..name = event.name;
 
-      await _cloudDB.connectionDao.updateConnection(connection);
+      await _cloudObject.connectionObject.writeConnection(connection);
       add(GetAccountsEvent());
     });
 
@@ -204,7 +207,7 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
   }
 
   Future<Connection?> getExistingAccount(String accountNumber) async {
-    final existingConnections = await _cloudDB.connectionDao
+    final existingConnections = _cloudObject.connectionObject
         .getConnectionsByAccountNumber(accountNumber);
 
     if (existingConnections.isEmpty) {

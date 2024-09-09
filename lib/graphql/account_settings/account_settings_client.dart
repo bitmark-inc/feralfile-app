@@ -9,7 +9,7 @@ class AccountSettingsClient {
   final String _baseUrl;
 
   GraphQLClient get client {
-    final httpLink = HttpLink('$_baseUrl/v2/graphql');
+    final httpLink = HttpLink(_baseUrl);
     final authLink = AuthLink(getToken: _getToken);
     final link = authLink.concat(httpLink);
 
@@ -19,12 +19,13 @@ class AccountSettingsClient {
     );
   }
 
-  Future<dynamic> query({
+  Future<List<Map<String, String>>> query({
     required Map<String, dynamic> vars,
   }) async {
     final data = await _query(doc: _queryDoc, vars: vars);
     log.info('AccountSettingsClient: query $data');
-    return data?['keys']?['values'];
+    final values =  data?['keys']?['values'];
+    return List<Map<String, String>>.from(values ?? []);
   }
 
   Future<dynamic> _query({

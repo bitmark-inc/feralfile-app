@@ -11,8 +11,8 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/environment.dart';
-import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
+import 'package:autonomy_flutter/graphql/account_settings/cloud_object.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/model/wc_ethereum_transaction.dart';
@@ -62,7 +62,7 @@ class Wc2Service {
 
   final NavigationService _navigationService;
   final AccountService _accountService;
-  final CloudDatabase _cloudDB;
+  final CloudObjects _cloudObjects;
 
   late Web3Wallet _wcClient;
   String pendingUri = '';
@@ -84,7 +84,7 @@ class Wc2Service {
   Wc2Service(
     this._navigationService,
     this._accountService,
-    this._cloudDB,
+    this._cloudObjects,
   ) {
     unawaited(init());
   }
@@ -197,7 +197,7 @@ class Wc2Service {
   }
 
   Future<PairingMetadata?> _getWc2Request(String topic, params) async {
-    final connections = await _cloudDB.connectionDao.getWc2Connections();
+    final connections = _cloudObjects.connectionObject.getWc2Connections();
     final connection =
         connections.firstWhereOrNull((element) => element.key.contains(topic));
     if (connection != null) {
@@ -220,14 +220,14 @@ class Wc2Service {
   }
 
   Future<List<String>> _getAllConnectionKey() async {
-    final connections = await _cloudDB.connectionDao.getWc2Connections();
+    final connections = _cloudObjects.connectionObject.getWc2Connections();
     final activeTopics = _wcClient.getActiveSessions().keys;
     log.info('[Wc2Service] activeTopics: $activeTopics');
     final inactiveConnections = connections
         .where((element) =>
             !activeTopics.any((topic) => element.key.contains(topic)))
         .toList();
-    await _cloudDB.connectionDao.deleteConnections(inactiveConnections);
+    await _cloudObjects.connectionObject.deleteConnections(inactiveConnections);
     final keys = connections
         .where((element) => !inactiveConnections.contains(element))
         .map((e) => e.key)
@@ -267,7 +267,7 @@ class Wc2Service {
   }
 
   Future cleanup() async {
-    final connections = await _cloudDB.connectionDao
+    final connections = _cloudObjects.connectionObject
         .getConnectionsByType(ConnectionType.dappConnect2.rawValue);
 
     // retains connections under 7 days old and limit to 5 connections.
@@ -318,7 +318,7 @@ class Wc2Service {
       accountNumber: accountNumber,
       createdAt: DateTime.now(),
     );
-    await _cloudDB.connectionDao.insertConnection(connection);
+    await _cloudObjects.connectionObject.writeConnection(connection);
     return res;
   }
 

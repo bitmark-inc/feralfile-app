@@ -23,7 +23,6 @@ import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
-import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
@@ -217,7 +216,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
             onTap: () {
               Navigator.of(context).popAndPushNamed(AppRouter.scanQRPage,
                   arguments:
-                      ScanQRPagePayload(scannerItem: ScannerItem.GLOBAL));
+                      const ScanQRPagePayload(scannerItem: ScannerItem.GLOBAL));
             },
           ),
           OptionItem(
@@ -621,7 +620,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   }
 
   void _handleBackground() {
-    unawaited(_cloudBackup());
     _metricClientService.onBackground();
   }
 
@@ -659,15 +657,9 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     if (widget.payload.startedTab != _initialTab) {
       await _onItemTapped(widget.payload.startedTab.index);
     }
-    await _cloudBackup();
     final initialAction = _notificationService.initialAction;
     if (initialAction != null) {
       await nc.NotificationService.onActionReceivedMethod(initialAction);
     }
-  }
-
-  Future<void> _cloudBackup() async {
-    final backupService = injector<BackupService>();
-    await backupService.backupCloudDatabase();
   }
 }

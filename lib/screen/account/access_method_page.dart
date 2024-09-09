@@ -10,8 +10,8 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
+import 'package:autonomy_flutter/graphql/account_settings/cloud_object.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
@@ -168,8 +168,8 @@ class _AccessMethodPageState extends State<AccessMethodPage> {
           ),
           TextButton(
               onPressed: () async {
-                await injector<CloudDatabase>()
-                    .connectionDao
+                await injector<CloudObjects>()
+                    .connectionObject
                     .deleteConnectionsByType(
                         ConnectionType.manuallyIndexerTokenID.rawValue);
                 unawaited(injector<ClientTokenService>().refreshTokens());

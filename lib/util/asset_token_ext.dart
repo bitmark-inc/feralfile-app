@@ -4,7 +4,7 @@ import 'dart:ui';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/graphql/account_settings/cloud_object.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
@@ -151,7 +151,7 @@ extension AssetTokenExtension on AssetToken {
 
     Pair<WalletStorage, int>? result;
     final walletAddress =
-        await injector<CloudDatabase>().addressDao.findByAddress(owner);
+        injector<CloudObjects>().addressObject.findByAddress(owner);
     if (walletAddress != null) {
       result = Pair<WalletStorage, int>(
           WalletStorage(walletAddress.uuid), walletAddress.index);
@@ -206,9 +206,10 @@ extension AssetTokenExtension on AssetToken {
   }
 
   Future<bool> isViewOnly() async {
-    final cloudDB = injector<CloudDatabase>();
-    final walletAddress = await cloudDB.addressDao.findByAddress(owner);
-    final viewOnlyConnections = await cloudDB.connectionDao.getLinkedAccounts();
+    final cloudObject = injector<CloudObjects>();
+    final walletAddress = cloudObject.addressObject.findByAddress(owner);
+    final viewOnlyConnections =
+        cloudObject.connectionObject.getLinkedAccounts();
     final connection = viewOnlyConnections.firstWhereOrNull(
         (viewOnlyConnection) => viewOnlyConnection.key == owner);
     return walletAddress == null && connection != null;

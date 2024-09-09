@@ -6,8 +6,8 @@
 //
 
 import 'package:autonomy_flutter/au_bloc.dart';
-import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/wallet_address.dart';
+import 'package:autonomy_flutter/graphql/account_settings/cloud_object.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:web3dart/web3dart.dart';
@@ -16,13 +16,15 @@ part 'ethereum_state.dart';
 
 class EthereumBloc extends AuBloc<EthereumEvent, EthereumState> {
   final EthereumService _ethereumService;
-  final CloudDatabase _cloudDB;
+  final CloudObjects _cloudObject;
 
-  EthereumBloc(this._ethereumService, this._cloudDB)
+  EthereumBloc(this._ethereumService, this._cloudObject)
       : super(EthereumState(null, {})) {
     on<GetEthereumAddressEvent>((event, emit) async {
-      if (state.personaAddresses?[event.uuid] != null) return;
-      final walletAddresses = await _cloudDB.addressDao
+      if (state.personaAddresses?[event.uuid] != null) {
+        return;
+      }
+      final walletAddresses = await _cloudObject.addressObject
           .getAddresses(event.uuid, CryptoType.ETH.source);
       var personaAddresses = state.personaAddresses ?? {};
       personaAddresses[event.uuid] = walletAddresses;
@@ -32,14 +34,14 @@ class EthereumBloc extends AuBloc<EthereumEvent, EthereumState> {
 
     on<GetEthereumBalanceWithAddressEvent>((event, emit) async {
       var ethBalances = state.ethBalances;
-      await Future.wait((event.addresses.map((address) async {
+      await Future.wait(event.addresses.map((address) async {
         ethBalances[address] = await _ethereumService.getBalance(address);
-      })).toList());
+      }).toList());
       emit(state.copyWith(ethBalances: ethBalances));
     });
 
     on<GetEthereumBalanceWithUUIDEvent>((event, emit) async {
-      final walletAddresses = await _cloudDB.addressDao
+      final walletAddresses = await _cloudObject.addressObject
           .getAddresses(event.uuid, CryptoType.ETH.source);
 
       if (walletAddresses.isEmpty) {

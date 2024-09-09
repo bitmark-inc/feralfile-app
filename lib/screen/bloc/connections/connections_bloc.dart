@@ -8,8 +8,8 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/au_bloc.dart';
-import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
+import 'package:autonomy_flutter/graphql/account_settings/cloud_object.dart';
 import 'package:autonomy_flutter/model/p2p_peer.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
@@ -19,14 +19,14 @@ import 'package:collection/collection.dart';
 part 'connections_state.dart';
 
 class ConnectionsBloc extends AuBloc<ConnectionsEvent, ConnectionsState> {
-  final CloudDatabase _cloudDB;
+  final CloudObjects _cloudObject;
   final Wc2Service _wc2Service;
   final TezosBeaconService _tezosBeaconService;
 
   Future<List<ConnectionItem>> _getWc2Connections(
       String address, ConnectionType type) async {
     final connections =
-        await _cloudDB.connectionDao.getConnectionsByType(type.rawValue);
+        await _cloudObject.connectionObject.getConnectionsByType(type.rawValue);
     List<Connection> personaConnections = [];
     for (var connection in connections) {
       if (connection.accountNumber.contains(address)) {
@@ -46,7 +46,7 @@ class ConnectionsBloc extends AuBloc<ConnectionsEvent, ConnectionsState> {
 
   Future<List<ConnectionItem>> _getBeaconConnections(
       String personaUUID, int index) async {
-    final connections = await _cloudDB.connectionDao
+    final connections = await _cloudObject.connectionObject
         .getConnectionsByType(ConnectionType.beaconP2PPeer.rawValue);
 
     List<Connection> personaConnections = [];
@@ -69,7 +69,7 @@ class ConnectionsBloc extends AuBloc<ConnectionsEvent, ConnectionsState> {
   }
 
   ConnectionsBloc(
-    this._cloudDB,
+    this._cloudObject,
     this._wc2Service,
     this._tezosBeaconService,
   ) : super(ConnectionsState()) {
@@ -104,7 +104,7 @@ class ConnectionsBloc extends AuBloc<ConnectionsEvent, ConnectionsState> {
 
         if (connection.connectionType ==
             ConnectionType.beaconP2PPeer.rawValue) {
-          unawaited(_cloudDB.connectionDao.deleteConnection(connection));
+          unawaited(_cloudObject.connectionObject.deleteConnection(connection));
 
           final bcPeer = connection.beaconConnectConnection?.peer;
           if (bcPeer != null) {
@@ -124,8 +124,8 @@ class ConnectionsBloc extends AuBloc<ConnectionsEvent, ConnectionsState> {
     });
 
     on<SessionDeletedEvent>((event, emit) async {
-      unawaited(
-          _cloudDB.connectionDao.deleteConnectionsByTopic('%${event.topic}%'));
+      unawaited(_cloudObject.connectionObject
+          .deleteConnectionsByTopic(event.topic));
 
       if (state.connectionItems == null || state.connectionItems!.isEmpty) {
         return;

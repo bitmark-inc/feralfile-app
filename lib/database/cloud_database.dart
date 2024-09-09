@@ -35,6 +35,7 @@ abstract class CloudDatabase extends FloorDatabase {
     await source.connectionDao.getConnections().then((connections) async {
       await connectionDao.insertConnections(connections);
     });
+
     await source.addressDao.getAllAddresses().then((addresses) async {
       await addressDao.insertAddresses(addresses);
     });
