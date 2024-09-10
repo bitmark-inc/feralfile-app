@@ -21,13 +21,12 @@ import 'package:autonomy_flutter/util/custom_route_observer.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:nft_collection/models/asset_token.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 class ArtworkPreviewWidget extends StatefulWidget {
   final ArtworkIdentity identity;
-  final Function({InAppWebViewController? webViewController, int? time})?
-      onLoaded;
+  final Function({WebViewController? webViewController, int? time})? onLoaded;
   final Function({int? time})? onDispose;
   final bool isMute;
   final FocusNode? focusNode;

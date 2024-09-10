@@ -142,6 +142,7 @@ dependencies:
   widgets_to_image: ^0.0.2
   geocoding: ^2.1.0
   flutter_inappwebview: ^6.0.0
+  webview_flutter: ^4.9.0
   html: ^0.15.1
   video_player: ^2.8.6
   walletconnect_flutter_v2: ^2.1.11
@@ -162,6 +163,9 @@ dependencies:
   model_viewer_plus: 1.6.1
   audio_session: ^0.1.10
   just_audio: ^0.9.29
+  xml: ^6.1.0
+  vector_graphics_compiler: ^1.1.7
+
 
 dependency_overrides:
   intl: 0.18.0

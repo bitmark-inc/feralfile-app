@@ -420,7 +420,6 @@ final screenNameMap = {
   AppRouter.preferencesPage: 'Preferences',
   AppRouter.walletPage: 'Wallet',
   AppRouter.dataManagementPage: 'Data Management',
-  AppRouter.inappWebviewPage: 'Inapp Webview',
   AppRouter.postcardExplain: 'Postcard Explain',
   AppRouter.designStamp: 'Design Stamp',
   AppRouter.promptPage: 'Prompt',

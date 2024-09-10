@@ -43,7 +43,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
@@ -52,6 +51,7 @@ import 'package:nft_collection/models/provenance.dart';
 import 'package:path/path.dart' as p;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 String getEditionSubTitle(AssetToken token) {
   if (token.editionName != null && token.editionName != '') {
@@ -423,7 +423,7 @@ INFTRenderingWidget buildRenderingWidget(
   int? attempt,
   String? overriddenHtml,
   bool isMute = false,
-  Function({int? time, InAppWebViewController? webViewController})? onLoaded,
+  Function({int? time, WebViewController? webViewController})? onLoaded,
   Function({int? time})? onDispose,
   FocusNode? focusNode,
   Widget? loadingWidget,
@@ -456,7 +456,7 @@ INFTRenderingWidget buildFeralfileRenderingWidget(
   int? attempt,
   String? overriddenHtml,
   bool isMute = false,
-  Function({int? time, InAppWebViewController? webViewController})? onLoaded,
+  Function({int? time, WebViewController? webViewController})? onLoaded,
   Function({int? time})? onDispose,
   FocusNode? focusNode,
   Widget? loadingWidget,

@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:autonomy_flutter/nft_rendering/feralfile_webview.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:http/http.dart' as http;
 import 'package:vector_graphics_compiler/vector_graphics_compiler.dart';
@@ -99,22 +99,18 @@ class _SvgImageState extends State<SvgImage> {
               widget.fallbackToWebView &&
               !_webviewLoadFailed &&
               !Platform.isMacOS) {
-            return InAppWebView(
+            return FeralFileWebview(
               key: Key(widget.url),
-              initialUrlRequest: URLRequest(
-                  url: WebUri.uri(Uri.dataFromString(widget.getHtml(widget.url),
-                      mimeType: 'text/html'))),
-              initialSettings: InAppWebViewSettings(
-                mediaPlaybackRequiresUserGesture: false,
-                allowsInlineMediaPlayback: true,
-                supportZoom: false,
-                transparentBackground: true,
-              ),
-              onWebViewCreated: (controller) {},
-              onLoadStop: (controller, uri) {
+              uri: Uri.dataFromString(widget.getHtml(widget.url)),
+              onLoaded: (controller) {
                 widget.onLoaded?.call();
               },
-              onReceivedError: (controller, request, error) {
+              onResourceError: (controller, error) {
+                setState(() {
+                  _webviewLoadFailed = true;
+                });
+              },
+              onHttpError: (controller, error) {
                 setState(() {
                   _webviewLoadFailed = true;
                 });

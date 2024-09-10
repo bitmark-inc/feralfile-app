@@ -1,25 +1,26 @@
+// ignore_for_file: discarded_futures
+
 import 'dart:async';
-import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:audio_session/audio_session.dart';
+import 'package:autonomy_flutter/nft_rendering/feralfile_webview.dart';
 import 'package:autonomy_flutter/nft_rendering/nft_error_widget.dart';
 import 'package:autonomy_flutter/nft_rendering/nft_loading_widget.dart';
 import 'package:autonomy_flutter/nft_rendering/svg_image.dart';
+import 'package:autonomy_flutter/nft_rendering/webview_controller_ext.dart';
 import 'package:easy_debounce/easy_debounce.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart'
-    as inapp_webview;
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:model_viewer_plus/model_viewer_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:video_player/video_player.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 /// Get nft rendering widget by type
 /// You can add and define more types by creating classes extends
@@ -175,7 +176,7 @@ class RenderingWidgetBuilder {
   final String? overriddenHtml;
   final bool isMute;
   final bool skipViewport;
-  Function({int? time, InAppWebViewController? webViewController})? onLoaded;
+  Function({int? time, WebViewController? webViewController})? onLoaded;
   Function({int? time})? onDispose;
   FocusNode? focusNode;
 
@@ -233,7 +234,7 @@ abstract class INFTRenderingWidget {
     focusNode = renderingWidgetBuilder.focusNode;
   }
 
-  Function({int? time, InAppWebViewController? webViewController})? onLoaded;
+  Function({int? time, WebViewController? webViewController})? onLoaded;
   Function({int? time})? onDispose;
   FocusNode? focusNode;
   Widget loadingWidget = const NFTLoadingWidget();
@@ -710,7 +711,7 @@ class WebviewNFTRenderingWidget extends INFTRenderingWidget {
 
   ValueNotifier<bool> isPausing = ValueNotifier(false);
 
-  InAppWebViewController? _webViewController;
+  WebViewController? _webViewController;
   TextEditingController? _textController;
   final backgroundColor = Colors.black;
   final _stateOfRenderingWidget = StateOfRenderingWidget();
@@ -817,35 +818,23 @@ class WebviewNFTRenderingWidget extends INFTRenderingWidget {
               },
             ),
           ),
-          InAppWebView(
+          FeralFileWebview(
             key: Key(previewURL),
-            initialUrlRequest: inapp_webview.URLRequest(
-                url: WebUri(
-                    overriddenHtml != null ? 'about:blank' : previewURL)),
-            initialSettings: InAppWebViewSettings(
-              mediaPlaybackRequiresUserGesture: false,
-              allowsInlineMediaPlayback: true,
-              transparentBackground: true,
-            ),
-            initialUserScripts: UnmodifiableListView<UserScript>([
-              UserScript(source: '''
-                window.print = function () {
-                  console.log('Skip printing');
-                };
-                ''', injectionTime: UserScriptInjectionTime.AT_DOCUMENT_START)
-            ]),
-            onWebViewCreated: (controller) {
+            uri: Uri.parse(overriddenHtml != null ? 'about:blank' : previewURL),
+            overriddenHtml: overriddenHtml,
+            backgroundColor: backgroundColor,
+            onStarted: (WebViewController controller) {
               _webViewController = controller;
               if (overriddenHtml != null) {
                 final uri = Uri.dataFromString(overriddenHtml!,
                     mimeType: 'text/html',
                     encoding: Encoding.getByName('utf-8'));
-                unawaited(_webViewController?.loadUrl(
-                    urlRequest:
-                        inapp_webview.URLRequest(url: WebUri.uri(uri))));
+                unawaited(
+                  _webViewController?.loadRequest(uri),
+                );
               }
             },
-            onLoadStop: (controller, uri) async {
+            onLoaded: (controller) async {
               _stateOfRenderingWidget.previewLoaded();
               onLoaded?.call(webViewController: _webViewController);
               String viewportContent =
@@ -959,7 +948,6 @@ class PDFNFTRenderingWidget extends INFTRenderingWidget {
 
   Widget _widgetBuilder() => Stack(children: [
         FutureBuilder(
-            // ignore: discarded_futures
             future: _createFileOfPdfUrl(),
             builder: (context, snapshot) {
               if (snapshot.hasData) {

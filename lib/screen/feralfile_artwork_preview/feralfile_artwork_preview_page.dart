@@ -6,6 +6,7 @@ import 'package:autonomy_flutter/model/canvas_cast_request_reply.dart';
 import 'package:autonomy_flutter/model/canvas_device_info.dart';
 import 'package:autonomy_flutter/model/ff_artwork.dart';
 import 'package:autonomy_flutter/nft_rendering/nft_rendering_widget.dart';
+import 'package:autonomy_flutter/nft_rendering/webview_controller_ext.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview/keyboard_control_page.dart';
@@ -29,12 +30,12 @@ import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:sentry/sentry.dart';
 import 'package:shake/shake.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 class FeralFileArtworkPreviewPage extends StatefulWidget {
   const FeralFileArtworkPreviewPage({required this.payload, super.key});
@@ -65,7 +66,7 @@ class _FeralFileArtworkPreviewPageState
 
   final _focusNode = FocusNode();
   final _textController = TextEditingController();
-  InAppWebViewController? _webViewController;
+  WebViewController? _webViewController;
 
   ScrollController? _scrollController;
   late AnimationController _animationController;
@@ -108,8 +109,7 @@ class _FeralFileArtworkPreviewPageState
     _scrollController?.dispose();
     _animationController.dispose();
     _focusNode.dispose();
-    _webViewController?.dispose();
-    _textController.dispose();
+    _webViewController?.onDispose();
     _detector?.stopListening();
     unawaited(SystemChrome.setEnabledSystemUIMode(
       SystemUiMode.manual,
@@ -228,7 +228,7 @@ class _FeralFileArtworkPreviewPageState
     }
   }
 
-  dynamic _onLoaded({InAppWebViewController? webViewController, int? time}) {
+  dynamic _onLoaded({WebViewController? webViewController, int? time}) {
     _webViewController = webViewController;
   }
 
