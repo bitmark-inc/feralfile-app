@@ -612,6 +612,7 @@ class LinkType {
   static const dAppConnect = 'Dapp Connect Deeplink';
   static const feralFile = 'FeralFile Deeplink';
   static const branch = 'Branch Deeplink';
+  static const autonomyConnect = 'Autonomy Connect';
   static const beaconConnect = 'Beacon Connect';
   static const feralFileToken = 'FeralFile Token';
   static const walletConnect = 'Wallet Connect';

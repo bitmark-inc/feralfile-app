@@ -8,6 +8,9 @@ abstract class WalletAddressDao {
   Future<List<WalletAddress>> getAllAddresses();
 
   @Insert(onConflict: OnConflictStrategy.replace)
+  Future<void> insertAddress(WalletAddress address);
+
+  @Insert(onConflict: OnConflictStrategy.replace)
   Future<void> insertAddresses(List<WalletAddress> addresses);
 
   @Query('SELECT * FROM WalletAddress WHERE address = :address')
@@ -29,6 +32,11 @@ abstract class WalletAddressDao {
   @Query(
       'UPDATE WalletAddress SET isHidden = :isHidden WHERE address = :address')
   Future<void> setAddressIsHidden(String address, bool isHidden);
+
+  // update order query
+  @Query(
+      'UPDATE WalletAddress SET accountOrder = :accountOrder WHERE address = :address')
+  Future<void> setAddressOrder(String address, int accountOrder);
 
   @update
   Future<void> updateAddress(WalletAddress address);

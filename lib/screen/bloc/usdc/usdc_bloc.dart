@@ -10,20 +10,20 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
-import 'package:libauk_dart/libauk_dart.dart';
 import 'package:web3dart/web3dart.dart';
 
 part 'usdc_state.dart';
 
 class USDCBloc extends AuBloc<USDCEvent, USDCState> {
   final EthereumService _ethereumService;
+  final AccountService _accountService;
 
-  USDCBloc(this._ethereumService) : super(USDCState(null, {})) {
+  USDCBloc(this._ethereumService, this._accountService)
+      : super(USDCState(null, {})) {
     on<GetAddressEvent>((event, emit) async {
-      if (state.personaAddresses?[event.uuid] != null) {
-        return;
-      }
-      final address = await WalletStorage(event.uuid)
+      if (state.personaAddresses?[event.uuid] != null) return;
+      final address = await (await _accountService.getPersona(uuid: event.uuid))
+          .wallet()
           .getETHEip55Address(index: event.index);
       var personaAddresses = state.personaAddresses ?? {};
       personaAddresses[event.uuid] = address;
@@ -45,7 +45,8 @@ class USDCBloc extends AuBloc<USDCEvent, USDCState> {
     });
 
     on<GetUSDCBalanceWithUUIDEvent>((event, emit) async {
-      final address = await WalletStorage(event.uuid)
+      final address = await (await _accountService.getPersona(uuid: event.uuid))
+          .wallet()
           .getETHEip55Address(index: event.index);
 
       final contractAddress = EthereumAddress.fromHex(usdcContractAddress);

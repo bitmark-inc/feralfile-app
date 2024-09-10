@@ -107,8 +107,9 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
     final addresses = await accountService.getAddress(blockchain);
     String? address;
     if (addresses.isEmpty) {
+      final defaultPersona = await accountService.getOrCreateDefaultPersona();
       final walletAddress =
-          await accountService.insertNextAddress(WalletType.Tezos);
+          await defaultPersona.insertNextAddress(WalletType.Tezos);
       address = walletAddress.first.address;
     } else if (addresses.length == 1) {
       address = addresses.first;
@@ -140,7 +141,7 @@ class _ReceivePostCardPageState extends State<ReceivePostCardPage> {
         address: address,
         assetToken: asset,
       );
-      if (!context.mounted) {
+      if (!mounted) {
         return null;
       }
       unawaited(Navigator.of(context).pushNamedAndRemoveUntil(

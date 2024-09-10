@@ -5,12 +5,15 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:tezart/tezart.dart';
 import 'package:walletconnect_flutter_v2/apis/core/verify/models/verify_context.dart';
 import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
 
 abstract class ConnectionRequest {
   bool get isWalletConnect2 => false;
+
+  bool get isAutonomyConnect => false;
 
   bool get isBeaconConnect => false;
 
@@ -78,7 +81,15 @@ class Wc2Proposal extends ConnectionRequest {
   });
 
   @override
-  bool get isWalletConnect2 => true;
+  bool get isWalletConnect2 => !_isAutonomyConnect();
+
+  @override
+  bool get isAutonomyConnect => _isAutonomyConnect();
+
+  bool _isAutonomyConnect() {
+    final proposalChains = allNamespaces.keys.toSet();
+    return proposalChains.contains(Wc2Chain.autonomy);
+  }
 
   PairingMetadata proposer;
   Map<String, RequiredNamespace> requiredNamespaces;

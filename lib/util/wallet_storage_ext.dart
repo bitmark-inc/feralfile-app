@@ -69,6 +69,8 @@ extension WalletIndexExtension on WalletIndex {
             .signPersonalMessage(wallet, index, msg);
       case Wc2Chain.tezos:
         return await injector<TezosService>().signMessage(wallet, index, msg);
+      case Wc2Chain.autonomy:
+        return await wallet.getAccountDIDSignature(message);
     }
     throw Exception('Unsupported chain $chain');
   }

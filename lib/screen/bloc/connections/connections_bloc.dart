@@ -76,26 +76,36 @@ class ConnectionsBloc extends AuBloc<ConnectionsEvent, ConnectionsState> {
     on<GetETHConnectionsEvent>((event, emit) async {
       emit(state.resetConnectionItems());
 
+      final auConnections = await _getWc2Connections(
+          event.address, ConnectionType.walletConnect2);
       final wc2Connections =
           await _getWc2Connections(event.address, ConnectionType.dappConnect2);
 
-      emit(state.copyWith(connectionItems: wc2Connections));
+      final connectionItems = [...auConnections, ...wc2Connections];
+      emit(state.copyWith(connectionItems: connectionItems));
     });
 
     on<GetXTZConnectionsEvent>((event, emit) async {
       emit(state.resetConnectionItems());
 
+      final auConnections = await _getWc2Connections(
+          event.address, ConnectionType.walletConnect2);
       final beaconConnections =
           await _getBeaconConnections(event.personUUID, event.index);
 
-      emit(state.copyWith(connectionItems: beaconConnections));
+      final connectionItems = [...auConnections, ...beaconConnections];
+
+      emit(state.copyWith(connectionItems: connectionItems));
     });
 
     on<DeleteConnectionsEvent>((event, emit) async {
       Set<P2PPeer> bcPeers = {};
 
       for (var connection in event.connectionItem.connections) {
-        if (ConnectionType.dappConnect2.rawValue == connection.connectionType) {
+        if ([
+          ConnectionType.walletConnect2.rawValue,
+          ConnectionType.dappConnect2.rawValue
+        ].contains(connection.connectionType)) {
           final topic = connection.key.split(':').lastOrNull;
           if (topic != null) {
             await _wc2Service.deletePairing(topic: topic);

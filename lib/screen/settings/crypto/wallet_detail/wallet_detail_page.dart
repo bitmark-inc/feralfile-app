@@ -9,6 +9,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/database/entity/wallet_address.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/account/recovery_phrase_page.dart';
@@ -32,7 +33,6 @@ import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/util/usdc_amount_formatter.dart';
-import 'package:autonomy_flutter/util/wallet_address_ext.dart';
 import 'package:autonomy_flutter/view/au_buttons.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/crypto_view.dart';
@@ -139,16 +139,18 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
   }
 
   void _callFetchConnections() {
-    final personUUID = widget.payload.walletAddress.uuid;
+    final personUUID = widget.payload.persona.uuid;
     final address = widget.payload.walletAddress.address;
 
     switch (widget.payload.type) {
       case CryptoType.ETH:
         context.read<ConnectionsBloc>().add(GetETHConnectionsEvent(
             personUUID, widget.payload.walletAddress.index, address));
+        break;
       case CryptoType.XTZ:
         context.read<ConnectionsBloc>().add(GetXTZConnectionsEvent(
             personUUID, widget.payload.walletAddress.index, address));
+        break;
       default:
         // do nothing
         break;
@@ -333,8 +335,10 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
     switch (widget.payload.type) {
       case CryptoType.ETH:
         scanItem = ScannerItem.WALLET_CONNECT;
+        break;
       case CryptoType.XTZ:
         scanItem = ScannerItem.BEACON_CONNECT;
+        break;
       default:
         break;
     }
@@ -408,6 +412,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
         onTap: () {
           final payload = WalletDetailsPayload(
             type: CryptoType.USDC,
+            persona: widget.payload.persona,
             walletAddress: walletAddress,
           );
           unawaited(Navigator.of(context)
@@ -578,7 +583,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
           ),
           onTap: () {
             final payload = PersonaConnectionsPayload(
-              personaUUID: widget.payload.walletAddress.uuid,
+              personaUUID: widget.payload.persona.uuid,
               index: walletAddress.index,
               address: address,
               type: widget.payload.type,
@@ -620,8 +625,8 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
         onTap: () async {
           await Navigator.of(context).pushNamed(
             AppRouter.recoveryPhrasePage,
-            arguments: RecoveryPhrasePayload(
-                wallet: widget.payload.walletAddress.wallet),
+            arguments:
+                RecoveryPhrasePayload(wallet: widget.payload.persona.wallet()),
           );
         },
       ),
@@ -657,7 +662,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                 final payload = await Navigator.of(context).pushNamed(
                     AppRouter.sendCryptoPage,
                     arguments: SendData(
-                        LibAukDart.getWallet(widget.payload.walletAddress.uuid),
+                        LibAukDart.getWallet(widget.payload.persona.uuid),
                         widget.payload.type,
                         null,
                         walletAddress.index)) as Map?;
@@ -704,8 +709,8 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
               onPressed: () {
                 final account = Account(
                     key: address,
+                    persona: widget.payload.persona,
                     name: walletAddress.name ?? widget.payload.type.source,
-                    walletAddress: walletAddress,
                     blockchain: widget.payload.type.source,
                     accountNumber: address,
                     createdAt: walletAddress.createdAt);
@@ -784,10 +789,12 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
 
 class WalletDetailsPayload {
   final CryptoType type;
+  final Persona persona;
   final WalletAddress walletAddress;
 
   WalletDetailsPayload({
     required this.type,
+    required this.persona,
     required this.walletAddress,
   });
 }

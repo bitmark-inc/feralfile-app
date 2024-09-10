@@ -27,13 +27,15 @@ Widget accountItem(BuildContext context, Account account,
     {bool isPrimary = false,
     Function()? onPersonaTap,
     Function()? onConnectionTap}) {
-  if ((account.walletAddress == null) && account.connections?.first == null) {
+  if ((account.persona == null || account.walletAddress == null) &&
+      account.connections?.first == null) {
     return const SizedBox();
   }
   final theme = Theme.of(context);
   // ignore: discarded_futures
   final balance = getAddressBalance(account.key, account.cryptoType);
-  final isViewAccount = account.walletAddress == null;
+  final isViewAccount =
+      account.persona == null || account.walletAddress == null;
   return GestureDetector(
     onTap: isViewAccount ? onConnectionTap : onPersonaTap,
     child: Container(

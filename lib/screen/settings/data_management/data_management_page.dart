@@ -111,6 +111,7 @@ class _DataManagementPageState extends State<DataManagementPage> {
           injector(),
           injector(),
           injector(),
+          injector(),
           injector<NftCollectionBloc>().database,
           injector(),
           injector(),

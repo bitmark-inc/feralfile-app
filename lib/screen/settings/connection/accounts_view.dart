@@ -207,14 +207,14 @@ class _AccountsViewState extends State<AccountsView> {
         account,
         isPrimary: isPrimary,
         onPersonaTap: () {
-          if (account.walletAddress != null) {
-            unawaited(
-                Navigator.of(context).pushNamed(AppRouter.walletDetailsPage,
-                    arguments: WalletDetailsPayload(
-                      type: CryptoType.fromSource(
-                          account.walletAddress!.cryptoType),
-                      walletAddress: account.walletAddress!,
-                    )));
+          if (account.persona != null && account.walletAddress != null) {
+            unawaited(Navigator.of(context).pushNamed(
+                AppRouter.walletDetailsPage,
+                arguments: WalletDetailsPayload(
+                    type: CryptoType.fromSource(
+                        account.walletAddress!.cryptoType),
+                    walletAddress: account.walletAddress!,
+                    persona: account.persona!)));
           }
         },
         onConnectionTap: () {
@@ -374,9 +374,9 @@ class _AccountsViewState extends State<AccountsView> {
 
   Future<void> _deleteAccount(BuildContext context, Account account) async {
     final walletAddress = account.walletAddress;
-    if (walletAddress != null) {
+    if (walletAddress != null && account.persona != null) {
       await injector<AccountService>()
-          .deleteAddressPersona(account.walletAddress!);
+          .deleteAddressPersona(account.persona!, account.walletAddress!);
     }
 
     final connection = account.connections?.first;

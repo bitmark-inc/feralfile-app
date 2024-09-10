@@ -40,6 +40,7 @@ import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_store.dart';
+import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/canvas_client_service_v2.dart';
@@ -180,6 +181,7 @@ Future<void> setup() async {
 
   injector.registerLazySingleton<NetworkService>(() => NetworkService());
   // Services
+  final auditService = AuditServiceImpl(cloudDB);
 
   injector.registerSingleton<ConfigurationService>(
       ConfigurationServiceImpl(sharedPreferences));
@@ -193,6 +195,7 @@ Future<void> setup() async {
         cloudDB,
         injector(),
         injector(),
+        auditService,
         injector(),
         injector(),
         injector(),
@@ -285,6 +288,8 @@ Future<void> setup() async {
                 ),
                 baseUrl: Environment.customerSupportURL),
           ));
+
+  injector.registerLazySingleton<AuditService>(() => auditService);
 
   injector.registerLazySingleton<MerchandiseService>(
       () => MerchandiseServiceImpl(MerchandiseApi(

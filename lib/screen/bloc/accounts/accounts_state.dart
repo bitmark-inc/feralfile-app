@@ -59,8 +59,17 @@ class NameLinkedAccountEvent extends AccountsEvent {
 
 class FetchAllAddressesEvent extends AccountsEvent {}
 
+class FindAccount extends AccountsEvent {
+  final String personaUUID;
+  final String address;
+  final CryptoType type;
+
+  FindAccount(this.personaUUID, this.address, this.type);
+}
+
 class Account {
   String key;
+  Persona? persona;
   List<Connection>? connections;
   String name;
   String? blockchain;
@@ -75,13 +84,15 @@ class Account {
 
   bool get isUsdc => blockchain == 'USDC';
 
-  String get className => walletAddress != null ? 'Persona' : 'Connection';
+  String get className =>
+      persona != null && walletAddress != null ? 'Persona' : 'Connection';
 
-  bool get isViewOnly => walletAddress == null;
+  bool get isViewOnly => persona == null && walletAddress == null;
 
   Account({
     required this.key,
     required this.createdAt,
+    this.persona,
     this.connections,
     this.blockchain,
     this.walletAddress,
@@ -97,6 +108,7 @@ class Account {
     }
 
     return other.key == key &&
+        other.persona == persona &&
         listEquals(other.connections, connections) &&
         other.name == name &&
         other.blockchain == blockchain &&
@@ -109,6 +121,7 @@ class Account {
   @override
   int get hashCode =>
       key.hashCode ^
+      persona.hashCode ^
       connections.hashCode ^
       name.hashCode ^
       blockchain.hashCode ^
