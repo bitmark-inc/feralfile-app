@@ -147,7 +147,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
             (previousValue, element) =>
                 (previousValue ?? 0) + (element.amount ?? 0)) ??
         0;
-    unawaited(fetchPersona());
+    fetchPersona();
     feeOption = DEFAULT_FEE_OPTION;
     _selectedPriority = feeOption;
     appMetadata = PairingMetadata(
@@ -164,10 +164,10 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
     });
   }
 
-  Future fetchPersona() async {
+  void fetchPersona() {
     WalletIndex? currentWallet;
     if (widget.request.sourceAddress != null) {
-      final walletAddress = await injector<CloudObjects>()
+      final walletAddress = injector<CloudObjects>()
           .addressObject
           .findByAddress(widget.request.sourceAddress!);
       if (walletAddress != null) {
