@@ -84,7 +84,7 @@ class AccountSettingsDBImpl implements AccountSettingsDB {
     }
     final fullKeys = keys.map(getFullKey).toList();
     final isSuccess = await _client.delete(vars: {'keys': fullKeys});
-    if (!isSuccess) {
+    if (isSuccess) {
       _caches.removeWhere((key, value) => fullKeys.contains(key));
     }
   }

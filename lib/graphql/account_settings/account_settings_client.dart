@@ -115,10 +115,8 @@ class AccountSettingsClient {
   ''';
   static const String _deleteDoc = r'''
     mutation ($search: String, $keys: [String!]) {
-      keys(search: $search, keys: $keys, cursor: $cursor) {
-        delete(data: $data) {
-          ok
-        }
+      delete(search: $search, keys: $keys) {
+        ok
       }
     }
   ''';
