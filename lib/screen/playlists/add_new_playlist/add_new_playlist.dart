@@ -106,9 +106,8 @@ class _AddNewPlaylistScreenState extends State<AddNewPlaylistScreen>
 
   List<String> getManualTokenIds() {
     final cloudObject = injector<CloudObjects>();
-    final tokenIndexerIDs =  cloudObject.connectionObject
-            .getConnectionsByType(
-                ConnectionType.manuallyIndexerTokenID.rawValue)
+    final tokenIndexerIDs = cloudObject.connectionObject
+        .getConnectionsByType(ConnectionType.manuallyIndexerTokenID.rawValue)
         .map((e) => e.key)
         .toList();
     return tokenIndexerIDs;
