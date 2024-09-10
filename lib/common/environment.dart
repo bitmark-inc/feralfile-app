@@ -158,13 +158,7 @@ class Environment {
       dotenv.env['AUTONOMY_ACTIVATION_URL'] ?? '';
 
   static String get accountSettingUrl =>
-      true ? accountSettingUrlTestnet : accountSettingUrlMainnet;
-
-  static String get accountSettingUrlMainnet =>
-      dotenv.env['ACCOUNT_SETTING_URL_MAINNET'] ?? '';
-
-  static String get accountSettingUrlTestnet =>
-      dotenv.env['ACCOUNT_SETTING_URL_TESTNET'] ?? '';
+      dotenv.env['ACCOUNT_SETTING_URL'] ?? '';
 
   static String get chatServerHmacKey =>
       cachedSecretEnv['CHAT_SERVER_HMAC_KEY'] ?? '';
