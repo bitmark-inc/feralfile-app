@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_wid
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
@@ -97,10 +98,15 @@ class DailyWorkPageState extends State<DailyWorkPage>
     if (_nextDailyToken == null) {
       unawaited(Sentry.captureMessage('nextDailyToken is null'));
     }
-    final duration =
+    const defaultDuration = Duration(hours: 1);
+    final nextDailyduration =
         _calcRemainingDuration ?? (_nextDay.difference(DateTime.now()));
+    final duration = nextDailyduration > defaultDuration
+        ? defaultDuration
+        : nextDailyduration;
     _timer?.cancel();
     _timer = Timer(duration, () {
+      log.info('Get Daily Asset Token');
       context.read<DailyWorkBloc>().add(GetDailyAssetTokenEvent());
     });
   }

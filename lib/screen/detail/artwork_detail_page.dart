@@ -907,4 +907,12 @@ class ArtworkIdentity {
   Map<String, dynamic> toJson() => _$ArtworkIdentityToJson(this);
 
   String get key => '$id||$owner';
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+    return other is ArtworkIdentity && id == other.id && owner == other.owner;
+  }
 }
