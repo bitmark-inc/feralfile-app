@@ -5,6 +5,8 @@
 //  that can be found in the LICENSE file.
 //
 
+// ignore_for_file: lines_longer_than_80_chars
+
 import 'dart:async';
 import 'dart:io';
 
@@ -112,6 +114,10 @@ abstract class AccountService {
   Future<WalletAddress?> getAddressPersona(String address);
 
   Future<void> updateAddressPersona(WalletAddress walletAddress);
+
+  Future<List<Persona>> restore();
+
+  Future<Persona> createDefaultPersona();
 
   Future<void> restoreIfNeeded();
 
@@ -724,12 +730,18 @@ class AccountServiceImpl extends AccountService {
   }
 
   @override
-  Future<void> restoreIfNeeded() async {
-    final iapService = injector<IAPService>();
+  Future<List<Persona>> restore() async {
     final auditService = injector<AuditService>();
     final migrationUtil = MigrationUtil(_cloudDB, auditService);
     await androidRestoreKeys();
     await migrationUtil.migrationFromKeychain();
+    final personas = await _cloudDB.personaDao.getPersonas();
+    return personas;
+  }
+
+  @override
+  Future<void> restoreIfNeeded() async {
+    await restore();
     final personas = await _cloudDB.personaDao.getPersonas();
 
     final hasPersona = personas.isNotEmpty;
@@ -793,7 +805,16 @@ class AccountServiceImpl extends AccountService {
           .initIfDefaultAccount());
     }
 
+    final iapService = injector<IAPService>();
     unawaited(iapService.restore());
+  }
+
+  @override
+  Future<Persona> createDefaultPersona() async {
+    final persona = await createPersona(isDefault: true);
+    await persona.insertNextAddress(WalletType.Tezos);
+    await persona.insertNextAddress(WalletType.Ethereum);
+    return persona;
   }
 
   @override

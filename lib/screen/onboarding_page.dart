@@ -10,10 +10,12 @@ import 'dart:async';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
+import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -71,8 +73,39 @@ class _OnboardingPageState extends State<OnboardingPage>
     }
   }
 
+  /*
+    - When user did onboarded:
+      Case 1: user kill app and reopen, we will have restore in background:
+        Restore mean that we need sync data from keychain and cloud database (that modified in other device)
+        In this case, we will restore from keychain and cloud in background.
+        We have to force update because we need to make sure that we have the latest data from cloud
+
+    - When user did not  onboarded: we will check if user has primary address in keychain
+      Case 2: Primary Address not found: new user, create default persona:
+
+      Case 3: Primary address found: user has backup, we will wait until restore from cloud
+    */
   Future<void> _createAccountOrRestoreIfNeeded() async {
-    await injector<AccountService>().restoreIfNeeded();
+    final isDoneOnboarding =
+        injector<ConfigurationService>().isDoneNewOnboarding();
+    if (isDoneOnboarding) {
+      // existing user
+      // do this in background, don't await restore
+      unawaited(injector<AccountService>().restore());
+    } else {
+      final primaryAddress =
+          await injector<AddressService>().getPrimaryAddress();
+      if (primaryAddress == null) {
+        // new user
+        final persona = await injector<AccountService>().createDefaultPersona();
+        await persona.insertNextAddress(WalletType.Tezos);
+        await persona.insertNextAddress(WalletType.Ethereum);
+      } else {
+        // restore user
+        // in this case, we have to wait until restore is done
+        await injector<AccountService>().restoreIfNeeded();
+      }
+    }
     if (!mounted) {
       return;
     }
