@@ -32,7 +32,9 @@ class ConnectionCloudObject {
   }
 
   List<Connection> getConnections() {
-    final cache = _accountSettingsDB.caches;
+    final Map<String, dynamic> cache = {}
+      ..addAll(_accountSettingsDB.caches)
+      ..remove(_accountSettingsDB.migrateKey);
     final connections =
         cache.values.map((e) => Connection.fromJson(jsonDecode(e))).toList();
     return connections;
