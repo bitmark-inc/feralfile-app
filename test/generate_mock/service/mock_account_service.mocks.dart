@@ -245,7 +245,7 @@ class MockAccountService extends _i1.Mock implements _i6.AccountService {
         )),
       ) as _i7.Future<_i3.Persona>);
   @override
-  _i7.Future<_i3.Persona> importPersona(
+  _i7.Future<_i3.Persona> importWords(
     String? words,
     String? passphrase, {
     _i9.WalletType? walletType = _i9.WalletType.Autonomy,
@@ -429,7 +429,7 @@ class MockAccountService extends _i1.Mock implements _i6.AccountService {
         returnValue: _i7.Future<List<String>>.value(<String>[]),
       ) as _i7.Future<List<String>>);
   @override
-  _i7.Future<bool> addAddressPersona(
+  _i7.Future<bool> addAddressWallet(
     _i3.Persona? newPersona,
     List<_i12.AddressInfo>? addresses,
   ) =>
@@ -444,7 +444,7 @@ class MockAccountService extends _i1.Mock implements _i6.AccountService {
         returnValue: _i7.Future<bool>.value(false),
       ) as _i7.Future<bool>);
   @override
-  _i7.Future<void> deleteAddressPersona(
+  _i7.Future<void> deleteAddressWallet(
     _i3.Persona? persona,
     _i8.WalletAddress? walletAddress,
   ) =>
@@ -460,7 +460,7 @@ class MockAccountService extends _i1.Mock implements _i6.AccountService {
         returnValueForMissingStub: _i7.Future<void>.value(),
       ) as _i7.Future<void>);
   @override
-  _i7.Future<_i8.WalletAddress?> getAddressPersona(String? address) =>
+  _i7.Future<_i8.WalletAddress?> getWalletByAddress(String? address) =>
       (super.noSuchMethod(
         Invocation.method(
           #getAddressPersona,
@@ -469,7 +469,7 @@ class MockAccountService extends _i1.Mock implements _i6.AccountService {
         returnValue: _i7.Future<_i8.WalletAddress?>.value(),
       ) as _i7.Future<_i8.WalletAddress?>);
   @override
-  _i7.Future<void> updateAddressPersona(_i8.WalletAddress? walletAddress) =>
+  _i7.Future<void> updateAddressWallet(_i8.WalletAddress? walletAddress) =>
       (super.noSuchMethod(
         Invocation.method(
           #updateAddressPersona,

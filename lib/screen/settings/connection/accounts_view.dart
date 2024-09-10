@@ -275,7 +275,7 @@ class _AccountsViewState extends State<AccountsView> {
                     final newWalletAddress =
                         walletAddress.copyWith(name: value);
                     await injector<AccountService>()
-                        .updateAddressPersona(newWalletAddress);
+                        .updateAddressWallet(newWalletAddress);
                   } else if (connection != null) {
                     await injector<AccountService>()
                         .nameLinkedAccount(connection, value);
@@ -382,7 +382,7 @@ class _AccountsViewState extends State<AccountsView> {
     final walletAddress = account.walletAddress;
     if (walletAddress != null) {
       await injector<AccountService>()
-          .deleteAddressPersona(account.walletAddress!);
+          .deleteAddressWallet(account.walletAddress!);
     }
 
     final connection = account.connections?.first;

@@ -179,7 +179,7 @@ class _ImportSeedsPageState extends State<ImportSeedsPage> {
       });
       final accountService = injector<AccountService>();
 
-      final wallet = await accountService.importPersona(
+      final wallet = await accountService.importWords(
         _getMnemonic(),
         _passphraseTextController.text.trim(),
       );

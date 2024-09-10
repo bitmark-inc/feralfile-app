@@ -12,7 +12,7 @@ class WalletAddressCloudObject {
     await _accountSettingsDB.delete([address.key]);
   }
 
-  Future<void> deleteAddressesByPersona(String uuid) async {
+  Future<void> deleteAddressesByUuid(String uuid) async {
     final addressesWithUUid = findByWalletID(uuid);
     await _accountSettingsDB
         .delete(addressesWithUUid.map((e) => e.key).toList());
@@ -47,7 +47,7 @@ class WalletAddressCloudObject {
         .toList();
   }
 
-  List<WalletAddress> getAddressesByPersona(String uuid) {
+  List<WalletAddress> getAddressesByUuid(String uuid) {
     final allAddresses = getAllAddresses();
     return allAddresses.where((element) => element.uuid == uuid).toList();
   }

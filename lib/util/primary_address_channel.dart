@@ -16,8 +16,6 @@ class PrimaryAddressChannel {
             ? const MethodChannel('migration_util')
             : const MethodChannel('backup');
 
-  AddressInfo? _primaryAddressInfo;
-
   Future<void> setPrimaryAddress(AddressInfo info) async {
     try {
       await _channel
@@ -28,9 +26,6 @@ class PrimaryAddressChannel {
   }
 
   Future<AddressInfo?> getPrimaryAddress() async {
-    if (_primaryAddressInfo != null) {
-      return _primaryAddressInfo;
-    }
     try {
       final String data = await _channel.invokeMethod('getPrimaryAddress', {});
       if (data.isEmpty) {
@@ -45,9 +40,7 @@ class PrimaryAddressChannel {
         ));
         return null;
       }
-      _primaryAddressInfo = AddressInfo.fromJson(primaryAddressInfo);
-
-      return _primaryAddressInfo;
+      return AddressInfo.fromJson(primaryAddressInfo);
     } catch (e) {
       log.info('getPrimaryAddress error', e);
       return null;
@@ -56,7 +49,6 @@ class PrimaryAddressChannel {
 
   Future<bool> clearPrimaryAddress() async {
     try {
-      _primaryAddressInfo = null;
       final result = await _channel.invokeMethod('clearPrimaryAddress', {});
       return result;
     } catch (e) {

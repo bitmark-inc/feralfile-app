@@ -39,7 +39,7 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
           _cloudObject.connectionObject.getLinkedAccounts();
       final addresses = _cloudObject.addressObject.getAllAddresses();
 
-      List<Account> accounts = await getAccountPersona(addresses);
+      List<Account> accounts = await _getAccountWallet(addresses);
 
       final connections = connectionsFuture;
       for (var connection in connections) {
@@ -111,7 +111,7 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
     on<GetAccountsIRLEvent>((event, emit) async {
       final addresses = _cloudObject.addressObject.getAllAddresses();
 
-      List<Account> accounts = await getAccountPersona(addresses);
+      List<Account> accounts = await _getAccountWallet(addresses);
 
       accounts.sort(_compareAccount);
       emit(AccountsState(accounts: accounts));
@@ -176,7 +176,7 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
         );
       }
 
-      List<Account> accounts = await getAccountPersona(addresses);
+      List<Account> accounts = await _getAccountWallet(addresses);
       accounts
         ..addAll(viewOnlyAccounts)
         ..sort(_compareAccount);
@@ -217,7 +217,7 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
     return existingConnections.first;
   }
 
-  Future<List<Account>> getAccountPersona(
+  Future<List<Account>> _getAccountWallet(
       List<WalletAddress> walletAddresses) async {
     final List<WalletAddress> addresses = [...walletAddresses];
     List<Account> accounts = [];

@@ -45,9 +45,6 @@ import 'package:uuid/uuid.dart';
 abstract class AccountService {
   Future<void> migrateAccount();
 
-  Future<List<WalletAddress>> deriveAddressFromFirstPersona(
-      WalletType walletType);
-
   List<WalletAddress> getWalletsAddress(CryptoType cryptoType);
 
   Future<WalletStorage> getDefaultAccount();
@@ -70,7 +67,7 @@ abstract class AccountService {
   Future<List<WalletAddress>> createNewWallet(
       {String name = '', String passphrase = '', bool isDefault = false});
 
-  Future<WalletStorage> importPersona(String words, String passphrase,
+  Future<WalletStorage> importWords(String words, String passphrase,
       {WalletType walletType = WalletType.Autonomy});
 
   Future<Connection> nameLinkedAccount(Connection connection, String name);
@@ -97,13 +94,13 @@ abstract class AccountService {
 
   Future<List<String>> getShowedAddresses();
 
-  Future<bool> addAddressPersona(String uuid, List<AddressInfo> addresses);
+  Future<bool> addAddressWallet(String uuid, List<AddressInfo> addresses);
 
-  Future<void> deleteAddressPersona(WalletAddress walletAddress);
+  Future<void> deleteAddressWallet(WalletAddress walletAddress);
 
-  Future<WalletAddress?> getAddressPersona(String address);
+  Future<WalletAddress?> getWalletByAddress(String address);
 
-  Future<void> updateAddressPersona(WalletAddress walletAddress);
+  Future<void> updateAddressWallet(WalletAddress walletAddress);
 
   List<Connection> getAllViewOnlyAddresses();
 
@@ -117,7 +114,7 @@ abstract class AccountService {
   Future<List<WalletAddress>> insertAddressAtIndexAndUuid(String uuid,
       {required WalletType walletType, required int index, String? name});
 
-  Future<void> restoreUUIDs(List<String> personaUUIDs);
+  Future<void> restoreUUIDs(List<String> uuids);
 }
 
 class AccountServiceImpl extends AccountService {
@@ -163,7 +160,7 @@ class AccountServiceImpl extends AccountService {
   }
 
   @override
-  Future<WalletStorage> importPersona(String words, String passphrase,
+  Future<WalletStorage> importWords(String words, String passphrase,
       {WalletType walletType = WalletType.Autonomy}) async {
     late String firstEthAddress;
     try {
@@ -246,7 +243,7 @@ class AccountServiceImpl extends AccountService {
       throw AccountException(message: 'PrimaryAddressInfo found');
     }
     var addresses =
-        _cloudObject.addressObject.getAddressesByPersona(primaryAddress.uuid);
+        _cloudObject.addressObject.getAddressesByUuid(primaryAddress.uuid);
 
     if (addresses.isEmpty) {
       await MigrationUtil(injector()).migrationFromKeychain();
@@ -254,7 +251,7 @@ class AccountServiceImpl extends AccountService {
 
       await Future.delayed(const Duration(seconds: 1));
       addresses =
-          _cloudObject.addressObject.getAddressesByPersona(primaryAddress.uuid);
+          _cloudObject.addressObject.getAddressesByUuid(primaryAddress.uuid);
     }
 
     final primaryWallet = addresses
@@ -321,8 +318,8 @@ class AccountServiceImpl extends AccountService {
     if (cryptoType == CryptoType.ETH || cryptoType == CryptoType.USDC) {
       checkSumAddress = address.getETHEip55Address();
     }
-    final personaAddress = _cloudObject.addressObject.getAllAddresses();
-    if (personaAddress.any((element) => element.address == checkSumAddress)) {
+    final walletAddress = _cloudObject.addressObject.getAllAddresses();
+    if (walletAddress.any((element) => element.address == checkSumAddress)) {
       throw LinkAddressException(message: 'already_imported_address'.tr());
     }
     final doubleConnections = _cloudObject.connectionObject
@@ -404,40 +401,39 @@ class AccountServiceImpl extends AccountService {
   }
 
   @override
-  Future<void> restoreUUIDs(List<String> personaUUIDs) async {
+  Future<void> restoreUUIDs(List<String> uuids) async {
     final List<String> brokenUUIDs = [];
-    for (var uuid in personaUUIDs) {
+    for (var uuid in uuids) {
       final wallet = WalletStorage(uuid);
       if (!(await wallet.isWalletCreated())) {
         brokenUUIDs.add(uuid);
       }
     }
-    personaUUIDs.removeWhere((element) => brokenUUIDs.contains(element));
+    uuids.removeWhere((element) => brokenUUIDs.contains(element));
 
     final addresses = _cloudObject.addressObject.getAllAddresses();
     final dbUuids = addresses.map((e) => e.uuid).toSet().toList();
-    if (dbUuids.length == personaUUIDs.length &&
-        dbUuids
-            .every((element) => personaUUIDs.contains(element.toLowerCase()))) {
+    if (dbUuids.length == uuids.length &&
+        dbUuids.every((element) => uuids.contains(element.toLowerCase()))) {
       //Database is up-to-date, skip migrating
       return;
     }
 
     // remove uuids not in keychain
     final uuidsToRemove = dbUuids
-        .where((element) => !personaUUIDs.contains(element.toLowerCase()))
+        .where((element) => !uuids.contains(element.toLowerCase()))
         .toList();
 
     for (var uuid in uuidsToRemove) {
-      await _cloudObject.addressObject.deleteAddressesByPersona(uuid);
+      await _cloudObject.addressObject.deleteAddressesByUuid(uuid);
     }
-    log.info('[_migration android/ios] personaUUIDs  : $personaUUIDs');
-    for (var personaUUID in personaUUIDs) {
-      //Cleanup duplicated persona
+    log.info('[_migration android/ios] uuids  : $uuids');
+    for (var uuid in uuids) {
+      //Cleanup duplicated uuids
       final oldAddresses =
-          _cloudObject.addressObject.getAddressesByPersona(personaUUID);
+          _cloudObject.addressObject.getAddressesByUuid(uuid);
       if (oldAddresses.isEmpty) {
-        await insertNextAddressFromUuid(personaUUID, WalletType.Autonomy);
+        await insertNextAddressFromUuid(uuid, WalletType.Autonomy);
       }
     }
   }
@@ -485,17 +481,17 @@ class AccountServiceImpl extends AccountService {
     }
 
     List<String> addresses = [];
-    final addressPersona = _cloudObject.addressObject.getAllAddresses();
-    addresses.addAll(addressPersona.map((e) => e.address));
+    final walletAddress = _cloudObject.addressObject.getAllAddresses();
+    addresses.addAll(walletAddress.map((e) => e.address));
 
     final linkedAccounts = _cloudObject.connectionObject.getLinkedAccounts();
 
     addresses.addAll(linkedAccounts.expand((e) => e.accountNumbers));
     if (logHiddenAddress) {
       log.fine(
-          '[Account Service] all addresses (persona ${addressPersona.length}): '
+          '[Account Service] all addresses (persona ${walletAddress.length}): '
           '${addresses.join(", ")}');
-      final hiddenAddresses = addressPersona
+      final hiddenAddresses = walletAddress
           .where((element) => element.isHidden)
           .map((e) => e.address.maskOnly(5))
           .toList()
@@ -562,7 +558,7 @@ class AccountServiceImpl extends AccountService {
   }
 
   @override
-  Future<bool> addAddressPersona(
+  Future<bool> addAddressWallet(
       String uuid, List<AddressInfo> addresses) async {
     bool result = false;
     final replacedConnections =
@@ -616,7 +612,7 @@ class AccountServiceImpl extends AccountService {
   }
 
   @override
-  Future<void> deleteAddressPersona(WalletAddress walletAddress) async {
+  Future<void> deleteAddressWallet(WalletAddress walletAddress) async {
     await _cloudObject.addressObject.deleteAddress(walletAddress);
     await _nftCollectionAddressService.deleteAddresses([walletAddress.address]);
     switch (CryptoType.fromSource(walletAddress.cryptoType)) {
@@ -648,7 +644,7 @@ class AccountServiceImpl extends AccountService {
   }
 
   @override
-  Future<void> updateAddressPersona(WalletAddress walletAddress) async {
+  Future<void> updateAddressWallet(WalletAddress walletAddress) async {
     await _cloudObject.addressObject.updateAddress(walletAddress);
   }
 
@@ -759,7 +755,7 @@ class AccountServiceImpl extends AccountService {
   }
 
   @override
-  Future<WalletAddress?> getAddressPersona(String address) async =>
+  Future<WalletAddress?> getWalletByAddress(String address) async =>
       _cloudObject.addressObject.findByAddress(address);
 
   @override
@@ -786,11 +782,6 @@ class AccountServiceImpl extends AccountService {
   @override
   List<WalletAddress> getWalletsAddress(CryptoType cryptoType) =>
       _cloudObject.addressObject.getAddressesByType(cryptoType.source);
-
-  @override
-  Future<List<WalletAddress>> deriveAddressFromFirstPersona(
-          WalletType walletType) async =>
-      await insertNextAddress(walletType);
 
   @override
   Future<List<WalletAddress>> insertNextAddress(WalletType walletType,

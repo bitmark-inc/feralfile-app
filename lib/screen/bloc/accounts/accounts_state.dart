@@ -75,8 +75,6 @@ class Account {
 
   bool get isUsdc => blockchain == 'USDC';
 
-  String get className => walletAddress != null ? 'Persona' : 'Connection';
-
   bool get isViewOnly => walletAddress == null;
 
   Account({

@@ -29,10 +29,13 @@ class AddressService {
   AddressInfo? _primaryAddressInfo;
 
   Future<AddressInfo?> getPrimaryAddressInfo() async {
-    final addressInfo =
-        _primaryAddressInfo ?? await _primaryAddressChannel.getPrimaryAddress();
-    log.info('[AddressService] Primary address info: ${addressInfo?.toJson()}');
-    return addressInfo;
+    if (_primaryAddressInfo != null) {
+      return _primaryAddressInfo;
+    }
+    _primaryAddressInfo = await _primaryAddressChannel.getPrimaryAddress();
+    log.info('[AddressService] Primary address info:'
+        ' ${_primaryAddressInfo?.toJson()}');
+    return _primaryAddressInfo;
   }
 
   Future<AddressInfo?> migrateToEthereumAddress(
@@ -64,6 +67,7 @@ class AddressService {
   }
 
   Future<bool> clearPrimaryAddress() async {
+    _primaryAddressInfo = null;
     await _primaryAddressChannel.clearPrimaryAddress();
     return true;
   }

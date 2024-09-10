@@ -57,7 +57,7 @@ class _SelectAddressesPageState extends State<SelectAddressesPage> {
   Future<void> fetchImportedAddresses() async {
     final importedAddresses = injector<CloudObjects>()
         .addressObject
-        .getAddressesByPersona(widget.payload.wallet.uuid);
+        .getAddressesByUuid(widget.payload.wallet.uuid);
     setState(() {
       _importedAddresses.addAll(importedAddresses.map((e) => e.address));
     });
@@ -176,7 +176,7 @@ class _SelectAddressesPageState extends State<SelectAddressesPage> {
                       text: 'continue'.tr(),
                       enabled: _selectedAddresses.isNotEmpty,
                       onTap: () async {
-                        await injector<AccountService>().addAddressPersona(
+                        await injector<AccountService>().addAddressWallet(
                             widget.payload.wallet.uuid, _selectedAddresses);
                         if (!context.mounted) {
                           return;

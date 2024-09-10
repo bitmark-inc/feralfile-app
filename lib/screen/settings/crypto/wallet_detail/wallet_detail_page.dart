@@ -182,7 +182,7 @@ class _WalletDetailPageState extends State<WalletDetailPage> with RouteAware {
                 if (value.trim().isNotEmpty) {
                   walletAddress = walletAddress.copyWith(name: value);
                   unawaited(injector<AccountService>()
-                      .updateAddressPersona(walletAddress));
+                      .updateAddressWallet(walletAddress));
                   setState(() {
                     _isRename = false;
                   });

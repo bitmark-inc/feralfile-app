@@ -6,7 +6,6 @@
 //
 
 import 'package:autonomy_flutter/au_bloc.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
@@ -20,15 +19,15 @@ class USDCBloc extends AuBloc<USDCEvent, USDCState> {
 
   USDCBloc(this._ethereumService) : super(USDCState(null, {})) {
     on<GetAddressEvent>((event, emit) async {
-      if (state.personaAddresses?[event.uuid] != null) {
+      if (state.walletAddresses?[event.uuid] != null) {
         return;
       }
       final address = await WalletStorage(event.uuid)
           .getETHEip55Address(index: event.index);
-      var personaAddresses = state.personaAddresses ?? {};
-      personaAddresses[event.uuid] = address;
+      var addresses = state.walletAddresses ?? {};
+      addresses[event.uuid] = address;
 
-      emit(state.copyWith(personaAddresses: personaAddresses));
+      emit(state.copyWith(walletAddresses: addresses));
     });
 
     on<GetUSDCBalanceWithAddressEvent>((event, emit) async {
