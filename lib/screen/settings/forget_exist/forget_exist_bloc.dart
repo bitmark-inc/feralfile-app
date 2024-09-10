@@ -60,11 +60,7 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
 
       unawaited(_addressService.clearPrimaryAddress());
       unawaited(deregisterPushNotification());
-      PackageInfo packageInfo = await PackageInfo.fromPlatform();
-      String? deviceId = await MigrationUtil.getBackupDeviceID();
-      final requester = '${deviceId}_${packageInfo.packageName}';
       try {
-        await _iapApi.deleteAllProfiles(requester);
         await _iapApi.deleteUserData();
       } catch (e) {
         log.info('Error when delete all profiles: $e');

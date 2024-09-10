@@ -137,7 +137,6 @@ Future<void> setup() async {
 
   final cloudDB = await $FloorCloudDatabase
       .databaseBuilder('cloud_database.db')
-      .addMigrations(cloudDatabaseMigrations)
       .build();
 
   injector.registerLazySingleton(() => NavigationService());

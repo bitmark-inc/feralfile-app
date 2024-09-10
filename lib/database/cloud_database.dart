@@ -20,7 +20,7 @@ part 'cloud_database.g.dart'; // the generated code will be there
 //ignore_for_file: lines_longer_than_80_chars
 
 @TypeConverters([DateTimeConverter])
-@Database(version: 10, entities: [Connection, WalletAddress])
+@Database(version: 9, entities: [Connection, WalletAddress])
 abstract class CloudDatabase extends FloorDatabase {
   ConnectionDao get connectionDao;
 
@@ -177,19 +177,3 @@ final migrateCloudV8ToV9 = Migration(8, 9, (database) async {
 
   log.info('Migrated Cloud database from version 8 to 9');
 });
-
-final migrateCloudV9ToV10 = Migration(9, 10, (database) async {
-  await database.execute('DROP TABLE IF EXISTS Audit;');
-});
-
-final cloudDatabaseMigrations = [
-  migrateCloudV1ToV2,
-  migrateCloudV2ToV3,
-  migrateCloudV3ToV4,
-  migrateCloudV4ToV5,
-  migrateCloudV5ToV6,
-  migrateCloudV6ToV7,
-  migrateCloudV7ToV8,
-  migrateCloudV8ToV9,
-  migrateCloudV9ToV10,
-];

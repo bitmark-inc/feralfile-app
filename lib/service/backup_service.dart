@@ -149,30 +149,21 @@ class BackupService {
           );
         }
 
-        final tempDbOld = await sqfliteDatabaseFactory.openDatabase(dbFilePath);
-        final backUpVersion = await tempDbOld.getVersion();
-        log.info('[BackupService] '
-            'Cloud database backup version is $backUpVersion');
-        if (version > backUpVersion) {
-          await MigrationAdapter.runMigrations(
-              tempDbOld, backUpVersion, version, cloudDatabaseMigrations);
-        }
-
         final tempDb =
             await $FloorCloudDatabase.databaseBuilder(tempDbName).build();
+        await injector<SettingsDataService>()
+            .restoreSettingsData(fromFile: true);
         await _cloudObjects.copyDataFrom(tempDb);
         await tempFile.delete();
         await File(dbFilePath).delete();
-        log.info('[BackupService] Cloud database is restored '
-            '$backUpVersion to $version');
-        await injector<SettingsDataService>()
-            .restoreSettingsData(fromFile: true);
-        await _cloudObjects.setMigrated();
+        log.info('[BackupService] Cloud database is restored $version');
         return;
       } catch (e) {
         log.info('[BackupService] Failed to restore Cloud Database $e');
         unawaited(Sentry.captureException(e, stackTrace: StackTrace.current));
-        return;
+      } finally {
+
+        await _cloudObjects.setMigrated();
       }
     }
 

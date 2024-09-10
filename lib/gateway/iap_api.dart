@@ -9,7 +9,6 @@ import 'dart:io';
 
 import 'package:autonomy_flutter/model/announcement/announcement.dart';
 import 'package:autonomy_flutter/model/announcement/announcement_request.dart';
-import 'package:autonomy_flutter/model/backup_versions.dart';
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/model/ok_response.dart';
 import 'package:dio/dio.dart';

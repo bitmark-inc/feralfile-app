@@ -122,7 +122,7 @@ class SettingsDataServiceImpl implements SettingsDataService {
   @override
   Future restoreSettingsData({bool fromFile = false}) async {
     log.info('[SettingsDataService][Start] restoreSettingsData');
-    if (fromFile) {
+    if (!fromFile) {
       await _cloudObject.settingsDataDB.download();
       final res = _cloudObject.settingsDataDB.caches
           .map((key, value) => MapEntry(key, jsonDecode(value)));

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
+import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/graphql/account_settings/account_settings_client.dart';
 import 'package:autonomy_flutter/graphql/account_settings/account_settings_db.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_object/address_cloud_object.dart';
@@ -92,6 +93,10 @@ class CloudObjects {
       final data = connections.map((e) => e.toKeyValue).toList();
       await _connectionAccountSettingsDB.write(data);
     });
+
+    try {
+      await injector<IAPApi>().deleteAllProfiles(_deviceUniqueId);
+    } catch (_) {}
   }
 
   Future<void> downloadAll() async {

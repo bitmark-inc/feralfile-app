@@ -650,8 +650,8 @@ class AccountServiceImpl extends AccountService {
   @override
   Future<void> migrateAccount() async {
     final addressInfo = await _addressService.getPrimaryAddressInfo();
-    final localCloudDB =
-        await injector<CloudDatabase>().addressDao.getAllAddresses();
+    final cloudDb = injector<CloudDatabase>();
+    final localCloudDB = await cloudDb.addressDao.getAllAddresses();
     final isDoneOnboarding = _configurationService.isDoneOnboarding();
     final defaultWallet = await _getDefaultWallet();
 
@@ -679,7 +679,8 @@ class AccountServiceImpl extends AccountService {
             uuid: defaultWallet.uuid, chain: 'ethereum', index: 0),
         withDidKey: true,
       );
-      await _cloudObject.copyDataFrom(injector<CloudDatabase>());
+      await _cloudObject.copyDataFrom(cloudDb);
+      unawaited(cloudDb.removeAll());
 
       unawaited(_cloudObject.setMigrated());
       // ensure that we have addresses;
@@ -725,7 +726,8 @@ class AccountServiceImpl extends AccountService {
       if (!addressInfo!.isEthereum) {
         await _addressService.migrateToEthereumAddress(addressInfo);
       }
-      await _cloudObject.copyDataFrom(injector<CloudDatabase>());
+      await _cloudObject.copyDataFrom(cloudDb);
+      unawaited(cloudDb.removeAll());
     }
 
     // case 6: restore app from old version using primary address
