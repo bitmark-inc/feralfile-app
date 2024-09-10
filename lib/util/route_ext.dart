@@ -403,7 +403,6 @@ final screenNameMap = {
   AppRouter.tbConnectPage: 'TB Connect',
   AppRouter.cloudPage: 'Cloud',
   AppRouter.cloudAndroidPage: 'Cloud',
-  AppRouter.linkManually: 'Link Manually',
   AppRouter.autonomySecurityPage: 'Feral File Security',
   AppRouter.releaseNotesPage: 'Release Notes',
   AppRouter.hiddenArtworksPage: 'Hidden Artworks',

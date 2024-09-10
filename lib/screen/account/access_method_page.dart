@@ -10,11 +10,8 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/cloud_database.dart';
-import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
-import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/au_text_field.dart';
@@ -129,11 +126,6 @@ class _AccessMethodPageState extends State<AccessMethodPage> {
         addDivider(height: 48),
         Padding(
           padding: padding,
-          child: _linkTokenIndexerIDWidget(context),
-        ),
-        addDivider(height: 48),
-        Padding(
-          padding: padding,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -156,25 +148,4 @@ class _AccessMethodPageState extends State<AccessMethodPage> {
       ],
     );
   }
-
-  Widget _linkTokenIndexerIDWidget(BuildContext context) => Column(
-        children: [
-          _addWalletItem(
-            context: context,
-            title: 'debug_indexer_tokenId'.tr(),
-            content: 'dit_manually_input_an'.tr(),
-            onTap: () async => Navigator.of(context)
-                .pushNamed(AppRouter.linkManually, arguments: 'indexerTokenID'),
-          ),
-          TextButton(
-              onPressed: () async {
-                await injector<CloudDatabase>()
-                    .connectionDao
-                    .deleteConnectionsByType(
-                        ConnectionType.manuallyIndexerTokenID.rawValue);
-                unawaited(injector<ClientTokenService>().refreshTokens());
-              },
-              child: Text('delete_all_debug_li'.tr())),
-        ],
-      );
 }

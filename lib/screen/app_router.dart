@@ -14,7 +14,6 @@ import 'package:autonomy_flutter/model/ff_exhibition.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/postcard_claim.dart';
 import 'package:autonomy_flutter/screen/account/access_method_page.dart';
-import 'package:autonomy_flutter/screen/account/link_manually_page.dart';
 import 'package:autonomy_flutter/screen/account/recovery_phrase_page.dart';
 import 'package:autonomy_flutter/screen/account/test_artwork_screen.dart';
 import 'package:autonomy_flutter/screen/artist_details/artist_details_bloc.dart';
@@ -166,7 +165,6 @@ class AppRouter {
   static const tbConnectPage = 'tb_connect_page';
   static const cloudPage = 'cloud_page';
   static const cloudAndroidPage = 'cloud_android_page';
-  static const linkManually = 'link_manually';
   static const testArtwork = 'test_artwork';
   static const autonomySecurityPage = 'security_page';
   static const releaseNotesPage = 'release_notes_page';
@@ -950,12 +948,6 @@ class AppRouter {
             ),
           ),
         );
-
-      case linkManually:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) =>
-                LinkManuallyPage(type: settings.arguments! as String));
 
       case wc2PermissionPage:
         return CupertinoPageRoute(
