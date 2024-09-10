@@ -89,7 +89,7 @@ class FeralFileWebview extends StatelessWidget {
             onResourceError?.call(webViewController, error);
           },
           onHttpError: (error) {
-            log.info('HttpError: ${error.toString()}');
+            log.info('HttpError: $error');
             onHttpError?.call(webViewController, error);
           },
         ),

@@ -290,63 +290,37 @@ extension RawValue on WalletApp {
 }
 
 class ReportIssueType {
-  static const Feature = 'feature';
   static const Bug = 'bug';
-  static const Feedback = 'feedback';
-  static const Other = 'other';
   static const Exception = 'exception';
-  static const ReportNFTIssue = 'report nft issue';
   static const Announcement = 'announcement';
   static const MerchandiseIssue = 'merchandise postcard';
 
-  static List<String> get getList => [
-        Feature,
-        Bug,
-        Feedback,
-        Other,
-        Exception,
-        ReportNFTIssue,
-        Announcement,
-        MerchandiseIssue
-      ];
+  static List<String> get getList =>
+      [Bug, Exception, Announcement, MerchandiseIssue];
 
-  static List<String> get getSuggestList => [Feature, Bug, Feedback, Other];
+  static List<String> get getSuggestList => [Bug];
 
   static String toTitle(String item) {
     switch (item) {
-      case Feature:
-        return 'Request a feature';
-      case Bug:
-        return 'Report a bug';
-      case Feedback:
-        return 'Share feedback';
       case Exception:
         return 'Report a bug';
-      case ReportNFTIssue:
-        return 'Report NFT issue';
       case Announcement:
         return 'Announcement';
       case MerchandiseIssue:
         return 'Merchandise issue';
+      case Bug:
       default:
-        return 'Something else?';
+        return 'Contact Feral File';
     }
   }
 
   static String introMessage(String item) {
     switch (item) {
-      case Feature:
-        return 'Thanks for taking the time to help us improve Feral File. We’re always looking for great ideas. What feature would you like to request?';
-      case Bug:
-        return 'We’re sorry to hear you’ve experienced a problem using Feral File. Thanks for taking the time to help us improve. Please describe the bug for us.';
-      case Feedback:
-        return 'Thanks for taking the time to share your feedback with us. What’s on your mind?';
       case Exception:
         return 'Thanks for taking the time to help improve Feral File. We’ve received your automatic crash report and are looking into it. How else can we help?';
-      case ReportNFTIssue:
-        return 'Thanks for taking the time to help improve Feral File. We’ve received your NFT issue and are looking into it. How else can we help?';
+      case Bug:
       default:
-        return 'Thanks for reaching out to the Feral File team! What’s on your mind?';
+        return 'Thanks for reaching out to the Feral File! How can we assist you with feedback, a bug, or a feature request?';
     }
   }
 }
