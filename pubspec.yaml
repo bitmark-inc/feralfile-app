@@ -120,10 +120,6 @@ dependencies:
     git:
       url: https://github.com/autonomy-system/nft-collection
       ref: 0819050a5f3660a4d5e6d35be11b988f0b10376b
-  feralfile_app_tv_proto:
-    git:
-      url: https://github.com/autonomy-system/feralfile-app-tv-proto-communication
-      ref: 5bf6bf7ee37506202e675a3c91253a036cbeb43d
   flutter_branch_sdk: ^7.0.2
   flutter_rating_bar: ^4.0.1
   multi_value_listenable_builder: ^0.0.2
