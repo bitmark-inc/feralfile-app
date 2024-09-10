@@ -6,8 +6,8 @@
 //
 
 import 'package:autonomy_flutter/model/ff_series.dart';
+import 'package:autonomy_flutter/nft_rendering/nft_rendering_widget.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:nft_rendering/nft_rendering.dart';
 
 part 'ff_artwork.g.dart';
 

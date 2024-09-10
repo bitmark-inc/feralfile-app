@@ -75,10 +75,6 @@ dependencies:
   measured_size: ^1.0.0
   mime: ^1.0.1
   mixpanel_flutter: ^2.0.0
-  nft_rendering:
-    git:
-      url: https://github.com/autonomy-system/nft-rendering.git
-      ref: dde11ef9b3eae914ae8cc5bb950b2a4f798f90bd
   onesignal_flutter: ^3.3.0
   open_settings: ^2.0.2
   overlay_support: ^2.0.0
@@ -163,6 +159,10 @@ dependencies:
   cryptography_flutter: ^2.3.2
   flutter_app_badger: ^1.5.0
   wakelock_plus: ^1.2.8
+  model_viewer_plus: 1.6.1
+  audio_session: ^0.1.10
+  just_audio: ^0.9.29
+
 dependency_overrides:
   intl: 0.18.0
   archive: ^3.6.1
@@ -187,6 +187,7 @@ dev_dependencies:
   dotenv: ^4.0.1
   html_unescape: ^2.0.0
   sentry_dart_plugin: ^1.0.0
+
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

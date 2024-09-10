@@ -82,7 +82,7 @@ packages:
     source: hosted
     version: "2.11.0"
   audio_session:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: audio_session
       sha256: "6fdf255ed3af86535c96452c33ecff1245990bb25a605bfb1958661ccc3d467f"
@@ -886,15 +886,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.8"
-  flutter_inline_webview_macos:
-    dependency: transitive
-    description:
-      path: "."
-      ref: "65f1aba648425aa410c6965f89f50f0120049a50"
-      resolved-ref: "65f1aba648425aa410c6965f89f50f0120049a50"
-      url: "https://github.com/autonomy-system/flutter_inline_webview_macos"
-    source: git
-    version: "0.0.7"
   flutter_keyboard_visibility:
     dependency: "direct main"
     description:
@@ -1625,7 +1616,7 @@ packages:
     source: hosted
     version: "6.7.1"
   just_audio:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: just_audio
       sha256: b607cd1a43bac03d85c3aaee00448ff4a589ef2a77104e3d409889ff079bf823
@@ -1834,7 +1825,7 @@ packages:
     source: hosted
     version: "5.4.4"
   model_viewer_plus:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: model_viewer_plus
       sha256: eec6de3d1d85533dcc5a8deb4a2b961126138973d26b66cdc55b44ab4fd80f59
@@ -1882,15 +1873,6 @@ packages:
       url: "https://github.com/autonomy-system/nft-collection"
     source: git
     version: "0.0.1"
-  nft_rendering:
-    dependency: "direct main"
-    description:
-      path: "."
-      ref: dde11ef9b3eae914ae8cc5bb950b2a4f798f90bd
-      resolved-ref: dde11ef9b3eae914ae8cc5bb950b2a4f798f90bd
-      url: "https://github.com/autonomy-system/nft-rendering.git"
-    source: git
-    version: "1.0.9"
   nm:
     dependency: transitive
     description:
@@ -2897,14 +2879,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.5.6"
-  video_player_macos:
-    dependency: transitive
-    description:
-      name: video_player_macos
-      sha256: "038aec5bbb3789be4bc12f08e2eb730940350ce5f3ce790cee9d897c0f6aacb7"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.0.1"
   video_player_platform_interface:
     dependency: transitive
     description:

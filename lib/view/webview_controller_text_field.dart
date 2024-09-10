@@ -1,9 +1,9 @@
 import 'dart:async';
 
+import 'package:autonomy_flutter/nft_rendering/nft_rendering_widget.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
-import 'package:nft_rendering/nft_rendering.dart';
 
 class WebviewControllerTextField extends StatelessWidget {
   final InAppWebViewController? webViewController;
