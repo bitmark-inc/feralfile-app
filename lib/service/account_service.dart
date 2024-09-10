@@ -430,8 +430,7 @@ class AccountServiceImpl extends AccountService {
     log.info('[_migration android/ios] uuids  : $uuids');
     for (var uuid in uuids) {
       //Cleanup duplicated uuids
-      final oldAddresses =
-          _cloudObject.addressObject.getAddressesByUuid(uuid);
+      final oldAddresses = _cloudObject.addressObject.getAddressesByUuid(uuid);
       if (oldAddresses.isEmpty) {
         await insertNextAddressFromUuid(uuid, WalletType.Autonomy);
       }
