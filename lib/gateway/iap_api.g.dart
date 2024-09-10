@@ -305,7 +305,7 @@ class _IAPApi implements IAPApi {
     )
         .compose(
           _dio.options,
-          '/apis/metrics/${deviceId}',
+          '/apis/metrics/devices/${deviceId}',
           queryParameters: queryParameters,
           data: _data,
         )
