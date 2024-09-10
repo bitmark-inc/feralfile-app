@@ -95,9 +95,11 @@ class CloudObjects {
   }
 
   Future<void> downloadAll() async {
-    await _addressAccountSettingsDB.download();
-    await _connectionAccountSettingsDB.download();
-    await _settingsDataDB.download();
+    await Future.wait([
+      _addressAccountSettingsDB.download(),
+      _connectionAccountSettingsDB.download(),
+      _settingsDataDB.download()
+    ]);
   }
 
   void clearCache() {

@@ -28,8 +28,10 @@ class AccountSettingsClient {
     final rawResult = List<Map<String, dynamic>>.from(values ?? []);
     return rawResult
         .where((element) => element['value'] != null)
-        .map((e) => {'key': e['key'], 'value': e['value'].toString()}
-            as Map<String, String>)
+        .map((e) => Map<String, String>.from({
+              'key': e['key'],
+              'value': e['value'].toString(),
+            }))
         .toList();
   }
 
@@ -94,7 +96,7 @@ class AccountSettingsClient {
   }
 
   static const String _queryDoc = r'''
-    query ($search: String, $keys: [String!]!, $cursor: String) {
+    query ($search: String, $keys: [String!], $cursor: String) {
       keys(search: $search, keys: $keys, cursor: $cursor) {
         values {
           key
@@ -105,14 +107,14 @@ class AccountSettingsClient {
     }
   ''';
   static const String _writeDoc = r'''
-    mutation ($data: [KeyValue!]!) {
+    mutation ($data: [KeyValueInput!]!) {
       write(data: $data) {
         ok
       }
     }
   ''';
   static const String _deleteDoc = r'''
-    mutation ($search: String, $keys: [String!]!) {
+    mutation ($search: String, $keys: [String!]) {
       keys(search: $search, keys: $keys, cursor: $cursor) {
         delete(data: $data) {
           ok

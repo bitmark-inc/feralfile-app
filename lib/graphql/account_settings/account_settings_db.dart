@@ -34,7 +34,7 @@ class AccountSettingsDBImpl implements AccountSettingsDB {
 
   @override
   Future<void> download() async {
-    final values = await _client.query(vars: {'search': '$_prefix.*'});
+    final values = await _client.query(vars: {'search': '$_prefix.'});
     for (var value in values) {
       if (value['key'] == null) {
         continue;
