@@ -5,6 +5,7 @@
 //  that can be found in the LICENSE file.
 //
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
@@ -54,7 +55,8 @@ class AddressService {
         primaryAddressInfo: info, withDidKey: withDidKey);
     final res = await setPrimaryAddressInfo(info: info);
     if (withDidKey) {
-      await injector<MetricClientService>().migrateFromDidKeyToPrimaryAddress();
+      unawaited(
+          injector<MetricClientService>().migrateFromDidKeyToPrimaryAddress());
     }
     // when register primary address, we need to update the auth token
     await injector<AuthService>().getAuthToken(forceRefresh: true);

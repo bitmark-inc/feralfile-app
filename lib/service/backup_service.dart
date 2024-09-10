@@ -37,11 +37,9 @@ class BackupService {
 
   BackupService(this._cloudObjects);
 
-  Future<String> getBackupVersion() async {
+  Future<String> getBackupVersion(String deviceId) async {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
     String version = packageInfo.version;
-
-    String? deviceId = await getBackupId();
     final authToken = await injector<AuthService>().getAuthToken();
 
     if (authToken == null) {
@@ -105,8 +103,8 @@ class BackupService {
   Future restoreCloudDatabase({String dbName = 'cloud_database.db'}) async {
     log.info('[BackupService] start database restore');
 
-    final version = await getBackupVersion();
     String? deviceId = await getBackupId();
+    final version = await getBackupVersion(deviceId);
     final authToken = await injector<AuthService>().getAuthToken();
     final primaryAddressInfo =
         await injector<AddressService>().getPrimaryAddressInfo();

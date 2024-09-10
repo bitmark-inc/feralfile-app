@@ -52,8 +52,6 @@ abstract class AccountService {
 
   Future<WalletStorage> getDefaultAccount();
 
-  Future<WalletAddress> getOrCreatePrimaryWallet();
-
   Future<WalletIndex> getAccountByAddress({
     required String chain,
     required String address,
@@ -160,7 +158,7 @@ class AccountServiceImpl extends AccountService {
     }
     final wallets =
         await insertNextAddressFromUuid(uuid, WalletType.Autonomy, name: name);
-    await _cloudObject.setMigrated();
+    unawaited(_cloudObject.setMigrated());
     return wallets;
   }
 
@@ -269,22 +267,6 @@ class AccountServiceImpl extends AccountService {
     return primaryWallet;
   }
 
-  @override
-  Future<WalletAddress> getOrCreatePrimaryWallet() async {
-    try {
-      final primaryWallet = await getPrimaryWallet();
-      return primaryWallet;
-    } catch (exception) {
-      if (exception is AccountException) {
-        final walletAddresses = await createNewWallet(isDefault: true);
-        return walletAddresses.firstWhere(
-            (element) => element.cryptoType == CryptoType.ETH.source);
-      } else {
-        rethrow;
-      }
-    }
-  }
-
   Future deleteWalletAddress(WalletAddress walletAddress) async {
     await _cloudObject.addressObject.deleteAddress(walletAddress);
     await _nftCollectionAddressService.deleteAddresses([walletAddress.address]);
@@ -359,18 +341,6 @@ class AccountServiceImpl extends AccountService {
 
     await _cloudObject.connectionObject.writeConnection(connection);
     await _nftCollectionAddressService.addAddresses([checkSumAddress]);
-
-    /// to do:
-    /// after apply new onboarding, we disable view-only address at onboarding,
-    /// therefore, we do not need to register primary address here
-    final allAddresses = _addressService.getAllEthereumAddress();
-    if (allAddresses.isEmpty) {
-      // for case when import view-only address,
-      // the default account is not exist,
-      // we should create new account,
-      // derive ethereum and tezos address at index 0
-      await getOrCreatePrimaryWallet();
-    }
     return connection;
   }
 
@@ -716,9 +686,9 @@ class AccountServiceImpl extends AccountService {
       );
       await _cloudObject.copyDataFrom(injector<CloudDatabase>());
 
-      await _cloudObject.setMigrated();
+      unawaited(_cloudObject.setMigrated());
       // ensure that we have addresses;
-      await _ensureHavingEthereumAddress();
+      unawaited(_ensureHavingEthereumAddress());
       return;
     }
 
@@ -734,7 +704,8 @@ class AccountServiceImpl extends AccountService {
       await _backupService.restoreCloudDatabase();
 
       // ensure that we have addresses;
-      await _ensureHavingEthereumAddress();
+      unawaited(_ensureHavingEthereumAddress());
+      return;
     }
 
     // from case 4, user has primary address,
@@ -745,7 +716,7 @@ class AccountServiceImpl extends AccountService {
 
     // case 4: migrated user
     if (didMigrate) {
-      await _cloudObject.downloadAll();
+      unawaited(_cloudObject.downloadAll());
       return;
     }
 
@@ -773,10 +744,10 @@ class AccountServiceImpl extends AccountService {
         await _cloudObject.forceUpload();
       }
     }
-    await _cloudObject.setMigrated();
+    unawaited(_cloudObject.setMigrated());
 
     // ensure that we have addresses;
-    await _ensureHavingEthereumAddress();
+    unawaited(_ensureHavingEthereumAddress());
   }
 
   Future<void> _ensureHavingEthereumAddress() async {
