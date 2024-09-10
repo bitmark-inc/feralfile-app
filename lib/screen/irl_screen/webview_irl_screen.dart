@@ -91,7 +91,7 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
           JSResult.error('Blockchain is unsupported'),
         );
       }
-      final addresses = await _getWalletAddress(cryptoType);
+      final addresses = _getWalletAddress(cryptoType);
       if (addresses.isEmpty) {
         try {
           final addedAddress = await _accountService
@@ -173,7 +173,7 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
           JSResult.error('Blockchain is unsupported'),
         );
       }
-      final addresses = await _getWalletAddress(cryptoType);
+      final addresses = _getWalletAddress(cryptoType);
       if (addresses.isEmpty) {
         try {
           await _accountService.deriveAddressFromFirstPersona(
@@ -203,7 +203,7 @@ class _IRLWebScreenState extends State<IRLWebScreen> {
     }
   }
 
-  Future<List<WalletAddress>> _getWalletAddress(CryptoType cryptoType) async =>
+  List<WalletAddress> _getWalletAddress(CryptoType cryptoType) =>
       _accountService.getWalletsAddress(cryptoType);
 
   Future<void> _receiveData(List<dynamic> args) async {

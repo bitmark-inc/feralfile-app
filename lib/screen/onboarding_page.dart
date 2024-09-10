@@ -9,10 +9,12 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
+import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
+import 'package:autonomy_flutter/util/dailies_helper.dart';
+import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
 import 'package:autonomy_flutter/view/primary_button.dart';
@@ -46,7 +48,7 @@ class _OnboardingPageState extends State<OnboardingPage>
   @override
   void initState() {
     super.initState();
-    unawaited(_createAccountOrRestoreIfNeeded());
+    unawaited(_fetchRuntimeCache());
   }
 
   @override
@@ -71,8 +73,12 @@ class _OnboardingPageState extends State<OnboardingPage>
     }
   }
 
-  Future<void> _createAccountOrRestoreIfNeeded() async {
-    await injector<AccountService>().restoreIfNeeded();
+  Future<void> _fetchRuntimeCache() async {
+    // these method can be run here to reduce splash screen time
+    final isPremium = await injector.get<IAPService>().isSubscribed();
+    await injector<ConfigurationService>().setPremium(isPremium);
+    await JohnGerrardHelper.updateJohnGerrardLatestRevealIndex();
+    DailiesHelper.updateDailies([]);
     if (!mounted) {
       return;
     }

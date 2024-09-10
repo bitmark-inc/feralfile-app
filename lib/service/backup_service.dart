@@ -104,82 +104,77 @@ class BackupService {
 
   Future restoreCloudDatabase({String dbName = 'cloud_database.db'}) async {
     log.info('[BackupService] start database restore');
-    final didCloudMigrate =
-        await _cloudObjects.addressObject.accountSettingsDB.didMigrate();
-    if (didCloudMigrate) {
-      await _cloudObjects.downloadAll();
-    } else {
-      final version = await getBackupVersion();
-      String? deviceId = await getBackupId();
-      final authToken = await injector<AuthService>().getAuthToken();
-      final primaryAddressInfo =
-          await injector<AddressService>().getPrimaryAddressInfo();
-      final account = LibAukDart.getWallet(primaryAddressInfo!.uuid);
-      final endpoint = Environment.autonomyAuthURL;
-      final resp = await http.get(
-        Uri.parse(
-            '$endpoint/apis/v1/premium/profile-data?filename=$_dbEncryptedFileName&appVersion=$version'),
-        headers: {
-          'requester': deviceId,
-          'Authorization': 'Bearer ${authToken?.jwtToken}',
-        },
-      );
-      if (resp.statusCode == 200) {
-        log.info('[BackupService] got response');
+
+    final version = await getBackupVersion();
+    String? deviceId = await getBackupId();
+    final authToken = await injector<AuthService>().getAuthToken();
+    final primaryAddressInfo =
+        await injector<AddressService>().getPrimaryAddressInfo();
+    final account = LibAukDart.getWallet(primaryAddressInfo!.uuid);
+    final endpoint = Environment.autonomyAuthURL;
+    final resp = await http.get(
+      Uri.parse(
+          '$endpoint/apis/v1/premium/profile-data?filename=$_dbEncryptedFileName&appVersion=$version'),
+      headers: {
+        'requester': deviceId,
+        'Authorization': 'Bearer ${authToken?.jwtToken}',
+      },
+    );
+    if (resp.statusCode == 200) {
+      log.info('[BackupService] got response');
+      try {
+        final version = await injector<CloudDatabase>().database.getVersion();
+        log.info('[BackupService] Cloud database local version is $version');
+        final tempFilePath =
+            '${(await getTemporaryDirectory()).path}/$_dbEncryptedFileName';
+        final tempFile = File(tempFilePath);
+        await tempFile.writeAsBytes(resp.bodyBytes, flush: true);
+        const String tempDbName = 'temp_cloud_database.db';
+        final dbFilePath =
+            await sqfliteDatabaseFactory.getDatabasePath(tempDbName);
+
         try {
-          final version = await injector<CloudDatabase>().database.getVersion();
-          log.info('[BackupService] Cloud database local version is $version');
-          final tempFilePath =
-              '${(await getTemporaryDirectory()).path}/$_dbEncryptedFileName';
-          final tempFile = File(tempFilePath);
-          await tempFile.writeAsBytes(resp.bodyBytes, flush: true);
-          const String tempDbName = 'temp_cloud_database.db';
-          final dbFilePath =
-              await sqfliteDatabaseFactory.getDatabasePath(tempDbName);
-
-          try {
-            await account.decryptFile(
-              inputPath: tempFilePath,
-              outputPath: dbFilePath,
-            );
-          } catch (e) {
-            log.warning('[BackupService] Cloud database decrypted failed,'
-                ' fallback to legacy method');
-            unawaited(Sentry.captureException(
-                '[BackupService] Cloud database decrypted failed, '
-                'fallback to legacy method, $e'));
-            await account.decryptFile(
-              inputPath: tempFilePath,
-              outputPath: dbFilePath,
-              usingLegacy: true,
-            );
-          }
-
-          final tempDbOld =
-              await sqfliteDatabaseFactory.openDatabase(dbFilePath);
-          final backUpVersion = await tempDbOld.getVersion();
-          log.info('[BackupService] '
-              'Cloud database backup version is $backUpVersion');
-          if (version > backUpVersion) {
-            await MigrationAdapter.runMigrations(
-                tempDbOld, backUpVersion, version, cloudDatabaseMigrations);
-          }
-
-          final tempDb =
-              await $FloorCloudDatabase.databaseBuilder(tempDbName).build();
-          await _cloudObjects.copyDataFrom(tempDb);
-          await tempFile.delete();
-          await File(dbFilePath).delete();
-          log.info('[BackupService] Cloud database is restored '
-              '$backUpVersion to $version');
-          await injector<SettingsDataService>().restoreSettingsData();
-          await _cloudObjects.setMigrated();
-          return;
+          await account.decryptFile(
+            inputPath: tempFilePath,
+            outputPath: dbFilePath,
+          );
         } catch (e) {
-          log.info('[BackupService] Failed to restore Cloud Database $e');
-          unawaited(Sentry.captureException(e, stackTrace: StackTrace.current));
-          return;
+          log.warning('[BackupService] Cloud database decrypted failed,'
+              ' fallback to legacy method');
+          unawaited(Sentry.captureException(
+              '[BackupService] Cloud database decrypted failed, '
+              'fallback to legacy method, $e'));
+          await account.decryptFile(
+            inputPath: tempFilePath,
+            outputPath: dbFilePath,
+            usingLegacy: true,
+          );
         }
+
+        final tempDbOld = await sqfliteDatabaseFactory.openDatabase(dbFilePath);
+        final backUpVersion = await tempDbOld.getVersion();
+        log.info('[BackupService] '
+            'Cloud database backup version is $backUpVersion');
+        if (version > backUpVersion) {
+          await MigrationAdapter.runMigrations(
+              tempDbOld, backUpVersion, version, cloudDatabaseMigrations);
+        }
+
+        final tempDb =
+            await $FloorCloudDatabase.databaseBuilder(tempDbName).build();
+        await _cloudObjects.copyDataFrom(tempDb);
+        await tempFile.delete();
+        await File(dbFilePath).delete();
+        log.info('[BackupService] Cloud database is restored '
+            '$backUpVersion to $version');
+        await injector<SettingsDataService>()
+            .restoreSettingsData(fromFile: true);
+        await _cloudObjects.setMigrated();
+        return;
+      } catch (e) {
+        log.info('[BackupService] Failed to restore Cloud Database $e');
+        unawaited(Sentry.captureException(e, stackTrace: StackTrace.current));
+        return;
       }
     }
 

@@ -105,4 +105,10 @@ class CloudObjects {
     _connectionAccountSettingsDB.clearCache();
     _settingsDataDB.clearCache();
   }
+
+  Future<void> forceUpload() async {
+    await _addressAccountSettingsDB.forceUpload();
+    await _connectionAccountSettingsDB.forceUpload();
+    await _settingsDataDB.forceUpload();
+  }
 }

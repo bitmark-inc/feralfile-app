@@ -20,11 +20,10 @@ import 'package:autonomy_flutter/encrypt_env/secrets.g.dart';
 import 'package:autonomy_flutter/model/announcement/announcement_adapter.dart';
 import 'package:autonomy_flutter/model/eth_pending_tx_amount.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/service/address_service.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/device_info_service.dart';
-import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/notification_service.dart';
@@ -32,10 +31,8 @@ import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/au_file_service.dart';
 import 'package:autonomy_flutter/util/canvas_device_adapter.dart';
 import 'package:autonomy_flutter/util/custom_route_observer.dart';
-import 'package:autonomy_flutter/util/dailies_helper.dart';
 import 'package:autonomy_flutter/util/device.dart';
 import 'package:autonomy_flutter/util/error_handler.dart';
-import 'package:autonomy_flutter/util/john_gerrard_helper.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/responsive.dart';
@@ -145,23 +142,21 @@ Future<void> _setupApp() async {
   await DeviceInfo.instance.init();
 
   await injector<DeviceInfoService>().init();
-  await injector<AddressService>().migrateToEthereumAddress();
+  final packageInfo = await PackageInfo.fromPlatform();
+  await injector<AccountService>().migrateAccount();
+  await injector<ConfigurationService>().setDoneOnboarding(true);
   final metricClient = injector.get<MetricClientService>();
   await metricClient.initService();
   await injector<RemoteConfigService>().loadConfigs();
 
   final countOpenApp = injector<ConfigurationService>().countOpenApp() ?? 0;
   injector<ConfigurationService>().setCountOpenApp(countOpenApp + 1);
-  final packageInfo = await PackageInfo.fromPlatform();
   await injector<ConfigurationService>().setVersionInfo(packageInfo.version);
   final notificationService = injector<NotificationService>();
   await notificationService.initNotification();
   await notificationService.startListeningNotificationEvents();
   await disableLandscapeMode();
-  final isPremium = await injector.get<IAPService>().isSubscribed();
-  await injector<ConfigurationService>().setPremium(isPremium);
-  await JohnGerrardHelper.updateJohnGerrardLatestRevealIndex();
-  DailiesHelper.updateDailies([]);
+
   // since we postpone handling deeplink until home, we don't need to delay this
   await injector<DeeplinkService>().setup();
 

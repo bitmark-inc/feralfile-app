@@ -9,6 +9,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
+import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/wallet_address.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_object.dart';
@@ -17,11 +18,8 @@ import 'package:autonomy_flutter/model/shared_postcard.dart';
 import 'package:autonomy_flutter/model/wc2_request.dart';
 import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_state.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
-import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/iap_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/util/android_backup_channel.dart';
@@ -42,14 +40,15 @@ import 'package:nft_collection/models/models.dart';
 import 'package:nft_collection/services/address_service.dart' as nft;
 import 'package:nft_collection/services/address_service.dart' as nft_address;
 import 'package:sentry_flutter/sentry_flutter.dart';
-import 'package:synchronized/synchronized.dart';
 import 'package:uuid/uuid.dart';
 
 abstract class AccountService {
+  Future<void> migrateAccount();
+
   Future<List<WalletAddress>> deriveAddressFromFirstPersona(
       WalletType walletType);
 
-  Future<List<WalletAddress>> getWalletsAddress(CryptoType cryptoType);
+  List<WalletAddress> getWalletsAddress(CryptoType cryptoType);
 
   Future<WalletStorage> getDefaultAccount();
 
@@ -108,8 +107,6 @@ abstract class AccountService {
 
   Future<void> updateAddressPersona(WalletAddress walletAddress);
 
-  Future<void> restoreIfNeeded();
-
   List<Connection> getAllViewOnlyAddresses();
 
   Future<List<WalletAddress>> insertNextAddress(WalletType walletType,
@@ -133,7 +130,6 @@ class AccountServiceImpl extends AccountService {
   final nft.AddressService _nftCollectionAddressService;
   final AddressService _addressService;
   final CloudObjects _cloudObject;
-  final _defaultAccountLock = Lock();
 
   AccountServiceImpl(
     this._tezosBeaconService,
@@ -152,7 +148,7 @@ class AccountServiceImpl extends AccountService {
     final uuid = const Uuid().v4();
     final walletStorage = LibAukDart.getWallet(uuid);
     await walletStorage.createKey(passphrase, name);
-    await androidBackupKeys();
+    await _androidBackupKeys([uuid]);
     log.fine('[AccountService] Created persona $uuid}');
     if (isDefault) {
       await _addressService.registerPrimaryAddress(
@@ -164,6 +160,7 @@ class AccountServiceImpl extends AccountService {
     }
     final wallets =
         await insertNextAddressFromUuid(uuid, WalletType.Autonomy, name: name);
+    await _cloudObject.setMigrated();
     return wallets;
   }
 
@@ -198,8 +195,13 @@ class AccountServiceImpl extends AccountService {
   }
 
   @override
-  Future<WalletStorage> getDefaultAccount() async =>
-      _defaultAccountLock.synchronized(() => _getDefaultAccount());
+  Future<WalletStorage> getDefaultAccount() async {
+    final defaultWallet = await _getDefaultWallet();
+    if (defaultWallet == null) {
+      throw AccountException(message: 'Default wallet not found');
+    }
+    return defaultWallet;
+  }
 
   @override
   Future<WalletIndex> getAccountByAddress({
@@ -220,9 +222,21 @@ class AccountServiceImpl extends AccountService {
     );
   }
 
-  Future<WalletStorage> _getDefaultAccount() async {
-    final primaryWallet = await getPrimaryWallet();
-    return LibAukDart.getWallet(primaryWallet.uuid);
+  Future<WalletStorage?> _getDefaultWallet() async {
+    /// we can improve this by checking if the wallet is exist in the server
+    String? uuid;
+    if (Platform.isIOS) {
+      final uuids = await MigrationUtil(this).getUUIDsFromKeychain();
+      uuid = uuids.firstOrNull;
+    } else {
+      final accounts = await _backupChannel.restoreKeys();
+      uuid = accounts.firstOrNull?.uuid;
+    }
+
+    if (uuid == null) {
+      return null;
+    }
+    return LibAukDart.getWallet(uuid);
   }
 
   Future<WalletAddress> getPrimaryWallet() async {
@@ -349,7 +363,7 @@ class AccountServiceImpl extends AccountService {
     /// to do:
     /// after apply new onboarding, we disable view-only address at onboarding,
     /// therefore, we do not need to register primary address here
-    final allAddresses = await _addressService.getAllEthereumAddress();
+    final allAddresses = _addressService.getAllEthereumAddress();
     if (allAddresses.isEmpty) {
       // for case when import view-only address,
       // the default account is not exist,
@@ -402,6 +416,12 @@ class AccountServiceImpl extends AccountService {
       final addresses = _cloudObject.addressObject.getAllAddresses();
       final uuids = addresses.map((e) => e.uuid).toSet().toList();
 
+      await _androidBackupKeys(uuids);
+    }
+  }
+
+  Future _androidBackupKeys(List<String> uuids) async {
+    if (Platform.isAndroid) {
       await _backupChannel.backupKeys(uuids);
     }
   }
@@ -599,18 +619,6 @@ class AccountServiceImpl extends AccountService {
     await _cloudObject.addressObject.insertAddresses(walletAddresses);
     await _nftCollectionAddressService
         .addAddresses(addresses.map((e) => e.address).toList());
-    // check if primary address is not set
-    final primaryAddressInfo = await _addressService.getPrimaryAddressInfo();
-    if (primaryAddressInfo == null) {
-      try {
-        final addressInfo = await _addressService.pickAddressAsPrimary();
-        await _addressService.registerPrimaryAddress(
-            info: addressInfo, withDidKey: true);
-      } catch (e, stacktrace) {
-        log.info('Error while picking primary address', e, stacktrace);
-        // rethrow;
-      }
-    }
     return result;
   }
 
@@ -675,63 +683,108 @@ class AccountServiceImpl extends AccountService {
   }
 
   @override
-  Future<void> restoreIfNeeded() async {
-    final iapService = injector<IAPService>();
-    final migrationUtil = MigrationUtil(this);
-    await androidRestoreKeys();
-    await migrationUtil.migrationFromKeychain();
-    final addresses = _cloudObject.addressObject.getAllAddresses();
+  Future<void> migrateAccount() async {
+    final addressInfo = await _addressService.getPrimaryAddressInfo();
+    final localCloudDB =
+        await injector<CloudDatabase>().addressDao.getAllAddresses();
+    final isDoneOnboarding = _configurationService.isDoneOnboarding();
+    final defaultWallet = await _getDefaultWallet();
 
-    final hasAddresses = addresses.isNotEmpty;
-    if (!hasAddresses) {
-      await _configurationService.setDoneOnboarding(hasAddresses);
+    log.info('[AccountService] migrateAccount - '
+        'addressInfo: ${addressInfo?.uuid}, '
+        'localCloudDB: ${localCloudDB.length}, '
+        'isDoneOnboarding: $isDoneOnboarding, '
+        'defaultWallet: ${defaultWallet?.uuid}');
+
+    /// in previous version, we assume that if user has primary address,
+    /// that is their default account (using to save cloud data base)
+    /// but if user has no primary address, but have backup version,
+    /// we will take the first uuid as default account
+    // case 1: complete new user, no primary address, no backup keychain
+    // nothing to do other than create new wallet
+    if (addressInfo == null && defaultWallet == null) {
+      await createNewWallet(isDefault: true);
+      return;
     }
-    if (_configurationService.isDoneOnboarding()) {
-      // dont need to force update, because
-      await injector<AuthService>().getAuthToken();
+
+    // case 2: update app from old version using did key
+    if (addressInfo == null && isDoneOnboarding && defaultWallet != null) {
+      await _addressService.registerPrimaryAddress(
+        info: primary_address_channel.AddressInfo(
+            uuid: defaultWallet.uuid, chain: 'ethereum', index: 0),
+        withDidKey: true,
+      );
+      await _cloudObject.copyDataFrom(injector<CloudDatabase>());
+
+      await _cloudObject.setMigrated();
+      // ensure that we have addresses;
+      await _ensureHavingEthereumAddress();
+      return;
+    }
+
+    // case 3: restore app from old version using did key
+    // we register first uuid as primary address (with didKey = true)
+    // then restore
+    if (addressInfo == null && !isDoneOnboarding && defaultWallet != null) {
+      await _addressService.registerPrimaryAddress(
+        info: primary_address_channel.AddressInfo(
+            uuid: defaultWallet.uuid, chain: 'ethereum', index: 0),
+        withDidKey: true,
+      );
+      await _backupService.restoreCloudDatabase();
+
+      // ensure that we have addresses;
+      await _ensureHavingEthereumAddress();
+    }
+
+    // from case 4, user has primary address,
+    // we need to check if user has migrate to account-settings;
+
+    final didMigrate =
+        await _cloudObject.addressObject.accountSettingsDB.didMigrate();
+
+    // case 4: migrated user
+    if (didMigrate) {
       await _cloudObject.downloadAll();
       return;
     }
-    // for user who did not onboarded before
-    if (hasAddresses) {
-      unawaited(_configurationService.setOldUser());
-      final backupVersion = await _backupService.getBackupVersion();
-      if (backupVersion.isNotEmpty) {
-        // if user has backup, restore from cloud
-        unawaited(_backupService.restoreCloudDatabase());
-        unawaited(injector<MetricClientService>()
-            .mixPanelClient
-            .initIfDefaultAccount());
-      }
 
-      // make sure has addresses
-      // case 1: user has no backup,
-      // case 2: user has backup but no addresses
-      final addresses = await _addressService.getAllEthereumAddress();
-      if (addresses.isEmpty) {
-        await getOrCreatePrimaryWallet();
-      }
+    // if user has not migrated, there are 2 cases:
+    // update app and restore app
+    // we need to check if user using ethereum or tezos for each case to migrate
 
-      // now has addresses, check if primary address is exist
-      final primaryAddressInfo = await _addressService.getPrimaryAddressInfo();
-
-      // if primary address is not exist, pick one and register as primary
-      if (primaryAddressInfo == null) {
-        final primaryAddressInfo = await _addressService.pickAddressAsPrimary();
-        await _addressService.registerPrimaryAddress(
-            info: primaryAddressInfo, withDidKey: true);
+    // case 5: update app from old version using primary address
+    if (isDoneOnboarding) {
+      // migrate to ethereum first, then upload to account-settings
+      if (!addressInfo!.isEthereum) {
+        await _addressService.migrateToEthereumAddress(addressInfo);
       }
-    } else {
-      // for new user, create default persona
-      await createNewWallet(isDefault: true);
-      await _configurationService.setDoneOnboarding(true);
-      await _cloudObject.setMigrated();
-      unawaited(injector<MetricClientService>()
-          .mixPanelClient
-          .initIfDefaultAccount());
+      await _cloudObject.copyDataFrom(injector<CloudDatabase>());
     }
 
-    unawaited(iapService.restore());
+    // case 6: restore app from old version using primary address
+    else {
+      await _backupService.restoreCloudDatabase();
+      // now all data are in _cloudObject cache
+      if (!addressInfo!.isEthereum) {
+        // migrate to tezos
+        await _addressService.migrateToEthereumAddress(addressInfo);
+
+        await _cloudObject.forceUpload();
+      }
+    }
+    await _cloudObject.setMigrated();
+
+    // ensure that we have addresses;
+    await _ensureHavingEthereumAddress();
+  }
+
+  Future<void> _ensureHavingEthereumAddress() async {
+    final ethAddresses = getWalletsAddress(CryptoType.ETH);
+    if (ethAddresses.isEmpty) {
+      await androidRestoreKeys();
+      await MigrationUtil(this).migrationFromKeychain();
+    }
   }
 
   @override
@@ -760,7 +813,7 @@ class AccountServiceImpl extends AccountService {
   }
 
   @override
-  Future<List<WalletAddress>> getWalletsAddress(CryptoType cryptoType) async =>
+  List<WalletAddress> getWalletsAddress(CryptoType cryptoType) =>
       _cloudObject.addressObject.getAddressesByType(cryptoType.source);
 
   @override

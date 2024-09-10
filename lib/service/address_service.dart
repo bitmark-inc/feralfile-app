@@ -8,26 +8,22 @@
 import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/wallet_address.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_object.dart';
-import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/primary_address_channel.dart';
 import 'package:autonomy_flutter/util/wallet_storage_ext.dart';
-import 'package:autonomy_flutter/util/wallet_utils.dart';
 import 'package:libauk_dart/libauk_dart.dart';
 import 'package:tezart/src/crypto/crypto.dart' as crypto;
 
 class AddressService {
   final PrimaryAddressChannel _primaryAddressChannel;
-  final CloudDatabase _cloudDB;
   final CloudObjects _cloudObject;
 
-  AddressService(this._primaryAddressChannel, this._cloudDB, this._cloudObject);
+  AddressService(this._primaryAddressChannel, this._cloudObject);
 
   AddressInfo? _primaryAddressInfo;
 
@@ -38,19 +34,10 @@ class AddressService {
     return addressInfo;
   }
 
-  Future<AddressInfo?> migrateToEthereumAddress() async {
-    final currentPrimaryAddress = await getPrimaryAddressInfo();
-    if (currentPrimaryAddress == null || currentPrimaryAddress.isEthereum) {
-      return null;
-    }
-    final allEthAddresses = await getAllEthereumAddress();
-    if (allEthAddresses.isEmpty) {
-      await injector<AccountService>().insertAddressAtIndexAndUuid(
-          currentPrimaryAddress.uuid,
-          index: 0,
-          walletType: WalletType.Ethereum);
-    }
-    final addressInfo = await pickAddressAsPrimary();
+  Future<AddressInfo?> migrateToEthereumAddress(
+      AddressInfo currentPrimaryAddress) async {
+    final addressInfo = AddressInfo(
+        uuid: currentPrimaryAddress.uuid, chain: 'ethereum', index: 0);
     await registerPrimaryAddress(info: addressInfo);
     return addressInfo;
   }
@@ -161,19 +148,19 @@ class AddressService {
       'feralfile-account: {"requester":"$address","timestamp":"$timestamp"}';
 
   Future<List<WalletAddress>> getAllAddress() async {
-    final addresses = await _cloudObject.addressObject.getAllAddresses();
+    final addresses = _cloudObject.addressObject.getAllAddresses();
     return addresses;
   }
 
-  Future<List<WalletAddress>> getAllEthereumAddress() async {
-    final addresses = await _cloudObject.addressObject
-        .getAddressesByType(CryptoType.ETH.source);
-    addresses.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+  List<WalletAddress> getAllEthereumAddress() {
+    final addresses = _cloudObject.addressObject
+        .getAddressesByType(CryptoType.ETH.source)
+      ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
     return addresses;
   }
 
-  Future<AddressInfo> pickAddressAsPrimary() async {
-    final ethAddresses = await getAllEthereumAddress();
+  AddressInfo pickAddressAsPrimary() {
+    final ethAddresses = getAllEthereumAddress();
     if (ethAddresses.isEmpty) {
       throw UnsupportedError('No address found');
     }

@@ -55,7 +55,7 @@ class _SelectAddressesPageState extends State<SelectAddressesPage> {
   }
 
   Future<void> fetchImportedAddresses() async {
-    final importedAddresses = await injector<CloudObjects>()
+    final importedAddresses = injector<CloudObjects>()
         .addressObject
         .getAddressesByPersona(widget.payload.wallet.uuid);
     setState(() {

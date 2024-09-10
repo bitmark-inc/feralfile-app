@@ -20,7 +20,7 @@ part 'settings_data_service.g.dart';
 abstract class SettingsDataService {
   Future backup();
 
-  Future restoreSettingsData();
+  Future restoreSettingsData({bool fromFile = false});
 }
 
 class SettingsDataServiceImpl implements SettingsDataService {
@@ -120,10 +120,9 @@ class SettingsDataServiceImpl implements SettingsDataService {
   }
 
   @override
-  Future restoreSettingsData() async {
+  Future restoreSettingsData({bool fromFile = false}) async {
     log.info('[SettingsDataService][Start] restoreSettingsData');
-    final didMigrate = await _cloudObject.settingsDataDB.didMigrate();
-    if (didMigrate) {
+    if (fromFile) {
       await _cloudObject.settingsDataDB.download();
       final res = _cloudObject.settingsDataDB.caches
           .map((key, value) => MapEntry(key, jsonDecode(value)));

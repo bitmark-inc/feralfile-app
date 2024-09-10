@@ -103,8 +103,6 @@ class AuthService {
       {required AddressInfo primaryAddressInfo,
       bool withDidKey = false}) async {
     final address = await _addressService.getAddress(info: primaryAddressInfo);
-    final publicKey = await _addressService.getAddressPublicKey(
-        addressInfo: primaryAddressInfo);
     final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
     final messageForAddress = _addressService.getFeralfileAccountMessage(
       address: address,
@@ -118,7 +116,6 @@ class AuthService {
     Map<String, dynamic> payload = {
       'requester': address,
       'type': primaryAddressInfo.chain,
-      'publicKey': publicKey,
       'signature': signatureForAddress,
       'timestamp': timestamp,
     };

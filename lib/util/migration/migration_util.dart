@@ -23,11 +23,16 @@ class MigrationUtil {
     if (!Platform.isIOS) {
       return;
     }
+    final personaUUIDs = await getUUIDsFromKeychain();
+    await _accountService.restoreUUIDs(personaUUIDs);
+  }
+
+  Future<List<String>> getUUIDsFromKeychain() async {
     final keychainUUIDs =
         await _channel.invokeMethod('getWalletUUIDsFromKeychain', {});
     final List<String> personaUUIDs =
         keychainUUIDs.map((e) => e.toString().toLowerCase()).tolist();
-    await _accountService.restoreUUIDs(personaUUIDs);
+    return personaUUIDs;
   }
 
   static Future<String?> getBackupDeviceID() async {

@@ -24,7 +24,7 @@ class AccountSettingsClient {
   }) async {
     final data = await _query(doc: _queryDoc, vars: vars);
     log.info('AccountSettingsClient: query $data');
-    final values =  data?['keys']?['values'];
+    final values = data?['keys']?['values'];
     return List<Map<String, String>>.from(values ?? []);
   }
 
@@ -67,6 +67,9 @@ class AccountSettingsClient {
   Future<bool> write({
     required List<Map<String, String>> data,
   }) async {
+    if (data.isEmpty) {
+      return true;
+    }
     final resultData = await _mutate(doc: _writeDoc, vars: {'data': data});
     log.info('AccountSettingsClient: write $data');
     return resultData?['write']?['ok'] ?? false;
