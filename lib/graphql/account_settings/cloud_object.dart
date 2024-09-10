@@ -108,6 +108,10 @@ class CloudObjects {
     _settingsDataDB.clearCache();
   }
 
+  Future<void> deleteAll() async {
+    await injector<AccountSettingsClient>().delete(vars: {'search': ''});
+  }
+
   Future<void> forceUpload() async {
     await _addressAccountSettingsDB.forceUpload();
     await _connectionAccountSettingsDB.forceUpload();

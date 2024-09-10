@@ -71,6 +71,7 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
       }
 
       injector<CloudObjects>().clearCache();
+      unawaited(injector<CloudObjects>().deleteAll());
       await _cloudDatabase.removeAll();
       await _appDatabase.removeAll();
       await _nftCollectionDatabase.removeAll();
