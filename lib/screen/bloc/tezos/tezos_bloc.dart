@@ -19,12 +19,12 @@ class TezosBloc extends AuBloc<TezosEvent, TezosState> {
 
   TezosBloc(this._tezosService, this._cloudObject)
       : super(TezosState(null, {})) {
-    on<GetTezosAddressEvent>((event, emit) async {
+    on<GetTezosAddressEvent>((event, emit) {
       if (state.personaAddresses?[event.uuid] != null) {
         return;
       }
 
-      final walletAddresses = await _cloudObject.addressObject
+      final walletAddresses = _cloudObject.addressObject
           .getAddresses(event.uuid, CryptoType.XTZ.source);
       var personaAddresses = state.personaAddresses ?? {};
       personaAddresses[event.uuid] = walletAddresses;
@@ -42,7 +42,7 @@ class TezosBloc extends AuBloc<TezosEvent, TezosState> {
     });
 
     on<GetTezosBalanceWithUUIDEvent>((event, emit) async {
-      final walletAddresses = await _cloudObject.addressObject
+      final walletAddresses = _cloudObject.addressObject
           .getAddresses(event.uuid, CryptoType.XTZ.source);
       if (walletAddresses.isEmpty) {
         emit(state.copyWith(personaAddresses: {}));

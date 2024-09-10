@@ -19,7 +19,6 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/notification_util.dart';
 import 'package:autonomy_flutter/util/primary_address_channel.dart';
 import 'package:dio/dio.dart';
-import 'package:libauk_dart/libauk_dart.dart';
 
 class AuthService {
   final IAPApi _authApi;

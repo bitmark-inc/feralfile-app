@@ -54,9 +54,8 @@ class _AddToCollectionScreenState extends State<AddToCollectionScreen>
     _controller
       ..addListener(_scrollListenerToLoadMore)
       ..addListener(_scrollListenerToShowSearchBar);
-    unawaited(refreshTokens().then((value) {
-      nftBloc.add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
-    }));
+    refreshTokens();
+    nftBloc.add(GetTokensByOwnerEvent(pageKey: PageKey.init()));
     bloc.add(InitPlaylist(playListModel: widget.playList));
   }
 
@@ -95,11 +94,10 @@ class _AddToCollectionScreenState extends State<AddToCollectionScreen>
     nftBloc.add(GetTokensByOwnerEvent(pageKey: nextKey));
   }
 
-  Future<List<String>> getManualTokenIds() async {
+  List<String> getManualTokenIds() {
     final cloudObject = injector<CloudObjects>();
-    final tokenIndexerIDs = (await cloudObject.connectionObject
-            .getConnectionsByType(
-                ConnectionType.manuallyIndexerTokenID.rawValue))
+    final tokenIndexerIDs = cloudObject.connectionObject
+        .getConnectionsByType(ConnectionType.manuallyIndexerTokenID.rawValue)
         .map((e) => e.key)
         .toList();
     return tokenIndexerIDs;
@@ -110,8 +108,8 @@ class _AddToCollectionScreenState extends State<AddToCollectionScreen>
     return await accountService.getAllAddresses();
   }
 
-  Future refreshTokens() async {
-    final indexerIds = await getManualTokenIds();
+  void refreshTokens() {
+    final indexerIds = getManualTokenIds();
 
     nftBloc.add(RefreshNftCollectionByOwners(
       debugTokens: indexerIds,

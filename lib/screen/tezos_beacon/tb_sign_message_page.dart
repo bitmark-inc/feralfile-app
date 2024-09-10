@@ -70,7 +70,7 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
   Future fetchPersona() async {
     WalletIndex? currentWallet;
     if (widget.request.sourceAddress != null) {
-      final walletAddress = await injector<CloudObjects>()
+      final walletAddress = injector<CloudObjects>()
           .addressObject
           .findByAddress(widget.request.sourceAddress!);
       if (walletAddress != null) {

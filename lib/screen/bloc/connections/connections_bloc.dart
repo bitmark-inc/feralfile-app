@@ -26,7 +26,7 @@ class ConnectionsBloc extends AuBloc<ConnectionsEvent, ConnectionsState> {
   Future<List<ConnectionItem>> _getWc2Connections(
       String address, ConnectionType type) async {
     final connections =
-        await _cloudObject.connectionObject.getConnectionsByType(type.rawValue);
+        _cloudObject.connectionObject.getConnectionsByType(type.rawValue);
     List<Connection> personaConnections = [];
     for (var connection in connections) {
       if (connection.accountNumber.contains(address)) {
@@ -46,7 +46,7 @@ class ConnectionsBloc extends AuBloc<ConnectionsEvent, ConnectionsState> {
 
   Future<List<ConnectionItem>> _getBeaconConnections(
       String personaUUID, int index) async {
-    final connections = await _cloudObject.connectionObject
+    final connections = _cloudObject.connectionObject
         .getConnectionsByType(ConnectionType.beaconP2PPeer.rawValue);
 
     List<Connection> personaConnections = [];
@@ -124,8 +124,8 @@ class ConnectionsBloc extends AuBloc<ConnectionsEvent, ConnectionsState> {
     });
 
     on<SessionDeletedEvent>((event, emit) async {
-      unawaited(_cloudObject.connectionObject
-          .deleteConnectionsByTopic(event.topic));
+      unawaited(
+          _cloudObject.connectionObject.deleteConnectionsByTopic(event.topic));
 
       if (state.connectionItems == null || state.connectionItems!.isEmpty) {
         return;

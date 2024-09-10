@@ -20,11 +20,11 @@ class EthereumBloc extends AuBloc<EthereumEvent, EthereumState> {
 
   EthereumBloc(this._ethereumService, this._cloudObject)
       : super(EthereumState(null, {})) {
-    on<GetEthereumAddressEvent>((event, emit) async {
+    on<GetEthereumAddressEvent>((event, emit) {
       if (state.personaAddresses?[event.uuid] != null) {
         return;
       }
-      final walletAddresses = await _cloudObject.addressObject
+      final walletAddresses = _cloudObject.addressObject
           .getAddresses(event.uuid, CryptoType.ETH.source);
       var personaAddresses = state.personaAddresses ?? {};
       personaAddresses[event.uuid] = walletAddresses;
@@ -41,7 +41,7 @@ class EthereumBloc extends AuBloc<EthereumEvent, EthereumState> {
     });
 
     on<GetEthereumBalanceWithUUIDEvent>((event, emit) async {
-      final walletAddresses = await _cloudObject.addressObject
+      final walletAddresses = _cloudObject.addressObject
           .getAddresses(event.uuid, CryptoType.ETH.source);
 
       if (walletAddresses.isEmpty) {
