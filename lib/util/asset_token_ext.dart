@@ -227,12 +227,6 @@ extension AssetTokenExtension on AssetToken {
       case 'MAINNET_tezos':
       case 'TESTNET_tezos':
         return 'https://tzkt.io/$contractAddress';
-
-      case 'MAINNET_bitmark':
-        return 'https://registry.bitmark.com/bitmark/$tokenId';
-
-      case 'TESTNET_bitmark':
-        return 'https://registry.test.bitmark.com/bitmark/$tokenId';
     }
     return null;
   }
