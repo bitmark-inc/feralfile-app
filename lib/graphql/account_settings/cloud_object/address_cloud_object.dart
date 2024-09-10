@@ -61,8 +61,8 @@ class WalletAddressCloudObject {
 
   List<WalletAddress> getAllAddresses() {
     final Map<String, dynamic> cache = {}
-    ..addAll(_accountSettingsDB.caches)
-    ..remove(_accountSettingsDB.migrateKey);
+      ..addAll(_accountSettingsDB.caches)
+      ..remove(_accountSettingsDB.migrateKey);
     final addresses = cache.values
         .map((value) => WalletAddress.fromJson(jsonDecode(value)))
         .toList();
