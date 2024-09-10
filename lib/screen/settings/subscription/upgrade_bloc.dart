@@ -11,15 +11,19 @@ import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
+import 'package:autonomy_flutter/util/subscription_details_ext.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:sentry/sentry.dart';
 
 class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
   final IAPService _iapService;
   final ConfigurationService _configurationService;
+  final MetricClientService _metricClientService;
 
-  UpgradesBloc(this._iapService, this._configurationService)
+  UpgradesBloc(
+      this._iapService, this._configurationService, this._metricClientService)
       : super(UpgradeState(subscriptionDetails: [])) {
     // Query IAP info initially
     on<UpgradeQueryInfoEvent>((event, emit) async {

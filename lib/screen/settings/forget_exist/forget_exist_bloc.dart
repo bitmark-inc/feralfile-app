@@ -97,7 +97,7 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
       _authService.reset();
       unawaited(injector<CacheManager>().emptyCache());
       unawaited(DefaultCacheManager().emptyCache());
-      unawaited(injector<MetricClientService>().mixPanelClient.reset());
+      injector<MetricClientService>().reset();
       memoryValues = MemoryValues();
 
       emit(ForgetExistState(state.isChecked, false));

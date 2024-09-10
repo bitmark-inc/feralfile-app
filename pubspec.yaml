@@ -74,7 +74,6 @@ dependencies:
   logging: ^1.2.0
   measured_size: ^1.0.0
   mime: ^1.0.1
-  mixpanel_flutter: ^2.0.0
   nft_rendering:
     git:
       url: https://github.com/autonomy-system/nft-rendering.git

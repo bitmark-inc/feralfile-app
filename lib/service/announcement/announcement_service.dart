@@ -8,9 +8,7 @@ import 'package:autonomy_flutter/model/announcement/announcement_local.dart';
 import 'package:autonomy_flutter/model/announcement/announcement_request.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_store.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter_app_badger/flutter_app_badger.dart';
@@ -148,14 +146,6 @@ class AnnouncementServiceImpl implements AnnouncementService {
 
       /// If the announcement is expired, mark it as read and show the next one
       if (announcement.isExpired) {
-        injector<MetricClientService>().addEvent(
-          MixpanelEvent.expiredBeforeViewing,
-          data: {
-            MixpanelProp.notificationId: announcement.announcementContentId,
-            MixpanelProp.channel: 'in-app',
-            MixpanelProp.type: additionalData.notificationType.toString()
-          },
-        );
         await _markAsReadAnnouncement(announcement);
         if (shouldRepeat) {
           await showOldestAnnouncement();

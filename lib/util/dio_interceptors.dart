@@ -160,6 +160,14 @@ class AutonomyAuthInterceptor extends Interceptor {
   }
 }
 
+class MetricsInterceptor extends Interceptor {
+  @override
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+    options.headers['x-api-key'] = Environment.metricSecretKey;
+    handler.next(options);
+  }
+}
+
 class QuickAuthInterceptor extends Interceptor {
   String jwtToken;
 

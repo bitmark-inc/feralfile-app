@@ -262,13 +262,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
         currentAsset?.medium == 'other' ||
         currentAsset?.medium == null;
     return BlocConsumer<ArtworkDetailBloc, ArtworkDetailState>(
-        listenWhen: (previous, current) {
-      if (previous.assetToken != current.assetToken &&
-          current.assetToken != null) {
-        unawaited(current.assetToken?.sendViewArtworkEvent());
-      }
-      return true;
-    }, listener: (context, state) {
+        listener: (context, state) {
       final identitiesList = state.provenances.map((e) => e.owner).toList();
       if (state.assetToken?.artistName != null &&
           state.assetToken!.artistName!.length > 20) {
