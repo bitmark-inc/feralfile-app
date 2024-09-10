@@ -38,7 +38,6 @@ import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/linked_wal
 import 'package:autonomy_flutter/screen/settings/crypto/wallet_detail/wallet_detail_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
-import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:flutter/material.dart';
 
@@ -168,12 +167,6 @@ extension RouteExt on Route {
         data = {
           MixpanelProp.title: payload.name,
           MixpanelProp.url: payload.url,
-        };
-      case AppRouter.wc2PermissionPage:
-        final payload = settings.arguments! as Wc2RequestPayload;
-        data = {
-          MixpanelProp.title: payload.proposer.name,
-          MixpanelProp.url: payload.proposer.url,
         };
       case AppRouter.postcardExplain:
         final payload = settings.arguments! as PostcardExplainPayload;
@@ -305,12 +298,6 @@ extension RouteExt on Route {
           MixpanelProp.title: payload.name,
           MixpanelProp.url: payload.url,
         };
-      case AppRouter.auSignMessagePage:
-        final payload = settings.arguments! as Wc2RequestPayload;
-        data = {
-          MixpanelProp.title: payload.proposer.name,
-          MixpanelProp.url: payload.proposer.url,
-        };
       case AppRouter.globalReceiveDetailPage:
         final payload = settings.arguments! as GlobalReceivePayload;
         data = {
@@ -412,12 +399,10 @@ final screenNameMap = {
   AppRouter.merchOrdersPage: 'Merch Orders',
   AppRouter.supportThreadPage: 'Support Thread',
   AppRouter.bugBountyPage: 'Bug Bounty',
-  AppRouter.keySyncPage: 'Key Sync',
   AppRouter.githubDocPage: 'Github Doc',
   AppRouter.sendArtworkPage: 'Send Artwork',
   AppRouter.sendArtworkReviewPage: 'Send Artwork Review',
   AppRouter.wc2ConnectPage: 'WC2 Connect',
-  AppRouter.wc2PermissionPage: 'WC2 Permission',
   AppRouter.preferencesPage: 'Preferences',
   AppRouter.walletPage: 'Wallet',
   AppRouter.dataManagementPage: 'Data Management',
@@ -449,7 +434,6 @@ final screenNameMap = {
   AppRouter.sendReviewPage: 'Send Review',
   AppRouter.importSeedsPage: 'Import Seeds',
   AppRouter.tbSignMessagePage: 'TB Sign Message',
-  AppRouter.auSignMessagePage: 'AU Sign Message',
   AppRouter.globalReceiveDetailPage: 'Global Receive Detail',
   AppRouter.chatThreadPage: 'Chat Thread',
   AppRouter.wcSignMessagePage: 'WC Sign Message',

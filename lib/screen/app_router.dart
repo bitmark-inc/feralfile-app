@@ -7,7 +7,6 @@
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
-import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
@@ -27,7 +26,6 @@ import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/connections/connections_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/ethereum/ethereum_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
-import 'package:autonomy_flutter/screen/bloc/persona/persona_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/tezos/tezos_bloc.dart';
@@ -120,17 +118,14 @@ import 'package:autonomy_flutter/screen/settings/preferences/preferences_page.da
 import 'package:autonomy_flutter/screen/settings/settings_page.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/subscription_page.dart';
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart';
-import 'package:autonomy_flutter/screen/tezos_beacon/au_sign_message_page.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_send_transaction_page.dart';
 import 'package:autonomy_flutter/screen/tezos_beacon/tb_sign_message_page.dart';
 import 'package:autonomy_flutter/screen/wallet/wallet_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_bloc.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/send/wc_send_transaction_page.dart';
-import 'package:autonomy_flutter/screen/wallet_connect/v2/wc2_permission_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_connect_page.dart';
 import 'package:autonomy_flutter/screen/wallet_connect/wc_sign_message_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/view/transparent_router.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -176,12 +171,10 @@ class AppRouter {
   static const merchOrdersPage = 'merch_orders_page';
   static const supportThreadPage = 'support_thread_page';
   static const bugBountyPage = 'bug_bounty_page';
-  static const keySyncPage = 'key_sync_page';
   static const githubDocPage = 'github_doc_page';
   static const sendArtworkPage = 'send_artwork_page';
   static const sendArtworkReviewPage = 'send_artwork_review_page';
   static const wc2ConnectPage = 'wc2_connect_page';
-  static const wc2PermissionPage = 'wc2_permission_page';
   static const preferencesPage = 'preferences_page';
   static const walletPage = 'wallet_page';
   static const subscriptionPage = 'subscription_page';
@@ -217,7 +210,6 @@ class AppRouter {
   static const nameAddressPersonaPage = 'name_address_persona_page';
   static const addressAliasPage = 'address_alias_page';
   static const tbSignMessagePage = 'tb_sign_message_page';
-  static const auSignMessagePage = 'au_sign_message_page';
   static const globalReceiveDetailPage = 'global_receive_detail_page';
   static const chatThreadPage = 'chat_thread_page';
   static const accessMethodPage = 'access_method_page';
@@ -240,12 +232,9 @@ class AppRouter {
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final ethereumBloc = EthereumBloc(injector(), injector());
     final tezosBloc = TezosBloc(injector(), injector());
-    final usdcBloc = USDCBloc(injector(), injector());
+    final usdcBloc = USDCBloc(injector());
     final accountsBloc = AccountsBloc(injector(), injector());
-    final personaBloc = PersonaBloc(
-      injector<CloudDatabase>(),
-      injector(),
-    );
+
     final connectionsBloc = injector<ConnectionsBloc>();
     final identityBloc = IdentityBloc(injector<AppDatabase>(), injector());
     final canvasDeviceBloc = injector<CanvasDeviceBloc>();
@@ -365,9 +354,6 @@ class AppRouter {
                     BlocProvider.value(
                       value: subscriptionBloc,
                     ),
-                    BlocProvider(
-                      create: (_) => personaBloc,
-                    ),
                     BlocProvider(lazy: false, create: (_) => connectionsBloc),
                     BlocProvider(create: (_) => canvasDeviceBloc),
                   ],
@@ -393,9 +379,6 @@ class AppRouter {
                     BlocProvider.value(value: royaltyBloc),
                     BlocProvider.value(
                       value: subscriptionBloc,
-                    ),
-                    BlocProvider(
-                      create: (_) => personaBloc,
                     ),
                     BlocProvider(create: (_) => canvasDeviceBloc),
 
@@ -552,7 +535,6 @@ class AppRouter {
             settings: settings,
             builder: (context) => MultiBlocProvider(providers: [
                   BlocProvider.value(value: accountsBloc),
-                  BlocProvider(create: (_) => personaBloc),
                   BlocProvider.value(value: ethereumBloc),
                   BlocProvider.value(value: tezosBloc),
                   BlocProvider(create: (_) => identityBloc),
@@ -694,11 +676,8 @@ class AppRouter {
       case addressAliasPage:
         return CupertinoPageRoute(
             settings: settings,
-            builder: (context) => BlocProvider(
-                  create: (_) => personaBloc,
-                  child: AddressAlias(
-                      payload: settings.arguments! as AddressAliasPayload),
-                ));
+            builder: (context) => AddressAlias(
+                payload: settings.arguments! as AddressAliasPayload));
 
       case artworkDetailsPage:
         return PageTransition(
@@ -752,12 +731,6 @@ class AppRouter {
           settings: settings,
           builder: (context) =>
               TBSignMessagePage(request: settings.arguments! as BeaconRequest),
-        );
-      case auSignMessagePage:
-        return CupertinoPageRoute(
-          settings: settings,
-          builder: (context) => AUSignMessagePage(
-              request: settings.arguments! as Wc2RequestPayload),
         );
       case tbSendTransactionPage:
         return CupertinoPageRoute(
@@ -941,9 +914,6 @@ class AppRouter {
           builder: (context) => MultiBlocProvider(
             providers: [
               BlocProvider.value(value: accountsBloc),
-              BlocProvider(
-                create: (_) => personaBloc,
-              ),
             ],
             child: WCConnectPage(
               connectionRequest: settings.arguments! as Wc2Proposal,
@@ -957,28 +927,12 @@ class AppRouter {
             builder: (context) =>
                 LinkManuallyPage(type: settings.arguments! as String));
 
-      case wc2PermissionPage:
-        return CupertinoPageRoute(
-            settings: settings,
-            builder: (context) => MultiBlocProvider(
-                    providers: [
-                      BlocProvider.value(value: accountsBloc),
-                      BlocProvider(
-                        create: (_) => personaBloc,
-                      ),
-                    ],
-                    child: Wc2RequestPage(
-                        request: settings.arguments! as Wc2RequestPayload)));
-
       case walletPage:
         return CupertinoPageRoute(
             settings: settings,
             builder: (context) => MultiBlocProvider(
                   providers: [
                     BlocProvider.value(value: accountsBloc),
-                    BlocProvider(
-                      create: (_) => personaBloc,
-                    ),
                   ],
                   child: WalletPage(
                     payload: settings.arguments as WalletPagePayload?,

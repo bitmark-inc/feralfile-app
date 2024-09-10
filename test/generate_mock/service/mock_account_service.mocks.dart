@@ -116,7 +116,7 @@ class MockAccountService extends _i1.Mock implements _i6.AccountService {
         )),
       ) as _i7.Future<_i2.WalletStorage>);
   @override
-  _i7.Future<_i3.Persona> getOrCreateDefaultPersona() => (super.noSuchMethod(
+  _i7.Future<_i3.Persona> getOrCreatePrimaryWallet() => (super.noSuchMethod(
         Invocation.method(
           #getOrCreateDefaultPersona,
           [],
@@ -216,7 +216,7 @@ class MockAccountService extends _i1.Mock implements _i6.AccountService {
         )),
       ) as _i7.Future<_i3.Persona>);
   @override
-  _i7.Future<_i3.Persona> createPersona({
+  _i7.Future<_i3.Persona> createNewWallet({
     String? name = r'',
     String? passphrase = r'',
     bool? isDefault = false,

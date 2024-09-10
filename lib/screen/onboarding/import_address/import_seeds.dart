@@ -179,7 +179,7 @@ class _ImportSeedsPageState extends State<ImportSeedsPage> {
       });
       final accountService = injector<AccountService>();
 
-      final persona = await accountService.importPersona(
+      final wallet = await accountService.importPersona(
         _getMnemonic(),
         _passphraseTextController.text.trim(),
       );
@@ -187,7 +187,7 @@ class _ImportSeedsPageState extends State<ImportSeedsPage> {
         return;
       }
       unawaited(Navigator.of(context).pushNamed(AppRouter.selectAddressesPage,
-          arguments: SelectAddressesPayload(persona: persona)));
+          arguments: SelectAddressesPayload(wallet: wallet)));
 
       if (!mounted) {
         return;

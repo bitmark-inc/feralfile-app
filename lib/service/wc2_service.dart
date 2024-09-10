@@ -25,7 +25,6 @@ import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/wallet_connect_ext.dart';
 import 'package:autonomy_flutter/util/wc2_ext.dart';
-import 'package:autonomy_flutter/util/wc2_tezos_ext.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
@@ -33,15 +32,11 @@ import 'package:web3dart/credentials.dart';
 
 class Wc2Service {
   static final Set<String> _supportedChains = {
-    Wc2Chain.autonomy,
     Wc2Chain.ethereum,
     Wc2Chain.tezos,
   };
 
   static final Set<String> supportedMethods = {
-    'au_sign',
-    'au_permissions',
-    'au_sendTransaction',
     'eth_sendTransaction',
     'personal_sign',
     'eth_sign',
@@ -114,8 +109,6 @@ class Wc2Service {
 
     _registerEthRequest('${Wc2Chain.ethereum}:${Environment.web3ChainId}');
 
-    _registerFeralfileRequest(
-        '${Wc2Chain.autonomy}:${Environment.appTestnetConfig ? 1 : 0}');
     addApprovedTopic(await _getAllConnectionKey());
   }
 
@@ -140,27 +133,6 @@ class Wc2Service {
     });
   }
 
-  void _registerFeralfileRequest(String chainId) {
-    final Map<String, dynamic Function(String, dynamic)?>
-        feralfileRequestHandlerMap = {
-      'au_sign': _handleAuSign,
-      'au_permissions': (String topic, params) async =>
-          _wait4SessionApproveThenHandleRequest(
-              topic, params, _handleAuPermissions),
-      'au_sendTransaction': _handleAuSendTx,
-    };
-    log.info('[Wc2Service] Registering handlers for chainId: $chainId');
-    feralfileRequestHandlerMap.forEach(
-      (method, handler) {
-        _wcClient.registerRequestHandler(
-            chainId: chainId,
-            method: method,
-            handler: (String topic, params) async =>
-                _checkResultWrapper(topic, params, handler));
-      },
-    );
-  }
-
   Future<void> _wait4SessionApproveThenHandleRequest(
       String topic, params, dynamic Function(String, dynamic) handler) async {
     int counter = 0;
@@ -183,36 +155,6 @@ class Wc2Service {
       throw _userRejectError;
     }
     return result;
-  }
-
-  Future _handleAuPermissions(String topic, params) async {
-    log.info('[Wc2Service] received autonomy-au_permissions request $params');
-    final proposer = await _getWc2Request(topic, params);
-    if (proposer == null) {
-      throw _proposalNotFound;
-    }
-    return await _navigationService.navigateTo(
-      AppRouter.wc2PermissionPage,
-      arguments:
-          Wc2RequestPayload(params: params, topic: topic, proposer: proposer),
-    );
-  }
-
-  Future _handleAuSign(String topic, params) async {
-    log.info('[Wc2Service] received autonomy-au_sign request $params');
-    final chain = (params['chain'] as String).caip2Namespace;
-    switch (chain) {
-      case Wc2Chain.ethereum:
-        return await _handleAuSignEth(topic, params);
-      case Wc2Chain.tezos:
-        return await _handleTezosSignRequest(topic, params);
-      case Wc2Chain.autonomy:
-        log.info('[Wc2Service] received autonomy-au_sign request $params');
-        return await _handleFeralfileSign(topic, params);
-      default:
-        log.warning('[Wc2Service] Chain not supported: $chain');
-        throw _chainNotSupported;
-    }
   }
 
   Future _handleEthPersonalSign(String topic, params) async {
@@ -252,45 +194,6 @@ class Wc2Service {
       throw _proposalNotFound;
     }
     return await _handleEthSendTransactionRequest(params, proposer, topic);
-  }
-
-  Future _handleAuSignEth(String topic, params) async {
-    log.info('[Wc2Service] received eip155-au_sign request $params');
-    final proposer = await _getWc2Request(topic, params);
-    if (proposer == null) {
-      throw _proposalNotFound;
-    }
-    final result = await _handleWC2EthereumSignRequest(
-        params, topic, proposer, WCSignType.PERSONAL_MESSAGE);
-    return result;
-  }
-
-  Future _handleFeralfileSign(String topic, parmas) async {
-    final proposer = await _getWc2Request(topic, parmas);
-    if (proposer == null) {
-      throw _proposalNotFound;
-    }
-    return await _handleAutonomySignRequest(parmas, topic, proposer);
-  }
-
-  Future _handleAuSendTx(String topic, params) async {
-    log.info('[Wc2Service] received au_sendTransaction request $params');
-    final proposer = await _getWc2Request(topic, params);
-    if (proposer == null) {
-      throw _proposalNotFound;
-    }
-    final chain = (params['chain'] as String).caip2Namespace;
-    switch (chain) {
-      case Wc2Chain.ethereum:
-        return await _handleAuEthSendTransactionRequest(
-            params, proposer, topic);
-      case Wc2Chain.tezos:
-        return await _handleAuTezSendTransactionRequest(
-            params, proposer, topic);
-      default:
-        log.warning('[Wc2Service] Chain not supported: $chain');
-        throw _chainNotSupported;
-    }
   }
 
   Future<PairingMetadata?> _getWc2Request(String topic, params) async {
@@ -365,7 +268,7 @@ class Wc2Service {
 
   Future cleanup() async {
     final connections = await _cloudDB.connectionDao
-        .getConnectionsByType(ConnectionType.walletConnect2.rawValue);
+        .getConnectionsByType(ConnectionType.dappConnect2.rawValue);
 
     // retains connections under 7 days old and limit to 5 connections.
     while (connections.length > 5 &&
@@ -384,11 +287,12 @@ class Wc2Service {
      */
   }
 
-  Future approveSession(Wc2Proposal proposal,
-      {required List<String> accounts,
-      required String connectionKey,
-      required String accountNumber,
-      bool isAuConnect = false}) async {
+  Future approveSession(
+    Wc2Proposal proposal, {
+    required List<String> accounts,
+    required String connectionKey,
+    required String accountNumber,
+  }) async {
     final Map<String, RequiredNamespace> mergedNamespaces =
         _mergeRequiredNameSpaces(
       proposal.requiredNamespaces,
@@ -410,9 +314,7 @@ class Wc2Service {
       key: '$connectionKey:$topic',
       name: proposal.proposer.name,
       data: json.encode(proposal.proposer),
-      connectionType: isAuConnect
-          ? ConnectionType.walletConnect2.rawValue
-          : ConnectionType.dappConnect2.rawValue,
+      connectionType: ConnectionType.dappConnect2.rawValue,
       accountNumber: accountNumber,
       createdAt: DateTime.now(),
     );
@@ -607,93 +509,5 @@ class Wc2Service {
     }
   }
 
-  Future _handleTezosSignRequest(String topic, param) async {
-    final proposer = await _getWc2Request(topic, param);
-    if (proposer == null) {
-      throw _proposalNotFound;
-    }
-    final beaconRequest = getBeaconRequest(
-      topic,
-      param,
-      proposer,
-      0,
-    );
-    return await _navigationService.navigateTo(
-      AppRouter.tbSignMessagePage,
-      arguments: beaconRequest,
-    );
-  }
-
-  Future _handleAutonomySignRequest(
-          params, String topic, PairingMetadata proposer) async =>
-      await _navigationService.navigateTo(
-        AppRouter.auSignMessagePage,
-        arguments:
-            Wc2RequestPayload(params: params, topic: topic, proposer: proposer),
-      );
-
-  Future _handleAuEthSendTransactionRequest(
-      params, PairingMetadata proposer, String topic) async {
-    try {
-      final walletIndex = await _accountService.getAccountByAddress(
-        chain: 'eip155',
-        address: params['address'],
-      );
-      var transaction = params['transactions'][0] as Map<String, dynamic>;
-      if (transaction['data'] == null) {
-        transaction['data'] = '';
-      }
-      if (transaction['gas'] == null) {
-        transaction['gas'] = '';
-      }
-      if (transaction['to'] == null) {
-        log.info('[Wc2Service] Invalid transaction: no recipient');
-        throw JsonRpcError.invalidParams('Invalid transaction: no recipient');
-      }
-      final args = WCSendTransactionPageArgs(
-        proposer,
-        WCEthereumTransaction.fromJson(transaction),
-        walletIndex.wallet.uuid,
-        walletIndex.index,
-        topic: topic,
-      );
-      return await _navigationService.navigateTo(
-        AppRouter.wcSendTransactionPage,
-        arguments: args,
-      );
-    } catch (e) {
-      throw JsonRpcError.invalidParams(e.toString());
-    }
-  }
-
-  Future _handleAuTezSendTransactionRequest(
-      params, PairingMetadata proposer, String topic) async {
-    try {
-      final beaconRequest = getBeaconRequest(
-        topic,
-        params,
-        proposer,
-        0,
-      );
-      return await _navigationService.navigateTo(
-        AppRouter.tbSendTransactionPage,
-        arguments: beaconRequest,
-      );
-    } catch (e) {
-      throw JsonRpcError.invalidParams(e.toString());
-    }
-  }
 //#endregion
-}
-
-class Wc2RequestPayload {
-  dynamic params;
-  String topic;
-  PairingMetadata proposer;
-
-  Wc2RequestPayload({
-    required this.params,
-    required this.topic,
-    required this.proposer,
-  });
 }

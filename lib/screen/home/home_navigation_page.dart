@@ -23,7 +23,6 @@ import 'package:autonomy_flutter/screen/home/home_bloc.dart';
 import 'package:autonomy_flutter/screen/home/home_state.dart';
 import 'package:autonomy_flutter/screen/scan_qr/scan_qr_page.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
-import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/chat_service.dart';
 import 'package:autonomy_flutter/service/client_token_service.dart';
@@ -366,7 +365,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         );
       });
     });
-    injector<AuditService>().auditFirstLog();
     OneSignal.shared.setNotificationOpenedHandler((openedResult) async {
       log.info('Tapped push notification: '
           '${openedResult.notification.additionalData}');

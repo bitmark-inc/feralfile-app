@@ -11,7 +11,6 @@ import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
-import 'package:autonomy_flutter/database/entity/persona.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/forget_exist/forget_exist_state.dart';
@@ -35,7 +34,6 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
   final AuthService _authService;
-  final AccountService _accountService;
   final IAPApi _iapApi;
   final CloudDatabase _cloudDatabase;
   final AppDatabase _appDatabase;
@@ -45,7 +43,6 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
 
   ForgetExistBloc(
     this._authService,
-    this._accountService,
     this._iapApi,
     this._cloudDatabase,
     this._appDatabase,
@@ -70,12 +67,6 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
         await _iapApi.deleteUserData();
       } catch (e) {
         log.info('Error when delete all profiles: $e');
-      }
-
-      final List<Persona> personas =
-          await _cloudDatabase.personaDao.getPersonas();
-      for (var persona in personas) {
-        await _accountService.deletePersona(persona);
       }
 
       await _cloudDatabase.removeAll();
