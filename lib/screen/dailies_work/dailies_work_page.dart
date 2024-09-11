@@ -98,7 +98,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
     if (_nextDailyToken == null) {
       unawaited(Sentry.captureMessage('nextDailyToken is null'));
     }
-    const defaultDuration = Duration(hours: 1);
+    const defaultDuration = Duration(minutes: 3);
     final nextDailyduration =
         _calcRemainingDuration ?? (_nextDay.difference(DateTime.now()));
     final duration = nextDailyduration > defaultDuration
