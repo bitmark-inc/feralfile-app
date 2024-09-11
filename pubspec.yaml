@@ -223,23 +223,6 @@ flutter:
   # list giving the asset and other descriptors for the font. For
   # example:
   fonts:
-    - family: AtlasGrotesk
-      fonts:
-        - asset: assets/fonts/AtlasGrotesk/AtlasGrotesk-Regular.otf
-        - asset: assets/fonts/AtlasGrotesk/AtlasGrotesk-Light.otf
-        - asset: assets/fonts/AtlasGrotesk/AtlasGrotesk-Medium.otf
-        - asset: assets/fonts/AtlasGrotesk/AtlasGrotesk-Bold.otf
-          weight: 700
-    - family: DomaineSansText
-      fonts:
-        - asset: assets/fonts/DomaineSansText/DomaineSansText-Regular.otf
-    - family: IBMPlexMono
-      fonts:
-        - asset: assets/fonts/IBMPlexMono/IBMPlexMono-Regular.ttf
-        - asset: assets/fonts/IBMPlexMono/IBMPlexMono-Bold.ttf
-          weight: 700
-        - asset: assets/fonts/IBMPlexMono/IBMPlexMono-SemiBold.ttf
-
     - family: PPMori
       fonts:
         - asset: assets/fonts/PPMori/PPMori-Regular.ttf
