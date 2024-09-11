@@ -915,4 +915,7 @@ class ArtworkIdentity {
     }
     return other is ArtworkIdentity && id == other.id && owner == other.owner;
   }
+
+  @override
+  int get hashCode => id.hashCode ^ owner.hashCode;
 }
