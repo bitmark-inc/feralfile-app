@@ -103,7 +103,7 @@ class CanvasClientServiceV2 {
     final request = ConnectRequestV2(
         clientDevice: deviceInfo, primaryAddress: primaryAddress ?? '');
     final response = await stub.connect(request);
-    await _mergeUser(deviceInfo.deviceId);
+    await _mergeUser(device.deviceId);
     return response;
   }
 
