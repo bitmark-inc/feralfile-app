@@ -21,6 +21,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart' as my_device;
 import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter/material.dart';
+import 'package:sentry/sentry.dart';
 
 class CanvasClientServiceV2 {
   final HiveStoreObjectService<CanvasDevice> _db;
@@ -84,8 +85,14 @@ class CanvasClientServiceV2 {
   }
 
   Future<void> _mergeUser(String oldUserId) async {
-    final metricClientService = injector<MetricClientService>();
-    await metricClientService.mergeUser(oldUserId);
+    try {
+      final metricClientService = injector<MetricClientService>();
+      await metricClientService.mergeUser(oldUserId);
+    } catch (e) {
+      log.info('CanvasClientService: _mergeUser error: $e');
+      unawaited(
+          Sentry.captureException('CanvasClientService: _mergeUser error: $e'));
+    }
   }
 
   Future<ConnectReplyV2> _connect(CanvasDevice device) async {
