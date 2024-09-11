@@ -14,6 +14,7 @@ import 'package:autonomy_flutter/screen/settings/subscription/upgrade_bloc.dart'
 import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
+import 'package:autonomy_flutter/util/datetime_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/subscription_detail_ext.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -288,13 +289,20 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                     ),
                     const Spacer(),
                     if (subscriptionStatus?.expireDate != null)
-                      Text(
-                        'expires_'.tr(namedArgs: {
-                          'date': dateFormater
-                              .format(subscriptionStatus!.expireDate!)
-                        }),
-                        style: theme.textTheme.ppMori400Black14,
-                      ),
+                      if (subscriptionStatus!.expireDate!
+                          .isMembershipLifetime())
+                        Text(
+                          'lifetime'.tr(),
+                          style: theme.textTheme.ppMori700Black14,
+                        )
+                      else
+                        Text(
+                          'expires_'.tr(namedArgs: {
+                            'date': dateFormater
+                                .format(subscriptionStatus.expireDate!)
+                          }),
+                          style: theme.textTheme.ppMori400Black14,
+                        ),
                   ],
                 ),
               ),

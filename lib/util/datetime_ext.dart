@@ -7,19 +7,19 @@
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
-final DateFormat dateFormatterYMDHM = DateFormat('yyyy-MMM-dd HH:mm', "en_US");
-final DateFormat dateFormatterMDHM = DateFormat('dd MMMM, HH:mm', "en_US");
-final DateFormat timeFormatterHM = DateFormat('HH:mm', "en_US");
-final DateFormat dateFormatterMD = DateFormat('MMM-dd', "en_US");
-final DateFormat dateFormatterYMD = DateFormat('yyyy-MMM-dd', "en_US");
-final DateFormat dateFormatterWdHM = DateFormat('EEEE HH:mm', "en_US");
+final DateFormat dateFormatterYMDHM = DateFormat('yyyy-MMM-dd HH:mm', 'en_US');
+final DateFormat dateFormatterMDHM = DateFormat('dd MMMM, HH:mm', 'en_US');
+final DateFormat timeFormatterHM = DateFormat('HH:mm', 'en_US');
+final DateFormat dateFormatterMD = DateFormat('MMM-dd', 'en_US');
+final DateFormat dateFormatterYMD = DateFormat('yyyy-MMM-dd', 'en_US');
+final DateFormat dateFormatterWdHM = DateFormat('EEEE HH:mm', 'en_US');
 
-String localTimeString(DateTime date) {
-  return dateFormatterYMDHM.format(date.toLocal()).toUpperCase();
-}
+String localTimeString(DateTime date) =>
+    dateFormatterYMDHM.format(date.toLocal()).toUpperCase();
 
 String postcardTimeString(DateTime date) {
   final countryCode =
@@ -28,7 +28,7 @@ String postcardTimeString(DateTime date) {
       Localizations.localeOf(injector<NavigationService>().context)
           .languageCode;
   final formater =
-      DateFormat("yyyy-MMM-dd HH:mm", "$languageCode-$countryCode");
+      DateFormat('yyyy-MMM-dd HH:mm', '$languageCode-$countryCode');
   return formater.format(date.toLocal()).toUpperCase();
 }
 
@@ -49,14 +49,12 @@ String getVerboseDateTimeRepresentation(DateTime dateTime) {
   return dateFormatterYMDHM.format(dateTime).toUpperCase();
 }
 
-String getLocalTimeOnly(DateTime dateTime) {
-  return timeFormatterHM.format(dateTime);
-}
+String getLocalTimeOnly(DateTime dateTime) => timeFormatterHM.format(dateTime);
 
 String getChatDateTimeRepresentation(DateTime dateTime) {
   final DateTime now = DateTime.now();
   if (DateUtils.isSameDay(dateTime, now)) {
-    return "today_at".tr(args: [timeFormatterHM.format(dateTime)]);
+    return 'today_at'.tr(args: [timeFormatterHM.format(dateTime)]);
   }
   if (isInAWeekOffset(dateTime)) {
     return dateFormatterWdHM.format(dateTime.toLocal());
@@ -79,7 +77,13 @@ bool isInAWeekOffset(DateTime datetime) {
 }
 
 extension DateTimeExt on DateTime {
-  DateTime get startDayOfWeek {
-    return DateTime.utc(year, month, day - weekday + 1);
+  DateTime get startDayOfWeek => DateTime.utc(year, month, day - weekday + 1);
+
+  bool isMembershipLifetime() {
+    final defaultTime = DateTime.utc(2100);
+    final configTime = injector<RemoteConfigService>().getConfig<String>(
+        ConfigGroup.membership, ConfigKey.lifetime, defaultTime.toString());
+    final lifetime = DateTime.parse(configTime);
+    return isAtSameMomentAs(lifetime);
   }
 }
