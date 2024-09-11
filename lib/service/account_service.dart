@@ -649,11 +649,12 @@ class AccountServiceImpl extends AccountService {
 
   @override
   Future<void> migrateAccount() async {
+    // make sure to call restoreKeys to activate all seed data
+    final defaultWallet = await _getDefaultWallet();
     final addressInfo = await _addressService.getPrimaryAddressInfo();
     final cloudDb = injector<CloudDatabase>();
     final localCloudDB = await cloudDb.addressDao.getAllAddresses();
     final isDoneOnboarding = _configurationService.isDoneOnboarding();
-    final defaultWallet = await _getDefaultWallet();
 
     log.info('[AccountService] migrateAccount - '
         'addressInfo: ${addressInfo?.uuid}, '
