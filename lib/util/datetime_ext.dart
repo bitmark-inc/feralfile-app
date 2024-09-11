@@ -85,7 +85,7 @@ extension DateTimeExt on DateTime {
   }
 
   bool isMembershipLifetime() {
-    final defaultTime = DateTime.utc(2100, 1, 1);
+    final defaultTime = DateTime.utc(2100);
     final configTime = injector<RemoteConfigService>().getConfig<String>(
         ConfigGroup.membership, ConfigKey.lifetime, defaultTime.toString());
     final lifetime = DateTime.parse(configTime);
