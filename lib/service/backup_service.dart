@@ -16,7 +16,6 @@ import 'package:autonomy_flutter/graphql/account_settings/cloud_object.dart';
 import 'package:autonomy_flutter/model/backup_versions.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
-import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/helpers.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/migration/migration_util.dart';
@@ -151,8 +150,6 @@ class BackupService {
 
         final tempDb =
             await $FloorCloudDatabase.databaseBuilder(tempDbName).build();
-        await injector<SettingsDataService>()
-            .restoreSettingsData(fromFile: true);
         await _cloudObjects.copyDataFrom(tempDb);
         await tempFile.delete();
         await File(dbFilePath).delete();
@@ -161,11 +158,9 @@ class BackupService {
       } catch (e) {
         log.info('[BackupService] Failed to restore Cloud Database $e');
         unawaited(Sentry.captureException(e, stackTrace: StackTrace.current));
-      } finally {
-
-        await _cloudObjects.setMigrated();
       }
     }
+    await _cloudObjects.setMigrated();
 
     log.info('[BackupService] done database restore');
   }
