@@ -65,7 +65,7 @@ abstract class IAPApi {
     @Path('id') String id,
   );
 
-  @PATCH('/apis/metrics/devices/{id}')
+  @PATCH('/apis/metric-devices/{id}')
   Future<void> updateMetrics(
     @Path('id') String deviceId,
   );
