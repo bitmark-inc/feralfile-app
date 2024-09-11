@@ -14,18 +14,18 @@ class CanvasDevice {
 
   //fromJson method
   factory CanvasDevice.fromJson(Map<String, dynamic> json) => CanvasDevice(
-        deviceId: json["deviceId"] as String,
-        locationId: json["locationId"] as String,
-        topicId: json["topicId"] as String,
-        name: json["name"] as String,
+        deviceId: json['deviceId'] as String,
+        locationId: json['locationId'] as String,
+        topicId: json['topicId'] as String,
+        name: json['name'] as String,
       );
 
   // toJson
   Map<String, dynamic> toJson() => {
-        "deviceId": deviceId,
-        "locationId": locationId,
-        "topicId": topicId,
-        "name": name,
+        'deviceId': deviceId,
+        'locationId': locationId,
+        'topicId': topicId,
+        'name': name,
       };
 
   // copyWith
@@ -34,14 +34,13 @@ class CanvasDevice {
     String? locationId,
     String? topicId,
     String? name,
-  }) {
-    return CanvasDevice(
-      deviceId: deviceId ?? this.deviceId,
-      locationId: locationId ?? this.locationId,
-      topicId: topicId ?? this.topicId,
-      name: name ?? this.name,
-    );
-  }
+  }) =>
+      CanvasDevice(
+        deviceId: deviceId ?? this.deviceId,
+        locationId: locationId ?? this.locationId,
+        topicId: topicId ?? this.topicId,
+        name: name ?? this.name,
+      );
 
   @override
   bool operator ==(Object other) {
@@ -50,6 +49,9 @@ class CanvasDevice {
     }
     return other is CanvasDevice && deviceId == other.deviceId;
   }
+
+  @override
+  int get hashCode => deviceId.hashCode;
 }
 
 class DeviceInfo {
@@ -62,18 +64,14 @@ class DeviceInfo {
   });
 
   // Factory constructor to create an instance from JSON
-  factory DeviceInfo.fromJson(Map<String, dynamic> json) {
-    return DeviceInfo(
-      deviceId: json['device_id'] as String,
-      deviceName: json['device_name'] as String,
-    );
-  }
+  factory DeviceInfo.fromJson(Map<String, dynamic> json) => DeviceInfo(
+        deviceId: json['device_id'] as String,
+        deviceName: json['device_name'] as String,
+      );
 
   // Method to convert an instance to JSON
-  Map<String, dynamic> toJson() {
-    return {
-      'device_id': deviceId,
-      'device_name': deviceName,
-    };
-  }
+  Map<String, dynamic> toJson() => {
+        'device_id': deviceId,
+        'device_name': deviceName,
+      };
 }
