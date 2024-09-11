@@ -1,7 +1,7 @@
 import 'package:autonomy_flutter/graphql/account_settings/account_settings_client.dart';
 
 abstract class AccountSettingsDB {
-  Future<void> download();
+  Future<void> download({List<String>? keys});
 
   Future<void> forceUpload();
 
@@ -33,13 +33,19 @@ class AccountSettingsDBImpl implements AccountSettingsDB {
   final Map<String, String> _caches = {};
 
   @override
-  Future<void> download() async {
-    final values = await _client.query(vars: {'search': '$_prefix.'});
+  Future<void> download({List<String>? keys}) async {
+    late List<Map<String, String>> values;
+    if (keys != null) {
+      values =
+          await _client.query(vars: {'keys': keys.map(getFullKey).toList()});
+    } else {
+      values = await _client.query(vars: {'search': '$_prefix.'});
+    }
     for (var value in values) {
-      if (value['key'] == null) {
+      if (value['key'] == null || value['value'] == null) {
         continue;
       }
-      _caches[value['key']!] = value['value'] ?? '';
+      _caches[value['key']!] = value['value']!;
     }
   }
 

@@ -7,11 +7,14 @@ import 'package:autonomy_flutter/graphql/account_settings/account_settings_clien
 import 'package:autonomy_flutter/graphql/account_settings/account_settings_db.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_object/address_cloud_object.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_object/connection_cloud_object.dart';
+import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/migration/migration_util.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 class CloudObjects {
-  late final String _deviceUniqueId;
+  late final String _requester;
+  late final String _deviceId;
+  late final String _flavor;
 
   late final WalletAddressCloudObject _walletAddressObject;
   late final AccountSettingsDB _addressAccountSettingsDB;
@@ -25,29 +28,30 @@ class CloudObjects {
     unawaited(_init());
   }
 
-  Future<String> _getBackupId() async {
+  Future<void> _getBackupId() async {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
     String? deviceId = await MigrationUtil.getBackupDeviceID();
-
-    return '${deviceId}_${packageInfo.packageName}';
+    _deviceId = deviceId ?? '_';
+    _flavor = packageInfo.packageName.contains('inhouse') ? 'inhouse' : 'prd';
+    _requester = '${deviceId}_${packageInfo.packageName}';
   }
 
   Future<void> _init() async {
-    _deviceUniqueId = await _getBackupId();
+    await _getBackupId();
 
     /// Wallet Address
-    _addressAccountSettingsDB = AccountSettingsDBImpl(
-        injector(), [_db, _commonKeyPrefix, _walletAddressKeyPrefix].join('.'));
+    _addressAccountSettingsDB = AccountSettingsDBImpl(injector(),
+        [_flavor, _commonKeyPrefix, _db, _walletAddressKeyPrefix].join('.'));
     _walletAddressObject = WalletAddressCloudObject(_addressAccountSettingsDB);
 
     /// Connection
     _connectionAccountSettingsDB = AccountSettingsDBImpl(
-        injector(), [_db, _deviceUniqueId, _connectionKeyPrefix].join('.'));
+        injector(), [_flavor, _deviceId, _db, _connectionKeyPrefix].join('.'));
     _connectionObject = ConnectionCloudObject(_connectionAccountSettingsDB);
 
     /// Settings
     _settingsDataDB = AccountSettingsDBImpl(injector(),
-        [_settings, _deviceUniqueId, _settingsDataKeyPrefix].join('.'));
+        [_flavor, _deviceId, _settings, _settingsDataKeyPrefix].join('.'));
   }
 
   // this will be shared across all physical devices
@@ -95,7 +99,7 @@ class CloudObjects {
     });
 
     try {
-      await injector<IAPApi>().deleteAllProfiles(_deviceUniqueId);
+      await injector<IAPApi>().deleteAllProfiles(_requester);
     } catch (_) {}
   }
 
@@ -103,7 +107,8 @@ class CloudObjects {
     await Future.wait([
       _addressAccountSettingsDB.download(),
       _connectionAccountSettingsDB.download(),
-      _settingsDataDB.download()
+      _settingsDataDB.download(
+          keys: injector<SettingsDataService>().settingsKeys),
     ]);
   }
 

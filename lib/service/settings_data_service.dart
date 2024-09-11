@@ -21,6 +21,8 @@ abstract class SettingsDataService {
   Future backup();
 
   Future restoreSettingsData({bool fromFile = false});
+
+  List<String> get settingsKeys;
 }
 
 class SettingsDataServiceImpl implements SettingsDataService {
@@ -40,6 +42,22 @@ class SettingsDataServiceImpl implements SettingsDataService {
   final _version = '1';
   var _numberOfCallingBackups = 0;
 
+  static const _keyIsAnalyticsEnabled = 'isAnalyticsEnabled';
+  static const _keyHiddenMainnetTokenIDs = 'hiddenMainnetTokenIDs';
+  static const _keyHiddenAddressesFromGallery = 'hiddenAddressesFromGallery';
+  static const _keyHiddenLinkedAccountsFromGallery =
+      'hiddenLinkedAccountsFromGallery';
+  static const _keyPlaylists = 'playlists';
+
+  @override
+  List<String> settingsKeys = [
+    _keyIsAnalyticsEnabled,
+    _keyHiddenMainnetTokenIDs,
+    _keyHiddenAddressesFromGallery,
+    _keyHiddenLinkedAccountsFromGallery,
+    _keyPlaylists,
+  ];
+
   @override
   Future backup() async {
     log.info('[SettingsDataService][Start] backup');
@@ -56,18 +74,18 @@ class SettingsDataServiceImpl implements SettingsDataService {
 
     final isAnalyticsEnabled =
         jsonEncode(_configurationService.isAnalyticsEnabled());
-    if (currentSettings['isAnalyticsEnabled'] != isAnalyticsEnabled) {
+    if (currentSettings[_keyIsAnalyticsEnabled] != isAnalyticsEnabled) {
       newSettings.add({
-        'key': 'isAnalyticsEnabled',
+        'key': _keyIsAnalyticsEnabled,
         'value': isAnalyticsEnabled,
       });
     }
 
     final hiddenMainnetTokenIDs =
         jsonEncode(_configurationService.getTempStorageHiddenTokenIDs());
-    if (currentSettings['hiddenMainnetTokenIDs'] != hiddenMainnetTokenIDs) {
+    if (currentSettings[_keyHiddenMainnetTokenIDs] != hiddenMainnetTokenIDs) {
       newSettings.add({
-        'key': 'hiddenMainnetTokenIDs',
+        'key': _keyHiddenMainnetTokenIDs,
         'value': hiddenMainnetTokenIDs,
       });
     }
@@ -76,28 +94,28 @@ class SettingsDataServiceImpl implements SettingsDataService {
         .findAddressesWithHiddenStatus(true)
         .map((e) => e.address)
         .toList());
-    if (currentSettings['hiddenAddressesFromGallery'] !=
+    if (currentSettings[_keyHiddenAddressesFromGallery] !=
         hiddenAddressesFromGallery) {
       newSettings.add({
-        'key': 'hiddenAddressesFromGallery',
+        'key': _keyHiddenAddressesFromGallery,
         'value': hiddenAddressesFromGallery,
       });
     }
 
     final hiddenLinkedAccountsFromGallery =
         jsonEncode(_configurationService.getLinkedAccountsHiddenInGallery());
-    if (currentSettings['hiddenLinkedAccountsFromGallery'] !=
+    if (currentSettings[_keyHiddenLinkedAccountsFromGallery] !=
         hiddenLinkedAccountsFromGallery) {
       newSettings.add({
-        'key': 'hiddenLinkedAccountsFromGallery',
+        'key': _keyHiddenLinkedAccountsFromGallery,
         'value': hiddenLinkedAccountsFromGallery,
       });
     }
 
     final playlists = jsonEncode(_configurationService.getPlayList());
-    if (currentSettings['playlists'] != playlists) {
+    if (currentSettings[_keyPlaylists] != playlists) {
       newSettings.add({
-        'key': 'playlists',
+        'key': _keyPlaylists,
         'value': playlists,
       });
     }
@@ -123,7 +141,7 @@ class SettingsDataServiceImpl implements SettingsDataService {
   Future restoreSettingsData({bool fromFile = false}) async {
     log.info('[SettingsDataService][Start] restoreSettingsData');
     if (!fromFile) {
-      await _cloudObject.settingsDataDB.download();
+      await _cloudObject.settingsDataDB.download(keys: settingsKeys);
       final res = _cloudObject.settingsDataDB.caches
           .map((key, value) => MapEntry(key, jsonDecode(value)));
 
