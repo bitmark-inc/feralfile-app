@@ -39,6 +39,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:sentry/sentry.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class DailyWorkPage extends StatefulWidget {
   const DailyWorkPage({super.key});
@@ -423,6 +424,11 @@ class DailyWorkPageState extends State<DailyWorkPage>
                     customStylesBuilder: auHtmlStyle,
                     assetToken.description ?? '',
                     textStyle: theme.textTheme.ppMori400White14,
+                    onTapUrl: (url) async {
+                      await launchUrl(Uri.parse(url),
+                          mode: LaunchMode.externalApplication);
+                      return true;
+                    },
                   ),
                 ),
               ),
@@ -602,6 +608,11 @@ class DailyWorkPageState extends State<DailyWorkPage>
           exhibition.noteBrief,
           customStylesBuilder: auHtmlStyle,
           textStyle: theme.textTheme.ppMori400White14,
+          onTapUrl: (url) async {
+            await launchUrl(Uri.parse(url),
+                mode: LaunchMode.externalApplication);
+            return true;
+          },
         ),
         const SizedBox(height: 16),
         Text(

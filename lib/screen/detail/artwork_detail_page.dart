@@ -602,6 +602,11 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
                           customStylesBuilder: auHtmlStyle,
                           asset.description ?? '',
                           textStyle: theme.textTheme.ppMori400White14,
+                          onTapUrl: (url) async {
+                            await launchUrl(Uri.parse(url),
+                                mode: LaunchMode.externalApplication);
+                            return true;
+                          },
                         ),
                       ),
                       const SizedBox(height: 40),
