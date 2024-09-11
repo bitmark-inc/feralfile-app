@@ -245,9 +245,6 @@ class CollectionProState extends State<CollectionPro>
                               ),
                             ),
                           ),
-                        SliverToBoxAdapter(
-                          child: SizedBox(height: paddingTop),
-                        ),
                         if (!isEmptyView)
                           SliverToBoxAdapter(
                             child: ValueListenableBuilder(
