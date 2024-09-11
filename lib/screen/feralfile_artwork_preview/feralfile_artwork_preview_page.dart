@@ -33,6 +33,7 @@ import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:nft_rendering/nft_rendering.dart';
 import 'package:sentry/sentry.dart';
 import 'package:shake/shake.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 class FeralFileArtworkPreviewPage extends StatefulWidget {
@@ -446,6 +447,11 @@ class _FeralFileArtworkPreviewPageState
                           customStylesBuilder: auHtmlStyle,
                           artwork.series!.description ?? '',
                           textStyle: theme.textTheme.ppMori400White14,
+                          onTapUrl: (url) async {
+                            await launchUrl(Uri.parse(url),
+                                mode: LaunchMode.externalApplication);
+                            return true;
+                          },
                         ),
                       ),
                       const SizedBox(height: 40),
