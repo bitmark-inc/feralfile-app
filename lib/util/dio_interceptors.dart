@@ -166,6 +166,11 @@ class MetricsInterceptor extends Interceptor {
     options.headers['x-api-key'] = Environment.metricSecretKey;
     handler.next(options);
   }
+
+  @override
+  void onResponse(Response response, ResponseInterceptorHandler handler) {
+    handler.next(response);
+  }
 }
 
 class QuickAuthInterceptor extends Interceptor {
