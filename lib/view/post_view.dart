@@ -91,9 +91,7 @@ class _ExhibitionPostViewState extends State<ExhibitionPostView> {
                       .openFeralFilePostPage(widget.post, widget.exhibitionID);
                 },
                 child: Text(
-                  widget.post.type == 'close-up'
-                      ? 'read_more'.tr()
-                      : 'watch'.tr(),
+                  'read_more'.tr(),
                   style: theme.textTheme.ppMori400White14.copyWith(
                     decoration: TextDecoration.underline,
                     decorationColor: AppColor.white,
