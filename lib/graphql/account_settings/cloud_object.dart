@@ -32,7 +32,9 @@ class CloudObjects {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
     String? deviceId = await MigrationUtil.getBackupDeviceID();
     _deviceId = deviceId ?? '_';
-    _flavor = packageInfo.packageName.contains('inhouse') ? 'inhouse' : 'prd';
+    _flavor = packageInfo.packageName.contains('inhouse')
+        ? 'mobile_inhouse'
+        : 'mobile_prd';
     _requester = '${deviceId}_${packageInfo.packageName}';
   }
 
