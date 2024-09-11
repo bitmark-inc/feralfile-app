@@ -467,6 +467,11 @@ class _ReadMoreTextState extends State<ReadMoreText> {
               widget.text,
               customStylesBuilder: auHtmlStyle,
               textStyle: widget.style,
+              onTapUrl: (url) async {
+                await launchUrl(Uri.parse(url),
+                    mode: LaunchMode.externalApplication);
+                return true;
+              },
             ),
             // if (!_isExpanded) ...[
             //   const SizedBox(
