@@ -146,9 +146,6 @@ Future<void> _setupApp() async {
   await injector<DeviceInfoService>().init();
   final packageInfo = await PackageInfo.fromPlatform();
   injector.get<MetricClientService>().initService();
-  injector<RemoteConfigService>().loadConfigs().then((_) {
-    unawaited(JohnGerrardHelper.updateJohnGerrardLatestRevealIndex());
-  });
 
   final notificationService = injector<NotificationService>();
   await notificationService.initNotification();
@@ -158,6 +155,10 @@ Future<void> _setupApp() async {
   injector<ConfigurationService>().setCountOpenApp(countOpenApp + 1);
   await injector<ConfigurationService>().setVersionInfo(packageInfo.version);
   await disableLandscapeMode();
+
+  injector<RemoteConfigService>().loadConfigs().then((_) {
+    unawaited(JohnGerrardHelper.updateJohnGerrardLatestRevealIndex());
+  });
 
   final isPremium = await injector.get<IAPService>().isSubscribed();
   await injector<ConfigurationService>().setPremium(isPremium);

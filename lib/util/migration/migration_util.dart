@@ -10,6 +10,7 @@ import 'dart:io';
 
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/util/device.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/services.dart';
 
 class MigrationUtil {
@@ -30,8 +31,13 @@ class MigrationUtil {
   Future<List<String>> getUUIDsFromKeychain() async {
     final keychainUUIDs =
         await _channel.invokeMethod('getWalletUUIDsFromKeychain', {});
-    final List<String> personaUUIDs =
-        keychainUUIDs.map((e) => e.toString().toLowerCase()).tolist();
+    log.info('keychainUUIDs: $keychainUUIDs');
+
+    final List<String> personaUUIDs = (keychainUUIDs as List<dynamic>)
+        .map((e) => e.toString())
+        .map((e) => e.toLowerCase())
+        .toList()
+      ..removeWhere((element) => element.isEmpty);
     return personaUUIDs;
   }
 
