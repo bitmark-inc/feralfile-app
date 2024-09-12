@@ -38,6 +38,11 @@ class SelectedCanvasDeviceStore
         .map((e) => e.deviceId)
         .toList();
     if (currentDeviceIds.contains(obj.deviceId)) {
+      getMap().forEach((key, value) {
+        if (value.deviceId == obj.deviceId) {
+          delete(key);
+        }
+      });
       await super.save(obj, objId);
     }
   }
