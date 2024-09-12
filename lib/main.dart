@@ -146,7 +146,9 @@ Future<void> _setupApp() async {
   await injector<DeviceInfoService>().init();
   final packageInfo = await PackageInfo.fromPlatform();
   injector.get<MetricClientService>().initService();
-  injector<RemoteConfigService>().loadConfigs();
+  injector<RemoteConfigService>().loadConfigs().then((_) {
+    unawaited(JohnGerrardHelper.updateJohnGerrardLatestRevealIndex());
+  });
 
   final notificationService = injector<NotificationService>();
   await notificationService.initNotification();
@@ -159,7 +161,6 @@ Future<void> _setupApp() async {
 
   final isPremium = await injector.get<IAPService>().isSubscribed();
   await injector<ConfigurationService>().setPremium(isPremium);
-  unawaited(JohnGerrardHelper.updateJohnGerrardLatestRevealIndex());
   DailiesHelper.updateDailies([]);
 
   // since we postpone handling deeplink until home, we don't need to delay this
