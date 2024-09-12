@@ -573,15 +573,17 @@ class NavigationService {
 
     popUntilHome();
 
-    await Future.delayed(const Duration(milliseconds: 300), () {
+    await Future.delayed(const Duration(milliseconds: 300), () async {
       if (homeNavigationTab != null) {
-        (homePageKey.currentState ?? homePageNoTransactionKey.currentState)
-            ?.onItemTapped(homeNavigationTab.index);
-      }
-    });
-    await Future.delayed(const Duration(milliseconds: 300), () {
-      if (exploreTab != null) {
-        feralFileHomeKey.currentState?.jumpToTab(exploreTab);
+        unawaited(
+            (homePageKey.currentState ?? homePageNoTransactionKey.currentState)
+                ?.onItemTapped(homeNavigationTab.index));
+
+        await Future.delayed(const Duration(milliseconds: 300), () {
+          if (exploreTab != null) {
+            feralFileHomeKey.currentState?.jumpToTab(exploreTab);
+          }
+        });
       }
     });
   }
