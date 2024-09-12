@@ -65,7 +65,7 @@ abstract class AccountService {
   Future androidRestoreKeys();
 
   Future<List<WalletAddress>> createNewWallet(
-      {String name = '', String passphrase = '', bool isDefault = false});
+      {String name = '', String passphrase = ''});
 
   Future<WalletStorage> importWords(String words, String passphrase,
       {WalletType walletType = WalletType.Autonomy});
@@ -137,24 +137,22 @@ class AccountServiceImpl extends AccountService {
 
   @override
   Future<List<WalletAddress>> createNewWallet(
-      {String name = '',
-      String passphrase = '',
-      bool isDefault = false}) async {
+      {String name = '', String passphrase = ''}) async {
     final uuid = const Uuid().v4();
     final walletStorage = LibAukDart.getWallet(uuid);
     await walletStorage.createKey(passphrase, name);
-    await _androidBackupKeys([uuid]);
     log.fine('[AccountService] Created persona $uuid}');
-    if (isDefault) {
-      await _addressService.registerPrimaryAddress(
-          info: primary_address_channel.AddressInfo(
-        uuid: uuid,
-        chain: 'ethereum',
-        index: 0,
-      ));
-    }
+
+    await _addressService.registerPrimaryAddress(
+        info: primary_address_channel.AddressInfo(
+      uuid: uuid,
+      chain: 'ethereum',
+      index: 0,
+    ));
+
     final wallets =
         await insertNextAddressFromUuid(uuid, WalletType.Autonomy, name: name);
+    await androidBackupKeys();
     unawaited(_cloudObject.setMigrated());
     return wallets;
   }
@@ -184,7 +182,12 @@ class AccountServiceImpl extends AccountService {
     await walletStorage.importKey(
         words, passphrase, '', DateTime.now().microsecondsSinceEpoch);
 
-    await androidBackupKeys();
+    if (Platform.isAndroid) {
+      final backupAccounts = await _backupChannel.restoreKeys();
+      await _backupChannel
+          .backupKeys([...backupAccounts.map((e) => e.uuid), uuid]);
+    }
+
     log.fine('[AccountService] imported persona $uuid');
     return walletStorage;
   }
@@ -669,7 +672,7 @@ class AccountServiceImpl extends AccountService {
     // case 1: complete new user, no primary address, no backup keychain
     // nothing to do other than create new wallet
     if (addressInfo == null && defaultWallet == null) {
-      await createNewWallet(isDefault: true);
+      await createNewWallet();
       return;
     }
 
