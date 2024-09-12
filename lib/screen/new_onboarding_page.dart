@@ -207,8 +207,9 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
                           price: _getEssentialPrice(subscriptionDetails),
                           isProcessing: _selectedMembershipCardType ==
                                   MembershipCardType.essential &&
-                              subscriptionDetails?.status ==
-                                  IAPProductStatus.pending,
+                              (subscriptionDetails?.status ==
+                                      IAPProductStatus.pending ||
+                                  subscriptionState.isProcessing),
                           isEnable: true,
                           onTap: (type) {
                             _selectMembershipType(type);
@@ -221,8 +222,9 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
                         price: _getPremiumPrice(subscriptionDetails),
                         isProcessing: _selectedMembershipCardType ==
                                 MembershipCardType.premium &&
-                            subscriptionDetails?.status ==
-                                IAPProductStatus.pending,
+                            (subscriptionDetails?.status ==
+                                    IAPProductStatus.pending ||
+                                subscriptionState.isProcessing),
                         isEnable: true,
                         onTap: (type) async {
                           _selectMembershipType(type);
