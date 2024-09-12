@@ -64,7 +64,7 @@ class AccountSettingsDBImpl implements AccountSettingsDB {
     return fullKeys
         .map((key) => {'key': key, 'value': _caches[key]})
         .where((element) => element['value'] != null)
-        .map((e) => e as Map<String, String>)
+        .map((e) => {'key': e['key']!, 'value': e['value']!})
         .toList();
   }
 
