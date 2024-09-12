@@ -313,7 +313,7 @@ MarkdownStyleSheet markDownDetailPageStyle(
   final bodyText2 = theme.textTheme.ppMori400Black16.copyWith(color: textColor);
   return MarkdownStyleSheet(
     a: TextStyle(
-      fontFamily: AppTheme.atlasGrotesk,
+      fontFamily: AppTheme.ppMori,
       color: Colors.transparent,
       fontWeight: FontWeight.w500,
       shadows: [Shadow(color: textColor, offset: const Offset(0, -1))],
