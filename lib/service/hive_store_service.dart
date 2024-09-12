@@ -14,6 +14,8 @@ abstract class HiveStoreObjectService<T> {
 
   List<T> getAll();
 
+  Map<dynamic, T> getMap();
+
   Future<void> clear();
 }
 
@@ -40,6 +42,9 @@ class HiveStoreObjectServiceImpl<T> implements HiveStoreObjectService<T> {
 
   @override
   List<T> getAll() => _box.values.toList();
+
+  @override
+  Map<dynamic, T> getMap() => _box.toMap();
 
   @override
   Future<void> save(T obj, String objId) async {
