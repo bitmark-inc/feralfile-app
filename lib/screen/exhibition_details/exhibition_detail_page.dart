@@ -7,9 +7,6 @@ import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_bloc.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_state.dart';
-import 'package:autonomy_flutter/screen/exhibitions/exhibitions_bloc.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/series_ext.dart';
@@ -41,9 +38,7 @@ class ExhibitionDetailPage extends StatefulWidget {
 class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
     with AfterLayoutMixin {
   late final ExhibitionDetailBloc _exBloc;
-  late bool isUpcomingExhibition;
 
-  final _metricClientService = injector<MetricClientService>();
   final _canvasDeviceBloc = injector<CanvasDeviceBloc>();
 
   late final PageController _controller;
@@ -53,10 +48,6 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
   @override
   void initState() {
     super.initState();
-    final exhibitionBloc = injector<ExhibitionBloc>();
-    isUpcomingExhibition = exhibitionBloc.state.upcomingExhibition != null &&
-        exhibitionBloc.state.upcomingExhibition!.id ==
-            widget.payload.exhibitions[widget.payload.index].id;
     _exBloc = context.read<ExhibitionDetailBloc>();
     _exBloc.add(GetExhibitionDetailEvent(
         widget.payload.exhibitions[widget.payload.index].id));
@@ -85,8 +76,9 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
       return const LoadingWidget();
     }
 
+    // if exhibition is not minted, show only preview page
     final itemCount =
-        isUpcomingExhibition ? 3 : ((exhibition.displayableSeries.length) + 3);
+        !exhibition.isMinted ? 3 : ((exhibition.displayableSeries.length) + 3);
     return Column(
       children: [
         Expanded(
@@ -197,12 +189,10 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
         ));
       }
       if (resource is Post) {
-        if (resource.coverURI != null) {
-          resources.add(ExhibitionPostView(
-            post: resource,
-            exhibitionID: exhibition.id,
-          ));
-        }
+        resources.add(ExhibitionPostView(
+          post: resource,
+          exhibitionID: exhibition.id,
+        ));
       }
     }
     return resources;
@@ -287,15 +277,7 @@ class _ExhibitionDetailPageState extends State<ExhibitionDetailPage>
   }
 
   @override
-  FutureOr<void> afterFirstLayout(BuildContext context) {
-    _metricClientService.addEvent(
-      MixpanelEvent.viewExhibition,
-      data: {
-        MixpanelProp.exhibitionId:
-            widget.payload.exhibitions[widget.payload.index].id,
-      },
-    );
-  }
+  FutureOr<void> afterFirstLayout(BuildContext context) {}
 }
 
 class ExhibitionDetailPayload {

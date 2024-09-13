@@ -34,8 +34,7 @@ class ViewPostcard extends AdditionalData {
     }
     final owner = tokens.first.owner;
     final postcardDetailPayload = PostcardDetailPagePayload(
-      [ArtworkIdentity(indexID, owner)],
-      0,
+      ArtworkIdentity(indexID, owner),
       useIndexer: true,
     );
     if (!context.mounted) {

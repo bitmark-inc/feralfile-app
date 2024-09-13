@@ -145,16 +145,7 @@ class _CloudAndroidPageState extends State<CloudAndroidPage>
 
   Widget _buttonsGroup(BuildContext context) {
     if (isEncryptionAvailable == true) {
-      return Row(
-        children: [
-          Expanded(
-            child: PrimaryButton(
-              text: 'go_back'.tr(),
-              onTap: () => _continue(context),
-            ),
-          ),
-        ],
-      );
+      return const SizedBox();
     } else {
       return Column(
         children: [

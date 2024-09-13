@@ -5,8 +5,10 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i4;
 
-import 'package:autonomy_flutter/model/ff_exhibition.dart' as _i8;
+import 'package:autonomy_flutter/model/ff_exhibition.dart' as _i9;
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart'
+    as _i8;
+import 'package:autonomy_flutter/screen/settings/subscription/upgrade_state.dart'
     as _i7;
 import 'package:autonomy_flutter/service/navigation_service.dart' as _i3;
 import 'package:autonomy_flutter/util/error_handler.dart' as _i6;
@@ -96,7 +98,7 @@ class MockNavigationService extends _i2.Mock implements _i3.NavigationService {
   void setGlobalHomeTabController(_i1.PageController? controller) =>
       super.noSuchMethod(
         Invocation.method(
-          #setPageController,
+          #setGlobalHomeTabController,
           [controller],
         ),
         returnValueForMissingStub: null,
@@ -218,14 +220,6 @@ class MockNavigationService extends _i2.Mock implements _i3.NavigationService {
         returnValueForMissingStub: null,
       );
   @override
-  void restorablePushHomePage() => super.noSuchMethod(
-        Invocation.method(
-          #restorablePushHomePage,
-          [],
-        ),
-        returnValueForMissingStub: null,
-      );
-  @override
   void setIsWCConnectInShow(bool? appeared) => super.noSuchMethod(
         Invocation.method(
           #setIsWCConnectInShow,
@@ -273,6 +267,24 @@ class MockNavigationService extends _i2.Mock implements _i3.NavigationService {
   _i4.Future<void> showCannotConnectTv() => (super.noSuchMethod(
         Invocation.method(
           #showCannotConnectTv,
+          [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
+  _i4.Future<void> showUnknownLink() => (super.noSuchMethod(
+        Invocation.method(
+          #showUnknownLink,
+          [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
+  _i4.Future<void> showCannotResolveBranchLink() => (super.noSuchMethod(
+        Invocation.method(
+          #showCannotResolveBranchLink,
           [],
         ),
         returnValue: _i4.Future<void>.value(),
@@ -333,6 +345,17 @@ class MockNavigationService extends _i2.Mock implements _i3.NavigationService {
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
   @override
+  _i4.Future<void> showSeeMoreArtNow(
+          _i7.SubscriptionDetails? subscriptionDetails) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #showSeeMoreArtNow,
+          [subscriptionDetails],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
   _i4.Future<void> openPostcardReceivedPage({
     required _i5.AssetToken? asset,
     required String? shareCode,
@@ -379,7 +402,7 @@ class MockNavigationService extends _i2.Mock implements _i3.NavigationService {
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
   @override
-  _i4.Future<dynamic> goToIRLWebview(_i7.IRLWebScreenPayload? payload) =>
+  _i4.Future<dynamic> goToIRLWebview(_i8.IRLWebScreenPayload? payload) =>
       (super.noSuchMethod(
         Invocation.method(
           #goToIRLWebview,
@@ -506,8 +529,17 @@ class MockNavigationService extends _i2.Mock implements _i3.NavigationService {
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
   @override
+  _i4.Future<void> openCollection() => (super.noSuchMethod(
+        Invocation.method(
+          #openCollection,
+          [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+  @override
   _i4.Future<void> openFeralFilePostPage(
-    _i8.Post? post,
+    _i9.Post? post,
     String? exhibitionID,
   ) =>
       (super.noSuchMethod(

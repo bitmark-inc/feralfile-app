@@ -24,6 +24,15 @@ enum MembershipType {
     }
   }
 
+  String get mixpanelName {
+    switch (this) {
+      case MembershipType.free:
+        return 'Free';
+      case MembershipType.premium:
+        return 'Premium';
+    }
+  }
+
   static MembershipType fromString(String name) {
     switch (name) {
       case 'premium':
@@ -117,7 +126,18 @@ enum MembershipSource {
     }
   }
 
-  static MembershipSource fromString(String name) {
+  String get mixpanelName {
+    switch (this) {
+      case MembershipSource.purchase:
+        return 'Purchase';
+      case MembershipSource.giftCode:
+        return 'Gift Code';
+      case MembershipSource.preset:
+        return 'Preset';
+    }
+  }
+
+  static MembershipSource? fromString(String name) {
     switch (name) {
       case 'purchase':
         return MembershipSource.purchase;
@@ -126,7 +146,7 @@ enum MembershipSource {
       case 'preset':
         return MembershipSource.preset;
       default:
-        return MembershipSource.purchase;
+        return null;
     }
   }
 }
@@ -134,7 +154,7 @@ enum MembershipSource {
 class SubscriptionStatus {
   final MembershipType membership;
   final bool isTrial;
-  final MembershipSource source;
+  final MembershipSource? source;
   final DateTime? expireDate;
 
   SubscriptionStatus(

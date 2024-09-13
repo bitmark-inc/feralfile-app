@@ -114,9 +114,8 @@ class NotificationService {
             navigationService.popUntilHome();
             await navigationService.navigateTo(
                 AppRouter.claimedPostcardDetailsPage,
-                arguments: PostcardDetailPagePayload([
-                  ArtworkIdentity(postcardIdentity.id, postcardIdentity.owner)
-                ], 0));
+                arguments: PostcardDetailPagePayload(ArtworkIdentity(
+                    postcardIdentity.id, postcardIdentity.owner)));
         }
       } catch (e) {
         log.info('[NotificationService] onActionReceivedMethod error: $e]');

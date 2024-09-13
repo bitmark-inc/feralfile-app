@@ -1096,13 +1096,13 @@ packages:
     source: hosted
     version: "2.4.4"
   frontend_server_client:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
       name: frontend_server_client
-      sha256: "408e3ca148b31c20282ad6f37ebfa6f4bdc8fede5b74bc2f08d9d92b55db3612"
+      sha256: f64a0333a82f30b0cca061bc3d143813a486dc086b574bfb233b7c1372427694
       url: "https://pub.dev"
     source: hosted
-    version: "3.2.0"
+    version: "4.0.0"
   fuchsia_remote_debug_protocol:
     dependency: transitive
     description: flutter
@@ -1512,10 +1512,10 @@ packages:
     dependency: "direct main"
     description:
       name: in_app_purchase_android
-      sha256: "25eb8694819caca282a527c26d5a1775164965c554ee99b9c10f3a0e44675c75"
+      sha256: b5ec117e3483fbca0fc5c546e9ed420c126e97fc5952aa891d01f9cf87661d44
       url: "https://pub.dev"
     source: hosted
-    version: "0.3.6+8"
+    version: "0.3.6+7"
   in_app_purchase_platform_interface:
     dependency: transitive
     description:
@@ -1685,8 +1685,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "598a4627345f746d7e8fd62e7d0da4766ed29fb6"
-      resolved-ref: "598a4627345f746d7e8fd62e7d0da4766ed29fb6"
+      ref: "9f68142e2be8f75df201633fbd9bbfc632189acc"
+      resolved-ref: "9f68142e2be8f75df201633fbd9bbfc632189acc"
       url: "https://github.com/autonomy-system/libauk-dart.git"
     source: git
     version: "0.0.1"
@@ -1826,14 +1826,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.4"
-  mixpanel_flutter:
-    dependency: "direct main"
-    description:
-      name: mixpanel_flutter
-      sha256: "5dc993ade5eaad51ebb6c91230971a3443ac30a3d1d24399bc3db74c5705d400"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.2.0"
   mockito:
     dependency: "direct dev"
     description:
@@ -1895,8 +1887,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "19d6ccb497351cd3ebfba225fbb00202eb621c99"
-      resolved-ref: "19d6ccb497351cd3ebfba225fbb00202eb621c99"
+      ref: "72f3eee694c66161f31ac63d0a5fc4c475130d34"
+      resolved-ref: "72f3eee694c66161f31ac63d0a5fc4c475130d34"
       url: "https://github.com/autonomy-system/nft-rendering.git"
     source: git
     version: "1.0.9"
@@ -3115,5 +3107,5 @@ packages:
     source: hosted
     version: "3.1.2"
 sdks:
-  dart: ">=3.5.0 <4.0.0"
-  flutter: ">=3.24.0"
+  dart: ">=3.4.0 <4.0.0"
+  flutter: ">=3.22.0"

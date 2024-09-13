@@ -22,7 +22,6 @@ import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/util/android_backup_channel.dart';
@@ -754,9 +753,6 @@ class AccountServiceImpl extends AccountService {
           }
         }
         await _cloudDB.connectionDao.getUpdatedLinkedAccounts();
-        unawaited(injector<MetricClientService>()
-            .mixPanelClient
-            .initIfDefaultAccount());
       }
 
       // make sure has addresses
@@ -788,9 +784,6 @@ class AccountServiceImpl extends AccountService {
       await persona.insertNextAddress(WalletType.Tezos);
       await persona.insertNextAddress(WalletType.Ethereum);
       await _configurationService.setDoneOnboarding(true);
-      unawaited(injector<MetricClientService>()
-          .mixPanelClient
-          .initIfDefaultAccount());
     }
 
     unawaited(iapService.restore());

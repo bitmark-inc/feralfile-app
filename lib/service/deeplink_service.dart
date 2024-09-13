@@ -118,6 +118,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
     try {
       final initialLink = await getInitialLink();
+      log.info('[DeeplinkService] initialLink: $initialLink');
       if (initialLink != null) {
         _deepLinkStreamController.add(initialLink);
       }

@@ -7,6 +7,7 @@
 
 import 'package:autonomy_flutter/model/jwt.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
+import 'package:autonomy_flutter/util/subscription_details_ext.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 
 abstract class UpgradeEvent {}
@@ -42,6 +43,9 @@ class UpgradeState {
     this.membershipSource,
   });
 
+  List<SubscriptionDetails> get activeSubscriptionDetails =>
+      subscriptionDetails.activeSubscriptionDetails;
+
   UpgradeState copyWith({
     List<SubscriptionDetails>? subscriptionDetails,
     bool? isProcessing,
@@ -52,21 +56,4 @@ class UpgradeState {
         isProcessing: isProcessing ?? false,
         membershipSource: membershipSource ?? this.membershipSource,
       );
-
-  List<SubscriptionDetails> get activeSubscriptionDetails {
-    final activeSubscriptionDetails = <SubscriptionDetails>[];
-    for (final subscriptionDetail in subscriptionDetails) {
-      final shouldIgnoreOnUI =
-          inactiveIds().contains(subscriptionDetail.productDetails.id) &&
-              !(subscriptionDetail.status == IAPProductStatus.completed ||
-                  subscriptionDetail.status == IAPProductStatus.trial &&
-                      subscriptionDetail.trialExpiredDate != null &&
-                      subscriptionDetail.trialExpiredDate!
-                          .isBefore(DateTime.now()));
-      if (!shouldIgnoreOnUI) {
-        activeSubscriptionDetails.add(subscriptionDetail);
-      }
-    }
-    return activeSubscriptionDetails;
-  }
 }

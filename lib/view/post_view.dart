@@ -30,7 +30,7 @@ class _ExhibitionPostViewState extends State<ExhibitionPostView> {
 
   @override
   void initState() {
-    thumbnailUrl = widget.post.thumbnailUrls[0];
+    thumbnailUrl = widget.post.thumbnailUrls.firstOrNull;
     loadThumbnailFailedCount = 0;
     super.initState();
   }
@@ -58,8 +58,10 @@ class _ExhibitionPostViewState extends State<ExhibitionPostView> {
                 style: theme.textTheme.ppMori400White12,
               ),
               const SizedBox(height: 30),
-              _buildThumbnailWidget(),
-              const SizedBox(height: 20),
+              if (thumbnailUrl != null) ...[
+                _buildThumbnailWidget(),
+                const SizedBox(height: 20),
+              ],
               Text(
                 widget.post.title,
                 style: theme.textTheme.ppMori700White14,
@@ -89,9 +91,7 @@ class _ExhibitionPostViewState extends State<ExhibitionPostView> {
                       .openFeralFilePostPage(widget.post, widget.exhibitionID);
                 },
                 child: Text(
-                  widget.post.type == 'close-up'
-                      ? 'read_more'.tr()
-                      : 'watch'.tr(),
+                  'read_more'.tr(),
                   style: theme.textTheme.ppMori400White14.copyWith(
                     decoration: TextDecoration.underline,
                     decorationColor: AppColor.white,

@@ -16,6 +16,7 @@ import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_wid
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
+import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/artwork_common_widget.dart';
@@ -38,6 +39,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:nft_collection/models/asset_token.dart';
 import 'package:sentry/sentry.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class DailyWorkPage extends StatefulWidget {
   const DailyWorkPage({super.key});
@@ -97,10 +99,15 @@ class DailyWorkPageState extends State<DailyWorkPage>
     if (_nextDailyToken == null) {
       unawaited(Sentry.captureMessage('nextDailyToken is null'));
     }
-    final duration =
+    const defaultDuration = Duration(hours: 1);
+    final nextDailyduration =
         _calcRemainingDuration ?? (_nextDay.difference(DateTime.now()));
+    final duration = nextDailyduration > defaultDuration
+        ? defaultDuration
+        : nextDailyduration;
     _timer?.cancel();
     _timer = Timer(duration, () {
+      log.info('Get Daily Asset Token');
       context.read<DailyWorkBloc>().add(GetDailyAssetTokenEvent());
     });
   }
@@ -116,10 +123,20 @@ class DailyWorkPageState extends State<DailyWorkPage>
 
   void pauseDailyWork() {
     _artworkKey.currentState?.pause();
+    muteDailyWork();
   }
 
   void resumeDailyWork() {
     _artworkKey.currentState?.resume();
+    unmuteDailyWork();
+  }
+
+  void muteDailyWork() {
+    _artworkKey.currentState?.mute();
+  }
+
+  void unmuteDailyWork() {
+    _artworkKey.currentState?.unmute();
   }
 
   void scrollToTop() {
@@ -407,6 +424,11 @@ class DailyWorkPageState extends State<DailyWorkPage>
                     customStylesBuilder: auHtmlStyle,
                     assetToken.description ?? '',
                     textStyle: theme.textTheme.ppMori400White14,
+                    onTapUrl: (url) async {
+                      await launchUrl(Uri.parse(url),
+                          mode: LaunchMode.externalApplication);
+                      return true;
+                    },
                   ),
                 ),
               ),
@@ -582,9 +604,15 @@ class DailyWorkPageState extends State<DailyWorkPage>
           exhibition: exhibition,
         ),
         const SizedBox(height: 48),
-        Text(
+        HtmlWidget(
           exhibition.noteBrief,
-          style: theme.textTheme.ppMori400White14,
+          customStylesBuilder: auHtmlStyle,
+          textStyle: theme.textTheme.ppMori400White14,
+          onTapUrl: (url) async {
+            await launchUrl(Uri.parse(url),
+                mode: LaunchMode.externalApplication);
+            return true;
+          },
         ),
         const SizedBox(height: 16),
         Text(

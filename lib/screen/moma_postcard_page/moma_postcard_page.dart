@@ -7,6 +7,7 @@
 
 import 'dart:async';
 
+import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
@@ -50,6 +51,7 @@ class _MoMAPostcardPageState extends State<MoMAPostcardPage> {
       nftBloc.add(
         GetTokensByOwnerEvent(
           pageKey: nextKey,
+          contractAddress: Environment.postcardContractAddress,
         ),
       );
     }
@@ -171,8 +173,8 @@ class _MoMAPostcardPageState extends State<MoMAPostcardPage> {
                     .toList()
                     .indexOf(asset);
                 final payload = asset.isPostcard
-                    ? PostcardDetailPagePayload(accountIdentities, index)
-                    : ArtworkDetailPayload(accountIdentities, index);
+                    ? PostcardDetailPagePayload(accountIdentities[index])
+                    : ArtworkDetailPayload(accountIdentities[index]);
 
                 final pageName = asset.isPostcard
                     ? AppRouter.claimedPostcardDetailsPage

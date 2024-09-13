@@ -479,12 +479,10 @@ class MockAccountService extends _i1.Mock implements _i6.AccountService {
         returnValueForMissingStub: _i7.Future<void>.value(),
       ) as _i7.Future<void>);
   @override
-  _i7.Future<void> restoreIfNeeded({bool? isCreateNew = true}) =>
-      (super.noSuchMethod(
+  _i7.Future<void> restoreIfNeeded() => (super.noSuchMethod(
         Invocation.method(
           #restoreIfNeeded,
           [],
-          {#isCreateNew: isCreateNew},
         ),
         returnValue: _i7.Future<void>.value(),
         returnValueForMissingStub: _i7.Future<void>.value(),

@@ -1,5 +1,4 @@
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/util/route_ext.dart';
 
 MemoryValues memoryValues = MemoryValues();
 
@@ -28,8 +27,6 @@ enum HomeNavigatorTab {
   daily,
   explore,
   menu;
-
-  String get screenName => getPageName(routeName);
 
   String get routeName {
     switch (this) {
