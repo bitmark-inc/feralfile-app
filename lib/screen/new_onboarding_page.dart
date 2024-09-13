@@ -288,14 +288,14 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
 
   String _getEssentialPrice(SubscriptionDetails? subscriptionDetails) {
     if (subscriptionDetails == null) {
-      return r'$0/year';
+      return r'$0/' + 'year'.tr();
     }
     return '${subscriptionDetails.productDetails.currencySymbol}0/${subscriptionDetails.productDetails.period.name}';
   }
 
   String _getPremiumPrice(SubscriptionDetails? subscriptionDetails) {
     if (subscriptionDetails == null) {
-      return r'$230/year';
+      return r'$230/' + 'year'.tr();
     }
     return subscriptionDetails.price;
   }
