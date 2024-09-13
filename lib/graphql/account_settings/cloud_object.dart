@@ -109,8 +109,7 @@ class CloudObjects {
     await Future.wait([
       _addressAccountSettingsDB.download(),
       _connectionAccountSettingsDB.download(),
-      _settingsDataDB.download(
-          keys: injector<SettingsDataService>().settingsKeys),
+      injector<SettingsDataService>().restoreSettingsData(),
     ]);
   }
 

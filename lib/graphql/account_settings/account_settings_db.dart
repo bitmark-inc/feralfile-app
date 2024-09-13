@@ -21,6 +21,8 @@ abstract class AccountSettingsDB {
 
   String get migrateKey;
 
+  String get prefix;
+
   void clearCache();
 }
 
@@ -133,4 +135,7 @@ class AccountSettingsDBImpl implements AccountSettingsDB {
   void clearCache() {
     _caches.clear();
   }
+
+  @override
+  String get prefix => _prefix;
 }

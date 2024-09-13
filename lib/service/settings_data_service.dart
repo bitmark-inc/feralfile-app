@@ -141,9 +141,13 @@ class SettingsDataServiceImpl implements SettingsDataService {
   Future restoreSettingsData({bool fromFile = false}) async {
     log.info('[SettingsDataService][Start] restoreSettingsData');
     if (!fromFile) {
+      log.info('[SettingsDataService] from account setting db');
       await _cloudObject.settingsDataDB.download(keys: settingsKeys);
-      final res = _cloudObject.settingsDataDB.caches
-          .map((key, value) => MapEntry(key, jsonDecode(value)));
+      final res = _cloudObject.settingsDataDB.caches.map((key, value) =>
+          MapEntry(key.replaceFirst(_cloudObject.settingsDataDB.prefix, ''),
+              jsonDecode(value)));
+
+      log.info('[SettingsDataService] restore $res');
 
       final data = SettingsDataBackup.fromJson(res);
 
