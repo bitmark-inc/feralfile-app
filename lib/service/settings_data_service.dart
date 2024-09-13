@@ -187,7 +187,6 @@ class SettingsDataServiceImpl implements SettingsDataService {
         await _configurationService.setPlayList(data.playlists, override: true);
 
         log.info('[SettingsDataService][Done] restoreSettingsData');
-        await _cloudObject.settingsDataDB.setMigrated();
       } catch (exception, stacktrace) {
         await Sentry.captureException(exception, stackTrace: stacktrace);
         return;

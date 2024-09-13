@@ -83,9 +83,20 @@ class CloudObjects {
 
   Future<void> setMigrated() async {
     final data = [
-      {'key': settingsDataDB.migrateKey, 'value': 'true'},
-      {'key': _addressAccountSettingsDB.migrateKey, 'value': 'true'},
-      {'key': _connectionAccountSettingsDB.migrateKey, 'value': 'true'}
+      {
+        'key': settingsDataDB.getFullKey(settingsDataDB.migrateKey),
+        'value': 'true'
+      },
+      {
+        'key': _addressAccountSettingsDB
+            .getFullKey(_addressAccountSettingsDB.migrateKey),
+        'value': 'true'
+      },
+      {
+        'key': _connectionAccountSettingsDB
+            .getFullKey(_connectionAccountSettingsDB.migrateKey),
+        'value': 'true'
+      }
     ];
     final didMigrate =
         await injector<AccountSettingsClient>().write(data: data);
