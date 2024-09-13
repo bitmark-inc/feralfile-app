@@ -44,7 +44,7 @@ class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
           }
 
           // after updating purchase status, emit new state
-          emit(UpgradeState(
+          emit(state.copyWith(
             subscriptionDetails: listSubscriptionDetails,
             membershipSource: subscriptionStatus.source,
           ));
@@ -54,24 +54,22 @@ class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
         }
       } catch (error) {
         log.info('UpgradeQueryInfoEvent error');
-        emit(UpgradeState(subscriptionDetails: []));
+        emit(state.copyWith(subscriptionDetails: []));
       }
     });
 
 // Return IAP info after getting from Apple / Google
     on<UpgradeIAPInfoEvent>((event, emit) async {
       // get list of subscription details from IAP service
-      final subscriptionDetals = listSubscriptionDetails;
-      emit(UpgradeState(
-        subscriptionDetails: subscriptionDetals,
-        membershipSource: state.membershipSource,
+      final subscriptionDetails = listSubscriptionDetails;
+      emit(state.copyWith(
+        subscriptionDetails: subscriptionDetails,
       ));
     });
 
 // Purchase event
     on<UpgradePurchaseEvent>((event, emit) async {
-      emit(UpgradeState(
-          subscriptionDetails: state.subscriptionDetails, isProcessing: true));
+      emit(state.copyWith(isProcessing: true));
       final listSubscriptionDetails = state.subscriptionDetails;
       final subscriptionIds = event.subscriptionIds;
       for (final subscriptionId in subscriptionIds) {
@@ -92,9 +90,8 @@ class UpgradesBloc extends AuBloc<UpgradeEvent, UpgradeState> {
           log.warning('No item to purchase');
         }
       }
-      emit(UpgradeState(
+      emit(state.copyWith(
         subscriptionDetails: listSubscriptionDetails,
-        membershipSource: state.membershipSource,
       ));
     });
 
