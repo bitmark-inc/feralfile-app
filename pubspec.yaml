@@ -102,7 +102,7 @@ dependencies:
       url: https://github.com/autonomy-system/tezart.git
       ref: 7534512ff7c874251e5b1e1a426f5822a3837b51
   uni_links: ^0.5.1
-  url_launcher: ^6.0.20
+  url_launcher: ^6.2.2
   uuid: ^3.0.5
   wakelock_plus: ^1.1.1
   web3dart: ^2.5.1
