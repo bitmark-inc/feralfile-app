@@ -13,7 +13,6 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/screen/settings/preferences/preferences_state.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/local_auth_service.dart';
-import 'package:autonomy_flutter/service/mix_panel_client_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/biometrics_util.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -102,12 +101,6 @@ class PreferencesBloc extends AuBloc<PreferenceEvent, PreferenceState> {
             .setAnalyticEnabled(event.newState.isAnalyticEnabled);
         await _configurationService.setPendingSettings(false);
         unawaited(injector<SettingsDataService>().backup());
-
-        if (event.newState.isAnalyticEnabled) {
-          injector<MixPanelClientService>().mixpanel.optInTracking();
-        } else {
-          injector<MixPanelClientService>().mixpanel.optOutTracking();
-        }
       }
 
       emit(event.newState);

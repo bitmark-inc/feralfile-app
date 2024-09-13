@@ -1024,7 +1024,11 @@ class AppRouter {
             settings: settings,
             builder: (context) => MultiBlocProvider(providers: [
                   BlocProvider(
-                    create: (_) => UpgradesBloc(injector(), injector()),
+                    create: (_) => UpgradesBloc(
+                      injector(),
+                      injector(),
+                      injector(),
+                    ),
                   ),
                 ], child: const SubscriptionPage()));
 

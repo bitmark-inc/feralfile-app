@@ -14,12 +14,14 @@ import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/device_info_service.dart';
 import 'package:autonomy_flutter/service/hive_store_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/tv_cast_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/view/user_agent_utils.dart' as my_device;
 import 'package:feralfile_app_tv_proto/feralfile_app_tv_proto.dart';
 import 'package:flutter/material.dart';
+import 'package:sentry/sentry.dart';
 
 class CanvasClientServiceV2 {
   final HiveStoreObjectService<CanvasDevice> _db;
@@ -74,12 +76,23 @@ class CanvasClientServiceV2 {
     final deviceStatus = await _getDeviceStatus(device);
     if (deviceStatus != null) {
       await _db.save(device, device.deviceId);
-      unawaited(connectToDevice(device));
+      await connectToDevice(device);
       log.info('CanvasClientService: Added device to db ${device.name}');
       injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent());
       return deviceStatus;
     }
     return null;
+  }
+
+  Future<void> _mergeUser(String oldUserId) async {
+    try {
+      final metricClientService = injector<MetricClientService>();
+      await metricClientService.mergeUser(oldUserId);
+    } catch (e) {
+      log.info('CanvasClientService: _mergeUser error: $e');
+      unawaited(
+          Sentry.captureException('CanvasClientService: _mergeUser error: $e'));
+    }
   }
 
   Future<ConnectReplyV2> _connect(CanvasDevice device) async {
@@ -90,6 +103,7 @@ class CanvasClientServiceV2 {
     final request = ConnectRequestV2(
         clientDevice: deviceInfo, primaryAddress: primaryAddress ?? '');
     final response = await stub.connect(request);
+    await _mergeUser(device.deviceId);
     return response;
   }
 

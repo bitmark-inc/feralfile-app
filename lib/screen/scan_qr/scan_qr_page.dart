@@ -18,7 +18,6 @@ import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/route_ext.dart';
 import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/util/ui_helper.dart';
 import 'package:autonomy_flutter/view/back_appbar.dart';
@@ -47,8 +46,6 @@ enum QRScanTab {
         return AppRouter.scanQRPage;
     }
   }
-
-  String get screenName => getPageName(routerName);
 }
 
 class ScanQRPagePayload {
