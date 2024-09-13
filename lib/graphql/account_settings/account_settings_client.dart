@@ -78,8 +78,9 @@ class AccountSettingsClient {
       return true;
     }
     final resultData = await _mutate(doc: _writeDoc, vars: {'data': data});
-    log..info('AccountSettingsClient: write $data')
-    ..info('AccountSettingsClient: write result ${resultData?['write']}');
+    log
+      ..info('AccountSettingsClient: write $data')
+      ..info('AccountSettingsClient: write result ${resultData?['write']}');
     return resultData?['write']?['ok'] ?? false;
   }
 
