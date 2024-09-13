@@ -169,7 +169,7 @@ class SubscriptionStatus {
 
   @override
   String toString() => 'SubscriptionStatus{plan: $membership, '
-      'isTrial: $isTrial, expireDate: $expireDate}';
+      'isTrial: $isTrial, expireDate: $expireDate, source: $source}';
 
   ProductDetails? get premiumProductDetails {
     final allProducts = injector<IAPService>().products.value.values.toList();
