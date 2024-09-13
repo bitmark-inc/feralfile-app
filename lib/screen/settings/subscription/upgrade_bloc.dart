@@ -13,7 +13,6 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/subscription_details_ext.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:sentry/sentry.dart';
 
