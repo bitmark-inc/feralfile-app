@@ -716,6 +716,8 @@ class AccountServiceImpl extends AccountService {
     final didMigrate =
         await _cloudObject.addressObject.accountSettingsDB.didMigrate();
 
+    log.info('[AccountService] migrateAccount - didMigrate: $didMigrate');
+
     // case 4: migrated user
     if (didMigrate) {
       unawaited(_cloudObject.downloadAll());

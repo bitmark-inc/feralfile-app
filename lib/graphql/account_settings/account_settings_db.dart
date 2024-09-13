@@ -34,6 +34,8 @@ class AccountSettingsDBImpl implements AccountSettingsDB {
 
   final Map<String, String> _caches = {};
 
+  static const String _migrateKey = 'didMigrate';
+
   @override
   Future<void> download({List<String>? keys}) async {
     late List<Map<String, String>> values;
@@ -47,7 +49,7 @@ class AccountSettingsDBImpl implements AccountSettingsDB {
       if (value['key'] == null || value['value'] == null) {
         continue;
       }
-      _caches[value['key']!] = value['value']!;
+      _caches[_removePrefix(value['key']!)] = value['value']!;
     }
   }
 
@@ -55,20 +57,17 @@ class AccountSettingsDBImpl implements AccountSettingsDB {
   Future<void> forceUpload() async {
     final List<Map<String, String>> data = [];
     _caches.forEach((key, value) {
-      data.add({'key': key, 'value': value});
+      data.add({'key': getFullKey(key), 'value': value});
     });
     await write(data);
   }
 
   @override
-  List<Map<String, String>> query(List<String> keys) {
-    final fullKeys = keys.map(getFullKey).toList();
-    return fullKeys
-        .map((key) => {'key': key, 'value': _caches[key]})
-        .where((element) => element['value'] != null)
-        .map((e) => {'key': e['key']!, 'value': e['value']!})
-        .toList();
-  }
+  List<Map<String, String>> query(List<String> keys) => keys
+      .map((key) => {'key': key, 'value': _caches[key]})
+      .where((element) => element['value'] != null)
+      .map((e) => {'key': e['key']!, 'value': e['value']!})
+      .toList();
 
   @override
   Future<void> write(List<Map<String, String>> settings) async {
@@ -80,7 +79,7 @@ class AccountSettingsDBImpl implements AccountSettingsDB {
     final isSuccess = await _client.write(data: settingsFullKeys);
     if (isSuccess) {
       for (var element in settingsFullKeys) {
-        _caches[element['key']!] = element['value']!;
+        _caches[_removePrefix(element['key']!)] = element['value']!;
       }
     }
   }
@@ -93,7 +92,7 @@ class AccountSettingsDBImpl implements AccountSettingsDB {
     final fullKeys = keys.map(getFullKey).toList();
     final isSuccess = await _client.delete(vars: {'keys': fullKeys});
     if (isSuccess) {
-      _caches.removeWhere((key, value) => fullKeys.contains(key));
+      _caches.removeWhere((key, value) => keys.contains(key));
     }
   }
 
@@ -105,9 +104,10 @@ class AccountSettingsDBImpl implements AccountSettingsDB {
     return '$_prefix.$key';
   }
 
+  String _removePrefix(String key) => key.replaceFirst('$_prefix.', '');
+
   @override
-  Map<String, dynamic> get caches =>
-      _caches.map((key, value) => MapEntry(getFullKey(key), value));
+  Map<String, dynamic> get caches => _caches;
 
   @override
   Future<bool> didMigrate() async {
@@ -129,13 +129,13 @@ class AccountSettingsDBImpl implements AccountSettingsDB {
   }
 
   @override
-  String get migrateKey => getFullKey('didMigrate');
-
-  @override
   void clearCache() {
     _caches.clear();
   }
 
   @override
   String get prefix => _prefix;
+
+  @override
+  String get migrateKey => _migrateKey;
 }

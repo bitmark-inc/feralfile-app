@@ -143,9 +143,8 @@ class SettingsDataServiceImpl implements SettingsDataService {
     if (!fromFile) {
       log.info('[SettingsDataService] from account setting db');
       await _cloudObject.settingsDataDB.download(keys: settingsKeys);
-      final res = _cloudObject.settingsDataDB.caches.map((key, value) =>
-          MapEntry(key.replaceFirst(_cloudObject.settingsDataDB.prefix, ''),
-              jsonDecode(value)));
+      final res = _cloudObject.settingsDataDB.caches
+          .map((key, value) => MapEntry(key, jsonDecode(value)));
 
       log.info('[SettingsDataService] restore $res');
 
@@ -199,7 +198,6 @@ class SettingsDataServiceImpl implements SettingsDataService {
 
 @JsonSerializable()
 class SettingsDataBackup {
-  List<String> addresses;
   bool isAnalyticsEnabled;
   List<String> hiddenMainnetTokenIDs;
   List<String> hiddenTestnetTokenIDs;
@@ -208,7 +206,6 @@ class SettingsDataBackup {
   List<PlayListModel> playlists;
 
   SettingsDataBackup({
-    required this.addresses,
     required this.isAnalyticsEnabled,
     required this.hiddenMainnetTokenIDs,
     required this.hiddenTestnetTokenIDs,
