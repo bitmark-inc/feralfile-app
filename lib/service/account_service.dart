@@ -713,8 +713,12 @@ class AccountServiceImpl extends AccountService {
     // from case 4, user has primary address,
     // we need to check if user has migrate to account-settings;
 
-    final didMigrate =
-        await _cloudObject.addressObject.accountSettingsDB.didMigrate();
+    // this is to reduce loading time
+    bool didMigrate = _configurationService.didMigrateToAccountSetting();
+    if (!didMigrate) {
+      didMigrate =
+          await _cloudObject.addressObject.accountSettingsDB.didMigrate();
+    }
 
     log.info('[AccountService] migrateAccount - didMigrate: $didMigrate');
 

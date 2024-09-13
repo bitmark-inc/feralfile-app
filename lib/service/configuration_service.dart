@@ -25,6 +25,10 @@ import 'package:uuid/uuid.dart';
 //ignore_for_file: constant_identifier_names
 
 abstract class ConfigurationService {
+  bool didMigrateToAccountSetting();
+
+  Future<void> setMigrateToAccountSetting(bool value);
+
   bool isDoneNewOnboarding();
 
   Future<void> setDoneNewOnboarding(bool value);
@@ -242,6 +246,8 @@ abstract class ConfigurationService {
 
 class ConfigurationServiceImpl implements ConfigurationService {
   static const String keyDoneNewOnboarding = 'done_new_onboarding';
+  static const String keyDidMigrateToAccountSetting =
+      'did_migrate_to_account_setting';
   static const String keyLastPullAnnouncementTime =
       'last_pull_announcement_time';
   static const String keyRecordOwners = 'yoko_ono_record_owners';
@@ -1076,6 +1082,14 @@ class ConfigurationServiceImpl implements ConfigurationService {
   Future<void> setDoneNewOnboarding(bool value) async {
     await _preferences.setBool(keyDoneNewOnboarding, value);
   }
+
+  @override
+  bool didMigrateToAccountSetting() =>
+      _preferences.getBool(keyDidMigrateToAccountSetting) ?? false;
+
+  @override
+  Future<void> setMigrateToAccountSetting(bool value) =>
+      _preferences.setBool(keyDidMigrateToAccountSetting, value);
 }
 
 enum ConflictAction {
