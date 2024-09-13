@@ -11,15 +11,12 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/additional_data/additional_data.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_vibrate/flutter_vibrate.dart';
 import 'package:overlay_support/overlay_support.dart';
-
 // ignore: implementation_imports
 import 'package:overlay_support/src/overlay_state_finder.dart';
 
@@ -197,24 +194,11 @@ Future<void> showNotifications(
     return;
   }
 
-  bool didTap = false;
-
-  /// mixpanel tracking: delivered notification
-  final metricClientService = injector<MetricClientService>()
-    ..addEvent(
-      MixpanelEvent.deliveredNotification,
-      data: {
-        MixpanelProp.notificationId: id,
-        MixpanelProp.channel: 'in-app',
-        MixpanelProp.type: additionalData?.notificationType.toString()
-      },
-    );
   configurationService.showingNotification.value = true;
   final notification = showSimpleNotification(
     _notificationToast(context, id, handler: () async {
       /// this is how to detect user tap on notification
       /// this must put before handler?.call() to make sure it's called first
-      didTap = true;
 
       handler?.call();
     }, body: body),
@@ -228,16 +212,6 @@ Future<void> showNotifications(
   await notification.dismissed;
   await injector<AnnouncementService>().markAsRead(id);
   configurationService.showingNotification.value = false;
-  if (!didTap) {
-    metricClientService.addEvent(
-      MixpanelEvent.dismissedNotification,
-      data: {
-        MixpanelProp.notificationId: id,
-        MixpanelProp.channel: 'in-app',
-        MixpanelProp.type: additionalData?.notificationType.toString()
-      },
-    );
-  }
 
   /// always show next announcement in queue, event user tap to see it
   Future.delayed(const Duration(milliseconds: 100), () {

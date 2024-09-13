@@ -597,7 +597,6 @@ class _WCConnectPageState extends State<WCConnectPage>
             ? WalletType.Tezos
             : WalletType.Ethereum);
     unawaited(configurationService.setDoneOnboarding(true));
-    unawaited(metricClient.mixPanelClient.initIfDefaultAccount());
     if (!mounted) {
       return;
     }

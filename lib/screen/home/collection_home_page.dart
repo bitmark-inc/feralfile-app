@@ -21,7 +21,6 @@ import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/locale_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/versions_service.dart';
 import 'package:autonomy_flutter/shared.dart';
@@ -61,7 +60,6 @@ class CollectionHomePageState extends State<CollectionHomePage>
         AutomaticKeepAliveClientMixin {
   StreamSubscription<FGBGType>? _fgbgSubscription;
   late ScrollController _controller;
-  late MetricClientService _metricClient;
   int _cachedImageSize = 0;
   final _clientTokenService = injector<ClientTokenService>();
   final _configurationService = injector<ConfigurationService>();
@@ -75,7 +73,6 @@ class CollectionHomePageState extends State<CollectionHomePage>
   void initState() {
     super.initState();
     _showPostcardBanner = _configurationService.getShowPostcardBanner();
-    _metricClient = injector.get<MetricClientService>();
     WidgetsBinding.instance.addObserver(this);
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
     _controller = ScrollController()..addListener(_scrollListenerToLoadMore);
@@ -485,7 +482,6 @@ class CollectionHomePageState extends State<CollectionHomePage>
   }
 
   void _handleBackground() {
-    unawaited(_metricClient.sendAndClearMetrics());
     unawaited(FileLogger.shrinkLogFileIfNeeded());
   }
 

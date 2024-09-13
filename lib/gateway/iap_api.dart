@@ -64,4 +64,9 @@ abstract class IAPApi {
   Future<OkResponse> redeemGiftCode(
     @Path('id') String id,
   );
+
+  @PATCH('/apis/metric-devices/{id}')
+  Future<void> updateMetrics(
+    @Path('id') String deviceId,
+  );
 }

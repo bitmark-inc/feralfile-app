@@ -28,7 +28,6 @@ import 'package:autonomy_flutter/service/client_token_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/service/customer_support_service.dart';
 import 'package:autonomy_flutter/service/deeplink_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/notification_service.dart' as nc;
 import 'package:autonomy_flutter/service/remote_config_service.dart';
@@ -91,13 +90,11 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   PageController? _pageController;
   late List<Widget> _pages;
   final GlobalKey<DailyWorkPageState> _dailyWorkKey = GlobalKey();
-  final GlobalKey<FeralfileHomePageState> _feralfileHomePageKey = GlobalKey();
   final _configurationService = injector<ConfigurationService>();
   late Timer? _timer;
   final _clientTokenService = injector<ClientTokenService>();
   final _notificationService = injector<nc.NotificationService>();
   final _remoteConfig = injector<RemoteConfigService>();
-  final _metricClientService = injector<MetricClientService>();
   final _announcementService = injector<AnnouncementService>();
   late HomeNavigatorTab _initialTab;
   final nftBloc = injector<ClientTokenService>().nftBloc;
@@ -110,32 +107,16 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     routeObserver.subscribe(this, ModalRoute.of(context)!);
   }
 
-  void sendVisitPageEvent() {
-    if (_selectedIndex != HomeNavigatorTab.menu.index) {
-      final title = HomeNavigatorTab.values[_selectedIndex].screenName;
-      _metricClientService
-        ..addEvent(
-          MixpanelEvent.visitPage,
-          data: {
-            MixpanelProp.title: title,
-          },
-        )
-        ..timerEvent(
-          MixpanelEvent.visitPage,
-        );
-    }
-  }
-
   Future<void> openExhibition(String exhibitionId) async {
-    await _onItemTapped(HomeNavigatorTab.explore.index);
+    await onItemTapped(HomeNavigatorTab.explore.index);
   }
 
-  Future<void> _onItemTapped(int index) async {
+  Future<void> onItemTapped(int index) async {
     if (index < _pages.length) {
       // handle scroll to top when tap on the same tab
       if (_selectedIndex == index) {
         if (index == HomeNavigatorTab.explore.index) {
-          _feralfileHomePageKey.currentState?.scrollToTop();
+          feralFileHomeKey.currentState?.scrollToTop();
         } else if (index == HomeNavigatorTab.daily.index) {
           _dailyWorkKey.currentState?.scrollToTop();
         }
@@ -149,8 +130,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         } else {
           _dailyWorkKey.currentState?.pauseDailyWork();
         }
-
-        sendVisitPageEvent();
       }
       setState(() {
         _selectedIndex = index;
@@ -160,13 +139,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     // handle hamburger menu
     else {
       final currentIndex = _selectedIndex;
-      _metricClientService.addEvent(
-        MixpanelEvent.visitPage,
-        data: {
-          MixpanelProp.title:
-              HomeNavigatorTab.values[_selectedIndex].screenName,
-        },
-      );
       setState(() {
         _selectedIndex = index;
       });
@@ -326,7 +298,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
             ),
           ],
           child: FeralfileHomePage(
-            key: _feralfileHomePageKey,
+            key: feralFileHomeKey,
           )),
     ];
     if (!_configurationService.isReadRemoveSupport()) {
@@ -418,23 +390,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         nftBloc
             .add(RequestIndexEvent(await _clientTokenService.getAddresses()));
       });
-    }
-    _metricClientService.timerEvent(
-      MixpanelEvent.visitPage,
-    );
-  }
-
-  @override
-  Future<void> didPushNext() async {
-    super.didPushNext();
-    if (_selectedIndex != HomeNavigatorTab.menu.index) {
-      _metricClientService.addEvent(
-        MixpanelEvent.visitPage,
-        data: {
-          MixpanelProp.title:
-              HomeNavigatorTab.values[_selectedIndex].screenName,
-        },
-      );
     }
   }
 
@@ -608,7 +563,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
       selectedItemColor: selectedColor,
       unselectedItemColor: unselectedColor,
       backgroundColor: AppColor.auGreyBackground,
-      onSelectTab: _onItemTapped,
+      onSelectTab: onItemTapped,
       currentIndex: _selectedIndex,
     );
   }
@@ -617,10 +572,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     final pageController = PageController(initialPage: initialIndex);
     injector<NavigationService>().setGlobalHomeTabController(pageController);
     return pageController;
-  }
-
-  void _handleBackground() {
-    _metricClientService.onBackground();
   }
 
   void _triggerShowAnnouncement() {
@@ -640,13 +591,11 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
         memoryValues.isForeground = true;
         unawaited(injector<ChatService>().reconnect());
       case FGBGType.background:
-        _handleBackground();
         memoryValues.isForeground = false;
     }
   }
 
   Future<void> _handleForeground() async {
-    _metricClientService.onForeground();
     injector<CanvasDeviceBloc>().add(CanvasDeviceGetDevicesEvent(retry: true));
     await _remoteConfig.loadConfigs();
     _triggerShowAnnouncement();
@@ -655,7 +604,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   @override
   FutureOr<void> afterFirstLayout(BuildContext context) async {
     if (widget.payload.startedTab != _initialTab) {
-      await _onItemTapped(widget.payload.startedTab.index);
+      await onItemTapped(widget.payload.startedTab.index);
     }
     final initialAction = _notificationService.initialAction;
     if (initialAction != null) {

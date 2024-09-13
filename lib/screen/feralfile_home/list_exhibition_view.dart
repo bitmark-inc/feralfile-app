@@ -104,7 +104,7 @@ class ExploreExhibitionState extends State<ExploreExhibition> {
     } else if (_exhibitions!.isEmpty) {
       return _emptyView(context);
     } else {
-      return Expanded(child: _exhibitionView(context, _exhibitions!));
+      return _exhibitionView(context, _exhibitions!);
     }
   }
 

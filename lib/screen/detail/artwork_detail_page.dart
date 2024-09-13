@@ -262,13 +262,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
         currentAsset?.medium == 'other' ||
         currentAsset?.medium == null;
     return BlocConsumer<ArtworkDetailBloc, ArtworkDetailState>(
-        listenWhen: (previous, current) {
-      if (previous.assetToken != current.assetToken &&
-          current.assetToken != null) {
-        unawaited(current.assetToken?.sendViewArtworkEvent());
-      }
-      return true;
-    }, listener: (context, state) {
+        listener: (context, state) {
       final identitiesList = state.provenances.map((e) => e.owner).toList();
       if (state.assetToken?.artistName != null &&
           state.assetToken!.artistName!.length > 20) {
@@ -912,4 +906,15 @@ class ArtworkIdentity {
   Map<String, dynamic> toJson() => _$ArtworkIdentityToJson(this);
 
   String get key => '$id||$owner';
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+    return other is ArtworkIdentity && id == other.id && owner == other.owner;
+  }
+
+  @override
+  int get hashCode => id.hashCode ^ owner.hashCode;
 }

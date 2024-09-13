@@ -10,8 +10,6 @@ import 'dart:async';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/additional_data/additional_data.dart';
 import 'package:autonomy_flutter/service/announcement/announcement_service.dart';
-import 'package:autonomy_flutter/service/metric_client_service.dart';
-import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/inapp_notifications.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:flutter/material.dart';
@@ -115,23 +113,12 @@ class NotificationHandler {
 
   final AnnouncementService _announcementService =
       injector<AnnouncementService>();
-  final MetricClientService _metricClientService =
-      injector<MetricClientService>();
 
   Future<void> handleNotificationClicked(BuildContext context,
       AdditionalData additionalData, String id, String body,
       {String channel = 'push'}) async {
     log.info('Tap to notification: $body ');
 
-    /// mixpanel tracking: tap to notification
-    _metricClientService.addEvent(
-      MixpanelEvent.tappedNotification,
-      data: {
-        MixpanelProp.notificationId: id,
-        MixpanelProp.channel: channel,
-        MixpanelProp.type: additionalData.notificationType.toString(),
-      },
-    );
     await _announcementService.markAsRead(additionalData.announcementContentId);
     if (!context.mounted) {
       return;
@@ -172,14 +159,6 @@ class NotificationHandler {
       return;
     }
     if (announcement?.isExpired == true) {
-      _metricClientService.addEvent(
-        MixpanelEvent.expiredBeforeViewing,
-        data: {
-          MixpanelProp.notificationId: id,
-          MixpanelProp.channel: 'in-app',
-          MixpanelProp.type: additionalData.notificationType.toString(),
-        },
-      );
       await _announcementService
           .markAsRead(announcement?.announcementContentId);
       await _announcementService.showOldestAnnouncement();
