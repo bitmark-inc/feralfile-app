@@ -234,7 +234,7 @@ class ExploreCuratorViewState extends State<ExploreCuratorView> {
   Widget _emptyView(BuildContext context) {
     final theme = Theme.of(context);
     return Center(
-      child: Text('No curators found', style: theme.textTheme.ppMori400White14),
+      child: Text('no_curator_found', style: theme.textTheme.ppMori400White14),
     );
   }
 

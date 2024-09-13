@@ -143,7 +143,7 @@ class HowToDisplayOnTV extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(horizontal: 5),
                           child: Text(
                             textScaler: const TextScaler.linear(1),
-                            'Feral File',
+                            'feral_file'.tr(),
                             style: theme.textTheme.ppMori700Black14,
                           ),
                         ),
