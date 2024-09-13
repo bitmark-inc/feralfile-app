@@ -92,7 +92,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   PageController? _pageController;
   late List<Widget> _pages;
   final GlobalKey<DailyWorkPageState> _dailyWorkKey = GlobalKey();
-  final GlobalKey<FeralfileHomePageState> _feralfileHomePageKey = GlobalKey();
   final _configurationService = injector<ConfigurationService>();
   late Timer? _timer;
   final _clientTokenService = injector<ClientTokenService>();
@@ -111,15 +110,15 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   }
 
   Future<void> openExhibition(String exhibitionId) async {
-    await _onItemTapped(HomeNavigatorTab.explore.index);
+    await onItemTapped(HomeNavigatorTab.explore.index);
   }
 
-  Future<void> _onItemTapped(int index) async {
+  Future<void> onItemTapped(int index) async {
     if (index < _pages.length) {
       // handle scroll to top when tap on the same tab
       if (_selectedIndex == index) {
         if (index == HomeNavigatorTab.explore.index) {
-          _feralfileHomePageKey.currentState?.scrollToTop();
+          feralFileHomeKey.currentState?.scrollToTop();
         } else if (index == HomeNavigatorTab.daily.index) {
           _dailyWorkKey.currentState?.scrollToTop();
         }
@@ -301,7 +300,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
             ),
           ],
           child: FeralfileHomePage(
-            key: _feralfileHomePageKey,
+            key: feralFileHomeKey,
           )),
     ];
     if (!_configurationService.isReadRemoveSupport()) {
@@ -567,7 +566,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
       selectedItemColor: selectedColor,
       unselectedItemColor: unselectedColor,
       backgroundColor: AppColor.auGreyBackground,
-      onSelectTab: _onItemTapped,
+      onSelectTab: onItemTapped,
       currentIndex: _selectedIndex,
     );
   }
@@ -613,7 +612,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
   @override
   FutureOr<void> afterFirstLayout(BuildContext context) async {
     if (widget.payload.startedTab != _initialTab) {
-      await _onItemTapped(widget.payload.startedTab.index);
+      await onItemTapped(widget.payload.startedTab.index);
     }
     await _cloudBackup();
     final initialAction = _notificationService.initialAction;
