@@ -115,7 +115,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
         _deepLinkHandlingMap[referringLink] = true;
 
         _branchDataStreamController.add(data);
-        _checkIfInitialDataGiftMembership(data);
         await handleDeeplinkDataBeforeOnboarding(data);
         _deepLinkHandlingMap.remove(referringLink);
       }
@@ -134,7 +133,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
       if (initialLink != null) {
         _deepLinkStreamController.add(initialLink);
       }
-      await _checkIfInitialLinkGiftMembership(initialLink);
 
       await handleDeeplinkBeforeOnboarding(initialLink);
 
@@ -152,22 +150,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
   void _checkIfInitialDataGiftMembership(Map<dynamic, dynamic> data) {
     _isBranchDataGiftMembership = _isThisGiftMembership(data);
     _notifyGiftMembershipFlag();
-  }
-
-  Future<void> _checkIfInitialLinkGiftMembership(String? link) async {
-    if (link == null) {
-      _isInitialLinkGiftMembership = false;
-      _notifyGiftMembershipFlag();
-      return;
-    }
-    try {
-      final data = await _branchApi.getParams(Environment.branchKey, link);
-      _isInitialLinkGiftMembership = _isThisGiftMembership(data);
-      _notifyGiftMembershipFlag();
-    } catch (e) {
-      _isInitialLinkGiftMembership = false;
-      _notifyGiftMembershipFlag();
-    }
   }
 
   void _notifyGiftMembershipFlag() {
