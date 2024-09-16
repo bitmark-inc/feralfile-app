@@ -90,7 +90,8 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT }}
           packageName: com.bitmark.autonomy_client
           releaseFiles: build/app/outputs/bundle/prdRelease/app-prd-release.aab
-          track: qa
+          track: production
+          status: inProgress
           mappingFile: build/app/outputs/mapping/prdRelease/mapping.txt
           debugSymbols: build/app/intermediates/merged_native_libs/prdRelease/out/lib
-          whatsNewDirectory: ./whatsnew
+          whatsNewDirectory: whatsnew
