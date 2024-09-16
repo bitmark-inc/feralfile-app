@@ -227,6 +227,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
     }
     // make sure _handleReferralCodeDeeplinkData always be called
     await _handleReferralCodeDeeplinkData(data);
+
+    _checkIfInitialDataGiftMembership(data);
   }
 
   // function to handle referralCode deeplink
