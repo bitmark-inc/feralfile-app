@@ -92,11 +92,13 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
   @override
   final ValueNotifier<bool?> didOpenWithGiftMembership = ValueNotifier(null);
+
   bool? _isBranchDataGiftMembership;
   bool? _isInitialLinkGiftMembership;
 
   @override
   Future setup() async {
+    // init branch deeplink
     await FlutterBranchSdk.init(enableLogging: true);
     FlutterBranchSdk.listSession().listen((data) async {
       log.info('[DeeplinkService] _handleFeralFileDeeplink with Branch');
@@ -104,10 +106,12 @@ class DeeplinkServiceImpl extends DeeplinkService {
       log.info('[DeeplinkService] _deepLinkHandlingMap: $_deepLinkHandlingMap');
       if (data['+clicked_branch_link'] == true &&
           _deepLinkHandlingMap[data['~referring_link']] == null) {
-        _deepLinkHandlingMap[data['~referring_link']] = true;
+        final referringLink = data['~referring_link'];
+        _deepLinkHandlingMap[referringLink] = true;
 
         _branchDataStreamController.add(data);
-        _checkIfInitialDataGiftMembership(data);
+        await handleDeeplinkDataBeforeOnboarding(data);
+        _deepLinkHandlingMap.remove(referringLink);
       }
     }, onError: (error, stacktrace) {
       Sentry.captureException(error, stackTrace: stacktrace);
@@ -116,13 +120,15 @@ class DeeplinkServiceImpl extends DeeplinkService {
       _notifyGiftMembershipFlag();
     });
 
+    // init universal link
     try {
       final initialLink = await getInitialLink();
       log.info('[DeeplinkService] initialLink: $initialLink');
       if (initialLink != null) {
         _deepLinkStreamController.add(initialLink);
       }
-      await _checkIfInitialLinkGiftMembership(initialLink);
+
+      await handleDeeplinkBeforeOnboarding(initialLink);
 
       linkStream.listen(handleDeeplink);
     } on PlatformException {
@@ -138,22 +144,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
   void _checkIfInitialDataGiftMembership(Map<dynamic, dynamic> data) {
     _isBranchDataGiftMembership = _isThisGiftMembership(data);
     _notifyGiftMembershipFlag();
-  }
-
-  Future<void> _checkIfInitialLinkGiftMembership(String? link) async {
-    if (link == null) {
-      _isInitialLinkGiftMembership = false;
-      _notifyGiftMembershipFlag();
-      return;
-    }
-    try {
-      final data = await _branchApi.getParams(Environment.branchKey, link);
-      _isInitialLinkGiftMembership = _isThisGiftMembership(data);
-      _notifyGiftMembershipFlag();
-    } catch (e) {
-      _isInitialLinkGiftMembership = false;
-      _notifyGiftMembershipFlag();
-    }
   }
 
   void _notifyGiftMembershipFlag() {
@@ -178,6 +168,35 @@ class DeeplinkServiceImpl extends DeeplinkService {
       return;
     }
     _linkStream.listen(handleDeeplink);
+  }
+
+  // function to handle deeplink before user do onboarding
+  Future<void> handleDeeplinkBeforeOnboarding(String? link) async {
+    //if user has done onboarding, return
+    if (injector<ConfigurationService>().isDoneOnboarding()) {
+      return;
+    }
+    // if link is null or empty, return
+    if (link == null || link.isEmpty) {
+      return;
+    }
+
+    try {
+      final data = await _branchApi.getParams(Environment.branchKey, link);
+      await handleDeeplinkDataBeforeOnboarding(data);
+    } catch (e) {
+      log.info('[DeeplinkService] handleDeeplinkBeforeOnboarding error $e');
+      unawaited(Sentry.captureException(e));
+    }
+  }
+
+  // function to handle deeplink data before user do onboarding
+  Future<void> handleDeeplinkDataBeforeOnboarding(
+      Map<dynamic, dynamic> data) async {
+    if (injector<ConfigurationService>().isDoneOnboarding()) {
+      return;
+    }
+    _checkIfInitialDataGiftMembership(data);
   }
 
   @override
