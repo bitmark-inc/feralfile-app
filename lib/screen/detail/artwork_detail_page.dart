@@ -725,7 +725,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               await browser.openUrl(asset.secondaryMarketURL);
             },
           ),
-        if (!widget.payload.isLocalToken)
+        if (widget.payload.isLocalToken)
           OptionItem(
             title: isHidden ? 'unhide_aw'.tr() : 'hide_aw'.tr(),
             icon: SvgPicture.asset('assets/images/hide_artwork_white.svg'),
