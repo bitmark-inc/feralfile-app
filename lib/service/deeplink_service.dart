@@ -237,9 +237,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
     final referralCode = data['referral_code'];
     if (referralCode != null) {
       await injector<ConfigurationService>().setReferralCode(referralCode);
-      referralCodeCompleter.complete(referralCode);
     }
-    referralCodeCompleter.complete(null);
+    referralCodeCompleter.complete(referralCode);
   }
 
   @override
