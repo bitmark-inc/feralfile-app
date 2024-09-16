@@ -134,13 +134,27 @@ class DeeplinkServiceImpl extends DeeplinkService {
       if (initialLink != null) {
         _deepLinkStreamController.add(initialLink);
       }
-      await _checkIfInitialLinkGiftMembership(initialLink);
+      final initialLinkData = await _resolveBranchDeeplink(initialLink);
+      await _checkIfInitialLinkGiftMembership(initialLinkData);
 
-      await handleDeeplinkBeforeOnboarding(initialLink);
+      await handleDeeplinkBeforeOnboarding(initialLinkData);
 
       linkStream.listen(handleDeeplink);
     } on PlatformException {
       //Ignore
+    }
+  }
+
+  Future<Map<dynamic, dynamic>?> _resolveBranchDeeplink(String? link) async {
+    if (link == null) {
+      return null;
+    }
+    try {
+      return await _branchApi.getParams(Environment.branchKey, link);
+    } catch (e) {
+      log.info('[DeeplinkService] _resolveBranchDeeplink error $e');
+      unawaited(Sentry.captureException(e));
+      return {};
     }
   }
 
@@ -154,20 +168,15 @@ class DeeplinkServiceImpl extends DeeplinkService {
     _notifyGiftMembershipFlag();
   }
 
-  Future<void> _checkIfInitialLinkGiftMembership(String? link) async {
-    if (link == null) {
+  Future<void> _checkIfInitialLinkGiftMembership(
+      Map<dynamic, dynamic>? data) async {
+    if (data == null || data.isEmpty) {
       _isInitialLinkGiftMembership = false;
       _notifyGiftMembershipFlag();
       return;
     }
-    try {
-      final data = await _branchApi.getParams(Environment.branchKey, link);
-      _isInitialLinkGiftMembership = _isThisGiftMembership(data);
-      _notifyGiftMembershipFlag();
-    } catch (e) {
-      _isInitialLinkGiftMembership = false;
-      _notifyGiftMembershipFlag();
-    }
+    _isInitialLinkGiftMembership = _isThisGiftMembership(data);
+    _notifyGiftMembershipFlag();
   }
 
   void _notifyGiftMembershipFlag() {
@@ -195,27 +204,16 @@ class DeeplinkServiceImpl extends DeeplinkService {
   }
 
   // function to handle deeplink before user do onboarding
-  Future<void> handleDeeplinkBeforeOnboarding(String? link) async {
-    try {
-      Map<dynamic, dynamic>? data;
-      //if user has done onboarding, return
-      if (injector<ConfigurationService>().isDoneOnboarding()) {
-        data = {};
-      } else
-      // if link is null or empty, return
-      if (link == null || link.isEmpty) {
-        data = {};
-      } else {
-        data = await _branchApi.getParams(Environment.branchKey, link);
-      }
-      await handleDeeplinkDataBeforeOnboarding(data!);
-    } catch (e) {
-      log.info('[DeeplinkService] handleDeeplinkBeforeOnboarding error $e');
-      unawaited(Sentry.captureException(e));
-      if (referralCodeCompleter.isCompleted) {
-        referralCodeCompleter.complete(null);
-      }
+  Future<void> handleDeeplinkBeforeOnboarding(
+      Map<dynamic, dynamic>? data) async {
+    //if user has done onboarding, return
+    if (data == null) {
+      return;
     }
+    if (injector<ConfigurationService>().isDoneOnboarding()) {
+      data.clear();
+    }
+    await handleDeeplinkDataBeforeOnboarding(data);
   }
 
   // function to handle deeplink data before user do onboarding
