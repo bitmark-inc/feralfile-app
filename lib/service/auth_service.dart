@@ -99,9 +99,11 @@ class AuthService {
     return primaryAddressAuthToken;
   }
 
-  Future<void> registerPrimaryAddress(
-      {required AddressInfo primaryAddressInfo,
-      bool withDidKey = false}) async {
+  Future<void> registerPrimaryAddress({
+    required AddressInfo primaryAddressInfo,
+    bool withDidKey = false,
+    String? referralCode,
+  }) async {
     final address = await _addressService.getAddress(info: primaryAddressInfo);
     final publicKey = await _addressService.getAddressPublicKey(
         addressInfo: primaryAddressInfo);
@@ -122,6 +124,9 @@ class AuthService {
       'signature': signatureForAddress,
       'timestamp': timestamp,
     };
+    if (referralCode?.isNotEmpty ?? false) {
+      payload['referralCode'] = referralCode;
+    }
     if (withDidKey) {
       final defaultAccount =
           await injector<AccountService>().getDefaultAccount();

@@ -21,6 +21,7 @@ import 'package:autonomy_flutter/service/audit_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/service/backup_service.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/deeplink_service.dart';
 import 'package:autonomy_flutter/service/iap_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
@@ -139,10 +140,11 @@ class AccountServiceImpl extends AccountService {
   );
 
   @override
-  Future<Persona> createPersona(
-      {String name = '',
-      String passphrase = '',
-      bool isDefault = false}) async {
+  Future<Persona> createPersona({
+    String name = '',
+    String passphrase = '',
+    bool isDefault = false,
+  }) async {
     final uuid = const Uuid().v4();
     final walletStorage = LibAukDart.getWallet(uuid);
     await walletStorage.createKey(passphrase, name);
@@ -154,11 +156,12 @@ class AccountServiceImpl extends AccountService {
     log.fine('[AccountService] Created persona ${persona.uuid}}');
     if (isDefault) {
       await _addressService.registerPrimaryAddress(
-          info: primary_address_channel.AddressInfo(
-        uuid: persona.uuid,
-        chain: 'ethereum',
-        index: 0,
-      ));
+        info: primary_address_channel.AddressInfo(
+          uuid: persona.uuid,
+          chain: 'ethereum',
+          index: 0,
+        ),
+      );
     }
     return persona;
   }
@@ -780,6 +783,19 @@ class AccountServiceImpl extends AccountService {
       }
     } else {
       // for new user, create default persona
+
+      final complete = injector<DeeplinkService>().referralCodeCompleter;
+      if (!complete.isCompleted) {
+        log.info('Waiting for referral code');
+        // make sure referral code is completed
+        unawaited(
+            Future.delayed(const Duration(seconds: 1)).then((value) async {
+          complete.complete(null);
+          unawaited(
+              Sentry.captureException('Referral code manually completed'));
+        }));
+        await complete.future;
+      }
       final persona = await createPersona(isDefault: true);
       await persona.insertNextAddress(WalletType.Tezos);
       await persona.insertNextAddress(WalletType.Ethereum);

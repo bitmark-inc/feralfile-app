@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/wallet_address.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
+import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/primary_address_channel.dart';
@@ -74,8 +75,12 @@ class AddressService {
 
   Future<bool> registerPrimaryAddress(
       {required AddressInfo info, bool withDidKey = false}) async {
+    final referralCode = injector<ConfigurationService>().getReferralCode();
     await injector<AuthService>().registerPrimaryAddress(
-        primaryAddressInfo: info, withDidKey: withDidKey);
+        primaryAddressInfo: info,
+        withDidKey: withDidKey,
+        referralCode: referralCode);
+    await injector<ConfigurationService>().removeReferralCode();
     final res = await setPrimaryAddressInfo(info: info);
     // when register primary address, we need to update the auth token
     await injector<AuthService>().getAuthToken(forceRefresh: true);

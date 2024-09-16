@@ -56,6 +56,8 @@ abstract class DeeplinkService {
   void activateDeepLinkListener();
 
   ValueNotifier<bool?> get didOpenWithGiftMembership;
+
+  Completer<String?> get referralCodeCompleter;
 }
 
 class DeeplinkServiceImpl extends DeeplinkService {
@@ -93,6 +95,9 @@ class DeeplinkServiceImpl extends DeeplinkService {
   @override
   final ValueNotifier<bool?> didOpenWithGiftMembership = ValueNotifier(null);
 
+  @override
+  final Completer<String?> referralCodeCompleter = Completer<String?>();
+
   bool? _isBranchDataGiftMembership;
   bool? _isInitialLinkGiftMembership;
 
@@ -118,6 +123,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
       log.warning('[DeeplinkService] InitBranchSession error: $error');
       _isBranchDataGiftMembership = false;
       _notifyGiftMembershipFlag();
+      referralCodeCompleter.complete(null);
     });
 
     // init universal link
@@ -172,21 +178,25 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
   // function to handle deeplink before user do onboarding
   Future<void> handleDeeplinkBeforeOnboarding(String? link) async {
-    //if user has done onboarding, return
-    if (injector<ConfigurationService>().isDoneOnboarding()) {
-      return;
-    }
-    // if link is null or empty, return
-    if (link == null || link.isEmpty) {
-      return;
-    }
-
     try {
-      final data = await _branchApi.getParams(Environment.branchKey, link);
-      await handleDeeplinkDataBeforeOnboarding(data);
+      Map<dynamic, dynamic>? data;
+      //if user has done onboarding, return
+      if (injector<ConfigurationService>().isDoneOnboarding()) {
+        data = {};
+      } else
+      // if link is null or empty, return
+      if (link == null || link.isEmpty) {
+        data = {};
+      } else {
+        data = await _branchApi.getParams(Environment.branchKey, link);
+      }
+      await handleDeeplinkDataBeforeOnboarding(data!);
     } catch (e) {
       log.info('[DeeplinkService] handleDeeplinkBeforeOnboarding error $e');
       unawaited(Sentry.captureException(e));
+      if (referralCodeCompleter.isCompleted) {
+        referralCodeCompleter.complete(null);
+      }
     }
   }
 
@@ -194,9 +204,24 @@ class DeeplinkServiceImpl extends DeeplinkService {
   Future<void> handleDeeplinkDataBeforeOnboarding(
       Map<dynamic, dynamic> data) async {
     if (injector<ConfigurationService>().isDoneOnboarding()) {
+      referralCodeCompleter.complete(null);
       return;
     }
+    // make sure _handleReferralCodeDeeplinkData always be called
+    await _handleReferralCodeDeeplinkData(data);
+
     _checkIfInitialDataGiftMembership(data);
+  }
+
+  // function to handle referralCode deeplink
+  Future<void> _handleReferralCodeDeeplinkData(
+      Map<dynamic, dynamic> data) async {
+    final referralCode = data['referral_code'];
+    if (referralCode != null) {
+      await injector<ConfigurationService>().setReferralCode(referralCode);
+      referralCodeCompleter.complete(referralCode);
+    }
+    referralCodeCompleter.complete(null);
   }
 
   @override

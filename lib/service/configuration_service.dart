@@ -238,6 +238,12 @@ abstract class ConfigurationService {
       {bool override = false});
 
   List<String> getMerchandiseOrderIds();
+
+  Future<void> setReferralCode(String code);
+
+  Future<void> removeReferralCode();
+
+  String? getReferralCode();
 }
 
 class ConfigurationServiceImpl implements ConfigurationService {
@@ -325,6 +331,8 @@ class ConfigurationServiceImpl implements ConfigurationService {
       'sent_tezos_artwork_metric';
 
   static const String POSTCARD_MINT = 'postcard_mint';
+
+  static const String KEY_REFERRAL_CODE = 'referral_code';
 
   final SharedPreferences _preferences;
 
@@ -1076,6 +1084,19 @@ class ConfigurationServiceImpl implements ConfigurationService {
   Future<void> setDoneNewOnboarding(bool value) async {
     await _preferences.setBool(keyDoneNewOnboarding, value);
   }
+
+  @override
+  Future<void> setReferralCode(String code) async {
+    await _preferences.setString(KEY_REFERRAL_CODE, code);
+  }
+
+  @override
+  Future<void> removeReferralCode() async {
+    await _preferences.remove(KEY_REFERRAL_CODE);
+  }
+
+  @override
+  String? getReferralCode() => _preferences.getString(KEY_REFERRAL_CODE);
 }
 
 enum ConflictAction {
