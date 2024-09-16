@@ -488,23 +488,23 @@ class NavigationService {
     }
   }
 
-  Future<void> openFeralFileArtistPage(String alias) async {
-    if (alias.contains(',') || alias.isEmpty) {
+  Future<void> openFeralFileArtistPage(String id) async {
+    if (id.contains(',') || id.isEmpty) {
       return;
     }
     await Navigator.of(navigatorKey.currentContext!).pushNamed(
       AppRouter.userDetailsPage,
-      arguments: UserDetailsPagePayload(userId: alias),
+      arguments: UserDetailsPagePayload(userId: id),
     );
   }
 
-  Future<void> openFeralFileCuratorPage(String alias) async {
-    if (alias.contains(',') || alias.isEmpty) {
+  Future<void> openFeralFileCuratorPage(String id) async {
+    if (id.contains(',') || id.isEmpty) {
       return;
     }
     await Navigator.of(navigatorKey.currentContext!).pushNamed(
       AppRouter.userDetailsPage,
-      arguments: UserDetailsPagePayload(userId: alias),
+      arguments: UserDetailsPagePayload(userId: id),
     );
   }
 
