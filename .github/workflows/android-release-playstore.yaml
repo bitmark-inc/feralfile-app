@@ -79,7 +79,9 @@ jobs:
       - run: flutter build appbundle --flavor prd
 
       - name: Release notes
-        run: echo "${{ github.event.inputs.message }}" > ./whatsnew/whatsnew-en-US
+        run: |
+          mkdir whatsnew
+          echo "${{ github.event.inputs.message }}" > ./whatsnew/whatsnew-en-US
 
       # Upload APK to Google Play Internal Testing track
       - name: Upload APK to Google Play
