@@ -598,7 +598,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
         ExhibitionCard(
           exhibition: exhibition,
           viewableExhibitions: [exhibition],
-          horizontalPadding: 16,
+          horizontalMargin: 16,
         ),
         const SizedBox(height: 48),
         HtmlWidget(

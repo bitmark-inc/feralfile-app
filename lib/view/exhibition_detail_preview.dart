@@ -49,7 +49,7 @@ class ExhibitionPreview extends StatelessWidget {
           ),
           if (listCurators.isNotEmpty) ...[
             Text(
-              exhibition.curators != null ? 'curators'.tr() : 'curator'.tr(),
+              listCurators.length > 1 ? 'curators'.tr() : 'curator'.tr(),
               style: subTitleTextStyle,
             ),
             const SizedBox(height: 3),

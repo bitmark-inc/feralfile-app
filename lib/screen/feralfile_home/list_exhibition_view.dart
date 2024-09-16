@@ -197,7 +197,7 @@ class _ListExhibitionViewState extends State<ListExhibitionView> {
                       child: ExhibitionCard(
                         exhibition: exhibition,
                         viewableExhibitions: widget.exhibitions,
-                        horizontalPadding: _padding,
+                        horizontalMargin: _padding,
                       ),
                     ),
                     if (index != widget.exhibitions.length - 1) divider,

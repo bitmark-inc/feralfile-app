@@ -18,13 +18,17 @@ import 'package:flutter_svg/svg.dart';
 class ExhibitionCard extends StatelessWidget {
   final Exhibition exhibition;
   final List<Exhibition> viewableExhibitions;
-  final double horizontalPadding;
+  final double? horizontalMargin;
+  final double? width;
+  final double? height;
   static const _exhibitionInfoDivideWidth = 20.0;
 
   const ExhibitionCard({
     required this.exhibition,
     required this.viewableExhibitions,
-    required this.horizontalPadding,
+    this.horizontalMargin,
+    this.width,
+    this.height,
     super.key,
   });
 
@@ -32,8 +36,9 @@ class ExhibitionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final screenWidth = MediaQuery.sizeOf(context).width;
-    final estimatedHeight = (screenWidth - horizontalPadding * 2) / 16 * 9;
-    final estimatedWidth = screenWidth - horizontalPadding * 2;
+    final estimatedHeight =
+        height ?? ((screenWidth - (horizontalMargin ?? 0) * 2) / 16 * 9);
+    final estimatedWidth = width ?? (screenWidth - (horizontalMargin ?? 0) * 2);
     final index = viewableExhibitions.indexOf(exhibition);
     final titleStyle = theme.textTheme.ppMori400White16;
     final subTitleStyle = theme.textTheme.ppMori400Grey12;
