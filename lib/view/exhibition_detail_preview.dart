@@ -67,6 +67,7 @@ class ExhibitionPreview extends StatelessWidget {
               style: subTextStyle),
           const SizedBox(height: 3),
           RichText(
+            textScaler: MediaQuery.textScalerOf(context),
             text: TextSpan(
               children: exhibition.artists!
                   .map((e) {

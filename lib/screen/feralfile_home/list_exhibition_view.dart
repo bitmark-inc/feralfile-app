@@ -309,6 +309,7 @@ class _ListExhibitionViewState extends State<ListExhibitionView> {
                         if (exhibition.isSoloExhibition &&
                             exhibition.artists != null) ...[
                           RichText(
+                            textScaler: MediaQuery.textScalerOf(context),
                             text: TextSpan(
                               style: subTitleStyle.copyWith(
                                   decorationColor: AppColor.disabledColor),
@@ -332,6 +333,7 @@ class _ListExhibitionViewState extends State<ListExhibitionView> {
                         ],
                         if (exhibition.curator != null)
                           RichText(
+                            textScaler: MediaQuery.textScalerOf(context),
                             text: TextSpan(
                               style: subTitleStyle.copyWith(
                                   decorationColor: AppColor.disabledColor),

@@ -448,6 +448,7 @@ class _EditPlaylistScreenState extends State<EditPlaylistScreen> {
             tr('remove_from_list'),
             '',
             descriptionWidget: RichText(
+              textScaler: MediaQuery.textScalerOf(context),
               text: TextSpan(
                 children: [
                   TextSpan(
