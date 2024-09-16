@@ -1,4 +1,4 @@
-name: Deploy the android app
+name: Deploy the Android app to Playstore internal track
 on:
   workflow_dispatch:
     inputs:
