@@ -32,10 +32,10 @@ class ArtworkTitleView extends StatelessWidget {
             style: theme.textTheme.ppMori400White14,
           ),
           onTap: () async => {
-            if (artwork.series?.artist?.slug != null)
+            if (artwork.series?.artist?.alumniAccount?.slug != null)
               {
-                injector<NavigationService>()
-                    .openFeralFileArtistPage(artwork.series!.artist!.slug!)
+                injector<NavigationService>().openFeralFileArtistPage(
+                    artwork.series!.artist!.alumniAccount!.slug!)
               }
           },
         ),

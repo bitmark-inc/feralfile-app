@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class FFExhibitionParticipants extends StatelessWidget {
-  final List<FFUserDetails> users;
+  final List<FFUser> users;
   final TextStyle textStyle;
 
   const FFExhibitionParticipants({
@@ -26,25 +26,26 @@ class FFExhibitionParticipants extends StatelessWidget {
       );
 }
 
-List<TextSpan> exhibitionParticipantSpans(List<FFUserDetails> participants) {
+List<TextSpan> exhibitionParticipantSpans(List<FFUser> participants) {
   final spans = <TextSpan>[];
 
-  TextSpan userNameItem(FFUserDetails user) => TextSpan(
+  TextSpan userNameItem(FFUser user) => TextSpan(
         recognizer: TapGestureRecognizer()
           ..onTap = () async {
-            if (user.slug != null) {
+            if (user.alumniAccount?.slug != null) {
               await (user.isCurator == true
                   ? injector<NavigationService>()
-                      .openFeralFileCuratorPage(user.slug!)
+                      .openFeralFileCuratorPage(user.alumniAccount!.slug!)
                   : injector<NavigationService>()
-                      .openFeralFileArtistPage(user.slug!));
-            } else if (user.website != null) {
-              await launchUrl(Uri.parse(user.website!));
+                      .openFeralFileArtistPage(user.alumniAccount!.slug!));
+            } else if (user.alumniAccount?.website != null) {
+              await launchUrl(Uri.parse(user.alumniAccount!.website!));
             }
           },
         text: user.displayAlias,
         style: TextStyle(
-          decoration: user.slug != null || user.website != null
+          decoration: user.alumniAccount?.slug != null ||
+                  user.alumniAccount?.website != null
               ? TextDecoration.underline
               : TextDecoration.none,
         ),
