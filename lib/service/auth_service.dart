@@ -19,6 +19,7 @@ import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/notification_util.dart';
 import 'package:autonomy_flutter/util/primary_address_channel.dart';
 import 'package:dio/dio.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 class AuthService {
   final IAPApi _authApi;
@@ -101,6 +102,8 @@ class AuthService {
     } on DioException catch (e) {
       if (e.ffErrorCode == 998 && primaryAddress != null) {
         log.warning('Primary address not registered, retrying');
+        unawaited(Sentry.captureMessage('Primary address not registered, '
+            'registerPrimaryAddress ${primaryAddress.uuid}'));
         await injector<AddressService>()
             .registerPrimaryAddress(info: primaryAddress);
         return await _authApi.authAddress(payload);

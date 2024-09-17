@@ -745,7 +745,9 @@ class AccountServiceImpl extends AccountService {
         await _addressService.migrateToEthereumAddress(addressInfo);
       }
       await _cloudObject.copyDataFrom(cloudDb);
-      unawaited(cloudDb.removeAll());
+      unawaited(_cloudObject
+          .setMigrated()
+          .then((_) => unawaited(cloudDb.removeAll())));
     }
 
     // case 6: restore app from old version using primary address
@@ -759,8 +761,9 @@ class AccountServiceImpl extends AccountService {
 
         await _cloudObject.uploadCurrentCache();
       }
+
+      unawaited(_cloudObject.setMigrated());
     }
-    unawaited(_cloudObject.setMigrated());
 
     // ensure that we have addresses;
     unawaited(_ensureHavingWalletAddress());
