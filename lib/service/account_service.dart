@@ -820,7 +820,7 @@ class AccountServiceImpl extends AccountService {
       String uuid, WalletType walletType,
       {String? name}) async {
     final List<WalletAddress> addresses = [];
-    final walletAddresses = _cloudObject.addressObject.findByWalletID(uuid);
+    final walletAddresses = _cloudObject.addressObject.getAddressesByUuid(uuid);
     final wallet = LibAukDart.getWallet(uuid);
     final ethIndexes = walletAddresses
         .where((element) => element.cryptoType == CryptoType.ETH.source)

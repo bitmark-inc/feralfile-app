@@ -32,11 +32,9 @@ class ConnectionCloudObject {
   }
 
   List<Connection> getConnections() {
-    final Map<String, dynamic> cache = {}
-      ..addAll(_accountSettingsDB.caches)
-      ..remove(_accountSettingsDB.migrateKey);
-    final connections =
-        cache.values.map((e) => Connection.fromJson(jsonDecode(e))).toList();
+    final connections = _accountSettingsDB.values
+        .map((e) => Connection.fromJson(jsonDecode(e)))
+        .toList();
     return connections;
   }
 
@@ -82,7 +80,7 @@ class ConnectionCloudObject {
       _accountSettingsDB.write(connections.map((e) => e.toKeyValue).toList());
 
   Future<void> removeAll() {
-    final keys = _accountSettingsDB.caches.keys.toList();
+    final keys = _accountSettingsDB.keys.toList();
     return _accountSettingsDB.delete(keys);
   }
 }

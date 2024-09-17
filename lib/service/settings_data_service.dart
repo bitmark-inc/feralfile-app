@@ -66,7 +66,7 @@ class SettingsDataServiceImpl implements SettingsDataService {
           "[SettingsDataService] skip backup because of it's already running");
       return;
     }
-    final currentSettings = _cloudObject.settingsDataDB.caches;
+    final currentSettings = _cloudObject.settingsDataDB.allInstance;
 
     final List<Map<String, String>> newSettings = [];
 
@@ -143,7 +143,7 @@ class SettingsDataServiceImpl implements SettingsDataService {
     if (!fromFile) {
       log.info('[SettingsDataService] from account setting db');
       await _cloudObject.settingsDataDB.download(keys: settingsKeys);
-      final res = _cloudObject.settingsDataDB.caches
+      final res = _cloudObject.settingsDataDB.allInstance
           .map((key, value) => MapEntry(key, jsonDecode(value)));
 
       log.info('[SettingsDataService] restore $res');

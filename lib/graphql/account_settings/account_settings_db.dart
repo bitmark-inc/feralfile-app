@@ -11,7 +11,7 @@ abstract class AccountSettingsDB {
 
   Future<void> delete(List<String> keys);
 
-  Map<String, dynamic> get caches;
+  //Map<String, dynamic> get caches;
 
   Future<bool> didMigrate();
 
@@ -22,6 +22,12 @@ abstract class AccountSettingsDB {
   String get migrateKey;
 
   String get prefix;
+
+  List<String> get keys;
+
+  List<String> get values;
+
+  Map<String, String> get allInstance;
 
   void clearCache();
 }
@@ -107,18 +113,13 @@ class AccountSettingsDBImpl implements AccountSettingsDB {
   String _removePrefix(String key) => key.replaceFirst('$_prefix.', '');
 
   @override
-  Map<String, dynamic> get caches => _caches;
-
-  @override
   Future<bool> didMigrate() async {
     if (_caches[migrateKey] == 'true') {
       return true;
     }
-    final res = await _client.query(vars: {
-      'keys': [getFullKey(migrateKey)]
-    });
+    await download(keys: [migrateKey]);
 
-    return res.isNotEmpty && res.first['value'] == 'true';
+    return _caches[migrateKey] == 'true';
   }
 
   @override
@@ -132,6 +133,22 @@ class AccountSettingsDBImpl implements AccountSettingsDB {
   void clearCache() {
     _caches.clear();
   }
+
+  @override
+  List<String> get keys =>
+      _caches.keys.where((element) => element != _migrateKey).toList();
+
+  @override
+  List<String> get values => _caches.entries
+      .where((element) => element.key != _migrateKey)
+      .map((e) => e.value)
+      .toList();
+
+  @override
+  Map<String, String> get allInstance => {
+        for (var entry in _caches.entries)
+          if (entry.key != _migrateKey) entry.key: entry.value
+      };
 
   @override
   String get prefix => _prefix;

@@ -13,7 +13,7 @@ class WalletAddressCloudObject {
   }
 
   Future<void> deleteAddressesByUuid(String uuid) async {
-    final addressesWithUUid = findByWalletID(uuid);
+    final addressesWithUUid = getAddressesByUuid(uuid);
     await _accountSettingsDB
         .delete(addressesWithUUid.map((e) => e.key).toList());
   }
@@ -32,11 +32,6 @@ class WalletAddressCloudObject {
     }
     final addressJson = jsonDecode(value.first['value']!);
     return WalletAddress.fromJson(addressJson);
-  }
-
-  List<WalletAddress> findByWalletID(String uuid) {
-    final allAddresses = getAllAddresses();
-    return allAddresses.where((element) => element.uuid == uuid).toList();
   }
 
   List<WalletAddress> getAddresses(String uuid, String cryptoType) {
@@ -60,10 +55,7 @@ class WalletAddressCloudObject {
   }
 
   List<WalletAddress> getAllAddresses() {
-    final Map<String, dynamic> cache = {}
-      ..addAll(_accountSettingsDB.caches)
-      ..remove(_accountSettingsDB.migrateKey);
-    final addresses = cache.values
+    final addresses = _accountSettingsDB.values
         .map((value) => WalletAddress.fromJson(jsonDecode(value)))
         .toList();
     return addresses;
@@ -75,7 +67,7 @@ class WalletAddressCloudObject {
   }
 
   Future<void> removeAll() async {
-    final keys = _accountSettingsDB.caches.keys.toList();
+    final keys = _accountSettingsDB.keys.toList();
     await _accountSettingsDB.delete(keys);
   }
 
