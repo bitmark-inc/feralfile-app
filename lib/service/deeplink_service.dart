@@ -99,7 +99,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
   final Completer<String?> referralCodeCompleter = Completer<String?>();
 
   bool? _isBranchDataGiftMembership;
-  bool? _isInitialLinkGiftMembership;
 
   @override
   Future setup() async {
@@ -153,10 +152,10 @@ class DeeplinkServiceImpl extends DeeplinkService {
   }
 
   void _notifyGiftMembershipFlag() {
-    if (_isBranchDataGiftMembership != null &&
-        _isInitialLinkGiftMembership != null) {
+    if (_isBranchDataGiftMembership != null) {
       didOpenWithGiftMembership.value =
-          _isBranchDataGiftMembership! || _isInitialLinkGiftMembership!;
+          (didOpenWithGiftMembership.value ?? false) ||
+              _isBranchDataGiftMembership!;
     }
   }
 
