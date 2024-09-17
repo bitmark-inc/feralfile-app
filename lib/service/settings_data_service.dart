@@ -20,7 +20,7 @@ part 'settings_data_service.g.dart';
 abstract class SettingsDataService {
   Future backup();
 
-  Future restoreSettingsData({bool fromFile = false});
+  Future restoreSettingsData({bool fromProfileData = false});
 
   List<String> get settingsKeys;
 }
@@ -138,9 +138,9 @@ class SettingsDataServiceImpl implements SettingsDataService {
   }
 
   @override
-  Future restoreSettingsData({bool fromFile = false}) async {
+  Future restoreSettingsData({bool fromProfileData = false}) async {
     log.info('[SettingsDataService][Start] restoreSettingsData');
-    if (!fromFile) {
+    if (!fromProfileData) {
       log.info('[SettingsDataService] from account setting db');
       await _cloudObject.settingsDataDB.download(keys: settingsKeys);
       final res = _cloudObject.settingsDataDB.allInstance
@@ -150,20 +150,7 @@ class SettingsDataServiceImpl implements SettingsDataService {
 
       final data = SettingsDataBackup.fromJson(res);
 
-      await _configurationService.setAnalyticEnabled(data.isAnalyticsEnabled);
-
-      await _configurationService.updateTempStorageHiddenTokenIDs(
-          data.hiddenMainnetTokenIDs, true,
-          override: true);
-
-      await Future.wait((data.hiddenAddressesFromGallery ?? [])
-          .map((e) => _cloudObject.addressObject.setAddressIsHidden(e, true)));
-
-      await _configurationService.setHideLinkedAccountInGallery(
-          data.hiddenLinkedAccountsFromGallery, true,
-          override: true);
-
-      await _configurationService.setPlayList(data.playlists, override: true);
+      await _saveSettingToConfig(data);
     } else {
       log.info('[SettingsDataService] migrate from old server');
       try {
@@ -171,20 +158,7 @@ class SettingsDataServiceImpl implements SettingsDataService {
             await _iapApi.getProfileData(_requester, _filename, _version);
         final data = SettingsDataBackup.fromJson(json.decode(response));
 
-        await _configurationService.setAnalyticEnabled(data.isAnalyticsEnabled);
-
-        await _configurationService.updateTempStorageHiddenTokenIDs(
-            data.hiddenMainnetTokenIDs, true,
-            override: true);
-
-        await Future.wait((data.hiddenAddressesFromGallery ?? []).map(
-            (e) => _cloudObject.addressObject.setAddressIsHidden(e, true)));
-
-        await _configurationService.setHideLinkedAccountInGallery(
-            data.hiddenLinkedAccountsFromGallery, true,
-            override: true);
-
-        await _configurationService.setPlayList(data.playlists, override: true);
+        await _saveSettingToConfig(data);
 
         log.info('[SettingsDataService][Done] restoreSettingsData');
       } catch (exception, stacktrace) {
@@ -192,6 +166,23 @@ class SettingsDataServiceImpl implements SettingsDataService {
         return;
       }
     }
+  }
+
+  Future<void> _saveSettingToConfig(SettingsDataBackup data) async {
+    await _configurationService.setAnalyticEnabled(data.isAnalyticsEnabled);
+
+    await _configurationService.updateTempStorageHiddenTokenIDs(
+        data.hiddenMainnetTokenIDs, true,
+        override: true);
+
+    await Future.wait((data.hiddenAddressesFromGallery ?? []).map(
+            (e) => _cloudObject.addressObject.setAddressIsHidden(e, true)));
+
+    await _configurationService.setHideLinkedAccountInGallery(
+        data.hiddenLinkedAccountsFromGallery, true,
+        override: true);
+
+    await _configurationService.setPlayList(data.playlists, override: true);
   }
 }
 

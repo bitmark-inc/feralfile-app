@@ -708,7 +708,8 @@ class AccountServiceImpl extends AccountService {
         withDidKey: true,
       );
 
-      await injector<SettingsDataService>().restoreSettingsData(fromFile: true);
+      await injector<SettingsDataService>()
+          .restoreSettingsData(fromProfileData: true);
       await _backupService.restoreCloudDatabase();
 
       // ensure that we have addresses;
@@ -752,7 +753,8 @@ class AccountServiceImpl extends AccountService {
 
     // case 6: restore app from old version using primary address
     else {
-      await injector<SettingsDataService>().restoreSettingsData(fromFile: true);
+      await injector<SettingsDataService>()
+          .restoreSettingsData(fromProfileData: true);
       await _backupService.restoreCloudDatabase();
       // now all data are in _cloudObject cache
       if (!addressInfo!.isEthereum) {
