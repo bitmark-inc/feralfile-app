@@ -11,7 +11,7 @@ import 'dart:io';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
-import 'package:autonomy_flutter/graphql/account_settings/cloud_object.dart';
+import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/connection_supports.dart';
 import 'package:autonomy_flutter/model/p2p_peer.dart';
@@ -31,7 +31,7 @@ import 'package:flutter/cupertino.dart';
 
 class TezosBeaconService implements BeaconHandler {
   final NavigationService _navigationService;
-  final CloudObjects _cloudObjects;
+  final CloudManager _cloudObjects;
   final List<BeaconRequest> _handlingRequests = [];
 
   late TezosBeaconChannel _beaconChannel;

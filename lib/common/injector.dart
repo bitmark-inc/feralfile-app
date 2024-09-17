@@ -24,7 +24,7 @@ import 'package:autonomy_flutter/gateway/source_exhibition_api.dart';
 import 'package:autonomy_flutter/gateway/tv_cast_api.dart';
 import 'package:autonomy_flutter/gateway/tzkt_api.dart';
 import 'package:autonomy_flutter/graphql/account_settings/account_settings_client.dart';
-import 'package:autonomy_flutter/graphql/account_settings/cloud_object.dart';
+import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/screen/bloc/connections/connections_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/subscription/subscription_bloc.dart';
@@ -416,5 +416,5 @@ Future<void> setup() async {
   injector.registerLazySingleton<AccountSettingsClient>(
       () => AccountSettingsClient(Environment.accountSettingUrl));
 
-  injector.registerLazySingleton<CloudObjects>(() => CloudObjects());
+  injector.registerLazySingleton<CloudManager>(() => CloudManager());
 }

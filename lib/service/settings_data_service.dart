@@ -8,7 +8,7 @@
 import 'dart:convert';
 
 import 'package:autonomy_flutter/gateway/iap_api.dart';
-import 'package:autonomy_flutter/graphql/account_settings/cloud_object.dart';
+import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -28,7 +28,7 @@ abstract class SettingsDataService {
 class SettingsDataServiceImpl implements SettingsDataService {
   final ConfigurationService _configurationService;
   final IAPApi _iapApi;
-  final CloudObjects _cloudObject;
+  final CloudManager _cloudObject;
 
   SettingsDataServiceImpl(
     this._configurationService,

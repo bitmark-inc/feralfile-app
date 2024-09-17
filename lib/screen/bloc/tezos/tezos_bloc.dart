@@ -7,7 +7,7 @@
 
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/database/entity/wallet_address.dart';
-import 'package:autonomy_flutter/graphql/account_settings/cloud_object.dart';
+import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/service/tezos_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 
@@ -15,7 +15,7 @@ part 'tezos_state.dart';
 
 class TezosBloc extends AuBloc<TezosEvent, TezosState> {
   final TezosService _tezosService;
-  final CloudObjects _cloudObject;
+  final CloudManager _cloudObject;
 
   TezosBloc(this._tezosService, this._cloudObject)
       : super(TezosState(null, {})) {

@@ -12,7 +12,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/app_database.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/gateway/iap_api.dart';
-import 'package:autonomy_flutter/graphql/account_settings/cloud_object.dart';
+import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/settings/forget_exist/forget_exist_state.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
@@ -64,8 +64,8 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
         log.info('Error when delete all profiles: $e');
       }
 
-      injector<CloudObjects>().clearCache();
-      unawaited(injector<CloudObjects>().deleteAll());
+      injector<CloudManager>().clearCache();
+      unawaited(injector<CloudManager>().deleteAll());
       await _cloudDatabase.removeAll();
       await _appDatabase.removeAll();
       await _nftCollectionDatabase.removeAll();

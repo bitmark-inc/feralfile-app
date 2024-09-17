@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/graphql/account_settings/cloud_object.dart';
+import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/scan_wallet/scan_wallet_state.dart';
@@ -55,7 +55,7 @@ class _SelectAddressesPageState extends State<SelectAddressesPage> {
   }
 
   Future<void> fetchImportedAddresses() async {
-    final importedAddresses = injector<CloudObjects>()
+    final importedAddresses = injector<CloudManager>()
         .addressObject
         .getAddressesByUuid(widget.payload.wallet.uuid);
     setState(() {

@@ -4,7 +4,7 @@ import 'dart:ui';
 
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/graphql/account_settings/cloud_object.dart';
+import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/model/pair.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/postcard_metadata.dart';
@@ -148,7 +148,7 @@ extension AssetTokenExtension on AssetToken {
 
     Pair<WalletStorage, int>? result;
     final walletAddress =
-        injector<CloudObjects>().addressObject.findByAddress(owner);
+        injector<CloudManager>().addressObject.findByAddress(owner);
     if (walletAddress != null) {
       result = Pair<WalletStorage, int>(
           WalletStorage(walletAddress.uuid), walletAddress.index);
@@ -203,7 +203,7 @@ extension AssetTokenExtension on AssetToken {
   }
 
   Future<bool> isViewOnly() async {
-    final cloudObject = injector<CloudObjects>();
+    final cloudObject = injector<CloudManager>();
     final walletAddress = cloudObject.addressObject.findByAddress(owner);
     final viewOnlyConnections =
         cloudObject.connectionObject.getLinkedAccounts();

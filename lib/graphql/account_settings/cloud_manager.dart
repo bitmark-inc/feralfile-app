@@ -12,7 +12,7 @@ import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/migration/migration_util.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
-class CloudObjects {
+class CloudManager {
   late final String _requester;
   late final String _deviceId;
   late final String _flavor;
@@ -25,7 +25,7 @@ class CloudObjects {
 
   late final AccountSettingsDB _settingsDataDB;
 
-  CloudObjects() {
+  CloudManager() {
     unawaited(_init());
   }
 

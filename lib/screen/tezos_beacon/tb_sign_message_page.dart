@@ -10,7 +10,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/graphql/account_settings/cloud_object.dart';
+import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/service/local_auth_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
@@ -70,7 +70,7 @@ class _TBSignMessagePageState extends State<TBSignMessagePage> {
   Future fetchPersona() async {
     WalletIndex? currentWallet;
     if (widget.request.sourceAddress != null) {
-      final walletAddress = injector<CloudObjects>()
+      final walletAddress = injector<CloudManager>()
           .addressObject
           .findByAddress(widget.request.sourceAddress!);
       if (walletAddress != null) {

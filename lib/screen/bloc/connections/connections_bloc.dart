@@ -9,7 +9,7 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
-import 'package:autonomy_flutter/graphql/account_settings/cloud_object.dart';
+import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/model/p2p_peer.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/service/wc2_service.dart';
@@ -19,7 +19,7 @@ import 'package:collection/collection.dart';
 part 'connections_state.dart';
 
 class ConnectionsBloc extends AuBloc<ConnectionsEvent, ConnectionsState> {
-  final CloudObjects _cloudObject;
+  final CloudManager _cloudObject;
   final Wc2Service _wc2Service;
   final TezosBeaconService _tezosBeaconService;
 

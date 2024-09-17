@@ -11,7 +11,7 @@ import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
 import 'package:autonomy_flutter/database/entity/wallet_address.dart';
-import 'package:autonomy_flutter/graphql/account_settings/cloud_object.dart';
+import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/model/network.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
@@ -26,7 +26,7 @@ part 'accounts_state.dart';
 
 class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
   final AccountService _accountService;
-  final CloudObjects _cloudObject;
+  final CloudManager _cloudObject;
 
   AccountsBloc(this._accountService, this._cloudObject)
       : super(AccountsState()) {

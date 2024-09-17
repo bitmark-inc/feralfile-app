@@ -8,7 +8,7 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
-import 'package:autonomy_flutter/graphql/account_settings/cloud_object.dart';
+import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/model/connection_request_args.dart';
 import 'package:autonomy_flutter/model/currency_exchange.dart';
 import 'package:autonomy_flutter/service/currency_service.dart';
@@ -167,7 +167,7 @@ class _TBSendTransactionPageState extends State<TBSendTransactionPage> {
   void fetchPersona() {
     WalletIndex? currentWallet;
     if (widget.request.sourceAddress != null) {
-      final walletAddress = injector<CloudObjects>()
+      final walletAddress = injector<CloudManager>()
           .addressObject
           .findByAddress(widget.request.sourceAddress!);
       if (walletAddress != null) {

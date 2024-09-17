@@ -9,7 +9,7 @@ import 'dart:async';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/connection.dart';
-import 'package:autonomy_flutter/graphql/account_settings/cloud_object.dart';
+import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
 import 'package:autonomy_flutter/screen/bloc/usdc/usdc_bloc.dart';
@@ -150,7 +150,7 @@ class _LinkedWalletDetailPageState extends State<LinkedWalletDetailPage>
               onSubmit: (String value) {
                 if (value.trim().isNotEmpty) {
                   _connection = _connection.copyWith(name: value);
-                  unawaited(injector<CloudObjects>()
+                  unawaited(injector<CloudManager>()
                       .connectionObject
                       .writeConnection(_connection));
                   setState(() {

@@ -12,7 +12,7 @@ import 'dart:io';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
-import 'package:autonomy_flutter/graphql/account_settings/cloud_object.dart';
+import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/model/backup_versions.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
@@ -32,7 +32,7 @@ class BackupService {
   static const _dbFileName = 'cloud_database.db';
   static const _dbEncryptedFileName = 'cloud_database.db.encrypted';
 
-  final CloudObjects _cloudObjects;
+  final CloudManager _cloudObjects;
 
   BackupService(this._cloudObjects);
 

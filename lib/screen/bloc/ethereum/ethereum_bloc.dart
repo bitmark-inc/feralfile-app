@@ -7,7 +7,7 @@
 
 import 'package:autonomy_flutter/au_bloc.dart';
 import 'package:autonomy_flutter/database/entity/wallet_address.dart';
-import 'package:autonomy_flutter/graphql/account_settings/cloud_object.dart';
+import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/service/ethereum_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:web3dart/web3dart.dart';
@@ -16,7 +16,7 @@ part 'ethereum_state.dart';
 
 class EthereumBloc extends AuBloc<EthereumEvent, EthereumState> {
   final EthereumService _ethereumService;
-  final CloudObjects _cloudObject;
+  final CloudManager _cloudObject;
 
   EthereumBloc(this._ethereumService, this._cloudObject)
       : super(EthereumState(null, {})) {

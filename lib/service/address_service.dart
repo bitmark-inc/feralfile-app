@@ -10,7 +10,7 @@ import 'dart:convert';
 
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/entity/wallet_address.dart';
-import 'package:autonomy_flutter/graphql/account_settings/cloud_object.dart';
+import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
@@ -21,7 +21,7 @@ import 'package:tezart/src/crypto/crypto.dart' as crypto;
 
 class AddressService {
   final PrimaryAddressChannel _primaryAddressChannel;
-  final CloudObjects _cloudObject;
+  final CloudManager _cloudObject;
 
   AddressService(this._primaryAddressChannel, this._cloudObject);
 

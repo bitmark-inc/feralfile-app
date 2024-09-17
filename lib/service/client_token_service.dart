@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:autonomy_flutter/database/entity/connection.dart';
-import 'package:autonomy_flutter/graphql/account_settings/cloud_object.dart';
+import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/pending_token_service.dart';
 import 'package:nft_collection/widgets/nft_collection_bloc.dart';
@@ -9,7 +9,7 @@ import 'package:nft_collection/widgets/nft_collection_bloc_event.dart';
 
 class ClientTokenService {
   final AccountService _accountService;
-  final CloudObjects _cloudObjects;
+  final CloudManager _cloudObjects;
   final PendingTokenService _pendingTokenService;
   final NftCollectionBloc _nftBloc;
 
