@@ -15,7 +15,6 @@ import 'package:autonomy_flutter/main.dart';
 import 'package:autonomy_flutter/model/play_list_model.dart';
 import 'package:autonomy_flutter/model/sent_artwork.dart';
 import 'package:autonomy_flutter/screen/app_router.dart';
-import 'package:autonomy_flutter/screen/artist_details/artist_details_page.dart';
 import 'package:autonomy_flutter/screen/bloc/accounts/accounts_bloc.dart';
 import 'package:autonomy_flutter/screen/bloc/identity/identity_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/artwork_detail_bloc.dart';
@@ -26,6 +25,7 @@ import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_wid
 import 'package:autonomy_flutter/screen/irl_screen/webview_irl_screen.dart';
 import 'package:autonomy_flutter/screen/settings/crypto/send_artwork/send_artwork_page.dart';
 import 'package:autonomy_flutter/service/configuration_service.dart';
+import 'package:autonomy_flutter/service/navigation_service.dart';
 import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/au_icons.dart';
@@ -497,11 +497,8 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               title: asset.displayTitle ?? '',
               subTitle: subTitle,
               onSubTitleTap: asset.artistID != null && asset.isFeralfile
-                  ? () => unawaited(Navigator.of(context).pushNamed(
-                        AppRouter.userDetailsPage,
-                        arguments:
-                            UserDetailsPagePayload(userId: asset.artistID!),
-                      ))
+                  ? () => unawaited(injector<NavigationService>()
+                      .openFeralFileArtistPage(asset.artistID!))
                   : null,
             ),
           ),
@@ -725,7 +722,7 @@ class _ArtworkDetailPageState extends State<ArtworkDetailPage>
               await browser.openUrl(asset.secondaryMarketURL);
             },
           ),
-        if (!widget.payload.isLocalToken)
+        if (widget.payload.isLocalToken)
           OptionItem(
             title: isHidden ? 'unhide_aw'.tr() : 'hide_aw'.tr(),
             icon: SvgPicture.asset('assets/images/hide_artwork_white.svg'),

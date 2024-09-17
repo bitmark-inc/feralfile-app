@@ -13,7 +13,6 @@ import 'package:autonomy_flutter/util/helpers.dart';
 import 'package:nft_collection/database/dao/dao.dart';
 import 'package:nft_collection/graphql/model/get_list_tokens.dart';
 import 'package:nft_collection/models/asset_token.dart';
-import 'package:nft_collection/nft_collection.dart';
 import 'package:nft_collection/services/indexer_service.dart';
 
 class ArtworkPreviewBloc
@@ -55,11 +54,6 @@ class ArtworkPreviewBloc
                 0, Environment.autonomyIpfsPrefix.length, DEFAULT_IPFS_PREFIX);
             if (!event.useIndexer) {
               await _assetDao.insertAsset(assetToken.asset!);
-              final artistId = assetToken.asset!.artistID;
-              if (artistId != null) {
-                NftCollectionBloc.eventController
-                    .add(AddArtistsEvent(artists: [artistId]));
-              }
             }
             emit(ArtworkPreviewLoadedState(assetToken: assetToken));
           }

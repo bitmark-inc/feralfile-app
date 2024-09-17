@@ -223,11 +223,6 @@ abstract class ConfigurationService {
 
   Future<void> setVersionInfo(String version);
 
-  // set and get for did_sync_artists
-  Future<void> setDidSyncArtists(bool value);
-
-  bool getDidSyncArtists();
-
   List<String> getHiddenOrSentTokenIDs();
 
   Future<void> setShowPostcardBanner(bool bool);
@@ -256,7 +251,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   static const String KEY_POSTCARD_CHAT_CONFIG = 'postcard_chat_config';
   static const String KEY_DID_MIGRATE_ADDRESS = 'did_migrate_address';
   static const String KEY_HIDDEN_FEEDS = 'hidden_feeds';
-  static const String KEY_DID_SYNC_ARTISTS = 'did_sync_artists';
   static const String KEY_IAP_RECEIPT = 'key_iap_receipt';
   static const String KEY_IAP_JWT = 'key_iap_jwt';
   static const String IS_PREMIUM = 'is_premium';
@@ -896,14 +890,6 @@ class ConfigurationServiceImpl implements ConfigurationService {
   Future<void> setVersionInfo(String version) async {
     await _preferences.setString(KEY_PACKAGE_INFO, version);
   }
-
-  @override
-  bool getDidSyncArtists() =>
-      _preferences.getBool(KEY_DID_SYNC_ARTISTS) ?? false;
-
-  @override
-  Future<void> setDidSyncArtists(bool value) =>
-      _preferences.setBool(KEY_DID_SYNC_ARTISTS, value);
 
   @override
   bool getDidMigrateAddress() =>

@@ -118,7 +118,7 @@ dependencies:
   nft_collection:
     git:
       url: https://github.com/autonomy-system/nft-collection
-      ref: 0819050a5f3660a4d5e6d35be11b988f0b10376b
+      ref: a31136a1c8a7779d0c87b14daa02e40635737b2f
   feralfile_app_tv_proto:
     git:
       url: https://github.com/autonomy-system/feralfile-app-tv-proto-communication
