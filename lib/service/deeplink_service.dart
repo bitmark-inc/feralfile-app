@@ -178,6 +178,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
   // function to handle deeplink before user do onboarding
   Future<void> handleDeeplinkBeforeOnboarding(String? link) async {
     try {
+      log.info('[DeeplinkService] handleDeeplinkBeforeOnboarding $link');
       Map<dynamic, dynamic>? data;
       //if user has done onboarding, return
       if (injector<ConfigurationService>().isDoneOnboarding()) {
@@ -202,7 +203,9 @@ class DeeplinkServiceImpl extends DeeplinkService {
   // function to handle deeplink data before user do onboarding
   Future<void> handleDeeplinkDataBeforeOnboarding(
       Map<dynamic, dynamic> data) async {
+    log.info('[DeeplinkService] handleDeeplinkDataBeforeOnboarding $data');
     if (injector<ConfigurationService>().isDoneOnboarding()) {
+      log.info('[DeeplinkService] user has done onboarding');
       referralCodeCompleter.complete(null);
       return;
     }
@@ -216,8 +219,10 @@ class DeeplinkServiceImpl extends DeeplinkService {
   Future<void> _handleReferralCodeDeeplinkData(
       Map<dynamic, dynamic> data) async {
     final referralCode = data['referral_code'];
+    log.info('[DeeplinkService] referralCode $referralCode');
     if (referralCode != null) {
       await injector<ConfigurationService>().setReferralCode(referralCode);
+      log.info('[DeeplinkService] set referralCode $referralCode');
     }
     referralCodeCompleter.complete(referralCode);
   }
