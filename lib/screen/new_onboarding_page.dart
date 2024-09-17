@@ -87,48 +87,56 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
     bool subDescFixedSized = true,
   }) {
     final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 15),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                height: 59,
-              ),
-              Text(
-                title,
-                style: theme.textTheme.ppMori700Black36.copyWith(
-                  color: AppColor.white,
-                ),
-              ),
-              Container(
-                height: 30,
-              ),
-              Text(
-                desc,
-                style: theme.textTheme.ppMori700White18.copyWith(
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-            ],
+    final commonHeader = Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 15),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            height: 59,
           ),
-        ),
-        if (subDescFixedSized) ...[
-          const Spacer(),
+          Text(
+            title,
+            style: theme.textTheme.ppMori700Black36.copyWith(
+              color: AppColor.white,
+            ),
+          ),
+          Container(
+            height: 30,
+          ),
+          Text(
+            desc,
+            style: theme.textTheme.ppMori700White18.copyWith(
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+        ],
+      ),
+    );
+    if (subDescFixedSized) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(child: SingleChildScrollView(child: commonHeader)),
           SizedBox(
             height: 514,
             child: subDesc,
           )
-        ] else ...[
-          Expanded(
-            child: subDesc,
-          )
         ],
-      ],
-    );
+      );
+    } else {
+      return SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            commonHeader,
+            const SizedBox(height: 30),
+            subDesc,
+            const SizedBox(height: 40),
+          ],
+        ),
+      );
+    }
   }
 
   Widget _onboardingItemVideo(BuildContext context,
@@ -200,6 +208,7 @@ class _NewOnboardingPageState extends State<NewOnboardingPage> {
                   context,
                   title: 'membership'.tr(),
                   desc: 'membership_desc'.tr(),
+                  subDescFixedSized: false,
                   subDesc: Column(
                     children: [
                       if (!isSubscribed)

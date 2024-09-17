@@ -191,6 +191,7 @@ class _PostcardLeaderboardViewState extends State<PostcardLeaderboardView> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       RichText(
+                        textScaler: MediaQuery.textScalerOf(context),
                         text: TextSpan(
                           style: theme.textTheme.moMASans400Black12
                               .copyWith(fontSize: 18),
