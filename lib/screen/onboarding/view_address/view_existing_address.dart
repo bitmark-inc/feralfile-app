@@ -120,19 +120,6 @@ class _ViewExistingAddressState extends State<ViewExistingAddress> {
                   _bloc.add(AddConnectionEvent());
                 },
               ),
-              const SizedBox(height: 20),
-              TextButton(
-                onPressed: () async {
-                  await Navigator.of(context).pushNamed(
-                    AppRouter.importSeedsPage,
-                  );
-                },
-                child: Text('or_import_address'.tr(),
-                    style: theme.textTheme.ppMori400Black14.copyWith(
-                      decoration: TextDecoration.underline,
-                      decorationColor: AppColor.primaryBlack,
-                    )),
-              )
             ],
           ),
         ),

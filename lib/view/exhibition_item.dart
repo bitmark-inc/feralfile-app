@@ -109,6 +109,7 @@ class ExhibitionCard extends StatelessWidget {
                       if (exhibition.isSoloExhibition &&
                           exhibition.artists != null) ...[
                         RichText(
+                          textScaler: MediaQuery.textScalerOf(context),
                           text: TextSpan(
                             style: subTitleStyle.copyWith(
                                 decorationColor: AppColor.disabledColor),
@@ -122,6 +123,7 @@ class ExhibitionCard extends StatelessWidget {
                       ],
                       if (listCurators.isNotEmpty)
                         RichText(
+                          textScaler: MediaQuery.textScalerOf(context),
                           text: TextSpan(
                             style: subTitleStyle.copyWith(
                                 decorationColor: AppColor.disabledColor),
