@@ -3,7 +3,7 @@ import 'package:autonomy_flutter/graphql/account_settings/account_settings_clien
 abstract class AccountSettingsDB {
   Future<void> download({List<String>? keys});
 
-  Future<void> forceUpload();
+  Future<void> uploadCurrentCache();
 
   List<Map<String, String>> query(List<String> keys);
 
@@ -54,7 +54,7 @@ class AccountSettingsDBImpl implements AccountSettingsDB {
   }
 
   @override
-  Future<void> forceUpload() async {
+  Future<void> uploadCurrentCache() async {
     final List<Map<String, String>> data = [];
     _caches.forEach((key, value) {
       data.add({'key': getFullKey(key), 'value': value});

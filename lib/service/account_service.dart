@@ -757,7 +757,7 @@ class AccountServiceImpl extends AccountService {
         // migrate to tezos
         await _addressService.migrateToEthereumAddress(addressInfo);
 
-        await _cloudObject.forceUpload();
+        await _cloudObject.uploadCurrentCache();
       }
     }
     unawaited(_cloudObject.setMigrated());

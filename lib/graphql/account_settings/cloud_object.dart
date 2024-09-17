@@ -138,9 +138,9 @@ class CloudObjects {
     await injector<AccountSettingsClient>().delete(vars: {'search': ''});
   }
 
-  Future<void> forceUpload() async {
-    await _addressAccountSettingsDB.forceUpload();
-    await _connectionAccountSettingsDB.forceUpload();
-    await _settingsDataDB.forceUpload();
+  Future<void> uploadCurrentCache() async {
+    await _addressAccountSettingsDB.uploadCurrentCache();
+    await _connectionAccountSettingsDB.uploadCurrentCache();
+    await _settingsDataDB.uploadCurrentCache();
   }
 }
