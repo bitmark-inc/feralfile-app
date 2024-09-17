@@ -232,6 +232,7 @@ class _PostcardExplainState extends State<PostcardExplain> {
               ),
               const SizedBox(height: 40),
               Text.rich(
+                textScaler: MediaQuery.textScalerOf(context),
                 TextSpan(
                   style: termsConditionsStyle,
                   children: <TextSpan>[

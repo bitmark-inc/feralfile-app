@@ -59,29 +59,30 @@ class BugBountyPage extends StatelessWidget {
               Text('Scope'.tr(), style: theme.textTheme.ppMori700Black24),
               const SizedBox(height: 32),
               RichText(
+                  textScaler: MediaQuery.textScalerOf(context),
                   text: TextSpan(
                       style: theme.textTheme.ppMori400Black16,
                       children: <TextSpan>[
-                    TextSpan(
-                      text: 'only_accept_new_bug'.tr(),
-                    ),
-                    TextSpan(
-                      recognizer: TapGestureRecognizer()
-                        ..onTap = () => unawaited(launchUrl(
-                              Uri.parse(KNOWN_BUGS_LINK),
-                              mode: LaunchMode.externalApplication,
-                            )),
-                      text: 'known_bugs'.tr(),
-                      style: ResponsiveLayout.isMobile
-                          ? theme.textTheme.linkStyle16.copyWith(
-                              fontWeight: FontWeight.normal,
-                              fontFamily: AppTheme.ppMori)
-                          : theme.textTheme.linkStyle16,
-                    ),
-                    TextSpan(
-                      text: 'not_reward_yet'.tr(),
-                    ),
-                  ])),
+                        TextSpan(
+                          text: 'only_accept_new_bug'.tr(),
+                        ),
+                        TextSpan(
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () => unawaited(launchUrl(
+                                  Uri.parse(KNOWN_BUGS_LINK),
+                                  mode: LaunchMode.externalApplication,
+                                )),
+                          text: 'known_bugs'.tr(),
+                          style: ResponsiveLayout.isMobile
+                              ? theme.textTheme.linkStyle16.copyWith(
+                                  fontWeight: FontWeight.normal,
+                                  fontFamily: AppTheme.ppMori)
+                              : theme.textTheme.linkStyle16,
+                        ),
+                        TextSpan(
+                          text: 'not_reward_yet'.tr(),
+                        ),
+                      ])),
               const SizedBox(height: 32),
               Text('rewards'.tr(), style: theme.textTheme.ppMori700Black24),
               const SizedBox(height: 32),
@@ -121,6 +122,7 @@ class BugBountyPage extends StatelessWidget {
                           ),
                           Expanded(
                             child: RichText(
+                              textScaler: MediaQuery.textScalerOf(context),
                               text: TextSpan(
                                 style: theme.textTheme.ppMori400Black14,
                                 children: <TextSpan>[

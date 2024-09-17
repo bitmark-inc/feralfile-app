@@ -106,6 +106,7 @@ class _ImportSeedsPageState extends State<ImportSeedsPage> {
                       ),
                       const SizedBox(height: 20),
                       RichText(
+                        textScaler: MediaQuery.textScalerOf(context),
                         text: TextSpan(
                           children: <TextSpan>[
                             TextSpan(
