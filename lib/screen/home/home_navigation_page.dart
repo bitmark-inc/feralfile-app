@@ -56,7 +56,6 @@ import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:nft_collection/database/dao/asset_token_dao.dart';
 import 'package:nft_collection/nft_collection.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -361,16 +360,6 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
     }
     WidgetsBinding.instance.addObserver(this);
     _fgbgSubscription = FGBGEvents.stream.listen(_handleForeBackground);
-    unawaited(_syncArtist());
-  }
-
-  Future<void> _syncArtist() async {
-    if (_configurationService.getDidSyncArtists()) {
-      return;
-    }
-    final artists = await injector<AssetTokenDao>().findAllArtists();
-    NftCollectionBloc.addEventFollowing(AddArtistsEvent(artists: artists));
-    unawaited(_configurationService.setDidSyncArtists(true));
   }
 
   Future refreshNotification() async {

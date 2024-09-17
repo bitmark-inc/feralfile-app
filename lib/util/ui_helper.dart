@@ -964,6 +964,7 @@ class UIHelper {
           children: [
             if (isHidden)
               RichText(
+                textScaler: MediaQuery.textScalerOf(context),
                 text: TextSpan(children: [
                   TextSpan(
                     style: theme.textTheme.ppMori400White14,

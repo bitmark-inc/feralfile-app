@@ -190,6 +190,8 @@ class _SendCryptoPageState extends State<SendCryptoPage> {
                                   if (state.maxAllow != null) ...[
                                     GestureDetector(
                                       child: RichText(
+                                        textScaler:
+                                            MediaQuery.textScalerOf(context),
                                         text: TextSpan(children: [
                                           TextSpan(
                                               text: 'max'.tr(),

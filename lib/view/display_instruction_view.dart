@@ -84,6 +84,7 @@ class HowToDisplayOnTV extends StatelessWidget {
             children: [
               Expanded(
                 child: RichText(
+                  textScaler: MediaQuery.textScalerOf(context),
                   text: TextSpan(
                     style: theme.textTheme.ppMori700White24,
                     children: <TextSpan>[
@@ -118,6 +119,7 @@ class HowToDisplayOnTV extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 RichText(
+                  textScaler: MediaQuery.textScalerOf(context),
                   text: TextSpan(
                     style: theme.textTheme.ppMori400Black14,
                     children: [
@@ -140,20 +142,22 @@ class HowToDisplayOnTV extends StatelessWidget {
                           ),
                           padding: const EdgeInsets.symmetric(horizontal: 5),
                           child: Text(
+                            textScaler: const TextScaler.linear(1),
                             'Feral File',
                             style: theme.textTheme.ppMori700Black14,
                           ),
                         ),
                       ),
                       const TextSpan(
-                        text:
-                            ' in Google Play Store on your TV, install and open the app.',
+                        text: ' in Google Play Store on your TV, '
+                            'install and open the app.',
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 10),
                 RichText(
+                  textScaler: MediaQuery.textScalerOf(context),
                   text: TextSpan(
                     style: theme.textTheme.ppMori400Black14,
                     children: [
@@ -209,6 +213,7 @@ class HowToDisplayOnBrowser extends StatelessWidget {
             children: [
               Expanded(
                 child: RichText(
+                  textScaler: MediaQuery.textScalerOf(context),
                   text: TextSpan(
                     style: theme.textTheme.ppMori700White24,
                     children: <TextSpan>[
@@ -244,6 +249,7 @@ class HowToDisplayOnBrowser extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 RichText(
+                  textScaler: MediaQuery.textScalerOf(context),
                   text: TextSpan(
                     style: theme.textTheme.ppMori400Black14,
                     children: [
@@ -267,6 +273,7 @@ class HowToDisplayOnBrowser extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(horizontal: 5),
                           child: Text(
                             'https://display.feralfile.com',
+                            textScaler: const TextScaler.linear(1),
                             style: theme.textTheme.ppMori700Black14,
                           ),
                         ),
@@ -279,6 +286,7 @@ class HowToDisplayOnBrowser extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
                 RichText(
+                  textScaler: MediaQuery.textScalerOf(context),
                   text: TextSpan(
                     style: theme.textTheme.ppMori400Black14,
                     children: [
