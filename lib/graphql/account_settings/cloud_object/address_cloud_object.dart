@@ -66,21 +66,12 @@ class WalletAddressCloudObject {
         .write(addresses.map((address) => address.toKeyValue).toList());
   }
 
-  Future<void> removeAll() async {
-    final keys = _accountSettingsDB.keys.toList();
-    await _accountSettingsDB.delete(keys);
-  }
-
   Future<void> setAddressIsHidden(String address, bool isHidden) async {
     final walletAddress = findByAddress(address);
     if (walletAddress == null) {
       return;
     }
-    await updateAddress(walletAddress.copyWith(isHidden: isHidden));
-  }
-
-  Future<void> updateAddress(WalletAddress address) async {
-    await _accountSettingsDB.write([address.toKeyValue]);
+    await updateAddresses([walletAddress.copyWith(isHidden: isHidden)]);
   }
 
   Future<void> updateAddresses(List<WalletAddress> addresses) async {

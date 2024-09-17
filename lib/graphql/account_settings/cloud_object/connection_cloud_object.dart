@@ -8,9 +8,6 @@ class ConnectionCloudObject {
 
   ConnectionCloudObject(this._accountSettingsDB);
 
-  Future<void> deleteConnection(Connection connection) =>
-      _accountSettingsDB.delete([connection.key]);
-
   Future<void> deleteConnections(List<Connection> connections) =>
       _accountSettingsDB.delete(connections.map((e) => e.key).toList());
 
@@ -78,9 +75,4 @@ class ConnectionCloudObject {
 
   Future<void> writeConnections(List<Connection> connections) =>
       _accountSettingsDB.write(connections.map((e) => e.toKeyValue).toList());
-
-  Future<void> removeAll() {
-    final keys = _accountSettingsDB.keys.toList();
-    return _accountSettingsDB.delete(keys);
-  }
 }

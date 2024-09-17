@@ -104,7 +104,8 @@ class ConnectionsBloc extends AuBloc<ConnectionsEvent, ConnectionsState> {
 
         if (connection.connectionType ==
             ConnectionType.beaconP2PPeer.rawValue) {
-          unawaited(_cloudObject.connectionObject.deleteConnection(connection));
+          unawaited(
+              _cloudObject.connectionObject.deleteConnections([connection]));
 
           final bcPeer = connection.beaconConnectConnection?.peer;
           if (bcPeer != null) {

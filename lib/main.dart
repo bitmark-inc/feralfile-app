@@ -165,7 +165,7 @@ Future<void> _setupApp() async {
   DailiesHelper.updateDailies([]);
 
   // since we postpone handling deeplink until home, we don't need to delay this
-  injector<DeeplinkService>().setup();
+  await injector<DeeplinkService>().setup();
 
   runApp(
     EasyLocalization(

@@ -283,7 +283,7 @@ class AccountServiceImpl extends AccountService {
                   connection.beaconConnectConnection?.personaUuid &&
               walletAddress.index ==
                   connection.beaconConnectConnection?.index) {
-            await _cloudObject.connectionObject.deleteConnection(connection);
+            await _cloudObject.connectionObject.deleteConnections([connection]);
             final bcPeer = connection.beaconConnectConnection?.peer;
             if (bcPeer != null) {
               bcPeers.add(bcPeer);
@@ -305,7 +305,7 @@ class AccountServiceImpl extends AccountService {
 
   @override
   Future deleteLinkedAccount(Connection connection) async {
-    await _cloudObject.connectionObject.deleteConnection(connection);
+    await _cloudObject.connectionObject.deleteConnections([connection]);
     final addressIndexes = connection.addressIndexes;
     await Future.wait(addressIndexes.map((element) async {
       await setHideLinkedAccountInGallery(element.address, false);
@@ -623,7 +623,7 @@ class AccountServiceImpl extends AccountService {
             .getConnectionsByType(ConnectionType.dappConnect2.rawValue);
         for (var connection in connections) {
           if (connection.accountNumber.contains(walletAddress.address)) {
-            await _cloudObject.connectionObject.deleteConnection(connection);
+            await _cloudObject.connectionObject.deleteConnections([connection]);
           }
         }
         return;
@@ -636,7 +636,7 @@ class AccountServiceImpl extends AccountService {
                   walletAddress.uuid &&
               connection.beaconConnectConnection?.index ==
                   walletAddress.index) {
-            await _cloudObject.connectionObject.deleteConnection(connection);
+            await _cloudObject.connectionObject.deleteConnections([connection]);
           }
         }
         return;
@@ -647,7 +647,7 @@ class AccountServiceImpl extends AccountService {
 
   @override
   Future<void> updateAddressWallet(WalletAddress walletAddress) async {
-    await _cloudObject.addressObject.updateAddress(walletAddress);
+    await _cloudObject.addressObject.updateAddresses([walletAddress]);
   }
 
   @override
@@ -787,8 +787,7 @@ class AccountServiceImpl extends AccountService {
         .toList();
     if (viewOnlyAddresses.isNotEmpty) {
       result.addAll(viewOnlyAddresses);
-      await Future.forEach<Connection>(viewOnlyAddresses,
-          (element) => _cloudObject.connectionObject.deleteConnection(element));
+      await _cloudObject.connectionObject.deleteConnections(viewOnlyAddresses);
     }
     return result;
   }
