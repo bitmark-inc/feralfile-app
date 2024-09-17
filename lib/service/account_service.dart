@@ -737,6 +737,7 @@ class AccountServiceImpl extends AccountService {
     }
     if (_configurationService.isDoneOnboarding()) {
       // dont need to force update, because
+      await injector<AddressService>().migrateToEthereumAddress();
       await injector<AuthService>().getAuthToken();
       return;
     }
@@ -777,6 +778,8 @@ class AccountServiceImpl extends AccountService {
         final primaryAddressInfo = await _addressService.pickAddressAsPrimary();
         await _addressService.registerPrimaryAddress(
             info: primaryAddressInfo, withDidKey: true);
+      } else {
+        await injector<AddressService>().migrateToEthereumAddress();
       }
     } else {
       // for new user, create default persona
