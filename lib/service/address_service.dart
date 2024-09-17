@@ -38,7 +38,7 @@ class AddressService {
     if (currentPrimaryAddress == null || currentPrimaryAddress.isEthereum) {
       return null;
     }
-    if (injector<ConfigurationService>().isDoneOnboarding()) {
+    if (!injector<ConfigurationService>().isDoneOnboarding()) {
       await injector<AccountService>().restoreIfNeeded();
       await injector<ConfigurationService>().setDoneOnboarding(true);
     }
