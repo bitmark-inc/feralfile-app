@@ -694,7 +694,7 @@ class AccountServiceImpl extends AccountService {
 
       unawaited(_cloudObject.setMigrated());
       // ensure that we have addresses;
-      unawaited(_ensureHavingEthereumAddress());
+      unawaited(_ensureHavingWalletAddress());
       return;
     }
 
@@ -712,7 +712,7 @@ class AccountServiceImpl extends AccountService {
       await _backupService.restoreCloudDatabase();
 
       // ensure that we have addresses;
-      unawaited(_ensureHavingEthereumAddress());
+      unawaited(_ensureHavingWalletAddress());
       return;
     }
 
@@ -763,15 +763,29 @@ class AccountServiceImpl extends AccountService {
     unawaited(_cloudObject.setMigrated());
 
     // ensure that we have addresses;
-    unawaited(_ensureHavingEthereumAddress());
+    unawaited(_ensureHavingWalletAddress());
   }
 
-  Future<void> _ensureHavingEthereumAddress() async {
-    final ethAddresses = getWalletsAddress(CryptoType.ETH);
-    if (ethAddresses.isEmpty) {
+  Future<void> _ensureHavingWalletAddress() async {
+    final allAddresses = _cloudObject.addressObject.getAllAddresses();
+    if (allAddresses.isEmpty) {
       await androidRestoreKeys();
       await MigrationUtil(this).migrationFromKeychain();
+      return;
     }
+    final primaryAddress =
+        await injector<AddressService>().getPrimaryAddressInfo();
+    if (primaryAddress == null) {
+      return;
+    }
+    if (allAddresses.any((element) =>
+        element.uuid == primaryAddress.uuid &&
+        element.index == primaryAddress.index &&
+        element.cryptoType.toLowerCase() == primaryAddress.chain)) {
+      return;
+    }
+    await insertAddressAtIndexAndUuid(primaryAddress.uuid,
+        name: '', walletType: WalletType.Ethereum, index: primaryAddress.index);
   }
 
   @override
