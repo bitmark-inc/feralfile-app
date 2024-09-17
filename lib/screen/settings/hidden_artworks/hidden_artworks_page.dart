@@ -77,6 +77,7 @@ class _HiddenArtworksPageState extends State<HiddenArtworksPage> {
             height: 12,
           ),
           RichText(
+            textScaler: MediaQuery.textScalerOf(context),
             text: TextSpan(
               children: [
                 TextSpan(

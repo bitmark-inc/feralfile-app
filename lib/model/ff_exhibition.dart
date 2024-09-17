@@ -24,6 +24,7 @@ class Exhibition {
   final String? thumbnailCoverURI;
   final String mintBlockchain;
   final FFCurator? curator;
+  final List<FFCurator>? curators;
   final List<FFArtist>? artists;
   final List<FFSeries>? series;
   final List<FFContract>? contracts;
@@ -46,6 +47,7 @@ class Exhibition {
     required this.status,
     this.coverURI,
     this.thumbnailCoverURI,
+    this.curators,
     this.artists,
     this.series,
     this.contracts,
@@ -65,6 +67,9 @@ class Exhibition {
         note: json['note'] as String,
         coverURI: json['coverURI'] as String?,
         thumbnailCoverURI: json['thumbnailCoverURI'] as String?,
+        curators: (json['curators'] as List<dynamic>?)
+            ?.map((e) => FFCurator.fromJson(e as Map<String, dynamic>))
+            .toList(),
         artists: (json['artists'] as List<dynamic>?)
             ?.map((e) => FFArtist.fromJson(e as Map<String, dynamic>))
             .toList(),
@@ -99,6 +104,7 @@ class Exhibition {
         'note': note,
         'coverURI': coverURI,
         'thumbnailCoverURI': thumbnailCoverURI,
+        'curators': curators?.map((e) => e.toJson()).toList(),
         'artists': artists?.map((e) => e.toJson()).toList(),
         'series': series?.map((e) => e.toJson()).toList(),
         'contracts': contracts?.map((e) => e.toJson()).toList(),
@@ -131,6 +137,7 @@ class Exhibition {
     String? thumbnailCoverURI,
     String? mintBlockchain,
     FFCurator? curator,
+    List<FFCurator>? curators,
     List<FFArtist>? artists,
     List<FFSeries>? series,
     List<FFContract>? contracts,
@@ -152,6 +159,7 @@ class Exhibition {
         thumbnailCoverURI: thumbnailCoverURI ?? this.thumbnailCoverURI,
         mintBlockchain: mintBlockchain ?? this.mintBlockchain,
         curator: curator ?? this.curator,
+        curators: curators ?? this.curators,
         artists: artists ?? this.artists,
         series: series ?? this.series,
         contracts: contracts ?? this.contracts,
