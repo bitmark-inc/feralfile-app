@@ -1,36 +1,38 @@
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/model/ff_exhibition.dart';
-import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/model/ff_user.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/exhibition_ext.dart';
-import 'package:autonomy_flutter/util/feralfile_artist_ext.dart';
+import 'package:autonomy_flutter/view/ff_exhibition_participants.dart';
 import 'package:autonomy_flutter/view/header.dart';
 import 'package:autonomy_flutter/view/john_gerrard_live_performance.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/svg.dart';
 
 class ExhibitionPreview extends StatelessWidget {
-  ExhibitionPreview({required this.exhibition, super.key});
-
-  final _navigationService = injector<NavigationService>();
-
   final Exhibition exhibition;
+
+  const ExhibitionPreview({required this.exhibition, super.key});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final subTextStyle = theme.textTheme.ppMori400Grey12
+    final subTitleTextStyle = theme.textTheme.ppMori400Grey12
         .copyWith(color: AppColor.feralFileMediumGrey);
-    final artistTextStyle = theme.textTheme.ppMori400White16.copyWith(
-      decoration: TextDecoration.underline,
+    final participantTextStyle = theme.textTheme.ppMori400White16.copyWith(
       decorationColor: Colors.white,
     );
+
+    final listCurators =
+        (exhibition.curator != null || exhibition.curators != null)
+            ? exhibition.id == SOURCE_EXHIBITION_ID
+                ? exhibition.curators!
+                : [exhibition.curator!]
+            : <FFCurator>[];
 
     return Container(
       padding: const EdgeInsets.only(left: 14, right: 14, bottom: 20),
@@ -45,18 +47,15 @@ class ExhibitionPreview extends StatelessWidget {
             title: exhibition.title,
             padding: const EdgeInsets.symmetric(vertical: 20),
           ),
-          if (exhibition.curator != null) ...[
-            Text('curator'.tr(), style: subTextStyle),
+          if (listCurators.isNotEmpty) ...[
+            Text(
+              listCurators.length > 1 ? 'curators'.tr() : 'curator'.tr(),
+              style: subTitleTextStyle,
+            ),
             const SizedBox(height: 3),
-            GestureDetector(
-              child: Text(
-                exhibition.curator!.displayAlias,
-                style: artistTextStyle.copyWith(),
-              ),
-              onTap: () async {
-                await _navigationService
-                    .openFeralFileCuratorPage(exhibition.curator!.alias);
-              },
+            FFExhibitionParticipants(
+              users: listCurators,
+              textStyle: participantTextStyle,
             ),
           ],
           const SizedBox(height: 10),
@@ -64,32 +63,11 @@ class ExhibitionPreview extends StatelessWidget {
               exhibition.isGroupExhibition
                   ? 'group_exhibition'.tr()
                   : 'solo_exhibition'.tr(),
-              style: subTextStyle),
+              style: subTitleTextStyle),
           const SizedBox(height: 3),
-          RichText(
-            textScaler: MediaQuery.textScalerOf(context),
-            text: TextSpan(
-              children: exhibition.artists!
-                  .map((e) {
-                    final isLast = exhibition.artists!.last == e;
-                    return [
-                      TextSpan(
-                          style: artistTextStyle,
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () async {
-                              await _navigationService
-                                  .openFeralFileArtistPage(e.alias);
-                            },
-                          text: e.displayAlias),
-                      if (!isLast)
-                        const TextSpan(
-                          text: ', ',
-                        )
-                    ];
-                  })
-                  .flattened
-                  .toList(),
-            ),
+          FFExhibitionParticipants(
+            users: exhibition.artists!,
+            textStyle: participantTextStyle,
           ),
         ],
       ),
