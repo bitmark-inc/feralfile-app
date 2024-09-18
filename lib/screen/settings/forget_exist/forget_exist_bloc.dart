@@ -65,6 +65,7 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
       PackageInfo packageInfo = await PackageInfo.fromPlatform();
       String? deviceId = await MigrationUtil.getBackupDeviceID();
       final requester = '${deviceId}_${packageInfo.packageName}';
+      await injector<MetricClientService>().reset();
 
       unawaited(_iapApi.deleteAllProfiles(requester));
       unawaited(_iapApi.deleteUserData());
@@ -94,7 +95,6 @@ class ForgetExistBloc extends AuBloc<ForgetExistEvent, ForgetExistState> {
       _authService.reset();
       unawaited(injector<CacheManager>().emptyCache());
       unawaited(DefaultCacheManager().emptyCache());
-      injector<MetricClientService>().reset();
       memoryValues = MemoryValues();
 
       emit(ForgetExistState(state.isChecked, false));

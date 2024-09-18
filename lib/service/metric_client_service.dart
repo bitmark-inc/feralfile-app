@@ -28,17 +28,22 @@ class MetricClientService {
   }
 
   Future<void> identity() async {
-    final primaryAddress = await injector<AddressService>().getPrimaryAddress();
-    if (primaryAddress == null) {
-      unawaited(
-          Sentry.captureMessage('Metric Identity: Primary address is null'));
-      return;
+    try {
+      final primaryAddress =
+          await injector<AddressService>().getPrimaryAddress();
+      if (primaryAddress == null) {
+        unawaited(
+            Sentry.captureMessage('Metric Identity: Primary address is null'));
+        return;
+      }
+      if (primaryAddress == _identifier) {
+        return;
+      }
+      await mergeUser(_identifier);
+      _identifier = primaryAddress;
+    } catch (e) {
+      unawaited(Sentry.captureException('Metric identity error: $e'));
     }
-    if (primaryAddress == _identifier) {
-      return;
-    }
-    await mergeUser(_identifier);
-    _identifier = primaryAddress;
   }
 
   Future<void> addEvent(
@@ -55,13 +60,23 @@ class MetricClientService {
     // ignore: unused_local_variable
     final dataWithExtend = {
       'event': name,
-      'timestamp': DateTime.now().toIso8601String(),
+      'timestamp': DateTime.now().toUtc().toIso8601String(),
       'parameters': {
         ...data,
         'platform': platform,
       }
     };
-    await injector<IAPApi>().sendEvent(dataWithExtend, _identifier);
+
+    final metrics = {
+      'metrics': [
+        dataWithExtend,
+      ]
+    };
+    try {
+      await injector<IAPApi>().sendEvent(metrics, _identifier);
+    } catch (e) {
+      unawaited(Sentry.captureException('Metric add event error: $e'));
+    }
   }
 
   void timerEvent(String name) {
@@ -89,9 +104,14 @@ class MetricClientService {
     }
   }
 
-  void reset() {
-    if (isFinishInit) {
-      // mixPanelClient.reset();
+  Future<void> reset() async {
+    try {
+      if (isFinishInit) {
+        final deviceId = _defaultIdentifier();
+        await injector<IAPApi>().deleteMetrics(deviceId);
+      }
+    } catch (e) {
+      unawaited(Sentry.captureException('Metric reset error: $e'));
     }
   }
 }

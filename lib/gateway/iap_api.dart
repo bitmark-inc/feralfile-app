@@ -75,4 +75,9 @@ abstract class IAPApi {
     @Body() Map<String, dynamic> metrics,
     @Header('x-device-id') String deviceId,
   );
+
+  @DELETE('/apis/metric-devices/{id}')
+  Future<void> deleteMetrics(
+    @Path('id') String deviceId,
+  );
 }
