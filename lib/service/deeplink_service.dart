@@ -188,7 +188,9 @@ class DeeplinkServiceImpl extends DeeplinkService {
       if (link == null || link.isEmpty) {
         data = {};
       } else {
-        data = await _branchApi.getParams(Environment.branchKey, link);
+        final response =
+            await _branchApi.getParams(Environment.branchKey, link);
+        data = response['data'];
       }
       await handleDeeplinkDataBeforeOnboarding(data!);
     } catch (e) {
