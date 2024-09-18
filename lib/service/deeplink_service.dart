@@ -218,7 +218,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
   // function to handle referralCode deeplink
   Future<void> _handleReferralCodeDeeplinkData(
       Map<dynamic, dynamic> data) async {
-    final referralCode = data['referral_code'];
+    final referralCode = data['referralCode'];
     log.info('[DeeplinkService] referralCode $referralCode');
     if (referralCode != null) {
       await injector<ConfigurationService>().setReferralCode(referralCode);
