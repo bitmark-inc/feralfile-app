@@ -69,4 +69,10 @@ abstract class IAPApi {
   Future<void> updateMetrics(
     @Path('id') String deviceId,
   );
+
+  @POST('/apis/metrics')
+  Future<void> sendEvent(
+    @Body() Map<String, dynamic> metrics,
+    @Header('x-device-id') String deviceId,
+  );
 }

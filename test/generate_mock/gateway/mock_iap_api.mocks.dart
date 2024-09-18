@@ -195,4 +195,20 @@ class MockIAPApi extends _i1.Mock implements _i4.IAPApi {
         returnValue: _i5.Future<void>.value(),
         returnValueForMissingStub: _i5.Future<void>.value(),
       ) as _i5.Future<void>);
+  @override
+  _i5.Future<void> sendEvent(
+    Map<String, dynamic>? metrics,
+    String? deviceId,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #sendEvent,
+          [
+            metrics,
+            deviceId,
+          ],
+        ),
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
 }

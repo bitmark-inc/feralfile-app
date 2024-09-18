@@ -11,6 +11,7 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/database/entity/wallet_address.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
+import 'package:autonomy_flutter/service/metric_client_service.dart';
 import 'package:autonomy_flutter/util/constants.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/primary_address_channel.dart';
@@ -79,6 +80,8 @@ class AddressService {
     final res = await setPrimaryAddressInfo(info: info);
     // when register primary address, we need to update the auth token
     await injector<AuthService>().getAuthToken(forceRefresh: true);
+    // we also need to identity the metric client
+    await injector<MetricClientService>().identity();
     return res;
   }
 
