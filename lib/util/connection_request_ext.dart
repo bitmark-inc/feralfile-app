@@ -15,6 +15,10 @@ extension ConnectionRequestExt on ConnectionRequest {
       return Validation.SCAM;
     }
 
+    if (name == 'Feral File') {
+      return Validation.VALID;
+    }
+
     return validation ?? Validation.VALID;
   }
 }
