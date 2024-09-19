@@ -5,15 +5,9 @@ class DailiesHelper {
   static List<DailyToken> _dailies = [];
 
   static DailyToken? get currentDailies {
-    final now = DateTime.now().toUtc();
+    final now = DateTime.now().subtract(const Duration(hours: 6));
     return _dailies
         .lastWhereOrNull((element) => element.displayTime.isBefore(now));
-  }
-
-  static DailyToken? get nextDailies {
-    final now = DateTime.now();
-    return _dailies
-        .firstWhereOrNull((element) => element.displayTime.isAfter(now));
   }
 
   static void updateDailies(List<DailyToken> dailies) {
