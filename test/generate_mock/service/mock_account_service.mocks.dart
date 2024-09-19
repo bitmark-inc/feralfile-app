@@ -248,7 +248,7 @@ class MockAccountService extends _i1.Mock implements _i6.AccountService {
   _i7.Future<_i3.Persona> importWords(
     String? words,
     String? passphrase, {
-    _i9.WalletType? walletType = _i9.WalletType.Autonomy,
+    _i9.WalletType? walletType = _i9.WalletType.MultiChain,
   }) =>
       (super.noSuchMethod(
         Invocation.method(

@@ -35,13 +35,11 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
     });
 
     on<GetAccountsEvent>((event, emit) async {
-      final connectionsFuture =
-          _cloudObject.connectionObject.getLinkedAccounts();
+      final connections = _cloudObject.connectionObject.getLinkedAccounts();
       final addresses = _cloudObject.addressObject.getAllAddresses();
 
       List<Account> accounts = await _getAccountWallet(addresses);
 
-      final connections = connectionsFuture;
       for (var connection in connections) {
         if (accounts
             .map((e) => e.accountNumber)
@@ -122,7 +120,7 @@ class AccountsBloc extends AuBloc<AccountsEvent, AccountsState> {
       final type =
           WalletType.getWallet(eth: event.getEth, tezos: event.getTezos);
       switch (type) {
-        case WalletType.Autonomy:
+        case WalletType.MultiChain:
           addresses = _cloudObject.addressObject.getAllAddresses();
         case WalletType.Ethereum:
           addresses = _cloudObject.addressObject

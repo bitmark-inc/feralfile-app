@@ -68,7 +68,7 @@ abstract class AccountService {
       {String name = '', String passphrase = ''});
 
   Future<WalletStorage> importWords(String words, String passphrase,
-      {WalletType walletType = WalletType.Autonomy});
+      {WalletType walletType = WalletType.MultiChain});
 
   Future<Connection> nameLinkedAccount(Connection connection, String name);
 
@@ -150,8 +150,8 @@ class AccountServiceImpl extends AccountService {
       index: 0,
     ));
 
-    final wallets =
-        await insertNextAddressFromUuid(uuid, WalletType.Autonomy, name: name);
+    final wallets = await insertNextAddressFromUuid(uuid, WalletType.MultiChain,
+        name: name);
     await androidBackupKeys();
     unawaited(_cloudObject.setMigrated());
     return wallets;
@@ -159,7 +159,7 @@ class AccountServiceImpl extends AccountService {
 
   @override
   Future<WalletStorage> importWords(String words, String passphrase,
-      {WalletType walletType = WalletType.Autonomy}) async {
+      {WalletType walletType = WalletType.MultiChain}) async {
     late String firstEthAddress;
     try {
       firstEthAddress =
@@ -435,7 +435,7 @@ class AccountServiceImpl extends AccountService {
       //Cleanup duplicated uuids
       final oldAddresses = _cloudObject.addressObject.getAddressesByUuid(uuid);
       if (oldAddresses.isEmpty) {
-        await insertNextAddressFromUuid(uuid, WalletType.Autonomy);
+        await insertNextAddressFromUuid(uuid, WalletType.MultiChain);
       }
     }
   }
@@ -894,7 +894,7 @@ class AccountServiceImpl extends AccountService {
         walletAddresses = [
           await _generateTezosAddressByIndex(uuid, index, name: name),
         ];
-      case WalletType.Autonomy:
+      case WalletType.MultiChain:
         walletAddresses = [
           await _generateETHAddressByIndex(uuid, index, name: name),
           await _generateTezosAddressByIndex(uuid, index, name: name)
