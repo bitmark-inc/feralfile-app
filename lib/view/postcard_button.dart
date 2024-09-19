@@ -57,9 +57,7 @@ class PostcardButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(0),
           ),
         ),
-        onPressed: () {
-          if (enabled) onTap?.call();
-        },
+        onPressed: enabled ? onTap : null,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 14),
           child: Center(
@@ -265,7 +263,6 @@ class _PostcardAsyncButtonState extends State<PostcardAsyncButton> {
   @override
   Widget build(BuildContext context) => PostcardButton(
         onTap: () {
-          log.info('PostcardAsyncButton onTap');
           withDebounce(key: 'onTap${widget.label}', () async {
             setState(() {
               _isProcessing = true;
