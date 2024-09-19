@@ -126,8 +126,17 @@ class FileLogger {
   }
 
   static Future<void> clear() async {
-    // Delete the current log file
-    await _logFile.delete();
+    // Delete the current log file and all rotated log files
+    final directory = _logFile.parent;
+    final logFiles = directory
+        .listSync()
+        .where((file) =>
+            file is File && file.path.contains(RegExp(r'app(_\d+)?\.log$')))
+        .cast<File>();
+
+    for (var file in logFiles) {
+      await file.delete();
+    }
 
     // Create a new log file
     _logFile = await getLogFile();
