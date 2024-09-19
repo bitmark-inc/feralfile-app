@@ -5,9 +5,9 @@
 
 // ignore_for_file: avoid_annotating_with_dynamic
 
+import 'dart:async';
 import 'dart:core';
 import 'dart:io';
-import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
@@ -140,8 +140,9 @@ class FileLogger {
   static String _filterLog(String logText) {
     String filteredLog = logText;
 
-    RegExp combinedRegex = RegExp(
-        '("message":".*?")|("Authorization: Bearer .*?")|("X-Api-Signature: .*?")|'
+    RegExp combinedRegex = RegExp('("message":".*?")|'
+        '("Authorization: Bearer .*?")|'
+        '("X-Api-Signature: .*?")|'
         r'(signature: [^,\}]*)|'
         r'(location: \[.*?,.*?\])|'
         r'(\\"signature\\":\\".*?\\")|'

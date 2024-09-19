@@ -456,7 +456,6 @@ class CollectionHomePageState extends State<CollectionHomePage>
       case FGBGType.foreground:
         unawaited(_handleForeground());
       case FGBGType.background:
-        _handleBackground();
     }
   }
 
@@ -482,10 +481,6 @@ class CollectionHomePageState extends State<CollectionHomePage>
 
     unawaited(injector<CustomerSupportService>().getIssues());
     unawaited(injector<CustomerSupportService>().processMessages());
-  }
-
-  void _handleBackground() {
-    unawaited(FileLogger.shrinkLogFileIfNeeded());
   }
 
   Future<void> _hidePostcardBanner() async {
