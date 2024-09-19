@@ -56,10 +56,7 @@ class ConnectionCloudObject {
     final allConnections = getConnections();
     return allConnections
         .where((element) =>
-            element.connectionType != 'dappConnect' &&
-            element.connectionType != 'dappConnect2' &&
-            element.connectionType != 'beaconP2PPeer' &&
-            element.connectionType != 'manuallyIndexerTokenID')
+            element.connectionType == ConnectionType.manuallyAddress.rawValue)
         .toList();
   }
 
