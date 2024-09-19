@@ -175,8 +175,8 @@ class SettingsDataServiceImpl implements SettingsDataService {
         data.hiddenMainnetTokenIDs, true,
         override: true);
 
-    await Future.wait((data.hiddenAddressesFromGallery ?? []).map(
-            (e) => _cloudObject.addressObject.setAddressIsHidden(e, true)));
+    await Future.wait((data.hiddenAddressesFromGallery ?? [])
+        .map((e) => _cloudObject.addressObject.setAddressIsHidden(e, true)));
 
     await _configurationService.setHideLinkedAccountInGallery(
         data.hiddenLinkedAccountsFromGallery, true,
