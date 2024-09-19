@@ -153,7 +153,6 @@ class AccountServiceImpl extends AccountService {
     final wallets = await insertNextAddressFromUuid(uuid, WalletType.MultiChain,
         name: name);
     await androidBackupKeys();
-    unawaited(_cloudObject.setMigrated());
     return wallets;
   }
 
@@ -670,6 +669,7 @@ class AccountServiceImpl extends AccountService {
     // nothing to do other than create new wallet
     if (addressInfo == null && defaultWallet == null) {
       await createNewWallet();
+      unawaited(_cloudObject.setMigrated());
       return;
     }
 
