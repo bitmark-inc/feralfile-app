@@ -9,6 +9,7 @@ import 'package:autonomy_flutter/util/style.dart';
 import 'package:autonomy_flutter/view/exhibition_item.dart';
 import 'package:autonomy_flutter/view/loading.dart';
 import 'package:collection/collection.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:feralfile_app_theme/feral_file_app_theme.dart';
 import 'package:flutter/material.dart';
 
