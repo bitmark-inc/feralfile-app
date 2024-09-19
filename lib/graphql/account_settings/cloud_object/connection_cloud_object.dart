@@ -52,13 +52,8 @@ class ConnectionCloudObject {
     return connections;
   }
 
-  List<Connection> getLinkedAccounts() {
-    final allConnections = getConnections();
-    return allConnections
-        .where((element) =>
-            element.connectionType == ConnectionType.manuallyAddress.rawValue)
-        .toList();
-  }
+  List<Connection> getLinkedAccounts() =>
+      getConnectionsByType(ConnectionType.manuallyAddress.rawValue);
 
   List<Connection> getWc2Connections() {
     final allConnections = getConnections();
