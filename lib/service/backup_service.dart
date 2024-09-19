@@ -14,11 +14,11 @@ import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/database/cloud_database.dart';
 import 'package:autonomy_flutter/graphql/account_settings/cloud_manager.dart';
 import 'package:autonomy_flutter/model/backup_versions.dart';
+import 'package:autonomy_flutter/service/account_service.dart';
 import 'package:autonomy_flutter/service/address_service.dart';
 import 'package:autonomy_flutter/service/auth_service.dart';
 import 'package:autonomy_flutter/util/helpers.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/migration/migration_util.dart';
 import 'package:floor/floor.dart';
 import 'package:http/http.dart' as http;
 import 'package:libauk_dart/libauk_dart.dart';
@@ -167,7 +167,7 @@ class BackupService {
 
   Future<String> getBackupId() async {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
-    String? deviceId = await MigrationUtil.getBackupDeviceID();
+    String? deviceId = await injector<AccountService>().getBackupDeviceID();
 
     return '${deviceId}_${packageInfo.packageName}';
   }

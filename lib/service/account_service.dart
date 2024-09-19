@@ -24,8 +24,9 @@ import 'package:autonomy_flutter/service/settings_data_service.dart';
 import 'package:autonomy_flutter/service/tezos_beacon_service.dart';
 import 'package:autonomy_flutter/util/android_backup_channel.dart';
 import 'package:autonomy_flutter/util/constants.dart';
+import 'package:autonomy_flutter/util/device.dart';
+import 'package:autonomy_flutter/util/ios_backup_channel.dart';
 import 'package:autonomy_flutter/util/log.dart';
-import 'package:autonomy_flutter/util/migration/migration_util.dart';
 import 'package:autonomy_flutter/util/primary_address_channel.dart'
     as primary_address_channel;
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -61,8 +62,6 @@ abstract class AccountService {
   Future<List<Connection>> removeDoubleViewOnly(List<String> addresses);
 
   Future<bool?> isAndroidEndToEndEncryptionAvailable();
-
-  Future androidRestoreKeys();
 
   Future<List<WalletAddress>> createNewWallet(
       {String name = '', String passphrase = ''});
@@ -114,13 +113,14 @@ abstract class AccountService {
   Future<List<WalletAddress>> insertAddressAtIndexAndUuid(String uuid,
       {required WalletType walletType, required int index, String? name});
 
-  Future<void> restoreUUIDs(List<String> uuids);
+  Future<String?> getBackupDeviceID();
 }
 
 class AccountServiceImpl extends AccountService {
   final TezosBeaconService _tezosBeaconService;
   final ConfigurationService _configurationService;
-  final AndroidBackupChannel _backupChannel = AndroidBackupChannel();
+  final AndroidBackupChannel _androidBackupChannel = AndroidBackupChannel();
+  final IOSBackupChannel _iosBackupChannel = IOSBackupChannel();
   final BackupService _backupService;
   final nft.AddressService _nftCollectionAddressService;
   final AddressService _addressService;
@@ -183,8 +183,8 @@ class AccountServiceImpl extends AccountService {
         words, passphrase, '', DateTime.now().microsecondsSinceEpoch);
 
     if (Platform.isAndroid) {
-      final backupAccounts = await _backupChannel.restoreKeys();
-      await _backupChannel
+      final backupAccounts = await _androidBackupChannel.restoreKeys();
+      await _androidBackupChannel
           .backupKeys([...backupAccounts.map((e) => e.uuid), uuid]);
     }
 
@@ -224,10 +224,10 @@ class AccountServiceImpl extends AccountService {
     /// we can improve this by checking if the wallet is exist in the server
     String? uuid;
     if (Platform.isIOS) {
-      final uuids = await MigrationUtil(this).getUUIDsFromKeychain();
+      final uuids = await _iosBackupChannel.getUUIDsFromKeychain();
       uuid = uuids.firstOrNull;
     } else {
-      final accounts = await _backupChannel.restoreKeys();
+      final accounts = await _androidBackupChannel.restoreKeys();
       uuid = accounts.firstOrNull?.uuid;
     }
 
@@ -249,8 +249,7 @@ class AccountServiceImpl extends AccountService {
         _cloudObject.addressObject.getAddressesByUuid(primaryAddress.uuid);
 
     if (addresses.isEmpty) {
-      await MigrationUtil(injector()).migrationFromKeychain();
-      await androidRestoreKeys();
+      await _restoreAddressesFromOS();
 
       await Future.delayed(const Duration(seconds: 1));
       addresses =
@@ -386,25 +385,18 @@ class AccountServiceImpl extends AccountService {
       final addresses = _cloudObject.addressObject.getAllAddresses();
       final uuids = addresses.map((e) => e.uuid).toSet().toList();
 
-      await _androidBackupKeys(uuids);
-    }
-  }
-
-  Future _androidBackupKeys(List<String> uuids) async {
-    if (Platform.isAndroid) {
-      await _backupChannel.backupKeys(uuids);
+      await _androidBackupChannel.backupKeys(uuids);
     }
   }
 
   @override
   Future deleteAllKeys() async {
     if (Platform.isAndroid) {
-      await _backupChannel.deleteAllKeys();
+      await _androidBackupChannel.deleteAllKeys();
     }
   }
 
-  @override
-  Future<void> restoreUUIDs(List<String> uuids) async {
+  Future<void> _restoreUUIDs(List<String> uuids) async {
     final List<String> brokenUUIDs = [];
     for (var uuid in uuids) {
       final wallet = WalletStorage(uuid);
@@ -440,14 +432,13 @@ class AccountServiceImpl extends AccountService {
     }
   }
 
-  @override
-  Future androidRestoreKeys() async {
+  Future _androidRestoreKeys() async {
     if (Platform.isAndroid) {
-      final accounts = await _backupChannel.restoreKeys();
+      final accounts = await _androidBackupChannel.restoreKeys();
 
       final uuids = accounts.map((e) => e.uuid.toLowerCase()).toSet().toList();
 
-      await restoreUUIDs(uuids);
+      await _restoreUUIDs(uuids);
 
       await androidBackupKeys();
     }
@@ -474,7 +465,7 @@ class AccountServiceImpl extends AccountService {
 
   @override
   Future<bool?> isAndroidEndToEndEncryptionAvailable() =>
-      _backupChannel.isEndToEndEncryptionAvailable();
+      _androidBackupChannel.isEndToEndEncryptionAvailable();
 
   @override
   Future<List<String>> getAllAddresses({bool logHiddenAddress = false}) async {
@@ -774,8 +765,7 @@ class AccountServiceImpl extends AccountService {
   Future<void> _ensureHavingWalletAddress() async {
     final allAddresses = _cloudObject.addressObject.getAllAddresses();
     if (allAddresses.isEmpty) {
-      await androidRestoreKeys();
-      await MigrationUtil(this).migrationFromKeychain();
+      await _restoreAddressesFromOS();
       return;
     }
     final primaryAddress =
@@ -877,6 +867,33 @@ class AccountServiceImpl extends AccountService {
     await injector<nft_address.AddressService>()
         .addAddresses(addresses.map((e) => e.address).toList());
     return addresses;
+  }
+
+  @override
+  Future<String?> getBackupDeviceID() async {
+    if (Platform.isIOS) {
+      final String? deviceId = await _iosBackupChannel.getBackupDeviceID();
+
+      return deviceId ?? await getDeviceID();
+    } else {
+      return await getDeviceID();
+    }
+  }
+
+  Future<void> _migrationFromKeychain() async {
+    if (!Platform.isIOS) {
+      return;
+    }
+    final personaUUIDs = await _iosBackupChannel.getUUIDsFromKeychain();
+    await _restoreUUIDs(personaUUIDs);
+  }
+
+  Future<void> _restoreAddressesFromOS() async {
+    if (Platform.isIOS) {
+      await _migrationFromKeychain();
+    } else {
+      await _androidRestoreKeys();
+    }
   }
 
   @override
