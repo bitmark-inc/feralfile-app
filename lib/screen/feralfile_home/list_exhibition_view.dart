@@ -75,7 +75,7 @@ class ExploreExhibitionState extends State<ExploreExhibition> {
     final theme = Theme.of(context);
     return Center(
       child: Text(
-        'No exhibitions found',
+        'no_exhibition_found'.tr(),
         style: theme.textTheme.ppMori400White14,
       ),
     );

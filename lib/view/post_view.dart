@@ -69,18 +69,18 @@ class _ExhibitionPostViewState extends State<ExhibitionPostView> {
               if (widget.post.type != 'close-up') ...[
                 const SizedBox(height: 20),
                 Text(
-                  'Date: ${dateFormat.format(dateTime)}',
+                  '${'date'.tr()}: ${dateFormat.format(dateTime)}',
                   style: theme.textTheme.ppMori400White14,
                 ),
                 Text(
-                  'Time: ${timeFormat.format(dateTime)}',
+                  '${'time'.tr()}: ${timeFormat.format(dateTime)}',
                   style: theme.textTheme.ppMori400White14,
                 ),
               ],
               if (widget.post.author?.isNotEmpty ?? false) ...[
                 const SizedBox(height: 10),
                 Text(
-                  'by ${widget.post.author}',
+                  '${'by_empty'.tr()} ${widget.post.author}',
                   style: theme.textTheme.ppMori400White12,
                 ),
               ],

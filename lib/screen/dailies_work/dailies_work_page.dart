@@ -577,7 +577,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
           ),
           const SizedBox(height: 32),
           Text(
-            'Read more',
+            'read_more'.tr(),
             style: Theme.of(context).textTheme.ppMori400White14.copyWith(
                   decoration: TextDecoration.underline,
                 ),
@@ -613,7 +613,7 @@ class DailyWorkPageState extends State<DailyWorkPage>
         ),
         const SizedBox(height: 16),
         Text(
-          'Read more',
+          'read_more'.tr(),
           style: theme.textTheme.ppMori400White14.copyWith(
             decoration: TextDecoration.underline,
           ),
