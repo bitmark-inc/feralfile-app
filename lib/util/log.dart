@@ -1,20 +1,18 @@
-//
-//  SPDX-License-Identifier: BSD-2-Clause-Patent
-//  Copyright © 2022 Bitmark. All rights reserved.
-//  Use of this source code is governed by the BSD-2-Clause Plus Patent License
-//  that can be found in the LICENSE file.
-//
+// SPDX-License-Identifier: BSD-2-Clause-Patent
+// Copyright © 2022 Bitmark. All rights reserved.
+// Use of this source code is governed by the BSD-2-Clause Plus Patent License
+// that can be found in the LICENSE file.
 
 // ignore_for_file: avoid_annotating_with_dynamic
 
 import 'dart:core';
 import 'dart:io';
+import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-import 'package:synchronized/synchronized.dart' as synchronization;
 
 final log = Logger('App');
 final apiLog = Logger('API');
@@ -48,36 +46,63 @@ Future<File> getLogFile() async {
   return _createLogFile('$directory/$fileName');
 }
 
-Future<File> _createLogFile(canonicalLogFileName) async =>
+Future<File> _createLogFile(String canonicalLogFileName) async =>
     File(canonicalLogFileName).create(recursive: true);
 
 class FileLogger {
-  static final _lock =
-      synchronization.Lock(); // uses the “synchronized” package
   static late File _logFile;
-  static const shrinkSize = 1024 * 896; // 1MB characters
+  static const int maxFileSize = 1024 * 1024; // 1MB
+  static late StreamController<String> _logStreamController;
+  static bool _isInitialized = false;
 
   static Future initializeLogging() async {
-    await shrinkLogFileIfNeeded();
+    _logFile = await getLogFile();
+    _isInitialized = true;
+
+    // Initialize the StreamController and start the background task
+    _logStreamController = StreamController<String>();
+    _logStreamController.stream.listen(
+      (logEntry) async {
+        try {
+          await _writeLog(logEntry);
+        } catch (e) {
+          debugPrint('Error writing log: $e');
+        }
+      },
+      onError: (error) {
+        debugPrint('Stream error: $error');
+      },
+      onDone: () {
+        debugPrint('Log stream closed');
+      },
+    );
+
+    // Write initial log entry
+    final text = '${DateTime.now()}: LOGGING STARTED\n';
+    _logStreamController.add(text);
   }
 
-  static Future<File> shrinkLogFileIfNeeded() async {
-    _logFile = await getLogFile();
+  static Future<void> _writeLog(String text) async {
+    // Check if file size exceeds max size
+    await _rotateLogFileIfNeeded();
 
-    final current = await _logFile.readAsString();
-    if (current.length > shrinkSize) {
-      await _logFile.writeAsString(
-          current.substring(current.length - shrinkSize),
-          flush: true);
-    }
-
-    final text = '${DateTime.now()}: LOGGING STARTED\n';
-
-    /// per its documentation, `writeAsString` “Opens the file, writes
-    /// the string in the given encoding, and closes the file”
     await _logFile.writeAsString(text, mode: FileMode.append, flush: true);
+  }
 
-    return _logFile;
+  static Future<void> _rotateLogFileIfNeeded() async {
+    final fileStat = await _logFile.stat();
+    if (fileStat.size >= maxFileSize) {
+      // Rotate the log file
+      final directory = _logFile.parent.path;
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final rotatedFileName = 'app_$timestamp.log';
+
+      final rotatedFile = File('$directory/$rotatedFileName');
+      await _logFile.rename(rotatedFile.path);
+
+      // Create a new log file
+      _logFile = await getLogFile();
+    }
   }
 
   static void setLogFile(File file) {
@@ -87,27 +112,36 @@ class FileLogger {
   static File get logFile => _logFile;
 
   static Future log(LogRecord record) async {
-    var text = '$record\n';
+    if (!_isInitialized) {
+      await initializeLogging();
+    }
 
+    var text = '$record\n';
     text = _filterLog(text);
 
     debugPrint(text);
-    return _lock.synchronized(() async {
-      await _logFile.writeAsString('${record.time}: $text',
-          mode: FileMode.append, flush: true);
-    });
+
+    // Add log entry to the queue
+    _logStreamController.add('${record.time}: $text');
   }
 
   static Future<void> clear() async {
-    await _logFile.writeAsString('');
+    // Delete the current log file
+    await _logFile.delete();
+
+    // Create a new log file
+    _logFile = await getLogFile();
+  }
+
+  static Future dispose() async {
+    await _logStreamController.close();
   }
 
   static String _filterLog(String logText) {
     String filteredLog = logText;
 
-    RegExp combinedRegex = RegExp('("message":".*?")|'
-        '("Authorization: Bearer .*?")|'
-        '("X-Api-Signature: .*?")|'
+    RegExp combinedRegex = RegExp(
+        '("message":".*?")|("Authorization: Bearer .*?")|("X-Api-Signature: .*?")|'
         r'(signature: [^,\}]*)|'
         r'(location: \[.*?,.*?\])|'
         r'(\\"signature\\":\\".*?\\")|'
