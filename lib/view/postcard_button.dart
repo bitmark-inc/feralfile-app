@@ -237,6 +237,7 @@ class PostcardAsyncButton extends StatefulWidget {
   final Color? textColor;
   final Color? disabledTextColor;
   final double? fontSize;
+  final String label;
 
   const PostcardAsyncButton({
     super.key,
@@ -249,6 +250,7 @@ class PostcardAsyncButton extends StatefulWidget {
     this.textColor,
     this.disabledTextColor,
     this.fontSize,
+    this.label = '',
   });
 
   @override
@@ -261,7 +263,7 @@ class _PostcardAsyncButtonState extends State<PostcardAsyncButton> {
   @override
   Widget build(BuildContext context) => PostcardButton(
         onTap: () {
-          withDebounce(() async {
+          withDebounce(key: 'onTap${widget.label}', () async {
             setState(() {
               _isProcessing = true;
             });

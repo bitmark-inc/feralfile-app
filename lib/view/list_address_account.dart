@@ -166,9 +166,9 @@ class AddressItem extends StatelessWidget {
                     name.isNotEmpty
                         ? name
                         : cryptoType == CryptoType.ETH
-                            ? 'Ethereum'
+                            ? 'ethereum'.tr()
                             : cryptoType == CryptoType.XTZ
-                                ? 'Tezos'
+                                ? 'tezos'.tr()
                                 : '',
                     style: theme.textTheme.ppMori400Black14,
                     overflow: TextOverflow.ellipsis,

@@ -158,9 +158,9 @@ class PostcardAddressItem extends StatelessWidget {
                     name.isNotEmpty
                         ? name
                         : cryptoType == CryptoType.ETH
-                            ? 'Ethereum'
+                            ? 'ethereum'.tr()
                             : cryptoType == CryptoType.XTZ
-                                ? 'Tezos'
+                                ? 'tezos'.tr()
                                 : '',
                     style: theme.textTheme.moMASans700Black16
                         .copyWith(fontSize: 18),

@@ -56,7 +56,7 @@ class BugBountyPage extends StatelessWidget {
                 style: theme.textTheme.ppMori400Black16,
               ),
               const SizedBox(height: 32),
-              Text('Scope'.tr(), style: theme.textTheme.ppMori700Black24),
+              Text('scope'.tr(), style: theme.textTheme.ppMori700Black24),
               const SizedBox(height: 32),
               RichText(
                   textScaler: MediaQuery.textScalerOf(context),

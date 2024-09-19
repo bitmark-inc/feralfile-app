@@ -165,7 +165,7 @@ Future<void> _setupApp() async {
 
   runApp(
     EasyLocalization(
-      supportedLocales: const [Locale('en', 'US')],
+      supportedLocales: const [Locale('en', 'US'), Locale('ja')],
       path: 'assets/translations',
       fallbackLocale: const Locale('en', 'US'),
       child: const OverlaySupport.global(
