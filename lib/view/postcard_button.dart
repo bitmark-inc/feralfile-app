@@ -57,7 +57,9 @@ class PostcardButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(0),
           ),
         ),
-        onPressed: enabled ? onTap : null,
+        onPressed: () {
+          if (enabled) onTap?.call();
+        },
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 14),
           child: Center(
@@ -237,6 +239,7 @@ class PostcardAsyncButton extends StatefulWidget {
   final Color? textColor;
   final Color? disabledTextColor;
   final double? fontSize;
+  final String label;
 
   const PostcardAsyncButton({
     super.key,
@@ -249,6 +252,7 @@ class PostcardAsyncButton extends StatefulWidget {
     this.textColor,
     this.disabledTextColor,
     this.fontSize,
+    this.label = '',
   });
 
   @override
@@ -261,7 +265,8 @@ class _PostcardAsyncButtonState extends State<PostcardAsyncButton> {
   @override
   Widget build(BuildContext context) => PostcardButton(
         onTap: () {
-          withDebounce(() async {
+          log.info('PostcardAsyncButton onTap');
+          withDebounce(key: 'onTap${widget.label}', () async {
             setState(() {
               _isProcessing = true;
             });

@@ -254,6 +254,7 @@ class _DesignStampPageState extends State<DesignStampPage> {
                         fontSize: 18,
                         color: MoMAColors.moMA8,
                         enabled: _didPaint,
+                        label: 'design_stamp_continue',
                         onTap: () async {
                           setState(() {
                             _line = false;
