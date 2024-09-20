@@ -11,10 +11,12 @@ class DailiesHelper {
     final configScheduleTime = injector<RemoteConfigService>()
         .getConfig<String>(ConfigGroup.daily, ConfigKey.scheduleTime,
             defaultScheduleTime.toString());
-    final now =
-        DateTime.now().subtract(Duration(hours: int.parse(configScheduleTime)));
-    return _dailies
-        .lastWhereOrNull((element) => element.displayTime.isBefore(now));
+    final now = DateTime.now();
+    final todayDisplayTime = now
+        .add(now.timeZoneOffset)
+        .subtract(Duration(hours: int.parse(configScheduleTime)));
+    return _dailies.lastWhereOrNull(
+        (element) => element.displayTime.isBefore(todayDisplayTime));
   }
 
   static void updateDailies(List<DailyToken> dailies) {
