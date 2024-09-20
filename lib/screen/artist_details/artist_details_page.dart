@@ -205,14 +205,14 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
           ),
         ],
         if (user.instagramUrl != null && user.instagramUrl!.isNotEmpty) ...[
-          _artistUrl(context, user.instagramUrl!, title: 'Instagram'),
+          _artistUrl(context, user.instagramUrl!, title: 'instagram'.tr()),
           const SizedBox(
             height: 12,
           ),
         ],
 
         if (user.twitterUrl != null && user.twitterUrl!.isNotEmpty) ...[
-          _artistUrl(context, user.twitterUrl!, title: 'Twitter'),
+          _artistUrl(context, user.twitterUrl!, title: 'twitter'.tr()),
           const SizedBox(
             height: 12,
           ),

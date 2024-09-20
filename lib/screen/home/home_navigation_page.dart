@@ -200,7 +200,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
             },
           ),
           OptionItem(
-            title: 'Settings',
+            title: 'settings'.tr(),
             icon: const Icon(
               AuIcon.settings,
             ),
@@ -209,7 +209,7 @@ class HomeNavigationPageState extends State<HomeNavigationPage>
             },
           ),
           OptionItem(
-              title: 'Help',
+              title: 'help'.tr(),
               icon: ValueListenableBuilder<List<int>?>(
                 valueListenable:
                     injector<CustomerSupportService>().numberOfIssuesInfo,

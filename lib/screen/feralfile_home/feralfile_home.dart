@@ -377,7 +377,8 @@ class FeralfileHomePageState extends State<FeralfileHomePage>
     return Container(
       padding: const EdgeInsets.all(16),
       child: Center(
-        child: Text('R&D coming soon', style: theme.textTheme.ppMori700White24),
+        child: Text('rnd_coming_soon'.tr(),
+            style: theme.textTheme.ppMori700White24),
       ),
     );
   }
