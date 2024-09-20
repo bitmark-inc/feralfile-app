@@ -196,21 +196,21 @@ abstract class FeralFileService {
     Map<FilterType, FilterValue> filters = const {},
   });
 
-  Future<FeralFileListResponse<FFArtist>> exploreArtists(
+  Future<FeralFileListResponse<FFUser>> exploreArtists(
       {int limit = 20,
       int offset = 0,
       String keywork = '',
       String orderBy = 'relevance',
       String sortOrder = 'DESC'});
 
-  Future<FeralFileListResponse<FFCurator>> exploreCurators(
+  Future<FeralFileListResponse<FFUser>> exploreCurators(
       {int limit = 20,
       int offset = 0,
       String keywork = '',
       String orderBy = 'relevance',
       String sortOrder = 'DESC'});
 
-  Future<FFUserDetails> getUser(String artistID);
+  Future<FFUser> getUser(String artistID);
 
   Future<List<Post>> getPosts({
     String sortBy = 'dateTime',
@@ -308,7 +308,7 @@ class FeralFileServiceImpl extends FeralFileService {
   @override
   Future<String?> getPartnerFullName(String exhibitionId) async {
     final exhibition = await _feralFileApi.getExhibition(exhibitionId);
-    return exhibition.result!.partner?.fullName;
+    return exhibition.result!.partner?.alumniAccount?.fullName;
   }
 
   @override
@@ -829,7 +829,7 @@ class FeralFileServiceImpl extends FeralFileService {
   }
 
   @override
-  Future<FeralFileListResponse<FFArtist>> exploreArtists(
+  Future<FeralFileListResponse<FFUser>> exploreArtists(
       {int limit = 20,
       int offset = 0,
       String keywork = '',
@@ -845,7 +845,7 @@ class FeralFileServiceImpl extends FeralFileService {
   }
 
   @override
-  Future<FeralFileListResponse<FFCurator>> exploreCurators(
+  Future<FeralFileListResponse<FFUser>> exploreCurators(
       {int limit = 20,
       int offset = 0,
       String keywork = '',
@@ -861,7 +861,7 @@ class FeralFileServiceImpl extends FeralFileService {
   }
 
   @override
-  Future<FFUserDetails> getUser(String artistID) async {
+  Future<FFUser> getUser(String artistID) async {
     final res = await _feralFileApi.getUser(accountId: artistID);
     return res.result;
   }

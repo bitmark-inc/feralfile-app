@@ -12,7 +12,7 @@ class SeriesTitleView extends StatelessWidget {
       {required this.series, super.key, this.crossAxisAlignment, this.artist});
 
   final FFSeries series;
-  final FFArtist? artist;
+  final FFUser? artist;
   final CrossAxisAlignment? crossAxisAlignment;
 
   @override
@@ -27,10 +27,10 @@ class SeriesTitleView extends StatelessWidget {
             style: theme.textTheme.ppMori400White14,
           ),
           onTap: () async => {
-            if (artist?.slug != null)
+            if (artist?.alumniAccount?.slug != null)
               {
                 injector<NavigationService>()
-                    .openFeralFileArtistPage(artist!.slug!)
+                    .openFeralFileArtistPage(artist!.alumniAccount!.slug!)
               }
           },
         ),

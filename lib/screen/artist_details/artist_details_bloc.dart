@@ -24,8 +24,7 @@ class UserDetailsBloc extends AuBloc<UserDetailsEvent, UserDetailsState> {
     on<ArtistDetailsFetchArtistEvent>((event, emit) async {
       final artist = await _feralFileService.getUser(event.artistId);
       final artistId = artist.id;
-      final linkedAccountIds =
-          artist.linkedAccounts.map((account) => account.id).toList();
+      final linkedAccountIds = artist.alumniAccount?.linkedAddresses ?? [];
 
       final artworks = await _feralFileService.exploreArtworks(
         artistIds: [artistId, ...linkedAccountIds],

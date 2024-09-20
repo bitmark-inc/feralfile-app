@@ -4,7 +4,6 @@ import 'package:autonomy_flutter/model/ff_user.dart';
 import 'package:autonomy_flutter/screen/dailies_work/dailies_work_state.dart';
 import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
-import 'package:autonomy_flutter/util/feralfile_artist_ext.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nft_collection/graphql/model/get_list_tokens.dart';
 import 'package:nft_collection/models/asset_token.dart';
@@ -15,19 +14,19 @@ class DailyWorkEvent {}
 class GetDailyAssetTokenEvent extends DailyWorkEvent {}
 
 class DailyWorkBloc extends Bloc<DailyWorkEvent, DailiesWorkState> {
-  final FeralFileService _feralfileSerivce;
+  final FeralFileService _feralfileService;
   final IndexerService _indexerService;
 
-  DailyWorkBloc(this._feralfileSerivce, this._indexerService)
+  DailyWorkBloc(this._feralfileService, this._indexerService)
       : super(DailiesWorkState(
             assetTokens: [],
             currentDailyToken: null,
             currentArtist: null,
             currentExhibition: null)) {
     on<GetDailyAssetTokenEvent>((event, emit) async {
-      final dailiesToken = await _feralfileSerivce.getCurrentDailiesToken();
+      final dailiesToken = await _feralfileService.getCurrentDailiesToken();
       final assetTokens = <AssetToken>[];
-      FFArtist? currentArtist;
+      FFUser? currentArtist;
       Exhibition? currentExhibition;
       if (dailiesToken != null) {
         final tokens = await _indexerService
@@ -38,10 +37,9 @@ class DailyWorkBloc extends Bloc<DailyWorkEvent, DailiesWorkState> {
       final token = assetTokens.first;
       if (token.isFeralfile) {
         if (token.artistID != null) {
-          currentArtist =
-              (await _feralfileSerivce.getUser(token.artistID!)).toFFArtist();
+          currentArtist = await _feralfileService.getUser(token.artistID!);
         }
-        currentExhibition = await _feralfileSerivce
+        currentExhibition = await _feralfileService
             .getExhibitionFromTokenID(dailiesToken!.tokenID);
       }
 

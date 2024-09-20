@@ -106,9 +106,9 @@ class UserProfile extends StatelessWidget {
         const SizedBox(
           height: 24,
         ),
-        if (user is FFUserDetails && user.location != null) ...[
+        if (user.alumniAccount?.location != null) ...[
           Text(
-            user.location!,
+            user.alumniAccount!.location!,
             style: subTitleStyle.copyWith(
               fontStyle: FontStyle.italic,
             ),
@@ -117,10 +117,9 @@ class UserProfile extends StatelessWidget {
             height: 24,
           ),
         ],
-        if (user is FFUserDetails &&
-            user.website != null &&
-            user.website!.isNotEmpty) ...[
-          _artistUrl(context, user.website!),
+        if (user.alumniAccount?.website != null &&
+            user.alumniAccount!.website!.isNotEmpty) ...[
+          _artistUrl(context, user.alumniAccount!.website!),
           const SizedBox(
             height: 12,
           ),
@@ -141,9 +140,9 @@ class UserProfile extends StatelessWidget {
         const SizedBox(
           height: 32,
         ),
-        if (user.bio != null) ...[
+        if (user.alumniAccount?.bio != null) ...[
           ReadMoreText(
-            text: user.bio!,
+            text: user.alumniAccount!.bio!,
             style: theme.textTheme.ppMori400White14,
           ),
           const SizedBox(
