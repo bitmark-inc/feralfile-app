@@ -31,12 +31,12 @@ class MockMetricClientService extends _i1.Mock
   }
 
   @override
-  bool get isFinishInit => (super.noSuchMethod(
+  bool get _isFinishInit => (super.noSuchMethod(
         Invocation.getter(#isFinishInit),
         returnValue: false,
       ) as bool);
   @override
-  set isFinishInit(bool? _isFinishInit) => super.noSuchMethod(
+  set _isFinishInit(bool? _isFinishInit) => super.noSuchMethod(
         Invocation.setter(
           #isFinishInit,
           _isFinishInit,

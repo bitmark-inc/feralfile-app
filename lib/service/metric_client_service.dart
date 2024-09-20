@@ -13,7 +13,7 @@ import 'package:sentry/sentry.dart';
 class MetricClientService {
   MetricClientService();
 
-  bool isFinishInit = false;
+  bool _isFinishInit = false;
 
   String _identifier = '';
 
@@ -21,7 +21,7 @@ class MetricClientService {
 
   Future<void> initService({String? identifier}) async {
     _identifier = identifier ?? _defaultIdentifier();
-    isFinishInit = true;
+    _isFinishInit = true;
 
     // count open app
     await addEvent(MetricEventName.openApp.name);
@@ -80,33 +80,33 @@ class MetricClientService {
   }
 
   void timerEvent(String name) {
-    if (isFinishInit) {
+    if (_isFinishInit) {
       // time event here
     }
   }
 
   Future<void> mergeUser(String oldUserId) async {
-    if (isFinishInit) {
+    if (_isFinishInit) {
       // new userId will include in jwt token
       await injector<IAPApi>().updateMetrics(oldUserId);
     }
   }
 
   void setLabel(String prop, dynamic value) {
-    if (isFinishInit) {
+    if (_isFinishInit) {
       // mixPanelClient.setLabel(prop, value);
     }
   }
 
   void incrementPropertyLabel(String prop, double value) {
-    if (isFinishInit) {
+    if (_isFinishInit) {
       // mixPanelClient.incrementPropertyLabel(prop, value);
     }
   }
 
   Future<void> reset() async {
     try {
-      if (isFinishInit) {
+      if (_isFinishInit) {
         final deviceId = _defaultIdentifier();
         await injector<IAPApi>().deleteMetrics(deviceId);
       }
