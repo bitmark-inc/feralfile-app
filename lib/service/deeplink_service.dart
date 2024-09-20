@@ -177,6 +177,11 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
   // function to handle deeplink before user do onboarding
   Future<void> handleDeeplinkBeforeOnboarding(String? link) async {
+    // because referralCodeCompleter has a timeout in restoreIfNeeded,
+    // so we don't need to set it null if initial link is null
+    if (link == null) {
+      return;
+    }
     try {
       Map<dynamic, dynamic>? data;
       //if user has done onboarding, return
@@ -184,7 +189,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
         data = {};
       } else
       // if link is null or empty, return
-      if (link == null || link.isEmpty) {
+      if (link.isEmpty) {
         data = {};
       } else {
         data = await _branchApi.getParams(Environment.branchKey, link);

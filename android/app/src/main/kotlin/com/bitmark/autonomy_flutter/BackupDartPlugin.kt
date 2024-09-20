@@ -168,7 +168,7 @@ class BackupDartPlugin : MethodChannel.MethodCallHandler {
                     val dataMap = bytes.blockstoreDataMap
                     Log.d("BackupDartPlugin", "Retrieved blockstoreDataMap with ${dataMap.size} entries.")
 
-                    val defaultBytesData = dataMap[DEFAULT_BYTES_DATA_KEY]
+                    val defaultBytesData = dataMap[BlockstoreClient.DEFAULT_BYTES_DATA_KEY]
                     if (defaultBytesData == null) {
                         Log.w("BackupDartPlugin", "No data found for DEFAULT_BYTES_DATA_KEY.")
                         result.success("")
