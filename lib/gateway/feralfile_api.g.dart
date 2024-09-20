@@ -416,6 +416,40 @@ class _FeralFileApi implements FeralFileApi {
   }
 
   @override
+  Future<FeralFileListResponse<DailyToken>> getDailiesTokenByDate({
+    required String date,
+    bool? includeSuccessfulSwap = true,
+  }) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'includeSuccessfulSwap': includeSuccessfulSwap
+    };
+    queryParameters.removeWhere((k, v) => v == null);
+    final _headers = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
+    final _result = await _dio.fetch<Map<String, dynamic>>(
+        _setStreamType<FeralFileListResponse<DailyToken>>(Options(
+      method: 'GET',
+      headers: _headers,
+      extra: _extra,
+    )
+            .compose(
+              _dio.options,
+              '/api/dailies/date/${date}',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(
+                baseUrl: _combineBaseUrls(
+              _dio.options.baseUrl,
+              baseUrl,
+            ))));
+    final value = FeralFileListResponse<DailyToken>.fromJson(
+        _result.data!, DailyToken.fromJson);
+    return value;
+  }
+
+  @override
   Future<FeralFileListResponse<FFSeries>> exploreArtwork({
     String? sortBy,
     String? sortOrder,

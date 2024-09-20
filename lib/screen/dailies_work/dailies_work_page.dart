@@ -13,8 +13,8 @@ import 'package:autonomy_flutter/screen/detail/artwork_detail_page.dart';
 import 'package:autonomy_flutter/screen/detail/preview/canvas_device_bloc.dart';
 import 'package:autonomy_flutter/screen/detail/preview_detail/preview_detail_widget.dart';
 import 'package:autonomy_flutter/screen/exhibition_details/exhibition_detail_page.dart';
-import 'package:autonomy_flutter/service/feralfile_service.dart';
 import 'package:autonomy_flutter/service/navigation_service.dart';
+import 'package:autonomy_flutter/service/remote_config_service.dart';
 import 'package:autonomy_flutter/util/asset_token_ext.dart';
 import 'package:autonomy_flutter/util/log.dart';
 import 'package:autonomy_flutter/util/string_ext.dart';
@@ -38,7 +38,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:nft_collection/models/asset_token.dart';
-import 'package:sentry/sentry.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class DailyWorkPage extends StatefulWidget {
@@ -51,8 +50,6 @@ class DailyWorkPage extends StatefulWidget {
 class DailyWorkPageState extends State<DailyWorkPage>
     with AutomaticKeepAliveClientMixin, RouteAware {
   Timer? _timer;
-  DailyToken? _currentDailyToken;
-  DailyToken? _nextDailyToken;
   Duration? _remainingDuration;
   Timer? _progressTimer;
   PageController? _pageController;
@@ -91,20 +88,14 @@ class DailyWorkPageState extends State<DailyWorkPage>
   }
 
   Future<void> scheduleNextDailyWork(BuildContext context) async {
-    _nextDailyToken = await injector<FeralFileService>().getNextDailiesToken();
     setState(() {
-      _nextDailyToken = _nextDailyToken;
       _remainingDuration = _calcRemainingDuration;
     });
-    if (_nextDailyToken == null) {
-      unawaited(Sentry.captureMessage('nextDailyToken is null'));
-    }
     const defaultDuration = Duration(hours: 1);
-    final nextDailyduration =
-        _calcRemainingDuration ?? (_nextDay.difference(DateTime.now()));
-    final duration = nextDailyduration > defaultDuration
+    final nextDailyDuration = _calcRemainingDuration;
+    final duration = nextDailyDuration > defaultDuration
         ? defaultDuration
-        : nextDailyduration;
+        : nextDailyDuration;
     _timer?.cancel();
     _timer = Timer(duration, () {
       log.info('Get Daily Asset Token');
@@ -112,10 +103,15 @@ class DailyWorkPageState extends State<DailyWorkPage>
     });
   }
 
-  DateTime get _nextDay {
-    final now = DateTime.now();
+  DateTime get _nextDailyDateTime {
+    const defaultScheduleTime = 6;
+    final configScheduleTime = injector<RemoteConfigService>()
+        .getConfig<String>(ConfigGroup.daily, ConfigKey.scheduleTime,
+            defaultScheduleTime.toString());
+    final now =
+        DateTime.now().subtract(Duration(hours: int.parse(configScheduleTime)));
     final startNextDay = DateTime(now.year, now.month, now.day + 1).add(
-      const Duration(seconds: 3),
+      Duration(hours: int.parse(configScheduleTime), seconds: 3),
       // add 3 seconds to avoid the same artwork
     );
     return startNextDay;
@@ -144,13 +140,10 @@ class DailyWorkPageState extends State<DailyWorkPage>
         duration: const Duration(milliseconds: 300), curve: Curves.easeInOut));
   }
 
-  Duration? get _calcTotalDuration => (_nextDailyToken?.displayTime != null &&
-          _currentDailyToken?.displayTime != null)
-      ? _nextDailyToken?.displayTime.difference(_currentDailyToken!.displayTime)
-      : null;
+  Duration? get _calcTotalDuration => const Duration(hours: 24);
 
-  Duration? get _calcRemainingDuration =>
-      _nextDailyToken?.displayTime.difference(DateTime.now());
+  Duration get _calcRemainingDuration =>
+      _nextDailyDateTime.difference(DateTime.now());
 
   void updateProgressStatus() {
     _progressTimer?.cancel();
@@ -288,9 +281,6 @@ class DailyWorkPageState extends State<DailyWorkPage>
                   context
                       .read<IdentityBloc>()
                       .add(GetIdentityEvent(identitiesList));
-                  setState(() {
-                    _currentDailyToken = state.currentDailyToken;
-                  });
                   unawaited(scheduleNextDailyWork(context));
                   updateProgressStatus();
                 }

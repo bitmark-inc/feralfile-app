@@ -76,6 +76,7 @@ class _OnboardingPageState extends State<OnboardingPage>
     if (!mounted) {
       return;
     }
+    await metricClient.identity();
     await _goToTargetScreen(context);
   }
 
