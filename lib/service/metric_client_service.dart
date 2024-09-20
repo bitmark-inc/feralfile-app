@@ -13,15 +13,12 @@ import 'package:sentry/sentry.dart';
 class MetricClientService {
   MetricClientService();
 
-  bool _isFinishInit = false;
-
   String _identifier = '';
 
   String _defaultIdentifier() => injector<DeviceInfoService>().deviceId;
 
   Future<void> initService({String? identifier}) async {
     _identifier = identifier ?? _defaultIdentifier();
-    _isFinishInit = true;
 
     // count open app
     await addEvent(MetricEventName.openApp.name);
@@ -80,36 +77,26 @@ class MetricClientService {
   }
 
   void timerEvent(String name) {
-    if (_isFinishInit) {
-      // time event here
-    }
+    // time event here
   }
 
   Future<void> mergeUser(String oldUserId) async {
-    if (_isFinishInit) {
-      // new userId will include in jwt token
-      await injector<IAPApi>().updateMetrics(oldUserId);
-    }
+    // new userId will include in jwt token
+    await injector<IAPApi>().updateMetrics(oldUserId);
   }
 
   void setLabel(String prop, dynamic value) {
-    if (_isFinishInit) {
-      // mixPanelClient.setLabel(prop, value);
-    }
+    // mixPanelClient.setLabel(prop, value);
   }
 
   void incrementPropertyLabel(String prop, double value) {
-    if (_isFinishInit) {
-      // mixPanelClient.incrementPropertyLabel(prop, value);
-    }
+    // mixPanelClient.incrementPropertyLabel(prop, value);
   }
 
   Future<void> reset() async {
     try {
-      if (_isFinishInit) {
-        final deviceId = _defaultIdentifier();
-        await injector<IAPApi>().deleteMetrics(deviceId);
-      }
+      final deviceId = _defaultIdentifier();
+      await injector<IAPApi>().deleteMetrics(deviceId);
     } catch (e) {
       unawaited(Sentry.captureException('Metric reset error: $e'));
     }
