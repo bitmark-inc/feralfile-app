@@ -8,7 +8,9 @@
 // ignore_for_file: cascade_invocations
 
 import 'dart:async';
+import 'dart:convert';
 
+import 'package:archive/archive.dart';
 import 'package:autonomy_flutter/common/environment.dart';
 import 'package:autonomy_flutter/common/injector.dart';
 import 'package:autonomy_flutter/gateway/branch_api.dart';
@@ -122,23 +124,52 @@ class DeeplinkServiceImpl extends DeeplinkService {
       log.warning('[DeeplinkService] InitBranchSession error: $error');
       _isBranchDataGiftMembership = false;
       _notifyGiftMembershipFlag();
-      referralCodeCompleter.complete(null);
+      _completeReferralCodeCompleter(null);
     });
 
     // init universal link
     try {
       final initialLink = await getInitialLink();
       log.info('[DeeplinkService] initialLink: $initialLink');
-      if (initialLink != null) {
-        _deepLinkStreamController.add(initialLink);
+      final decodedLink = _decodeIfNeeded(initialLink);
+      if (decodedLink != null) {
+        _deepLinkStreamController.add(decodedLink);
       }
 
-      await handleDeeplinkBeforeOnboarding(initialLink);
+      await handleDeeplinkBeforeOnboarding(decodedLink);
 
       linkStream.listen(handleDeeplink);
     } on PlatformException {
       //Ignore
     }
+  }
+
+  String? _decodeIfNeeded(String? fullLink) {
+    if (fullLink == null) {
+      return null;
+    }
+    if (APP_DEEP_LINKS.any((element) => fullLink.startsWith(element)) &&
+        fullLink.contains('_branch_referrer=')) {
+      log.info('[DeeplinkService] _decodeIfNeeded $fullLink');
+      final encodedLink =
+          fullLink.split('_branch_referrer=').last.split('&').first;
+      log.info('[DeeplinkService] _decodeIfNeeded encodedLink $encodedLink');
+      final decodeLink = _decodeBranchReferrer(encodedLink);
+      log.info('[DeeplinkService] _decodeIfNeeded decodeLink $decodeLink');
+      return decodeLink;
+    }
+    return fullLink;
+  }
+
+  String _decodeBranchReferrer(String encodedString) {
+    // Step 1: Base64 decode
+    List<int> base64Decoded = base64.decode(encodedString);
+
+    // Step 2: GZIP decompress
+    List<int> decompressed = GZipDecoder().decodeBytes(base64Decoded);
+
+    // Convert the decompressed data to a string
+    return utf8.decode(decompressed);
   }
 
   bool _isThisGiftMembership(Map<dynamic, dynamic> data) {

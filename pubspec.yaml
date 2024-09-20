@@ -166,6 +166,7 @@ dependencies:
   cryptography_flutter: ^2.3.2
   flutter_app_badger: ^1.5.0
   wakelock_plus: ^1.2.8
+  archive: ^3.6.1
 dependency_overrides:
   intl: 0.18.0
   archive: ^3.6.1

@@ -41,10 +41,14 @@ const IRL_DEEPLINK_PREFIXES = [
 const AUTONOMY_CLIENT_GITHUB_LINK =
     'https://github.com/bitmark-inc/autonomy-client';
 const DEEP_LINKS = [
-  'autonomy://',
   'https://autonomy.io',
   'https://au.bitmark.com',
   ...Constants.branchDeepLinks,
+  ...APP_DEEP_LINKS
+];
+
+const APP_DEEP_LINKS = [
+  'autonomy://',
   'feralfile://',
 ];
 const FF_ARTIST_COLLECTOR =
