@@ -208,6 +208,8 @@ class DeeplinkServiceImpl extends DeeplinkService {
   Future<void> handleDeeplinkDataBeforeOnboarding(
       Map<dynamic, dynamic> data) async {
     if (injector<ConfigurationService>().isDoneOnboarding()) {
+      log.info('[DeeplinkService] handleDeeplinkDataBeforeOnboarding'
+          ' done onboarding');
       referralCodeCompleter.complete(null);
       return;
     }
@@ -224,6 +226,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
     if (referralCode != null) {
       await injector<ConfigurationService>().setReferralCode(referralCode);
     }
+    log.info('[DeeplinkService] _handleReferralCodeDeeplinkData $referralCode');
     referralCodeCompleter.complete(referralCode);
   }
 
