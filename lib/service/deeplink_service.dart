@@ -177,11 +177,6 @@ class DeeplinkServiceImpl extends DeeplinkService {
 
   // function to handle deeplink before user do onboarding
   Future<void> handleDeeplinkBeforeOnboarding(String? link) async {
-    // because referralCodeCompleter has a timeout in restoreIfNeeded,
-    // so we don't need to set it null if initial link is null
-    if (link == null) {
-      return;
-    }
     try {
       Map<dynamic, dynamic>? data;
       //if user has done onboarding, return
@@ -189,7 +184,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
         data = {};
       } else
       // if link is null or empty, return
-      if (link.isEmpty) {
+      if (link == null || link.isEmpty) {
         data = {};
       } else {
         data = await _branchApi.getParams(Environment.branchKey, link);
@@ -210,7 +205,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
     if (injector<ConfigurationService>().isDoneOnboarding()) {
       log.info('[DeeplinkService] handleDeeplinkDataBeforeOnboarding'
           ' done onboarding');
-      referralCodeCompleter.complete(null);
+      _completeReferralCodeCompleter(null);
       return;
     }
     // make sure _handleReferralCodeDeeplinkData always be called
@@ -227,7 +222,13 @@ class DeeplinkServiceImpl extends DeeplinkService {
       await injector<ConfigurationService>().setReferralCode(referralCode);
     }
     log.info('[DeeplinkService] _handleReferralCodeDeeplinkData $referralCode');
-    referralCodeCompleter.complete(referralCode);
+    _completeReferralCodeCompleter(referralCode);
+  }
+
+  void _completeReferralCodeCompleter(String? code) {
+    if (!referralCodeCompleter.isCompleted) {
+      referralCodeCompleter.complete(code);
+    }
   }
 
   @override
