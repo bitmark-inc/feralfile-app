@@ -220,7 +220,7 @@ class DeeplinkServiceImpl extends DeeplinkService {
       } else {
         data = await _branchApi.getParams(Environment.branchKey, link);
       }
-      await handleDeeplinkDataBeforeOnboarding(data!);
+      await handleDeeplinkDataBeforeOnboarding(data!['data'] ?? {});
     } catch (e) {
       log.info('[DeeplinkService] handleDeeplinkBeforeOnboarding error $e');
       unawaited(Sentry.captureException(e));
